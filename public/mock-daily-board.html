@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Daily board: top bar + tile integration, 3 concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0e1d40; --navy2:#13264c; --raise:#16294f; --raise2:#1b3160;
+    --line:#223353; --line2:#2a4166;
+    --ground:#f7f8fa; --gold:#e8b43a; --green:#22c55e; --dim:#93a3bd; --soft:#c3d2e8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ground);font-family:'Manrope',system-ui,sans-serif;color:#1c1e24;padding:34px 26px 70px;}
+  .page{max-width:1180px;margin:0 auto;}
+  h1{font-size:23px;font-weight:800;letter-spacing:-.4px;margin:0 0 6px;}
+  .sub{font-size:14px;color:#5b6472;font-weight:600;margin:0 0 34px;max-width:78ch;line-height:1.5;}
+  .concept{margin:0 0 46px;}
+  .chd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:5px;}
+  .cnum{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b909d;}
+  .cttl{font-size:18px;font-weight:800;letter-spacing:-.2px;}
+  .cwhy{font-size:13px;color:#5b6472;font-weight:600;margin:0 0 14px;max-width:88ch;line-height:1.5;}
+  .board{max-width:830px;}
+
+  /* shared bits */
+  .eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);}
+  .icon{width:44px;height:38px;display:flex;align-items:center;justify-content:center;}
+  .icon img{height:30px;width:auto;max-width:40px;object-fit:contain;}
+  .play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--gold);color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;}
+  .ghost{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line2);background:transparent;color:var(--soft);font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;cursor:pointer;font-family:inherit;}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;width:150px;}
+  .bar>i{display:block;height:100%;background:#34d399;border-radius:99px;}
+  .tnm{font-size:12.5px;font-weight:800;color:#fff;letter-spacing:-.2px;}
+  .tsub{font-size:10px;font-weight:700;color:var(--dim);}
+  .tsub.done{color:#6ee7b7;} .tsub.strk{color:#f0c95a;}
+  .lead{font-size:10px;font-weight:700;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+  .chip{border:1px solid var(--line2);background:transparent;color:var(--soft);font-weight:700;font-size:12px;border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;}
+  .chip.on{background:var(--gold);color:#1c1e24;border-color:var(--gold);}
+  .lab{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;}
+
+  /* ─────────── A: one slab ─────────── */
+  .A{background:var(--navy);border-radius:16px;padding:13px;}
+  .A .hero{display:flex;align-items:center;gap:15px;background:var(--navy2);border:1px solid var(--line);border-radius:12px;padding:17px 18px;margin-bottom:12px;color:#eef3fb;}
+  .A .hero .nm{font-size:22px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;margin-top:2px;}
+  .A .filters{display:flex;align-items:center;gap:8px;padding:0 3px 11px;}
+  .A .grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
+  .A .t{position:relative;overflow:hidden;background:var(--raise);border:1px solid var(--line2);border-radius:11px;padding:13px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+  .A .t .glow{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:74px;height:56px;border-radius:50%;filter:blur(17px);opacity:.5;}
+  .A .t .acc{position:absolute;top:0;left:0;right:0;height:4px;}
+  .A .t.done{background:#0e3323;border-color:#2a6b48;}
+  .A .t.done .acc{background:var(--green)!important;}
+  .A .t>*{position:relative;}
+
+  /* ─────────── B: welded header ─────────── */
+  .B .cap{background:var(--navy);border-radius:14px 14px 0 0;padding:16px 18px 0;color:#eef3fb;}
+  .B .caprow{display:flex;align-items:center;gap:15px;padding-bottom:15px;}
+  .B .cap .nm{font-size:23px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;margin-top:2px;}
+  .B .tabs{display:flex;align-items:flex-end;gap:5px;border-top:1px solid var(--line);padding-top:9px;}
+  .B .tab{border:none;background:transparent;color:var(--dim);font-weight:800;font-size:12px;padding:9px 14px;border-radius:9px 9px 0 0;cursor:pointer;font-family:inherit;}
+  .B .tab.on{background:var(--navy2);color:#fff;}
+  .B .grid{background:var(--navy2);border-radius:0 0 14px 14px;padding:12px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
+  .B .t{position:relative;background:#0c1b3a;border:1px solid var(--line);border-radius:11px;padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;}
+  .B .t .badge{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;}
+  .B .t .badge img{height:26px;width:auto;max-width:34px;object-fit:contain;}
+  .B .t.done{background:#0d3122;border-color:#2f7a52;}
+  .B .t.risk{border-color:rgba(240,201,90,.55);}
+  .B .t.prog{border-color:rgba(232,180,58,.75);box-shadow:0 0 0 1px rgba(232,180,58,.3);}
+  .B .t .tick{position:absolute;top:7px;right:8px;width:15px;height:15px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;}
+
+  /* ─────────── C: feature tile in grid ─────────── */
+  .C .strip{background:var(--navy);border-radius:14px 14px 0 0;padding:12px 16px;display:flex;align-items:center;gap:10px;}
+  .C .grid{background:var(--navy);border-radius:0 0 14px 14px;padding:0 12px 12px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:auto;gap:8px;}
+  .C .feat{grid-column:span 2;grid-row:span 2;position:relative;overflow:hidden;background:var(--raise2);border:1px solid #35528a;border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;color:#eef3fb;}
+  .C .feat .fglow{position:absolute;inset:-40% 30% 40% -30%;border-radius:50%;filter:blur(40px);opacity:.45;}
+  .C .feat>*{position:relative;}
+  .C .feat .nm{font-size:26px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:9px;}
+  .C .t{position:relative;overflow:hidden;background:#0b1a38;border:1px solid var(--line);border-radius:11px;padding:11px 7px 9px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+  .C .t .acc{position:absolute;top:0;left:0;right:0;height:3px;}
+  .C .t.done{background:#0c2a1e;border-color:#245c3d;}
+  .C .t.done .acc{background:var(--green)!important;}
+  .C .t.risk{background:#16294f;border-color:#3a557f;}
+  .C .t>*{position:relative;}
+  .flame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,.15);border:1px solid rgba(232,180,58,.42);border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:800;color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Daily board: welding the top bar to the tiles</h1>
+  <p class="sub">Three ways to close the light gap under the Up Next bar and give the tiles more variety. All three use the live tokens (navy #0e1d40, gold #e8b43a, Manrope) and the real game art, so what you see is what would ship.</p>
+
+  <div class="concept">
+    <div class="chd"><span class="cnum">Concept 1</span><span class="cttl">One slab</span></div>
+    <p class="cwhy">The hero, the filters, and the grid all move inside a single navy container, so there is no page ground showing anywhere between them. Tiles pop by sitting on a lighter raised surface than the container, each with a 4px accent cap and a soft wash of its own color behind the art.</p>
+    <div class="board" id="mockA"></div>
+  </div>
+
+  <div class="concept">
+    <div class="chd"><span class="cnum">Concept 2</span><span class="cttl">Welded header, state-coded tiles</span></div>
+    <p class="cwhy">The bar keeps its own identity but is physically joined to the board: rounded top corners only, and the filters become tabs that bridge the two. Uniformity is broken by state rather than decoration, so the board reads at a glance: finished tiles go green with a check, in-progress gets a gold ring, streak-at-risk gets a gold edge, and every icon sits in a tinted square of its own color.</p>
+    <div class="board" id="mockB"></div>
+  </div>
+
+  <div class="concept">
+    <div class="chd"><span class="cnum">Concept 3</span><span class="cttl">Up Next becomes a tile</span></div>
+    <p class="cwhy">The separate bar disappears entirely. Up Next becomes a large 2x2 feature tile inside the grid itself, so the hero and the board are literally the same object. Size does the work that color was doing: one big tile, small tiles around it, and the games whose streak is at risk sit on a lighter surface so they stand out from the finished ones.</p>
+    <div class="board" id="mockC"></div>
+  </div>
+</div>
+
+<script>
+const G = [
+  ['listed','Listed','#e07ad0',{done:'2/10'}],   ['etch','Etch','#8fbf5a',{streak:2}],
+  ['hedge','Hedge','#4cc0d4',{streak:2}],        ['crux','Crux','#5b9bff',{streak:2,prog:1}],
+  ['emcee','Emcee','#e879f9',{done:'10/10'}],    ['garble','Garble','#f0c95a',{done:'9/10'}],
+  ['links','Links','#4ca878',{streak:3}],        ['stet','Stet','#41b1e8',{lead:'VicMcDoogle'}],
+  ['bracket','Bracket','#f0894c',{streak:3}],    ['jester','Jesters','#a78bfa',{done:'10/10'}],
+  ['dating','Dating','#a483f0',{done:'9/10'}],   ['shards','Shards','#2dd4bf',{done:'90/100'}],
+  ['extra','Extra','#e06a6a',{lead:'VicMcDoogle'}], ['ping','Ping','#4cb3f0',{streak:3}],
+  ['warmer','Warmer','#f3705c',{lead:'wahwah'}], ['lode','Lode','#e0b34c',{done:'13/105'}],
+  ['alibi','Alibi','#ef8896',{lead:'charchuk'}], ['outwit','Outwit','#c3cfe3',{lead:'gnomiem8'}],
+  ['suds','Suds','#f0894c',{streak:2}],          ['cipher','Cipher','#3fc9b8',{lead:'steinni1'}],
+  ['outrank','Outrank','#8b8af5',{lead:'VicMcDoogle'}], ['venn','Venn','#e0a568',{done:'12/12'}],
+  ['tally','Tally','#4cb377',{lead:'VicMcDoogle'}], ['axiom','Axiom','#5eead4',{lead:'steinni1'}],
+  ['span','Span','#e06aa0',{lead:'steinni1'}],   ['hearsay','Hearsay','#c4b5fd',{lead:'VicMcDoogle'}],
+  ['tuck','Tuck','#e0a568',{lead:'mo'}],         ['sworn','Sworn','#f472b6',{lead:'charchuk'}],
+  ['stands','Stands','#6aa3ff',{lead:'charchuk'}], ['carve','Carve','#a483f0',{streak:2}],
+];
+const IMG = k => 'https://sourceoftruths.com/games/btn-' + k + '.png';
+const crown = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#e8b43a" stroke-width="2.4" style="vertical-align:-1px"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z"/></svg>';
+const flame = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4" style="vertical-align:-1px"><path d="M12 22c4 0 7-3 7-7 0-5-5-6-4-13-4 2-8 6-8 12 0 4 2 8 5 8z"/></svg>';
+const check = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const checkW = '<svg viewBox="0 0 24 24" width="9" height="9" fill="none"><path d="M4 12.5 L10 18.5 L20 6" stroke="#0c2a1e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function statusEl(s){
+  if (s.done) return '<span class="tsub done">' + check + ' ' + s.done + '</span>';
+  if (s.streak) return '<span class="tsub strk">' + flame + ' ' + s.streak + ' day</span>';
+  if (s.lead) return '<span class="lead">' + crown + ' ' + s.lead + '</span>';
+  return '<span class="tsub">Not played</span>';
+}
+const heroBits = `
+  <span class="icon" style="width:52px;height:52px;background:rgba(255,255,255,.08);border-radius:12px;flex:none"><img src="${IMG('etch')}" alt=""></span>
+  <div style="flex:1;min-width:0">
+    <div class="eyebrow">Up next &middot; Logic &middot; 22 left</div>
+    <div class="nm">Etch <span class="flame">${flame} 2</span></div>
+    <div style="font-size:12px;color:var(--dim);font-weight:600;margin-top:2px">A picture in the numbers &middot; Leader: e4n</div>
+  </div>
+  <div style="flex:none;display:flex;flex-direction:column;gap:5px">
+    <span style="font-size:10.5px;font-weight:700;color:var(--dim)">You: <b style="color:#34d399">8</b> of 30 today</span>
+    <span class="bar"><i style="width:27%"></i></span>
+  </div>
+  <div style="flex:none;display:flex;gap:8px"><a class="ghost">Archive</a><a class="play">&#9654; Play</a></div>`;
+
+// Concept 1
+document.getElementById('mockA').innerHTML = `
+ <div class="A">
+  <div class="hero">${heroBits}</div>
+  <div class="filters"><span class="lab" style="margin-right:3px">Daily puzzles</span>
+    <button class="chip on">All 30</button><button class="chip">Unplayed &middot; 22</button><button class="chip">Streak at risk &middot; 8</button></div>
+  <div class="grid">` + G.map(([k,n,c,s]) => `
+    <div class="t ${s.done?'done':''}">
+      <span class="acc" style="background:${c}"></span>
+      ${s.done?'':`<span class="glow" style="background:${c}"></span>`}
+      <span class="icon"><img src="${IMG(k)}" alt=""></span>
+      <span class="tnm">${n}</span>${statusEl(s)}
+    </div>`).join('') + `</div></div>`;
+
+// Concept 2
+document.getElementById('mockB').innerHTML = `
+ <div class="B">
+  <div class="cap">
+    <div class="caprow">${heroBits}</div>
+    <div class="tabs"><button class="tab on">All 30</button><button class="tab">Unplayed &middot; 22</button><button class="tab">Streak at risk &middot; 8</button>
+      <span class="lab" style="margin-left:auto;padding-bottom:9px">Click a tile for stats</span></div>
+  </div>
+  <div class="grid">` + G.map(([k,n,c,s]) => `
+    <div class="t ${s.done?'done':''}${s.streak?' risk':''}${s.prog?' prog':''}">
+      ${s.done?`<span class="tick">${checkW}</span>`:''}
+      <span class="badge" style="background:${c}2b;border:1px solid ${c}55"><img src="${IMG(k)}" alt=""></span>
+      <span class="tnm">${n}</span>${statusEl(s)}
+    </div>`).join('') + `</div></div>`;
+
+// Concept 3
+document.getElementById('mockC').innerHTML = `
+ <div class="C">
+  <div class="strip"><span class="lab">Daily puzzles</span>
+    <button class="chip on">All 30</button><button class="chip">Unplayed &middot; 22</button><button class="chip">Streak at risk &middot; 8</button>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:9px">
+      <span style="font-size:10.5px;font-weight:700;color:var(--dim)">You: <b style="color:#34d399">8</b> of 30</span>
+      <span class="bar" style="width:104px"><i style="width:27%"></i></span></span>
+  </div>
+  <div class="grid">
+    <div class="feat">
+      <span class="fglow" style="background:#8fbf5a"></span>
+      <div>
+        <div class="eyebrow">Up next &middot; 22 left</div>
+        <div class="nm">Etch <span class="flame">${flame} 2</span></div>
+        <div style="font-size:12px;color:var(--soft);font-weight:600;margin-top:4px;line-height:1.35">A picture in the numbers.<br>Leader: e4n</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:14px">
+        <a class="play" style="font-size:14px;padding:11px 20px">&#9654; Play</a>
+        <span class="icon" style="margin-left:auto"><img src="${IMG('etch')}" alt="" style="height:38px;max-width:46px"></span>
+      </div>
+    </div>` + G.filter(g => g[0] !== 'etch').map(([k,n,c,s]) => `
+    <div class="t ${s.done?'done':''}${s.streak?' risk':''}">
+      <span class="acc" style="background:${c}"></span>
+      <span class="icon" style="height:32px"><img src="${IMG(k)}" alt="" style="height:25px"></span>
+      <span class="tnm" style="font-size:11.5px">${n}</span>${statusEl(s)}
+    </div>`).join('') + `</div></div>`;
+</script>
+</body>
+</html>
