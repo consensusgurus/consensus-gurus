@@ -2125,7 +2125,7 @@ export default function QuizHomeClient() {
               {daily && DAILY_CHALLENGE_ON ? (
                 <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dhx-qrow">
                   <span className="qic" style={{ background: '#8a6d1a' }}><Target size={16} strokeWidth={2.4} /></span>
-                  <span className="qm"><span className="qt">Daily Challenge{dailyChLeader ? <span className="qlead"><Crown size={9} strokeWidth={2.6} />{dailyChLeader}</span> : null}</span><span className="qs">{dailyCat ? dailyCat + ' · ' : ''}{dailyDoneCount} of {dailyIds.length} done</span></span>
+                  <span className="qm"><span className="qt">Daily Challenge</span><span className="qs">{dailyCat || 'Today'}{dailyChLeader ? <span className="qlead"><Crown size={9} strokeWidth={2.6} />{dailyChLeader}</span> : null}</span></span>
                   <span className="qa">›</span>
                 </Link>
               ) : null}
