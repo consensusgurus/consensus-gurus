@@ -612,6 +612,11 @@ export default function QuizHomeClient() {
   const serverScores = (myDaily && myDaily.scores) || {};
   const dailyIsDone = (id) => !!chScores[id] || serverScores[id] != null;
   const dailyDoneCount = dailyIds.filter(dailyIsDone).length;
+  // Leader of today's challenge board (already sorted best-first by the API).
+  const dailyChLeader = (() => {
+    const top = (dailyLb || [])[0];
+    return top && top.username && (top.totalCorrect || 0) > 0 ? top.username : '';
+  })();
   const dailyAllDone = dailyIds.length > 0 && dailyDoneCount === dailyIds.length;
   const dailyNextIdx = (() => { const k = dailyIds.findIndex((id) => !dailyIsDone(id)); return k < 0 ? 0 : k; })();
   const dailyEntryUrl = (dailyId && dailyIds.length) ? `/quiz/${dailyIds[dailyNextIdx]}?ch=${encodeURIComponent(dailyId)}&i=${dailyNextIdx}` : '/quizzes';
@@ -786,6 +791,8 @@ export default function QuizHomeClient() {
   function plays(id) { return totals.byQuiz[id] || 0; }
   function todayPlays(id) { return totals.todayByQuiz[id] || 0; }
   function leader(id) { return totals.leaders[id] || ''; }
+  // Leader of the Quiz of the Day row (per-quiz leaders come with /api/quiz/totals).
+  const qotdLeader = qotd ? leader(qotd.id) : '';
   function leaderKey(id) { return (totals.leaderKeys && totals.leaderKeys[id]) || ''; }
 
   // Player-bar stats: overall by default; for a selected category, the player's
@@ -1888,6 +1895,10 @@ export default function QuizHomeClient() {
             .qzh .dhx-qrow .qm{flex:1;min-width:0;}
             .qzh .dhx-qrow .qm .qt{display:block;font-size:13px;font-weight:800;color:#1c1e24;}
             .qzh .dhx-qrow .qm .qs{display:block;font-size:10.5px;color:#8b909d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+            /* who currently leads this row, beside the title */
+            .qzh .dhx-qrow .qm .qlead{display:inline-flex;align-items:center;gap:3px;margin-left:6px;vertical-align:1px;max-width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;font-weight:800;border-radius:999px;padding:1px 7px;background:#fdf7ec;color:#a16207;border:1px solid #f0dcae;}
+            .qzh .dhx-qrow .qm .qlead svg{flex:none;}
+            .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(232,180,58,0.16);color:#e8b43a;border-color:rgba(232,180,58,0.42);}
             .qzh .dhx-qrow .qa{flex:none;color:#b8c0cc;font-weight:800;font-size:16px;}
             /* Category Mastery (collapsible) */
             .qzh .dhx-cm{background:#fff;border:1px solid ${C.line};border-radius:14px;flex:none;overflow:hidden;}
@@ -2114,14 +2125,14 @@ export default function QuizHomeClient() {
               {daily && DAILY_CHALLENGE_ON ? (
                 <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dhx-qrow">
                   <span className="qic" style={{ background: '#8a6d1a' }}><Target size={16} strokeWidth={2.4} /></span>
-                  <span className="qm"><span className="qt">Daily Challenge</span><span className="qs">{dailyCat ? dailyCat + ' · ' : ''}{dailyDoneCount} of {dailyIds.length} done</span></span>
+                  <span className="qm"><span className="qt">Daily Challenge{dailyChLeader ? <span className="qlead"><Crown size={9} strokeWidth={2.6} />{dailyChLeader}</span> : null}</span><span className="qs">{dailyCat ? dailyCat + ' · ' : ''}{dailyDoneCount} of {dailyIds.length} done</span></span>
                   <span className="qa">›</span>
                 </Link>
               ) : null}
               {qotd ? (
                 <Link href={`/quiz/${qotd.id}`} className="dhx-qrow">
                   <span className="qic" style={{ background: '#c2410c' }}><Play size={14} fill="#fff" strokeWidth={0} /></span>
-                  <span className="qm"><span className="qt">Quiz of the Day</span><span className="qs">{stripVerb(qotd.title)}</span></span>
+                  <span className="qm"><span className="qt">Quiz of the Day{qotdLeader ? <span className="qlead"><Crown size={9} strokeWidth={2.6} />{qotdLeader}</span> : null}</span><span className="qs">{stripVerb(qotd.title)}</span></span>
                   <span className="qa">›</span>
                 </Link>
               ) : null}
