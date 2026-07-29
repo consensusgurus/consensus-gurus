@@ -129,6 +129,9 @@ function playHref(id) { const fam = gameFamily(id); return fam ? `/${fam}` : `/q
 const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
 // Daily-game category (Word/Logic/Numbers/Geography/History) keyed by family.
 const DG_CAT = Object.fromEntries((DAILY_GAMES || []).map((g) => [g.key, CAT_META[g.cat] || null]));
+// Short category labels for the narrow activity rows.
+const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
+const shortCat = (n) => CAT_SHORT[n] || n;
 // Daily puzzles publish a fresh dated instance ('<key>-M-D-YY') each day that is
 // NOT a static QUIZZES entry, so titleById can't resolve it. Build a display
 // title from the roster so the live feed / Last Played tile still surface daily
@@ -2107,7 +2110,7 @@ export default function QuizHomeClient() {
                   const good = frac >= 0.8;
                   const fam = gameFamily(f.quizId);
                   const dgc = fam ? DG_CAT[fam] : null;
-                  const catLabel = dgc ? dgc.name : (fam ? 'Daily Puzzle' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
+                  const catLabel = dgc ? shortCat(dgc.name) : (fam ? 'Daily Puzzle' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
                   const catColor = dgc ? dgc.color : (fam ? '#5b6472' : (DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc).c);
                   return (
                     <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
@@ -2440,7 +2443,7 @@ export default function QuizHomeClient() {
                       const dc = DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc;
                       const fam = gameFamily(f.quizId);
                       const dgc = fam ? DG_CAT[fam] : null;
-                      const catLabel = dgc ? dgc.name : (fam ? 'Daily Puzzle' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
+                      const catLabel = dgc ? shortCat(dgc.name) : (fam ? 'Daily Puzzle' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
                       const catColor = dgc ? dgc.color : (fam ? '#5b6472' : dc.c);
                       const frac = f.total ? f.score / f.total : 0;
                       const pctScore = Math.min(100, Math.round(frac * 100));

@@ -472,7 +472,7 @@ export default function DailyStrip({ board = null }) {
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
-        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-family:inherit;min-height:104px;}
+        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:104px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.dim{opacity:.4;}
@@ -480,14 +480,14 @@ export default function DailyStrip({ board = null }) {
         .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
-        .dh-tic{width:44px;height:28px;display:flex;align-items:center;justify-content:center;flex:none;margin:4px 0;}
+        .dh-tic{width:44px;height:28px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
         .dh-tic img{height:21px;width:auto;max-width:28px;object-fit:contain;}
         .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-        .dh-tmeta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px 6px;max-width:100%;}
-        .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;}
-        .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;}
-        .dh-mlead{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:#a9bcd8;min-width:0;max-width:100%;}
+        .dh-tmeta{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:0 6px;width:100%;min-width:0;margin-top:auto;}
+        .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;flex:none;}
+        .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;flex:none;}
+        .dh-mlead{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:#a9bcd8;min-width:0;flex:0 1 auto;}
         .dh-mlead svg{flex:none;color:#e8b43a;}
         .dh-mlead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dh-tsub{font-size:10px;font-weight:700;color:#93a3bd;display:inline-flex;align-items:center;gap:3px;}
