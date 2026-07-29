@@ -265,7 +265,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-lbrow .nm .you{color:${BLUE};font-weight:800;}
         .dbp-lbrow.me .nm{font-weight:800;}
         .dbp-lbrow .vl{font-family:${MONO};font-size:12px;color:${SLATE};flex-shrink:0;}
-        .dbp-lbrow .vl .u{color:#9aa0ab;}
+        .dbp-lbrow .vl .u{color:#6b7280;}
         .dbp-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
 
         /* Today board: richer per-attempt detail (score / time / mistakes / pts) */

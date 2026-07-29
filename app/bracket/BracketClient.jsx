@@ -334,7 +334,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${COLORS.ink};background:#fff;border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:8px 9px;cursor:pointer;}
           .bk-s:last-child{border-bottom:none;}
           .bk-s:hover:not(:disabled){background:${COLORS.accentSoft};}
-          .bk-s:disabled{cursor:default;color:#9aa0ab;}
+          .bk-s:disabled{cursor:default;color:#6b7280;}
           .bk-s.on{background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:800;box-shadow:inset 3px 0 0 ${COLORS.accent};}
           .bk-s.right{background:${COLORS.greenSoft};color:#14532d;box-shadow:inset 3px 0 0 ${COLORS.green};}
           .bk-s.wrong{background:${COLORS.redSoft};color:#7f1d1d;text-decoration:line-through;box-shadow:inset 3px 0 0 ${COLORS.redInk};}

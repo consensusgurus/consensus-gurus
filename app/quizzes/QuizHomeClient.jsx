@@ -1543,17 +1543,17 @@ export default function QuizHomeClient() {
        field and the three white action buttons, all one uniform treatment. */
     .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:#ffffff;border:1px solid #e6e8ee;border-radius:13px;padding:8px;}
     .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#f7f8fa;border:1px solid #e6e8ee;border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
-    .qzh .qz-toolsearch:hover{border-color:#b8c0cc;}
-    .qzh .qz-toolsearch:focus-within{border-color:#b8c0cc;background:#f7f8fa;}
+    .qzh .qz-toolsearch:hover{border-color:#6b7280;}
+    .qzh .qz-toolsearch:focus-within{border-color:#6b7280;background:#f7f8fa;}
     .qzh .qz-toolsearch svg{flex:none;color:#6b7280;}
     .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:#1c1e24;}
-    .qzh .qz-toolsearch input::placeholder{color:#8a93a6;font-weight:500;}
+    .qzh .qz-toolsearch input::placeholder{color:#6b7280;font-weight:500;}
     .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:#6b7280;display:flex;}
     .qzh .qz-toolclear:hover{color:#fff;}
     .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
     .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1px solid #e6e8ee;background:transparent;color:#46506a;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
     .qzh .qz-toolbtn svg{flex:none;color:#6b7280;transition:color .14s ease;}
-    .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#b8c0cc;color:#1c1e24;}
+    .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#6b7280;color:#1c1e24;}
     .qzh .qz-toolbtn:hover svg{color:#fff;}
     /* One accent in the row: the only button that creates something. */
     .qzh .qz-toolbtn-cta{background:#e8b43a;border-color:#e8b43a;color:#1c1e24;font-weight:800;}
@@ -1861,10 +1861,10 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb1 .av{width:32px;height:32px;border-radius:50%;background:#e8b43a;color:#2b1d00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none;}
             .qzh .dhx-lb1 .m{flex:1;min-width:0;}
             .qzh .dhx-lb1 .m .n{display:block;font-size:19px;font-weight:800;line-height:1.02;color:#a16207;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-            .qzh .dhx-lb1 .m .s{display:block;font-size:10px;font-weight:600;color:#8b909d;margin-top:1px;}
+            .qzh .dhx-lb1 .m .s{display:block;font-size:10px;font-weight:600;color:#6b7280;margin-top:1px;}
             .qzh .dhx-lb1 .sc{flex:none;font-size:14px;font-weight:800;color:#a16207;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:12px;color:#4a4f5c;}
-            .qzh .dhx-lrow .pl{width:15px;font-size:10.5px;font-weight:700;color:#8b909d;font-variant-numeric:tabular-nums;flex:none;}
+            .qzh .dhx-lrow .pl{width:15px;font-size:10.5px;font-weight:700;color:#6b7280;font-variant-numeric:tabular-nums;flex:none;}
             .qzh .dhx-lrow b{flex:1;min-width:0;color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lrow .sc{flex:none;font-size:11.5px;font-weight:700;color:#6b7280;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lrow.you{background:#fdf7ec;border-radius:7px;padding:5px 8px;margin:2px -8px 0;}
@@ -1880,13 +1880,13 @@ export default function QuizHomeClient() {
             .qzh .dhx-lpr .ring .in{width:23px;height:23px;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#1c1e24;}
             .qzh .dhx-lpr .mid{flex:1;min-width:0;}
             .qzh .dhx-lpr .mid .t{display:block;font-size:12px;font-weight:700;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-            .qzh .dhx-lpr .mid .c .x{font-weight:600;color:#8b909d;}
-            .qzh .dhx-lpr .mid .c{display:flex;align-items:center;gap:4px;font-size:9.5px;color:#8b909d;margin-top:1px;}
+            .qzh .dhx-lpr .mid .c .x{font-weight:600;color:#6b7280;}
+            .qzh .dhx-lpr .mid .c{display:flex;align-items:center;gap:4px;font-size:9.5px;color:#6b7280;margin-top:1px;}
             .qzh .dhx-lpr .mid .c i{width:6px;height:6px;border-radius:2px;flex:none;}
             .qzh .dhx-lpr .rt{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
             .qzh .dhx-lpr .rt .s{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:#16a34a;background:#e7f7ed;border-radius:999px;padding:1px 6px;}
-            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#8b909d;font-weight:600;white-space:nowrap;}
+            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#6b7280;font-weight:600;white-space:nowrap;}
             /* beat chip and "how long ago" share one line under the score */
             .qzh .dhx-lpr .rt .when{display:flex;align-items:center;gap:5px;}
             /* quick play element */
@@ -1897,16 +1897,16 @@ export default function QuizHomeClient() {
             .qzh .dhx-qrow .qic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;color:#fff;}
             .qzh .dhx-qrow .qm{flex:1;min-width:0;}
             .qzh .dhx-qrow .qm .qt{display:block;font-size:13px;font-weight:800;color:#1c1e24;}
-            .qzh .dhx-qrow .qm .qs{display:block;font-size:10.5px;color:#8b909d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+            .qzh .dhx-qrow .qm .qs{display:block;font-size:10.5px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
             /* who currently leads this row, beside the title */
             .qzh .dhx-qrow .qm .qlead{display:inline-flex;align-items:center;gap:3px;margin-left:6px;vertical-align:1px;max-width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;font-weight:800;border-radius:999px;padding:1px 7px;background:#fdf7ec;color:#a16207;border:1px solid #f0dcae;}
             .qzh .dhx-qrow .qm .qlead svg{flex:none;}
             .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(232,180,58,0.16);color:#a16207;border-color:rgba(232,180,58,0.42);}
-            .qzh .dhx-qrow .qa{flex:none;color:#8a93a6;font-weight:800;font-size:16px;}
+            .qzh .dhx-qrow .qa{flex:none;color:#6b7280;font-weight:800;font-size:16px;}
             /* Category Mastery (collapsible) */
             .qzh .dhx-cm{background:#fff;border:1px solid ${C.line};border-radius:14px;flex:none;overflow:hidden;}
             .qzh .dhx-cm-h{width:100%;display:flex;align-items:center;gap:7px;padding:12px 14px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;color:#a16207;}
-            .qzh .dhx-cm-h .cmchev{margin-left:auto;color:#8b909d;transition:transform .2s;}
+            .qzh .dhx-cm-h .cmchev{margin-left:auto;color:#6b7280;transition:transform .2s;}
             .qzh .dhx-cm.open .dhx-cm-h .cmchev{transform:rotate(180deg);}
             .qzh .dhx-cm-bars{padding:0 13px 12px;display:flex;flex-direction:column;gap:5px;}
             .qzh .dhx-cmbar{position:relative;display:flex;align-items:center;background:#eef1f6;border:none;border-radius:7px;padding:7px 10px;cursor:pointer;font-family:inherit;overflow:hidden;}
@@ -1988,7 +1988,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:#46506a;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
             .qzh .dhx-lp-stats{display:flex;gap:18px;margin-bottom:11px;}
             .qzh .dhx-lp-stats b{display:block;font-size:20px;font-weight:800;line-height:1;}
-            .qzh .dhx-lp-stats span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a93a6;margin-top:4px;}
+            .qzh .dhx-lp-stats span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;margin-top:4px;}
             .qzh .dhx-lp-rows{display:flex;flex-direction:column;gap:1px;}
             .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #e6e8ee;text-decoration:none;}
             .qzh .dhx-lp-row:last-child{border-bottom:none;}
@@ -2408,11 +2408,11 @@ export default function QuizHomeClient() {
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 12 }}>
                       <div style={{ flex: 'none' }}>
                         <div style={{ fontSize: 21, fontWeight: 800, lineHeight: 1, letterSpacing: '-.02em' }}>{(playsToday || 0).toLocaleString()}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#8a93a6', marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#6b7280', marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
                       </div>
                       <div style={{ flex: 'none' }}>
                         <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1, letterSpacing: '-.01em', paddingBottom: 1 }}>{fmtT(totals.todayTime)}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#8a93a6', marginTop: 5, textTransform: 'uppercase' }}>played today</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#6b7280', marginTop: 5, textTransform: 'uppercase' }}>played today</div>
                       </div>
                       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', gap: 2, height: 32 }} title="plays per hour (last 11h)">
                         {bars.map((b, i) => (

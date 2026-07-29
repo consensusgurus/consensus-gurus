@@ -200,7 +200,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-seg a.on{background:#0e1d40;color:#fff;}
         .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;color:#1c1e24;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
         .qch-hub:hover{background:#d49a2a;color:#1c1e24;}
-        .qch-tickwrap{display:flex;align-items:stretch;background:#0e1b33;}
+        .qch-tickwrap{display:flex;align-items:stretch;background:#ffffff;}
         .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#6b7280;position:relative;z-index:2;}
         .qch-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,0.5);animation:qchpul 2s infinite;}
         @keyframes qchpul{0%{box-shadow:0 0 0 0 rgba(90,212,143,0.45)}70%{box-shadow:0 0 0 7px rgba(90,212,143,0)}100%{box-shadow:0 0 0 0 rgba(90,212,143,0)}}

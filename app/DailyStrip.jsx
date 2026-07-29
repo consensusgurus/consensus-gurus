@@ -436,7 +436,7 @@ export default function DailyStrip({ board = null }) {
         .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid #eef0f4;}
         .dh-stat:last-child{border-right:none;}
         .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#8a93a6;white-space:nowrap;}
+        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6b7280;white-space:nowrap;}
         .dh-stat.g b{color:#34d399;}
         .dh-stat.y b{color:#e8b43a;}
         @container (max-width:900px){.dh-stat.opt{display:none;}}
@@ -453,7 +453,7 @@ export default function DailyStrip({ board = null }) {
         @container (max-width:430px){.dh-stat.opt4{display:none;}}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
-        .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
+        .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#46506a;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
         .dh-ghostD:hover{background:#eef0f4;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
@@ -466,7 +466,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tile{position:relative;overflow:hidden;background:#ffffff;border:1px solid #e6e8ee;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
-        .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
+        .dh-tile.done{background:#f0fdf4;border-color:#1f5537;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
         .dh-tic{width:44px;height:28px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
@@ -475,7 +475,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
-        .dh-nolead{color:#8a93a6;font-weight:600;}
+        .dh-nolead{color:#6b7280;font-weight:600;}
         .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;flex:none;}
         .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;flex:none;}
         .dh-mstrk.none{color:#5f7194;}
@@ -486,7 +486,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
-        .dh-lbpanel{background:#0b1733;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
+        .dh-lbpanel{background:#ffffff;border:1px solid #e6e8ee;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
         .dsd-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#e8b43a;font-weight:800;}
         .dsd-r{font-size:10.5px;color:#6b7280;font-weight:600;}
@@ -495,7 +495,7 @@ export default function DailyStrip({ board = null }) {
         .dsd-sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;font-weight:800;margin-bottom:8px;}
         .dsd-cols{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;padding:0 11px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;}
         .dsd-row{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;align-items:center;padding:8px 11px;margin-bottom:5px;border-radius:10px;background:#fdf3dd;border:1px solid #fdf3dd;}
-        .dsd-row.plain{background:#f7f8fa;border-color:#8a93a6;}
+        .dsd-row.plain{background:#f7f8fa;border-color:#6b7280;}
         .dsd-row.me{background:#fdf3dd;border-color:#b26b00;}
         .dsd-rk{font-weight:800;font-size:15px;color:#b26b00;font-variant-numeric:tabular-nums;}
         .dsd-row.plain .dsd-rk{color:#6b7280;}
@@ -503,7 +503,7 @@ export default function DailyStrip({ board = null }) {
         .dsd-pn b{color:#e8b43a;font-weight:700;}
         .dsd-g{font-size:12px;color:#6b7280;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
         .dsd-tt{font-size:13.5px;font-weight:800;color:#b26b00;text-align:right;font-variant-numeric:tabular-nums;}
-        .dsd-tt s{font-size:10px;font-weight:600;color:#8a93a6;text-decoration:none;}
+        .dsd-tt s{font-size:10px;font-weight:600;color:#6b7280;text-decoration:none;}
         .dsd-empty{font-size:12.5px;color:#6b7280;font-weight:600;padding:8px 2px;}
         .dsd-row.first{background:#fdf3dd;border-color:#b26b00;}
         .dsd-row.first .dsd-rk{font-size:17px;color:#b26b00;}
@@ -512,22 +512,22 @@ export default function DailyStrip({ board = null }) {
         .dsd-row.first .dsd-tt{font-size:15px;}
         .dsd-past{margin-top:20px;padding-top:16px;border-top:1px solid #eef0f4;}
         .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:#f7f8fa;border:1px solid #eef0f4;}
-        .dsd-yest.top{padding:9px 11px;background:#f7f8fa;border-color:#8a93a6;}
+        .dsd-yest.top{padding:9px 11px;background:#f7f8fa;border-color:#6b7280;}
         .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;font-weight:800;flex:none;min-width:56px;}
         .dsd-yest b{min-width:0;font-size:12px;color:#c9d6ee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dsd-yest.top b{font-size:13px;color:#1c1e24;font-weight:700;}
         .dsd-yest .yt{margin-left:auto;flex:none;font-size:11.5px;font-weight:700;color:#d8c489;font-variant-numeric:tabular-nums;}
         .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#b26b00;}
-        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#8a93a6;text-decoration:none;}
-        .dsd-yest .ynone{font-size:12px;color:#8a93a6;font-weight:600;}
+        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#6b7280;text-decoration:none;}
+        .dsd-yest .ynone{font-size:12px;color:#6b7280;font-weight:600;}
         .dsd-hof{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:#fdf3dd;border:1px solid #e8c46a;color:#b26b00;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
         .dsd-hof:hover{background:#fdf3dd;}
         .dsd-hof svg{color:#e8b43a;flex:none;}
         .dsd-players{margin-top:9px;font-size:11.5px;color:#6b7280;font-weight:600;}
         .dsd-players b{color:#1c1e24;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dsd-players s{color:#8a93a6;text-decoration:none;font-size:10.5px;}
+        .dsd-players s{color:#6b7280;text-decoration:none;font-size:10.5px;}
         .dsd-gt{font-size:11px;font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
-        .dsd-gt span{font-size:9px;color:#8a93a6;font-weight:600;}
+        .dsd-gt span{font-size:9px;color:#6b7280;font-weight:600;}
         .dsd-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
         @media(max-width:1200px){.dsd-minis{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:900px){.dsd-minis{grid-template-columns:repeat(2,1fr);}}
@@ -537,7 +537,7 @@ export default function DailyStrip({ board = null }) {
         .dsd-n2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1c1e24;font-weight:500;}
         .dsd-n2 b{color:#e8b43a;font-weight:700;}
         .dsd-p{color:#6b7280;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
-        .dsd-none{color:#8a93a6;font-size:10.5px;padding:2px 0;}
+        .dsd-none{color:#6b7280;font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-bup{border-right:none;padding-right:4px;}}

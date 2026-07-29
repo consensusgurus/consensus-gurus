@@ -308,7 +308,7 @@ export default function DailyTilePanel({
       </section>
 
       <style>{`
-        .dtp{position:absolute;inset:0;z-index:6;background:#0e1d40;border-radius:0 0 13px 13px;color:#eef3fb;
+        .dtp{position:absolute;inset:0;z-index:6;background:#ffffff;border-radius:0 0 13px 13px;color:#1c1e24;
              padding:13px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;animation:dtpIn .16s ease-out;}
         /* Opacity only. A scale here left the panel measurably inset from the
@@ -317,7 +317,7 @@ export default function DailyTilePanel({
            scale never settled and the panel sat ~4px inside its box. */
         @keyframes dtpIn{from{opacity:0;}to{opacity:1;}}
         .dtp-hd{display:flex;align-items:flex-start;gap:13px;flex:none;}
-        .dtp-ic{flex:none;width:50px;height:50px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;}
+        .dtp-ic{flex:none;width:50px;height:50px;border-radius:12px;background:#f7f8fa;border:1px solid #f7f8fa;display:flex;align-items:center;justify-content:center;}
         .dtp-ic img{height:32px;width:auto;max-width:42px;object-fit:contain;}
         .dtp-idt{flex:1;min-width:0;}
         .dtp-nm{font-size:22px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.1;}
@@ -327,7 +327,7 @@ export default function DailyTilePanel({
         .dtp-sharechip svg{transition:color .12s;}
         .dtp-sharechip:hover{background:#e8b43a;color:#1c1e24;}
         .dtp-sharechip:hover svg{color:#1c1e24;}
-        .dtp-how{font-size:12.5px;line-height:1.4;color:#c3d2e8;font-weight:600;margin:4px 0 0;max-width:64ch;}
+        .dtp-how{font-size:12.5px;line-height:1.4;color:#46506a;font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
         .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:15px;
                   border-radius:10px;padding:12px 24px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
@@ -338,68 +338,68 @@ export default function DailyTilePanel({
         /* three columns take every remaining pixel */
         .dtp-grid{flex:none;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:20px;align-items:start;}
         .dtp-col{min-width:0;display:flex;flex-direction:column;}
-        .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;font-weight:500;margin-bottom:8px;flex:none;}
+        .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;font-weight:500;margin-bottom:8px;flex:none;}
         .dtp-lab.sm{margin-top:10px;}
         .dtp-lab svg{color:var(--gc);}
         .dtp-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none;}
-        .dtp-stats>div{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:6px 9px;}
+        .dtp-stats>div{background:#f7f8fa;border:1px solid #f7f8fa;border-radius:9px;padding:6px 9px;}
         .dtp-stats b{display:block;font-size:17px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
-        .dtp-stats span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#6c7e9b;margin-top:2px;display:block;}
+        .dtp-stats span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#6b7280;margin-top:2px;display:block;}
         /* the rows stretch to the bottom of the column instead of bunching at the top */
         .dtp-rows{flex:none;display:flex;flex-direction:column;margin-top:8px;}
         .dtp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #1e3050;font-size:11.5px;}
         .dtp-row:last-child{border-bottom:none;}
-        .dtp-row span{color:#93a3bd;font-weight:600;}
-        .dtp-row b{color:#fff;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+        .dtp-row span{color:#6b7280;font-weight:600;}
+        .dtp-row b{color:#1c1e24;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
         .dtp-row.beat b{color:#6ee7b7;}
         .dtp-calhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;flex:none;}
         .dtp-mo{font-size:13px;font-weight:800;}
-        .dtp-calhd button{width:25px;height:25px;display:flex;align-items:center;justify-content:center;border-radius:7px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;cursor:pointer;}
-        .dtp-calhd button:hover:not(:disabled){background:rgba(255,255,255,0.08);color:#fff;}
+        .dtp-calhd button{width:25px;height:25px;display:flex;align-items:center;justify-content:center;border-radius:7px;border:1px solid #2a4166;background:transparent;color:#46506a;cursor:pointer;}
+        .dtp-calhd button:hover:not(:disabled){background:#f7f8fa;color:#1c1e24;}
         .dtp-calhd button:disabled{opacity:.3;cursor:default;}
         .dtp-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:none;margin-bottom:3px;}
-        .dtp-wd span{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#6c7e9b;text-align:center;}
+        .dtp-wd span{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#6b7280;text-align:center;}
         /* the month fills the column: each week row is an equal share of the height */
         .dtp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:none;}
         .dtp-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border-radius:6px;color:#5a6d8f;text-decoration:none;font-variant-numeric:tabular-nums;}
         .dtp-cell.empty{background:transparent;}
         .dtp-cell.none{color:#3d4f70;}
         a.dtp-cell.played{background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.45);color:#6ee7b7;}
-        a.dtp-cell.open{background:rgba(255,255,255,0.05);border:1px solid #2a4166;color:#c3d2e8;}
-        a.dtp-cell.open:hover{border-color:var(--gc);color:#fff;}
+        a.dtp-cell.open{background:#f7f8fa;border:1px solid #2a4166;color:#46506a;}
+        a.dtp-cell.open:hover{border-color:var(--gc);color:#1c1e24;}
         a.dtp-cell.today{box-shadow:0 0 0 2px #e8b43a;}
-        .dtp-key{display:flex;flex-wrap:wrap;gap:5px 13px;margin-top:8px;font-size:10.5px;color:#93a3bd;font-weight:600;flex:none;}
+        .dtp-key{display:flex;flex-wrap:wrap;gap:5px 13px;margin-top:8px;font-size:10.5px;color:#6b7280;font-weight:600;flex:none;}
         .dtp-key span{display:inline-flex;align-items:center;gap:5px;}
         .dtp-key .sw{width:10px;height:10px;border-radius:3px;flex:none;}
         .dtp-key .sw.played{background:rgba(34,197,94,0.35);border:1px solid rgba(34,197,94,0.55);}
-        .dtp-key .sw.open{background:rgba(255,255,255,0.06);border:1px solid #2a4166;}
+        .dtp-key .sw.open{background:#f7f8fa;border:1px solid #2a4166;}
         .dtp-key .sw.today{background:transparent;border:2px solid #e8b43a;}
         /* leaderboard rows share the leftover height the same way */
         .dtp-lb{flex:none;display:flex;flex-direction:column;}
-        .dtp-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;border-bottom:1px solid #1e3050;font-size:11.5px;color:#93a3bd;}
+        .dtp-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;border-bottom:1px solid #1e3050;font-size:11.5px;color:#6b7280;}
         .dtp-lrow:last-child{border-bottom:none;}
-        .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#6c7e9b;flex:none;display:flex;align-items:center;}
+        .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#6b7280;flex:none;display:flex;align-items:center;}
         .dtp-lrow .pl svg{color:#e8b43a;}
-        .dtp-lrow b{color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
-        .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#fff;flex:none;}
+        .dtp-lrow b{color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
+        .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#1c1e24;flex:none;}
         .dtp-lrow.me{background:#2a2107;border-radius:6px;padding:3px 8px;border-bottom:none;margin:1px -8px;}
         .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#e8b43a;}
-        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;font-size:10.5px;color:#6c7e9b;font-weight:600;flex:none;}
+        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;font-size:10.5px;color:#6b7280;font-weight:600;flex:none;}
         .dtp-lfoot a{color:#e8b43a;text-decoration:none;font-weight:700;}
         .dtp-lfoot a:hover{text-decoration:underline;}
-        .dtp-empty{font-size:12px;color:#6c7e9b;font-weight:600;padding:6px 0;}
+        .dtp-empty{font-size:12px;color:#6b7280;font-weight:600;padding:6px 0;}
         /* score trend */
         .dtp-trend{flex:1 1 auto;min-height:92px;display:flex;flex-direction:column;padding-top:2px;}
-        .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#93a3bd;}
+        .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#6b7280;}
         .dtp-bars{position:relative;flex:1 1 auto;min-height:56px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #1e3050;padding-bottom:1px;}
-        .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed rgba(255,255,255,0.26);pointer-events:none;}
+        .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed #e6e8ee;pointer-events:none;}
         .dtp-barw{flex:1 1 0;min-width:0;max-width:48px;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
-        .dtp-barw:hover{background:rgba(255,255,255,0.05);}
+        .dtp-barw:hover{background:#f7f8fa;}
         .dtp-bar{display:block;width:100%;max-width:22px;background:var(--gc);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:opacity .12s;}
         .dtp-barw:hover .dtp-bar{opacity:1;}
         .dtp-bar.today{background:#e8b43a;opacity:1;}
-        .dtp-bar.miss{height:5px;background:rgba(255,255,255,0.09);border-radius:2px;}
-        .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#6c7e9b;}
+        .dtp-bar.miss{height:5px;background:#f7f8fa;border-radius:2px;}
+        .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#6b7280;}
         @media(max-width:980px){
           /* IN FLOW below 980px. As an absolutely positioned overlay with its
              own scrollbar, the panel swallowed the touch gesture: the page

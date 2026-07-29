@@ -118,18 +118,18 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
         @media(min-width:768px){.dgg{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:359px){.dgg{grid-template-columns:1fr;}}
-        .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:58px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:#0e1d40;padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
+        .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:58px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:#ffffff;padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
         .dgg-t:hover{border-color:#5b8bff;}
         .dgg-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
         .dgg-art{flex:0 0 auto;height:42px;width:auto;}
-        .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dgg-p{font-size:10.5px;font-weight:700;color:#9fb0d4;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:#1c1e24;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dgg-p{font-size:10.5px;font-weight:700;color:#6b7280;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.14),rgba(22,163,74,0.14)),#0e1d40;border-color:rgba(34,197,94,0.5);}
         .dgg-done .dgg-art{opacity:.5;}
         .dgg-done .dgg-nm{color:#dfeee4;}
-        .dgg-check{position:absolute;top:7px;right:7px;width:19px;height:19px;border-radius:50%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #0e1d40;box-shadow:0 1px 2px rgba(0,0,0,0.35);}
+        .dgg-check{position:absolute;top:7px;right:7px;width:19px;height:19px;border-radius:50%;background:#16a34a;color:#1c1e24;display:flex;align-items:center;justify-content:center;border:2px solid #0e1d40;box-shadow:0 1px 2px rgba(0,0,0,0.35);}
         .dgg-act{min-height:76px;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;width:100%;}
-        .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#fff;line-height:1.15;text-align:center;}
+        .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#1c1e24;line-height:1.15;text-align:center;}
         .dgg-act svg{flex:0 0 auto;}
         .dgg-act.dgg-challenge svg{color:#5b8bff;}
         .dgg-act.dgg-share svg{color:#f8b84a;}
@@ -142,11 +142,11 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-p{color:#6b7280;}
         /* The letter-tile game icons are drawn for a dark ground and wash out on
            white, so give the icon its own navy chip on the light tiles. */
-        .dgg-light .dgg-art{background:#0e1d40;border-radius:9px;padding:5px;box-sizing:border-box;}
+        .dgg-light .dgg-art{background:#f1f3f6;border-radius:9px;padding:5px;box-sizing:border-box;}
         .dgg-light .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.10),rgba(22,163,74,0.10)),#fff;border-color:rgba(34,197,94,0.5);}
         .dgg-light .dgg-done .dgg-art{opacity:.6;}
         .dgg-light .dgg-done .dgg-nm{color:#15803d;}
-        .dgg-light .dgg-check{border-color:#fff;}
+        .dgg-light .dgg-check{border-color:#1c1e24;}
         .dgg-light .dgg-act.dgg-challenge{background:#eff4fd;border-color:#d7e3f8;}
         .dgg-light .dgg-act.dgg-challenge .dgg-act-l{color:#1e3a8a;}
         .dgg-light .dgg-act.dgg-challenge svg{color:#2563eb;}
