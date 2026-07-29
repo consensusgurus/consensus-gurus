@@ -28,10 +28,10 @@
   .bar .upn{font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.1;}
   .bar .upe{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);}
   .stats{display:flex;align-items:center;gap:0;flex:1;min-width:0;}
-  .stat{padding:0 13px;border-right:1px solid rgba(255,255,255,.07);line-height:1.15;}
+  .stat{padding:0 12px;white-space:nowrap;border-right:1px solid rgba(255,255,255,.07);line-height:1.15;}
   .stat:last-child{border-right:none;}
   .stat b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;}
-  .stat span{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;}
+  .stat span{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
   .stat.g b{color:#34d399;} .stat.y b{color:var(--gold);}
   .seg{display:flex;flex:none;background:rgba(255,255,255,.06);border-radius:8px;padding:2px;}
   .seg button{border:none;background:transparent;color:var(--dim);font-weight:800;font-size:11px;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
@@ -45,12 +45,11 @@
   .c1{position:relative;overflow:hidden;border-radius:10px;padding:12px 9px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-height:104px;justify-content:center;}
   .c1 img{height:34px;width:auto;max-width:42px;object-fit:contain;}
   .c1 .nm{font-size:13px;font-weight:800;color:#fff;letter-spacing:-.2px;}
-  .c1 .st{font-size:9.5px;font-weight:800;letter-spacing:.02em;}
+  .c1 .st{font-size:9.5px;font-weight:800;letter-spacing:.02em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .c1.done{background:#0d2a1d;border:1px solid #1f5537;min-height:104px;}
   .c1.done img{height:24px;opacity:.42;}
   .c1.done .nm{font-size:11.5px;color:#8fd6ac;}
   .c1.done .st{color:#4ade80;}
-  .c1 .crown{position:absolute;bottom:8px;font-size:9px;font-weight:700;color:rgba(255,255,255,.62);}
 
   /* ─────────── 2. MOSAIC BY PRIORITY ─────────── */
   .g2{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;}
@@ -61,7 +60,7 @@
   .mid{background:#13254a;border:1px solid var(--line2);}
   .mid img{height:27px;width:auto;max-width:36px;object-fit:contain;}
   .mid .nm{font-size:12px;font-weight:800;color:#fff;}
-  .mid .st{font-size:9.5px;font-weight:700;color:var(--dim);}
+  .mid .st{font-size:9.5px;font-weight:700;color:var(--dim);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .sechd{grid-column:1/-1;display:flex;align-items:center;gap:9px;margin:9px 0 1px;}
   .sechd i{flex:1;height:1px;background:var(--line);}
   .sechd span{font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#6c7e9b;}
@@ -154,14 +153,14 @@ const BAR = `
 function st1(s){
   if (s.done) return '<span class="st">' + check + ' ' + s.done + '</span>';
   if (s.streak) return '<span class="st" style="color:#ffe6a8">' + flame + ' ' + s.streak + ' day</span>';
+  if (s.lead) return '<span class="st" style="color:rgba(255,255,255,.78)">' + crown + ' ' + s.lead + '</span>';
   return '<span class="st" style="color:rgba(255,255,255,.72)">Not played</span>';
 }
 // 1. colour cards
 document.getElementById('m1').innerHTML = BAR + '<div class="grid"><div class="g1">' + G.map(([k,n,c,cat,s]) => s.done
   ? `<div class="c1 done"><img src="${IMG(k)}" alt=""><span class="nm">${n}</span>${st1(s)}</div>`
   : `<div class="c1" style="background:color-mix(in srgb, ${c} 46%, #0a1631);border:1px solid color-mix(in srgb, ${c} 62%, #0a1631)">
-       <img src="${IMG(k)}" alt=""><span class="nm">${n}</span>${st1(s)}
-       ${s.lead?`<span class="crown">${crown} ${s.lead}</span>`:''}</div>`).join('') + '</div></div>';
+       <img src="${IMG(k)}" alt=""><span class="nm">${n}</span>${st1(s)}</div>`).join('') + '</div></div>';
 
 // 2. mosaic
 const risk = G.filter(g => g[4].streak), todo = G.filter(g => !g[4].streak && !g[4].done), done = G.filter(g => g[4].done);
