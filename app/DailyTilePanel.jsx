@@ -20,11 +20,17 @@
 // /api/quiz/daily-game, cached per game by the parent.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy } from 'lucide-react';
+import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp } from 'lucide-react';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const TREND_MAX = 24; // most recent drops charted, so the row stays readable
+function shortDate(iso) {
+  const p = String(iso || '').split('-');
+  return p.length === 3 ? MONTH_SHORT[Number(p[1]) - 1] + ' ' + Number(p[2]) : '';
+}
 
 function etTodayISO() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -101,6 +107,19 @@ export default function DailyTilePanel({
   const archivePct = totalDrops ? Math.round((playedCount / totalDrops) * 100) : null;
   const longest = mine ? Math.max(mine.longestStreak || 0, streak || 0) : streak;
   const dash = loading ? '·' : '—';
+
+  const trend = useMemo(() => {
+    const per = (mine && mine.perDrop) || {};
+    const vals = drops.slice(-TREND_MAX).map((d) => ({
+      iso: d.dateISO, href: d.href, isToday: d.isToday,
+      pts: (per[d.dateISO] != null ? Number(per[d.dateISO]) : null),
+    }));
+    const played = vals.filter((v) => v.pts != null);
+    const max = played.length ? Math.max(...played.map((v) => v.pts)) : 0;
+    const avg = played.length ? played.reduce((a, v) => a + v.pts, 0) / played.length : null;
+    return { vals, max, avg, count: played.length };
+  }, [drops, mine]);
+  const avgPct = (trend.max > 0 && trend.avg != null) ? Math.min(97, (trend.avg / trend.max) * 100) : null;
 
   const board = (allTime && Array.isArray(allTime.board)) ? allTime.board.slice(0, 5) : [];
   const meOnBoard = board.some((r) => r.isMe);
@@ -222,6 +241,43 @@ export default function DailyTilePanel({
         </section>
       </div>
 
+      {/* Day-by-day history: fills the space the compact columns leave behind. */}
+      <section className="dtp-trend">
+        <div className="dtp-lab">
+          <TrendingUp size={12} strokeWidth={2.4} />
+          {trend.count > 0 ? `Your last ${trend.vals.length} days` : 'Your history'}
+          {trend.count > 0 ? (
+            <span className="dtp-tsum">best {fmtPts(mine.bestPoints)} &middot; avg {fmtPts(mine.avgPoints)}</span>
+          ) : null}
+        </div>
+        {loading ? (
+          <div className="dtp-empty">Loading your history…</div>
+        ) : trend.count > 0 ? (
+          <>
+            <div className="dtp-bars">
+              {avgPct != null ? <span className="dtp-avg" style={{ bottom: avgPct + '%' }} aria-hidden="true" /> : null}
+              {trend.vals.map((v) => {
+                const h = v.pts != null && trend.max > 0 ? Math.max(5, (v.pts / trend.max) * 100) : 0;
+                const title = shortDate(v.iso) + (v.pts != null ? ' · ' + fmtPts(v.pts) + ' pts' : ' · not played');
+                return (
+                  <a key={v.iso} href={v.href} className="dtp-barw" title={title} aria-label={title}>
+                    {v.pts != null
+                      ? <span className={'dtp-bar' + (v.isToday ? ' today' : '')} style={{ height: h + '%' }} />
+                      : <span className="dtp-bar miss" />}
+                  </a>
+                );
+              })}
+            </div>
+            <div className="dtp-bx">
+              <span>{shortDate(trend.vals[0].iso)}</span>
+              <span>{shortDate(trend.vals[trend.vals.length - 1].iso)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="dtp-empty">Play it once and your day by day history shows up here.</div>
+        )}
+      </section>
+
       <style>{`
         .dtp{position:absolute;inset:0;z-index:6;background:#0e1d40;border-radius:0 0 13px 13px;color:#eef3fb;
              padding:13px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
@@ -247,7 +303,7 @@ export default function DailyTilePanel({
                     font-weight:800;font-size:13px;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:background .12s,transform .12s;}
         .dtp-shrink:hover{background:#f0c358;border-color:#f0c358;transform:translateY(-1px);}
         /* three columns take every remaining pixel */
-        .dtp-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:20px;align-items:start;}
+        .dtp-grid{flex:none;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:20px;align-items:start;}
         .dtp-col{min-width:0;display:flex;flex-direction:column;}
         .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;font-weight:500;margin-bottom:8px;flex:none;}
         .dtp-lab.sm{margin-top:10px;}
@@ -299,6 +355,18 @@ export default function DailyTilePanel({
         .dtp-lfoot a{color:#e8b43a;text-decoration:none;font-weight:700;}
         .dtp-lfoot a:hover{text-decoration:underline;}
         .dtp-empty{font-size:12px;color:#6c7e9b;font-weight:600;padding:6px 0;}
+        /* score trend */
+        .dtp-trend{flex:1 1 auto;min-height:92px;display:flex;flex-direction:column;padding-top:2px;}
+        .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#93a3bd;}
+        .dtp-bars{position:relative;flex:1 1 auto;min-height:56px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #1e3050;padding-bottom:1px;}
+        .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed rgba(255,255,255,0.26);pointer-events:none;}
+        .dtp-barw{flex:1 1 0;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
+        .dtp-barw:hover{background:rgba(255,255,255,0.05);}
+        .dtp-bar{display:block;width:100%;max-width:22px;background:var(--gc);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:opacity .12s;}
+        .dtp-barw:hover .dtp-bar{opacity:1;}
+        .dtp-bar.today{background:#e8b43a;opacity:1;}
+        .dtp-bar.miss{height:5px;background:rgba(255,255,255,0.09);border-radius:2px;}
+        .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#6c7e9b;}
         @media(max-width:980px){
           /* IN FLOW below 980px. As an absolutely positioned overlay with its
              own scrollbar, the panel swallowed the touch gesture: the page
@@ -307,6 +375,8 @@ export default function DailyTilePanel({
              grows to its natural height, DailyStrip hides the grid underneath
              it, and the page scrolls normally with no nested scroller. */
           .dtp{position:static;overflow:visible;height:auto;border-radius:11px;animation:none;}
+          .dtp-trend{min-height:0;}
+          .dtp-bars{min-height:74px;}
           .dtp-grid{grid-template-columns:1fr 1fr;gap:16px;}
           .dtp-col:nth-child(3){grid-column:1/-1;}
         }
