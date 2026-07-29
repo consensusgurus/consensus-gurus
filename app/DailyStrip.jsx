@@ -85,7 +85,7 @@ const tcol = (k) => TCOL[k] || '#2563eb';
 // tile is recognisably its game's colour while the board still reads as one
 // calm surface. The saturated hue stays on the top rule for punch. Computed
 // here rather than with CSS color-mix so it renders identically everywhere.
-const TINT_BASE = '#0a1631';
+const TINT_BASE = '#ffffff';
 function mixHex(hex, pct, base) {
   const h = (x) => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
   const [r1, g1, b1] = h(hex), [r2, g2, b2] = h(base);
@@ -98,14 +98,14 @@ function mixHex(hex, pct, base) {
 // consistent layer of grouping. Navy-legible hues, one clearly distinct per
 // category.
 const CAT_COLOR = {
-  Word: '#2563eb', Numbers: '#c2410c', Logic: '#fb7185',
-  History: '#7c3aed', Geography: '#4ade80', 'Crowd Psychology': '#e0b13f',
+  Word: '#2563eb', Numbers: '#c2410c', Logic: '#be123c',
+  History: '#7c3aed', Geography: '#15803d', 'Crowd Psychology': '#a16207',
 };
 const CAT_CHIP_BG = {}, CAT_BG = {}, CAT_BD = {};
 for (const [k, v] of Object.entries(CAT_COLOR)) {
-  CAT_CHIP_BG[k] = mixHex(v, 0.30, TINT_BASE);
-  CAT_BG[k] = mixHex(v, 0.16, TINT_BASE);
-  CAT_BD[k] = mixHex(v, 0.38, TINT_BASE);
+  CAT_CHIP_BG[k] = mixHex(v, 0.16, TINT_BASE);
+  CAT_BG[k] = mixHex(v, 0.07, TINT_BASE);
+  CAT_BD[k] = mixHex(v, 0.42, TINT_BASE);
 }
 const catCol = (cat) => CAT_COLOR[cat] || '#6b7280';
 // 'Crowd Psychology' is too long for a tile chip.
