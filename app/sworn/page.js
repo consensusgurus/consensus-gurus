@@ -48,7 +48,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/sworn',
   description:
     'A free daily Knights-and-Knaves style logic puzzle: suspects give sworn statements, an exact number of them are lying, and one is the thief. Every case is machine-verified to have exactly one consistent world — pure deduction names the culprit.',
-  genre: ['Logic game', 'Deduction puzzle', 'Liars puzzle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Deduction puzzle', 'Liars puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

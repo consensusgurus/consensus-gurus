@@ -13,7 +13,7 @@ import { PUZZLES } from './puzzles';
 // crowd could be reverse-engineered before playing.
 
 export const metadata = {
-  title: 'Outwit — Daily Crowd Game: Beat Everyone Playing Today | Source of Truths',
+  title: 'Outwit — Daily Crowd Puzzle: Beat Everyone Playing Today | Source of Truths',
   description:
     'A free daily puzzle where the puzzle is other people. Five game-theory prompts against the whole field: dodge the popular pick, read the herd, meet the crowd, be the rare bird, then undercut the average by a fraction that changes daily. Six prompts in the Sunday Edition. Then see where everyone actually went.',
   alternates: { canonical: '/outwit' },
@@ -24,7 +24,7 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Outwit' },
   openGraph: {
-    title: 'Outwit — The Daily Crowd Game',
+    title: 'Outwit — The Daily Crowd Puzzle',
     description:
       'Your opponent is everyone playing today. Five quick prompts, no right answers — only what the crowd does. From Source of Truths.',
     url: '/outwit',
@@ -33,7 +33,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Outwit — The Daily Crowd Game',
+    title: 'Outwit — The Daily Crowd Puzzle',
     description:
       'Five prompts against everyone playing today. Predict the crowd, then watch the real numbers roll in.',
   },
@@ -43,11 +43,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Outwit',
-  alternateName: 'Outwit — Daily Crowd Game',
+  alternateName: 'Outwit — Daily Crowd Puzzle',
   url: 'https://sourceoftruths.com/outwit',
   description:
     'A free daily game-theory puzzle: five prompts against every other player. Pick what the fewest pick, guess the crowd median, match the crowd favorite, make the rarest pick, then undercut the average by the day\u2019s fraction, which changes daily. Scored against the real player pool.',
-  genre: ['Game theory', 'Trivia game', 'Party game', 'Puzzle'],
+  genre: ['Game theory', 'Trivia puzzle', 'Party puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',
@@ -108,7 +108,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Outwit launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily crowd game — five prompts against everyone playing. Come back when the first crowd forms.
+          The daily crowd puzzle — five prompts against everyone playing. Come back when the first crowd forms.
         </p>
         <a href="/daily" style={{ color: '#1f2937', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>

@@ -6,7 +6,7 @@
 // what story it is: name it straight off the redacted page for a perfect
 // "cold read" 10. A wrong guess, or a press of the TEAR button, rips the
 // censor strip off one more word — six tears and the page is bare. Score is
-// 10 minus tears used; a wrong guess with nothing left to tear ends the game.
+// 10 minus tears used; a wrong guess with nothing left to tear ends the puzzle.
 // One free hint reveals the dateline (the paper's date and place). Ties on
 // the daily board break by fewest tears, then fastest time.
 //
@@ -437,7 +437,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
   // ── the redacted headline ──
   // A word is visible if it's not hidden, its reveal slot has been torn, or
-  // the game is over (the whole page unredacts at the end).
+  // the puzzle is over (the whole page unredacts at the end).
   const revealedSet = useMemo(() => {
     const s = new Set();
     for (let k = 0; k < Math.min(tears, HIDDEN.length); k++) s.add(HIDDEN[k]);
@@ -475,7 +475,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>A historic front page, with the giveaway words <b>blacked out</b>. Type what story it is &mdash; the event, in your own words (&ldquo;the moon landing&rdquo;, &ldquo;Nixon resigns&rdquo;).</p>
-      <p style={{ margin: '0 0 9px' }}>A wrong guess, or a press of <b>Tear a word free</b>, rips the censor strip off one more word. You get <b>six tears</b> &mdash; a wrong guess with nothing left to tear ends the game.</p>
+      <p style={{ margin: '0 0 9px' }}>A wrong guess, or a press of <b>Tear a word free</b>, rips the censor strip off one more word. You get <b>six tears</b> &mdash; a wrong guess with nothing left to tear ends the puzzle.</p>
       <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals the dateline: the paper&rsquo;s date and place.</p>
       <p style={{ margin: 0 }}>Naming the story with <b>zero tears</b> is a cold read &mdash; a perfect 10. Every tear costs a point. Ties break on fewest tears, then fastest time. Sundays run a trickier story.</p>
     </div>
@@ -503,7 +503,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* game-native top strip: quiet nav + player chip (hidden in focus mode while playing) */}
+        {/* puzzle-native top strip: quiet nav + player chip (hidden in focus mode while playing) */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed EXTRA tiles with No./date inline */}
@@ -600,7 +600,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                 {identity && (tears > 0 || g.wrong.length > 0) && (
                   <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                     style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <Eye size={13} /> {armReveal ? 'Tap again — ends the game and names the story' : 'Reveal & end'}
+                    <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and names the story' : 'Reveal & end'}
                   </button>
                 )}
               </div>
@@ -665,7 +665,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -717,7 +717,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -761,13 +761,13 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Extra</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Extra is a free daily history game from Source of Truths &mdash; the daily front page. Each day resurrects one of history&rsquo;s great headlines with the giveaway words blacked out, newsroom-censor style. Your job: name the story.
+          Extra is a free daily history puzzle from Source of Truths &mdash; the daily front page. Each day resurrects one of history&rsquo;s great headlines with the giveaway words blacked out, newsroom-censor style. Your job: name the story.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Guess wrong, or press the tear button, and one more word rips free &mdash; six tears and the page is bare. Name the story straight off the fully redacted page and that&rsquo;s a cold read, the perfect score. A free hint reveals the dateline if you need a foothold in time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new front page drops every day at midnight Eastern, with a trickier story on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, our crowd-ranking game, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our history-ordering game, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new front page drops every day at midnight Eastern, with a trickier story on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, our crowd-ranking puzzle, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 

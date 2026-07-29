@@ -265,7 +265,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recs — TODAY'S puzzle only
+    // same-device day breadcrumb for cross-puzzle recs — TODAY'S puzzle only
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
         (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_emcee_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_emcee_day'); })();
@@ -637,7 +637,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* game-native top strip: quiet nav + player chip */}
+        {/* puzzle-native top strip: quiet nav + player chip */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed EMCEE tiles with No./date inline — M and C lit (M.C.) */}
@@ -780,7 +780,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
             {identity && (g.t0 || checks > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows the answers' : 'Reveal & end'}
+                <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the answers' : 'Reveal & end'}
               </button>
             )}
           </div>
@@ -817,7 +817,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -869,7 +869,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -916,10 +916,10 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           Emcee is a free daily mini crossword from Source of Truths. Say the name fast and you&rsquo;ll hear the initials &mdash; M.C. &mdash; because that&rsquo;s all it is: a proper mini crossword, five squares by five, with numbered Across and Down clues and a timer that only stops when the grid is right.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The words are everyday words and the clues play fair, so most grids fall in a minute or two &mdash; the game is speed and cleanliness. The grid checks itself when the last square lands: wrong squares flash red and each failed check counts against you on the leaderboard, where ties break on fewest checks and then fastest time.
+          The words are everyday words and the clues play fair, so most grids fall in a minute or two &mdash; the puzzle is speed and cleanliness. The grid checks itself when the last square lands: wrong squares flash red and each failed check counts against you on the leaderboard, where ties break on fewest checks and then fastest time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new grid drops every day at midnight Eastern, and Sundays go bigger with a 7&times;7 pinwheel. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More word games: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word-grouping game, and <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our daily unscramble.
+          A new grid drops every day at midnight Eastern, and Sundays go bigger with a 7&times;7 pinwheel. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More word puzzles: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word-grouping puzzle, and <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our daily unscramble.
         </p>
       </section>
 

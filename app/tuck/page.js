@@ -9,9 +9,9 @@ import { PUZZLES } from './puzzles';
 // chase the solver-verified par.
 
 export const metadata = {
-  title: 'Tuck — Daily Word Game: Same Letters, Highest Score Wins | Source of Truths',
+  title: 'Tuck — Daily Word Puzzle: Same Letters, Highest Score Wins | Source of Truths',
   description:
-    'A free daily word game — everyone gets the same 14 letters, and 15 in the Sunday Edition. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified par to beat.',
+    'A free daily word puzzle — everyone gets the same 14 letters, and 15 in the Sunday Edition. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified par to beat.',
   alternates: { canonical: '/tuck' },
   manifest: '/tuck.webmanifest',
   icons: {
@@ -20,7 +20,7 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Tuck' },
   openGraph: {
-    title: 'Tuck — The Daily Tile-Tucking Word Game',
+    title: 'Tuck — The Daily Tile-Tucking Word Puzzle',
     description:
       'Fourteen letters, one empty board, no single answer. Everyone plays the same rack, and the highest score wins the day. From Source of Truths.',
     url: '/tuck',
@@ -29,7 +29,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tuck — The Daily Tile-Tucking Word Game',
+    title: 'Tuck — The Daily Tile-Tucking Word Puzzle',
     description:
       'Everyone gets the same 14 letters. Tuck them into your own crossword grid and beat today’s par.',
   },
@@ -39,11 +39,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Tuck',
-  alternateName: 'Tuck — Daily Tile-Tucking Word Game',
+  alternateName: 'Tuck — Daily Tile-Tucking Word Puzzle',
   url: 'https://sourceoftruths.com/tuck',
   description:
-    'A free daily word game: everyone gets the same 14 Scrabble-weighted letters and builds their own interlocking crossword on a 9×9 board. Every run of letters must be a dictionary word, intersections score in both words, and each day carries a solver-verified par to beat.',
-  genre: ['Word game', 'Puzzle', 'Strategy game'],
+    'A free daily word puzzle: everyone gets the same 14 Scrabble-weighted letters and builds their own interlocking crossword on a 9×9 board. Every run of letters must be a dictionary word, intersections score in both words, and each day carries a solver-verified par to beat.',
+  genre: ['Word puzzle', 'Puzzle', 'Strategy puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',
@@ -86,7 +86,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Tuck launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily tile-tucking word game — 14 letters, one empty board, and a par to beat. Come back when the first rack drops.
+          The daily tile-tucking word puzzle — 14 letters, one empty board, and a par to beat. Come back when the first rack drops.
         </p>
         <a href="/daily" style={{ color: '#92400e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>

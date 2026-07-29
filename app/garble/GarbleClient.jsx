@@ -4,7 +4,7 @@
 //
 // Untangle each scrambled word using exactly the letters shown. The gold
 // (marked) letters of every solution feed a final answer whose clue is
-// printed from the start; solving the finale ends the game. Score is out of
+// printed from the start; solving the finale ends the puzzle. Score is out of
 // 10: one point per word untangled, five for the finale. Wrong tries are
 // misses — fewest misses breaks leaderboard ties, then time.
 //
@@ -197,7 +197,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recommendations — only for
+    // same-device day breadcrumb for cross-puzzle recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
@@ -454,7 +454,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}><b>Untangle five garbled words</b> &mdash; tap a row, type the word using exactly the letters shown, hit enter. Wrong words are <b>misses</b>.</p>
-      <p style={{ margin: '0 0 9px' }}>Each solution donates its <span style={{ background: COLORS.gold, color: COLORS.goldInk, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>gold letters</span> to <b>the finale</b> &mdash; a last answer with its clue printed up top. Solve it whenever you see it; the finale ends the game.</p>
+      <p style={{ margin: '0 0 9px' }}>Each solution donates its <span style={{ background: COLORS.gold, color: COLORS.goldInk, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>gold letters</span> to <b>the finale</b> &mdash; a last answer with its clue printed up top. Solve it whenever you see it; the finale ends the puzzle.</p>
       <p style={{ margin: 0 }}>Score is out of 10: one per word, five for the finale. Fewest misses breaks ties, then time.</p>
     </div>
   );
@@ -575,13 +575,13 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               <p style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, margin: mobileUi ? '0 0 2px' : '6px 0 0', textAlign: 'center' }}>
                 Use exactly the letters shown. The finale is fair game at any time.
               </p>
-              {/* Reveal is deliberately buried: below the game, only once you have
+              {/* Reveal is deliberately buried: below the puzzle, only once you have
                   a display name and have made progress, and it takes two taps. */}
               {identity && (solvedCount > 0 || g.misses > 0) && (
                 <p style={{ margin: '12px 0 0', textAlign: 'center' }}>
                   <button onClick={() => { if (armReveal) { setArmReveal(false); endGame(false); } else { setArmReveal(true); } }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                    <Eye size={13} /> {armReveal ? 'Tap again — ends the game and reveals the answers' : 'Reveal answers & end'}
+                    <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and reveals the answers' : 'Reveal answers & end'}
                   </button>
                 </p>
               )}
@@ -607,10 +607,10 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
-        {/* daily-page bottom group: challenge + share + other games + archive, divider below */}
+        {/* daily-page bottom group: challenge + share + other puzzles + archive, divider below */}
         {!focusMode && (<DailyGamesGrid
           self="garble"
           maxWidth={640}
@@ -669,9 +669,9 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      {/* confetti now lives in the shared DailyEndCard (win-only), so every daily game gets it */}
+      {/* confetti now lives in the shared DailyEndCard (win-only), so every daily puzzle gets it */}
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {ended && !endClosed && (
         <DailyEndCard
           modal
@@ -710,13 +710,13 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Garble</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Garble is a free daily word scramble game from Source of Truths. Five garbled words &mdash; one more than the classic format &mdash; each untangle into a real word using exactly the letters shown, and every solution donates its gold letters to the finale.
+          Garble is a free daily word scramble puzzle from Source of Truths. Five garbled words &mdash; one more than the classic format &mdash; each untangle into a real word using exactly the letters shown, and every solution donates its gold letters to the finale.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The finale is the sixth answer: a final word with its clue printed from the start. Solve it whenever you spot it &mdash; it ends the game on the spot, so an early finale sprint is a real strategy. Wrong arrangements count as misses, and fewest misses breaks ties on the daily leaderboard.
+          The finale is the sixth answer: a final word with its clue printed from the start. Solve it whenever you spot it &mdash; it ends the puzzle on the spot, so an early finale sprint is a real strategy. Wrong arrangements count as misses, and fewest misses breaks ties on the daily leaderboard.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new Garble arrives every day, and the Sunday Edition stretches every answer to six letters. No app, no signup &mdash; play free in your browser. Like interlocking grids more than scrambles? Try <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our daily crossword-style word game.
+          A new Garble arrives every day, and the Sunday Edition stretches every answer to six letters. No app, no signup &mdash; play free in your browser. Like interlocking grids more than scrambles? Try <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our daily crossword-style word puzzle.
         </p>
       </section>
 

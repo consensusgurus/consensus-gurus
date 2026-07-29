@@ -1,6 +1,6 @@
 'use client';
 
-// Stet — the daily copy-desk game.
+// Stet — the daily copy-desk puzzle.
 //
 // One news brief a day: five sentences (seven on Sundays). Most sentences hide
 // exactly one wrong word — a real word (an eggcorn, a homophone, a malaprop, a
@@ -458,7 +458,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Stet #${PUZZLE.num} — the daily copy-desk game from Source of Truths.\n${shareUrl()}`
+      ? `Stet #${PUZZLE.num} — the daily copy-desk puzzle from Source of Truths.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -756,7 +756,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
@@ -807,7 +807,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -849,13 +849,13 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Stet</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Stet is a free daily word game from Source of Truths &mdash; the copy-desk game. Each day serves up a short news brief where almost every sentence hides one wrong word: an eggcorn, a swapped homophone, a malaprop, or a grammar slip like &ldquo;should of&rdquo; or &ldquo;had ran&rdquo;. The catch is that every error is a real English word, so a spellchecker would wave the whole brief through. Only a sharp eye catches &ldquo;free reign&rdquo;, &ldquo;baited breath&rdquo;, or a report that &ldquo;peaked&rdquo; someone&rsquo;s interest.
+          Stet is a free daily word puzzle from Source of Truths &mdash; the copy-desk puzzle. Each day serves up a short news brief where almost every sentence hides one wrong word: an eggcorn, a swapped homophone, a malaprop, or a grammar slip like &ldquo;should of&rdquo; or &ldquo;had ran&rdquo;. The catch is that every error is a real English word, so a spellchecker would wave the whole brief through. Only a sharp eye catches &ldquo;free reign&rdquo;, &ldquo;baited breath&rdquo;, or a report that &ldquo;peaked&rdquo; someone&rsquo;s interest.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Tap the word that doesn&rsquo;t belong, type the correction, and lock it in &mdash; a point for finding each error and a point for fixing it. But stay honest: some sentences are perfectly clean, and the only way to score them is to stamp them <i>stet</i> &mdash; the proofreader&rsquo;s mark, Latin for &ldquo;let it stand.&rdquo; Miss a call either way and the desk shows you what you should have caught, with a one-line note on why.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new brief lands every day at midnight Eastern, with a seven-sentence Sunday edition where a single sentence can hide two errors. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling game, and <a href="/extra" style={{ color: COLORS.ink, fontWeight: 800 }}>Extra</a>, our front-page history game.
+          A new brief lands every day at midnight Eastern, with a seven-sentence Sunday edition where a single sentence can hide two errors. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/extra" style={{ color: COLORS.ink, fontWeight: 800 }}>Extra</a>, our front-page history puzzle.
         </p>
       </section>
 

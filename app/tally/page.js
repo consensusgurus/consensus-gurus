@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import TallyClient from './TallyClient';
 import { PUZZLES } from './puzzles';
 
-// Tally launched 2026-07-15 as the sixth daily: linked from the hub games row,
+// Tally launched 2026-07-15 as the sixth daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/tally is the canonical,
 // evergreen URL — the dated /quiz/tally-* stubs canonicalize here). Weekdays
 // are a 5×5 board; Sundays step up to 6×6.
@@ -10,7 +10,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Tally — Free Daily Number Puzzle (Sudoku-style) | Source of Truths',
   description:
-    'A free daily number puzzle — fill the grid from a rack of tiles so every row and column hits its target. A logic game in the sudoku family, with a new board every day and a bigger 6×6 grid on Sundays.',
+    'A free daily number puzzle — fill the grid from a rack of tiles so every row and column hits its target. A logic puzzle in the sudoku family, with a new board every day and a bigger 6×6 grid on Sundays.',
   alternates: { canonical: '/tally' },
   manifest: '/tally.webmanifest',
   icons: {
@@ -42,7 +42,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/tally',
   description:
     'A free daily logic puzzle in the sudoku family: fill an N×N grid from a fixed rack of number tiles so every row and column adds up to its printed target. Each board has one solution — solve it in the fewest moves for a perfect score, and ties break on fewest errors then fastest time.',
-  genre: ['Logic game', 'Number puzzle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Number puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

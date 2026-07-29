@@ -311,7 +311,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
         <li>Everything reveals at once, with the real numbers under every name.</li>
       </ol>
       <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
-        <b>The knack:</b> the first round is deliberately lopsided and the final is close on purpose. Getting round one right is not the game. The game is that a single bad call in round one takes every later pick down with it, exactly like a busted Final Four.
+        <b>The knack:</b> the first round is deliberately lopsided and the final is close on purpose. Getting round one right is not the puzzle. The puzzle is that a single bad call in round one takes every later pick down with it, exactly like a busted Final Four.
       </div>
       <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
         Pool scoring: 1 a pick in the first round, 2 in the quarters, 4 in the semis, 8 for the final. Every round is worth {N / 2}, so {TOTAL} is perfect. A later pick only counts if the thing you advanced really did win that slot.

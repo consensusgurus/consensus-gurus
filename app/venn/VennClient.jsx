@@ -1,6 +1,6 @@
 'use client';
 
-// Venn — the daily three-circle sorting game.
+// Venn — the daily three-circle sorting puzzle.
 //
 // Three labelled circles, twelve words, and every one of the seven regions is
 // used. What stops it being a quiz is the counts: each region prints how many
@@ -500,7 +500,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -566,7 +566,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           The counts are what turn sorting into deduction. Each region tells you how many words belong in it, so a word in the wrong place is never just a wrong answer, it is a number that refuses to add up. Work the shortfalls and the board corrects itself.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new sheet lands every day at midnight Eastern, and Sundays withhold two of the counts. More dailies: <a href="/axiom" style={{ color: COLORS.ink, fontWeight: 800 }}>Axiom</a>, our hidden-rule game, <a href="/bracket" style={{ color: COLORS.ink, fontWeight: 800 }}>Bracket</a>, our results-table reconstruction, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our four hidden threads.
+          A new sheet lands every day at midnight Eastern, and Sundays withhold two of the counts. More dailies: <a href="/axiom" style={{ color: COLORS.ink, fontWeight: 800 }}>Axiom</a>, our hidden-rule puzzle, <a href="/bracket" style={{ color: COLORS.ink, fontWeight: 800 }}>Bracket</a>, our results-table reconstruction, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our four hidden threads.
         </p>
       </section>
       <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
@@ -579,7 +579,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{25CE} Filed clean in ${elapsed}` : `\u{25CE} Filed in ${elapsed} · ${g.rejected} rejected sheet${g.rejected === 1 ? '' : 's'}`)
       : g.status === 'lost' ? '\u{25CE} The sheet won' : '\u{25CE} Still filing…';
     const text = playing
-      ? `Venn #${PUZZLE.num} — the daily three-circle sorting game from Source of Truths.\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Venn #${PUZZLE.num} — the daily three-circle sorting puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Venn — Sheet #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}

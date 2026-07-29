@@ -203,7 +203,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
   const gridRef = useRef(null);
-  const histRef = useRef([]);       // undo stack of prior game states
+  const histRef = useRef([]);       // undo stack of prior puzzle states
   const finishedRef = useRef(false);
   const pendingRef = useRef(null);  // pointer-down candidate before it becomes a drag
   const draggedRef = useRef(false); // suppresses the click that trails a real drag
@@ -844,7 +844,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           {focusMode && (
             <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
               <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
             </div>
           )}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -937,13 +937,13 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Shards</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Shards is a free daily word game from Source of Truths, a jigsaw crossword. The grid arrives already solved but shattered into lettered puzzle pieces, and you reassemble it so that every across and down run of two or more letters is a real word. There are no clues. The letters are the clues, and the shapes are how you fit them back together.
+          Shards is a free daily word puzzle from Source of Truths, a jigsaw crossword. The grid arrives already solved but shattered into lettered puzzle pieces, and you reassemble it so that every across and down run of two or more letters is a real word. There are no clues. The letters are the clues, and the shapes are how you fit them back together.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every day&rsquo;s pieces have exactly one valid reassembly, checked by a solver before it ships, so there is always a single right answer to find. Pieces never rotate or flip. Drag them onto the grid or tap to place, move them as often as you like, and lean on three optional hints when you are stuck. You start at {START} and finish the moment the last word clicks into place.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A fresh grid lands every day at midnight Eastern, with a larger Sunday Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/emcee" style={{ color: COLORS.ink, fontWeight: 800 }}>Emcee</a>, our mini crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking game, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A fresh grid lands every day at midnight Eastern, with a larger Sunday Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/emcee" style={{ color: COLORS.ink, fontWeight: 800 }}>Emcee</a>, our mini crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking puzzle, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 

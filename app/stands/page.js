@@ -10,7 +10,7 @@ import { PUZZLES } from './puzzles';
 // the verifier does, so nothing but the puzzle itself ever ships.
 
 export const metadata = {
-  title: 'Stands — Free Daily Logic Game: Rebuild the Results | Source of Truths',
+  title: 'Stands — Free Daily Logic Puzzle: Rebuild the Results | Source of Truths',
   description: 'A free daily logic puzzle. A small league played a full round robin, the results sheet was lost, and a handful of facts survive. Exactly one set of results fits them. New season every day.',
   alternates: { canonical: '/stands' },
   manifest: '/stands.webmanifest',
@@ -29,7 +29,7 @@ const gameJsonLd = {
   name: 'Stands',
   url: 'https://sourceoftruths.com/stands',
   description: 'A free daily logic puzzle. A small league played a full round robin, the results sheet was lost, and a handful of facts survive. Exactly one set of results fits them. New season every day.',
-  genre: ['Logic game', 'Deduction puzzle', 'Constraint puzzle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Deduction puzzle', 'Constraint puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

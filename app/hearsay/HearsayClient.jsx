@@ -6,7 +6,7 @@
 // attribute of the secret card: on the harbour board Marisol is told the port
 // and Ivo is told the day. Then they speak in turn, and every line is about
 // their own ignorance. "I don't know it" is not an absence of evidence, it IS
-// the evidence: it rules out every card whose value would have given the game
+// the evidence: it rules out every card whose value would have given the puzzle
 // away.
 //
 // This is the Cheryl's Birthday family of puzzle, generated fresh daily and
@@ -655,7 +655,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -746,7 +746,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           The trick that makes it click is that ignorance carries information. When someone says they cannot work it out, every candidate that would have handed them the answer is gone. When someone says they now can, the survivors that stayed ambiguous fall away. Each line cuts the list, and exactly one entry lives through all of them.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new case is heard every day at midnight Eastern, with a third voice on Sundays. No app, no signup, play free in your browser, keep a streak and race the daily leaderboard. More dailies: <a href="/axiom" style={{ color: COLORS.ink, fontWeight: 800 }}>Axiom</a>, our hidden-rule game, <a href="/sworn" style={{ color: COLORS.ink, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit.
+          A new case is heard every day at midnight Eastern, with a third voice on Sundays. No app, no signup, play free in your browser, keep a streak and race the daily leaderboard. More dailies: <a href="/axiom" style={{ color: COLORS.ink, fontWeight: 800 }}>Axiom</a>, our hidden-rule puzzle, <a href="/sworn" style={{ color: COLORS.ink, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit.
         </p>
       </section>
 

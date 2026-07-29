@@ -111,7 +111,7 @@ function getAnonId() {
 }
 const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
 
-// ─── The end-of-game route map ──────────────────────────────────────────────
+// ─── The end-of-puzzle route map ──────────────────────────────────────────────
 // Draws the player's chain (and, when they didn't find one, a shortest road)
 // on the simplified world map. Anchors start at country centroids; countries
 // with a big footprint (Russia, China, Brazil…) get their anchor pulled to
@@ -396,7 +396,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recommendations — only for
+    // same-device day breadcrumb for cross-puzzle recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
@@ -646,7 +646,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   }
 
   // one CONSTRAINED shortest road (Sunday rules respected) — the reveal list,
-  // and the dashed comparison line on the end-of-game map
+  // and the dashed comparison line on the end-of-puzzle map
   const bestRoute = useMemo(() => {
     if (playing) return null;
     if (AVOID) return shortestRoute(ADJ, PUZZLE.start, PUZZLE.end, AVOID);
@@ -721,7 +721,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* game-native top strip (Crux pattern): quiet nav + player chip */}
+        {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed SPAN tiles with No./date inline, one rule beneath */}
@@ -831,7 +831,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               {identity && (chain.length > 1 || g.misses > 0) && (
                 <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows a shortest road' : 'Reveal a road & end'}
+                  <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows a shortest road' : 'Reveal a road & end'}
                 </button>
               )}
             </div>
@@ -884,7 +884,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -936,7 +936,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -980,13 +980,13 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Span</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Span is a free daily geography game from Source of Truths. Each day hands you two countries; your job is to connect them with the shortest chain of land borders you can find. Match the shortest path on the map and you&apos;ve spanned the day.
+          Span is a free daily geography puzzle from Source of Truths. Each day hands you two countries; your job is to connect them with the shortest chain of land borders you can find. Match the shortest path on the map and you&apos;ve spanned the day.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The map plays by strict rules: mainland land borders only, so overseas territories, bridges, and tunnels don&apos;t count &mdash; which is why Scandinavia&apos;s only way out is through Russia, and why the Sinai is the single land door between Africa and Asia. Contiguous exclaves do count: Kaliningrad, Nakhchivan, and Cabinda are all in play.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new route drops every day at midnight Eastern, and every game ends with your road drawn on the world map. On Sundays the Sunday Edition adds a twist: a country your road must pass through, or one whose borders are closed for the day. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game.
+          A new route drops every day at midnight Eastern, and every puzzle ends with your road drawn on the world map. On Sundays the Sunday Edition adds a twist: a country your road must pass through, or one whose borders are closed for the day. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping puzzle.
         </p>
       </section>
 

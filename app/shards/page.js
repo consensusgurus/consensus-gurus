@@ -11,13 +11,13 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Shards - Daily Jigsaw Crossword | Source of Truths',
   description:
-    'A free daily word game: a mini crossword arrives already solved but shattered into lettered puzzle pieces. Reassemble them so every across and down run is a real word. No clues, one verified solution, a fresh grid every day.',
+    'A free daily word puzzle: a mini crossword arrives already solved but shattered into lettered puzzle pieces. Reassemble them so every across and down run is a real word. No clues, one verified solution, a fresh grid every day.',
   alternates: { canonical: '/shards' },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Shards' },
   openGraph: {
     title: 'Shards - The Daily Jigsaw Crossword',
     description:
-      'The grid comes solved, then shattered into lettered pieces. Put it back together so every word reads true. A new daily word game from Source of Truths.',
+      'The grid comes solved, then shattered into lettered pieces. Put it back together so every word reads true. A new daily word puzzle from Source of Truths.',
     url: '/shards',
     type: 'website',
     siteName: 'Source of Truths',
@@ -37,8 +37,8 @@ const gameJsonLd = {
   alternateName: 'Shards - Daily Jigsaw Crossword',
   url: 'https://sourceoftruths.com/shards',
   description:
-    'A free daily word game and jigsaw crossword: a filled mini crossword is shattered into rigid lettered polyomino pieces, and the player reassembles it so every across and down run of two or more letters is a dictionary word. Each day has exactly one verified reassembly.',
-  genre: ['Word game', 'Puzzle', 'Crossword'],
+    'A free daily word puzzle and jigsaw crossword: a filled mini crossword is shattered into rigid lettered polyomino pieces, and the player reassembles it so every across and down run of two or more letters is a dictionary word. Each day has exactly one verified reassembly.',
+  genre: ['Word puzzle', 'Puzzle', 'Crossword'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

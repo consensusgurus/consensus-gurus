@@ -3,7 +3,7 @@ import WarmerClient from './WarmerClient';
 import { PUZZLES } from './puzzles';
 
 // Warmer launched 2026-07-18 as the seventeenth daily: linked from the daily
-// strip, the /daily archive, the games grids, and the sitemap (/warmer is the
+// strip, the /daily archive, the puzzles grids, and the sitemap (/warmer is the
 // canonical, evergreen URL — the dated /quiz/warmer-* stubs canonicalize here).
 // One secret word a day; guess by meaning, hotter or colder, until you land it.
 // The Sunday Edition picks a rarer word (deeper in the frequency-ordered vocab).
@@ -13,9 +13,9 @@ import { PUZZLES } from './puzzles';
 // list of the rest — so future words never reach the browser.
 
 export const metadata = {
-  title: 'Warmer — Daily Word Game: Hotter or Colder | Source of Truths',
+  title: 'Warmer — Daily Word Puzzle: Hotter or Colder | Source of Truths',
   description:
-    'A free daily word game — one secret word, and every guess tells you how close it is in meaning on a cold-to-hot spectrum. Ocean is scorching for "sea," pencil is freezing. Unlimited guesses; the leaderboard ranks fewest guesses, fastest time. The Sunday Edition hides a rarer word.',
+    'A free daily word puzzle — one secret word, and every guess tells you how close it is in meaning on a cold-to-hot spectrum. Ocean is scorching for "sea," pencil is freezing. Unlimited guesses; the leaderboard ranks fewest guesses, fastest time. The Sunday Edition hides a rarer word.',
   alternates: { canonical: '/warmer' },
   manifest: '/warmer.webmanifest',
   icons: {
@@ -42,11 +42,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Warmer',
-  alternateName: 'Warmer — Daily Hot-and-Cold Word Game',
+  alternateName: 'Warmer — Daily Hot-and-Cold Word Puzzle',
   url: 'https://sourceoftruths.com/warmer',
   description:
-    'A free daily word game: one secret word, and every guess is scored by how close it is in meaning on a cold-to-hot spectrum. Unlimited guesses — the daily leaderboard ranks players on fewest guesses, fastest time breaking ties.',
-  genre: ['Word game', 'Guessing game', 'Vocabulary game', 'Puzzle'],
+    'A free daily word puzzle: one secret word, and every guess is scored by how close it is in meaning on a cold-to-hot spectrum. Unlimited guesses — the daily leaderboard ranks players on fewest guesses, fastest time breaking ties.',
+  genre: ['Word puzzle', 'Guessing puzzle', 'Vocabulary puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

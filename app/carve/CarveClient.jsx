@@ -1,6 +1,6 @@
 'use client';
 
-// Carve — the daily equal-sum partition game.
+// Carve — the daily equal-sum partition puzzle.
 //
 // Each day: an NxN grid of digits and a set of colored anchors, one per region.
 // Grow every region out from its anchor so the grid is carved into connected
@@ -273,7 +273,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recs — TODAY'S puzzle only
+    // same-device day breadcrumb for cross-puzzle recs — TODAY'S puzzle only
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
         (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_carve_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_carve_day'); })();
@@ -634,7 +634,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* game-native top strip: quiet nav + player chip */}
+        {/* puzzle-native top strip: quiet nav + player chip */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed CARVE tiles with No./date inline */}
@@ -746,7 +746,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
             {identity && (g.t0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows the carving' : 'Reveal & end'}
+                <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the carving' : 'Reveal & end'}
               </button>
             )}
           </div>
@@ -783,7 +783,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -835,7 +835,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal

@@ -13,7 +13,7 @@ import { PUZZLES } from './puzzles';
 // browser by finding the one spec that agrees with every tile.
 
 export const metadata = {
-  title: 'Axiom — Free Daily Logic Game: Find the Hidden Rule | Source of Truths',
+  title: 'Axiom — Free Daily Logic Puzzle: Find the Hidden Rule | Source of Truths',
   description:
     'A free daily logic puzzle. One hidden rule splits a board of words, five candidate rules are on the table, and you get a handful of tests to tell them apart. New board every day.',
   alternates: { canonical: '/axiom' },
@@ -26,7 +26,7 @@ export const metadata = {
   openGraph: {
     title: 'Axiom — Find the Hidden Rule',
     description:
-      'Green tiles obey a rule you cannot see. Red ones break it. Five candidates, a handful of tests, and most tiles teach you nothing. A new daily logic game from Source of Truths.',
+      'Green tiles obey a rule you cannot see. Red ones break it. Five candidates, a handful of tests, and most tiles teach you nothing. A new daily logic puzzle from Source of Truths.',
     url: '/axiom',
     type: 'website',
     siteName: 'Source of Truths',
@@ -42,11 +42,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Axiom',
-  alternateName: 'Axiom — Daily Rule-Induction Game',
+  alternateName: 'Axiom — Daily Rule-Induction Puzzle',
   url: 'https://sourceoftruths.com/axiom',
   description:
-    'A free daily logic game: a hidden rule splits a board of words into green and red, five candidate rules are listed, and a small budget of tests decides which one fits. Every board is machine-verified to have exactly one consistent rule.',
-  genre: ['Logic game', 'Deduction puzzle', 'Word game', 'Puzzle'],
+    'A free daily logic puzzle: a hidden rule splits a board of words into green and red, five candidate rules are listed, and a small budget of tests decides which one fits. Every board is machine-verified to have exactly one consistent rule.',
+  genre: ['Logic puzzle', 'Deduction puzzle', 'Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',
@@ -87,7 +87,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Axiom opens {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily hidden-rule game. Green tiles obey it, red tiles break it, and most tiles teach you nothing at all.
+          The daily hidden-rule puzzle. Green tiles obey it, red tiles break it, and most tiles teach you nothing at all.
         </p>
         <a href="/daily" style={{ color: '#0f766e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>

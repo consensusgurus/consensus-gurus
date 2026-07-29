@@ -251,7 +251,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recommendations — only for
+    // same-device day breadcrumb for cross-puzzle recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
@@ -481,7 +481,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}><b>Sixteen words hide four threads</b> of four &mdash; a shared category each. Tap four words, then <b>Submit</b>.</p>
       <p style={{ margin: '0 0 9px' }}>Right: the thread banks in its color, <span style={{ background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>yellow</span> easiest to <span style={{ background: CAT_COLORS[3].bg, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>red</span> trickiest. Wrong: one of your <b>four mistakes</b> is gone &mdash; &ldquo;one away&rdquo; is the only hint you get.</p>
-      <p style={{ margin: 0 }}>The words that look like they belong together usually don&apos;t. That&apos;s the game.</p>
+      <p style={{ margin: 0 }}>The words that look like they belong together usually don&apos;t. That&apos;s the puzzle.</p>
     </div>
   );
 
@@ -509,7 +509,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 560, margin: '0 auto' }}>
 
-        {/* game-native top strip (Crux pattern): quiet nav + player chip */}
+        {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed LINKS tiles with No./date inline, one rule beneath */}
@@ -639,7 +639,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 560, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -691,7 +691,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -733,13 +733,13 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 560, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Links</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Links is a free daily word grouping game from Source of Truths. Sixteen words hide four threads of four &mdash; find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.
+          Links is a free daily word grouping puzzle from Source of Truths. Sixteen words hide four threads of four &mdash; find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The trick is the overlap: every puzzle plants words that look like they belong to one thread but pay off in another. Count carefully, eliminate boldly, and save the coin-flips for last. A &ldquo;one away&rdquo; nudge is the only mercy.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new Links arrives every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and compare your grid on the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border-hopping geography game.
+          A new Links arrives every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and compare your grid on the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
         </p>
       </section>
 

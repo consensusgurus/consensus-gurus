@@ -334,12 +334,12 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
   // Record an in-progress inquest if the player interacts then leaves before
-  // accusing (Tuck's abandoned-game pattern). Loading the page does NOT count;
+  // accusing (Tuck's abandoned-puzzle pattern). Loading the page does NOT count;
   // the first mark/accusation sets g.t0, which is the "started" signal. On
-  // exit we post a 0-score result so every started game lands in the stats
+  // exit we post a 0-score result so every started puzzle lands in the stats
   // even when abandoned. The localStorage marker stops a resume-then-leave-
   // again cycle from double-posting; markFlushed() in postResult suppresses
-  // the exit post once the game concludes normally (accusation or reveal).
+  // the exit post once the puzzle concludes normally (accusation or reveal).
   const REC_KEY = `sot_sworn_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     // A play counts only once the player actually acts (a mark, wrong accusation,
@@ -647,7 +647,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -698,7 +698,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal

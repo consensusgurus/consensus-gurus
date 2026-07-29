@@ -394,12 +394,12 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
   // Record an in-progress board if the player interacts then leaves before
-  // finishing (Tuck's abandoned-game pattern). Loading the page does NOT
+  // finishing (Tuck's abandoned-puzzle pattern). Loading the page does NOT
   // count; the first tap sets g.t0, which is the "started" signal. On exit we
-  // post a 0-score result so every started game lands in the stats even when
+  // post a 0-score result so every started puzzle lands in the stats even when
   // abandoned. The localStorage marker stops a resume-then-leave-again cycle
   // from double-posting; markFlushed() in postResult suppresses the exit post
-  // once the game concludes normally (solve or reveal).
+  // once the puzzle concludes normally (solve or reveal).
   const REC_KEY = `sot_jester_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     // A play counts only once the player actually marks a cell (or takes a
@@ -782,7 +782,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -833,7 +833,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -875,7 +875,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Jesters</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Jesters is a free daily logic puzzle from Source of Truths &mdash; a one-per-row, one-per-column, one-per-region placement game in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat one jester in each: every row, every column and every court gets exactly one, and no two jesters may ever touch, not even at the corners.
+          Jesters is a free daily logic puzzle from Source of Truths &mdash; a one-per-row, one-per-column, one-per-region placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat one jester in each: every row, every column and every court gets exactly one, and no two jesters may ever touch, not even at the corners.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction &mdash; rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.

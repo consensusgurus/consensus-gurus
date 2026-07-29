@@ -47,7 +47,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/jester',
   description:
     'A free daily Star Battle-style logic puzzle: seat exactly one jester in every row, every column and every colored court, with no two jesters touching, even diagonally. Every board is machine-verified to have exactly one solution reachable by pure deduction — no guessing.',
-  genre: ['Logic game', 'Placement puzzle', 'Star Battle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Placement puzzle', 'Star Battle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

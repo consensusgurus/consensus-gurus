@@ -42,7 +42,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/carve',
   description:
     'A free daily number puzzle: carve a digit grid into connected blocks, one grown from each colored anchor, so every block sums to the same target. Each board has exactly one valid carving — solve it with no errors for a perfect score, and ties break on fewest errors then fastest time.',
-  genre: ['Logic game', 'Number puzzle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Number puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

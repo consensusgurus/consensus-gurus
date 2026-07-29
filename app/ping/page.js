@@ -11,9 +11,9 @@ import { PUZZLES } from './puzzles';
 // hide a trickier city.
 
 export const metadata = {
-  title: 'Ping — Daily City Game: Guess the City by Distance | Source of Truths',
+  title: 'Ping — Daily City Puzzle: Guess the City by Distance | Source of Truths',
   description:
-    'A free daily geography game — one secret world city, no clues. Guess any city and Ping tells you exactly how many miles away it is. Home in and keep guessing until you find it; the fewer guesses, the better your score.',
+    'A free daily geography puzzle — one secret world city, no clues. Guess any city and Ping tells you exactly how many miles away it is. Home in and keep guessing until you find it; the fewer guesses, the better your score.',
   alternates: { canonical: '/ping' },
   manifest: '/ping.webmanifest',
   icons: {
@@ -41,11 +41,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Ping',
-  alternateName: 'Ping — Daily City Game',
+  alternateName: 'Ping — Daily City Puzzle',
   url: 'https://sourceoftruths.com/ping',
   description:
-    'A free daily geography game: one secret world city, no clues. Guess any city and each guess returns the great-circle distance in miles to the target. Keep guessing until you find it — the fewer guesses, the better.',
-  genre: ['Geography game', 'Trivia game', 'Guessing game', 'Puzzle'],
+    'A free daily geography puzzle: one secret world city, no clues. Guess any city and each guess returns the great-circle distance in miles to the target. Keep guessing until you find it — the fewer guesses, the better.',
+  genre: ['Geography puzzle', 'Trivia puzzle', 'Guessing puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import SudsClient from './SudsClient';
 import { PUZZLES } from './puzzles';
 
-// Suds launched 2026-07-15 as the seventh daily: linked from the hub games row,
+// Suds launched 2026-07-15 as the seventh daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/suds is the canonical,
 // evergreen URL — the dated /quiz/suds-* stubs canonicalize here). Weekdays are
 // a standard 9×9 board; Sundays step up to a harder Edition with fewer clues.
@@ -42,7 +42,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/suds',
   description:
     'A free daily sudoku: fill a 9×9 grid so that every row, column, and 3×3 box contains the digits 1–9 exactly once. Each board has one logical solution — solve it with no errors for a perfect score, and ties break on fewest errors then fastest time.',
-  genre: ['Logic game', 'Sudoku', 'Number puzzle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Sudoku', 'Number puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

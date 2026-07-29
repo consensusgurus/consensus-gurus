@@ -547,7 +547,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -613,7 +613,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           No sport knowledge is needed and the clubs are invented. The reasoning is arithmetic under constraint: three points a win and one a draw means a points total is a tight little equation, and one solved row usually forces the next. Every board is generated with a constraint solver and machine-verified to admit exactly one table, from a clue set trimmed until nothing in it is redundant.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new season opens every day at midnight Eastern, with a sixth club on Sundays. More dailies: <a href="/venn" style={{ color: COLORS.ink, fontWeight: 800 }}>Venn</a>, our three-circle sorting game, <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number ledger.
+          A new season opens every day at midnight Eastern, with a sixth club on Sundays. More dailies: <a href="/venn" style={{ color: COLORS.ink, fontWeight: 800 }}>Venn</a>, our three-circle sorting puzzle, <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number ledger.
         </p>
       </section>
       <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>

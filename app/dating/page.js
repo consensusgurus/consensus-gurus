@@ -3,13 +3,13 @@ import DatingClient from './DatingClient';
 import { PUZZLES } from './puzzles';
 
 // Dating launched 2026-07-14 alongside Crux/Garble/Links/Span: linked from
-// the hub games row, the footer, and the sitemap (/dating is the canonical,
+// the hub puzzles row, the footer, and the sitemap (/dating is the canonical,
 // evergreen URL — the dated /quiz/dating-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Dating — Free Daily History Ordering Game | Source of Truths',
+  title: 'Dating — Free Daily History Ordering Puzzle | Source of Truths',
   description:
-    'A free daily history game — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day, and six moments in the Sunday Edition.',
+    'A free daily history puzzle — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day, and six moments in the Sunday Edition.',
   alternates: { canonical: '/dating' },
   manifest: '/dating.webmanifest',
   icons: {
@@ -18,16 +18,16 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Dating' },
   openGraph: {
-    title: 'Dating — A Daily Put-History-In-Order Game',
+    title: 'Dating — A Daily Put-History-In-Order Puzzle',
     description:
-      'Five moments a day, shuffled out of sequence. Arrange them oldest to newest in three checks or fewer. A new history game from Source of Truths.',
+      'Five moments a day, shuffled out of sequence. Arrange them oldest to newest in three checks or fewer. A new history puzzle from Source of Truths.',
     url: '/dating',
     type: 'website',
     siteName: 'Source of Truths',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dating — A Daily Put-History-In-Order Game',
+    title: 'Dating — A Daily Put-History-In-Order Puzzle',
     description:
       'Five moments a day. Put them in chronological order in three checks or fewer.',
   },
@@ -37,11 +37,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Dating',
-  alternateName: 'Dating — Daily History Ordering Game',
+  alternateName: 'Dating — Daily History Ordering Puzzle',
   url: 'https://sourceoftruths.com/dating',
   description:
-    'A free daily history game: five events, shuffled. Arrange them in chronological order — each of your three checks locks the events you placed correctly and reveals their years.',
-  genre: ['History game', 'Puzzle'],
+    'A free daily history puzzle: five events, shuffled. Arrange them in chronological order — each of your three checks locks the events you placed correctly and reveals their years.',
+  genre: ['History puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

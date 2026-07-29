@@ -1,6 +1,6 @@
 'use client';
 
-// Lode — the daily letter-mining word game.
+// Lode — the daily letter-mining word puzzle.
 //
 // Seven letters, one CORE letter every word must use, four letters minimum,
 // letters reusable. A word using all seven is a PANGRAM. The Sunday Edition
@@ -23,7 +23,7 @@
 //
 // ONE SHOT COUNTS: your first posted score is the one that ranks. Cashing in
 // closes the day; leaving mid-dig posts what you had (useAbandonFlush), so a
-// started game always lands in the stats.
+// started puzzle always lands in the stats.
 //
 // NOTE on typing: the house rule that typed quizzes auto-accept on keystroke is
 // deliberately NOT applied here. Words are BUILT here, so accepting at the
@@ -717,7 +717,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -763,7 +763,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -805,13 +805,13 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Lode</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Lode is a free daily word game from Source of Truths, and a fresh answer to the make-words-from-letters puzzle. Every player gets the same seven letters, with one core letter that every word must contain, and eight letters in the Sunday Edition. Words must be four letters or longer, and you can reuse a letter as often as you like. A word that uses every letter on the board is a pangram.
+          Lode is a free daily word puzzle from Source of Truths, and a fresh answer to the make-words-from-letters puzzle. Every player gets the same seven letters, with one core letter that every word must contain, and eight letters in the Sunday Edition. Words must be four letters or longer, and you can reuse a letter as often as you like. A word that uses every letter on the board is a pangram.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The twist is the scoring. Points come from how rare a word is, not simply how long it is, so an uncommon word is worth two or three ordinary ones and a single good find can outrank a long grind. Reach the day&rsquo;s vein and you have struck the Lode, which counts the day as solved. Keep going and the Mother Lode waits at the far end, where you have found every word on the board.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A fresh board lands every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking game, and <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling game.
+          A fresh board lands every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking puzzle, and <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle.
         </p>
       </section>
 

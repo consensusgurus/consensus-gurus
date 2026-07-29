@@ -2,7 +2,7 @@
 
 // Warmer — the daily semantic hot-and-cold word hunt.
 //
-// Each day there is one secret word. You guess any word; the game tells you how
+// Each day there is one secret word. You guess any word; the puzzle tells you how
 // SEMANTICALLY close you are — "ocean" is scorching for the answer "sea",
 // "pencil" is freezing — on a cold→hot color spectrum, plus its exact rank
 // (how many of the ~32,000 words are closer). Keep guessing, unlimited, until
@@ -425,7 +425,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
               ))}
           />
 
-          {/* start gate — the game card stays sealed until Start begins the clock */}
+          {/* start gate — the puzzle card stays sealed until Start begins the clock */}
           {preStart && (
             <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 200, display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Warmer is ready'}</div>
@@ -444,7 +444,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
               </div>
             </div>
           )}
-          {/* the game card */}
+          {/* the puzzle card */}
           {!preStart && (
           <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 14 }}>
             <div className="wm-spectrum">
@@ -469,7 +469,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                       <Lightbulb size={13} /> Hint
                     </button>
                   )}
-                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the game" style={{ marginLeft: 'auto', background: armGiveUp ? '#fbeaea' : '#fff', border: `1.5px solid ${armGiveUp ? COLORS.rust : 'rgba(28,30,36,0.3)'}`, color: armGiveUp ? COLORS.rust : COLORS.faded }}>
+                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the puzzle" style={{ marginLeft: 'auto', background: armGiveUp ? '#fbeaea' : '#fff', border: `1.5px solid ${armGiveUp ? COLORS.rust : 'rgba(28,30,36,0.3)'}`, color: armGiveUp ? COLORS.rust : COLORS.faded }}>
                     <Flag size={13} /> {armGiveUp ? 'Tap again to reveal' : 'Give up'}
                   </button>
                 </div>
@@ -530,7 +530,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           {focusMode && (
             <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
               <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
             </div>
           )}
 
@@ -608,13 +608,13 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Warmer</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Warmer is a free daily word game from Source of Truths. There is one secret word each day, and your only clue is how close your guesses are to it in meaning. Every guess lands on a cold-to-hot color spectrum with an exact proximity rank, so you can feel your way from freezing to scorching and, finally, to the word itself.
+          Warmer is a free daily word puzzle from Source of Truths. There is one secret word each day, and your only clue is how close your guesses are to it in meaning. Every guess lands on a cold-to-hot color spectrum with an exact proximity rank, so you can feel your way from freezing to scorching and, finally, to the word itself.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Closeness is semantic, not alphabetical: for the answer &ldquo;sea,&rdquo; words like ocean, waves, and coast run hot, while unrelated words stay cold. Guesses are unlimited, so you can always reach the answer &mdash; the challenge is getting there in as few guesses as you can. Solvers are ranked by fewest guesses, and even if you give up you&rsquo;re ranked by the closest word you found.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new word drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, the crowd-ranking game, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, four hidden threads.
+          A new word drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, the crowd-ranking puzzle, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, four hidden threads.
         </p>
       </section>
 

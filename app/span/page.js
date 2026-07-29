@@ -2,14 +2,14 @@ import { Suspense } from 'react';
 import SpanClient from './SpanClient';
 import { PUZZLES } from './puzzles';
 
-// Span launched 2026-07-12 alongside Links: linked from the hub games row,
+// Span launched 2026-07-12 alongside Links: linked from the hub puzzles row,
 // the footer, and the sitemap (/span is the canonical, evergreen URL — the
 // dated /quiz/span-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Span — Free Daily Geography Border Game | Source of Truths',
+  title: 'Span — Free Daily Geography Border Puzzle | Source of Truths',
   description:
-    'A free daily geography game — connect two countries with the shortest chain of land borders you can find. Par is the shortest road on the map. New route every day.',
+    'A free daily geography puzzle — connect two countries with the shortest chain of land borders you can find. Par is the shortest road on the map. New route every day.',
   alternates: { canonical: '/span' },
   manifest: '/span.webmanifest',
   icons: {
@@ -18,16 +18,16 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Span' },
   openGraph: {
-    title: 'Span — A Daily Border-Hopping Geography Game',
+    title: 'Span — A Daily Border-Hopping Geography Puzzle',
     description:
-      'Two countries a day. Chain land borders between them in the fewest moves — par is the shortest road on the map. A new geography game from Source of Truths.',
+      'Two countries a day. Chain land borders between them in the fewest moves — par is the shortest road on the map. A new geography puzzle from Source of Truths.',
     url: '/span',
     type: 'website',
     siteName: 'Source of Truths',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Span — A Daily Border-Hopping Geography Game',
+    title: 'Span — A Daily Border-Hopping Geography Puzzle',
     description:
       'Two countries a day. Chain land borders between them in the fewest moves.',
   },
@@ -37,11 +37,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Span',
-  alternateName: 'Span — Daily Geography Border Game',
+  alternateName: 'Span — Daily Geography Border Puzzle',
   url: 'https://sourceoftruths.com/span',
   description:
-    'A free daily geography game: connect a start country to a destination with a chain of land borders. Par is the shortest possible road — every extra move costs a point, and misses break ties.',
-  genre: ['Geography game', 'Puzzle'],
+    'A free daily geography puzzle: connect a start country to a destination with a chain of land borders. Par is the shortest possible road — every extra move costs a point, and misses break ties.',
+  genre: ['Geography puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

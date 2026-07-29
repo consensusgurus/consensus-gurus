@@ -12,7 +12,7 @@
 // submit and one per item never locked. One free hint reveals the figure of
 // the item sitting furthest from where it belongs.
 //
-// The amber tier is the whole point of the game and the reason Listed is not
+// The amber tier is the whole point of the puzzle and the reason Listed is not
 // just Dating with more rows: a near miss is worth knowing about, so the
 // board teaches you something on every submit instead of only confirming.
 //
@@ -207,7 +207,7 @@ function freshState(num, n) {
   };
 }
 
-// A finished game synthesized from the server's stored result, so a completed
+// A finished puzzle synthesized from the server's stored result, so a completed
 // daily can be RESTORED on a second device. The board state lives only in the
 // first device's localStorage; the result row is the cross-device record.
 function restoredStateFromServer(n, srv) {
@@ -311,7 +311,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recommendations — only for
+    // same-device day breadcrumb for cross-puzzle recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
@@ -320,11 +320,11 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
 
-  // Cross-device restore: this browser has no local game for the puzzle, but the
+  // Cross-device restore: this browser has no local puzzle for the puzzle, but the
   // signed-in player already finished it elsewhere. Rebuild the completed board
-  // from their stored result so the end-of-game card shows here too, instead of
+  // from their stored result so the end-of-puzzle card shows here too, instead of
   // the Start tile pretending they never played. Never overwrites an in-progress
-  // or finished LOCAL game, and posts nothing (they did not play on this device).
+  // or finished LOCAL puzzle, and posts nothing (they did not play on this device).
   useEffect(() => {
     if (!hydrated || restoreRef.current) return;
     if (g.status !== 'playing' || g.t0 || g.rows.length) return; // only a pristine board
@@ -671,7 +671,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* game-native top strip (Crux pattern): quiet nav + player chip */}
+        {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed LISTED tiles with No./date inline, one rule beneath */}
@@ -793,7 +793,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               {identity && checksUsed > 0 && (
                 <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <Eye size={13} /> {armReveal ? 'Tap again, this ends the game and shows the real order' : 'Reveal the ranking & end'}
+                  <Eye size={13} /> {armReveal ? 'Tap again, this ends the puzzle and shows the real order' : 'Reveal the ranking & end'}
                 </button>
               )}
             </div>
@@ -838,7 +838,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -885,7 +885,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -931,13 +931,13 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Listed</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Listed is a free daily history and geography game from Source of Truths. Each day deals eight real things and one measurable quantity, shuffled out of order. Your job is to rank them. You get five submits, and every submit grades each row: green means exactly right and locks it in with the real figure revealed, amber means you are off by exactly one place, and grey means you are further away than that.
+          Listed is a free daily history and geography puzzle from Source of Truths. Each day deals eight real things and one measurable quantity, shuffled out of order. Your job is to rank them. You get five submits, and every submit grades each row: green means exactly right and locks it in with the real figure revealed, amber means you are off by exactly one place, and grey means you are further away than that.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The amber tier is what makes it a deduction game rather than a quiz. Knowing a row is one place from home turns a wild guess into arithmetic, and a board that looks hopeless after one submit is usually two nudges from solved. Rank the whole list on your first submit and you score a perfect 10.
+          The amber tier is what makes it a deduction puzzle rather than a quiz. Knowing a row is one place from home turns a wild guess into arithmetic, and a board that looks hopeless after one submit is usually two nudges from solved. Rank the whole list on your first submit and you score a perfect 10.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every board is either a history board or a geography board, and the two rotate through the week: box office and sports records and company milestones one day, deepest trenches or highest capitals the next. Every answer key is a published number from a named source, never an opinion and never a critics&rsquo; poll, so there is always exactly one right order. A new list drops every day at midnight Eastern, and the Sunday Edition adds a ninth item. No app, no signup: play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our put-history-in-order game, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, where the crowd is the answer key.
+          Every board is either a history board or a geography board, and the two rotate through the week: box office and sports records and company milestones one day, deepest trenches or highest capitals the next. Every answer key is a published number from a named source, never an opinion and never a critics&rsquo; poll, so there is always exactly one right order. A new list drops every day at midnight Eastern, and the Sunday Edition adds a ninth item. No app, no signup: play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our put-history-in-order puzzle, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, where the crowd is the answer key.
         </p>
       </section>
 

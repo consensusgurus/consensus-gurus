@@ -75,8 +75,8 @@ function CommandLogo({ size = 30 }) {
 // The two daily games surfaced in the command bar. Navy-legible accent dots
 // match DailyStrip's per-game accents.
 const SHC_GAMES = [
-  { href: '/crux', name: 'Crux', tag: 'Daily word game', dot: '#5b9bff' },
-  { href: '/tally', name: 'Tally', tag: 'Daily numbers game', dot: '#4cb377' },
+  { href: '/crux', name: 'Crux', tag: 'Daily word puzzle', dot: '#5b9bff' },
+  { href: '/tally', name: 'Tally', tag: 'Daily numbers puzzle', dot: '#4cb377' },
 ];
 
 // Full-bleed command-bar header used on the LISTS home page, mirroring the

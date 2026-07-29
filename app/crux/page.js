@@ -7,9 +7,9 @@ import { PUZZLES } from './puzzles';
 // /quiz/crux-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Crux — Free Daily Word Game | Source of Truths',
+  title: 'Crux — Free Daily Word Puzzle | Source of Truths',
   description:
-    'A clueless crossword and a free daily word game. Eight hidden words interlock, and four categories are the only hints. New puzzle every day.',
+    'A clueless crossword and a free daily word puzzle. Eight hidden words interlock, and four categories are the only hints. New puzzle every day.',
   alternates: { canonical: '/crux' },
   manifest: '/crux.webmanifest',
   icons: {
@@ -18,16 +18,16 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Crux' },
   openGraph: {
-    title: 'Crux — A Daily Word Game',
+    title: 'Crux — A Daily Word Puzzle',
     description:
-      'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses. A new daily word game from Source of Truths.',
+      'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses. A new daily word puzzle from Source of Truths.',
     url: '/crux',
     type: 'website',
     siteName: 'Source of Truths',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Crux — A Daily Word Game',
+    title: 'Crux — A Daily Word Puzzle',
     description:
       'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses.',
   },
@@ -37,11 +37,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Crux',
-  alternateName: 'Crux — Daily Word Game',
+  alternateName: 'Crux — Daily Word Puzzle',
   url: 'https://sourceoftruths.com/crux',
   description:
-    'A clueless crossword and a free daily word game. Four categories are the only hints: guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
-  genre: ['Word game', 'Puzzle'],
+    'A clueless crossword and a free daily word puzzle. Four categories are the only hints: guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
+  genre: ['Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

@@ -10,7 +10,7 @@ import { PUZZLES } from './puzzles';
 // the verifier does, so nothing but the puzzle itself ever ships.
 
 export const metadata = {
-  title: 'Venn — Free Daily Logic Game: Sort the Overlaps | Source of Truths',
+  title: 'Venn — Free Daily Logic Puzzle: Sort the Overlaps | Source of Truths',
   description: 'A free daily logic puzzle. Three overlapping circles, twelve words, and every region prints how many words belong in it, so a misfiling always shows up in the arithmetic. New sheet every day.',
   alternates: { canonical: '/venn' },
   manifest: '/venn.webmanifest',
@@ -29,7 +29,7 @@ const gameJsonLd = {
   name: 'Venn',
   url: 'https://sourceoftruths.com/venn',
   description: 'A free daily logic puzzle. Three overlapping circles, twelve words, and every region prints how many words belong in it, so a misfiling always shows up in the arithmetic. New sheet every day.',
-  genre: ['Logic game', 'Sorting puzzle', 'Word game', 'Puzzle'],
+  genre: ['Logic puzzle', 'Sorting puzzle', 'Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

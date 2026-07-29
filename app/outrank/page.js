@@ -14,7 +14,7 @@ import { PUZZLES } from './puzzles';
 // reverse-engineered before playing.
 
 export const metadata = {
-  title: 'Outrank — Daily Crowd Game: Predict the Crowd’s Ranking | Source of Truths',
+  title: 'Outrank — Daily Crowd Puzzle: Predict the Crowd’s Ranking | Source of Truths',
   description:
     'A free daily puzzle where the crowd is the answer key. Vote your favorite from a themed slate, then predict how everyone playing today ranks the whole list. Seven items in the Sunday Edition. Exact slot pays double; the order shifts all day as votes arrive.',
   alternates: { canonical: '/outrank' },
@@ -25,7 +25,7 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Outrank' },
   openGraph: {
-    title: 'Outrank — The Daily Crowd-Ranking Game',
+    title: 'Outrank — The Daily Crowd-Ranking Puzzle',
     description:
       'Vote your favorite, then call the crowd’s order. The answer key is everyone playing today. From Source of Truths.',
     url: '/outrank',
@@ -34,7 +34,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Outrank — The Daily Crowd-Ranking Game',
+    title: 'Outrank — The Daily Crowd-Ranking Puzzle',
     description:
       'One themed slate a day. Vote your favorite, predict the crowd’s full ranking, then watch the real order roll in.',
   },
@@ -44,11 +44,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Outrank',
-  alternateName: 'Outrank — Daily Crowd-Ranking Game',
+  alternateName: 'Outrank — Daily Crowd-Ranking Puzzle',
   url: 'https://sourceoftruths.com/outrank',
   description:
-    'A free daily crowd game: vote your favorite from a themed slate, then predict how the whole field of players ranks the list. The answer key is built from every player’s vote and keeps moving all day.',
-  genre: ['Game theory', 'Trivia game', 'Party game', 'Puzzle'],
+    'A free daily crowd puzzle: vote your favorite from a themed slate, then predict how the whole field of players ranks the list. The answer key is built from every player’s vote and keeps moving all day.',
+  genre: ['Game theory', 'Trivia puzzle', 'Party puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',
@@ -105,7 +105,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Outrank launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily crowd-ranking game — vote your favorite, then call the order everyone playing puts them in. Come back when the first crowd forms.
+          The daily crowd-ranking puzzle — vote your favorite, then call the order everyone playing puts them in. Come back when the first crowd forms.
         </p>
         <a href="/daily" style={{ color: '#4338ca', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>

@@ -43,7 +43,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/emcee',
   description:
     'A free daily mini crossword: a 5×5 grid of everyday words with numbered Across and Down clues, solvable in a minute or two. The grid checks itself the moment the last square is filled — a clean, fast solve tops the daily leaderboard, and Sundays step up to a 7×7 pinwheel.',
-  genre: ['Word game', 'Crossword', 'Puzzle'],
+  genre: ['Word puzzle', 'Crossword', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

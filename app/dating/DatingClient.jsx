@@ -198,7 +198,7 @@ function freshState(num, n) {
   };
 }
 
-// A finished game synthesized from the server's stored result, so a completed
+// A finished puzzle synthesized from the server's stored result, so a completed
 // daily can be RESTORED on a second device. The board state lives only in the
 // first device's localStorage; the result row is the cross-device record. The
 // solved order is the correct chronological one (event index i belongs in slot
@@ -301,7 +301,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recommendations — only for
+    // same-device day breadcrumb for cross-puzzle recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
@@ -310,11 +310,11 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
 
-  // Cross-device restore: this browser has no local game for the puzzle, but the
+  // Cross-device restore: this browser has no local puzzle for the puzzle, but the
   // signed-in player already finished it elsewhere. Rebuild the completed board
-  // from their stored result so the end-of-game card (and the win reveal) shows
+  // from their stored result so the end-of-puzzle card (and the win reveal) shows
   // here too, instead of the Start tile pretending they never played. Never
-  // overwrites an in-progress or finished LOCAL game, and posts nothing (they
+  // overwrites an in-progress or finished LOCAL puzzle, and posts nothing (they
   // did not play on this device).
   useEffect(() => {
     if (!hydrated || restoreRef.current) return;
@@ -662,7 +662,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* game-native top strip (Crux pattern): quiet nav + player chip */}
+        {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed DATING tiles with No./date inline, one rule beneath */}
@@ -758,7 +758,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               {identity && checksUsed > 0 && (
                 <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows the timeline' : 'Reveal the timeline & end'}
+                  <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the timeline' : 'Reveal the timeline & end'}
                 </button>
               )}
             </div>
@@ -796,7 +796,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -848,7 +848,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -894,13 +894,13 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Dating</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Dating is a free daily history game from Source of Truths. Each day deals five moments from history, shuffled out of sequence; your job is to arrange them in chronological order. You get three checks &mdash; every event you place correctly locks in with its year revealed, and a perfect first check scores a flawless 10.
+          Dating is a free daily history puzzle from Source of Truths. Each day deals five moments from history, shuffled out of sequence; your job is to arrange them in chronological order. You get three checks &mdash; every event you place correctly locks in with its year revealed, and a perfect first check scores a flawless 10.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The fun is in the near-misses: history is full of events that happened far earlier, or far later, than they feel like they should have. Oxford was teaching students before the Aztecs had a capital; London had a subway before anyone had a car. Every puzzle ends with the full dated timeline, a one-line story for each moment, and one fact worth keeping.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Five new moments drop every day at midnight Eastern, and the Sunday Edition adds a sixth. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping game, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border-hopping geography game.
+          Five new moments drop every day at midnight Eastern, and the Sunday Edition adds a sixth. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
         </p>
       </section>
 

@@ -9,9 +9,9 @@ import { PUZZLES } from './puzzles';
 // same hunt with a trickier moment.
 
 export const metadata = {
-  title: 'Circa — Daily History Game: Guess the Year | Source of Truths',
+  title: 'Circa — Daily History Puzzle: Guess the Year | Source of Truths',
   description:
-    'A free daily history game — one famous moment, six guesses to pin the exact year. Every miss plays hot and cold: earlier or later, and how close you are. Land within three years to solve it; a dead-on first guess is a perfect score.',
+    'A free daily history puzzle — one famous moment, six guesses to pin the exact year. Every miss plays hot and cold: earlier or later, and how close you are. Land within three years to solve it; a dead-on first guess is a perfect score.',
   alternates: { canonical: '/circa' },
   manifest: '/circa.webmanifest',
   icons: {
@@ -39,11 +39,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Circa',
-  alternateName: 'Circa — Daily History Game',
+  alternateName: 'Circa — Daily History Puzzle',
   url: 'https://sourceoftruths.com/circa',
   description:
-    'A free daily history game: one famous moment, six guesses to pin the exact year it happened. Hot-and-cold feedback after every guess — land within three years to solve it, and hit the exact year for a perfect score.',
-  genre: ['History game', 'Trivia game', 'Guessing game', 'Puzzle'],
+    'A free daily history puzzle: one famous moment, six guesses to pin the exact year it happened. Hot-and-cold feedback after every guess — land within three years to solve it, and hit the exact year for a perfect score.',
+  genre: ['History puzzle', 'Trivia puzzle', 'Guessing puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

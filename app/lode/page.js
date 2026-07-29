@@ -12,9 +12,9 @@ import { PUZZLES } from './puzzles';
 // before anything reaches the client.
 
 export const metadata = {
-  title: 'Lode — Free Daily Word Game: Seven Letters, Rare Words Pay | Source of Truths',
+  title: 'Lode — Free Daily Word Puzzle: Seven Letters, Rare Words Pay | Source of Truths',
   description:
-    'A free daily word game and a fresh spin on the letters puzzle. Seven letters, one core letter every word must use, and points that reward rare words over long ones. Strike the vein, then chase the Mother Lode. New board every day.',
+    'A free daily word puzzle and a fresh spin on the letters puzzle. Seven letters, one core letter every word must use, and points that reward rare words over long ones. Strike the vein, then chase the Mother Lode. New board every day.',
   alternates: { canonical: '/lode' },
   manifest: '/lode.webmanifest',
   icons: {
@@ -23,7 +23,7 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Lode' },
   openGraph: {
-    title: 'Lode — A Daily Word Game Where Rare Words Pay',
+    title: 'Lode — A Daily Word Puzzle Where Rare Words Pay',
     description:
       'Seven letters, one core letter, four letters minimum. Common words are chip shots; the rare ones are worth three times as much. Strike the vein, then dig for the Mother Lode.',
     url: '/lode',
@@ -32,7 +32,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Lode — A Daily Word Game Where Rare Words Pay',
+    title: 'Lode — A Daily Word Puzzle Where Rare Words Pay',
     description:
       'Seven letters, one core letter, and scoring that rewards the words nobody else finds.',
   },
@@ -42,11 +42,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Lode',
-  alternateName: 'Lode — Daily Letter-Mining Word Game',
+  alternateName: 'Lode — Daily Letter-Mining Word Puzzle',
   url: 'https://sourceoftruths.com/lode',
   description:
-    'A free daily word game: everyone gets the same seven letters and one core letter that every word must contain. Words are four letters or longer and letters may be reused. Points scale with how rare a word is rather than how long it is, a pangram uses every letter, and each day carries a vein to strike and a Mother Lode to chase.',
-  genre: ['Word game', 'Puzzle'],
+    'A free daily word puzzle: everyone gets the same seven letters and one core letter that every word must contain. Words are four letters or longer and letters may be reused. Points scale with how rare a word is rather than how long it is, a pangram uses every letter, and each day carries a vein to strike and a Mother Lode to chase.',
+  genre: ['Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',
@@ -89,7 +89,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Lode launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily letter-mining word game &mdash; seven letters, one core, and points that pay for the rare finds. Come back when the first seam opens.
+          The daily letter-mining word puzzle &mdash; seven letters, one core, and points that pay for the rare finds. Come back when the first seam opens.
         </p>
         <a href="/daily" style={{ color: '#a16207', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>

@@ -1,6 +1,6 @@
 'use client';
 
-// Tuck — the daily tile-tucking word game.
+// Tuck — the daily tile-tucking word puzzle.
 //
 // Everyone gets the same 14 letters (15 in the Sunday Edition; a Scrabble-weighted rack, banked in
 // app/tuck/puzzles.js). Build your own interlocking crossword on a 9×9 board:
@@ -389,13 +389,13 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     return s;
   }, [isValid, runs, placedCount]);
 
-  // Record an in-progress game if the player interacts then leaves before
+  // Record an in-progress puzzle if the player interacts then leaves before
   // submitting. Loading the page does NOT count; the first tile placed sets
   // g.t0, which is the "started" signal here. On exit we post the current
   // partial score as a normal result (the server clamps the time), so every
-  // started game lands in the stats even when abandoned. A localStorage marker
+  // started puzzle lands in the stats even when abandoned. A localStorage marker
   // stops a resume-then-leave-again cycle from posting the same abandon twice;
-  // markFlushed() in submitScore suppresses the post when the game is finished.
+  // markFlushed() in submitScore suppresses the post when the puzzle is finished.
   const REC_KEY = `sot_tuck_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     // A play counts only once the player actually places a tile. Merely opening the
@@ -828,7 +828,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -879,7 +879,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -921,13 +921,13 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Tuck</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Tuck is a free daily word game from Source of Truths &mdash; the tile-tucking game. Every player in the world gets the same rack of 14 Scrabble-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the game. Long words, tight crossings, and premium letters at intersections all push the number up.
+          Tuck is a free daily word puzzle from Source of Truths &mdash; the tile-tucking puzzle. Every player in the world gets the same rack of 14 Scrabble-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the puzzle. Long words, tight crossings, and premium letters at intersections all push the number up.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a par our solver actually scored on that rack &mdash; beat it and the day counts as a win. Only your first submitted grid ranks on the daily leaderboard, so make it count.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling game, and <a href="/stet" style={{ color: COLORS.ink, fontWeight: 800 }}>Stet</a>, our copy-desk game.
+          A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/stet" style={{ color: COLORS.ink, fontWeight: 800 }}>Stet</a>, our copy-desk puzzle.
         </p>
       </section>
 

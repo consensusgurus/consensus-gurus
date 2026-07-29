@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import BracketClient from './BracketClient';
 import { PUZZLES } from './puzzles';
 
-// Bracket launched 2026-07-24: the game specced in game-spec-seeded.md. Sixteen
+// Bracket launched 2026-07-24: the puzzle specced in puzzle-spec-seeded.md. Sixteen
 // real things, one comparison metric a day, fifteen picks that propagate, and no
 // feedback until the reveal. Machine-verified (scripts/verify-bracket.mjs).
 //
@@ -12,7 +12,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Bracket — Free Daily Puzzle: Fill the Bracket of Facts | Source of Truths',
   description:
-    'A free daily bracket game. Sixteen real things, one comparison question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
+    'A free daily bracket puzzle. Sixteen real things, one comparison question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
   alternates: { canonical: '/bracket' },
   manifest: '/bracket.webmanifest',
   icons: {
@@ -35,8 +35,8 @@ export const metadata = {
 const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Bracket',
   url: 'https://sourceoftruths.com/bracket',
-  description: 'A free daily bracket game: sixteen real things seeded into a single-elimination draw, one comparison question for the day, and picks that propagate like a real pool sheet.',
-  genre: ['Trivia game', 'Bracket game', 'Puzzle'],
+  description: 'A free daily bracket puzzle: sixteen real things seeded into a single-elimination draw, one comparison question for the day, and picks that propagate like a real pool sheet.',
+  genre: ['Trivia puzzle', 'Bracket puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   image: 'https://sourceoftruths.com/quiz-heroes/bracket.png',

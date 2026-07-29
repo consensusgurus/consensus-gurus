@@ -2,14 +2,14 @@ import { Suspense } from 'react';
 import LinksClient from './LinksClient';
 import { PUZZLES } from './puzzles';
 
-// Links launched 2026-07-12 alongside Span: linked from the hub games row,
+// Links launched 2026-07-12 alongside Span: linked from the hub puzzles row,
 // the footer, and the sitemap (/links is the canonical, evergreen URL — the
 // dated /quiz/links-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Links — Free Daily Word Grouping Game | Source of Truths',
+  title: 'Links — Free Daily Word Grouping Puzzle | Source of Truths',
   description:
-    'A free daily word grouping game — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day, and the Sunday Edition lays twice as many traps.',
+    'A free daily word grouping puzzle — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day, and the Sunday Edition lays twice as many traps.',
   alternates: { canonical: '/links' },
   manifest: '/links.webmanifest',
   icons: {
@@ -18,16 +18,16 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Links' },
   openGraph: {
-    title: 'Links — A Daily Word Grouping Game',
+    title: 'Links — A Daily Word Grouping Puzzle',
     description:
-      'Sixteen words, four hidden threads, four mistakes to spare. The words that look like they belong together usually don’t. A new word game from Source of Truths.',
+      'Sixteen words, four hidden threads, four mistakes to spare. The words that look like they belong together usually don’t. A new word puzzle from Source of Truths.',
     url: '/links',
     type: 'website',
     siteName: 'Source of Truths',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Links — A Daily Word Grouping Game',
+    title: 'Links — A Daily Word Grouping Puzzle',
     description:
       'Sixteen words, four hidden threads, four mistakes to spare.',
   },
@@ -37,11 +37,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Links',
-  alternateName: 'Links — Daily Word Grouping Game',
+  alternateName: 'Links — Daily Word Grouping Puzzle',
   url: 'https://sourceoftruths.com/links',
   description:
-    'A free daily word grouping game: sixteen words hide four threads of four. Bank each thread in its color, easiest yellow to trickiest red — four mistakes and the board wins.',
-  genre: ['Word game', 'Puzzle'],
+    'A free daily word grouping puzzle: sixteen words hide four threads of four. Bank each thread in its color, easiest yellow to trickiest red — four mistakes and the board wins.',
+  genre: ['Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

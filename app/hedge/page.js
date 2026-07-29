@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import HedgeClient from './HedgeClient';
 import { PUZZLES } from './puzzles';
 
-// Hedge launched 2026-07-27 as the 30th daily: linked from the hub games row,
+// Hedge launched 2026-07-27 as the 30th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/hedge is the canonical,
 // evergreen URL). Weekdays are a 7x7 loop; Sundays step up to a 10x10 Edition.
 // Puzzles are gated by Eastern date here, so tomorrow's loop never reaches the
@@ -36,7 +36,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/hedge',
   description:
     'A free daily slitherlink (loop the loop): draw one single closed loop along the grid lines so that each numbered cell has exactly that many of its four sides used by the loop. The loop never branches or crosses itself, and every board has exactly one solution. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
-  genre: ['Logic game', 'Slitherlink', 'Loop puzzle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Slitherlink', 'Loop puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

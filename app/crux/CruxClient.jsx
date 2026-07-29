@@ -60,7 +60,7 @@ const isIosDevice = () =>
 
 // Category palette, easiest -> trickiest: yellow, green, blue, RED — the
 // fourth is red (owner call 2026-07-07) so the set isn't the familiar
-// grouping-game quartet.
+// grouping-puzzle quartet.
 const CAT_COLORS = [
   { bg: '#e6b93f', tc: '#5c4a06', sq: '\u{1F7E8}' },
   { bg: '#5aa96a', tc: '#173f1f', sq: '\u{1F7E9}' },
@@ -208,7 +208,7 @@ function deriveStats(s, todayNum) {
   return { played, perfect, cur, max, avgG: withG.length ? totG / withG.length : 0, avgN: withG.length };
 }
 
-// Local saves only know about games finished IN THIS BROWSER. The server has
+// Local saves only know about puzzles finished IN THIS BROWSER. The server has
 // every completed play (quiz_results), so prior days and other devices come
 // from /api/quiz/me `recent` history. First attempts only, and a local record
 // wins over the server one (it carries the guess count).
@@ -352,7 +352,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     setHydrated(true);
   }, []);
 
-  // live countdown to the next drop, shown once the game is over
+  // live countdown to the next drop, shown once the puzzle is over
   useEffect(() => {
     if (g.status === 'playing') return;
     const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
@@ -363,7 +363,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recommendations — only for
+    // same-device day breadcrumb for cross-puzzle recommendations — only for
     // TODAY'S puzzle (archive replays must not mark today as played)
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
@@ -559,9 +559,9 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     setG(g2);
   }
 
-  // One completed game = one play (win or loss). Score = words solved of 8,
+  // One completed puzzle = one play (win or loss). Score = words solved of 8,
   // time is the tiebreak — same shape the connections-format boards report.
-  // Only game-end transitions post, so resumed/saved games never double-count;
+  // Only puzzle-end transitions post, so resumed/saved puzzles never double-count;
   // replays post again on their own completion, matching the site-wide metric.
   const REC_KEY = `sot_crux_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
@@ -617,10 +617,10 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     setG({ ...g, assigned: assigned2 });
     setPick(null);
   }
-  // ONE lock-in, and it concludes the game. Score is out of 16: a point per
+  // ONE lock-in, and it concludes the puzzle. Score is out of 16: a point per
   // word solved plus a point per word correctly categorized. Available at a
   // full solve, or once the guess budget is spent (place what you solved).
-  // No lock-in, no score — abandoned games never post.
+  // No lock-in, no score — abandoned puzzles never post.
   function lockIn() {
     if (!playing) return;
     const solvedSlots = PUZZLE.slots.filter((s) => g.solved[s.id]);
@@ -765,7 +765,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     const text = playing
       ? `Crux #${PUZZLE.num} \u2014 a clueless crossword. Can you crack it?\n${shareUrl()}`
       : shareText();
-    // Mobile: native share sheet (like the big daily games) — the receiving
+    // Mobile: native share sheet (like the big daily puzzles) — the receiving
     // app gets the text directly, line breaks intact, no clipboard quirks.
     // Desktop: clipboard with the Copied flip.
     if (notifyShareCredit(text)) return;
@@ -845,7 +845,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     const k = `${r},${c}`;
     const green = g.greens[k];
     // a cell owned by any solved+filed word takes that category's tint
-    // Category tint only appears at game end (placements are secret while
+    // Category tint only appears at puzzle end (placements are secret while
     // playing), and always by TRUE category — the reveal moment.
     let cat = null;
     let catIdx = 0;
@@ -909,7 +909,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
       <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
-      <p style={{ margin: '0 0 9px' }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the game. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
+      <p style={{ margin: '0 0 9px' }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the puzzle. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
       <p style={{ margin: 0 }}>Stuck? One free <b>hint</b> per puzzle reveals a letter.</p>
     </div>
   );
@@ -950,7 +950,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           @keyframes cxcat{from{background:#fff;color:transparent;transform:scale(.82);}}
         `}</style>
 
-        {/* game content centered: the page column is 1180, the game column
+        {/* puzzle content centered: the page column is 1180, the puzzle column
             sizes to the board (Option A single-column layout) */}
         <div style={{ maxWidth: COLW, margin: '0 auto' }}>
 
@@ -1143,11 +1143,11 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
 
-          {/* lock it in: single shot, concludes the game — armed two-tap */}
+          {/* lock it in: single shot, concludes the puzzle — armed two-tap */}
           {readyToLock && (
             <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
               style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? COLORS.ink : COLORS.ember, color: '#fff', cursor: 'pointer', marginBottom: 14 }}>
-              {armLock ? 'Tap again — this ends the game' : 'Submit answers'}
+              {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
 
@@ -1189,7 +1189,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
@@ -1242,7 +1242,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         {!focusMode && (<p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>)}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -1289,7 +1289,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Crux is a free daily word game from Source of Truths &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
+          Crux is a free daily word puzzle from Source of Truths &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Guess real words to reveal letters: dark tiles lock a letter into its square and every crossing, yellow tiles mean the letter belongs elsewhere in the word. The whole board shares one guess budget, and a single submit files each solved word under its category &mdash; a point per solve, a point per correct placement.

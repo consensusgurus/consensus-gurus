@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import EtchClient from './EtchClient';
 import { PUZZLES } from './puzzles';
 
-// Etch launched 2026-07-27 as the 29th daily: linked from the hub games row,
+// Etch launched 2026-07-27 as the 29th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/etch is the canonical,
 // evergreen URL). Weekdays are a 10x10 picture; Sundays step up to a 15x15
 // Edition. Puzzles are gated by Eastern date here, so tomorrow's picture (and
@@ -36,7 +36,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/etch',
   description:
     'A free daily nonogram (picross): the numbers beside each row and above each column give the lengths of the filled runs in that line, in order. Fill every square the clues force and a hidden picture appears. Each board has exactly one solution and is solvable by pure line logic, with no guessing. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
-  genre: ['Logic game', 'Nonogram', 'Picross', 'Puzzle'],
+  genre: ['Logic puzzle', 'Nonogram', 'Picross', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

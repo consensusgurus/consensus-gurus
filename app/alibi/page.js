@@ -14,7 +14,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Alibi — Daily Logic Puzzle: Solve the Whodunit | Source of Truths',
   description:
-    'A free daily logic deduction game — four suspects, four rooms, four departure times, four curious items, and five of each in the Sunday Edition. Every witness statement is true; work the deduction boards and close the case. A new mystery every day.',
+    'A free daily logic deduction puzzle — four suspects, four rooms, four departure times, four curious items, and five of each in the Sunday Edition. Every witness statement is true; work the deduction boards and close the case. A new mystery every day.',
   alternates: { canonical: '/alibi' },
   manifest: '/alibi.webmanifest',
   icons: {
@@ -42,11 +42,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Alibi',
-  alternateName: 'Alibi — Daily Logic Deduction Game',
+  alternateName: 'Alibi — Daily Logic Deduction Puzzle',
   url: 'https://sourceoftruths.com/alibi',
   description:
     'A free daily Einstein-style logic puzzle dressed as a whodunit: four suspects, four rooms, four departure times, four items, with a five-suspect Sunday Edition. Every witness statement is true, and each case is machine-verified to have exactly one solution — pure deduction closes it.',
-  genre: ['Logic game', 'Deduction puzzle', 'Mystery game', 'Puzzle'],
+  genre: ['Logic puzzle', 'Deduction puzzle', 'Mystery puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

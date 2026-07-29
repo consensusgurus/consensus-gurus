@@ -1,6 +1,6 @@
 'use client';
 
-// Axiom — the daily rule-induction game.
+// Axiom — the daily rule-induction puzzle.
 //
 // A board of word tiles hides one rule. Three tiles open green (the rule is
 // true of them) and two open red (it is not). Five candidate rules are on the
@@ -8,7 +8,7 @@
 // whole board. You spend a small budget of tests, flipping tiles one at a time,
 // then name the rule.
 //
-// The reasoning the game is really about: the gift reds already kill a rule or
+// The reasoning the puzzle is really about: the gift reds already kill a rule or
 // two, most tiles are traps that every surviving rule agrees on (testing one
 // teaches nothing), and every board is built so that no single test can split
 // the field. Par is two. A tapper burns the budget; a thinker spends two.
@@ -738,7 +738,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
@@ -845,7 +845,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F9EA} Rule found on ${testsUsed} test${testsUsed === 1 ? '' : 's'} (par ${PAR})${g.wrongPicks.length ? ` · ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}`
       : g.status === 'lost' ? '\u{1F9EA} The board kept its rule' : '\u{1F9EA} Still testing…';
     const text = playing
-      ? `Axiom #${PUZZLE.num} — the daily rule-induction game from Source of Truths.\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Axiom #${PUZZLE.num} — the daily rule-induction puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Axiom — Board #${PUZZLE.num}\n${solvedBit}${streakBit}\n${pips}\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {

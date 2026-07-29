@@ -26,7 +26,7 @@ export const metadata = {
   openGraph: {
     title: 'Hearsay — Deduce It From What They Don’t Know',
     description:
-      'Each of them was told one detail and nothing else. Then they speak. Every admission of ignorance cuts the shortlist, and exactly one card survives. A new daily logic game from Source of Truths.',
+      'Each of them was told one detail and nothing else. Then they speak. Every admission of ignorance cuts the shortlist, and exactly one card survives. A new daily logic puzzle from Source of Truths.',
     url: '/hearsay',
     type: 'website',
     siteName: 'Source of Truths',
@@ -46,7 +46,7 @@ const gameJsonLd = {
   url: 'https://sourceoftruths.com/hearsay',
   description:
     'A free daily logic puzzle in the Cheryl’s Birthday tradition: each character is privately told one attribute of a secret card, and their statements about what they can and cannot deduce narrow a public shortlist to exactly one answer.',
-  genre: ['Logic game', 'Deduction puzzle', 'Puzzle'],
+  genre: ['Logic puzzle', 'Deduction puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

@@ -6,9 +6,9 @@ import { PUZZLES } from './puzzles';
 // /quiz/garble-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Garble — Free Daily Word Scramble Game | Source of Truths',
+  title: 'Garble — Free Daily Word Scramble Puzzle | Source of Truths',
   description:
-    'A free daily word scramble game — untangle five garbled words, feed their gold letters into a clued finale, and finish in the fewest misses. New puzzle every day, and a six-letter Sunday Edition each week.',
+    'A free daily word scramble puzzle — untangle five garbled words, feed their gold letters into a clued finale, and finish in the fewest misses. New puzzle every day, and a six-letter Sunday Edition each week.',
   alternates: { canonical: '/garble' },
   manifest: '/garble.webmanifest',
   icons: {
@@ -19,7 +19,7 @@ export const metadata = {
   openGraph: {
     title: 'Garble — A Daily Word Scramble',
     description:
-      'Five garbled words, one clued finale. Untangle it in the fewest misses. A new word game from Source of Truths.',
+      'Five garbled words, one clued finale. Untangle it in the fewest misses. A new word puzzle from Source of Truths.',
     url: '/garble',
     type: 'website',
     siteName: 'Source of Truths',
@@ -38,8 +38,8 @@ const gameJsonLd = {
   alternateName: 'Garble — Daily Word Scramble',
   url: 'https://sourceoftruths.com/garble',
   description:
-    'A free daily word scramble game: untangle five garbled words using exactly the letters shown. Each solution donates its gold letters to a clued finale — solve the finale any time to end the game. Fewest misses wins the tiebreak.',
-  genre: ['Word game', 'Puzzle'],
+    'A free daily word scramble puzzle: untangle five garbled words using exactly the letters shown. Each solution donates its gold letters to a clued finale — solve the finale any time to end the puzzle. Fewest misses wins the tiebreak.',
+  genre: ['Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

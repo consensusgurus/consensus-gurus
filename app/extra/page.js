@@ -9,9 +9,9 @@ import { PUZZLES } from './puzzles';
 // strips run out. Sundays run a trickier story.
 
 export const metadata = {
-  title: 'Extra — Daily History Game: Name the Redacted Headline | Source of Truths',
+  title: 'Extra — Daily History Puzzle: Name the Redacted Headline | Source of Truths',
   description:
-    "A free daily history game — one historic front page with the giveaway words blacked out. Name the story; every wrong guess tears one more word free. Six tears, one hint, and a perfect score for naming it cold.",
+    "A free daily history puzzle — one historic front page with the giveaway words blacked out. Name the story; every wrong guess tears one more word free. Six tears, one hint, and a perfect score for naming it cold.",
   alternates: { canonical: '/extra' },
   manifest: '/extra.webmanifest',
   icons: {
@@ -39,11 +39,11 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Extra',
-  alternateName: 'Extra — Daily History Game',
+  alternateName: 'Extra — Daily History Puzzle',
   url: 'https://sourceoftruths.com/extra',
   description:
-    'A free daily history game: a historic newspaper front page with the giveaway words blacked out. Name the story — a wrong guess or a tear reveals one more word, and naming it with zero tears is a perfect cold read.',
-  genre: ['History game', 'Trivia game', 'Word game', 'Puzzle'],
+    'A free daily history puzzle: a historic newspaper front page with the giveaway words blacked out. Name the story — a wrong guess or a tear reveals one more word, and naming it with zero tears is a perfect cold read.',
+  genre: ['History puzzle', 'Trivia puzzle', 'Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
   inLanguage: 'en',

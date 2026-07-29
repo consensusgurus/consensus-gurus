@@ -207,9 +207,9 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
-  // idle = fresh game, Start not yet pressed: the moment stays covered and the
-  // clock is not running. Note an idle game still has status 'playing', so the
-  // end-of-game branches below (which all key off !playing) are unaffected.
+  // idle = fresh puzzle, Start not yet pressed: the moment stays covered and the
+  // clock is not running. Note an idle puzzle still has status 'playing', so the
+  // end-of-puzzle branches below (which all key off !playing) are unaffected.
   const idle = playing && !g.started;
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
@@ -243,7 +243,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.guesses)) {
           const merged = { ...freshState(), ...saved };
-          // A game already underway — or any save written before the Start gate
+          // A puzzle already underway — or any save written before the Start gate
           // shipped — resumes straight to the board. The gate is only ever shown
           // for a genuinely fresh start.
           if (!merged.started && (merged.guesses.length || merged.hintUsed || merged.t0 || merged.status !== 'playing')) merged.started = true;
@@ -259,7 +259,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
-    // same-device day breadcrumb for cross-game recs — TODAY'S puzzle only
+    // same-device day breadcrumb for cross-puzzle recs — TODAY'S puzzle only
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
         (function(){ var _dn = g.status !== 'playing'; if (_dn || g.t0) localStorage.setItem('sot_circa_day', JSON.stringify({ d: etToday(), done: _dn })); else localStorage.removeItem('sot_circa_day'); })();
@@ -495,7 +495,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
-        {/* game-native top strip: quiet nav + player chip (hidden in focus mode while playing) */}
+        {/* puzzle-native top strip: quiet nav + player chip (hidden in focus mode while playing) */}
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed CIRCA tiles with No./date inline */}
@@ -517,7 +517,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         {gameRetired && (
           <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.5 }}>
             Circa has retired &mdash; this archive stays playable, but no new moments drop.{' '}
-            Meet its successor: <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking game &rarr;</a>
+            Meet its successor: <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
           </div>
         )}
 
@@ -610,7 +610,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
               {identity && guesses.length > 0 && (
                 <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                  <Eye size={13} /> {armReveal ? 'Tap again — ends the game and shows the year' : 'Reveal & end'}
+                  <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the year' : 'Reveal & end'}
                 </button>
               )}
             </div>
@@ -638,7 +638,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                   Circa has retired &mdash; this was its final moment. Every past puzzle stays playable in{' '}
                   <a href="/daily" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
                   {' '}Meet its successor:{' '}
-                  <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking game &rarr;</a>
+                  <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
                 </>
               ) : (
                 <>
@@ -655,7 +655,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other games, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
@@ -707,7 +707,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* the end-of-game popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
+      {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
       {!playing && !endClosed && (
         <DailyEndCard
           modal
@@ -756,13 +756,13 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Circa</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Circa is a free daily history game from Source of Truths &mdash; the daily year hunt. Each day serves up one famous moment from the last thousand years: a battle, a disaster, a discovery, a first. Your job is to pin down the exact year it happened, in six guesses or fewer.
+          Circa is a free daily history puzzle from Source of Truths &mdash; the daily year hunt. Each day serves up one famous moment from the last thousand years: a battle, a disaster, a discovery, a first. Your job is to pin down the exact year it happened, in six guesses or fewer.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every guess plays hot and cold: an arrow tells you whether the true year is earlier or later, and a heat band tells you how close you are. Get within three years and the moment is placed &mdash; that&rsquo;s circa, and it counts as a win. Know it cold and name the exact year on your first try for a perfect score.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new moment drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our history-ordering game, <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography game.
+          A new moment drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography puzzle.
         </p>
       </section>
 
