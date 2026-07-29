@@ -443,7 +443,7 @@ export default function DailyStrip({ board = null }) {
         .dh-panel-close:hover{color:#fff;}
         .dh-pc{min-width:0;}
         .dh-pid{display:flex;gap:13px;align-items:center;margin-bottom:14px;}
-        .dh-pic{flex:none;width:52px;height:52px;border-radius:12px;background:var(--gc);display:flex;align-items:center;justify-content:center;}
+        .dh-pic{flex:none;width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;}
         .dh-pic img{height:34px;width:auto;max-width:44px;object-fit:contain;}
         .dh-pname{font-size:21px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;}
         .dh-flamechip{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 7px;font-size:11px;font-weight:800;color:#e8b43a;}

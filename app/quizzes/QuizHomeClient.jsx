@@ -1726,6 +1726,50 @@ export default function QuizHomeClient() {
             .qzh .dhx-cmbar .nm{position:relative;font-size:11.5px;font-weight:700;color:#1c1e24;}
             .qzh .dhx-cmbar .p{position:relative;margin-left:auto;font-size:11px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
             .qzh .dhx-cm-empty{padding:0 14px 13px;font-size:11px;color:#7d92bd;font-weight:600;}
+            /* ── LEFT: one integrated navy element (three leaderboards) ── */
+            .qzh .dhx-lone{background:#0e1d40;border:1px solid #1e3050;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-lone > *{border:0 !important;border-radius:0 !important;box-shadow:none !important;margin:0 !important;background:transparent !important;}
+            .qzh .dhx-lone > * + *{border-top:1px solid #1e3050 !important;}
+            /* neutralize CommunityTile / XpTile tile chrome so they read as sections of the one card */
+            .qzh .dhx-lone .cmtile,.qzh .dhx-lone .ttile{min-height:0 !important;background:#0e1d40 !important;}
+            .qzh .dhx-lone .cmtile:before,.qzh .dhx-lone .cmtile:after,.qzh .dhx-lone .ttile:before,.qzh .dhx-lone .ttile:after{display:none !important;}
+            .qzh .dhx-lone .xp-body{background:#0e1d40 !important;}
+            /* Daily Puzzle Leaderboard in the dark tile format */
+            .qzh .dhx-lb{padding:14px 15px;}
+            .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#e8b43a;background:rgba(232,180,58,0.1);border:1px solid rgba(232,180,58,0.3);border-radius:999px;padding:3px 9px;}
+            .qzh .dhx-lb-hero{margin:10px 0 11px;}
+            .qzh .dhx-lb-name{display:block;font-size:30px;font-weight:800;color:#e8b43a;line-height:1.02;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#93a3bd;margin-top:3px;}
+            .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;}
+            .qzh .dhx-lb-gi{display:flex;align-items:baseline;gap:6px;font-size:11.5px;min-width:0;}
+            .qzh .dhx-lb-gi .rk{width:12px;font-size:10px;font-weight:800;color:#8fa3cf;flex:none;}
+            .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#eaf0fb;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-gi .sc{flex:none;color:#93a3bd;font-weight:700;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lb-gi.me b{color:#e8b43a;}
+            .qzh .dhx-lb-you{display:flex;align-items:baseline;gap:6px;margin-top:9px;padding:5px 8px;background:rgba(232,180,58,0.14);border-radius:7px;font-size:11.5px;}
+            .qzh .dhx-lb-you .rk{width:12px;font-size:10px;font-weight:800;color:#e8b43a;flex:none;}
+            .qzh .dhx-lb-you b{flex:1;color:#e8b43a;}
+            .qzh .dhx-lb-you .sc{color:#e8b43a;font-weight:800;margin-left:auto;}
+            .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#7fb0f5;text-decoration:none;}
+            /* ── RIGHT: one integrated navy element ── */
+            .qzh .dhx-rone{background:#0e1d40;border:1px solid #1e3050;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-rone > *{border-radius:0 !important;border-left:0 !important;border-right:0 !important;box-shadow:none !important;background:transparent !important;}
+            .qzh .dhx-rone .dhx-lp{border:0 !important;flex:1 1 auto;display:flex;flex-direction:column;}
+            .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;}
+            .qzh .dhx-rone .dhx-quick{border-top:1px solid #1e3050 !important;padding:5px;}
+            .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#1e3050 !important;}
+            .qzh .dhx-rone .dhx-qrow:hover{background:rgba(255,255,255,0.06) !important;}
+            .qzh .dhx-rone .dhx-qrow .qt{color:#fff !important;}
+            .qzh .dhx-rone .dhx-qrow .qs{color:#93a3bd !important;}
+            .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
+            .qzh .dhx-rone .dhx-cm{border-top:1px solid #1e3050 !important;}
+            .qzh .dhx-rone .dhx-cm-h{color:#f8b84a !important;}
+            .qzh .dhx-rone .dhx-cm-h .cmchev{color:#8fa3cf !important;}
+            .qzh .dhx-rone .dhx-cmbar{background:#122446 !important;}
+            .qzh .dhx-rone .dhx-cmbar .mtr{background:#22406e !important;}
+            .qzh .dhx-rone .dhx-cmbar .nm{color:#eaf0fb !important;}
+            .qzh .dhx-rone .dhx-cmbar .p{color:#c3d2e8 !important;}
+            .qzh .dhx-rone .dhx-cm-empty{color:#93a3bd !important;}
             .qzh .dhx-center .dstrip-wrap,.qzh .dhx-center .dhome{margin-bottom:0;}
             /* Quiz of the Day sized for the narrow right rail: photo over body */
             .qzh .dhx-qotd{flex-direction:column;min-height:0;}
@@ -1751,27 +1795,29 @@ export default function QuizHomeClient() {
             @media(max-width:1200px){.qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}}
           `}</style>
           <div className="dhx-rail dhx-left">
-            {/* 1. Daily Puzzle Leaderboard */}
+            <div className="dhx-lone">
+            {/* 1. Daily Puzzle Leaderboard — dark tile format to match Community/SoT */}
             {dailyBoard && Array.isArray(dailyBoard.overall) && dailyBoard.overall.length ? (() => {
               const ov = dailyBoard.overall.slice(0, 5);
               const mk = dailyBoard.me ? dailyBoard.me.userKey : null;
               const gc = dailyBoard.gameCount || 30;
               const fp = (x) => { const v = Math.round(Number(x) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); };
               const shown = ov.some((r) => mk && r.userKey === mk);
+              const one = ov[0];
               return (
                 <div className="dhx-lb">
-                  <div className="dhx-lb-eb gold"><Crown size={12} strokeWidth={2.4} /> Daily Puzzle Leaderboard</div>
-                  {ov.map((r, i) => (i === 0 ? (
-                    <div key={r.userKey} className="dhx-lb1 gold">
-                      <span className="av">{(r.username || 'P').slice(0, 2).toUpperCase()}</span>
-                      <span className="m"><span className="n">{r.username || 'Player'}</span><span className="s">{r.gamesPlayed}/{gc} puzzles</span></span>
-                      <span className="sc">{fp(r.total)}</span>
-                    </div>
-                  ) : (
-                    <div key={r.userKey} className={`dhx-lrow${mk && r.userKey === mk ? ' you' : ''}`}><span className="pl">{r.rank}</span><b>{r.username || 'Player'}{mk && r.userKey === mk ? ' (you)' : ''}</b><span className="sc">{fp(r.total)}</span></div>
-                  )))}
+                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> DAILY PUZZLE LEADERBOARD</span>
+                  <div className="dhx-lb-hero">
+                    <span className="dhx-lb-name">{(one && one.username) || 'Player'}</span>
+                    <span className="dhx-lb-sub">{one ? `${one.gamesPlayed}/${gc} puzzles · ${fp(one.total)} pts today` : 'No scores yet today'}</span>
+                  </div>
+                  <div className="dhx-lb-grid">
+                    {ov.slice(1, 5).map((r) => (
+                      <span key={r.userKey} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b><span className="sc">{fp(r.total)}</span></span>
+                    ))}
+                  </div>
                   {mk && dailyBoard.me && !shown ? (
-                    <div className="dhx-lrow you"><span className="pl">{dailyBoard.me.rank}</span><b>You</b><span className="sc">{fp(dailyBoard.me.total)}</span></div>
+                    <div className="dhx-lb-you"><span className="rk">{dailyBoard.me.rank}</span><b>You</b><span className="sc">{fp(dailyBoard.me.total)}</span></div>
                   ) : null}
                   <a href="/daily" className="dhx-lb-more">Full standings &amp; game boards →</a>
                 </div>
@@ -1781,11 +1827,13 @@ export default function QuizHomeClient() {
             <CommunityTile />
             {/* 3. Top SoT Player */}
             <XpTile />
+            </div>
           </div>
           <div className="dhx-center">
             <DailyStrip board={dailyBoard} />
           </div>
           <div className="dhx-rail dhx-right">
+            <div className="dhx-rone">
             {/* full Last Played (moved up from the browse row): rings + time + plays today */}
             <div className="dhx-lp">
               <div className="dhx-lp-top">
@@ -1858,6 +1906,7 @@ export default function QuizHomeClient() {
               ) : (
                 <div className="dhx-cm-empty">Play a few quizzes to build your category mastery.</div>
               )) : null}
+            </div>
             </div>
           </div>
         </div>
@@ -2041,7 +2090,9 @@ export default function QuizHomeClient() {
                 wall of text. The hero IS the column's own #1 row, pulled out of
                 the list below it so nothing shows twice. Daily puzzles resolve to
                 their icon banner via heroFor(). */}
-            {(() => {
+            {/* Last Played moved to the top-right rail; the browse-row copy is
+                suppressed so it only shows once (owner 2026-07-29). */}
+            {false && (() => {
               const nowMs = Date.now();
               const HB = 11;
               const bars = new Array(HB).fill(0);
