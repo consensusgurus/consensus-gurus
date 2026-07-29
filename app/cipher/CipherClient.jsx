@@ -376,9 +376,22 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
+  // Tap to select. Tapping the letter that is already selected CLEARS its digit
+  // when it has one (and keeps it selected, ready for a replacement), so fixing a
+  // wrong digit takes a second tap on the cell instead of a trip to the erase
+  // button. An empty selected cell still just deselects, as before.
   function tapLetter(ch) {
     if (!playing) return;
     setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    if (selected === ch && g.assign[ch] !== undefined) {
+      setG((cur) => {
+        const assign = { ...cur.assign };
+        delete assign[ch];
+        return { ...cur, assign };
+      });
+      setVerdict(null);
+      return;
+    }
     setSelected((s) => (s === ch ? null : ch));
   }
   function setDigit(d) {
@@ -531,7 +544,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Today&rsquo;s equation is a <b>cryptarithm</b>: every letter stands for a different digit, 0&ndash;9, and the {opWord} must work out. Letters that start a word are never zero.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a letter, then tap a digit (or just type). The pad shows which letter owns each digit; if two letters share one, both flag red.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a letter, then tap a digit (or just type). Tap a filled letter again to clear it. The pad shows which letter owns each digit; if two letters share one, both flag red.</p>
       <p style={{ margin: '0 0 9px' }}>{strategyLine}</p>
       <p style={{ margin: 0 }}>Solve it for up to <b>10 points</b>: a clean first check is a perfect 10, and every failed check costs one. Ties on the daily board break by fewest failed checks, then fastest time.</p>
     </div>
@@ -618,7 +631,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             {renderRow(PUZZLE.rhs, '', 'r')}
           </div>
           <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, textAlign: 'center', margin: '10px 0 8px', minHeight: 16 }}>
-            {playing ? (selected !== null ? <>Assigning a digit to <b style={{ color: COLORS.accent }}>{selected}</b></> : 'Tap a letter, then a digit — or just type.') : null}
+            {playing ? (selected !== null ? <>Assigning a digit to <b style={{ color: COLORS.accent }}>{selected}</b>{g.assign[selected] !== undefined ? <> · tap {selected} again to clear</> : null}</> : 'Tap a letter, then a digit — or just type.') : null}
           </div>
           {playing && (
             <div className="cf-pad">
