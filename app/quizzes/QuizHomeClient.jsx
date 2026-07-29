@@ -1692,19 +1692,23 @@ export default function QuizHomeClient() {
             .qzh .dhx-lrow.you{background:#fdf7ec;border-radius:7px;padding:5px 8px;margin:2px -8px 0;}
             .qzh .dhx-lrow.you b{color:#a16207;}
             .qzh .dhx-lb-more{display:inline-block;margin-top:8px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
-            /* full Last Played rows with score rings */
-            .qzh .dhx-lpr{display:flex;align-items:center;gap:10px;padding:6px 0;text-decoration:none;border-bottom:1px solid #1e3050;}
+            /* full Last Played: white game rows on the navy card + hourly activity bars */
+            .qzh .dhx-lp-bars{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:30px;}
+            .qzh .dhx-lp-bars span{width:5px;border-radius:2px;flex:none;}
+            .qzh .dhx-lp .dhx-lp-rows{background:#fff;border-radius:12px;padding:3px 11px;margin-top:2px;overflow-y:auto;gap:0;}
+            .qzh .dhx-lpr{display:flex;align-items:center;gap:10px;padding:7px 0;text-decoration:none;border-bottom:1px solid #eef1f6;}
             .qzh .dhx-lpr:last-child{border-bottom:none;}
             .qzh .dhx-lpr .ring{width:30px;height:30px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center;}
-            .qzh .dhx-lpr .ring .in{width:23px;height:23px;border-radius:999px;background:#0e1d40;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;}
+            .qzh .dhx-lpr .ring .in{width:23px;height:23px;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#1c1e24;}
             .qzh .dhx-lpr .mid{flex:1;min-width:0;}
-            .qzh .dhx-lpr .mid .t{display:block;font-size:12px;font-weight:600;color:#eaf0fb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-            .qzh .dhx-lpr .mid .c{display:flex;align-items:center;gap:4px;font-size:9.5px;color:#93a3bd;margin-top:1px;}
+            .qzh .dhx-lpr .mid .t{display:block;font-size:12px;font-weight:700;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+            .qzh .dhx-lpr .mid .t .x{font-weight:600;color:#8b909d;font-size:10px;}
+            .qzh .dhx-lpr .mid .c{display:flex;align-items:center;gap:4px;font-size:9.5px;color:#8b909d;margin-top:1px;}
             .qzh .dhx-lpr .mid .c i{width:6px;height:6px;border-radius:2px;flex:none;}
             .qzh .dhx-lpr .rt{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
             .qzh .dhx-lpr .rt .s{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;}
-            .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:#6ee7b7;background:rgba(16,185,129,.16);border-radius:999px;padding:1px 6px;}
-            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#93a3bd;font-weight:600;}
+            .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:#16a34a;background:#e7f7ed;border-radius:999px;padding:1px 6px;}
+            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#8b909d;font-weight:600;}
             /* quick play element */
             .qzh .dhx-quick{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:5px;flex:none;}
             .qzh .dhx-qrow{display:flex;align-items:center;gap:11px;padding:9px 9px;border-radius:11px;text-decoration:none;}
@@ -1844,6 +1848,12 @@ export default function QuizHomeClient() {
               <div className="dhx-lp-stats">
                 <div><b>{(playsToday || 0).toLocaleString()}</b><span>plays today</span></div>
                 <div><b>{(() => { const x = Math.round((totals && totals.todayTime) || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; })()}</b><span>played today</span></div>
+                {(() => {
+                  const nowMs = Date.now(); const HB = 11; const bars = new Array(HB).fill(0);
+                  for (const p of (recent || [])) { const tt = (p && p.playedAt) ? Date.parse(p.playedAt) : 0; if (!tt) continue; const hrsAgo = Math.floor((nowMs - tt) / 3600000); if (hrsAgo >= 0 && hrsAgo < HB) bars[HB - 1 - hrsAgo] += 1; }
+                  const maxBar = Math.max(1, ...bars);
+                  return (<div className="dhx-lp-bars" title="plays per hour (last 11h)">{bars.map((b, i) => (<span key={i} style={{ height: `${Math.max(9, Math.round((b / maxBar) * 100))}%`, background: i >= HB - 2 ? '#10b981' : 'rgba(255,255,255,0.22)' }} />))}</div>);
+                })()}
               </div>
               <div className="dhx-lp-rows">
                 {(lastPlayed || []).slice(0, 8).map((f, i) => {
@@ -1857,9 +1867,9 @@ export default function QuizHomeClient() {
                   const catColor = dgc ? dgc.color : (fam ? '#5b6472' : (DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc).c);
                   return (
                     <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
-                      <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #22334f 0)` }}><span className="in">{pct}%</span></span>
-                      <span className="mid"><span className="t">{stripVerb(titleById[f.quizId] || f.quizId)}</span><span className="c"><i style={{ background: catColor }} />{catLabel}</span></span>
-                      <span className="rt"><span className="s" style={{ color: good ? '#6ee7b7' : '#fff' }}>{f.score}/{f.total}</span>{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : <span className="tm">{relTime(f.playedAt)}</span>}</span>
+                      <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
+                      <span className="mid"><span className="t">{stripVerb(titleById[f.quizId] || f.quizId)}{todayPlays(f.quizId) > 0 ? <span className="x"> (x{todayPlays(f.quizId).toLocaleString()} today)</span> : null}</span><span className="c"><i style={{ background: catColor }} />{catLabel}</span></span>
+                      <span className="rt"><span className="s" style={{ color: good ? '#16a34a' : '#1c1e24' }}>{f.score}/{f.total}</span>{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : <span className="tm">{relTime(f.playedAt)}</span>}</span>
                     </a>
                   );
                 })}
