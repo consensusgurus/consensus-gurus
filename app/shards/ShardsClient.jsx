@@ -207,10 +207,12 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const finishedRef = useRef(false);
   const pendingRef = useRef(null);  // pointer-down candidate before it becomes a drag
   const draggedRef = useRef(false); // suppresses the click that trails a real drag
+  // The drag listeners live on window and are attached once, so anything they
+  // read has to come through a ref or they capture the first render forever.
+  const fnRef = useRef({});
 
   const playing = g.status === 'playing';
   const preStart = playing && !g.t0;
-  const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
 
   // ---- dictionary (static asset, fetched once) ----
@@ -428,13 +430,58 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   }
 
   // ---- pointer drag ----
+  // Resolve a screen point to a board cell from the grid's own geometry rather
+  // than document.elementFromPoint. The old hit test returned null whenever the
+  // pointer sat on the board padding, the border, or a hair past the edge, so
+  // those drops were thrown away in silence and the piece snapped back looking
+  // stuck. Cell (0,0) is measured live, so padding, borders and zoom all cancel.
+  const EDGE_TOL = 0.5; // half a cell of slop around the board
   function cellFromPoint(x, y) {
-    const el = typeof document !== 'undefined' ? document.elementFromPoint(x, y) : null;
-    if (!el) return null;
-    const cell = el.closest && el.closest('[data-cell]');
-    if (!cell) return null;
-    const r = Number(cell.getAttribute('data-r')), c = Number(cell.getAttribute('data-c'));
-    return { r, c };
+    const grid = gridRef.current;
+    if (!grid) return null;
+    const first = grid.querySelector('[data-cell]');
+    if (!first) return null;
+    const b = first.getBoundingClientRect();
+    if (!b.width || !b.height) return null;
+    const fc = (x - b.left) / b.width, fr = (y - b.top) / b.height;
+    if (fc < -EDGE_TOL || fr < -EDGE_TOL || fc > N + EDGE_TOL || fr > N + EDGE_TOL) return null;
+    return {
+      r: Math.min(N - 1, Math.max(0, Math.floor(fr))),
+      c: Math.min(N - 1, Math.max(0, Math.floor(fc))),
+    };
+  }
+  // Pull the grab handle onto a cell the piece actually occupies. Grabbing the
+  // hollow corner of an L or S shape used to anchor the whole drag on empty
+  // space, so the piece landed a cell or two from where it looked like it would.
+  function snapGrab(shard, dr, dc) {
+    if (shard.offs.some((o) => o.dr === dr && o.dc === dc)) return { dr, dc };
+    let best = shard.offs[0], bd = Infinity;
+    for (const o of shard.offs) {
+      const d = Math.abs(o.dr - dr) + Math.abs(o.dc - dc);
+      if (d < bd) { bd = d; best = o; }
+    }
+    return { dr: best.dr, dc: best.dc };
+  }
+  // Every drag is trailed by a synthetic click on whatever ends up under the
+  // pointer. Unblocked, that click re-arms or picks up the piece just dropped,
+  // which is what made placed tiles look like they popped straight back out.
+  function suppressClick() {
+    draggedRef.current = true;
+    let timer = 0;
+    const clear = () => {
+      draggedRef.current = false;
+      window.removeEventListener('click', swallow, true);
+      if (timer) clearTimeout(timer);
+    };
+    const swallow = (ev) => {
+      // Only eat a click that lands back on the board or the tray, so a player
+      // who drops a piece and immediately hits Undo still gets their button.
+      const t = ev.target;
+      if (t && t.closest && t.closest('.sh-cell, .sh-piece')) { ev.stopPropagation(); ev.preventDefault(); }
+      clear();
+    };
+    window.addEventListener('click', swallow, true);
+    timer = setTimeout(clear, 450);
   }
   // Pointer-down on a shard records a candidate; it only becomes a drag once the
   // pointer moves past a small threshold, so a plain click stays a click (used
@@ -442,51 +489,87 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   function beginPointer(e, id, grab, from) {
     if (!playing) return;
     if (g.locked.includes(id)) return;
+    if (e.button != null && e.button > 0) return; // right and middle clicks are not drags
+    if (pendingRef.current) return;               // one pointer owns the board at a time
     startClock();
-    const pt = 'touches' in e ? e.touches[0] : e;
-    pendingRef.current = { id, grab, from, startX: pt.clientX, startY: pt.clientY, activated: false };
+    // Capturing the pointer keeps move, up and cancel coming to us even once the
+    // pointer leaves the tile or the window. Without it a mouse released off the
+    // page, or a touch the browser reclaimed, left the ghost pinned on screen
+    // with the piece frozen underneath.
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+    pendingRef.current = {
+      id,
+      grab: snapGrab(SHARDS[id], grab.dr, grab.dc),
+      from,
+      el: e.currentTarget,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      // A finger wobbles several pixels on a plain tap, so touch needs a wider
+      // deadzone than a mouse or every tap turned into an accidental micro-drag.
+      slop: e.pointerType === 'mouse' ? 4 : 9,
+      activated: false,
+    };
   }
   useEffect(() => {
+    const mine = (e, p) => p && (e.pointerId == null || e.pointerId === p.pointerId);
+    const release = (p) => {
+      try { if (p.el && p.el.releasePointerCapture) p.el.releasePointerCapture(p.pointerId); } catch (err) {}
+    };
     const move = (e) => {
       const p = pendingRef.current;
-      if (!p) return;
-      const pt = 'touches' in e ? e.touches[0] : e;
-      const dx = pt.clientX - p.startX, dy = pt.clientY - p.startY;
+      if (!mine(e, p)) return;
+      const dx = e.clientX - p.startX, dy = e.clientY - p.startY;
       if (!p.activated) {
-        if (Math.hypot(dx, dy) < 6) return;
+        if (Math.hypot(dx, dy) < p.slop) return;
         p.activated = true;
         setArmed(null);
-        setDrag({ id: p.id, grab: p.grab, x: pt.clientX, y: pt.clientY, from: p.from });
+        setDrag({ id: p.id, grab: p.grab, x: e.clientX, y: e.clientY, from: p.from });
       }
-      if (e.cancelable && 'touches' in e) e.preventDefault();
-      setDrag((d) => (d ? { ...d, x: pt.clientX, y: pt.clientY } : d));
-      const cell = cellFromPoint(pt.clientX, pt.clientY);
+      if (e.cancelable) e.preventDefault();
+      setDrag((d) => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+      const cell = fnRef.current.cellFromPoint(e.clientX, e.clientY);
       setHoverCell(cell ? { r: cell.r - p.grab.dr, c: cell.c - p.grab.dc } : null);
     };
     const up = (e) => {
       const p = pendingRef.current;
+      if (!mine(e, p)) return;
+      release(p);
       pendingRef.current = null;
-      if (p && p.activated) {
-        draggedRef.current = true;
-        const pt = 'changedTouches' in e ? e.changedTouches[0] : e;
-        const cell = cellFromPoint(pt.clientX, pt.clientY);
-        if (cell) placeShard(p.id, cell.r - p.grab.dr, cell.c - p.grab.dc);
-        setDrag(null); setHoverCell(null);
-        setTimeout(() => { draggedRef.current = false; }, 0);
+      if (!p.activated) return; // never moved: let the click handler treat it as a tap
+      suppressClick();
+      const f = fnRef.current;
+      const cell = f.cellFromPoint(e.clientX, e.clientY);
+      if (cell) {
+        const ar = cell.r - p.grab.dr, ac = cell.c - p.grab.dc;
+        if (f.canPlaceWith(f.g, SHARDS[p.id], ar, ac, p.id)) f.placeShard(p.id, ar, ac);
+        else f.say('That piece will not fit there.');
       }
+      setDrag(null); setHoverCell(null);
     };
-    window.addEventListener('mousemove', move, { passive: false });
-    window.addEventListener('touchmove', move, { passive: false });
-    window.addEventListener('mouseup', up);
-    window.addEventListener('touchend', up);
+    // The browser can take a gesture back mid-drag (a scroll it decided to own, a
+    // system edge swipe, a second finger). That fired no mouseup and no touchend
+    // under the old handlers, so the drag state was never torn down.
+    const cancel = (e) => {
+      const p = pendingRef.current;
+      if (!mine(e, p)) return;
+      release(p);
+      pendingRef.current = null;
+      if (p.activated) suppressClick();
+      setDrag(null); setHoverCell(null);
+    };
+    window.addEventListener('pointermove', move, { passive: false });
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', cancel);
+    window.addEventListener('blur', cancel);
     return () => {
-      window.removeEventListener('mousemove', move);
-      window.removeEventListener('touchmove', move);
-      window.removeEventListener('mouseup', up);
-      window.removeEventListener('touchend', up);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', cancel);
+      window.removeEventListener('blur', cancel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [SHARDS]);
+  }, [SHARDS, N]);
 
   // tap on a board cell: place the armed shard (handle lands on the cell)
   function onCellTap(r, c) {
@@ -513,6 +596,10 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       setArmed(null);
     } else setArmed(id);
   }
+
+  // Refreshed every render so the window-level drag listeners never act on a
+  // stale board.
+  fnRef.current = { g, placeShard, canPlaceWith, cellFromPoint, say };
 
   function startClock() { setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() })); }
   function startGame() { startClock(); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }
@@ -654,7 +741,9 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
           .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${COLORS.ink};user-select:none;border:1px solid #b9c4c2;background:#fbfdfc;}
           .sh-cell.block{background:${COLORS.ink};border-color:${COLORS.ink};}
-          .sh-cell.filled{background:var(--tint,#d7f0ec);border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;}
+          .sh-cell.filled{background:var(--tint,#d7f0ec);border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;touch-action:none;}
+          .sh-cell.filled:active{cursor:grabbing;}
+          .sh-cell.dragging{opacity:0.26;}
           .sh-cell.armed{outline:3px solid ${COLORS.accent};outline-offset:-3px;z-index:2;}
           .sh-cell.wrong{outline:3px solid ${COLORS.rust};outline-offset:-3px;z-index:2;}
           .sh-cell.home{box-shadow:inset 0 0 0 3px ${COLORS.accent};}
@@ -663,9 +752,11 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:${COLORS.accent};}
           .sh-tick{position:absolute;bottom:1px;right:2px;color:${COLORS.green};line-height:1;}
           .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:520px;}
-          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:#fff;border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;}
+          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:#fff;border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+          .sh-piece:active{cursor:grabbing;}
+          .sh-piece.dragging{opacity:0.3;}
           .sh-piece.armed{outline:3px solid ${COLORS.accent};outline-offset:1px;}
-          .sh-pc{width:${TRAYCELL}px;height:${TRAYCELL}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(TRAYCELL * 0.5)}px;border-radius:4px;color:#fff;}
+          .sh-pc{touch-action:none;width:${TRAYCELL}px;height:${TRAYCELL}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(TRAYCELL * 0.5)}px;border-radius:4px;color:#fff;}
           .sh-pc.empty{background:transparent;}
           .sh-ghost{position:fixed;z-index:200;pointer-events:none;display:grid;gap:2px;opacity:0.92;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));}
           .sh-status{font-size:12.5px;font-weight:700;min-height:18px;text-align:center;}
@@ -751,11 +842,10 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                       <div
                         key={i}
                         data-cell="1" data-r={r} data-c={c}
-                        className={`sh-cell${isBlock ? ' block' : ''}${cell ? ' filled' : ''}${isArmedCell ? ' armed' : ''}${isWrong ? ' wrong' : ''}${isHome ? ' home' : ''}${isLocked ? ' locked' : ''}${hoverCls}`}
+                        className={`sh-cell${isBlock ? ' block' : ''}${cell ? ' filled' : ''}${isArmedCell ? ' armed' : ''}${isWrong ? ' wrong' : ''}${isHome ? ' home' : ''}${isLocked ? ' locked' : ''}${cell && drag && drag.id === cell.id ? ' dragging' : ''}${hoverCls}`}
                         style={tint ? { '--tint': COLORS.accentSoft, background: tintBg(tint), color: '#12312e' } : undefined}
                         onClick={() => { if (!draggedRef.current) onCellTap(r, c); }}
-                        onMouseDown={(e) => { if (cell && !isBlock) { const grab = { dr: r - g.placements[cell.id].r, dc: c - g.placements[cell.id].c }; beginPointer(e, cell.id, grab, 'board'); } }}
-                        onTouchStart={(e) => { if (cell && !isBlock) { const grab = { dr: r - g.placements[cell.id].r, dc: c - g.placements[cell.id].c }; beginPointer(e, cell.id, grab, 'board'); } }}
+                        onPointerDown={(e) => { if (cell && !isBlock) { const grab = { dr: r - g.placements[cell.id].r, dc: c - g.placements[cell.id].c }; beginPointer(e, cell.id, grab, 'board'); } }}
                         role="gridcell"
                       >
                         {isBlock ? '' : (cell ? cell.ch : '')}
@@ -779,17 +869,26 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                     return (
                       <div
                         key={id}
-                        className={`sh-piece${armed === id ? ' armed' : ''}`}
+                        className={`sh-piece${armed === id ? ' armed' : ''}${drag && drag.id === id ? ' dragging' : ''}`}
                         style={{ gridTemplateColumns: `repeat(${s.w}, ${TRAYCELL}px)`, gridTemplateRows: `repeat(${s.h}, ${TRAYCELL}px)` }}
                         onClick={() => { if (!draggedRef.current) onShardTap(id); }}
-                        onMouseDown={(e) => beginPointer(e, id, { dr: 0, dc: 0 }, 'tray')}
-                        onTouchStart={(e) => beginPointer(e, id, { dr: 0, dc: 0 }, 'tray')}
+                        onPointerDown={(e) => {
+                          // Grab the sub-cell actually pressed. Hardcoding {0,0}
+                          // made the piece leap so its bounding-box corner sat
+                          // under the finger, and on an L or S shape that corner
+                          // is empty space, so the drop landed nowhere near it.
+                          const pc = e.target && e.target.closest ? e.target.closest('[data-pc]') : null;
+                          const grab = pc
+                            ? { dr: Number(pc.getAttribute('data-pdr')) || 0, dc: Number(pc.getAttribute('data-pdc')) || 0 }
+                            : { dr: 0, dc: 0 };
+                          beginPointer(e, id, grab, 'tray');
+                        }}
                         role="button" aria-label={`Shard ${id + 1}, ${s.size} cells`}
                       >
                         {Array.from({ length: s.w * s.h }, (_, i) => {
                           const dr = Math.floor(i / s.w), dc = i % s.w;
                           const o = s.offs.find((x) => x.dr === dr && x.dc === dc);
-                          return <div key={i} className={`sh-pc${o ? '' : ' empty'}`} style={o ? { background: tint, gridColumn: dc + 1, gridRow: dr + 1 } : { gridColumn: dc + 1, gridRow: dr + 1 }}>{o ? o.ch : ''}</div>;
+                          return <div key={i} className={`sh-pc${o ? '' : ' empty'}`} data-pc="1" data-pdr={dr} data-pdc={dc} style={o ? { background: tint, gridColumn: dc + 1, gridRow: dr + 1 } : { gridColumn: dc + 1, gridRow: dr + 1 }}>{o ? o.ch : ''}</div>;
                         })}
                       </div>
                     );
@@ -875,7 +974,10 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       {drag && (() => {
         const s = SHARDS[drag.id];
         const tint = SHARD_TINTS[drag.id % SHARD_TINTS.length];
-        const gcell = started ? CELL : TRAYCELL;
+        // Always board scale: the ghost has to be the size of the thing that is
+        // about to land, and the old tray-scale branch made it balloon under the
+        // pointer the instant the clock started.
+        const gcell = CELL;
         return (
           <div className="sh-ghost" style={{ left: drag.x - (drag.grab.dc + 0.5) * gcell, top: drag.y - (drag.grab.dr + 0.5) * gcell, gridTemplateColumns: `repeat(${s.w}, ${gcell}px)`, gridTemplateRows: `repeat(${s.h}, ${gcell}px)` }}>
             {Array.from({ length: s.w * s.h }, (_, i) => {
