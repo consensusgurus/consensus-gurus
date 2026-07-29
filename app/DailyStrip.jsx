@@ -421,8 +421,11 @@ export default function DailyStrip({ board = null }) {
         .dh-tile.done{background:#f2f7f3;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.9;}
         .dh-tile.done .dh-acc{background:#16a34a !important;}
-        .dh-tile img{height:30px;width:auto;max-width:38px;object-fit:contain;}
-        .dh-tile.done img{opacity:.5;}
+        /* icon chip: the game art was drawn for a navy field, so it sits on a
+           navy chip to stay legible on the white tile (owner note 2026-07-28). */
+        .dh-tic{width:46px;height:40px;border-radius:10px;background:#0e1d40;display:flex;align-items:center;justify-content:center;flex:none;}
+        .dh-tic img{height:27px;width:auto;max-width:34px;object-fit:contain;}
+        .dh-tile.done .dh-tic{opacity:.62;}
         .dh-tnm{font-size:12.5px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tsub{font-size:10px;font-weight:700;color:#8b909d;display:inline-flex;align-items:center;gap:3px;}
         .dh-tsub.done{color:#16a34a;}
@@ -526,7 +529,8 @@ export default function DailyStrip({ board = null }) {
           .dh-hero-cta{order:2;margin-left:auto;}
           .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
           .dh-tile{padding:11px 5px 9px;border-radius:11px;}
-          .dh-tile img{height:26px;}
+          .dh-tic{width:40px;height:34px;}
+          .dh-tic img{height:23px;}
           .dh-tnm{font-size:11px;}
           .dh-filters{gap:6px;}
           .dh-chip{font-size:11px;padding:6px 10px;}
@@ -703,7 +707,7 @@ export default function DailyStrip({ board = null }) {
               <span className="dh-acc" style={{ background: tcol(g.key) }} aria-hidden="true" />
               <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
               {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
-              <img src={g.img} alt="" aria-hidden="true" />
+              <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
               <span className="dh-tnm">{g.name}</span>
               {isDone ? (
                 <span className="dh-tsub done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
