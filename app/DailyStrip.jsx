@@ -576,28 +576,8 @@ export default function DailyStrip({ board = null }) {
         </div>
       )}
 
-      {/* daily leaderboard: always-visible Today's Top 3 + expand to full board */}
-      {hasBoard ? (
-        <div className="dh-dtop">
-          <span className="dh-dtop-lab"><Crown size={12} strokeWidth={2.4} /> Daily leaderboard</span>
-          {top3.length ? (
-            <div className="dh-dtop-rows">
-              {top3.map((r) => {
-                const mine = meKey && r.userKey === meKey;
-                return (
-                  <span key={r.userKey} className={`dh-dtop-row${mine ? ' me' : ''}`}>
-                    <b>{r.rank}</b><span className="nm">{r.username || 'Player'}{mine ? ' (you)' : ''}</span><span className="pt">{fmtPts(r.total)}</span>
-                  </span>
-                );
-              })}
-            </div>
-          ) : <span className="dh-dtop-none">No scores yet today — be the first.</span>}
-          <button type="button" className="dh-dtop-exp" aria-expanded={lbOpen} onClick={() => { setSel(null); setLbOpen((v) => !v); }}>
-            {lbOpen ? 'Hide' : 'Full board'}
-            <ChevronDown size={12} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: lbOpen ? 'rotate(180deg)' : 'none' }} />
-          </button>
-        </div>
-      ) : null}
+      {/* Daily leaderboard now lives in the left "Leaderboards" element
+          (QuizHomeClient); the board no longer renders it here. */}
 
       {/* filter row */}
       <div className="dh-filters">
