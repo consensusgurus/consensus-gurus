@@ -444,9 +444,11 @@ export default function DailyStrip({ board = null }) {
            remaining optional stats, so the topper never wraps to a second row. */
         @container (max-width:620px){.dh-stat.opt3{display:none;}
           .dh-sbar{justify-content:space-between;gap:8px;}
-          .dh-stat{border-right:none;padding:0 6px;}
-          .dh-bup{padding-right:8px;}
-          .dh-busub{display:none;}}
+          .dh-stat{border-right:none;padding:0 5px;}
+          .dh-bup{padding-right:8px;gap:9px;}
+          .dh-busub{display:none;}
+          .dh-wideonly{display:none;}
+          .dh-bup .dh-play{flex:0 0 auto;min-width:0;font-size:12px;padding:9px 13px;margin-left:4px;}}
         @container (max-width:430px){.dh-stat.opt4{display:none;}}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
@@ -598,7 +600,7 @@ export default function DailyStrip({ board = null }) {
           )}
         </div>
         <div className="dh-stats">
-          <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Done today</span></div>
+          <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span><span className="dh-wideonly">Done </span>today</span></div>
           {board && board.me ? <div className="dh-stat opt3"><b>{fmtPts(board.me.total)}</b><span>Points</span></div> : null}
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
           {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
