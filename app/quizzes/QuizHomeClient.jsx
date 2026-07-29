@@ -12,6 +12,7 @@ import {
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
   Check, Star, Target, Swords, Newspaper, Blocks, GraduationCap,
+  Flag, MessageSquare,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
@@ -360,6 +361,83 @@ function SignupModal({ onClose }) {
   );
 }
 
+// Report an issue / Talk to the manager. Two entry points, ONE form and one
+// pipeline: both POST /api/complaints (the same `complaints` table + admin
+// "Notices" tab that list feedback and the per-quiz Critique modal use). Only
+// the heading, blurb and the stored list_title differ, so the editors can tell
+// a bug report from a note to the manager. "Request a quiz" is NOT wired here:
+// it links straight to the existing /request form.
+const FEEDBACK_MODES = {
+  issue: {
+    heading: 'Report an issue',
+    blurb: 'Something broken, a wrong answer, a tile that will not load? Tell us what happened and where.',
+    placeholder: 'What went wrong? Include the puzzle or quiz name if you can.',
+    title: 'Quiz home: issue report',
+    cta: 'Send report',
+  },
+  manager: {
+    heading: 'Talk to the manager',
+    blurb: 'Praise, complaints, an idea for the site, or anything you want a human to read. This goes straight to the editors.',
+    placeholder: 'What is on your mind?',
+    title: 'Quiz home: talk to the manager',
+    cta: 'Send message',
+  },
+};
+
+function FeedbackModal({ mode, onClose }) {
+  const cfg = FEEDBACK_MODES[mode] || FEEDBACK_MODES.issue;
+  const [msg, setMsg] = useState('');
+  const [nm, setNm] = useState('');
+  const [em, setEm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState('');
+  const inp = { width: '100%', boxSizing: 'border-box', border: `1px solid ${C.line}`, borderRadius: 10, padding: '11px 13px', fontFamily: FONT, fontSize: 14, color: C.ink, outline: 'none' };
+  async function submit() {
+    setErr('');
+    if (!msg.trim()) { setErr('Add a note so we know what to look at'); return; }
+    setBusy(true);
+    try {
+      await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listId: `quiz-home-${mode}`, listTitle: cfg.title, message: msg.trim(), name: nm.trim(), email: em.trim() }),
+      });
+    } catch (e) {
+      // Best effort, same as the per-quiz critique modal: we still acknowledge.
+    }
+    setSent(true);
+    setBusy(false);
+  }
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.ink }}>{sent ? 'Thanks, noted.' : cfg.heading}</div>
+          <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
+        </div>
+        {sent ? (
+          <>
+            <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>It went to the editors&apos; desk. We read every one.</p>
+            <button onClick={onClose} style={{ width: '100%', background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 10, padding: 12, fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Close</button>
+          </>
+        ) : (
+          <>
+            <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>{cfg.blurb}</p>
+            {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
+            <textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder={cfg.placeholder} maxLength={1000} rows={4} style={{ ...inp, resize: 'vertical', lineHeight: 1.45 }} />
+            <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+              <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder="Name (optional)" maxLength={120} style={inp} />
+              <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={200} style={inp} />
+            </div>
+            <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 10, padding: 12, fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Sending…' : cfg.cta}</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── main ───────────────────────────────────────────────────────────────────
 export default function QuizHomeClient() {
   const [scope, setScope] = useState('all');
@@ -434,6 +512,7 @@ export default function QuizHomeClient() {
   const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
+  const [feedbackMode, setFeedbackMode] = useState(null); // null | 'issue' | 'manager' (the tool row's first two buttons)
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
   const [dailyLead, setDailyLead] = useState(null); // daily-board leader for the header ticker
   const [dailyBoard, setDailyBoard] = useState(null); // full daily-combined payload (passed to DailyStrip's leaderboard)
@@ -1449,6 +1528,28 @@ export default function QuizHomeClient() {
       .qzh .lbtile.mc-closed .lbtile-head a{color:${C.ctaInk} !important;}
       .qzh .lbtile.mc-closed .lbtile-head .lchev{color:${C.ctaInk} !important;}
     }
+    /* Full-width tool row under the three-column daily section: search grows,
+       the three action buttons sit flush right. Wraps to its own line on
+       tablets; on phones the buttons go full width, two up then one. */
+    .qzh .qz-toolrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:2px 0 16px;}
+    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #b8c0cc;border-radius:12px;padding:0 12px;height:46px;}
+    .qzh .qz-toolsearch:focus-within{border-color:${C.accent};box-shadow:0 0 0 3px rgba(14,29,64,0.08);}
+    .qzh .qz-toolsearch svg{flex:none;color:${C.soft};}
+    .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:${C.ink};}
+    .qzh .qz-toolsearch input::placeholder{color:${C.soft};font-weight:500;}
+    .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:${C.soft};display:flex;}
+    .qzh .qz-toolclear:hover{color:${C.ink};}
+    .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
+    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:46px;padding:0 15px;border-radius:12px;border:1.5px solid #b8c0cc;background:#fff;color:${C.ink};font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;}
+    .qzh .qz-toolbtn svg{flex:none;color:${C.soft};}
+    .qzh .qz-toolbtn:hover{border-color:${C.accent};color:${C.accent};}
+    .qzh .qz-toolbtn:hover svg{color:${C.accent};}
+    .qzh .qz-toolbtn-cta{background:${C.accent};border-color:${C.accent};color:#fff;}
+    .qzh .qz-toolbtn-cta svg{color:#fff;}
+    .qzh .qz-toolbtn-cta:hover{background:#0a1730;border-color:#0a1730;color:#fff;}
+    .qzh .qz-toolbtn-cta:hover svg{color:#fff;}
+    @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
+    @media(max-width:560px){.qzh .qz-toolrow{gap:9px;margin-bottom:13px;}.qzh .qz-toolbtns{flex-wrap:wrap;}.qzh .qz-toolbtn{flex:1 1 calc(50% - 4px);height:42px;padding:0 10px;font-size:12px;}.qzh .qz-toolbtn-cta{flex:1 1 100%;}}
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Desktop: leaderboard LEFT (1fr), daily challenge WIDE MIDDLE (1.5fr),
@@ -1632,7 +1733,7 @@ export default function QuizHomeClient() {
       <Grain />
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
-      <QuizCommandHeader search={search} onSearch={setSearch} me={me} onSignup={() => setSignupOpen(true)} ticker={[]} />
+      <QuizCommandHeader me={me} onSignup={() => setSignupOpen(true)} ticker={[]} />
       <div className="qzh qzf-w" style={{ maxWidth: 1480, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style>
 
         {(() => {
@@ -1693,6 +1794,8 @@ export default function QuizHomeClient() {
         })()}
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
+
+        {feedbackMode && <FeedbackModal mode={feedbackMode} onClose={() => setFeedbackMode(null)} />}
 
         {creditOpen && (() => {
           const shareUrl = (refData && refData.me && refData.me.shareUrl) || null;
@@ -2054,6 +2157,42 @@ export default function QuizHomeClient() {
             was dismantled 2026-07-29: Top SoT Player moved into the left
             leaderboards element, Category Mastery + the duel entry moved into the
             right rail, and the featured tiles were removed. */}
+
+        {/* Full-width tool row (owner 2026-07-29): the search box that used to
+            live in the blue header now sits HERE, spanning the whole content
+            width directly below the three-column daily section, with three
+            actions beside it. Report an issue and Talk to the manager share one
+            form and one pipeline (/api/complaints, see FeedbackModal); Request a
+            quiz links to the existing /request form. It stays bound to the same
+            `search` state as the browse-row field below, so typing in either
+            filters the same feed. */}
+        <div className="qz-toolrow">
+          <div className="qz-toolsearch">
+            <Search size={17} aria-hidden="true" />
+            <input
+              id="qz-hero-search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={`Search ${QUIZ_COUNT.toLocaleString()} quizzes…`}
+              aria-label="Search quizzes"
+              autoComplete="off"
+            />
+            {search ? (
+              <button type="button" className="qz-toolclear" onClick={() => setSearch('')} aria-label="Clear search"><X size={15} /></button>
+            ) : null}
+          </div>
+          <div className="qz-toolbtns">
+            <button type="button" className="qz-toolbtn" onClick={() => setFeedbackMode('issue')}>
+              <Flag size={15} aria-hidden="true" />Report an issue
+            </button>
+            <button type="button" className="qz-toolbtn" onClick={() => setFeedbackMode('manager')}>
+              <MessageSquare size={15} aria-hidden="true" />Talk to the manager
+            </button>
+            <Link href="/request" className="qz-toolbtn qz-toolbtn-cta">
+              <Sparkles size={15} aria-hidden="true" />Request a quiz
+            </Link>
+          </div>
+        </div>
 
         {/* browse header + search (in the left column, beside the mastery rail) */}
         <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0, flexWrap: 'wrap' }}>

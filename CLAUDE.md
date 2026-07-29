@@ -3039,3 +3039,36 @@ Decide up front whether it runs a Sunday Edition. If yes, do all five steps abov
 launch push. If no, do not add a `sunday` field at all — an always-false flag reads as an
 unfinished feature to the next session, which is exactly how the five vestigial ones
 above came to be.
+
+---
+
+## Quiz home layout: search + tool row moved out of the header (owner rule, 2026-07-29)
+
+The blue command header on `/quizzes` (`app/quizzes/QuizCommandHeader.jsx`) no longer carries the
+search box. Search now lives in a **full-width tool row** (`.qz-toolrow` in
+`app/quizzes/QuizHomeClient.jsx`) that spans the content width directly BELOW the three-column daily
+section and ABOVE the browse row. Rules for anyone touching this area:
+
+- **The header keeps only:** brand, "Exercise Your Mind", the welcome/rank block, Stat Hub, and the
+  Puzzles & Quizzes / Top 10 Lists toggle. Do NOT reintroduce a search input, the `SearchIcon`
+  helper, or the mobile `focusListSearch` icon button. `QuizCommandHeader` takes
+  `{ me, onSignup, ticker }` and no longer accepts `search` / `onSearch`.
+- **Header identity block reads "Welcome <name>"** ("Welcome" is the lighter `.qch-hi` span, hidden
+  under 620px), with the rank detail below it on the right as before, now carrying the **completed
+  percent next to the raw count**: `Rank #1 · 157 completed · 7%`. The percent is
+  `me.activity.completed / QUIZ_COUNT` (the whole catalogue), one decimal under 10%, `<0.1%` when it
+  would round to nothing.
+- **The tool row is search + three actions.** The search input (`#qz-hero-search`) grows to fill and
+  is bound to the SAME `search` state as the browse-row field (`#qz-main-search`) further down, so
+  typing in either filters the same feed. Beside it, flush right: **Report an issue**, **Talk to the
+  manager**, **Request a quiz** (accent-filled CTA).
+- **Report an issue and Talk to the manager share ONE form and ONE pipeline.** Both open
+  `FeedbackModal` in `QuizHomeClient.jsx`, which POSTs `/api/complaints` (the same `complaints` table
+  and admin Notices tab that list feedback and the per-quiz Critique modal use). Only the heading,
+  blurb, and the stored `listId` / `list_title` differ (`quiz-home-issue` /
+  `Quiz home: issue report` vs `quiz-home-manager` / `Quiz home: talk to the manager`) so the editors
+  can tell a bug report from a note to the manager. Never fork this into a second endpoint.
+- **Request a quiz links to the existing `/request` form** (`app/request/RequestClient.jsx`, "Request
+  a List or Quiz"). It is NOT wired to the complaints pipeline and needs no new route or table.
+- Responsive: at <=1024px the search takes its own line and the three buttons split it evenly; at
+  <=560px the buttons go two-up with the CTA full width.

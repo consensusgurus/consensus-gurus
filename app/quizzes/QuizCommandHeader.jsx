@@ -7,13 +7,14 @@ import { QUIZ_COUNT } from '../SiteHeader';
 
 // Full-bleed command-bar header for the quizzes HOME page only (individual
 // quiz pages, the Stat Hub, and the lists site keep SiteHeader). One 56px
-// blue bar spanning the whole viewport: brand, search (bound to the browse
-// filter below), player chip, Lists/Quizzes nav, Stat Hub CTA. Under it runs
+// blue bar spanning the whole viewport: brand, welcome + rank chip,
+// Lists/Quizzes nav, Stat Hub CTA. The search box moved OUT of this bar on
+// 2026-07-29 and now lives in the full-width row below the three-column daily
+// section (see QuizHomeClient's .qz-toolrow). Under it runs
 // a live ticker tape of recent plays, correct-today leaders, duel results,
 // and new quizzes, built from data the page already fetches. Collapse order
 // as the window narrows: sources pill -> player stat subline + Stat Hub text
-// -> wordmark shortens to SoT and search becomes an icon button that
-// smooth-scrolls to the browse search field -> avatar circle drops.
+// -> wordmark shortens to SoT -> avatar circle drops.
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 
@@ -36,10 +37,6 @@ function Logo({ size = 30 }) {
     </svg>
   );
 }
-
-const SearchIcon = ({ c = '#dbe7ff' }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.4" style={{ flex: 'none' }} aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-);
 
 // Per-type ticker icons (play / lead / duel / new / stat).
 const TICO = {
@@ -73,48 +70,41 @@ function TickSet({ items, hidden }) {
   );
 }
 
-function focusListSearch() {
-  try {
-    const el = document.getElementById('qz-main-search');
-    if (!el) return;
-    // Focus FIRST, synchronously inside the click's gesture stack: iOS/Android
-    // only raise the soft keyboard for a focus() that is still part of the user
-    // gesture, so deferring it behind a setTimeout silently kills the keyboard.
-    try { el.focus({ preventScroll: true }); } catch { el.focus(); }
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } catch {}
-}
-
-export default function QuizCommandHeader({ search, onSearch, me, onSignup, ticker = [] }) {
+export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
   const found = !!(me && me.found);
   const signed = !!(found && me.signed);
   const rank = found ? ((me.ranks && me.ranks.xp) || me.rank) : null;
   const completed = (found && me.activity && me.activity.completed != null) ? me.activity.completed : null;
+  // Share of the whole catalogue this player has completed, shown next to the
+  // raw count (owner 2026-07-29). Under 10% keeps one decimal so an early
+  // player does not read a flat 0%; anything that rounds to nothing shows <0.1%.
+  const donePct = (completed != null && QUIZ_COUNT > 0) ? (() => {
+    const v = (completed / QUIZ_COUNT) * 100;
+    if (v > 0 && v < 0.1) return '<0.1%';
+    return `${v < 10 ? v.toFixed(1) : Math.round(v)}%`;
+  })() : null;
   // Duplicate short item lists so the looping track never shows a hole.
   const items = ticker.length ? (ticker.length < 8 ? [...ticker, ...ticker] : ticker) : [];
   const dur = `${Math.min(96, Math.max(36, items.length * 5))}s`;
   // Progressive collapse on mobile: a long player name gets room by dropping
-  // the brand logo first, then the search icon. CSS cannot see truncation, so
+  // the brand logo. CSS cannot see truncation, so
   // measure it (scrollWidth > clientWidth) and re-run on every resize. Always
-  // clear the classes before measuring so the elements come back when the name
+  // clear the class before measuring so the logo comes back when the name
   // shortens or the viewport grows.
   const barRef = useRef(null);
   const nmRef = useRef(null);
   const logoRef = useRef(null);
-  const btnRef = useRef(null);
   const meName = me && me.name;
   useEffect(() => {
     const bar = barRef.current;
     if (!bar || typeof ResizeObserver === 'undefined') return;
     const fit = () => {
-      const logo = logoRef.current, btn = btnRef.current, nm = nmRef.current;
+      const logo = logoRef.current, nm = nmRef.current;
       if (logo) logo.classList.remove('qch-hidefit');
-      if (btn) btn.classList.remove('qch-hidefit');
       if (!nm || window.innerWidth > 820) return;
       const cut = () => nm.scrollWidth > nm.clientWidth + 1;
       if (!cut()) return;
-      if (logo) { logo.classList.add('qch-hidefit'); if (!cut()) return; }
-      if (btn) btn.classList.add('qch-hidefit');
+      if (logo) logo.classList.add('qch-hidefit');
     };
     fit();
     const ro = new ResizeObserver(fit);
@@ -131,21 +121,16 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-word em{font-style:normal;color:#c9ced8;font-weight:600;}
         .qch-ws{display:none;}
         .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#fff;flex:none;}
-        /* Search no longer stretches to fill the bar. It takes a modest clamped
-           width and, together with .qch-me's margin-left:auto, the two auto
-           margins split the free space evenly so the box sits CENTERED in the
-           gap between the brand group (left) and the Stat Hub + toggle group
-           (right), which stays flush to the right edge. */
-        .qch-search{flex:0 1 auto;width:clamp(200px,28vw,400px);min-width:150px;margin-left:auto;display:flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:11px;}
-        .qch-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-family:inherit;font-size:13px;font-weight:600;}
-        .qch-search input::placeholder{color:#c7d7fb;opacity:1;}
-        .qch-search:focus-within{border-color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.2);}
-        .qch-searchbtn{display:none;align-items:center;justify-content:center;width:36px;height:36px;flex:none;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.22);border-radius:10px;cursor:pointer;padding:0;}
+        /* The search box left this bar on 2026-07-29 (it now sits in the
+           full-width tool row under the three-column daily section), so the
+           welcome/rank block simply takes the free space with margin-left:auto
+           and the Stat Hub + toggle group stays flush right. */
         .qch-me{margin-left:auto;flex:none;min-width:0;}
         .qch-melink{display:flex;align-items:center;gap:8px;text-decoration:none;min-width:0;}
         .qch-ava{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex:none;}
         .qch-mecol{display:flex;flex-direction:column;gap:2px;min-width:0;}
-        .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:#fff;line-height:1;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;}
+        .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:#fff;line-height:1;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+        .qch-hi{font-weight:600;color:#bcd2fb;}
         .qch-sub{font-size:10.5px;font-weight:700;color:#bcd2fb;line-height:1;white-space:nowrap;}
         .qch-rankm{display:none;font-size:11px;font-weight:800;color:#dbe7ff;line-height:1;white-space:nowrap;}
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#fff;color:#0e1d40;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
@@ -188,8 +173,8 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         @media(max-width:1180px){.qch-src{display:none;}}
         @media(max-width:1024px){.qch-hub-me{display:none;}}
         @media(max-width:980px){.qch-sub{display:none;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
-        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-search{display:none;}.qch-searchbtn{display:inline-flex;margin-left:auto;}.qch-me{margin-left:0;}.qch-nm{max-width:none;}}
-        @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
+        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-nm{max-width:none;}}
+        @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
       `}</style>
@@ -197,18 +182,13 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={30} /></Link>
         <Link href="/" className="qch-word"><span className="qch-wl">Source <em>of</em> Truths</span><span className="qch-ws">S<em>o</em>T</span></Link>
         <span className="qch-src">Exercise Your Mind</span>
-        <div className="qch-search">
-          <SearchIcon />
-          <input value={search} onChange={(e) => onSearch(e.target.value)} placeholder={`Search ${QUIZ_COUNT.toLocaleString()} quizzes…`} aria-label="Search quizzes" autoComplete="off" />
-        </div>
-        <button type="button" className="qch-searchbtn" ref={btnRef} onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>
         <div className="qch-me">
           {found ? (
             <Link href="/quizzes/hub" className="qch-melink" title="Stat Hub - your stats">
               <span className="qch-ava">{(me.name || '?').slice(0, 1).toUpperCase()}</span>
               <span className="qch-mecol">
-                <span className="qch-nm" ref={nmRef}>{me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
-                <span className="qch-sub">{rank ? `Rank #${fmtK(rank)}` : ''}{rank && completed != null ? ' · ' : ''}{completed != null ? `${completed} completed` : ''}</span>
+                <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
+                <span className="qch-sub">{rank ? `Rank #${fmtK(rank)}` : ''}{rank && completed != null ? ' · ' : ''}{completed != null ? `${completed.toLocaleString()} completed` : ''}{completed != null && donePct ? ` · ${donePct}` : ''}</span>
                 {rank ? <span className="qch-rankm">Rank #{fmtK(rank)}</span> : null}
               </span>
             </Link>
