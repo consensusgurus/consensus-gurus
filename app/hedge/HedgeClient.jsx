@@ -572,8 +572,8 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.hg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.hg-ttl h1{font-size:21px;}.hg-ttl-dot{display:none;}}
           .hg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .hg-tool.on{background:${COLORS.accent};color:#fff;border-color:${COLORS.accent};}
-          .hg-hit{stroke:transparent;fill:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-          .hg-svg{touch-action:manipulation;width:100%;height:auto;display:block;}
+          .hg-hit{stroke:transparent;fill:none;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none;}
+          .hg-svg{touch-action:manipulation;width:100%;height:auto;display:block;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none;}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
