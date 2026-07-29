@@ -553,7 +553,7 @@ export default function DailyStrip({ board = null }) {
           <div className="dh-hero-mid">
             <div className="dh-eyebrow">Clean sweep · all {GAMES.length} done</div>
             <div className="dh-hero-nm">Nicely done</div>
-            <div className="dh-hero-tag">Fresh puzzles drop at midnight ET{resetLbl ? ` · new games in ${resetLbl}` : ''}</div>
+            <div className="dh-hero-tag">Fresh puzzles drop at midnight ET{resetLbl ? ` · new puzzles in ${resetLbl}` : ''}</div>
           </div>
           <div className="dh-hero-cta"><a href="/daily" className="dh-ghostD"><Clock size={12} strokeWidth={2.4} />Daily archive</a></div>
         </div>
