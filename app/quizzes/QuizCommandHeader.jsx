@@ -92,6 +92,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
   const signed = !!(found && me.signed);
   const rank = found ? ((me.ranks && me.ranks.xp) || me.rank) : null;
   const completed = (found && me.activity && me.activity.completed != null) ? me.activity.completed : null;
+  const totalPlayers = (found && typeof me.totalPlayers === 'number' && me.totalPlayers > 0) ? me.totalPlayers : null;
   // Share of the whole catalogue this player has completed, shown next to the
   // raw count (owner 2026-07-29). Under 10% keeps one decimal so an early
   // player does not read a flat 0%; anything that rounds to nothing shows <0.1%.
@@ -155,6 +156,22 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-mecol{display:flex;flex-direction:column;gap:2px;min-width:0;}
         .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:#fff;line-height:1;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
         .qch-hi{font-weight:600;color:#bcd2fb;}
+        .qch-of{display:none;}
+        /* Wide bars had a large dead gap between the brand and the player chip
+           (owner 2026-07-29). From 1181px up the welcome and the rank detail sit
+           on ONE line, separated by a rule and a fluid gap that grows with the
+           viewport, so the block reaches back into that space instead of
+           huddling at the right edge. Rank also gains its "of N players" tail
+           here. Below 1181px everything collapses to the stacked two-line chip,
+           unchanged, and the existing 980 / 620 rules still take over from there. */
+        @media(min-width:1181px){
+          .qch-me{flex:1 1 auto;display:flex;justify-content:flex-end;}
+          .qch-melink{gap:13px;}
+          .qch-mecol{flex-direction:row;align-items:center;gap:clamp(14px,2.6vw,38px);}
+          .qch-nm{font-size:15px;max-width:none;}
+          .qch-sub{font-size:12.5px;border-left:1px solid rgba(255,255,255,0.22);padding-left:clamp(14px,2.6vw,38px);}
+          .qch-of{display:inline;color:#8ea6d8;}
+        }
         .qch-sub{font-size:10.5px;font-weight:700;color:#bcd2fb;line-height:1;white-space:nowrap;}
         .qch-rankm{display:none;font-size:11px;font-weight:800;color:#dbe7ff;line-height:1;white-space:nowrap;}
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#fff;color:#0e1d40;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
@@ -213,7 +230,12 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
               <span className="qch-ava">{(me.name || '?').slice(0, 1).toUpperCase()}</span>
               <span className="qch-mecol">
                 <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
-                <span className="qch-sub">{rank ? `Rank #${fmtK(rank)}` : ''}{rank && completed != null ? ' · ' : ''}{completed != null ? `${completed.toLocaleString()} completed` : ''}{completed != null && donePct ? ` · ${donePct}` : ''}</span>
+                <span className="qch-sub">
+                  {rank ? <>{`Rank #${fmtK(rank)}`}{totalPlayers ? <span className="qch-of">{` of ${totalPlayers.toLocaleString()}`}</span> : null}</> : null}
+                  {rank && completed != null ? ' · ' : ''}
+                  {completed != null ? `${completed.toLocaleString()} completed` : ''}
+                  {completed != null && donePct ? ` · ${donePct}` : ''}
+                </span>
                 {rank ? <span className="qch-rankm">Rank #{fmtK(rank)}</span> : null}
               </span>
             </Link>
