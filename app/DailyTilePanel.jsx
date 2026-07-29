@@ -269,8 +269,14 @@ export default function DailyTilePanel({
               })}
             </div>
             <div className="dtp-bx">
-              <span>{shortDate(trend.vals[0].iso)}</span>
-              <span>{shortDate(trend.vals[trend.vals.length - 1].iso)}</span>
+              {trend.vals.length >= 8 ? (
+                <>
+                  <span>{shortDate(trend.vals[0].iso)}</span>
+                  <span>{shortDate(trend.vals[trend.vals.length - 1].iso)}</span>
+                </>
+              ) : (
+                <span>{shortDate(trend.vals[0].iso)} to {shortDate(trend.vals[trend.vals.length - 1].iso)}</span>
+              )}
             </div>
           </>
         ) : (
@@ -360,7 +366,7 @@ export default function DailyTilePanel({
         .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#93a3bd;}
         .dtp-bars{position:relative;flex:1 1 auto;min-height:56px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #1e3050;padding-bottom:1px;}
         .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed rgba(255,255,255,0.26);pointer-events:none;}
-        .dtp-barw{flex:1 1 0;min-width:0;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
+        .dtp-barw{flex:1 1 0;min-width:0;max-width:48px;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
         .dtp-barw:hover{background:rgba(255,255,255,0.05);}
         .dtp-bar{display:block;width:100%;max-width:22px;background:var(--gc);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:opacity .12s;}
         .dtp-barw:hover .dtp-bar{opacity:1;}
