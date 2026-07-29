@@ -80,6 +80,40 @@ const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '
 // (the "one saturated color per game" system used on the live game pages).
 const TCOL = { crux: '#2563eb', emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c', lode: '#a16207', etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f' };
 const tcol = (k) => TCOL[k] || '#2563eb';
+// Faint tile tints (owner, 2026-07-29: "the colours should be more faint").
+// Each game's saturated hue is mixed down into the board's own deep navy, so a
+// tile is recognisably its game's colour while the board still reads as one
+// calm surface. The saturated hue stays on the top rule for punch. Computed
+// here rather than with CSS color-mix so it renders identically everywhere.
+const TINT_BASE = '#0a1631';
+function mixHex(hex, pct, base) {
+  const h = (x) => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
+  const [r1, g1, b1] = h(hex), [r2, g2, b2] = h(base);
+  const m = (a, b) => Math.round(a * pct + b * (1 - pct)).toString(16).padStart(2, '0');
+  return '#' + m(r1, r2) + m(g1, g2) + m(b1, b2);
+}
+const TINT_BG = {}, TINT_BD = {};
+for (const k of Object.keys(TCOL)) {
+  TINT_BG[k] = mixHex(TCOL[k], 0.20, TINT_BASE);
+  TINT_BD[k] = mixHex(TCOL[k], 0.42, TINT_BASE);
+}
+// Consecutive ET days on which the player finished at least one daily, counted
+// back from today. Today is optional (a live streak shows before you have played
+// today); any earlier gap ends it. Derived from the played quiz ids that
+// daily-status already returns, so it costs no extra request.
+function computeDayStreak(playedIds) {
+  const days = new Set();
+  for (const id of (playedIds || [])) {
+    const m = /^[a-z]+-(\d{1,2})-(\d{1,2})-(\d{2})$/.exec(id);
+    if (m) days.add(`20${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`);
+  }
+  if (!days.size) return 0;
+  const back = (iso) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
+  const today = etToday();
+  let cur = days.has(today) ? today : back(today), n = 0;
+  while (days.has(cur)) { n += 1; cur = back(cur); }
+  return n;
+}
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -103,6 +137,7 @@ export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
+  const [dayStreak, setDayStreak] = useState(0); // cross-game: days in a row with at least one daily played
   const [sel, setSel] = useState(null); // selected game key (expanded tile), or null
   const [lbOpen, setLbOpen] = useState(false); // overall daily leaderboard toggle
   const [filter, setFilter] = useState('all'); // all | todo | risk
@@ -168,6 +203,7 @@ export default function DailyStrip({ board = null }) {
       .then((data) => {
         if (!alive || !data) return;
         if (data.streaks && typeof data.streaks === 'object') setStreaks(data.streaks);
+        setDayStreak(computeDayStreak(data.played));
         const [Y, M, D] = etToday().split('-').map(Number);
         const yy = Y % 100;
         const completed = new Set(data.completed || []);
@@ -293,8 +329,8 @@ export default function DailyStrip({ board = null }) {
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
-  const chip = (f, label) => (
-    <button type="button" className={`dh-chip${filter === f ? ' on' : ''}`} onClick={() => { setFilter(f); setSel(null); }}>{label}</button>
+  const seg = (f, label) => (
+    <button type="button" className={`dh-segb${filter === f ? ' on' : ''}`} onClick={() => { setFilter(f); setSel(null); }}>{label}</button>
   );
 
   // ── the per-game expand panel (overlays the board; see DailyTilePanel) ──
@@ -322,65 +358,46 @@ export default function DailyStrip({ board = null }) {
     <div className="dhome">
       <style>{`
         .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;}
-        /* ── Up Next hero (navy block) ── */
-        .dh-hero{display:flex;align-items:center;gap:15px;background:#0e1d40;border:1px solid #0e1d40;border-radius:14px;padding:15px 18px;color:#eef3fb;margin-bottom:12px;}
-        .dh-hero-ic{flex:none;width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;}
-        .dh-hero-ic img{height:36px;width:auto;max-width:44px;object-fit:contain;}
-        .dh-hero-mid{flex:1;min-width:0;}
-        .dh-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#e8b43a;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
-        .dh-hero-nm{font-size:20px;font-weight:800;margin-top:1px;display:flex;align-items:center;gap:8px;letter-spacing:-.2px;}
-        .dh-hero-tag{font-size:12px;color:#93a3bd;font-weight:600;margin-top:1px;}
-        .dh-hflame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.4);border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:800;color:#e8b43a;}
-        .dh-hflame svg{flex:none;}
-        .dh-hero-cta{flex:none;display:flex;align-items:center;gap:8px;}
-        .dh-progress{flex:none;display:flex;flex-direction:column;gap:5px;min-width:118px;max-width:150px;}
-        .dh-progtxt{font-size:10.5px;font-weight:700;color:#93a3bd;}
-        .dh-progtxt b{color:#34d399;font-weight:800;}
-        .dh-bar{height:6px;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;}
-        .dh-bar>i{display:block;height:100%;background:#34d399;border-radius:99px;transition:width .4s ease;}
+        /* ── stats bar, welded onto the grid ── */
+        .dh-sbar{display:flex;align-items:center;gap:10px;background:#0e1d40;border-radius:13px 13px 0 0;padding:10px 12px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,0.07);}
+        .dh-bup{display:flex;align-items:center;gap:8px;flex:none;padding-right:10px;border-right:1px solid #223353;}
+        .dh-bup>img{height:26px;width:auto;max-width:32px;object-fit:contain;}
+        .dh-bupt{min-width:0;}
+        .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#e8b43a;white-space:nowrap;}
+        .dh-bun{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
+        .dh-stats{display:flex;align-items:center;flex:1 1 auto;min-width:0;overflow:hidden;}
+        .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid rgba(255,255,255,0.07);}
+        .dh-stat:last-child{border-right:none;}
+        .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
+        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
+        .dh-stat.g b{color:#34d399;}
+        .dh-stat.y b{color:#e8b43a;}
+        .dh-seg{display:flex;flex:none;background:rgba(255,255,255,0.06);border-radius:8px;padding:2px;}
+        .dh-segb{border:none;background:transparent;color:#93a3bd;font-weight:800;font-size:10.5px;padding:5px 8px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .dh-segb:hover{color:#fff;}
+        .dh-segb.on{background:#e8b43a;color:#1c1e24;}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
         .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
         .dh-ghostD:hover{background:rgba(255,255,255,0.06);}
-        /* ── filter row ── */
-        .dh-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:11px;}
-        .dh-lab{font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#8b909d;font-weight:500;}
-        .dh-chip{border:1px solid #cfd4de;background:#fff;color:#1c1e24;font-weight:700;font-size:12px;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;transition:background .12s,border-color .12s;}
-        .dh-chip:hover{border-color:#0e1d40;}
-        .dh-chip.on{background:#0e1d40;color:#fff;border-color:#0e1d40;}
-        .dh-hint{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8b909d;margin-left:auto;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
-        .dh-dtop{display:flex;align-items:center;gap:9px 13px;flex-wrap:wrap;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;padding:9px 13px;margin-bottom:11px;}
-        .dh-dtop-lab{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#a16207;flex:none;}
-        .dh-dtop-lab svg{color:#e8b43a;flex:none;}
-        .dh-dtop-rows{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0;}
-        .dh-dtop-row{display:inline-flex;align-items:baseline;gap:5px;font-size:12px;background:#f7f8fa;border:1px solid rgba(20,22,28,0.07);border-radius:8px;padding:3px 9px;max-width:100%;}
-        .dh-dtop-row b{color:#a16207;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dh-dtop-row .nm{font-weight:700;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;}
-        .dh-dtop-row .pt{font-weight:700;color:#6b7280;font-variant-numeric:tabular-nums;}
-        .dh-dtop-row.me{background:#fdf7ec;border-color:#f0dcae;}
-        .dh-dtop-row.me .nm{color:#a16207;}
-        .dh-dtop-none{font-size:12px;color:#6b7280;font-weight:600;}
-        .dh-dtop-exp{margin-left:auto;display:inline-flex;align-items:center;gap:5px;border:1px solid #f0dcae;background:#fdf7ec;color:#a16207;font-weight:800;font-size:12px;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;transition:background .12s;}
-        .dh-dtop-exp:hover{background:#faedd2;}
-        .dh-dtop-exp svg{flex:none;color:#e8b43a;}
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
-        .dh-boardwrap{position:relative;}
+        .dh-boardwrap{position:relative;background:#0e1d40;border-radius:0 0 13px 13px;padding:10px;}
         .dh-boardwrap.open{min-height:475px;}
-        .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
+        .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
-        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,border-color .12s,box-shadow .12s,background .12s;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;}
-        .dh-tile:hover{border-color:#3a557f;background:#13264c;transform:translateY(-2px);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
+        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:inherit;min-height:100px;}
+        .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
-        .dh-tile.done{background:#0c2a1e;border-color:#245c3d;}
-        .dh-tile.done:hover{background:#0f351f;}
+        .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
+        .dh-tile.done .dh-tnm{color:#8fd6ac;font-size:11.5px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
         .dh-tic{width:44px;height:38px;display:flex;align-items:center;justify-content:center;flex:none;}
         .dh-tic img{height:30px;width:auto;max-width:40px;object-fit:contain;}
-        .dh-tile.done .dh-tic{opacity:.6;}
+        .dh-tile.done .dh-tic{opacity:.45;}
         .dh-tnm{font-size:12.5px;font-weight:800;letter-spacing:-.2px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tsub{font-size:10px;font-weight:700;color:#93a3bd;display:inline-flex;align-items:center;gap:3px;}
         .dh-tsub.done{color:#6ee7b7;}
@@ -446,73 +463,64 @@ export default function DailyStrip({ board = null }) {
         .dsd-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
         .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
+        @media(max-width:1180px){.dh-stat.opt{display:none;}}
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
+        @media(max-width:940px){.dh-sbar{flex-wrap:wrap;}.dh-bup{border-right:none;}.dh-seg{margin-left:auto;}}
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
-          .dh-hero{flex-wrap:wrap;gap:11px 14px;padding:13px 14px;}
-          .dh-hero-mid{flex:1 1 60%;}
-          .dh-progress{order:3;flex:1 1 100%;flex-direction:row;align-items:center;max-width:none;}
-          .dh-progress .dh-bar{flex:1;}
-          .dh-hero-cta{order:2;margin-left:auto;}
           .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
-          .dh-tile{padding:11px 5px 9px;border-radius:11px;}
+          .dh-tile{padding:11px 5px 9px;border-radius:10px;min-height:88px;}
           .dh-tic{width:40px;height:34px;}
           .dh-tic img{height:23px;}
           .dh-tnm{font-size:11px;}
-          .dh-filters{gap:6px;}
-          .dh-chip{font-size:11px;padding:6px 10px;}
-          .dh-hint{display:none;}
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
       `}</style>
 
-      {/* Up Next hero */}
-      {nextGame ? (
-        <div className="dh-hero">
-          <span className="dh-hero-ic"><img src={nextGame.img} alt="" aria-hidden="true" /></span>
-          <div className="dh-hero-mid">
-            <div className="dh-eyebrow">
-              {inprog.has(nextGame.key) ? 'Pick it back up' : 'Up next'} · {nextGame.cat}{left > 0 ? ` · ${left} left` : ''}
-              {isSunday && !allSundayEditions && hasSundayEdition(nextGame.key) ? <span className="dh-tsun" style={{ position: 'static' }}>{SUNDAY_SHORT}</span> : null}
-            </div>
-            <div className="dh-hero-nm">
-              {nextGame.name}
-              {streaks[nextGame.key] >= 2 ? <span className="dh-hflame"><Flame size={11} strokeWidth={2.6} />{streaks[nextGame.key]}</span> : null}
-            </div>
-            <div className="dh-hero-tag">{nextGame.tag}{nextLead ? ` · Leader: ${nextLead.username || 'Player'}` : ''}</div>
-          </div>
-          <div className="dh-progress">
-            <span className="dh-progtxt">You: <b>{n}</b> of {GAMES.length} today</span>
-            <span className="dh-bar"><i style={{ width: `${pct}%` }} /></span>
-          </div>
-          <div className="dh-hero-cta">
-            <a href="/daily" className="dh-ghostD">Archive</a>
-            <a href={nextGame.href} className="dh-play"><Play size={12} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}</a>
-          </div>
+      {/* Stats bar. This is welded directly onto the grid below (rounded top
+          corners only, no margin), and the filters live inside it, so nothing
+          sits between the bar and the tiles. */}
+      <div className="dh-sbar">
+        <div className="dh-bup">
+          {nextGame ? (
+            <>
+              <img src={nextGame.img} alt="" aria-hidden="true" />
+              <div className="dh-bupt">
+                <div className="dh-bue">
+                  {inprog.has(nextGame.key) ? 'Pick up' : 'Up next'}
+                  {isSunday && !allSundayEditions && hasSundayEdition(nextGame.key) ? ` · ${SUNDAY_SHORT}` : ''}
+                </div>
+                <div className="dh-bun">{nextGame.name}</div>
+              </div>
+              <a href={nextGame.href} className="dh-play">
+                <Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}
+              </a>
+            </>
+          ) : (
+            <>
+              <Trophy size={22} color="#e8b43a" strokeWidth={2.2} />
+              <div className="dh-bupt">
+                <div className="dh-bue">Clean sweep</div>
+                <div className="dh-bun">All {GAMES.length} done</div>
+              </div>
+              <a href="/daily" className="dh-ghostD"><Clock size={11} strokeWidth={2.4} />Archive</a>
+            </>
+          )}
         </div>
-      ) : (
-        <div className="dh-hero">
-          <span className="dh-hero-ic"><Trophy size={26} color="#e8b43a" strokeWidth={2.2} /></span>
-          <div className="dh-hero-mid">
-            <div className="dh-eyebrow">Clean sweep · all {GAMES.length} done</div>
-            <div className="dh-hero-nm">Nicely done</div>
-            <div className="dh-hero-tag">Fresh puzzles drop at midnight ET{resetLbl ? ` · new puzzles in ${resetLbl}` : ''}</div>
-          </div>
-          <div className="dh-hero-cta"><a href="/daily" className="dh-ghostD"><Clock size={12} strokeWidth={2.4} />Daily archive</a></div>
+        <div className="dh-stats">
+          <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Done today</span></div>
+          {board && board.me ? <div className="dh-stat"><b>{fmtPts(board.me.total)}</b><span>Points</span></div> : null}
+          {board && board.me ? <div className="dh-stat"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
+          {dayStreak >= 2 ? <div className="dh-stat y"><b>{dayStreak}</b><span>Day streak</span></div> : null}
+          {uniquePlayers != null ? <div className="dh-stat opt"><b>{uniquePlayers.toLocaleString()}</b><span>Players</span></div> : null}
+          {resetLbl ? <div className="dh-stat opt"><b>{resetLbl}</b><span>Resets in</span></div> : null}
         </div>
-      )}
-
-      {/* Daily leaderboard now lives in the left "Leaderboards" element
-          (QuizHomeClient); the board no longer renders it here. */}
-
-      {/* filter row */}
-      <div className="dh-filters">
-        <span className="dh-lab">Daily puzzles</span>
-        {chip('all', `All ${GAMES.length}`)}
-        {chip('todo', `Unplayed · ${todoCount}`)}
-        {riskCount > 0 ? chip('risk', `Streak at risk · ${riskCount}`) : null}
-        <span className="dh-hint">Click a tile for stats</span>
+        <div className="dh-seg">
+          {seg('all', `All ${GAMES.length}`)}
+          {seg('todo', `Unplayed ${todoCount}`)}
+          {riskCount > 0 ? seg('risk', `At risk ${riskCount}`) : null}
+        </div>
       </div>
 
       {/* overall daily leaderboard (toggled) */}
@@ -610,11 +618,12 @@ export default function DailyStrip({ board = null }) {
                 type="button"
                 key={g.key}
                 className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
+              style={isDone ? undefined : { background: TINT_BG[g.key], borderColor: TINT_BD[g.key] }}
                 onClick={() => pick(g.key)}
                 aria-expanded={sel === g.key}
                 aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
               >
-                <span className="dh-acc" style={{ background: tcol(g.key) }} aria-hidden="true" />
+                <span className="dh-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
                 <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
                 {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
                 <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
