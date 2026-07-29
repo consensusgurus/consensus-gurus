@@ -5,7 +5,7 @@
 // One news brief per day: five sentences (seven on Sundays). Each sentence
 // carries an `errors` array with 0, 1, or (Sundays only) 2 errors — always a
 // real word, so a spellchecker sails past it: eggcorns, swapped homophones,
-// malaprops, AND grammar slips (should of, had ran, higher then). A sentence
+// malaprops, AND grammar slips (should of, had ran, subject-verb). A sentence
 // with an EMPTY errors array is clean copy — the player earns its points by
 // stamping it "stet" (let it stand). Not every day carries a clean sentence.
 //
@@ -22,6 +22,19 @@
 //  - every error must be clean-cut for a mainstream copy desk — no contested
 //    usage calls unless it's a Sunday item WITH a note that owns the ruling.
 //  - `note` per error is the one-line payoff (15–140 chars).
+//  - GRAMMAR EVERY DAY (owner ruling 2026-07-28): from 2026-08-11 forward
+//    every day MUST carry at least one true GRAMMAR (syntax) error IN ADDITION
+//    to the spelling/word-choice errors, tagged `kind: 'grammar'` on that error
+//    object. Grammar = syntax: subject-verb agreement (Neither ... is; turnout
+//    was, not were; the data are), verb form after have/had (had run/gone/drunk,
+//    should have — never had ran, had went, should of), pronoun case (between
+//    you and me; who vs whom), tense and participle slips. USAGE/word-choice
+//    pairs (then/than, fewer/less, farther/further, affect/effect, homophones)
+//    do NOT satisfy the grammar quota — they are the spelling/word-choice axis.
+//    Keep grammar a minority of each day's errors, not the whole slate.
+//  - `kind` is optional and defaults to word-choice/spelling; set `kind:
+//    'grammar'` on the syntax errors. verify-stet.mjs enforces the daily quota
+//    for every day on/after GRAMMAR_FROM.
 //  - never reuse a wrong→fix pair already banked here.
 export const PUZZLES = [
   {
@@ -426,7 +439,7 @@ export const PUZZLES = [
       },
       {
         text: 'The village well had ran dry by the middle of August.',
-        errors: [{ wrong: 'ran', fix: 'run', note: 'Had run — "ran" never follows "had."' }],
+        errors: [{ wrong: 'ran', fix: 'run', kind: 'grammar', note: 'Had run — "ran" never follows "had."' }],
       },
     ],
   },
@@ -515,7 +528,7 @@ export const PUZZLES = [
       },
       {
         text: 'By Friday the launch window had went, and the flight slipped to autumn.',
-        errors: [{ wrong: 'went', fix: 'gone', note: 'Had gone: the participle after had is gone, never went.' }],
+        errors: [{ wrong: 'went', fix: 'gone', kind: 'grammar', note: 'Had gone: the participle after had is gone, never went.' }],
       },
     ],
   },

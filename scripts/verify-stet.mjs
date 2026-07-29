@@ -5,6 +5,8 @@ import { PUZZLES } from '../app/stet/puzzles.js';
 
 const strip = (w) => w.toLowerCase().replace(/^[^a-z0-9'’-]+|[^a-z0-9'’-]+$/g, '');
 let fail = 0;
+const GRAMMAR_FROM = '2026-08-11'; // every day on/after this must carry a kind:'grammar' error
+let grammarErrors = 0;
 const err = (m) => { console.error('FAIL:', m); fail++; };
 
 const seenPairs = new Set();
@@ -21,7 +23,7 @@ for (const p of PUZZLES) {
   if (p.items.length !== want) err(`#${p.num}: ${p.items.length} items, want ${want}`);
   const label = dt.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' });
   if (p.dateLabel !== label) err(`#${p.num}: dateLabel "${p.dateLabel}" != "${label}"`);
-  let dayClean = 0, dayErrors = 0;
+  let dayClean = 0, dayErrors = 0, dayGrammar = 0;
   p.items.forEach((it, i) => {
     if (!Array.isArray(it.errors)) { err(`#${p.num}.${i + 1}: errors not an array`); return; }
     const maxErr = p.sunday ? 2 : 1;
@@ -36,6 +38,8 @@ for (const p of PUZZLES) {
     const wrongs = new Set();
     for (const [j, e] of it.errors.entries()) {
       dayErrors++; totalErrors++;
+      if (e.kind !== undefined && e.kind !== 'grammar' && e.kind !== 'wordchoice' && e.kind !== 'spelling') err(`#${p.num}.${i + 1}.${j + 1}: bad kind "${e.kind}"`);
+      if (e.kind === 'grammar') { dayGrammar++; grammarErrors++; }
       const w = strip(e.wrong);
       if (wrongs.has(w)) err(`#${p.num}.${i + 1}: duplicate wrong token "${e.wrong}" within sentence`);
       wrongs.add(w);
@@ -52,8 +56,9 @@ for (const p of PUZZLES) {
   });
   if (dayClean) cleanDays++;
   if (dayErrors === 0) err(`#${p.num}: a day with NO errors at all`);
+  if (p.live >= GRAMMAR_FROM && dayGrammar === 0) err(`#${p.num} (${p.live}): no kind:'grammar' error — every day on/after ${GRAMMAR_FROM} needs one`);
   if (!p.sunday && p.items.length - dayClean !== 5 - dayClean) { /* structural, covered above */ }
 }
-console.log(`stats: ${PUZZLES.length} puzzles, ${totalErrors} errors, ${cleanItems} clean sentences across ${cleanDays} days, ${doubles} two-error sentences`);
+console.log(`stats: ${PUZZLES.length} puzzles, ${totalErrors} errors (${grammarErrors} grammar), ${cleanItems} clean sentences across ${cleanDays} days, ${doubles} two-error sentences`);
 console.log(fail ? `${fail} failure(s)` : 'OK — all checks passed');
 process.exit(fail ? 1 : 0);
