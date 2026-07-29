@@ -1398,7 +1398,7 @@ export default function QuizHomeClient() {
     .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;overflow:hidden;}
     .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;max-width:56px;object-fit:contain;}
     .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#b26b00;margin-bottom:3px;}
-    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#1c1e24;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#6b7280;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     @media(max-width:1180px){.qzh .th-game-art{height:44px;max-width:48px;}.qzh .th-game-p{display:none;}}
     @media(max-width:1080px){.qzh .th-game-art{height:40px;}.qzh .th-game{padding:11px 12px;gap:8px;}}
@@ -1417,7 +1417,7 @@ export default function QuizHomeClient() {
     .qzh .qotd-photo{flex:0 0 48%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
     .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#b26b00;margin-bottom:7px;}
-    .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#fff;}
+    .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#1c1e24;}
     .qzh .qotd-meta{font-size:13px;color:#6b7280;margin-top:7px;max-width:560px;line-height:1.45;}
     .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
     .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.cta};color:${C.ctaInk};border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
@@ -1451,7 +1451,7 @@ export default function QuizHomeClient() {
     .qzh .hsflip-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);transition:background .3s;}
     .qzh .hsflip-dot.on{background:#fff;}
     @media(max-width:560px){.qzh .hsflip-dots{display:none;}}
-    .qzh .qotd-stats{font-size:12px;color:#fff;font-weight:800;display:inline-flex;align-items:center;gap:6px;min-width:0;}
+    .qzh .qotd-stats{font-size:12px;color:#1c1e24;font-weight:800;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
     .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
@@ -1494,7 +1494,7 @@ export default function QuizHomeClient() {
     .qzh .dtile-chip{font-size:10px;font-weight:800;background:#eef1f5;border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
     .qzh .dtile-rows{display:flex;flex-direction:column;justify-content:space-evenly;flex:1;margin:2px 0 8px;}
-    .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
+    .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#1c1e24;text-decoration:none;padding:2px 0;}
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid #c8ced9;flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:9px 12px;font-weight:800;font-size:12.5px;text-decoration:none;}
@@ -1962,7 +1962,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone .dhx-quick{border-top:1px solid #e6e8ee !important;padding:5px;}
             .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#e6e8ee !important;}
             .qzh .dhx-rone .dhx-qrow:hover{background:#f7f8fa !important;}
-            .qzh .dhx-rone .dhx-qrow .qt{color:#fff !important;}
+            .qzh .dhx-rone .dhx-qrow .qt{color:#1c1e24 !important;}
             .qzh .dhx-rone .dhx-qrow .qs{color:#6b7280 !important;}
             .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
             .qzh .dhx-rone .dhx-cm{border-top:1px solid #e6e8ee !important;}
@@ -1981,8 +1981,8 @@ export default function QuizHomeClient() {
             /* Last Played rail card (navy) */
             .qzh .dhx-lp{background:#ffffff;border:1px solid #e6e8ee;border-radius:14px;padding:14px 15px;color:#1c1e24;}
             .qzh .dhx-lp-top{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
-            .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#fff;}
-            .qzh .dhx-lp-ttl svg{color:#fff;flex:none;}
+            .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#1c1e24;}
+            .qzh .dhx-lp-ttl svg{color:#1c1e24;flex:none;}
             .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#a7f3cf;background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
             .qzh .dhx-live i{width:5px;height:5px;border-radius:999px;background:#10b981;display:block;}
             .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:#46506a;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}

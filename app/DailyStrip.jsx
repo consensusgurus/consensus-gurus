@@ -471,7 +471,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tile.done .dh-acc{background:#22c55e !important;}
         .dh-tic{width:44px;height:28px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
         .dh-tic img{height:21px;width:auto;max-width:28px;object-fit:contain;}
-        .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+        .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
