@@ -5,14 +5,12 @@
 // into it, so the board's height never changes and nothing on the page moves.
 // DailyStrip renders it absolutely inside .dh-boardwrap.
 //
-// FILL DISCIPLINE (owner, 2026-07-29: "make sure it fills the space very
-// cleanly"): the panel is a flex column pinned to all four edges of the board
-// body. The header is fixed height, the three columns take every remaining
-// pixel, and inside each column the content STRETCHES to the bottom rather than
-// stacking at the top and leaving a gap: the stat rows distribute with
-// space-between, the calendar weeks are 1fr each so the month fills its column,
-// and the leaderboard rows share the leftover height. Nothing scrolls and
-// nothing floats in dead space at any board size.
+// LAYOUT (owner, 2026-07-29): the panel is pinned to all four edges of the board
+// body so it covers the grid, but its CONTENT is compact and top-aligned. An
+// earlier version stretched the rows and the calendar to fill every pixel; that
+// spread the stats into widely spaced lines and left the month floating in its
+// column, so it was reverted. Natural row heights and a square calendar read
+// cleaner, and the leftover navy at the bottom is simply quiet space.
 //
 // What it shows: identity plus a one-sentence how-to-play (roster field `how` in
 // lib/daily-games.js), a large Play button and an equally obvious close, today's
@@ -142,7 +140,7 @@ export default function DailyTilePanel({
             <button type="button" onClick={() => shiftMonth(1)} disabled={calMonth >= latestYM} aria-label="Next month"><ChevronRight size={15} strokeWidth={2.6} /></button>
           </div>
           <div className="dtp-wd">{CAL_WD.map((w, i) => <span key={'w' + i}>{w}</span>)}</div>
-          <div className="dtp-cal" style={{ gridTemplateRows: 'repeat(' + weeks + ', minmax(0, 1fr))' }}>
+          <div className="dtp-cal">
             {cells.map((d, i) => {
               if (d === null) return <span key={'e' + i} className="dtp-cell empty" />;
               const iso = calY + '-' + String(calM).padStart(2, '0') + '-' + String(d).padStart(2, '0');
@@ -211,7 +209,7 @@ export default function DailyTilePanel({
 
       <style>{`
         .dtp{position:absolute;inset:0;z-index:6;background:#0e1d40;border-radius:0 0 13px 13px;color:#eef3fb;
-             padding:14px 16px 13px;display:flex;flex-direction:column;gap:12px;overflow:hidden;
+             padding:13px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;animation:dtpIn .16s ease-out;}
         /* Opacity only. A scale here left the panel measurably inset from the
            board edges: the component re-renders when its data lands, which
@@ -234,18 +232,18 @@ export default function DailyTilePanel({
                     font-weight:700;font-size:12.5px;border-radius:10px;padding:12px 14px;cursor:pointer;font-family:inherit;transition:background .12s,color .12s;}
         .dtp-shrink:hover{background:rgba(255,255,255,0.07);color:#fff;}
         /* three columns take every remaining pixel */
-        .dtp-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:20px;}
-        .dtp-col{min-width:0;min-height:0;display:flex;flex-direction:column;}
+        .dtp-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:20px;align-items:start;}
+        .dtp-col{min-width:0;display:flex;flex-direction:column;}
         .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;font-weight:500;margin-bottom:8px;flex:none;}
         .dtp-lab.sm{margin-top:10px;}
         .dtp-lab svg{color:var(--gc);}
         .dtp-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none;}
-        .dtp-stats>div{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:7px 10px;}
-        .dtp-stats b{display:block;font-size:18px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
+        .dtp-stats>div{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:6px 9px;}
+        .dtp-stats b{display:block;font-size:17px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
         .dtp-stats span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#6c7e9b;margin-top:2px;display:block;}
         /* the rows stretch to the bottom of the column instead of bunching at the top */
-        .dtp-rows{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-between;margin-top:9px;}
-        .dtp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px solid #1e3050;font-size:12px;}
+        .dtp-rows{flex:none;display:flex;flex-direction:column;margin-top:8px;}
+        .dtp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #1e3050;font-size:11.5px;}
         .dtp-row:last-child{border-bottom:none;}
         .dtp-row span{color:#93a3bd;font-weight:600;}
         .dtp-row b{color:#fff;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
@@ -258,8 +256,8 @@ export default function DailyTilePanel({
         .dtp-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:none;margin-bottom:3px;}
         .dtp-wd span{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#6c7e9b;text-align:center;}
         /* the month fills the column: each week row is an equal share of the height */
-        .dtp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:1 1 auto;min-height:0;}
-        .dtp-cell{display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border-radius:7px;color:#5a6d8f;text-decoration:none;font-variant-numeric:tabular-nums;min-height:0;}
+        .dtp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:none;}
+        .dtp-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border-radius:6px;color:#5a6d8f;text-decoration:none;font-variant-numeric:tabular-nums;}
         .dtp-cell.empty{background:transparent;}
         .dtp-cell.none{color:#3d4f70;}
         a.dtp-cell.played{background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.45);color:#6ee7b7;}
@@ -273,8 +271,8 @@ export default function DailyTilePanel({
         .dtp-key .sw.open{background:rgba(255,255,255,0.06);border:1px solid #2a4166;}
         .dtp-key .sw.today{background:transparent;border:2px solid #e8b43a;}
         /* leaderboard rows share the leftover height the same way */
-        .dtp-lb{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-evenly;}
-        .dtp-lrow{display:flex;align-items:center;gap:9px;padding:3px 0;border-bottom:1px solid #1e3050;font-size:12px;color:#93a3bd;}
+        .dtp-lb{flex:none;display:flex;flex-direction:column;}
+        .dtp-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;border-bottom:1px solid #1e3050;font-size:11.5px;color:#93a3bd;}
         .dtp-lrow:last-child{border-bottom:none;}
         .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#6c7e9b;flex:none;display:flex;align-items:center;}
         .dtp-lrow .pl svg{color:#e8b43a;}
@@ -282,7 +280,7 @@ export default function DailyTilePanel({
         .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#fff;flex:none;}
         .dtp-lrow.me{background:#2a2107;border-radius:6px;padding:3px 8px;border-bottom:none;margin:1px -8px;}
         .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#e8b43a;}
-        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;font-size:10.5px;color:#6c7e9b;font-weight:600;flex:none;}
+        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;font-size:10.5px;color:#6c7e9b;font-weight:600;flex:none;}
         .dtp-lfoot a{color:#e8b43a;text-decoration:none;font-weight:700;}
         .dtp-lfoot a:hover{text-decoration:underline;}
         .dtp-empty{font-size:12px;color:#6c7e9b;font-weight:600;padding:6px 0;}

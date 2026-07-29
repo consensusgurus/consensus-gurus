@@ -1925,10 +1925,6 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#eaf0fb;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-gi .sc{flex:none;color:#93a3bd;font-weight:700;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-gi.me b{color:#e8b43a;}
-            .qzh .dhx-lb-you{display:flex;align-items:baseline;gap:6px;margin-top:9px;padding:5px 8px;background:rgba(232,180,58,0.14);border-radius:7px;font-size:11.5px;}
-            .qzh .dhx-lb-you .rk{width:12px;font-size:10px;font-weight:800;color:#e8b43a;flex:none;}
-            .qzh .dhx-lb-you b{flex:1;color:#e8b43a;}
-            .qzh .dhx-lb-you .sc{color:#e8b43a;font-weight:800;margin-left:auto;}
             .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#7fb0f5;text-decoration:none;}
             .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
             .qzh .dhx-lb-scope{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7f93b8;margin-bottom:2px;}
@@ -2019,9 +2015,6 @@ export default function QuizHomeClient() {
                       <span key={r.userKey} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></span>
                     ))}
                   </div>
-                  {mk && dailyBoard.me && !shown ? (
-                    <div className="dhx-lb-you"><span className="rk">{dailyBoard.me.rank}</span><b>You</b><span className="sc">{fp(dailyBoard.me.total)}</span></div>
-                  ) : null}
                   <a href="/daily" className="dhx-lb-more">Full standings &amp; game boards →</a>
                 </div>
               );
