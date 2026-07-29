@@ -151,7 +151,7 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#fff;color:#0e1d40;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
         .qch-signup{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,255,255,0.45);border-radius:9px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 12px;cursor:pointer;white-space:nowrap;}
         .qch-signup:hover{background:rgba(255,255,255,0.14);border-color:#fff;}
-        .qch-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;}
+        .qch-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.22);cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
         .qch-seg a{font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
         .qch-seg a.on{background:#fff;color:#0e1d40;}
         .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;color:#1c1e24;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
@@ -235,6 +235,13 @@ export default function QuizCommandHeader({ search, onSearch, me, onSignup, tick
           <Link href="/" className="on">Puzzles &amp; Quizzes</Link>
           <Link href="/lists">Top 10 Lists</Link>
         </nav>
+        <details className="qch-burger">
+          <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+          <div className="qch-bmenu">
+            <Link href="/" className="on">Puzzles &amp; Quizzes</Link>
+            <Link href="/lists">Top 10 Lists</Link>
+          </div>
+        </details>
       </div>
       {items.length ? (
         <div className="qch-tickwrap">

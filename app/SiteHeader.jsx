@@ -136,7 +136,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         .shc-sortmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:10px;box-shadow:0 12px 30px rgba(10,16,32,0.28);overflow:hidden;}
         .shc-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:#1c1e24;cursor:pointer;}
         .shc-sortitem.on,.shc-sortitem:hover{background:#eef2fb;color:#0e1d40;}
-        .shc-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;}
+        .shc-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;}.shc-burger{display:none;position:relative;flex:none;}.shc-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.22);cursor:pointer;}.shc-burger>summary::-webkit-details-marker{display:none;}.shc-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.shc-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.shc-bmenu a.on,.shc-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.shc-seg{display:none;}.shc-burger{display:block;}}
         .shc-seg a{font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
         .shc-seg a.on{background:#fff;color:#0e1d40;}
         @media(max-width:1180px){.shc-src{display:none;}}
@@ -203,6 +203,13 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
             <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
             <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
           </nav>
+          <details className="shc-burger">
+            <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+            <div className="shc-bmenu">
+              <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
+              <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
+            </div>
+          </details>
         </div>
       </div>
     </div>
@@ -226,7 +233,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#fff;}
         .sh-word-sot{display:none;}
         .sh-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex:none;}
-        .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}
+        .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}.sh-burger{display:none;position:relative;flex:none;}.sh-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.22);cursor:pointer;}.sh-burger>summary::-webkit-details-marker{display:none;}.sh-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.sh-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.sh-bmenu a.on,.sh-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.sh-nav{display:none;}.sh-burger{display:block;}}
         .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#fff;border:1px solid rgba(255,255,255,0.45);border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
         .sh-navbtn:hover{background:rgba(255,255,255,0.14);border-color:#fff;color:#fff;}
         .sh-navbtn.on{background:#fff;border-color:#fff;border-bottom:2px solid #e8b43a;color:#0e1d40;}
@@ -261,6 +268,13 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
                 <Link href="/" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Puzzles &amp; Quizzes</Link>
                 <Link href="/lists" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists</Link>
               </nav>
+              <details className="sh-burger">
+                <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+                <div className="sh-bmenu">
+                  <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
+                  <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
+                </div>
+              </details>
             </div>
           </div>
           {inlay ? <div className="sh-inlay">{inlay}</div> : null}
