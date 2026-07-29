@@ -1,58 +1,32 @@
 'use client';
 
-// The unified daily-games tile: one horizontal strip that packages every daily
-// into a single card, each game still its own link. A fixed left cap carries the
-// DAILY PUZZLES label, a live progress bar with the played count and the ET reset
-// countdown; each cell shows the game's motif + name, and a game finished TODAY
-// gets a green wash + a large check watermark but never blocks the click (tap
-// through to replay or review). Completion follows the signed-in player across
-// devices via /api/quiz/daily-status, with the same-device localStorage
-// breadcrumb (sot_<key>_day) driving the first paint. Adding a game to GAMES
-// adds it to the strip everywhere it's used.
+// Daily Puzzles home block. REDESIGN (owner-approved mockup, 2026-07-28,
+// "three columns, expanding game tiles" — Stage 1 of the quiz-home redesign):
+// the old horizontal strip becomes a paper-and-ink TILE BOARD. An UP NEXT hero
+// (navy block) sits on top; a filter row (All / Unplayed / Streak at risk) plus
+// a "Daily leaderboard" toggle sits below it; then a white-tile grid of every
+// daily. Clicking a tile expands a full-width navy detail panel in place —
+// nothing navigates until you hit Play. The panel shows the game's identity,
+// YOUR RECORD (today's score, rank, streak), and TODAY'S STANDINGS for that one
+// game (from the /api/quiz/daily-combined per-game board). The OVERALL daily
+// leaderboard (overall top 3, per-game minis, recent champions) is still
+// reachable via the "Daily leaderboard" toggle so nothing is lost before Stage 2
+// promotes the page into three columns.
 //
-// REDESIGN (owner-approved mockup, 2026-07-23):
-// - The cap gains a "You: n of N" count + "resets in Xh Ym" ET countdown under
-//   the progress bar. The Today's Top 3 mini-board and Full board expander are
-//   unchanged.
-// - An UP NEXT hero column sits between the cap and the cells: the player's
-//   first unfinished game (display order), its real /games icon, tag, today's
-//   leader for that game, and Play now / Play all CTAs. When every game is done
-//   it flips to an all-done state. The hero's game is EXCLUDED from the cell
-//   grid so the grid stays 2 rows (its slot is taken by the trailing Play-all
-//   cell).
-// - Each cell carries a 3px top accent bar in the game's ACCENTS color. An
-//   UNPLAYED cell keeps its game-leader chip; a FINISHED cell swaps the chip
-//   for a RANK-OR-STREAK pill: a green "You #N" when the player finished in that
-//   game's top 10 (trophy + "You #1" at the top), otherwise a muted flame
-//   "{n} day streak" pill (owner mockup 2026-07-24; streak floors at 1 since
-//   completing today always counts). Rank comes from the daily-combined per-game
-//   board; the leader chip stays on cells not yet finished.
-// - The cell streak badge is the FLAME ICON ONLY (owner 2026-07-23: a 100-day
-//   number would eat the cell); the streak NUMBER lives in the desktop hover
-//   tip, which also names the game's category above its tagline.
-// - Mobile (<=1024px or short landscape): the strip stacks as rows — cap
-//   (wordmark + bar + count on line one; on line two ONLY the overall leader
-//   plate, given the full width, plus the Full board button — ranks 2-3 are
-//   desktop-only, owner ruling 2026-07-23), hero row, then the cells in a
-//   2-row horizontally scrolling rail.
-// - STREAKS (owner request 2026-07-23): /api/quiz/daily-status now returns
-//   per-game consecutive-day streaks (2+ only, today optional so a live streak
-//   shows before today's play). Cells wear a small flame badge (top-left,
-//   shifting under the Sunday chip when both render) and the hero adds a
-//   "keep it alive" streak line for its game.
+// Palette: sits directly on the page ground (#f7f8fa). White tiles, navy
+// (#0e1d40) as a material for the hero + expand panel, gold (#e8b43a) reserved
+// for daily identity, green for a finished game. Matches the live QuizHomeClient
+// tokens (bg #f7f8fa / surface #fff / accent #0e1d40 / cta #e8b43a).
 //
-// TWO ROWS (owner ruling 2026-07-18, at 16 games): the cells lay out as a
-// 2-row × 10-column grid, and the fixed left cap spans both rows.
-//
-// LEADERBOARD (optional): pass `board` (the /api/quiz/daily-combined payload)
-// and the left cap becomes today's board in miniature — the overall TOP 3
-// (rank, name, points) — plus the expand arrow. Expanding grows this SAME
-// pill into the detail region with the overall top-5 and every game's top-3.
-// Each cell ALSO keeps its own game leader chip (crown + name) while collapsed
-// (owner: keep the game-specific leaders alongside the top-3 cap).
+// Data wiring is unchanged from the strip: completion follows the signed-in
+// player across devices via /api/quiz/daily-status (with the same-device
+// localStorage sot_<key>_day breadcrumb + per-puzzle save detection for first
+// paint), per-game streaks come from daily-status, and the leaderboard payload
+// is the /api/quiz/daily-combined `board` prop. Adding a game to GAMES adds it
+// to the board everywhere it's used.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, ChevronDown, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight } from 'lucide-react';
+import { Crown, ChevronDown, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, X } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 
@@ -90,12 +64,15 @@ const GAMES = [
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
-// Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
-// Recent Champions list length (yesterday plus the prior days). Sized to fill
-// the left column so it roughly matches the height of the per-game minis grid
-// beside it (about six rows of minis).
+// Recent Champions list length (yesterday plus the prior days), sized to fill
+// the overall-leaderboard column beside the per-game minis.
 const CHAMPION_DAYS = 8;
-const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf' };
+// Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
+const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#a78bfa', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf', hearsay: '#c4b5fd', venn: '#e0a568', stands: '#6aa3ff', bracket: '#f0894c', lode: '#e0b34c', etch: '#8fbf5a', hedge: '#4cc0d4', listed: '#e07ad0', axiom: '#3fc9b8' };
+// Saturated one-color-per-game identity for the tile accent + expand panel
+// (the "one saturated color per game" system used on the live game pages).
+const TCOL = { crux: '#2563eb', emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c', lode: '#a16207', etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f' };
+const tcol = (k) => TCOL[k] || '#2563eb';
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -104,20 +81,31 @@ function etToday() {
 
 function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
+// A player's game-native score line for the panel's "Today" figure, from the
+// daily-combined per-game board row. score/total when the game reports a total
+// (e.g. 100/100, 10/10), otherwise the raw score, otherwise the daily points.
+function todayScoreLine(row) {
+  if (!row) return null;
+  if (row.total != null && Number(row.total) > 0) return `${fmtPts(row.score)}/${fmtPts(row.total)}`;
+  if (row.score != null) return fmtPts(row.score);
+  if (row.points != null) return `${fmtPts(row.points)} pts`;
+  return null;
+}
+
 export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
-  const [open, setOpen] = useState(false);
+  const [sel, setSel] = useState(null); // selected game key (expanded tile), or null
+  const [lbOpen, setLbOpen] = useState(false); // overall daily leaderboard toggle
+  const [filter, setFilter] = useState('all'); // all | todo | risk
   const [hist, setHist] = useState(null); // recent daily champions, from /api/quiz/daily-history
   // Sunday chip: Sundays (ET) only, and only on games that run a real Sunday
   // Edition. Set after mount so SSR and the first client render agree.
   const [isSunday, setIsSunday] = useState(false);
   useEffect(() => { setIsSunday(isSundayET()); }, []);
-  // Hide the SUN badge when every game is a Sunday edition (redundant on Sundays).
   const allSundayEditions = isSunday && GAMES.every(g => hasSundayEdition(g.key));
-  // "resets in Xh Ym" countdown to ET midnight; set after mount (SSR-safe) and
-  // refreshed each minute.
+  // "resets in Xh Ym" countdown to ET midnight; set after mount (SSR-safe).
   const [resetLbl, setResetLbl] = useState('');
   useEffect(() => {
     const tick = () => {
@@ -151,6 +139,11 @@ export default function DailyStrip({ board = null }) {
     }
     if (d.size) setDone(d);
     if (ip.size) setInprog(ip);
+  }, []);
+
+  // On a phone, default the board to the Unplayed filter (owner mockup).
+  useEffect(() => {
+    try { if (typeof window !== 'undefined' && window.innerWidth <= 560) setFilter('todo'); } catch (e) {}
   }, []);
 
   // cross-device: the signed-in player's finished-today set from the server
@@ -198,11 +191,9 @@ export default function DailyStrip({ board = null }) {
   const pct = Math.round((n / GAMES.length) * 100);
   const left = GAMES.length - n;
   // Up Next = the first unfinished game in display order (an in-progress game
-  // counts as unfinished, so it becomes a Resume target). Its cell is pulled
-  // from the grid; the trailing Play-all cell keeps the grid at full slots.
+  // counts as unfinished, so it becomes a Resume target). It still renders as a
+  // tile in the board too (owner mockup shows all 30 tiles).
   const nextGame = games.find((g) => !done.has(g.key)) || null;
-  const cellGames = nextGame ? games.filter((g) => g.key !== nextGame.key) : games;
-  const cellCols = Math.max(1, Math.ceil(cellGames.length / 2));
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   const bgames = board && Array.isArray(board.games) ? board.games : null;
@@ -214,28 +205,22 @@ export default function DailyStrip({ board = null }) {
   const gameCount = (board && board.gameCount) || (bgames ? bgames.length : 0);
   const bestN = board && board.bestN != null ? board.bestN : Math.min(10, gameCount || 10);
   const meKey = board && board.me ? board.me.userKey : null;
-  const top5 = overall.slice(0, 5);
   const top3 = overall.slice(0, 3);
   const meShown = meKey && top3.some((r) => r.userKey === meKey);
   const uniquePlayers = board && typeof board.uniquePlayers === 'number' ? board.uniquePlayers : null;
 
   const nextLead = nextGame && hasBoard && byKey[nextGame.key] && byKey[nextGame.key].board && byKey[nextGame.key].board[0] ? byKey[nextGame.key].board[0] : null;
 
-  // The player's rank on a game's board (1-based position in the sorted
-  // daily-combined per-game board), or null when they aren't in the payload.
-  const myRank = (key) => {
+  // The player's row on a game's per-game board (their score/rank today).
+  const myRow = (key) => {
     if (!meKey) return null;
     const b = byKey[key] && byKey[key].board;
     if (!b) return null;
-    const i = b.findIndex((x) => x && x.userKey === meKey);
-    return i >= 0 ? i + 1 : null;
+    return b.find((x) => x && x.userKey === meKey) || null;
   };
 
   // Same-device in-progress/finished detection for TODAY via each game's own
-  // per-puzzle save (sot_<key>_<num>, crux also _r<rev>), keyed by the puzzle
-  // nums the daily-combined payload now carries. Catches started-today games
-  // that the day-breadcrumb and server abandon rows miss (owner 2026-07-23:
-  // "bring back the in-progress icons").
+  // per-puzzle save, keyed by the puzzle nums the daily-combined payload carries.
   useEffect(() => {
     if (!bgames || !bgames.length) return;
     const ip = new Set(); const dn = new Set();
@@ -258,181 +243,214 @@ export default function DailyStrip({ board = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board]);
 
-  // Recent champions are only needed once the board is expanded; fetch them
-  // lazily on first open so a collapsed homepage visit never pays for it. Capped
-  // at CHAMPION_DAYS entries (yesterday plus the two days before it) so the left
-  // column never grows taller than the per-game minis on the right.
+  // Recent champions only load once the overall board is opened.
   useEffect(() => {
-    if (!open || !hasBoard || hist !== null) return;
+    if (!lbOpen || !hasBoard || hist !== null) return;
     let alive = true;
     fetch('/api/quiz/daily-history')
       .then((r) => r.json())
       .then((d) => { if (alive && d && Array.isArray(d.history)) setHist(d.history.slice(0, CHAMPION_DAYS)); })
       .catch(() => {});
     return () => { alive = false; };
-  }, [open, hasBoard, hist]);
+  }, [lbOpen, hasBoard, hist]);
 
-  // Scroll state for the far-right chevron: shown only when the slate really
-  // does overrun the bar, and flipped to point back once you hit the end.
-  const mainRef = useRef(null);
-  const [canScroll, setCanScroll] = useState(false);
-  const [atEnd, setAtEnd] = useState(false);
-  const measure = () => {
-    const el = mainRef.current;
-    if (!el) return;
-    const slack = el.scrollWidth - el.clientWidth;
-    setCanScroll(slack > 12);
-    setAtEnd(slack > 12 && el.scrollLeft >= slack - 12);
-  };
+  // Measure the board's real column count so the expand panel can be inserted at
+  // the end of the selected tile's row regardless of the responsive breakpoint.
+  const boardRef = useRef(null);
+  const [cols, setCols] = useState(6);
   useEffect(() => {
+    const measure = () => {
+      const el = boardRef.current;
+      if (!el) return;
+      try {
+        const tpl = getComputedStyle(el).gridTemplateColumns || '';
+        const nCol = tpl.split(' ').filter(Boolean).length;
+        if (nCol) setCols(nCol);
+      } catch (e) {}
+    };
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
   });
-  const onScroll = () => measure();
-  const scrollOn = () => {
-    const el = mainRef.current;
-    if (!el) return;
-    if (atEnd) el.scrollTo({ left: 0 });
-    else el.scrollBy({ left: Math.max(180, Math.round(el.clientWidth * 0.6)) });
+
+  // filtered tile set
+  const todoCount = GAMES.filter((g) => !done.has(g.key)).length;
+  const riskCount = GAMES.filter((g) => !done.has(g.key) && (streaks[g.key] || 0) >= 2).length;
+  const list = filter === 'todo'
+    ? games.filter((g) => !done.has(g.key))
+    : filter === 'risk'
+      ? games.filter((g) => !done.has(g.key) && (streaks[g.key] || 0) >= 2)
+      : games;
+  const selIdx = sel != null ? list.findIndex((g) => g.key === sel) : -1;
+
+  const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
+  const chip = (f, label) => (
+    <button type="button" className={`dh-chip${filter === f ? ' on' : ''}`} onClick={() => { setFilter(f); setSel(null); }}>{label}</button>
+  );
+
+  // ── the per-game expand panel ──
+  const renderPanel = (g) => {
+    const col = tcol(g.key);
+    const bg = byKey[g.key] || null;
+    const isDone = done.has(g.key);
+    const st = streaks[g.key] || 0;
+    const row = myRow(g.key);
+    const scoreLine = todayScoreLine(row);
+    const rankToday = row ? row.rank : null;
+    const field = bg && typeof bg.field === 'number' ? bg.field : null;
+    const beatPct = row && field && field > 0 ? Math.max(0, Math.round(((field - row.rank) / field) * 100)) : null;
+    const stand = bg && Array.isArray(bg.board) ? bg.board.slice(0, 5) : [];
+    const standHasMe = meKey && stand.some((r) => r.userKey === meKey);
+    return (
+      <div className="dh-panel" style={{ '--gc': col }} key={`panel-${g.key}`}>
+        <button type="button" className="dh-panel-close" aria-label="Close" onClick={() => setSel(null)}><X size={16} /></button>
+        {/* col 1 — identity + CTAs */}
+        <div className="dh-pc">
+          <div className="dh-pid">
+            <span className="dh-pic"><img src={g.img} alt="" aria-hidden="true" /></span>
+            <div>
+              <div className="dh-pname">{g.name}{st >= 2 ? <span className="dh-flamechip"><Flame size={11} strokeWidth={2.6} />{st}</span> : null}</div>
+              <div className="dh-pmeta">{g.tag} · {g.cat}</div>
+            </div>
+          </div>
+          <div className="dh-pctas">
+            {isDone ? (
+              <a href={g.href} className="dh-ghostD">Play again</a>
+            ) : (
+              <a href={g.href} className="dh-play"><Play size={12} fill="#1c1e24" strokeWidth={0} />{inprog.has(g.key) ? 'Resume' : 'Play'}</a>
+            )}
+          </div>
+        </div>
+        {/* col 2 — your record */}
+        <div className="dh-pc">
+          <div className="dh-plab">Your record</div>
+          <div className="dh-prec">
+            <div><div className="dh-pnum">{scoreLine || (isDone ? 'Done' : '—')}</div><div className="dh-psub">Today</div></div>
+            <div><div className="dh-pnum">{rankToday ? `#${rankToday}` : '—'}</div><div className="dh-psub">Rank today</div></div>
+            <div><div className="dh-pnum">{st || '—'}</div><div className="dh-psub">Streak</div></div>
+          </div>
+          {beatPct != null ? (
+            <div className="dh-pbeat">Beat <b>{beatPct}%</b> of players today</div>
+          ) : (
+            <div className="dh-pbeat dim">{isDone ? 'Standings updating…' : 'Play to rank today'}</div>
+          )}
+        </div>
+        {/* col 3 — standings today */}
+        <div className="dh-pc">
+          <div className="dh-plab">Standings today</div>
+          {stand.length ? (
+            <>
+              {stand.map((r, i) => {
+                const mine = meKey && r.userKey === meKey;
+                return (
+                  <div key={r.userKey || i} className={`dh-lrow${mine ? ' me' : ''}`}>
+                    <span className="dh-lpl">{r.rank || i + 1}</span>
+                    <b>{r.username || 'Player'}{mine ? ' (you)' : ''}</b>
+                    <span className="dh-lsc">{fmtPts(r.points)}</span>
+                  </div>
+                );
+              })}
+              {meKey && row && !standHasMe ? (
+                <div className="dh-lrow me">
+                  <span className="dh-lpl">{row.rank}</span>
+                  <b>You</b>
+                  <span className="dh-lsc">{fmtPts(row.points)}</span>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <div className="dh-pempty">{hasBoard ? 'No scores yet — be the first.' : 'Standings load when the day starts.'}</div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="dstrip-wrap">
+    <div className="dhome">
       <style>{`
-        .dstrip-wrap{margin-bottom:14px;}
-        .dstrip{position:relative;display:flex;flex-direction:column;background:#0e1d40;border:1px solid rgba(20,22,28,0.14);border-radius:16px;overflow:hidden;}
-        .dstrip.has-board{border-color:rgba(232,180,58,0.4);}
-        .dstrip-main{display:flex;}
-        /* The slate outgrew the bar, so it scrolls. No visible scrollbar:
-           one chevron on the far right pages it along, and flips back to the
-           start once you reach the end (owner, 2026-07-24). */
-        .dstrip-main{min-width:0;}
-        /* Tiles hold their width instead of shrinking as the slate grows, so
-           the row genuinely overflows and the chevron has something to do. The
-           cap and the up-next panel stay pinned; only the tiles travel. */
-        .dstrip-cells{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;}
-        .dstrip-cells::-webkit-scrollbar{display:none;width:0;height:0;}
-        .dstrip-main::-webkit-scrollbar{display:none;width:0;height:0;}
-        .dstrip-scroll{position:absolute;top:50%;right:8px;transform:translateY(-50%);z-index:4;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;border:1px solid rgba(232,180,58,0.5);background:rgba(11,23,51,0.92);color:#f5d878;cursor:pointer;padding:0;box-shadow:0 2px 10px rgba(8,14,30,0.55);}
-        .dstrip-scroll:hover{background:rgba(232,180,58,0.22);}
-        .dstrip-scroll[hidden]{display:none;}
-        .dstrip-cap{flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 13px;background:#0b1733;border-right:1px solid rgba(255,255,255,0.07);min-width:88px;}
-        .dstrip-cap.has-top3{min-width:140px;max-width:156px;}
-        /* One-line wordmark: DAILY and GAMES share a size/weight (owner, 2026-07-20);
-           the eyebrow is now just the gold half of the same line. */
-        .dstrip-cap .ttl{display:block;font-size:15px;font-weight:800;letter-spacing:-.1px;line-height:1;color:#fff;white-space:nowrap;text-decoration:none;cursor:pointer;}
-        a.dstrip-cap-ttl:hover .lab{color:#ffce6a;}
-        a.dstrip-cap-ttl:hover{color:#dfe7f7;}
-        .dstrip-cap .ttl .lab{color:#f8b84a;}
-        .dstrip-progrow{display:flex;flex-direction:column;gap:3px;margin-top:5px;}
-        .dstrip-bar{display:block;height:9px;width:100%;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
-        .dstrip-fill{display:block;height:100%;width:0;background:#34d399;border-radius:99px;transition:width .4s ease;}
-        .dstrip-count{display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-size:9.5px;font-weight:700;color:#9fb0d4;}
-        .dstrip-count b{color:#34d399;font-weight:800;}
-        .dstrip-exp{margin-top:2px;align-self:stretch;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:4px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-family:inherit;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:7px;padding:3px 8px;cursor:pointer;transition:background .15s;}
-        .dstrip-exp:hover{background:rgba(232,180,58,0.24);}
-        /* the cap's miniature daily board: today's overall top 3 */
-        .dstrip-t3{display:flex;flex-direction:column;gap:2px;margin-top:2px;min-width:0;}
-        .dstrip-t3 .t3h{font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fa3cf;margin-bottom:1px;}
-        /* Today's leader gets the space freed by the one-line wordmark: own gold
-           plate, crown, larger name and points. Ranks 2-3 stay compact below. */
-        .dstrip-t1{display:flex;align-items:center;gap:5px;min-width:0;margin:1px 0 4px;padding:5px 7px;border-radius:9px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.45);}
-        /* Crown occupies the same 11px gutter the "2"/"3" numerals sit in, so the
-           three rows share one left edge; the points share one right edge. */
-        .dstrip-t1 svg{color:#e8b43a;flex:0 0 11px;}
-        .dstrip-t1 .nm1{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px;font-weight:800;color:#f5d878;letter-spacing:-.2px;line-height:1.2;}
-        .dstrip-t1 .pt1{flex:0 0 auto;font-size:10.5px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
-        .dstrip-t1.me{background:rgba(232,180,58,0.28);border-color:rgba(232,180,58,0.72);}
-        /* padding matches the #1 plate's 7px + 1px border so all three rows line up */
-        .dstrip-t3r{display:flex;align-items:baseline;gap:4px;min-width:0;padding:0 6px;font-size:9.5px;font-weight:700;color:#eaf0fb;line-height:1.4;}
-        .dstrip-t3r .rk{flex:0 0 11px;text-align:center;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;}
-        .dstrip-t3r .nm3{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dstrip-t3r .pt{flex:0 0 auto;font-size:9.5px;color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;}
-        .dstrip-t3r.me .nm3{color:#f5d878;}
-        .dstrip-t3 .t3none{font-size:10.5px;font-weight:600;color:#6a80a8;line-height:1.35;}
-        /* UP NEXT hero column: the player's next unfinished game, promoted. */
-        .dstrip-hero{flex:0 0 180px;display:flex;flex-direction:column;justify-content:center;gap:7px;padding:12px 12px;background:#13264b;border-right:1px solid rgba(255,255,255,0.09);min-width:0;}
-        .dstrip-hero .hd-eb{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#f8b84a;}
-        .dstrip-hero .hd-eb .dstrip-sun{position:static;}
-        .dstrip-hero .hd-row{display:flex;align-items:center;gap:9px;min-width:0;text-decoration:none;}
-        .dstrip-hero .hd-row img{height:36px;width:auto;max-width:44px;object-fit:contain;flex:none;}
-        .dstrip-hero .hd-nm{display:block;font-size:18px;font-weight:800;color:#fff;line-height:1.1;letter-spacing:-.2px;}
-        .dstrip-hero .hd-tag{display:block;font-size:10px;font-weight:600;color:#9fb0d4;margin-top:2px;}
-        .dstrip-hero .hd-meta{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#93a7cc;min-width:0;}
-        .dstrip-hero .hd-meta svg{color:#e8b43a;flex:none;}
-        .dstrip-hero .hd-meta b{color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dstrip-hero .hd-streak{color:#93a7cc;}
-        .dstrip-hero .hd-streak svg{color:#f8b84a;}
-        .dstrip-hero .hd-streak b{color:#f5d878;flex:none;}
-        .dstrip-hero .hd-ctas{display:flex;flex-direction:column;align-items:stretch;gap:6px;}
-        .dstrip-hero .hd-play{flex:none;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:5px;background:#e8b43a;color:#1c1e24;font-size:11.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
-        .dstrip-hero .hd-play:hover{background:#d49a2a;}
-        /* the clean-sweep archive button sizes to its label instead of
-           stretching the panel, which is width the game tiles get back */
-        .dstrip-hero .hd-play.arch{flex:0 0 auto;align-self:flex-start;padding:6px 11px;font-size:10.5px;}
-        .dstrip-hero .hd-all{flex:none;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid #2b4270;color:#eaf0fb;font-size:10.5px;font-weight:800;border-radius:8px;padding:7px 6px;text-decoration:none;transition:background .12s;}
-        .dstrip-hero .hd-all:hover{background:rgba(91,139,255,0.14);}
-        /* game tiles in a 2-row grid; columns scale with the game count, the cap and hero span both rows */
-        .dstrip-cells{display:grid;grid-template-columns:repeat(${cellCols},minmax(84px,1fr));grid-auto-rows:1fr;flex:1 1 auto;min-width:0;}
-        .dstrip-cell{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:13px 6px 9px;text-decoration:none;border-left:1px solid rgba(255,255,255,0.055);transition:background .12s;}
-        .dstrip-cell:nth-child(${cellCols}n+1){border-left:none;}
-        .dstrip-cell:nth-child(n+${cellCols + 1}){border-top:1px solid rgba(255,255,255,0.055);}
-        .dstrip-cell:hover{background:rgba(91,139,255,0.14);}
-        .dstrip-acc{position:absolute;top:0;left:0;right:0;height:3px;opacity:.85;pointer-events:none;}
-        .dstrip-cell.done .dstrip-acc{opacity:0;}
-        .dstrip-cell img{height:30px;width:auto;max-width:38px;object-fit:contain;}
-        .dstrip-cell .nm{font-size:11px;font-weight:800;color:#fff;letter-spacing:-.2px;white-space:nowrap;}
-        .dstrip-cell.done img{opacity:.85;}
-        .dstrip-cell.done .nm{color:#c9f2df;position:relative;z-index:2;}
-        /* completed cell: soft green wash + large check watermark + rank/streak pill (owner mockup 2026-07-24) */
-        .dstrip-cell.done{background:linear-gradient(180deg,rgba(52,211,153,0.15),rgba(52,211,153,0.05));}
-        .dstrip-cell.done:hover{background:linear-gradient(180deg,rgba(52,211,153,0.22),rgba(52,211,153,0.09));}
-        .dstrip-wm{position:absolute;top:9px;left:0;right:0;display:flex;justify-content:center;z-index:1;pointer-events:none;opacity:.9;filter:drop-shadow(0 1px 2px rgba(4,18,31,0.6));}
-        .dstrip-pill{margin-top:3px;position:relative;z-index:2;display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;line-height:1;padding:3px 7px;border-radius:99px;white-space:nowrap;}
-        .dstrip-pill svg{flex:none;}
-        .dstrip-pill.rankp{background:rgba(52,211,153,0.2);border:1px solid rgba(52,211,153,0.5);color:#6ee7b7;}
-        .dstrip-pill.rankp svg{color:#6ee7b7;}
-        .dstrip-pill.rankp.first{background:rgba(245,216,120,0.18);border-color:rgba(245,216,120,0.55);color:#f5d878;}
-        .dstrip-pill.rankp.first svg{color:#f5d878;}
-        .dstrip-pill.streakp{background:rgba(148,167,204,0.12);border:1px solid rgba(148,167,204,0.3);color:#b9c6df;}
-        .dstrip-pill.streakp svg{color:#f8b84a;}
-        .dstrip-sun{position:absolute;top:7px;left:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#04121f;background:#f8b84a;border-radius:3px;padding:0 3px;line-height:1.5;pointer-events:none;}
-        .dstrip-check{position:absolute;top:7px;right:5px;width:16px;height:16px;border-radius:99px;background:#34d399;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
-        .dstrip-prog{position:absolute;top:7px;right:5px;width:16px;height:16px;border-radius:99px;background:#12233f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #0e1d40;pointer-events:none;}
-        .dstrip-lead{margin-top:2px;display:flex;align-items:center;gap:3px;max-width:100%;min-width:0;font-size:10px;font-weight:700;color:#eaf0fb;}
-        .dstrip-lead svg{color:#e8b43a;flex:none;}
-        .dstrip-lead > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dstrip-lead.none{color:#6a80a8;font-weight:600;}
-        /* active streak badge (2+ consecutive days), top-left corner; shifts
-           below the Sunday chip when both render */
-        .dstrip-flame{position:absolute;top:7px;left:5px;width:16px;height:16px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;color:#f8b84a;background:rgba(232,180,58,0.13);border:1px solid rgba(232,180,58,0.35);border-radius:99px;pointer-events:none;}
-        .dstrip-flame svg{flex:none;}
-        .dstrip-flame.shift{top:24px;}
-        /* finished cell: the player's rank in that game replaces the leader chip */
-        .dstrip-you{margin-top:2px;font-size:10px;font-weight:700;color:#9fb0d4;white-space:nowrap;}
-        .dstrip-you b{color:#34d399;font-weight:800;}
-        .dstrip-you.first b{color:#f5d878;}
-        /* trailing Play-all cell fills the slot freed by the promoted hero game */
-        .dstrip-cell.playall .pa-ic{width:30px;height:30px;border-radius:99px;border:1.5px dashed #3a537f;color:#9fb0d4;display:flex;align-items:center;justify-content:center;}
-        .dstrip-cell.playall .nm{color:#f5d878;font-size:10px;white-space:normal;text-align:center;line-height:1.3;}
-        /* archive button that fills the trailing empty grid slot when the whole set is done */
-        .dstrip-cell.archivecell{padding:9px 6px;}
-        .dstrip-cell.archivecell:hover{background:transparent;}
-        .dstrip-cell .arch-btn{display:inline-flex;align-items:center;gap:4px;text-align:center;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.42);color:#f5d878;font-size:10px;font-weight:800;line-height:1.25;border-radius:8px;padding:7px 8px;transition:background .15s;}
-        .dstrip-cell .arch-btn svg{flex:none;}
-        .dstrip-cell.archivecell:hover .arch-btn{background:rgba(232,180,58,0.24);}
-        /* hover blurb: the one-line description fades in over the cell */
-        .dstrip-tip{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center;padding:6px 8px;background:rgba(11,23,51,0.96);color:#eaf0fb;font-size:10.5px;font-weight:700;line-height:1.35;opacity:0;transition:opacity .14s ease;pointer-events:none;}
-        .dstrip-tip .tip-cat{font-size:8px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8fa3cf;}
-        .dstrip-tip .tip-fl{display:flex;align-items:center;gap:3px;color:#f8b84a;font-size:9.5px;font-weight:800;}
-        .dstrip-cell:hover .dstrip-tip,.dstrip-cell:focus-visible .dstrip-tip{opacity:1;}
-        /* done tiles keep the rank/streak pill on hover, so top-align the tip text and reserve room below it to avoid colliding with the pill */
-        .dstrip-cell.done .dstrip-tip{justify-content:flex-start;padding-top:11px;padding-bottom:26px;}
-        @media (hover:none){.dstrip-tip{display:none;}}
-        .dstrip-mob-board{display:none;}
-        /* expanded detail: attached inside the same pill */
-        .dsd{border-top:1px solid rgba(232,180,58,0.28);background:#0b1733;padding:16px 16px 14px;}
+        .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;}
+        /* ── Up Next hero (navy block) ── */
+        .dh-hero{display:flex;align-items:center;gap:15px;background:#0e1d40;border:1px solid #0e1d40;border-radius:14px;padding:15px 18px;color:#eef3fb;margin-bottom:12px;}
+        .dh-hero-ic{flex:none;width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;}
+        .dh-hero-ic img{height:36px;width:auto;max-width:44px;object-fit:contain;}
+        .dh-hero-mid{flex:1;min-width:0;}
+        .dh-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#e8b43a;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+        .dh-hero-nm{font-size:20px;font-weight:800;margin-top:1px;display:flex;align-items:center;gap:8px;letter-spacing:-.2px;}
+        .dh-hero-tag{font-size:12px;color:#93a3bd;font-weight:600;margin-top:1px;}
+        .dh-hflame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.4);border-radius:999px;padding:1px 7px;font-size:10.5px;font-weight:800;color:#e8b43a;}
+        .dh-hflame svg{flex:none;}
+        .dh-hero-cta{flex:none;display:flex;align-items:center;gap:8px;}
+        .dh-progress{flex:none;display:flex;flex-direction:column;gap:5px;min-width:118px;max-width:150px;}
+        .dh-progtxt{font-size:10.5px;font-weight:700;color:#93a3bd;}
+        .dh-progtxt b{color:#34d399;font-weight:800;}
+        .dh-bar{height:6px;border-radius:99px;background:rgba(255,255,255,0.14);overflow:hidden;}
+        .dh-bar>i{display:block;height:100%;background:#34d399;border-radius:99px;transition:width .4s ease;}
+        .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
+        .dh-play:hover{background:#d49a2a;}
+        .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
+        .dh-ghostD:hover{background:rgba(255,255,255,0.06);}
+        /* ── filter row ── */
+        .dh-filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:11px;}
+        .dh-lab{font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#8b909d;font-weight:500;}
+        .dh-chip{border:1px solid #cfd4de;background:#fff;color:#1c1e24;font-weight:700;font-size:12px;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;transition:background .12s,border-color .12s;}
+        .dh-chip:hover{border-color:#0e1d40;}
+        .dh-chip.on{background:#0e1d40;color:#fff;border-color:#0e1d40;}
+        .dh-lbbtn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid #f0dcae;background:#fdf7ec;color:#a16207;font-weight:800;font-size:12px;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;transition:background .12s;}
+        .dh-lbbtn:hover{background:#faedd2;}
+        .dh-lbbtn svg{flex:none;color:#e8b43a;}
+        .dh-hint{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8b909d;}
+        /* ── tile board ── */
+        .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
+        .dh-tile{position:relative;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,border-color .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;}
+        .dh-tile:hover{border-color:#c3cdd9;transform:translateY(-2px);box-shadow:0 4px 14px rgba(20,30,50,0.09);}
+        .dh-tile.sel{border-color:#0e1d40;box-shadow:0 0 0 2px #0e1d40;}
+        .dh-tile.done{background:#f2f7f3;}
+        .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.9;}
+        .dh-tile.done .dh-acc{background:#16a34a !important;}
+        .dh-tile img{height:30px;width:auto;max-width:38px;object-fit:contain;}
+        .dh-tile.done img{opacity:.5;}
+        .dh-tnm{font-size:12.5px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+        .dh-tsub{font-size:10px;font-weight:700;color:#8b909d;display:inline-flex;align-items:center;gap:3px;}
+        .dh-tsub.done{color:#16a34a;}
+        .dh-tsub.strk{color:#a16207;}
+        .dh-tsub svg{flex:none;}
+        .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
+        .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
+        .dh-lead{font-size:10px;font-weight:700;color:#6b7280;display:inline-flex;align-items:center;gap:3px;max-width:100%;}
+        .dh-lead svg{flex:none;color:#e8b43a;}
+        .dh-lead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* ── expand panel (navy, full width) ── */
+        .dh-panel{position:relative;grid-column:1/-1;background:#0e1d40;border-radius:12px;color:#eef3fb;padding:18px;display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:20px;}
+        .dh-panel-close{position:absolute;top:11px;right:12px;background:transparent;border:none;color:#93a3bd;cursor:pointer;display:flex;padding:2px;}
+        .dh-panel-close:hover{color:#fff;}
+        .dh-pc{min-width:0;}
+        .dh-pid{display:flex;gap:13px;align-items:center;margin-bottom:14px;}
+        .dh-pic{flex:none;width:52px;height:52px;border-radius:12px;background:var(--gc);display:flex;align-items:center;justify-content:center;}
+        .dh-pic img{height:34px;width:auto;max-width:44px;object-fit:contain;}
+        .dh-pname{font-size:21px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;}
+        .dh-flamechip{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 7px;font-size:11px;font-weight:800;color:#e8b43a;}
+        .dh-flamechip svg{flex:none;}
+        .dh-pmeta{font-size:12px;color:#93a3bd;font-weight:600;margin-top:2px;}
+        .dh-pctas{display:flex;gap:9px;flex-wrap:wrap;}
+        .dh-plab{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;font-weight:500;margin-bottom:10px;}
+        .dh-prec{display:flex;gap:22px;margin-bottom:12px;}
+        .dh-pnum{font-size:21px;font-weight:800;line-height:1.1;}
+        .dh-psub{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#6c7e9b;margin-top:3px;}
+        .dh-pbeat{font-size:12px;color:#93a3bd;font-weight:600;}
+        .dh-pbeat b{color:#fff;font-weight:800;}
+        .dh-pbeat.dim{color:#6c7e9b;}
+        .dh-lrow{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid #1e3050;font-size:12px;color:#93a3bd;}
+        .dh-lrow:last-child{border-bottom:none;}
+        .dh-lpl{width:16px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#6c7e9b;flex:none;}
+        .dh-lrow b{color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+        .dh-lsc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#fff;flex:none;}
+        .dh-lrow.me{background:#2a2107;border-radius:6px;padding:5px 8px;border-bottom:none;margin:2px -8px;}
+        .dh-lrow.me b{color:#e8b43a;}
+        .dh-lrow.me .dh-lpl,.dh-lrow.me .dh-lsc{color:#e8b43a;}
+        .dh-pempty{font-size:12px;color:#6c7e9b;font-weight:600;padding:6px 0;}
+        /* ── overall daily leaderboard (toggled) ── */
+        .dh-lbpanel{background:#0b1733;border:1px solid rgba(232,180,58,0.28);border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#eef3fb;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
         .dsd-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#e8b43a;font-weight:800;}
         .dsd-r{font-size:10.5px;color:#93a7cc;font-weight:600;}
@@ -451,14 +469,11 @@ export default function DailyStrip({ board = null }) {
         .dsd-tt{font-size:13.5px;font-weight:800;color:#f5d878;text-align:right;font-variant-numeric:tabular-nums;}
         .dsd-tt s{font-size:10px;font-weight:600;color:#6a80a8;text-decoration:none;}
         .dsd-empty{font-size:12.5px;color:#93a7cc;font-weight:600;padding:8px 2px;}
-        /* #1 gets a bolder, slightly larger treatment (same row size, more emphasis) */
         .dsd-row.first{background:rgba(232,180,58,.2);border-color:rgba(232,180,58,.55);}
         .dsd-row.first .dsd-rk{font-size:17px;color:#f5d878;}
         .dsd-row.first .dsd-pn{font-weight:800;font-size:14.5px;color:#f5d878;display:flex;align-items:center;gap:5px;}
         .dsd-row.first .dsd-cr{color:#e8b43a;flex:none;}
         .dsd-row.first .dsd-tt{font-size:15px;}
-        /* past champions block: sits below today's board, separated by a clear
-           gap + rule so yesterday never reads as part of today's standings. */
         .dsd-past{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.10);}
         .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);}
         .dsd-yest.top{padding:9px 11px;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);}
@@ -469,331 +484,212 @@ export default function DailyStrip({ board = null }) {
         .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#f5d878;}
         .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#6a80a8;text-decoration:none;}
         .dsd-yest .ynone{font-size:12px;color:#6a80a8;font-weight:600;}
-        /* Hall of Fame link (Daily Champions on the Stat Hub) */
         .dsd-hof{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:rgba(232,180,58,.1);border:1px solid rgba(232,180,58,.32);color:#f5d878;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
         .dsd-hof:hover{background:rgba(232,180,58,.2);}
         .dsd-hof svg{color:#e8b43a;flex:none;}
-        /* today's unique players (guests included) */
         .dsd-players{margin-top:9px;font-size:11.5px;color:#93a7cc;font-weight:600;}
         .dsd-players b{color:#eaf0fb;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
         .dsd-players s{color:#6a80a8;text-decoration:none;font-size:10.5px;}
+        .dsd-gt{font-size:11px;font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
+        .dsd-gt span{font-size:9px;color:#6a80a8;font-weight:600;}
         .dsd-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
         @media(max-width:1200px){.dsd-minis{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:900px){.dsd-minis{grid-template-columns:repeat(2,1fr);}}
         .dsd-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:10px 11px;}
-        .dsd-gt{font-size:11px;font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
-        .dsd-gt span{font-size:9px;color:#6a80a8;font-weight:600;}
         .dsd-mr{display:flex;gap:6px;align-items:baseline;font-size:11.5px;padding:2px 0;}
         .dsd-k{width:11px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;flex:0 0 auto;}
         .dsd-n2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf0fb;font-weight:500;}
         .dsd-n2 b{color:#e8b43a;font-weight:700;}
         .dsd-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
         .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
-        /* Stacked layout whenever the wide strip can't fit: narrow widths AND
-           short landscape phones. The cap becomes a header row (wordmark + bar +
-           count on line one, top-3 chips + expander on line two), the hero
-           becomes a full-width row, and the cells keep BOTH rows inside one
-           horizontally scrolling rail (grid auto-flow column). This replaces the
-           old sticky-cap sideways-scroll layout, and keeps every game reachable
-           (the "frozen strip" bug on landscape). */
-        @media (max-width:1024px), (max-height:600px){
-          .dstrip-main{flex-direction:column;}
-          .dstrip-cap{flex-direction:row;flex-wrap:wrap;align-items:center;gap:7px 10px;border-right:none;border-bottom:1px solid rgba(255,255,255,0.07);padding:10px 13px;}
-          .dstrip-cap.has-top3{min-width:0;max-width:none;}
-          .dstrip-cap .ttl{font-size:14px;}
-          .dstrip-progrow{flex:1 1 140px;flex-direction:row;align-items:center;gap:8px;margin-top:0;}
-          .dstrip-bar{flex:1 1 auto;width:auto;height:8px;}
-          .dstrip-count{flex:none;gap:5px;}
-          .dstrip-t3{flex:1 1 65%;flex-direction:row;align-items:center;gap:8px;margin-top:0;overflow:hidden;}
-          .dstrip-t3 .t3h{display:none;}
-          .dstrip-t3r{display:none;}
-          .dstrip-t1{margin:0;padding:5px 10px;flex:1 1 auto;min-width:0;}
-          .dstrip-t1 .nm1{font-size:12.5px;}
-          .dstrip-exp{margin:0;align-self:auto;width:auto;flex:none;}
-          /* mobile hero: TWO columns to keep it short (owner 2026-07-23) —
-             left: eyebrow, game identity, leader; right: streak line, then
-             Play now and See all stacked. */
-          .dstrip-hero{flex:none;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;align-items:center;border-right:none;border-bottom:1px solid rgba(255,255,255,0.09);padding:10px 13px;}
-          .dstrip-hero .hd-eb{grid-column:1;grid-row:1;}
-          .dstrip-hero .hd-row{grid-column:1;grid-row:2;}
-          .dstrip-hero .hd-row img{height:32px;}
-          .dstrip-hero .hd-nm{font-size:16px;}
-          .dstrip-hero .hd-meta{grid-column:1;grid-row:3;}
-          .dstrip-hero .hd-meta.hd-streak{grid-column:2;grid-row:1;justify-content:flex-end;}
-          .dstrip-hero .hd-ctas{grid-column:2;grid-row:2 / span 2;flex-direction:column;align-items:stretch;gap:6px;min-width:118px;}
-          .dstrip-hero .hd-play,.dstrip-hero .hd-all{flex:none;}
-          /* no streak line: let the CTA fill the column height and center vertically */
-          .dstrip-hero.no-streak .hd-ctas{grid-row:1 / span 3;align-self:center;}
-          .dstrip-cells{overflow-x:auto;-webkit-overflow-scrolling:touch;grid-template-columns:none;grid-template-rows:repeat(2,1fr);grid-auto-flow:column;grid-auto-columns:minmax(76px,1fr);min-width:0;}
-          .dstrip-cell{border-top:none;border-left:1px solid rgba(255,255,255,0.055);padding:15px 5px 8px;}
-          .dstrip-flame.shift{top:24px;}
-          .dstrip-cell:nth-child(-n+2){border-left:none;}
-          .dstrip-cell:nth-child(10n+1){border-left:1px solid rgba(255,255,255,0.055);}
-          .dstrip-cell:first-child{border-left:none;}
-          .dstrip-cell:nth-child(n+11){border-top:none;}
-          .dstrip-cell:nth-child(2n){border-top:1px solid rgba(255,255,255,0.055);}
-          .dstrip-cell img{height:26px;}
-          .dstrip-cell .nm{font-size:10px;}
-          /* streak/rank pill: drop the word "streak" and tighten so the
-             badge fits inside the narrow scroll-rail tile instead of
-             overrunning it and overlapping neighbors (owner 2026-07-26) */
-          .dstrip-pill{font-size:9px;padding:3px 6px;gap:2px;max-width:100%;}
-          .dstrip-pill.streakp .pill-sk{display:none;}
-          .dstrip-cap .dstrip-t3{display:none;}
-          .dstrip-cap .dstrip-exp{display:none;}
-          .dstrip-mob-board{display:flex;align-items:center;gap:8px;padding:8px 13px 10px;border-top:1px solid rgba(255,255,255,0.07);}
+        /* ── responsive ── */
+        @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
+        @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-panel{grid-template-columns:1fr;gap:16px;}}
+        @media(max-width:640px){
+          .dh-hero{flex-wrap:wrap;gap:11px 14px;padding:13px 14px;}
+          .dh-hero-mid{flex:1 1 60%;}
+          .dh-progress{order:3;flex:1 1 100%;flex-direction:row;align-items:center;max-width:none;}
+          .dh-progress .dh-bar{flex:1;}
+          .dh-hero-cta{order:2;margin-left:auto;}
+          .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+          .dh-tile{padding:11px 5px 9px;border-radius:11px;}
+          .dh-tile img{height:26px;}
+          .dh-tnm{font-size:11px;}
+          .dh-filters{gap:6px;}
+          .dh-chip{font-size:11px;padding:6px 10px;}
+          .dh-lbbtn{font-size:11px;padding:6px 10px;}
+          .dh-hint{display:none;}
         }
-        /* Mobile LANDSCAPE (short but wide): the block above matched on max-height,
-           which stacked the card and pushed the leaderboard out of the left column.
-           On a wide-enough landscape phone, restore the DESKTOP side-by-side layout
-           so the Today's Top 3 leaderboard sits back in the LEFT cap. The game cells
-           keep the two-row horizontal-scroll rail from the stacked rules (that is the
-           frozen-strip fix); they just sit to the RIGHT of the leaderboard again. */
-        @media (orientation:landscape) and (max-height:600px) and (min-width:620px){
-          .dstrip-main{flex-direction:row;}
-          .dstrip-cap{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:5px;border-right:1px solid rgba(255,255,255,0.07);border-bottom:none;padding:12px 13px;}
-          .dstrip-cap.has-top3{min-width:140px;max-width:156px;}
-          .dstrip-cap .ttl{font-size:15px;}
-          .dstrip-progrow{flex:none;flex-direction:column;align-items:stretch;gap:3px;margin-top:5px;}
-          .dstrip-bar{flex:none;width:100%;height:9px;}
-          .dstrip-count{justify-content:space-between;gap:6px;}
-          .dstrip-cap .dstrip-t3{display:flex;flex:none;flex-direction:column;align-items:stretch;gap:2px;margin-top:2px;overflow:visible;}
-          .dstrip-cap .dstrip-t3 .t3h{display:block;}
-          .dstrip-cap .dstrip-t3r{display:flex;}
-          .dstrip-cap .dstrip-t1{margin:1px 0 4px;padding:5px 7px;flex:none;}
-          .dstrip-cap .dstrip-t1 .nm1{font-size:11.5px;}
-          .dstrip-cap .dstrip-exp{display:flex;margin-top:2px;align-self:stretch;width:auto;}
-          .dstrip-hero{flex:0 0 160px;display:flex;flex-direction:column;justify-content:center;gap:7px;border-right:1px solid rgba(255,255,255,0.09);border-bottom:none;padding:12px 12px;}
-          .dstrip-mob-board{display:none;}
-        }
+        @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}}
       `}</style>
-      <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily puzzles">
-        <button type="button" className="dstrip-scroll" hidden={!canScroll} onClick={scrollOn}
-          aria-label={atEnd ? 'Back to the first games' : 'More games'} title={atEnd ? 'Back to the start' : 'More games'}>
-          {atEnd ? <ChevronLeft size={18} strokeWidth={2.6} /> : <ChevronRight size={18} strokeWidth={2.6} />}
-        </button>
-        <div className="dstrip-main">
-          <div className={`dstrip-cap${hasBoard ? ' has-top3' : ''}`}>
-            <a href="/daily" className="ttl dstrip-cap-ttl" aria-label="All daily puzzles"><span className="lab">Daily</span> Puzzles</a>
-            <span className="dstrip-progrow">
-              <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
-              <span className="dstrip-count"><span>You: <b>{n}</b> of {GAMES.length}</span></span>
-            </span>
-            {hasBoard ? (
-              <span className="dstrip-t3">
-                <span className="t3h"><Crown size={8} style={{ display: 'inline', verticalAlign: '-1px', color: '#e8b43a' }} /> Today&rsquo;s Top 3</span>
-                {top5.length ? (
-                  <>
-                    <span className={`dstrip-t1${meKey && top5[0].userKey === meKey ? ' me' : ''}`}>
-                      <Crown size={11} strokeWidth={2.4} />
-                      <span className="nm1">{top5[0].username || 'Player'}</span>
-                      <span className="pt1">{fmtPts(top5[0].total)}</span>
-                    </span>
-                    {top5.slice(1, 3).map((r) => {
-                      const mine = meKey && r.userKey === meKey;
-                      return (
-                        <span key={r.userKey} className={`dstrip-t3r${mine ? ' me' : ''}`}>
-                          <span className="rk">{r.rank}</span>
-                          <span className="nm3">{r.username || 'Player'}</span>
-                          <span className="pt">{fmtPts(r.total)}</span>
-                        </span>
-                      );
-                    })}
-                  </>
-                ) : <span className="t3none">No scores yet — be the first.</span>}
-              </span>
-            ) : null}
-            {hasBoard ? (
-              <button type="button" className="dstrip-exp" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-                <ChevronDown size={11} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }} />
-                {open ? 'Hide' : 'Full board'}
-              </button>
-            ) : null}
+
+      {/* Up Next hero */}
+      {nextGame ? (
+        <div className="dh-hero">
+          <span className="dh-hero-ic"><img src={nextGame.img} alt="" aria-hidden="true" /></span>
+          <div className="dh-hero-mid">
+            <div className="dh-eyebrow">
+              {inprog.has(nextGame.key) ? 'Pick it back up' : 'Up next'} · {nextGame.cat}{left > 0 ? ` · ${left} left` : ''}
+              {isSunday && !allSundayEditions && hasSundayEdition(nextGame.key) ? <span className="dh-tsun" style={{ position: 'static' }}>{SUNDAY_SHORT}</span> : null}
+            </div>
+            <div className="dh-hero-nm">
+              {nextGame.name}
+              {streaks[nextGame.key] >= 2 ? <span className="dh-hflame"><Flame size={11} strokeWidth={2.6} />{streaks[nextGame.key]}</span> : null}
+            </div>
+            <div className="dh-hero-tag">{nextGame.tag}{nextLead ? ` · Leader: ${nextLead.username || 'Player'}` : ''}</div>
           </div>
-          {nextGame ? (
-            <div className={`dstrip-hero${streaks[nextGame.key] >= 2 ? '' : ' no-streak'}`}>
-              <div className="hd-eb">
-                {inprog.has(nextGame.key) ? 'Pick it back up' : 'Up next for you'}{left > 1 ? ` · ${left} left` : ''}
-                {isSunday && !allSundayEditions && hasSundayEdition(nextGame.key) ? <span className="dstrip-sun">{SUNDAY_SHORT}</span> : null}
-              </div>
-              <a href={nextGame.href} className="hd-row" aria-label={`${nextGame.name} — ${nextGame.tag} — up next`}>
-                <img src={nextGame.img} alt="" aria-hidden="true" />
-                <span><span className="hd-nm">{nextGame.name}</span><span className="hd-tag">{nextGame.tag}</span></span>
-              </a>
-              {nextLead ? (
-                <div className="hd-meta"><Crown size={10} strokeWidth={2.4} /><span>Leader:</span><b>{nextLead.username || 'Player'} · {fmtPts(nextLead.points)}</b></div>
-              ) : null}
-              {streaks[nextGame.key] >= 2 ? (
-                <div className="hd-meta hd-streak"><Flame size={10} strokeWidth={2.4} /><b>{streaks[nextGame.key]}-day streak</b><span>keep it alive</span></div>
-              ) : null}
-              <div className="hd-ctas">
-                <a href={nextGame.href} className="hd-play"><Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play now'}</a>
-                <a href="/daily" className="hd-all">Games Archive</a>
-              </div>
-            </div>
-          ) : (
-            <div className="dstrip-hero no-streak">
-              <div className="hd-eb"><Trophy size={10} strokeWidth={2.4} /> All {GAMES.length} done today</div>
-              <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh puzzles drop at midnight ET</span></span></div>
-              <div className="hd-meta"><Clock size={10} strokeWidth={2.4} /><span>New puzzles in</span><b>{resetLbl || 'midnight ET'}</b></div>
-              <div className="hd-ctas"><a href="/daily" className="hd-play arch">Daily puzzles archive</a></div>
-            </div>
-          )}
-          <div className="dstrip-cells" ref={mainRef} onScroll={onScroll}>
-            {cellGames.map((g) => {
-              const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
-              const rk = done.has(g.key) ? myRank(g.key) : null;
-              const st = streaks[g.key] >= 2 ? streaks[g.key] : null;
-              const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
-              return (
-                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${sun ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''}${st ? ` — ${st}-day streak` : ''} — daily puzzle`}>
-                  <span className="dstrip-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
-                  {done.has(g.key) && (
-                    <span className="dstrip-wm" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" width="40" height="40" fill="none"><path d="M4 12.5 L10 18.5 L20 6" stroke="#34d399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                    </span>
-                  )}
-                  {!done.has(g.key) && inprog.has(g.key) && (
-                    <span className="dstrip-prog" aria-hidden="true" title="Started, not finished — resume">
-                      <svg viewBox="0 0 12 12" width="11" height="11" fill="none">
-                        <circle cx="6" cy="6" r="4" stroke="#6b5a29" strokeWidth="1.8" />
-                        <path d="M6 2 A4 4 0 0 1 6 10" stroke="#f8b84a" strokeWidth="1.8" strokeLinecap="round" />
-                      </svg>
-                    </span>
-                  )}
-                  {sun ? (
-                    <span className="dstrip-sun" aria-hidden="true">{SUNDAY_SHORT}</span>
-                  ) : null}
-                  {st && !done.has(g.key) ? (
-                    <span className={`dstrip-flame${sun ? ' shift' : ''}`} aria-hidden="true"><Flame size={10} strokeWidth={2.6} /></span>
-                  ) : null}
-                  <img src={g.img} alt="" aria-hidden="true" />
-                  <span className="nm">{g.name}</span>
-                  <span className="dstrip-tip" aria-hidden="true">
-                    <span className="tip-cat">{g.cat}</span>
-                    <span>{g.tag}</span>
-                    {st && !(rk && rk <= 10) ? <span className="tip-fl"><Flame size={9} strokeWidth={2.6} />{st}-day streak</span> : null}
-                  </span>
-                  {!open ? (
-                    done.has(g.key) ? (
-                      (rk && rk <= 10)
-                        ? <span className={`dstrip-pill rankp${rk === 1 ? ' first' : ''}`}>{rk === 1 ? <><Trophy size={9} strokeWidth={2.6} />You #1</> : `You #${rk}`}</span>
-                        : <span className="dstrip-pill streakp"><Flame size={9} strokeWidth={2.6} />{Math.max(1, streaks[g.key] || 1)} day<span className="pill-sk"> streak</span></span>
-                    ) : hasBoard ? (
-                      lead ? <span className="dstrip-lead"><Crown size={10} /><span>{lead}</span></span> : <span className="dstrip-lead none">—</span>
-                    ) : null
-                  ) : null}
-                </a>
-              );
-            })}
-            {/* The former "See all" tile is now a real game tile (Shards); every daily puzzle renders in the grid. */}
-            {/* When the whole set is done the 2-row grid leaves a trailing empty
-                slot (odd cell count); fill it with a Daily puzzles archive button. */}
-            {!nextGame && cellGames.length % 2 === 1 ? (
-              <a href="/daily" className="dstrip-cell archivecell" aria-label="Daily puzzles archive">
-                <span className="arch-btn">Daily puzzles archive <ArrowRight size={11} strokeWidth={2.6} /></span>
-              </a>
-            ) : null}
+          <div className="dh-progress">
+            <span className="dh-progtxt">You: <b>{n}</b> of {GAMES.length} today</span>
+            <span className="dh-bar"><i style={{ width: `${pct}%` }} /></span>
           </div>
-          {/* Mobile-only: leader row + Full board button below the game tiles */}
-          {hasBoard ? (
-            <div className="dstrip-mob-board">
-              {top5.length ? (
-                <span className={`dstrip-t1${meKey && top5[0].userKey === meKey ? ' me' : ''}`}>
-                  <Crown size={11} strokeWidth={2.4} />
-                  <span className="nm1">{top5[0].username || 'Player'}</span>
-                  <span className="pt1">{fmtPts(top5[0].total)}</span>
-                </span>
-              ) : <span className="t3none">No scores yet — be the first.</span>}
-              <button type="button" className="dstrip-exp" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-                <ChevronDown size={11} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' }} />
-                {open ? 'Hide' : 'Full board'}
-              </button>
-            </div>
-          ) : null}
+          <div className="dh-hero-cta">
+            <a href="/daily" className="dh-ghostD">Archive</a>
+            <a href={nextGame.href} className="dh-play"><Play size={12} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}</a>
+          </div>
         </div>
-        {hasBoard && open ? (
-          <div className="dsd">
-            <div className="dsd-head">
-              <span className="dsd-l">Daily Leaderboard</span>
-              <span className="dsd-r">Best {bestN} of {gameCount} · {maxTotal} pts max · resets at midnight</span>
+      ) : (
+        <div className="dh-hero">
+          <span className="dh-hero-ic"><Trophy size={26} color="#e8b43a" strokeWidth={2.2} /></span>
+          <div className="dh-hero-mid">
+            <div className="dh-eyebrow">Clean sweep · all {GAMES.length} done</div>
+            <div className="dh-hero-nm">Nicely done</div>
+            <div className="dh-hero-tag">Fresh puzzles drop at midnight ET{resetLbl ? ` · new games in ${resetLbl}` : ''}</div>
+          </div>
+          <div className="dh-hero-cta"><a href="/daily" className="dh-ghostD"><Clock size={12} strokeWidth={2.4} />Daily archive</a></div>
+        </div>
+      )}
+
+      {/* filter row */}
+      <div className="dh-filters">
+        <span className="dh-lab">Daily puzzles</span>
+        {chip('all', `All ${GAMES.length}`)}
+        {chip('todo', `Unplayed · ${todoCount}`)}
+        {riskCount > 0 ? chip('risk', `Streak at risk · ${riskCount}`) : null}
+        {hasBoard ? (
+          <button type="button" className="dh-lbbtn" aria-expanded={lbOpen} onClick={() => { setSel(null); setLbOpen((v) => !v); }}>
+            <Crown size={13} strokeWidth={2.4} />{lbOpen ? 'Hide leaderboard' : 'Daily leaderboard'}
+          </button>
+        ) : null}
+        <span className="dh-hint">Click a tile for stats</span>
+      </div>
+
+      {/* overall daily leaderboard (toggled) */}
+      {hasBoard && lbOpen ? (
+        <div className="dh-lbpanel">
+          <div className="dsd-head">
+            <span className="dsd-l">Daily Leaderboard</span>
+            <span className="dsd-r">Best {bestN} of {gameCount} · {maxTotal} pts max · resets at midnight</span>
+          </div>
+          <div className="dsd-grid">
+            <div>
+              <div className="dsd-sub">Overall · Top 3</div>
+              <div className="dsd-cols"><span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Games</span><span style={{ textAlign: 'right' }}>Total</span></div>
+              {top3.length ? top3.map((r) => {
+                const mine = meKey && r.userKey === meKey;
+                return (
+                  <div key={r.userKey} className={`dsd-row${r.rank === 1 ? ' first' : ''}${mine ? ' me' : ''}`}>
+                    <span className="dsd-rk">{r.rank}</span>
+                    <span className="dsd-pn">{r.rank === 1 ? <Crown className="dsd-cr" size={13} /> : null}{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
+                    <span className="dsd-g">{r.gamesPlayed}/{gameCount}</span>
+                    <span className="dsd-tt">{fmtPts(r.total)}<s>/{maxTotal}</s></span>
+                  </div>
+                );
+              }) : <div className="dsd-empty">No daily scores yet today. Be the first.</div>}
+              {meKey && board.me && !meShown ? (
+                <div className="dsd-row me" style={{ marginTop: 7 }}>
+                  <span className="dsd-rk">{board.me.rank}</span>
+                  <span className="dsd-pn">{board.me.username || 'You'} <b>(you)</b></span>
+                  <span className="dsd-g">{board.me.gamesPlayed}/{gameCount}</span>
+                  <span className="dsd-tt">{fmtPts(board.me.total)}<s>/{maxTotal}</s></span>
+                </div>
+              ) : null}
+              <a href="/daily" className="dsd-gt" style={{ marginTop: 11, color: '#f5d878' }}>Full standings &amp; game boards →</a>
+              {uniquePlayers != null ? (
+                <div className="dsd-players" style={{ marginTop: 2 }}><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
+              ) : null}
+              <div className="dsd-past">
+                <a href="/quizzes/hub?tab=daily&section=champions" className="dsd-hof"><Trophy size={12} /> Hall of Fame →</a>
+                <div className="dsd-sub" style={{ marginTop: 13 }}>Recent Champions</div>
+                {hist === null ? (
+                  <div className="dsd-empty">Loading…</div>
+                ) : hist.length ? hist.map((d, i) => (
+                  <div key={d.date || i} className={`dsd-yest${i === 0 ? ' top' : ''}`}>
+                    <Crown size={i === 0 ? 13 : 11} style={{ color: i === 0 ? '#e8b43a' : '#8d7c52', flex: 'none' }} />
+                    <span className="yl">{i === 0 ? 'Yesterday' : d.label}</span>
+                    {d.winner ? (
+                      <>
+                        <b>{d.winner.username || 'Champion'}</b>
+                        <span className="yt">{fmtPts(d.winner.total)}<s>/{d.maxTotal}</s></span>
+                      </>
+                    ) : (
+                      <span className="ynone">No champion</span>
+                    )}
+                  </div>
+                )) : <div className="dsd-empty">No champions yet.</div>}
+              </div>
             </div>
-            <div className="dsd-grid">
-              <div>
-                <div className="dsd-sub">Overall · Top 3</div>
-                <div className="dsd-cols"><span>#</span><span>Player</span><span style={{ textAlign: 'right' }}>Games</span><span style={{ textAlign: 'right' }}>Total</span></div>
-                {top3.length ? top3.map((r) => {
-                  const mine = meKey && r.userKey === meKey;
+            <div>
+              <div className="dsd-sub">Each Game · Top 3</div>
+              <div className="dsd-minis">
+                {sortByDailyOrder(bgames, dailyOrder).map((g) => {
+                  const t3 = (g.board || []).slice(0, 3);
+                  const acc = ACCENTS[g.key] || '#f5d878';
                   return (
-                    <div key={r.userKey} className={`dsd-row${r.rank === 1 ? ' first' : ''}${mine ? ' me' : ''}`}>
-                      <span className="dsd-rk">{r.rank}</span>
-                      <span className="dsd-pn">{r.rank === 1 ? <Crown className="dsd-cr" size={13} /> : null}{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span>
-                      <span className="dsd-g">{r.gamesPlayed}/{gameCount}</span>
-                      <span className="dsd-tt">{fmtPts(r.total)}<s>/{maxTotal}</s></span>
+                    <div key={g.key} className="dsd-mini">
+                      <a href={g.href || `/${g.key}`} className="dsd-gt" style={{ color: acc }}>{NAME_BY_KEY[g.key] || g.key} →<span>top 3</span></a>
+                      {t3.length ? t3.map((r, i) => {
+                        const mine = meKey && r.userKey === meKey;
+                        return (
+                          <div key={r.userKey || i} className="dsd-mr"><span className="dsd-k">{i + 1}</span><span className="dsd-n2">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span><span className="dsd-p">{fmtPts(r.points)}</span></div>
+                        );
+                      }) : <div className="dsd-none">No scores yet</div>}
                     </div>
                   );
-                }) : <div className="dsd-empty">No daily scores yet today. Be the first.</div>}
-                {meKey && board.me && !meShown ? (
-                  <div className="dsd-row me" style={{ marginTop: 7 }}>
-                    <span className="dsd-rk">{board.me.rank}</span>
-                    <span className="dsd-pn">{board.me.username || 'You'} <b>(you)</b></span>
-                    <span className="dsd-g">{board.me.gamesPlayed}/{gameCount}</span>
-                    <span className="dsd-tt">{fmtPts(board.me.total)}<s>/{maxTotal}</s></span>
-                  </div>
-                ) : null}
-                {/* Full standings sits directly under today's top 3, with the
-                    day's player count right beneath it. */}
-                <a href="/daily" className="dsd-gt" style={{ marginTop: 11, color: '#f5d878' }}>Full standings &amp; game boards →</a>
-                {uniquePlayers != null ? (
-                  <div className="dsd-players" style={{ marginTop: 2 }}><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
-                ) : null}
-                {/* Past champions: Hall of Fame link on top, then yesterday and
-                    the two days before it (CHAMPION_DAYS), so the column stays
-                    inside the height of the per-game minis. */}
-                <div className="dsd-past">
-                  <a href="/quizzes/hub?tab=daily&section=champions" className="dsd-hof"><Trophy size={12} /> Hall of Fame →</a>
-                  <div className="dsd-sub" style={{ marginTop: 13 }}>Recent Champions</div>
-                  {hist === null ? (
-                    <div className="dsd-empty">Loading…</div>
-                  ) : hist.length ? hist.map((d, i) => (
-                    <div key={d.date || i} className={`dsd-yest${i === 0 ? ' top' : ''}`}>
-                      <Crown size={i === 0 ? 13 : 11} style={{ color: i === 0 ? '#e8b43a' : '#8d7c52', flex: 'none' }} />
-                      <span className="yl">{i === 0 ? 'Yesterday' : d.label}</span>
-                      {d.winner ? (
-                        <>
-                          <b>{d.winner.username || 'Champion'}</b>
-                          <span className="yt">{fmtPts(d.winner.total)}<s>/{d.maxTotal}</s></span>
-                        </>
-                      ) : (
-                        <span className="ynone">No champion</span>
-                      )}
-                    </div>
-                  )) : <div className="dsd-empty">No champions yet.</div>}
-                </div>
-              </div>
-              <div>
-                <div className="dsd-sub">Each Game · Top 3</div>
-                <div className="dsd-minis">
-                  {sortByDailyOrder(bgames, dailyOrder).map((g) => {
-                    const t3 = (g.board || []).slice(0, 3);
-                    const acc = ACCENTS[g.key] || '#f5d878';
-                    return (
-                      <div key={g.key} className="dsd-mini">
-                        <a href={g.href || `/${g.key}`} className="dsd-gt" style={{ color: acc }}>{NAME_BY_KEY[g.key] || g.key} →<span>top 3</span></a>
-                        {t3.length ? t3.map((r, i) => {
-                          const mine = meKey && r.userKey === meKey;
-                          return (
-                            <div key={r.userKey || i} className="dsd-mr"><span className="dsd-k">{i + 1}</span><span className="dsd-n2">{r.username || 'Player'}{mine ? <b> (you)</b> : ''}</span><span className="dsd-p">{fmtPts(r.points)}</span></div>
-                          );
-                        }) : <div className="dsd-none">No scores yet</div>}
-                      </div>
-                    );
-                  })}
-                </div>
+                })}
               </div>
             </div>
           </div>
-        ) : null}
+        </div>
+      ) : null}
+
+      {/* tile board */}
+      <div className="dh-board" ref={boardRef} role="navigation" aria-label="Daily puzzles">
+        {list.map((g, i) => {
+          const isDone = done.has(g.key);
+          const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
+          const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
+          const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
+          const row = isDone ? myRow(g.key) : null;
+          const sl = row ? todayScoreLine(row) : null;
+          const tile = (
+            <button
+              type="button"
+              key={g.key}
+              className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
+              onClick={() => pick(g.key)}
+              aria-expanded={sel === g.key}
+              aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
+            >
+              <span className="dh-acc" style={{ background: tcol(g.key) }} aria-hidden="true" />
+              <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
+              {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
+              <img src={g.img} alt="" aria-hidden="true" />
+              <span className="dh-tnm">{g.name}</span>
+              {isDone ? (
+                <span className="dh-tsub done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
+              ) : st ? (
+                <span className="dh-tsub strk"><Flame size={10} strokeWidth={2.6} />{st} day</span>
+              ) : lead ? (
+                <span className="dh-lead"><Crown size={10} /><span>{lead}</span></span>
+              ) : (
+                <span className="dh-tsub">Not played</span>
+              )}
+            </button>
+          );
+          const endOfRow = (i % cols === cols - 1) || (i === list.length - 1);
+          const showPanel = selIdx >= 0 && endOfRow && Math.floor(selIdx / cols) === Math.floor(i / cols);
+          return showPanel ? [tile, renderPanel(list[selIdx])] : tile;
+        })}
       </div>
     </div>
   );
