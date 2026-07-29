@@ -183,6 +183,8 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
+  const pressTimer = useRef(null);
+  const longFired = useRef(false);
   const [showChrome, setShowChrome] = useState(false);
 
   const playing = g.status === 'playing';
@@ -295,6 +297,28 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
     setG((cur) => { const cells = cur.cells.slice(); cells[k] = cells[k] >= 2 ? -1 : cells[k] + 1; return { ...cur, cells, t0: cur.t0 || Date.now() }; });
     setVerdict(null);
   }
+  // Cycle the (row i vs col j) cell from row i's own perspective: blank -> W -> D -> L.
+  // Either triangle is editable; the opposite cell mirrors automatically.
+  function cycleCell(i, j, dir) {
+    if (!playing) return;
+    const k = cellIndex(i, j);
+    const home = PAIRS[k][0] === i;
+    setG((cur) => {
+      const cells = cur.cells.slice();
+      const r = cells[k];
+      const lab = r < 0 ? 'X' : r === 1 ? 'D' : (home === (r === 0)) ? 'W' : 'L';
+      const fwd = { X: 'W', W: 'D', D: 'L', L: 'X' };
+      const bwd = { X: 'L', L: 'D', D: 'W', W: 'X' };
+      const nx = (dir < 0 ? bwd : fwd)[lab];
+      const nr = nx === 'X' ? -1 : nx === 'D' ? 1 : nx === 'W' ? (home ? 0 : 2) : (home ? 2 : 0);
+      cells[k] = nr;
+      return { ...cur, cells, t0: cur.t0 || Date.now() };
+    });
+    setVerdict(null);
+  }
+  function cellPressDown(i, j) { longFired.current = false; clearTimeout(pressTimer.current); pressTimer.current = setTimeout(() => { longFired.current = true; cycleCell(i, j, -1); }, 450); }
+  function cellPressUp() { clearTimeout(pressTimer.current); }
+  function cellClick(i, j) { if (longFired.current) { longFired.current = false; return; } cycleCell(i, j, 1); }
   function clearAll() { if (!playing) return; setG((cur) => ({ ...cur, cells: Array(PAIRS.length).fill(-1) })); setVerdict(null); }
 
   function hint() {
@@ -360,7 +384,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       </div>
       <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
         <li style={{ marginBottom: 5 }}>Every team played every other team once, so there are <b>{PAIRS.length} matches</b> to place.</li>
-        <li style={{ marginBottom: 5 }}>Tap a cell to cycle it: win, draw, loss, blank. The mirror cell fills itself.</li>
+        <li style={{ marginBottom: 5 }}>Tap any cell in either half to cycle it: win, draw, loss, blank (long-press or right-click to step back). The opposite cell mirrors it.</li>
         <li style={{ marginBottom: 5 }}>The table under the grid recalculates as you go. Use it against the clues.</li>
         <li>Fill every cell, then <b>hand in the sheet</b>.</li>
       </ol>
@@ -448,6 +472,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
             <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', alignItems: 'flex-start', margin: '14px 0 6px' }}>
               <div>
                 <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 7 }}>The grid</div>
+                <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: COLORS.faded, marginBottom: 8, maxWidth: 330, lineHeight: 1.4 }}>Tap any cell to set that result: <b style={{ color: COLORS.green }}>W</b> {'\u2192'} <b style={{ color: COLORS.amber }}>D</b> {'\u2192'} <b style={{ color: COLORS.rust }}>L</b> {'\u2192'} blank. The opposite cell mirrors it. Long-press or right-click to step back.</div>
                 <table className="bk-grid"><tbody>
                   <tr><th></th>{T.map((t, j) => <th key={j} className="col">{t}</th>)}</tr>
                   {T.map((t, i) => (
@@ -456,12 +481,15 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
                       {T.map((_, j) => {
                         if (i === j) return <td key={j}><div className="bk-cell self" /></td>;
                         const k = cellIndex(i, j);
-                        const owner = PAIRS[k][0] === i;
                         const lab = cellLabel(k, i);
                         return (
                           <td key={j}>
-                            <button type="button" className={`bk-cell${lab ? ' ' + lab : ''}${owner ? '' : ' mirror'}`}
-                              onClick={() => owner && cycle(k)} disabled={!owner || !playing} title={`${T[i]} v ${T[j]}`}>{lab}</button>
+                            <button type="button" className={`bk-cell${lab ? ' ' + lab : ''}`}
+                              onClick={() => cellClick(i, j)}
+                              onPointerDown={() => playing && cellPressDown(i, j)}
+                              onPointerUp={cellPressUp} onPointerLeave={cellPressUp}
+                              onContextMenu={(e) => { if (playing) { e.preventDefault(); cycleCell(i, j, -1); } }}
+                              disabled={!playing} title={`${T[i]} v ${T[j]}: tap to cycle, long-press to step back`}>{lab}</button>
                           </td>
                         );
                       })}
