@@ -1709,14 +1709,14 @@ export default function QuizHomeClient() {
             /* full Last Played: white game rows on the navy card + hourly activity bars */
             .qzh .dhx-lp-bars{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:30px;}
             .qzh .dhx-lp-bars span{width:5px;border-radius:2px;flex:none;}
-            .qzh .dhx-lp .dhx-lp-rows{background:#fff;border-radius:12px;padding:3px 11px;margin-top:2px;overflow-y:auto;gap:0;}
+            .qzh .dhx-lp .dhx-lp-rows{background:#fff;border-radius:12px;padding:3px 11px;margin-top:2px;overflow:hidden;gap:0;}
             .qzh .dhx-lpr{display:flex;align-items:center;gap:10px;padding:7px 0;text-decoration:none;border-bottom:1px solid #eef1f6;}
             .qzh .dhx-lpr:last-child{border-bottom:none;}
             .qzh .dhx-lpr .ring{width:30px;height:30px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center;}
             .qzh .dhx-lpr .ring .in{width:23px;height:23px;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#1c1e24;}
             .qzh .dhx-lpr .mid{flex:1;min-width:0;}
             .qzh .dhx-lpr .mid .t{display:block;font-size:12px;font-weight:700;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-            .qzh .dhx-lpr .mid .t .x{font-weight:600;color:#8b909d;font-size:10px;}
+            .qzh .dhx-lpr .mid .c .x{font-weight:600;color:#8b909d;}
             .qzh .dhx-lpr .mid .c{display:flex;align-items:center;gap:4px;font-size:9.5px;color:#8b909d;margin-top:1px;}
             .qzh .dhx-lpr .mid .c i{width:6px;height:6px;border-radius:2px;flex:none;}
             .qzh .dhx-lpr .rt{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
@@ -1758,7 +1758,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lone .cm-namewrap,.qzh .dhx-lone .xp-namewrap{min-height:0 !important;}
             /* Daily Puzzle Leaderboard in the dark tile format */
             .qzh .dhx-lb{padding:14px 15px;}
-            .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#e8b43a;background:rgba(232,180,58,0.1);border:1px solid rgba(232,180,58,0.3);border-radius:999px;padding:3px 9px;}
+            .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
             .qzh .dhx-lb-name{display:block;font-size:30px;font-weight:800;color:#e8b43a;line-height:1.02;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#93a3bd;margin-top:3px;}
@@ -1777,9 +1777,13 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone{background:#0e1d40;border:1px solid #1e3050;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-rone > *{border-radius:0 !important;border-left:0 !important;border-right:0 !important;box-shadow:none !important;background:transparent !important;}
             .qzh .dhx-rone .dhx-lp{border:0 !important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
-            .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;min-height:0;overflow-y:auto;}
+            .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;min-height:0;overflow:hidden;}
             /* Quick play + Category Mastery hold their size; expanding CM eats Last Played's space above */
             .qzh .dhx-rone .dhx-quick,.qzh .dhx-rone .dhx-cm{flex:none;}
+            /* CM open: it becomes the flexible element (full list, scrolls if needed) and Last Played collapses */
+            .qzh .dhx-rone.cm-open .dhx-lp{flex:0 0 auto;max-height:104px;}
+            .qzh .dhx-rone.cm-open .dhx-cm{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+            .qzh .dhx-rone.cm-open .dhx-cm-bars{flex:1 1 auto;min-height:0;overflow-y:auto;}
             .qzh .dhx-rone .dhx-quick{border-top:1px solid #1e3050 !important;padding:5px;}
             .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#1e3050 !important;}
             .qzh .dhx-rone .dhx-qrow:hover{background:rgba(255,255,255,0.06) !important;}
@@ -1857,7 +1861,7 @@ export default function QuizHomeClient() {
             <DailyStrip board={dailyBoard} />
           </div>
           <div className="dhx-rail dhx-right" style={{ height: railH || undefined }}>
-            <div className="dhx-rone">
+            <div className={`dhx-rone${cmOpen ? ' cm-open' : ''}`}>
             {/* full Last Played (moved up from the browse row): rings + time + plays today */}
             <div className="dhx-lp">
               <div className="dhx-lp-top">
@@ -1876,7 +1880,7 @@ export default function QuizHomeClient() {
                 })()}
               </div>
               <div className="dhx-lp-rows">
-                {(lastPlayed || []).slice(0, 8).map((f, i) => {
+                {(lastPlayed || []).slice(0, 6).map((f, i) => {
                   const frac = f.total ? f.score / f.total : 0;
                   const pct = Math.min(100, Math.round(frac * 100));
                   const ring = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? '#e8b43a' : '#dc2626');
@@ -1888,7 +1892,7 @@ export default function QuizHomeClient() {
                   return (
                     <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
                       <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
-                      <span className="mid"><span className="t">{stripVerb(resolveTitle(f.quizId) || f.title || f.quizId)}{todayPlays(f.quizId) > 0 ? <span className="x"> (x{todayPlays(f.quizId).toLocaleString()} today)</span> : null}</span><span className="c"><i style={{ background: catColor }} />{catLabel}</span></span>
+                      <span className="mid"><span className="t">{stripVerb(resolveTitle(f.quizId) || f.title || f.quizId)}</span><span className="c"><i style={{ background: catColor }} />{catLabel}{todayPlays(f.quizId) > 0 ? <span className="x"> · x{todayPlays(f.quizId).toLocaleString()} today</span> : null}</span></span>
                       <span className="rt"><span className="s" style={{ color: good ? '#16a34a' : '#1c1e24' }}>{f.score}/{f.total}</span>{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : <span className="tm">{relTime(f.playedAt)}</span>}</span>
                     </a>
                   );
@@ -1926,7 +1930,7 @@ export default function QuizHomeClient() {
               </button>
               {cmOpen ? (catMastery.length > 0 ? (
                 <div className="dhx-cm-bars">
-                  {catMastery.slice(0, 8).map((m) => (
+                  {catMastery.slice(0, 14).map((m) => (
                     <button type="button" key={m.key} onClick={() => goCat(m.key)} className="dhx-cmbar" title={`${m.label} · ${m.acc}%`}>
                       <span className="mtr" style={{ width: `${m.acc}%` }} aria-hidden="true" />
                       <span className="nm">{m.label}</span><span className="p">{m.acc}%</span>
