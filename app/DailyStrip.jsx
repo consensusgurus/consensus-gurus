@@ -335,11 +335,15 @@ export default function DailyStrip({ board = null }) {
   // filtered tile set
   const todoCount = GAMES.filter((g) => !done.has(g.key)).length;
   const riskCount = GAMES.filter((g) => !done.has(g.key) && (streaks[g.key] || 0) >= 2).length;
-  const list = filter === 'todo'
-    ? games.filter((g) => !done.has(g.key))
-    : filter === 'risk'
-      ? games.filter((g) => !done.has(g.key) && (streaks[g.key] || 0) >= 2)
-      : games;
+  const matchesFilter = (g) => (
+    filter === 'todo' ? !done.has(g.key)
+      : filter === 'risk' ? (!done.has(g.key) && (streaks[g.key] || 0) >= 2)
+        : true
+  );
+  const primary = games.filter(matchesFilter);
+  const rest = filter === 'all' ? [] : games.filter((g) => !matchesFilter(g));
+  const list = primary.concat(rest);
+  const restLabel = filter === 'todo' ? 'Already done today' : 'Everything else';
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
@@ -371,6 +375,44 @@ export default function DailyStrip({ board = null }) {
       />
     );
   };
+
+  // Renders one group of tiles. `dim` marks the games a filter did not match:
+  // they still render (so the board keeps its full height) but recede.
+  const renderTiles = (arr, dim) => arr.map((g, i) => {
+    const isDone = done.has(g.key);
+            const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
+            const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
+            const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
+            const row = isDone ? myRow(g.key) : null;
+            const sl = row ? todayScoreLine(row) : null;
+            const tile = (
+              <button
+                type="button"
+                key={g.key}
+                className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
+              style={isDone ? undefined : { background: TINT_BG[g.key], borderColor: TINT_BD[g.key] }}
+                onClick={() => pick(g.key)}
+                aria-expanded={sel === g.key}
+                aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
+              >
+                <span className="dh-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
+                <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
+                {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
+                <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
+                <span className="dh-tnm">{g.name}</span>
+                {isDone ? (
+                  <span className="dh-tsub done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
+                ) : st ? (
+                  <span className="dh-tsub strk"><Flame size={10} strokeWidth={2.6} />{st} day</span>
+                ) : lead ? (
+                  <span className="dh-lead"><Crown size={10} /><span>{lead}</span></span>
+                ) : (
+                  <span className="dh-tsub">Not played</span>
+                )}
+              </button>
+            );
+    return dim ? React.cloneElement(tile, { className: tile.props.className + ' dim' }) : tile;
+  });
 
   return (
     <div className="dhome">
@@ -427,6 +469,10 @@ export default function DailyStrip({ board = null }) {
         .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:inherit;min-height:100px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
+        .dh-tile.dim{opacity:.4;}
+        .dh-tile.dim:hover{opacity:.8;}
+        .dh-sep{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:7px 0 1px;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#6c7e9b;}
+        .dh-sep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.09);}
         .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
         .dh-tile.done .dh-tnm{color:#8fd6ac;font-size:11.5px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
@@ -660,44 +706,14 @@ export default function DailyStrip({ board = null }) {
           wrapper, so opening a tile covers the grid rather than displacing it. */}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
         <div className="dh-board" role="navigation" aria-label="Daily puzzles" aria-hidden={selGame ? 'true' : undefined}>
-          {list.map((g, i) => {
-            const isDone = done.has(g.key);
-            const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
-            const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
-            const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
-            const row = isDone ? myRow(g.key) : null;
-            const sl = row ? todayScoreLine(row) : null;
-            const tile = (
-              <button
-                type="button"
-                key={g.key}
-                className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
-              style={isDone ? undefined : { background: TINT_BG[g.key], borderColor: TINT_BD[g.key] }}
-                onClick={() => pick(g.key)}
-                aria-expanded={sel === g.key}
-                aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
-              >
-                <span className="dh-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
-                <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
-                {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
-                <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
-                <span className="dh-tnm">{g.name}</span>
-                {isDone ? (
-                  <span className="dh-tsub done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
-                ) : st ? (
-                  <span className="dh-tsub strk"><Flame size={10} strokeWidth={2.6} />{st} day</span>
-                ) : lead ? (
-                  <span className="dh-lead"><Crown size={10} /><span>{lead}</span></span>
-                ) : (
-                  <span className="dh-tsub">Not played</span>
-                )}
-              </button>
-            );
-            return tile;
-          })}
+          {renderTiles(primary, false)}
+          {rest.length ? <div className="dh-sep" key="sep">{restLabel}</div> : null}
+          {rest.length ? renderTiles(rest, true) : null}
         </div>
         {selGame ? renderPanel(selGame) : null}
       </div>
     </div>
   );
 }
+
+
