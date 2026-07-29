@@ -1849,7 +1849,7 @@ export default function QuizHomeClient() {
           <style>{`
             .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:14px;align-items:stretch;margin-bottom:16px;}
             .qzh .dhx-rail{display:flex;flex-direction:column;gap:13px;min-width:0;}
-            .qzh .dhx-center{min-width:0;}
+            .qzh .dhx-center{min-width:0;display:flex;flex-direction:column;}
             /* right rail: Last Played absorbs the slack, so collapsing Category Mastery gives it back its space */
             .qzh .dhx-right .dhx-lp{flex:1 1 auto;display:flex;flex-direction:column;}
             .qzh .dhx-right .dhx-lp .dhx-lp-rows{flex:1 1 auto;}

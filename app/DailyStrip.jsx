@@ -92,14 +92,21 @@ function mixHex(hex, pct, base) {
   const m = (a, b) => Math.round(a * pct + b * (1 - pct)).toString(16).padStart(2, '0');
   return '#' + m(r1, r2) + m(g1, g2) + m(b1, b2);
 }
-const TINT_BG = {}, TINT_BD = {}, TINT_CHIP = {};
+const TINT_BG = {}, TINT_BD = {};
 for (const k of Object.keys(TCOL)) {
   TINT_BG[k] = mixHex(TCOL[k], 0.20, TINT_BASE);
   TINT_BD[k] = mixHex(TCOL[k], 0.42, TINT_BASE);
-  // Category chip: the same game hue as the tile, in the navy-legible variant,
-  // so the chip reads as part of its own tile rather than a separate palette.
-  TINT_CHIP[k] = mixHex(ACCENTS[k] || '#5b9bff', 0.18, TINT_BASE);
 }
+// The category chip is keyed to the CATEGORY, not the game (owner, 2026-07-29),
+// so every Word chip matches every other Word chip and the grid gains a second,
+// consistent layer of grouping. Navy-legible hues, one clearly distinct per
+// category.
+const CAT_COLOR = {
+  Word: '#5b9bff', Numbers: '#f0894c', Logic: '#fb7185',
+  History: '#a483f0', Geography: '#4ade80', 'Crowd Psychology': '#e0b13f',
+};
+const CAT_CHIP_BG = {};
+for (const [k, v] of Object.entries(CAT_COLOR)) CAT_CHIP_BG[k] = mixHex(v, 0.18, TINT_BASE);
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Consecutive ET days on which the player finished at least one daily, counted
@@ -389,17 +396,22 @@ export default function DailyStrip({ board = null }) {
                 <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
                 {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
                 <span className="dh-tnm">{g.name}</span>
-                <span className="dh-tcat" style={{ background: TINT_CHIP[g.key], color: ACCENTS[g.key] || '#5b9bff' }}>
+                <span className="dh-tcat" style={{ background: CAT_CHIP_BG[g.cat] || 'rgba(255,255,255,0.07)', color: CAT_COLOR[g.cat] || '#93a3bd' }}>
                   {CAT_SHORT[g.cat] || g.cat}
                 </span>
                 <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
                 <span className="dh-tmeta">
-                  {isDone ? (
-                    <span className="dh-msc"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#22c55e" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
-                  ) : null}
-                  {st ? <span className="dh-mstrk"><Flame size={9} strokeWidth={2.8} />{st}</span> : null}
-                  {lead ? <span className="dh-mlead"><Crown size={9} strokeWidth={2.6} /><span>{lead}</span></span> : null}
-                  {!isDone && !st && !lead ? <span className="dh-tsub">Not played</span> : null}
+                  <span className="dh-mrow">
+                    {isDone ? (
+                      <span className="dh-msc"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#22c55e" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
+                    ) : null}
+                    <span className={`dh-mstrk${st ? '' : ' none'}`}><Flame size={9} strokeWidth={2.8} />{st || 0}</span>
+                  </span>
+                  <span className="dh-mlead">
+                    {lead
+                      ? <><Crown size={9} strokeWidth={2.6} /><span>{lead}</span></>
+                      : <span className="dh-nolead">Be the first</span>}
+                  </span>
                 </span>
               </button>
             );
@@ -409,10 +421,11 @@ export default function DailyStrip({ board = null }) {
   return (
     <div className="dhome">
       <style>{`
-        .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;}
+        .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#0e1d40;border-radius:13px 13px 0 0;padding:10px 12px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,0.07);}
-        .dh-bup{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1px solid #223353;}
+        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1px solid #223353;}
+        .dh-bup .dh-play{flex:1 1 auto;min-width:96px;max-width:none;font-size:13.5px;padding:11px 18px;}
         .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#e8b43a;white-space:nowrap;}
@@ -442,12 +455,12 @@ export default function DailyStrip({ board = null }) {
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
-        .dh-boardwrap{position:relative;background:#0e1d40;border-radius:0 0 13px 13px;padding:10px;}
+        .dh-boardwrap{position:relative;background:#0e1d40;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
-        .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
+        .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
-        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:104px;}
+        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
@@ -457,14 +470,15 @@ export default function DailyStrip({ board = null }) {
         .dh-tic img{height:21px;width:auto;max-width:28px;object-fit:contain;}
         .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-        .dh-tmeta{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:0 6px;width:100%;min-width:0;margin-top:auto;}
+        .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
+        .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
+        .dh-nolead{color:#6c7e9b;font-weight:600;}
         .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;flex:none;}
         .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;flex:none;}
-        .dh-mlead{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:#a9bcd8;min-width:0;flex:0 1 auto;}
+        .dh-mstrk.none{color:#5f7194;}
+        .dh-mlead{display:flex;align-items:center;justify-content:center;gap:3px;font-size:9.5px;font-weight:700;color:#a9bcd8;min-width:0;max-width:100%;width:100%;}
         .dh-mlead svg{flex:none;color:#e8b43a;}
         .dh-mlead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dh-tsub{font-size:10px;font-weight:700;color:#93a3bd;display:inline-flex;align-items:center;gap:3px;}
-        .dh-tsub svg{flex:none;}
         .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
         .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
         /* ── expand panel (navy, full width) ── */
@@ -527,7 +541,7 @@ export default function DailyStrip({ board = null }) {
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
           .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
-          .dh-tile{padding:9px 4px 8px;border-radius:10px;min-height:94px;}
+          .dh-tile{padding:9px 4px 8px;border-radius:10px;min-height:108px;}
           .dh-tnm{font-size:12.5px;}
           .dh-tcat{font-size:7px;padding:1px 5px;}
           .dh-tmeta{gap:2px 4px;}
