@@ -92,11 +92,7 @@ function mixHex(hex, pct, base) {
   const m = (a, b) => Math.round(a * pct + b * (1 - pct)).toString(16).padStart(2, '0');
   return '#' + m(r1, r2) + m(g1, g2) + m(b1, b2);
 }
-const TINT_BG = {}, TINT_BD = {};
-for (const k of Object.keys(TCOL)) {
-  TINT_BG[k] = mixHex(TCOL[k], 0.20, TINT_BASE);
-  TINT_BD[k] = mixHex(TCOL[k], 0.42, TINT_BASE);
-}
+
 // The category chip is keyed to the CATEGORY, not the game (owner, 2026-07-29),
 // so every Word chip matches every other Word chip and the grid gains a second,
 // consistent layer of grouping. Navy-legible hues, one clearly distinct per
@@ -105,8 +101,13 @@ const CAT_COLOR = {
   Word: '#5b9bff', Numbers: '#f0894c', Logic: '#fb7185',
   History: '#a483f0', Geography: '#4ade80', 'Crowd Psychology': '#e0b13f',
 };
-const CAT_CHIP_BG = {};
-for (const [k, v] of Object.entries(CAT_COLOR)) CAT_CHIP_BG[k] = mixHex(v, 0.18, TINT_BASE);
+const CAT_CHIP_BG = {}, CAT_BG = {}, CAT_BD = {};
+for (const [k, v] of Object.entries(CAT_COLOR)) {
+  CAT_CHIP_BG[k] = mixHex(v, 0.30, TINT_BASE);
+  CAT_BG[k] = mixHex(v, 0.16, TINT_BASE);
+  CAT_BD[k] = mixHex(v, 0.38, TINT_BASE);
+}
+const catCol = (cat) => CAT_COLOR[cat] || '#93a3bd';
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Consecutive ET days on which the player finished at least one daily, counted
@@ -359,7 +360,7 @@ export default function DailyStrip({ board = null }) {
       <DailyTilePanel
         key={'panel-' + g.key}
         game={g}
-        accent={ACCENTS[g.key] || '#5b9bff'}
+        accent={catCol(g.cat)}
         isDone={done.has(g.key)}
         inProgress={inprog.has(g.key)}
         streak={streaks[g.key] || 0}
@@ -387,16 +388,16 @@ export default function DailyStrip({ board = null }) {
                 type="button"
                 key={g.key}
                 className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
-              style={isDone ? undefined : { background: TINT_BG[g.key], borderColor: TINT_BD[g.key] }}
+              style={isDone ? undefined : { background: CAT_BG[g.cat], borderColor: CAT_BD[g.cat] }}
                 onClick={() => pick(g.key)}
                 aria-expanded={sel === g.key}
                 aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
               >
-                <span className="dh-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
+                <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
                 <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
                 {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
                 <span className="dh-tnm">{g.name}</span>
-                <span className="dh-tcat" style={{ background: CAT_CHIP_BG[g.cat] || 'rgba(255,255,255,0.07)', color: CAT_COLOR[g.cat] || '#93a3bd' }}>
+                <span className="dh-tcat" style={{ background: CAT_CHIP_BG[g.cat] || 'rgba(255,255,255,0.07)', color: catCol(g.cat) }}>
                   {CAT_SHORT[g.cat] || g.cat}
                 </span>
                 <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
@@ -542,17 +543,20 @@ export default function DailyStrip({ board = null }) {
         @media(max-width:940px){.dh-bup{border-right:none;padding-right:4px;}}
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
-          .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
-          .dh-tile{padding:9px 4px 8px;border-radius:10px;min-height:108px;}
-          .dh-tnm{font-size:12.5px;}
-          .dh-tcat{font-size:7px;padding:1px 5px;}
-          .dh-tmeta{gap:2px 4px;}
-          .dh-msc,.dh-mstrk,.dh-mlead{font-size:9px;}
+          .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;grid-auto-rows:minmax(96px,1fr);}
+          /* Phones drop the art entirely and spend the space on the name, the
+             category and the day's leader instead (owner, 2026-07-29). */
+          .dh-tile{padding:10px 5px 9px;border-radius:10px;min-height:96px;}
+          .dh-tic{display:none;}
+          .dh-tnm{font-size:14.5px;}
+          .dh-tcat{font-size:8.5px;padding:1px 7px;margin-top:4px;}
+          .dh-tmeta{gap:3px;}
+          .dh-msc,.dh-mstrk,.dh-mlead{font-size:10px;}
           .dh-tic{width:40px;height:34px;}
           .dh-tic img{height:23px;}
           .dh-tnm{font-size:11px;}
         }
-        @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-mlead{display:none;}}
+        @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-tnm{font-size:13px;}.dh-tcat{font-size:8px;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
         /* Small screens: the expanded panel is IN FLOW (see DailyTilePanel), so
            the grid hides beneath it and the wrapper takes the panel's own
