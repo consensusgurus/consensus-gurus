@@ -552,9 +552,6 @@ export default function DailyStrip({ board = null }) {
           .dh-tcat{font-size:8.5px;padding:1px 7px;margin-top:4px;}
           .dh-tmeta{gap:3px;}
           .dh-msc,.dh-mstrk,.dh-mlead{font-size:10px;}
-          .dh-tic{width:40px;height:34px;}
-          .dh-tic img{height:23px;}
-          .dh-tnm{font-size:11px;}
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-tnm{font-size:13px;}.dh-tcat{font-size:8px;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
