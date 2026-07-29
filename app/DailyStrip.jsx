@@ -395,16 +395,16 @@ export default function DailyStrip({ board = null }) {
         .dh-fitem{border:none;background:transparent;color:#c3d2e8;font-weight:700;font-size:12.5px;text-align:left;padding:8px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .dh-fitem:hover{background:rgba(255,255,255,0.08);color:#fff;}
         .dh-fitem.on{background:#e8b43a;color:#1c1e24;}
+        .dh-seg{display:flex;flex:none;background:rgba(255,255,255,0.06);border-radius:8px;padding:2px;}
+        .dh-segb{border:none;background:transparent;color:#93a3bd;font-weight:800;font-size:10.5px;padding:5px 8px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .dh-segb:hover{color:#fff;}
+        .dh-segb.on{background:#e8b43a;color:#1c1e24;}
         @container (max-width:900px){.dh-stat.opt{display:none;}}
         @container (max-width:760px){.dh-stat.opt2{display:none;}}
         /* Narrow bars swap the segmented filter for a hamburger and shed the
            remaining optional stats, so the topper never wraps to a second row. */
         @container (max-width:620px){.dh-stat.opt3{display:none;}.dh-seg{display:none;}.dh-fbtn{display:inline-flex;}}
         @container (max-width:430px){.dh-stat.opt4{display:none;}}
-        .dh-seg{display:flex;flex:none;background:rgba(255,255,255,0.06);border-radius:8px;padding:2px;}
-        .dh-segb{border:none;background:transparent;color:#93a3bd;font-weight:800;font-size:10.5px;padding:5px 8px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
-        .dh-segb:hover{color:#fff;}
-        .dh-segb.on{background:#e8b43a;color:#1c1e24;}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
         .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
