@@ -1705,7 +1705,7 @@ export default function QuizHomeClient() {
                   <button onClick={() => setCreditOpen(false)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
                 </div>
                 <p style={{ fontSize: 14, fontWeight: 700, color: C.ink, margin: '0 0 8px' }}>I&apos;m a single person startup! Word of mouth is how this grows.</p>
-                <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Registered users get a share link, and the Share button on every quiz and daily game already includes it. Anyone who opens one and finishes credits you, once.</p>
+                <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Registered users get a share link, and the Share button on every quiz and daily game already includes it. Anyone who opens one and finishes a puzzle or quiz credits you.</p>
                 {shareUrl ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: C.ink, background: C.bg, border: `1px solid ${C.line}`, borderRadius: 9, padding: '10px 12px' }} title={shareUrl}>{shareUrl.replace(/^https:\/\//, '')}</span>
