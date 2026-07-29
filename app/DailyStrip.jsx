@@ -20,7 +20,7 @@
 // promotes the page into three columns.
 //
 // Palette: sits directly on the page ground (#f7f8fa). White tiles, navy
-// (#0e1d40) as a material for the hero + expand panel, gold (#e8b43a) reserved
+// (#ffffff) as a material for the hero + expand panel, gold (#e8b43a) reserved
 // for daily identity, green for a finished game. Matches the live QuizHomeClient
 // tokens (bg #f7f8fa / surface #fff / accent #0e1d40 / cta #e8b43a).
 //
@@ -98,8 +98,8 @@ function mixHex(hex, pct, base) {
 // consistent layer of grouping. Navy-legible hues, one clearly distinct per
 // category.
 const CAT_COLOR = {
-  Word: '#5b9bff', Numbers: '#f0894c', Logic: '#fb7185',
-  History: '#a483f0', Geography: '#4ade80', 'Crowd Psychology': '#e0b13f',
+  Word: '#2563eb', Numbers: '#c2410c', Logic: '#fb7185',
+  History: '#7c3aed', Geography: '#4ade80', 'Crowd Psychology': '#e0b13f',
 };
 const CAT_CHIP_BG = {}, CAT_BG = {}, CAT_BD = {};
 for (const [k, v] of Object.entries(CAT_COLOR)) {
@@ -107,7 +107,7 @@ for (const [k, v] of Object.entries(CAT_COLOR)) {
   CAT_BG[k] = mixHex(v, 0.16, TINT_BASE);
   CAT_BD[k] = mixHex(v, 0.38, TINT_BASE);
 }
-const catCol = (cat) => CAT_COLOR[cat] || '#93a3bd';
+const catCol = (cat) => CAT_COLOR[cat] || '#6b7280';
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Consecutive ET days on which the player finished at least one daily, counted
@@ -397,7 +397,7 @@ export default function DailyStrip({ board = null }) {
                 <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
                 {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
                 <span className="dh-tnm">{g.name}</span>
-                <span className="dh-tcat" style={{ background: CAT_CHIP_BG[g.cat] || 'rgba(255,255,255,0.07)', color: catCol(g.cat) }}>
+                <span className="dh-tcat" style={{ background: CAT_CHIP_BG[g.cat] || '#eef0f4', color: catCol(g.cat) }}>
                   {CAT_SHORT[g.cat] || g.cat}
                 </span>
                 <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
@@ -424,19 +424,19 @@ export default function DailyStrip({ board = null }) {
       <style>{`
         .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
-        .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#0e1d40;border-radius:13px 13px 0 0;padding:10px 12px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,0.07);}
-        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1px solid #223353;}
+        .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#ffffff;border:1px solid #e6e8ee;border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:#1c1e24;border-bottom:1px solid #eef0f4;}
+        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1px solid #e6e8ee;}
         .dh-bup .dh-play{flex:1 1 auto;min-width:96px;max-width:none;font-size:13.5px;padding:11px 18px;}
         .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#e8b43a;white-space:nowrap;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
-        .dh-busub{font-size:11px;font-weight:600;color:#93a3bd;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dh-busub{font-size:11px;font-weight:600;color:#6b7280;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dh-stats{display:flex;align-items:center;flex:none;min-width:0;overflow:hidden;}
-        .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid rgba(255,255,255,0.07);}
+        .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid #eef0f4;}
         .dh-stat:last-child{border-right:none;}
         .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
+        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#8a93a6;white-space:nowrap;}
         .dh-stat.g b{color:#34d399;}
         .dh-stat.y b{color:#e8b43a;}
         @container (max-width:900px){.dh-stat.opt{display:none;}}
@@ -454,16 +454,16 @@ export default function DailyStrip({ board = null }) {
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
         .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
-        .dh-ghostD:hover{background:rgba(255,255,255,0.06);}
+        .dh-ghostD:hover{background:#eef0f4;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
-        .dh-boardwrap{position:relative;background:#0e1d40;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
+        .dh-boardwrap{position:relative;background:#ffffff;border:1px solid #e6e8ee;border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
-        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
+        .dh-tile{position:relative;overflow:hidden;background:#ffffff;border:1px solid #e6e8ee;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
@@ -475,7 +475,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
-        .dh-nolead{color:#6c7e9b;font-weight:600;}
+        .dh-nolead{color:#8a93a6;font-weight:600;}
         .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;flex:none;}
         .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;flex:none;}
         .dh-mstrk.none{color:#5f7194;}
@@ -486,58 +486,58 @@ export default function DailyStrip({ board = null }) {
         .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
-        .dh-lbpanel{background:#0b1733;border:1px solid rgba(232,180,58,0.28);border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#eef3fb;}
+        .dh-lbpanel{background:#0b1733;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
         .dsd-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#e8b43a;font-weight:800;}
-        .dsd-r{font-size:10.5px;color:#93a7cc;font-weight:600;}
+        .dsd-r{font-size:10.5px;color:#6b7280;font-weight:600;}
         .dsd-grid{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
         @media(max-width:900px){.dsd-grid{grid-template-columns:1fr;}}
-        .dsd-sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8fa3cf;font-weight:800;margin-bottom:8px;}
-        .dsd-cols{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;padding:0 11px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#93a7cc;}
-        .dsd-row{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;align-items:center;padding:8px 11px;margin-bottom:5px;border-radius:10px;background:rgba(232,180,58,.08);border:1px solid rgba(232,180,58,.22);}
-        .dsd-row.plain{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);}
-        .dsd-row.me{background:rgba(232,180,58,.16);border-color:rgba(232,180,58,.55);}
-        .dsd-rk{font-weight:800;font-size:15px;color:#f5d878;font-variant-numeric:tabular-nums;}
-        .dsd-row.plain .dsd-rk{color:#93a7cc;}
-        .dsd-pn{font-size:13.5px;font-weight:500;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dsd-sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;font-weight:800;margin-bottom:8px;}
+        .dsd-cols{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;padding:0 11px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;}
+        .dsd-row{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;align-items:center;padding:8px 11px;margin-bottom:5px;border-radius:10px;background:#fdf3dd;border:1px solid #fdf3dd;}
+        .dsd-row.plain{background:#f7f8fa;border-color:#8a93a6;}
+        .dsd-row.me{background:#fdf3dd;border-color:#b26b00;}
+        .dsd-rk{font-weight:800;font-size:15px;color:#b26b00;font-variant-numeric:tabular-nums;}
+        .dsd-row.plain .dsd-rk{color:#6b7280;}
+        .dsd-pn{font-size:13.5px;font-weight:500;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dsd-pn b{color:#e8b43a;font-weight:700;}
-        .dsd-g{font-size:12px;color:#93a7cc;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
-        .dsd-tt{font-size:13.5px;font-weight:800;color:#f5d878;text-align:right;font-variant-numeric:tabular-nums;}
-        .dsd-tt s{font-size:10px;font-weight:600;color:#6a80a8;text-decoration:none;}
-        .dsd-empty{font-size:12.5px;color:#93a7cc;font-weight:600;padding:8px 2px;}
-        .dsd-row.first{background:rgba(232,180,58,.2);border-color:rgba(232,180,58,.55);}
-        .dsd-row.first .dsd-rk{font-size:17px;color:#f5d878;}
-        .dsd-row.first .dsd-pn{font-weight:800;font-size:14.5px;color:#f5d878;display:flex;align-items:center;gap:5px;}
+        .dsd-g{font-size:12px;color:#6b7280;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+        .dsd-tt{font-size:13.5px;font-weight:800;color:#b26b00;text-align:right;font-variant-numeric:tabular-nums;}
+        .dsd-tt s{font-size:10px;font-weight:600;color:#8a93a6;text-decoration:none;}
+        .dsd-empty{font-size:12.5px;color:#6b7280;font-weight:600;padding:8px 2px;}
+        .dsd-row.first{background:#fdf3dd;border-color:#b26b00;}
+        .dsd-row.first .dsd-rk{font-size:17px;color:#b26b00;}
+        .dsd-row.first .dsd-pn{font-weight:800;font-size:14.5px;color:#b26b00;display:flex;align-items:center;gap:5px;}
         .dsd-row.first .dsd-cr{color:#e8b43a;flex:none;}
         .dsd-row.first .dsd-tt{font-size:15px;}
-        .dsd-past{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.10);}
-        .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);}
-        .dsd-yest.top{padding:9px 11px;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);}
-        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#8fa3cf;font-weight:800;flex:none;min-width:56px;}
+        .dsd-past{margin-top:20px;padding-top:16px;border-top:1px solid #eef0f4;}
+        .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:#f7f8fa;border:1px solid #eef0f4;}
+        .dsd-yest.top{padding:9px 11px;background:#f7f8fa;border-color:#8a93a6;}
+        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;font-weight:800;flex:none;min-width:56px;}
         .dsd-yest b{min-width:0;font-size:12px;color:#c9d6ee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dsd-yest.top b{font-size:13px;color:#eaf0fb;font-weight:700;}
+        .dsd-yest.top b{font-size:13px;color:#1c1e24;font-weight:700;}
         .dsd-yest .yt{margin-left:auto;flex:none;font-size:11.5px;font-weight:700;color:#d8c489;font-variant-numeric:tabular-nums;}
-        .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#f5d878;}
-        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#6a80a8;text-decoration:none;}
-        .dsd-yest .ynone{font-size:12px;color:#6a80a8;font-weight:600;}
-        .dsd-hof{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:rgba(232,180,58,.1);border:1px solid rgba(232,180,58,.32);color:#f5d878;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
-        .dsd-hof:hover{background:rgba(232,180,58,.2);}
+        .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#b26b00;}
+        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#8a93a6;text-decoration:none;}
+        .dsd-yest .ynone{font-size:12px;color:#8a93a6;font-weight:600;}
+        .dsd-hof{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:#fdf3dd;border:1px solid #e8c46a;color:#b26b00;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
+        .dsd-hof:hover{background:#fdf3dd;}
         .dsd-hof svg{color:#e8b43a;flex:none;}
-        .dsd-players{margin-top:9px;font-size:11.5px;color:#93a7cc;font-weight:600;}
-        .dsd-players b{color:#eaf0fb;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dsd-players s{color:#6a80a8;text-decoration:none;font-size:10.5px;}
+        .dsd-players{margin-top:9px;font-size:11.5px;color:#6b7280;font-weight:600;}
+        .dsd-players b{color:#1c1e24;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
+        .dsd-players s{color:#8a93a6;text-decoration:none;font-size:10.5px;}
         .dsd-gt{font-size:11px;font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
-        .dsd-gt span{font-size:9px;color:#6a80a8;font-weight:600;}
+        .dsd-gt span{font-size:9px;color:#8a93a6;font-weight:600;}
         .dsd-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
         @media(max-width:1200px){.dsd-minis{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:900px){.dsd-minis{grid-template-columns:repeat(2,1fr);}}
-        .dsd-mini{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:10px 11px;}
+        .dsd-mini{background:#f7f8fa;border:1px solid #eef0f4;border-radius:11px;padding:10px 11px;}
         .dsd-mr{display:flex;gap:6px;align-items:baseline;font-size:11.5px;padding:2px 0;}
-        .dsd-k{width:11px;font-weight:800;color:#f5d878;font-variant-numeric:tabular-nums;flex:0 0 auto;}
-        .dsd-n2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf0fb;font-weight:500;}
+        .dsd-k{width:11px;font-weight:800;color:#b26b00;font-variant-numeric:tabular-nums;flex:0 0 auto;}
+        .dsd-n2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1c1e24;font-weight:500;}
         .dsd-n2 b{color:#e8b43a;font-weight:700;}
-        .dsd-p{color:#93a7cc;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
-        .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
+        .dsd-p{color:#6b7280;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
+        .dsd-none{color:#8a93a6;font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-bup{border-right:none;padding-right:4px;}}
@@ -640,7 +640,7 @@ export default function DailyStrip({ board = null }) {
                   <span className="dsd-tt">{fmtPts(board.me.total)}<s>/{maxTotal}</s></span>
                 </div>
               ) : null}
-              <a href="/daily" className="dsd-gt" style={{ marginTop: 11, color: '#f5d878' }}>Full standings &amp; game boards →</a>
+              <a href="/daily" className="dsd-gt" style={{ marginTop: 11, color: '#b26b00' }}>Full standings &amp; game boards →</a>
               {uniquePlayers != null ? (
                 <div className="dsd-players" style={{ marginTop: 2 }}><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
               ) : null}
@@ -670,7 +670,7 @@ export default function DailyStrip({ board = null }) {
               <div className="dsd-minis">
                 {sortByDailyOrder(bgames, dailyOrder).map((g) => {
                   const t3 = (g.board || []).slice(0, 3);
-                  const acc = ACCENTS[g.key] || '#f5d878';
+                  const acc = ACCENTS[g.key] || '#b26b00';
                   return (
                     <div key={g.key} className="dsd-mini">
                       <a href={g.href || `/${g.key}`} className="dsd-gt" style={{ color: acc }}>{NAME_BY_KEY[g.key] || g.key} →<span>top 3</span></a>
