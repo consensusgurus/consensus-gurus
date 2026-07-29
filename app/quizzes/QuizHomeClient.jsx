@@ -389,15 +389,19 @@ export default function QuizHomeClient() {
   // Leaderboard data for the left element (rebuilt from data so the three
   // sections lay out cleanly — no embedded-tile gaps / overlap / mobile break).
   const [refData, setRefData] = useState(null); // community referrals { top:[{username,credits}] }
-  const [xpTop, setXpTop] = useState([]); // all-time XP [{ name, value }]
+  const [xp30, setXp30] = useState([]); // 30-day XP [{ name, value }]
+  const [xpAll, setXpAll] = useState([]); // all-time XP [{ name, value }]
+  const [xpFlip, setXpFlip] = useState(0); // Top SoT Player flips 30d (even) <-> all-time (odd), like the old tile
   useEffect(() => {
     let alive = true;
     const qs = new URLSearchParams();
     try { const anon = localStorage.getItem('sot_quiz_anon'); if (anon) qs.set('anonId', anon); const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (id && id.email) qs.set('email', id.email); } catch (e) {}
     fetch('/api/quiz/referrals' + (qs.toString() ? `?${qs.toString()}` : '')).then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d) setRefData(d); }).catch(() => {});
-    fetch('/api/quiz/xp').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXpTop(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp }))); }).catch(() => {});
+    fetch('/api/quiz/xp?sort=xp30d').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXp30(d.players.filter((p) => (p.xp30d || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp30d }))); }).catch(() => {});
+    fetch('/api/quiz/xp').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXpAll(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp }))); }).catch(() => {});
     return () => { alive = false; };
   }, []);
+  useEffect(() => { const iv = setInterval(() => setXpFlip((v) => v + 1), 8000); return () => clearInterval(iv); }, []);
   const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
   // Daily puzzles row: Crux is pinned top-right on mobile; the top-LEFT slot
   // cycles through the other dailies on each page load (localStorage counter,
@@ -1788,6 +1792,11 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb-you b{flex:1;color:#e8b43a;}
             .qzh .dhx-lb-you .sc{color:#e8b43a;font-weight:800;margin-left:auto;}
             .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#7fb0f5;text-decoration:none;}
+            .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
+            .qzh .dhx-lb-scope{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7f93b8;margin-bottom:2px;}
+            .qzh .dhx-lb-dots{display:inline-flex;align-items:center;gap:3px;margin-left:5px;}
+            .qzh .dhx-lb-dots i{width:4px;height:4px;border-radius:50%;background:#c3cdd9;display:block;}
+            .qzh .dhx-lb-dots i.on{background:#2563eb;}
             /* ── RIGHT: one integrated navy element ── */
             .qzh .dhx-rone{background:#0e1d40;border:1px solid #1e3050;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-rone > *{border-radius:0 !important;border-left:0 !important;border-right:0 !important;box-shadow:none !important;background:transparent !important;}
@@ -1839,8 +1848,9 @@ export default function QuizHomeClient() {
               .qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}
               /* mobile: rails stack at natural height — no fixed boxes, no clipping/collapse */
               .qzh .dhx-rail{height:auto !important;}
-              .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;}
-              .qzh .dhx-lone > *{flex:none !important;overflow:visible !important;}
+              .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;overflow:visible !important;}
+              .qzh .dhx-lone > *,.qzh .dhx-lb{flex:none !important;overflow:visible !important;height:auto !important;justify-content:flex-start !important;}
+              .qzh .dhx-lb + .dhx-lb,.qzh .dhx-lb{padding:16px 16px !important;}
               .qzh .dhx-rone .dhx-lp{flex:none !important;}
               .qzh .dhx-rone .dhx-lp .dhx-lp-rows,.qzh .dhx-rone.cm-open .dhx-cm-bars{overflow:visible !important;max-height:none !important;}
               .qzh .dhx-rone.cm-open .dhx-lp{max-height:none !important;}
@@ -1894,21 +1904,23 @@ export default function QuizHomeClient() {
                       <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">({num(r.credits)})</span></span>
                     ))}
                   </div>
-                  <a href="/quizzes/hub" className="dhx-lb-more">How to get credit →</a>
+                  <button type="button" onClick={() => setSignupOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Share a link to get credit →</button>
                 </div>
               );
             })()}
-            {/* 3. Top SoT Player (rebuilt from /api/quiz/xp, all-time) */}
+            {/* 3. Top SoT Player (rebuilt from /api/quiz/xp; flips 30-day <-> all-time) */}
             {(() => {
-              const top = xpTop || [];
+              const is30 = xpFlip % 2 === 0;
+              const top = (is30 ? xp30 : xpAll) || [];
               const one = top[0];
               const num = (n) => (n || 0).toLocaleString();
               return (
                 <div className="dhx-lb xp">
-                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#5b8bff' }} fill="#5b8bff" /> TOP SOT PLAYER</span>
+                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#5b8bff' }} fill="#5b8bff" /> TOP SOT PLAYER<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                   <div className="dhx-lb-hero">
+                    <span className="dhx-lb-scope">{is30 ? 'Last 30 days' : 'All time'}</span>
                     <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
-                    <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned all time` : 'No XP earned yet'}</span>
+                    <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No XP earned yet'}</span>
                   </div>
                   <div className="dhx-lb-grid">
                     {top.slice(1, 5).map((r, i) => (
