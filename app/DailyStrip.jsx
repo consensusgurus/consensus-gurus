@@ -417,7 +417,7 @@ export default function DailyStrip({ board = null }) {
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
-        .dh-tile{position:relative;background:#0e1d40;border:1px solid #223353;border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,border-color .12s,box-shadow .12s,background .12s;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;}
+        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,border-color .12s,box-shadow .12s,background .12s;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;}
         .dh-tile:hover{border-color:#3a557f;background:#13264c;transform:translateY(-2px);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.done{background:#0c2a1e;border-color:#245c3d;}
