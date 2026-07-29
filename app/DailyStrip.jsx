@@ -343,7 +343,6 @@ export default function DailyStrip({ board = null }) {
   const primary = games.filter(matchesFilter);
   const rest = filter === 'all' ? [] : games.filter((g) => !matchesFilter(g));
   const list = primary.concat(rest);
-  const restLabel = filter === 'todo' ? 'Already done today' : 'Everything else';
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
@@ -471,8 +470,6 @@ export default function DailyStrip({ board = null }) {
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.dim{opacity:.4;}
         .dh-tile.dim:hover{opacity:.8;}
-        .dh-sep{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:7px 0 1px;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#6c7e9b;}
-        .dh-sep::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.09);}
         .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
         .dh-tile.done .dh-tnm{color:#8fd6ac;font-size:11.5px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
@@ -707,7 +704,6 @@ export default function DailyStrip({ board = null }) {
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
         <div className="dh-board" role="navigation" aria-label="Daily puzzles" aria-hidden={selGame ? 'true' : undefined}>
           {renderTiles(primary, false)}
-          {rest.length ? <div className="dh-sep" key="sep">{restLabel}</div> : null}
           {rest.length ? renderTiles(rest, true) : null}
         </div>
         {selGame ? renderPanel(selGame) : null}
