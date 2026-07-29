@@ -372,6 +372,20 @@ export default function QuizHomeClient() {
   const [doneFilter, setDoneFilter] = useState('all'); // 'all' | 'unplayed' | 'played' | 'completed' (my-progress filter)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
   const [cmOpen, setCmOpen] = useState(false); // right-rail Category Mastery collapsed to its title by default
+  // Desktop: pin the left + right rails to the center board's height, so the
+  // left leaderboards split into equal boxes and Category Mastery expands UP
+  // into Last Played's space instead of pushing the page down.
+  const centerRef = useRef(null);
+  const [railH, setRailH] = useState(null);
+  useEffect(() => {
+    const el = centerRef.current;
+    if (!el) return undefined;
+    const measure = () => { try { setRailH((typeof window !== 'undefined' && window.innerWidth > 1200) ? el.offsetHeight : null); } catch (e) {} };
+    measure();
+    let ro; try { ro = new ResizeObserver(measure); ro.observe(el); } catch (e) {}
+    if (typeof window !== 'undefined') window.addEventListener('resize', measure);
+    return () => { try { ro && ro.disconnect(); } catch (e) {} if (typeof window !== 'undefined') window.removeEventListener('resize', measure); };
+  }, []);
   const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
   // Daily puzzles row: Crux is pinned top-right on mobile; the top-LEFT slot
   // cycles through the other dailies on each page load (localStorage counter,
@@ -1738,6 +1752,10 @@ export default function QuizHomeClient() {
             .qzh .dhx-lone .cmtile,.qzh .dhx-lone .ttile{min-height:0 !important;background:#0e1d40 !important;}
             .qzh .dhx-lone .cmtile:before,.qzh .dhx-lone .cmtile:after,.qzh .dhx-lone .ttile:before,.qzh .dhx-lone .ttile:after{display:none !important;}
             .qzh .dhx-lone .xp-body{background:#0e1d40 !important;}
+            /* three equal fixed boxes that fill the element; clip hover panels/scrollers; no load shift */
+            .qzh .dhx-lone > *{flex:1 1 0 !important;min-height:0 !important;overflow:hidden !important;}
+            .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:24px !important;}
+            .qzh .dhx-lone .cm-namewrap,.qzh .dhx-lone .xp-namewrap{min-height:0 !important;}
             /* Daily Puzzle Leaderboard in the dark tile format */
             .qzh .dhx-lb{padding:14px 15px;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#e8b43a;background:rgba(232,180,58,0.1);border:1px solid rgba(232,180,58,0.3);border-radius:999px;padding:3px 9px;}
@@ -1758,8 +1776,10 @@ export default function QuizHomeClient() {
             /* ── RIGHT: one integrated navy element ── */
             .qzh .dhx-rone{background:#0e1d40;border:1px solid #1e3050;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-rone > *{border-radius:0 !important;border-left:0 !important;border-right:0 !important;box-shadow:none !important;background:transparent !important;}
-            .qzh .dhx-rone .dhx-lp{border:0 !important;flex:1 1 auto;display:flex;flex-direction:column;}
-            .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;}
+            .qzh .dhx-rone .dhx-lp{border:0 !important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+            .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;min-height:0;overflow-y:auto;}
+            /* Quick play + Category Mastery hold their size; expanding CM eats Last Played's space above */
+            .qzh .dhx-rone .dhx-quick,.qzh .dhx-rone .dhx-cm{flex:none;}
             .qzh .dhx-rone .dhx-quick{border-top:1px solid #1e3050 !important;padding:5px;}
             .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#1e3050 !important;}
             .qzh .dhx-rone .dhx-qrow:hover{background:rgba(255,255,255,0.06) !important;}
@@ -1798,7 +1818,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lp-none{font-size:12px;color:#93a3bd;padding:6px 0;}
             @media(max-width:1200px){.qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}}
           `}</style>
-          <div className="dhx-rail dhx-left">
+          <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>
             <div className="dhx-lone">
             {/* 1. Daily Puzzle Leaderboard — dark tile format to match Community/SoT */}
             {dailyBoard && Array.isArray(dailyBoard.overall) && dailyBoard.overall.length ? (() => {
@@ -1833,10 +1853,10 @@ export default function QuizHomeClient() {
             <XpTile />
             </div>
           </div>
-          <div className="dhx-center">
+          <div className="dhx-center" ref={centerRef}>
             <DailyStrip board={dailyBoard} />
           </div>
-          <div className="dhx-rail dhx-right">
+          <div className="dhx-rail dhx-right" style={{ height: railH || undefined }}>
             <div className="dhx-rone">
             {/* full Last Played (moved up from the browse row): rings + time + plays today */}
             <div className="dhx-lp">
@@ -1868,7 +1888,7 @@ export default function QuizHomeClient() {
                   return (
                     <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
                       <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
-                      <span className="mid"><span className="t">{stripVerb(titleById[f.quizId] || f.quizId)}{todayPlays(f.quizId) > 0 ? <span className="x"> (x{todayPlays(f.quizId).toLocaleString()} today)</span> : null}</span><span className="c"><i style={{ background: catColor }} />{catLabel}</span></span>
+                      <span className="mid"><span className="t">{stripVerb(resolveTitle(f.quizId) || f.title || f.quizId)}{todayPlays(f.quizId) > 0 ? <span className="x"> (x{todayPlays(f.quizId).toLocaleString()} today)</span> : null}</span><span className="c"><i style={{ background: catColor }} />{catLabel}</span></span>
                       <span className="rt"><span className="s" style={{ color: good ? '#16a34a' : '#1c1e24' }}>{f.score}/{f.total}</span>{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : <span className="tm">{relTime(f.playedAt)}</span>}</span>
                     </a>
                   );
