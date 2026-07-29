@@ -213,7 +213,11 @@ export default function DailyTilePanel({
         .dtp{position:absolute;inset:0;z-index:6;background:#0e1d40;border-radius:0 0 13px 13px;color:#eef3fb;
              padding:14px 16px 13px;display:flex;flex-direction:column;gap:12px;overflow:hidden;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;animation:dtpIn .16s ease-out;}
-        @keyframes dtpIn{from{opacity:0;transform:scale(.99);}to{opacity:1;transform:none;}}
+        /* Opacity only. A scale here left the panel measurably inset from the
+           board edges: the component re-renders when its data lands, which
+           re-inserts this stylesheet and restarts the animation, so the 0.99
+           scale never settled and the panel sat ~4px inside its box. */
+        @keyframes dtpIn{from{opacity:0;}to{opacity:1;}}
         .dtp-hd{display:flex;align-items:flex-start;gap:13px;flex:none;}
         .dtp-ic{flex:none;width:50px;height:50px;border-radius:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;}
         .dtp-ic img{height:32px;width:auto;max-width:42px;object-fit:contain;}
