@@ -387,12 +387,6 @@ export default function DailyStrip({ board = null }) {
         .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
         .dh-stat.g b{color:#34d399;}
         .dh-stat.y b{color:#e8b43a;}
-        @container (max-width:900px){.dh-stat.opt{display:none;}}
-        @container (max-width:760px){.dh-stat.opt2{display:none;}}
-        /* Narrow bars swap the segmented filter for a hamburger and shed the
-           remaining optional stats, so the topper never wraps to a second row. */
-        @container (max-width:620px){.dh-stat.opt3{display:none;}.dh-seg{display:none;}.dh-fbtn{display:inline-flex;}}
-        @container (max-width:430px){.dh-stat.opt4{display:none;}}
         .dh-fil{position:relative;flex:none;display:flex;align-items:center;}
         .dh-fbtn{display:none;align-items:center;justify-content:center;width:34px;height:32px;border-radius:8px;border:1px solid #2a4166;background:rgba(255,255,255,0.06);color:#c3d2e8;cursor:pointer;padding:0;flex:none;}
         .dh-fbtn:hover{color:#fff;background:rgba(255,255,255,0.12);}
@@ -401,6 +395,12 @@ export default function DailyStrip({ board = null }) {
         .dh-fitem{border:none;background:transparent;color:#c3d2e8;font-weight:700;font-size:12.5px;text-align:left;padding:8px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .dh-fitem:hover{background:rgba(255,255,255,0.08);color:#fff;}
         .dh-fitem.on{background:#e8b43a;color:#1c1e24;}
+        @container (max-width:900px){.dh-stat.opt{display:none;}}
+        @container (max-width:760px){.dh-stat.opt2{display:none;}}
+        /* Narrow bars swap the segmented filter for a hamburger and shed the
+           remaining optional stats, so the topper never wraps to a second row. */
+        @container (max-width:620px){.dh-stat.opt3{display:none;}.dh-seg{display:none;}.dh-fbtn{display:inline-flex;}}
+        @container (max-width:430px){.dh-stat.opt4{display:none;}}
         .dh-seg{display:flex;flex:none;background:rgba(255,255,255,0.06);border-radius:8px;padding:2px;}
         .dh-segb{border:none;background:transparent;color:#93a3bd;font-weight:800;font-size:10.5px;padding:5px 8px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .dh-segb:hover{color:#fff;}
