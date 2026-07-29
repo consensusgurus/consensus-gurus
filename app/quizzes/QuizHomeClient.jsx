@@ -1931,6 +1931,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb{padding:15px 16px;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-height:0;overflow:hidden;}
             .qzh .dhx-lb .dhx-lb-hero{margin:0;}
             .qzh .dhx-lb.xp .dhx-lb-name{color:#5b8bff;}
+            .qzh .dhx-lb.comm .dhx-lb-name{color:#a78bfa;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
             .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -2042,7 +2043,7 @@ export default function QuizHomeClient() {
               const num = (n) => (n || 0).toLocaleString();
               return (
                 <div className="dhx-lb comm">
-                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> TOP COMMUNITY MEMBER</span>
+                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#a78bfa' }} /> TOP COMMUNITY MEMBER</span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.username) || '—'}</span>
                     <span className="dhx-lb-sub">{one ? `${one.credits} ${one.credits === 1 ? 'player' : 'players'} brought in over the last 90 days` : 'Nobody has brought in a player yet recently'}</span>

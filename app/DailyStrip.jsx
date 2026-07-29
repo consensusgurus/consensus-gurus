@@ -32,7 +32,7 @@
 // to the board everywhere it's used.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, ChevronDown, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, X, Menu } from 'lucide-react';
+import { Crown, ChevronDown, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, X } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 import DailyTilePanel from './DailyTilePanel';
@@ -145,8 +145,7 @@ export default function DailyStrip({ board = null }) {
   const [dayStreak, setDayStreak] = useState(0); // cross-game: days in a row with at least one daily played
   const [sel, setSel] = useState(null); // selected game key (expanded tile), or null
   const [lbOpen, setLbOpen] = useState(false); // overall daily leaderboard toggle
-  const [filter, setFilter] = useState('all'); // all | todo | risk
-  const [filterOpen, setFilterOpen] = useState(false); // hamburger menu, narrow bars only
+
   const [hist, setHist] = useState(null); // recent daily champions, from /api/quiz/daily-history
   // Sunday chip: Sundays (ET) only, and only on games that run a real Sunday
   // Edition. Set after mount so SSR and the first client render agree.
@@ -258,7 +257,20 @@ export default function DailyStrip({ board = null }) {
   const meShown = meKey && top3.some((r) => r.userKey === meKey);
   const uniquePlayers = board && typeof board.uniquePlayers === 'number' ? board.uniquePlayers : null;
 
-  const nextLead = nextGame && hasBoard && byKey[nextGame.key] && byKey[nextGame.key].board && byKey[nextGame.key].board[0] ? byKey[nextGame.key].board[0] : null;
+  // Easiest board to climb: fewest players today among the games still open to
+  // you. Ties keep the earlier game in daily order.
+  const easiest = (() => {
+    if (!nextGame) return null;
+    const open = games.filter((g) => !done.has(g.key));
+    let best = null, bestN = Infinity;
+    for (const g of open) {
+      const b = byKey[g.key];
+      const cnt = b && typeof b.field === 'number' ? b.field : null;
+      if (cnt == null) continue;
+      if (cnt < bestN) { bestN = cnt; best = g; }
+    }
+    return best ? { game: best, players: bestN } : { game: nextGame, players: null };
+  })();
 
   // The player's row on a game's per-game board (their score/rank today).
   const myRow = (key) => {
@@ -295,16 +307,6 @@ export default function DailyStrip({ board = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board]);
 
-  // Close the narrow-bar filter menu on any outside click or Escape.
-  useEffect(() => {
-    if (!filterOpen) return;
-    const away = (e) => { if (!e.target.closest || !e.target.closest('.dh-fil')) setFilterOpen(false); };
-    const esc = (e) => { if (e.key === 'Escape') setFilterOpen(false); };
-    document.addEventListener('mousedown', away);
-    document.addEventListener('keydown', esc);
-    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc); };
-  }, [filterOpen]);
-
   // Recent champions only load once the overall board is opened.
   useEffect(() => {
     if (!lbOpen || !hasBoard || hist !== null) return;
@@ -338,26 +340,10 @@ export default function DailyStrip({ board = null }) {
   }, [sel]);
 
   // filtered tile set
-  const todoCount = GAMES.filter((g) => !done.has(g.key)).length;
-  const riskCount = GAMES.filter((g) => !done.has(g.key) && (streaks[g.key] || 0) >= 2).length;
-  const matchesFilter = (g) => (
-    filter === 'todo' ? !done.has(g.key)
-      : filter === 'risk' ? (!done.has(g.key) && (streaks[g.key] || 0) >= 2)
-        : true
-  );
-  const primary = games.filter(matchesFilter);
-  const rest = filter === 'all' ? [] : games.filter((g) => !matchesFilter(g));
-  const list = primary.concat(rest);
+  const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
-  const pickFilter = (f) => { setFilter(f); setSel(null); setFilterOpen(false); };
-  const seg = (f, label) => (
-    <button type="button" className={`dh-segb${filter === f ? ' on' : ''}`} onClick={() => pickFilter(f)}>{label}</button>
-  );
-  const segItem = (f, label) => (
-    <button type="button" className={`dh-fitem${filter === f ? ' on' : ''}`} onClick={() => pickFilter(f)}>{label}</button>
-  );
 
   // ── the per-game expand panel (overlays the board; see DailyTilePanel) ──
   const renderPanel = (g) => {
@@ -426,39 +412,28 @@ export default function DailyStrip({ board = null }) {
         .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;}
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#0e1d40;border-radius:13px 13px 0 0;padding:10px 12px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,0.07);}
-        .dh-bup{display:flex;align-items:center;gap:8px;flex:none;padding-right:10px;border-right:1px solid #223353;}
-        .dh-bup>img{height:26px;width:auto;max-width:32px;object-fit:contain;}
+        .dh-bup{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1px solid #223353;}
+        .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#e8b43a;white-space:nowrap;}
-        .dh-bun{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
-        .dh-stats{display:flex;align-items:center;flex:1 1 auto;min-width:0;overflow:hidden;}
+        .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
+        .dh-busub{font-size:11px;font-weight:600;color:#93a3bd;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dh-stats{display:flex;align-items:center;flex:none;min-width:0;overflow:hidden;}
         .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid rgba(255,255,255,0.07);}
         .dh-stat:last-child{border-right:none;}
         .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
         .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
         .dh-stat.g b{color:#34d399;}
         .dh-stat.y b{color:#e8b43a;}
-        .dh-fil{position:relative;flex:none;display:flex;align-items:center;align-self:stretch;}
-        .dh-fbtn{display:none;align-items:center;justify-content:center;width:34px;height:32px;border-radius:8px;border:1px solid #2a4166;background:rgba(255,255,255,0.06);color:#c3d2e8;cursor:pointer;padding:0;flex:none;}
-        .dh-fbtn:hover{color:#fff;background:rgba(255,255,255,0.12);}
-        .dh-fbtn.on{border-color:#e8b43a;color:#e8b43a;}
-        .dh-fmenu{position:absolute;top:calc(100% + 11px);right:0;z-index:20;min-width:170px;background:#13264c;border:1px solid #2a4166;border-radius:10px;padding:5px;display:flex;flex-direction:column;gap:2px;box-shadow:0 10px 26px rgba(6,12,26,0.55);}
-        .dh-fitem{border:none;background:transparent;color:#c3d2e8;font-weight:700;font-size:12.5px;text-align:left;padding:8px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;}
-        .dh-fitem:hover{background:rgba(255,255,255,0.08);color:#fff;}
-        .dh-fitem.on{background:#e8b43a;color:#1c1e24;}
-        .dh-seg{display:flex;flex:none;background:rgba(255,255,255,0.06);border-radius:8px;padding:2px;}
-        .dh-segb{border:none;background:transparent;color:#93a3bd;font-weight:800;font-size:10.5px;padding:5px 8px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
-        .dh-segb:hover{color:#fff;}
-        .dh-segb.on{background:#e8b43a;color:#1c1e24;}
         @container (max-width:900px){.dh-stat.opt{display:none;}}
         @container (max-width:760px){.dh-stat.opt2{display:none;}}
         /* Narrow bars swap the segmented filter for a hamburger and shed the
            remaining optional stats, so the topper never wraps to a second row. */
-        @container (max-width:620px){.dh-stat.opt3{display:none;}.dh-seg{display:none;}.dh-fbtn{display:inline-flex;}
+        @container (max-width:620px){.dh-stat.opt3{display:none;}
           .dh-sbar{justify-content:space-between;gap:8px;}
-          .dh-stats{justify-content:space-evenly;}
           .dh-stat{border-right:none;padding:0 6px;}
-          .dh-bup{padding-right:0;}}
+          .dh-bup{padding-right:8px;}
+          .dh-busub{display:none;}}
         @container (max-width:430px){.dh-stat.opt4{display:none;}}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
@@ -475,8 +450,6 @@ export default function DailyStrip({ board = null }) {
         .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:104px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
-        .dh-tile.dim{opacity:.4;}
-        .dh-tile.dim:hover{opacity:.8;}
         .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
@@ -580,18 +553,23 @@ export default function DailyStrip({ board = null }) {
           sits between the bar and the tiles. */}
       <div className="dh-sbar">
         <div className="dh-bup">
-          {nextGame ? (
+          {easiest ? (
             <>
-              <img src={nextGame.img} alt="" aria-hidden="true" />
+              <img src={easiest.game.img} alt="" aria-hidden="true" />
               <div className="dh-bupt">
                 <div className="dh-bue">
-                  {inprog.has(nextGame.key) ? 'Pick up' : 'Up next'}
-                  {isSunday && !allSundayEditions && hasSundayEdition(nextGame.key) ? ` · ${SUNDAY_SHORT}` : ''}
+                  Easiest leaderboard
+                  {isSunday && !allSundayEditions && hasSundayEdition(easiest.game.key) ? ` · ${SUNDAY_SHORT}` : ''}
                 </div>
-                <div className="dh-bun">{nextGame.name}</div>
+                <div className="dh-bun">{easiest.game.name}</div>
+                <div className="dh-busub">
+                  {easiest.players != null
+                    ? `Only ${easiest.players.toLocaleString()} ${easiest.players === 1 ? 'player' : 'players'} today`
+                    : easiest.game.tag}
+                </div>
               </div>
-              <a href={nextGame.href} className="dh-play">
-                <Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}
+              <a href={easiest.game.href} className="dh-play">
+                <Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(easiest.game.key) ? 'Resume' : 'Play'}
               </a>
             </>
           ) : (
@@ -612,22 +590,6 @@ export default function DailyStrip({ board = null }) {
           {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
           {uniquePlayers != null ? <div className="dh-stat opt"><b>{uniquePlayers.toLocaleString()}</b><span>Players</span></div> : null}
           {resetLbl ? <div className="dh-stat opt2"><b>{resetLbl}</b><span>Resets in</span></div> : null}
-        </div>
-        <div className="dh-fil">
-          <div className="dh-seg">
-            {seg('all', `All ${GAMES.length}`)}
-            {seg('todo', `Unplayed ${todoCount}`)}
-            {riskCount > 0 ? seg('risk', `At risk ${riskCount}`) : null}
-          </div>
-          <button type="button" className={`dh-fbtn${filter === 'all' ? '' : ' on'}`} onClick={() => setFilterOpen((v) => !v)}
-            aria-label="Filter puzzles" aria-expanded={filterOpen}><Menu size={16} strokeWidth={2.6} /></button>
-          {filterOpen ? (
-            <div className="dh-fmenu">
-              {segItem('all', `All ${GAMES.length}`)}
-              {segItem('todo', `Unplayed · ${todoCount}`)}
-              {riskCount > 0 ? segItem('risk', `Streak at risk · ${riskCount}`) : null}
-            </div>
-          ) : null}
         </div>
       </div>
 
@@ -714,8 +676,7 @@ export default function DailyStrip({ board = null }) {
           wrapper, so opening a tile covers the grid rather than displacing it. */}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
         <div className="dh-board" role="navigation" aria-label="Daily puzzles" aria-hidden={selGame ? 'true' : undefined}>
-          {renderTiles(primary, false)}
-          {rest.length ? renderTiles(rest, true) : null}
+          {renderTiles(list, false)}
         </div>
         {selGame ? renderPanel(selGame) : null}
       </div>
