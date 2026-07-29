@@ -1549,6 +1549,12 @@ export default function QuizHomeClient() {
     .qzh .qz-toolbtn-cta:hover{background:#0a1730;border-color:#0a1730;color:#fff;}
     .qzh .qz-toolbtn-cta:hover svg{color:#fff;}
     @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
+    /* ONE search bar at every width. The browse row's own field is hidden from
+       821px up (rule above), so this tool-row field is the desktop search; at
+       <=820px that browse-row field comes back as the mobile search, so the
+       tool-row one hides and only the three buttons remain here. Mobile layout
+       is therefore exactly what it was, plus the buttons. */
+    @media(max-width:820px){.qzh .qz-toolsearch{display:none !important;}.qzh .qz-toolrow{margin-top:0;}}
     @media(max-width:560px){.qzh .qz-toolrow{gap:9px;margin-bottom:13px;}.qzh .qz-toolbtns{flex-wrap:wrap;}.qzh .qz-toolbtn{flex:1 1 calc(50% - 4px);height:42px;padding:0 10px;font-size:12px;}.qzh .qz-toolbtn-cta{flex:1 1 100%;}}
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
