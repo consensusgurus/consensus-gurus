@@ -12,7 +12,7 @@ import React from 'react';
 const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#6b7280', forest: '#10b981' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
-export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLabel = 'Category', fill = false }) {
+export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLabel = 'Category', fill = false, hideCategory = false }) {
   if (!eloAfter) return null;
   const fmtN = (x) => (x == null ? null : x.toLocaleString());
   const aXp = eloAfter.xp != null ? eloAfter.xp : 0;
@@ -32,6 +32,7 @@ export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLab
     { label: 'Global rank', oldVal: bGlobal != null ? `#${fmtN(bGlobal)}` : null, newVal: aGlobal != null ? `#${fmtN(aGlobal)}` : '—', delta: (bGlobal != null && aGlobal != null) ? bGlobal - aGlobal : ((rg && typeof rg.rankDelta === 'number') ? rg.rankDelta : null), isNew: bGlobal == null },
     { label: `${eloDeptLabel} rank`, oldVal: bCat != null ? `#${fmtN(bCat)}` : null, newVal: aCat != null ? `#${fmtN(aCat)}` : '—', delta: (bCat != null && aCat != null) ? bCat - aCat : ((rg && typeof rg.catRankDelta === 'number') ? rg.catRankDelta : null), isNew: bCat == null },
   ];
+  const shownRankRows = hideCategory ? rankRows.slice(0, 1) : rankRows;
   const outer = fill ? { flex: '1 1 0', minWidth: 0 } : { margin: '0 auto 18px', maxWidth: 360 };
   const cellSt = (first) => ({ padding: '11px 6px 13px', textAlign: 'center', borderLeft: first ? 'none' : `1px solid ${C.faded}22` });
   const lblSt = { fontFamily: FONT, fontSize: 8.5, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.faded, marginBottom: 6, lineHeight: 1.25, minHeight: 22, display: 'flex', alignItems: 'center', justifyContent: 'center' };
@@ -39,7 +40,7 @@ export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLab
   return (
     <div style={{ ...outer, background: '#fbf7ef', border: `1px solid ${C.faded}33`, overflow: 'hidden' }}>
       <div style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ember, textAlign: 'center', padding: '9px 0 8px' }}>Your standing</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', borderTop: `1px solid ${C.faded}22` }}>
+      <div style={{ display: 'grid', gridTemplateColumns: hideCategory ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', borderTop: `1px solid ${C.faded}22` }}>
         <div style={cellSt(true)}>
           <div style={lblSt}>XP earned</div>
           <div style={{ ...bigSt, color: (gained || 0) > 0 ? C.forest : C.ink }}>{gained != null ? `+${fmtN(gained)}` : fmtN(aXp)}</div>
@@ -51,7 +52,7 @@ export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLab
             )}
           </div>
         </div>
-        {rankRows.map((r) => (
+        {shownRankRows.map((r) => (
           <div key={r.label} style={cellSt(false)}>
             <div style={lblSt}>{r.label}</div>
             <div style={bigSt}>{r.newVal}</div>

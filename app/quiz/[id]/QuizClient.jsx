@@ -1536,7 +1536,7 @@ export default function QuizClient({ quizId }) {
   // "Play next" pick shown by title on the Game Over overlay's Play Similar
   // button (recomputed when the round ends so a just-played quiz drops out).
   const nextMeta = useMemo(() => { try { return nextQuizMeta(quiz); } catch (e) { return null; } }, [quiz, ended]);
-  const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} />;
+  const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} hideCategory />;
 
   // Mobile "app" play mode: once a game is in progress on a phone, collapse the non-essential chrome (blurb, leaderboard strip,
   // full-size title) so the answer board fills the screen. Desktop and the
@@ -1657,6 +1657,7 @@ export default function QuizClient({ quizId }) {
                   </div>
                 )}
               </div>
+              {eloPanel}
               <RegisterRankLine rank={regRank} onRegister={openRegister} />
               {runActive && (
                 <button onClick={goNextStep} style={{ ...stackBtn, marginBottom: 9, background: COLORS.ember, color: '#fff', fontSize: 13 }}>
