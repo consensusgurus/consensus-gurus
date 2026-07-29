@@ -58,7 +58,7 @@ function Logo({ size = 22 }) {
 // ─── palette / type ─────────────────────────────────────────────────────────
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
+  soft: '#6b7280', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981',
   cta: '#e8b43a', ctaInk: '#1c1e24', ctaHover: '#d49a2a',
 };
@@ -1593,7 +1593,7 @@ export default function QuizHomeClient() {
     /* Hero height = 7 row-units (7 x 31px .qrow) so its bottom edge lands flush
    on a list-row gridline instead of ending mid-row; keeps quiz rows aligned
    across neighbouring columns with no ragged end gap. cover = crop, no stretch. */
-    .qzh .cc-hero{position:relative;display:block;min-height:217px;background-size:cover;background-position:center;background-color:${C.accsoft};text-decoration:none;}
+    .qzh .cc-hero{position:relative;display:block;min-height:217px;background-size:cover;background-position:center;background-color:#0e1d40;text-decoration:none;}
     .qzh .cc-ov{position:absolute;inset:0;background:linear-gradient(to top, rgba(8,15,35,0.92), rgba(8,15,35,0.4) 52%, rgba(8,15,35,0.05));z-index:1;}
     .qzh .cc-stat{position:absolute;top:8px;left:10px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-shadow:0 1px 6px rgba(0,0,0,.65);transition:background-color .18s ease;}
     .qzh .cc-stat.pill{background:rgba(17,32,74,.82);backdrop-filter:blur(2px);text-shadow:none;}
@@ -1885,7 +1885,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lpr .mid .c i{width:6px;height:6px;border-radius:2px;flex:none;}
             .qzh .dhx-lpr .rt{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
             .qzh .dhx-lpr .rt .s{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;}
-            .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:#16a34a;background:#e7f7ed;border-radius:999px;padding:1px 6px;}
+            .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:#15803d;background:#e7f7ed;border-radius:999px;padding:1px 6px;}
             .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#6b7280;font-weight:600;white-space:nowrap;}
             /* beat chip and "how long ago" share one line under the score */
             .qzh .dhx-lpr .rt .when{display:flex;align-items:center;gap:5px;}
@@ -1931,18 +1931,18 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb{padding:15px 16px;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-height:0;overflow:hidden;}
             .qzh .dhx-lb .dhx-lb-hero{margin:0;}
             .qzh .dhx-lb.xp .dhx-lb-name{color:#2563eb;}
-            .qzh .dhx-lb.comm .dhx-lb-name{color:#a78bfa;}
+            .qzh .dhx-lb.comm .dhx-lb-name{color:#7c3aed;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
             .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#6b7280;margin-top:3px;}
             .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;}
             .qzh .dhx-lb-gi{display:flex;align-items:baseline;gap:6px;font-size:11.5px;min-width:0;}
-            .qzh .dhx-lb-gi .rk{width:12px;font-size:10px;font-weight:800;color:#8fa3cf;flex:none;}
-            .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#eaf0fb;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-gi .rk{width:12px;font-size:10px;font-weight:800;color:#6b7280;flex:none;}
+            .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-gi .sc{flex:none;color:#6b7280;font-weight:700;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-gi.me b{color:#e8b43a;}
-            .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#7fb0f5;text-decoration:none;}
+            .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
             .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
             .qzh .dhx-lb-scope{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7f93b8;margin-bottom:2px;}
             .qzh .dhx-lb-dots{display:inline-flex;align-items:center;gap:3px;margin-left:5px;}
@@ -1967,10 +1967,10 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
             .qzh .dhx-rone .dhx-cm{border-top:1px solid #e6e8ee !important;}
             .qzh .dhx-rone .dhx-cm-h{color:#b26b00 !important;}
-            .qzh .dhx-rone .dhx-cm-h .cmchev{color:#8fa3cf !important;}
+            .qzh .dhx-rone .dhx-cm-h .cmchev{color:#6b7280 !important;}
             .qzh .dhx-rone .dhx-cmbar{background:#f1f3f6 !important;}
             .qzh .dhx-rone .dhx-cmbar .mtr{background:#22406e !important;}
-            .qzh .dhx-rone .dhx-cmbar .nm{color:#eaf0fb !important;}
+            .qzh .dhx-rone .dhx-cmbar .nm{color:#1c1e24 !important;}
             .qzh .dhx-rone .dhx-cmbar .p{color:#46506a !important;}
             .qzh .dhx-rone .dhx-cm-empty{color:#6b7280 !important;}
             .qzh .dhx-center .dstrip-wrap,.qzh .dhx-center .dhome{margin-bottom:0;}
@@ -1983,7 +1983,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lp-top{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
             .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#1c1e24;}
             .qzh .dhx-lp-ttl svg{color:#1c1e24;flex:none;}
-            .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#a7f3cf;background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
+            .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#15803d;background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
             .qzh .dhx-live i{width:5px;height:5px;border-radius:999px;background:#10b981;display:block;}
             .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:#46506a;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
             .qzh .dhx-lp-stats{display:flex;gap:18px;margin-bottom:11px;}
@@ -1992,7 +1992,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lp-rows{display:flex;flex-direction:column;gap:1px;}
             .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #e6e8ee;text-decoration:none;}
             .qzh .dhx-lp-row:last-child{border-bottom:none;}
-            .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lp-sc{flex:none;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;border-radius:7px;padding:2px 7px;}
             .qzh .dhx-lp-none{font-size:12px;color:#6b7280;padding:6px 0;}
             @media(max-width:1200px){
@@ -2043,7 +2043,7 @@ export default function QuizHomeClient() {
               const num = (n) => (n || 0).toLocaleString();
               return (
                 <div className="dhx-lb comm">
-                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#a78bfa' }} /> TOP COMMUNITY MEMBER</span>
+                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#7c3aed' }} /> TOP COMMUNITY MEMBER</span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.username) || '—'}</span>
                     <span className="dhx-lb-sub">{one ? `${one.credits} ${one.credits === 1 ? 'player' : 'players'} brought in over the last 90 days` : 'Nobody has brought in a player yet recently'}</span>
@@ -2402,7 +2402,7 @@ export default function QuizHomeClient() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ width: 24, height: 24, borderRadius: 7, background: '#eef1f5', color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={13} /></span>
                       <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: '#fff' }}>Last Played</h3>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: '#a7f3cf', background: 'rgba(16,185,129,0.16)', borderRadius: 999, padding: '2px 7px' }}><span style={{ width: 5, height: 5, borderRadius: 999, background: C.live }} />LIVE</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: '#15803d', background: 'rgba(16,185,129,0.16)', borderRadius: 999, padding: '2px 7px' }}><span style={{ width: 5, height: 5, borderRadius: 999, background: C.live }} />LIVE</span>
                       <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: '#46506a', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>View all ›</button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 12 }}>
