@@ -1877,7 +1877,8 @@ export default function QuizHomeClient() {
               .qzh .dhx-rail{height:auto !important;}
               .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;overflow:visible !important;}
               .qzh .dhx-lone > *,.qzh .dhx-lb{flex:none !important;overflow:visible !important;height:auto !important;justify-content:flex-start !important;}
-              .qzh .dhx-lb + .dhx-lb,.qzh .dhx-lb{padding:16px 16px !important;}
+              .qzh .dhx-lb{padding:16px 16px !important;}
+              .qzh .dhx-lb .dhx-lb-hero{margin-top:11px !important;}
               .qzh .dhx-rone .dhx-lp{flex:none !important;}
               .qzh .dhx-rone .dhx-lp .dhx-lp-rows,.qzh .dhx-rone.cm-open .dhx-cm-bars{overflow:visible !important;max-height:none !important;}
               .qzh .dhx-rone.cm-open .dhx-lp{max-height:none !important;}
