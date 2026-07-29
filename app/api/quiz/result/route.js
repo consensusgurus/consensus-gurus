@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
+import { buildLeaderboardMatrix, playerPlacement } from '@/lib/quiz-anon';
 import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost } from '@/lib/ua';
 import { creditReferral } from '@/lib/referrals-server';
 import { normalizeRefCode } from '@/lib/referrals';
@@ -204,7 +204,9 @@ export async function POST(request) {
       data.push(...page);
       if (page.length < 1000) break;
     }
-    return NextResponse.json({ ...summarize(data), resultId: inserted?.id ?? null });
+    const myKey = user_id ? `u:${user_id}` : (anonId ? `a:${anonId}` : (inserted?.id ? `r:${inserted.id}` : null));
+    const placement = playerPlacement(data, myKey);
+    return NextResponse.json({ ...summarize(data), resultId: inserted?.id ?? null, placement });
   } catch (e) {
     return NextResponse.json({ error: 'invalid request' }, { status: 400 });
   }

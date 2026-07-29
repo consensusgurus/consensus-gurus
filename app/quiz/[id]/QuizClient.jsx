@@ -828,7 +828,7 @@ export default function QuizClient({ quizId }) {
       .then((r) => r.json())
       .then((d) => { if (d && !d.error) {
         const freshBest = d.best != null ? Math.min(d.best, total) : null;
-        setBoard({ plays: d.plays || 0, best: freshBest, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {}, scoreDist: d.scoreDist || {} });
+        setBoard({ plays: d.plays || 0, best: freshBest, topTime: d.topTime ?? null, leaderboard: d.leaderboard || [], leaderboardAll: d.leaderboardAll || [], leaderboardMobile: d.leaderboardMobile || [], leaderboardFirst: d.leaderboardFirst || [], leaderboards: d.leaderboards || {}, scoreDist: d.scoreDist || {}, placement: d.placement ?? null });
         setLastResultId(d.resultId ?? null);
         const topNow = freshBest != null && finalScore === freshBest && d.topTime != null && elapsed <= d.topTime;
         if (topNow) setCelebration('big'); else if (finalScore === total) setCelebration('small');
@@ -1637,6 +1637,7 @@ export default function QuizClient({ quizId }) {
             for (const r of rows) { if (r.score > dispScore || (r.score === dispScore && r.timeElapsed < lastElapsed)) better++; }
             return better + 1;
           })();
+          const placement = board.placement != null ? board.placement : myRank;
           const regRank = !identity ? registerRank(board.leaderboard, dispScore, lastElapsed) : null;
           const openRegister = () => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); };
           const jumpToBoard = () => { if (typeof document !== 'undefined') { const el = document.getElementById('quiz-board'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
@@ -1650,10 +1651,10 @@ export default function QuizClient({ quizId }) {
                   <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 22, color: COLORS.faded }}> / {total}</span></div>
                   <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{resultLine}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
                 </div>
-                {myRank != null && (
+                {placement != null && (
                   <div style={{ textAlign: 'right', flex: 'none' }}>
                     <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 800, color: COLORS.faded, marginBottom: 2 }}>You placed</div>
-                    <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 46, lineHeight: 1, color: COLORS.ember }}>#{myRank}</div>
+                    <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 46, lineHeight: 1, color: COLORS.ember }}>#{placement}</div>
                   </div>
                 )}
               </div>
