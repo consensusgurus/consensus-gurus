@@ -121,9 +121,11 @@ export default function DailyTilePanel({
   }, [drops, mine]);
   const avgPct = (trend.max > 0 && trend.avg != null) ? Math.min(97, (trend.avg / trend.max) * 100) : null;
 
-  const board = (allTime && Array.isArray(allTime.board)) ? allTime.board.slice(0, 5) : [];
+  const board = (allTime && Array.isArray(allTime.board)) ? allTime.board.slice(0, 3) : [];
   const meOnBoard = board.some((r) => r.isMe);
   const myRank = allTime && allTime.myRank;
+  const todayTop = (standings || []).slice(0, 3);
+  const meInTodayTop = !!(meKey && todayTop.some((r) => r.userKey === meKey));
 
   return (
     <div className="dtp" ref={rootRef} style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
@@ -167,32 +169,34 @@ export default function DailyTilePanel({
         </section>
 
         <section className="dtp-col">
-          <div className="dtp-lab"><CalendarDays size={12} strokeWidth={2.4} />Archive</div>
-          <div className="dtp-calhd">
-            <button type="button" onClick={() => shiftMonth(-1)} disabled={calMonth <= earliestYM} aria-label="Previous month"><ChevronLeft size={15} strokeWidth={2.6} /></button>
-            <span className="dtp-mo">{MONTH_NAMES[(calM - 1) % 12]} {calY}</span>
-            <button type="button" onClick={() => shiftMonth(1)} disabled={calMonth >= latestYM} aria-label="Next month"><ChevronRight size={15} strokeWidth={2.6} /></button>
+          <div className="dtp-lab"><Trophy size={12} strokeWidth={2.4} />Today</div>
+          <div className="dtp-lb">
+            {todayTop.length ? (
+              <>
+                {todayTop.map((r, i) => {
+                  const mineRow = meKey && r.userKey === meKey;
+                  return (
+                    <div key={'t' + (r.userKey || i)} className={'dtp-lrow' + (mineRow ? ' me' : '')}>
+                      <span className="pl">{r.rank === 1 ? <Crown size={12} /> : (r.rank || i + 1)}</span>
+                      <b>{r.username || 'Player'}{mineRow ? ' (you)' : ''}</b>
+                      <span className="sc">{fmtPts(r.points)}</span>
+                    </div>
+                  );
+                })}
+                {todayRow && !meInTodayTop ? (
+                  <div className="dtp-lrow me">
+                    <span className="pl">{todayRow.rank || '—'}</span>
+                    <b>You</b>
+                    <span className="sc">{todayRow.points != null ? fmtPts(todayRow.points) : '—'}</span>
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <div className="dtp-empty">No scores yet today. Be the first.</div>
+            )}
           </div>
-          <div className="dtp-wd">{CAL_WD.map((w, i) => <span key={'w' + i}>{w}</span>)}</div>
-          <div className="dtp-cal">
-            {cells.map((d, i) => {
-              if (d === null) return <span key={'e' + i} className="dtp-cell empty" />;
-              const iso = calY + '-' + String(calM).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-              const drop = dropByISO.get(iso);
-              if (!drop) return <span key={iso} className="dtp-cell none">{d}</span>;
-              const cls = 'dtp-cell' + (drop.played ? ' played' : ' open') + (drop.isToday ? ' today' : '');
-              return <a key={iso} href={drop.href} className={cls} title={drop.played ? 'Played' : 'Not played yet'}>{d}</a>;
-            })}
-          </div>
-          <div className="dtp-key">
-            <span><i className="sw played" />Played</span>
-            <span><i className="sw open" />Open</span>
-            <span><i className="sw today" />Today</span>
-          </div>
-        </section>
 
-        <section className="dtp-col">
-          <div className="dtp-lab"><Trophy size={12} strokeWidth={2.4} />All-time leaderboard</div>
+          <div className="dtp-lab sm"><Trophy size={12} strokeWidth={2.4} />All-time</div>
           <div className="dtp-lb">
             {loading ? (
               <div className="dtp-empty">Loading standings…</div>
@@ -217,26 +221,34 @@ export default function DailyTilePanel({
               <div className="dtp-empty">No all-time standings yet. Be the first.</div>
             )}
           </div>
-          {standings && standings.length ? (
-            <>
-              <div className="dtp-lab sm">Today&rsquo;s top</div>
-              <div className="dtp-lb">
-                {standings.slice(0, 3).map((r, i) => {
-                  const mineRow = meKey && r.userKey === meKey;
-                  return (
-                    <div key={'t' + (r.userKey || i)} className={'dtp-lrow' + (mineRow ? ' me' : '')}>
-                      <span className="pl">{r.rank || i + 1}</span>
-                      <b>{r.username || 'Player'}{mineRow ? ' (you)' : ''}</b>
-                      <span className="sc">{fmtPts(r.points)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          ) : null}
           <div className="dtp-lfoot">
             {allTime && allTime.field ? allTime.field.toLocaleString() + ' ranked' : ''}
             <a href="/daily">Full standings →</a>
+          </div>
+        </section>
+
+        <section className="dtp-col">
+          <div className="dtp-lab"><CalendarDays size={12} strokeWidth={2.4} />Archive</div>
+          <div className="dtp-calhd">
+            <button type="button" onClick={() => shiftMonth(-1)} disabled={calMonth <= earliestYM} aria-label="Previous month"><ChevronLeft size={15} strokeWidth={2.6} /></button>
+            <span className="dtp-mo">{MONTH_NAMES[(calM - 1) % 12]} {calY}</span>
+            <button type="button" onClick={() => shiftMonth(1)} disabled={calMonth >= latestYM} aria-label="Next month"><ChevronRight size={15} strokeWidth={2.6} /></button>
+          </div>
+          <div className="dtp-wd">{CAL_WD.map((w, i) => <span key={'w' + i}>{w}</span>)}</div>
+          <div className="dtp-cal">
+            {cells.map((d, i) => {
+              if (d === null) return <span key={'e' + i} className="dtp-cell empty" />;
+              const iso = calY + '-' + String(calM).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+              const drop = dropByISO.get(iso);
+              if (!drop) return <span key={iso} className="dtp-cell none">{d}</span>;
+              const cls = 'dtp-cell' + (drop.played ? ' played' : ' open') + (drop.isToday ? ' today' : '');
+              return <a key={iso} href={drop.href} className={cls} title={drop.played ? 'Played' : 'Not played yet'}>{d}</a>;
+            })}
+          </div>
+          <div className="dtp-key">
+            <span><i className="sw played" />Played</span>
+            <span><i className="sw open" />Open</span>
+            <span><i className="sw today" />Today</span>
           </div>
         </section>
       </div>

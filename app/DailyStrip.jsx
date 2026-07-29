@@ -259,8 +259,11 @@ export default function DailyStrip({ board = null }) {
   const myRow = (key) => {
     if (!meKey) return null;
     const b = byKey[key] && byKey[key].board;
-    if (!b) return null;
-    return b.find((x) => x && x.userKey === meKey) || null;
+    const onBoard = b ? b.find((x) => x && x.userKey === meKey) : null;
+    if (onBoard) return onBoard;
+    const pg = board && board.me && board.me.perGame ? board.me.perGame[key] : null;
+    if (!pg) return null;
+    return { userKey: meKey, username: (board.me && board.me.username) || 'You', ...pg };
   };
 
   // Same-device in-progress/finished detection for TODAY via each game's own
