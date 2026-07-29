@@ -18,7 +18,7 @@ const COLS = [
     head: 'Quizzes',
     links: [
       { label: 'Browse Quizzes', href: '/' },
-      { label: 'Daily Games & Archive', href: '/daily' },
+      { label: 'Daily Puzzles & Archive', href: '/daily' },
       { label: 'Stat Hub', href: '/quizzes/hub' },
       { label: 'Community Leaderboard', href: '/quizzes/community' },
       { label: 'Request a Quiz', href: '/request' },
@@ -83,7 +83,7 @@ export default function Footer() {
         <div style={{ maxWidth: 250 }}>
           <div style={{ fontSize: 15, fontWeight: 800 }}>Source of Truths</div>
           <div style={{ fontSize: 12, color: NEUTRAL.muted, marginTop: 5, lineHeight: 1.5 }}>
-            Exercise your mind: daily games, quizzes, and consensus Top 10 Lists for everything worth knowing.
+            Exercise your mind: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.
           </div>
           {vis != null && (<div style={{ fontSize: 11.5, color: NEUTRAL.soft, marginTop: 10 }}>{vis.toLocaleString()} visitors</div>)}
         </div>

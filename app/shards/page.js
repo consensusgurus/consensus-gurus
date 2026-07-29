@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import ShardsClient from './ShardsClient';
 import { PUZZLES } from './puzzles';
 
-// Shards launched 2026-07-24 as a daily game: linked from the daily strip, the
+// Shards launched 2026-07-24 as a daily puzzle: linked from the daily strip, the
 // footer, the /daily archive, and the sitemap (/shards is the canonical,
 // evergreen URL; the dated /quiz/shards-* stubs canonicalize here). One
 // shattered mini crossword a day; players reassemble the lettered polyomino
@@ -81,7 +81,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily jigsaw crossword: a solved grid, shattered into lettered pieces for you to reassemble. Come back when the first grid drops.
         </p>
-        <a href="/daily" style={{ color: '#0d9488', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#0d9488', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

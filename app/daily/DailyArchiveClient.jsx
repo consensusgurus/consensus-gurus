@@ -282,7 +282,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
 
   // Rival hook for the scoreboard card: the player directly ahead of you today.
   let rivalAv = '★';
-  let rivalText = <>Post a score in any game to join today&rsquo;s board</>;
+  let rivalText = <>Post a score in any puzzle to join today&rsquo;s board</>;
   if (me && combined) {
     const rows = combined.overall || [];
     if (me.rank === 1) {
@@ -314,7 +314,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
   }
 
   const pt = playedToday.length;
-  const gauntTease = pt >= activeGames.length && activeGames.length > 0 ? 'Perfect day · every game played'
+  const gauntTease = pt >= activeGames.length && activeGames.length > 0 ? 'Perfect day · every puzzle played'
     : pt < 5 ? `${5 - pt} more to warm-up`
     : pt < 10 ? `${10 - pt} more to grinder`
     : `${activeGames.length - pt} more to a perfect day`;
@@ -596,7 +596,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
               <a href="/">Quizzes</a>
               <a href="/lists">Top 10 Lists</a>
             </div>
-            <h1 className="dl-h1">Daily Games</h1>
+            <h1 className="dl-h1">Daily Puzzles</h1>
             <p className="dl-sub">
               {activeGames.length} original puzzles, a fresh one each and every day. Play today, chase the leaderboard,
               or replay any past drop. Archive runs never touch your streak.
@@ -637,7 +637,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
           </div>
           <div className="dl-stp-r">
             {ready && stillToPlay.length === 0 ? (
-              <div className="dl-alldone"><b>&#9733; All caught up.</b> You&rsquo;ve played every game today. The archives below are always open.</div>
+              <div className="dl-alldone"><b>&#9733; All caught up.</b> You&rsquo;ve played every puzzle today. The archives below are always open.</div>
             ) : (
               <div className="dl-rail">
                 {(ready ? [...stillToPlay].sort((a, b) => (isResumeToday(b) ? 1 : 0) - (isResumeToday(a) ? 1 : 0)) : activeGames).map((g) => {
@@ -661,7 +661,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         </div>
 
         <div className="dl-sec-h" style={{ marginBottom: 10 }}>
-          <h2>All daily games</h2>
+          <h2>All daily puzzles</h2>
         </div>
         <div className="dl-cattiles">
           {groups.map((grp) => (
@@ -1071,7 +1071,7 @@ function OverallBoard({ overall, me, myKey, maxTotal, gameCount, full, setFull }
       {!full && me && !meInTop && !meInRows && <div className="lb-sep">{rowEl(me)}</div>}
       {!full && rows.length > 3 && <button type="button" className="lb-more" onClick={() => setFull(true)}>Show full standings ({rows.length})</button>}
       {full && rows.length > 3 && <button type="button" className="lb-more" onClick={() => setFull(false)}>Show less</button>}
-      <p className="lb-note">Your daily total is your best {gameCount ? Math.min(10, gameCount) : 10} of today&rsquo;s games.</p>
+      <p className="lb-note">Your daily total is your best {gameCount ? Math.min(10, gameCount) : 10} of today&rsquo;s puzzles.</p>
     </div>
   );
 }

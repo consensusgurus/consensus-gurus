@@ -55,20 +55,20 @@ const ETCH = ETCH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num,
 const HEDGE = HEDGE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const LISTED = LISTED_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
-// The daily-games hub + archive. One page listing every daily game, each with
+// The daily-games hub + archive. One page listing every daily puzzle, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
 // future puzzles and their answers never ship). Played/unplayed state is read
 // client-side from each game's per-puzzle localStorage save.
 
 export const metadata = {
-  title: 'Daily Games — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
+  title: 'Daily Puzzles — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
   description:
-    "Every Source of Truths daily game in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Lode, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, Stands, and Bracket. A new puzzle in each, every day.",
+    "Every Source of Truths daily puzzle in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Lode, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, Stands, and Bracket. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
-    title: 'Daily Games — Source of Truths',
+    title: 'Daily Puzzles — Source of Truths',
     description:
-      "Today's puzzle and the full archive for every daily game: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Lode, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, Stands, and Bracket.",
+      "Today's puzzle and the full archive for every daily puzzle: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Lode, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, Stands, and Bracket.",
     url: '/daily',
     type: 'website',
     siteName: 'Source of Truths',
@@ -136,7 +136,7 @@ const breadcrumbJsonLd = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
     { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
-    { '@type': 'ListItem', position: 3, name: 'Daily Games' },
+    { '@type': 'ListItem', position: 3, name: 'Daily Puzzles' },
   ],
 };
 

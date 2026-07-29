@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import TuckClient from './TuckClient';
 import { PUZZLES } from './puzzles';
 
-// Tuck launched 2026-07-18 as one of the daily games: linked from the daily
+// Tuck launched 2026-07-18 as one of the daily puzzles: linked from the daily
 // strip, the footer, the /daily archive, and the sitemap (/tuck is the
 // canonical, evergreen URL — the dated /quiz/tuck-* stubs canonicalize here).
 // One 14-letter rack a day; players build their own interlocking grid and
@@ -88,7 +88,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily tile-tucking word game — 14 letters, one empty board, and a par to beat. Come back when the first rack drops.
         </p>
-        <a href="/daily" style={{ color: '#92400e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#92400e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

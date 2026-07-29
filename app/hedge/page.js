@@ -78,7 +78,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily loop puzzle — one closed loop, every number satisfied. Come back when the first grid drops.
         </p>
-        <a href="/daily" style={{ color: '#0891b2', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#0891b2', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

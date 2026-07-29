@@ -79,7 +79,7 @@ function Logo({ size = 22 }) {
 
 const TABS = [
   { t: 'player', label: 'Player', Icon: User },
-  { t: 'daily', label: 'Daily Games', Icon: CalendarDays },
+  { t: 'daily', label: 'Daily Puzzles', Icon: CalendarDays },
   { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
   { t: 'challenges', label: 'Challenges', Icon: Flame },
   { t: 'duels', label: 'Duels', Icon: Swords },];
@@ -557,7 +557,7 @@ export default function StatHubClient() {
   const myDuel = useMemo(() => { const a = getAnonId(); return duelLadder.find((p) => p.anon === a) || null; }, [duelLadder]);
   const myDuelStreak = useMemo(() => duelStreakOf(myDuel && myDuel.matches), [myDuel]);
 
-  // Today's combined daily board lives at page level so the Daily Games nav tile
+  // Today's combined daily board lives at page level so the Daily Puzzles nav tile
   // can show a live number (my standing, or the field size) before the tab opens.
   const [dailyToday, setDailyToday] = useState(null);
   useEffect(() => {
@@ -815,9 +815,9 @@ export default function StatHubClient() {
                   <span style={subSt('player')}>{profile && profile.found ? `Level ${profile.level || 1} · ${(profile.xp || 0).toLocaleString()} XP` : 'Play to get ranked'}</span>
                 </button>
                 <button className={`tile${on('daily') ? ' on' : ''}`} onClick={() => setTab('daily')}>
-                  <span style={lblSt('daily')}><CalendarDays size={15} /> Daily Games</span>
+                  <span style={lblSt('daily')}><CalendarDays size={15} /> Daily Puzzles</span>
                   <span style={bigSt('daily')}>{dailyToday && dailyToday.me ? <>#{dailyToday.me.rank} <span style={smSt('daily')}>today</span></> : (dailyToday ? <>{dailyToday.gameCount} <span style={smSt('daily')}>live</span></> : '—')}</span>
-                  <span style={subSt('daily')}>{dailyToday && dailyToday.me ? `${fmtPts1(dailyToday.me.total)}/${dailyToday.maxTotal} pts today` : (dailyToday ? `${dailyToday.gameCount === 1 ? 'game' : 'games'} live today` : "today's board is live")}</span>
+                  <span style={subSt('daily')}>{dailyToday && dailyToday.me ? `${fmtPts1(dailyToday.me.total)}/${dailyToday.maxTotal} pts today` : (dailyToday ? `${dailyToday.gameCount === 1 ? 'puzzle' : 'puzzles'} live today` : "today's board is live")}</span>
                 </button>
                 <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
                   {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
@@ -936,9 +936,9 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
   );
 }
 
-// ─── Daily Games view ───────────────────────────────────────────────────────
+// ─── Daily Puzzles view ───────────────────────────────────────────────────────
 // Global (not player-scoped): the combined daily leaderboard, the day-by-day
-// champion history, and an all-time stat line for each daily game. Winner history
+// champion history, and an all-time stat line for each daily puzzle. Winner history
 // and per-game aggregates come from /api/quiz/daily-history; today's per-game
 // leaders come from /api/quiz/daily-combined (the same source the board uses).
 const DAILY_GAME_META = Object.fromEntries(
@@ -1014,7 +1014,7 @@ function DailyGamesView({ onSelectPlayer }) {
         ) : (
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: col, gap: 8, padding: '0 4px 8px', ...sub }}>
-              <span>Day</span><span>Champion</span><span style={{ textAlign: 'right' }}>Total</span><span style={{ textAlign: 'right' }}>Games</span><span style={{ textAlign: 'right' }}>Field</span>
+              <span>Day</span><span>Champion</span><span style={{ textAlign: 'right' }}>Total</span><span style={{ textAlign: 'right' }}>Puzzles</span><span style={{ textAlign: 'right' }}>Field</span>
             </div>
             {history.map((h, i) => (
               <div key={h.date} style={{ display: 'grid', gridTemplateColumns: col, gap: 8, alignItems: 'center', padding: '9px 4px', borderTop: `1px solid ${C.line}` }}>
@@ -1028,7 +1028,7 @@ function DailyGamesView({ onSelectPlayer }) {
                 <span style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{h.field}</span>
               </div>
             ))}
-            <p style={{ fontSize: 11, color: C.soft, marginTop: 11, lineHeight: 1.5 }}>Each day{"'"}s champion is the #1 on that day{"'"}s combined board (best 10 of the day{"'"}s games). Today is still live, so it{"'"}s not crowned yet. Field is the registered players who played any daily game that day.</p>
+            <p style={{ fontSize: 11, color: C.soft, marginTop: 11, lineHeight: 1.5 }}>Each day{"'"}s champion is the #1 on that day{"'"}s combined board (best 10 of the day{"'"}s puzzles). Today is still live, so it{"'"}s not crowned yet. Field is the registered players who played any daily puzzle that day.</p>
           </div>
         )}
       </div>
@@ -1036,13 +1036,13 @@ function DailyGamesView({ onSelectPlayer }) {
       {/* 3. Individual game stats. */}
       <div className="card" style={{ padding: '16px 18px', marginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 15, fontWeight: 800 }}>Game Stats</span>
-          {games.length ? <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>all-time, across {games.length} daily games</span> : null}
+          <span style={{ fontSize: 15, fontWeight: 800 }}>Puzzle Stats</span>
+          {games.length ? <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>all-time, across {games.length} daily puzzles</span> : null}
         </div>
         {hist == null ? (
-          <div style={{ color: C.soft, fontSize: 13 }}>Loading game stats…</div>
+          <div style={{ color: C.soft, fontSize: 13 }}>Loading puzzle stats…</div>
         ) : games.length === 0 ? (
-          <div style={{ color: C.muted, fontSize: 13 }}>No daily-game plays recorded yet.</div>
+          <div style={{ color: C.muted, fontSize: 13 }}>No daily-puzzle plays recorded yet.</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(215px,1fr))', gap: 10 }}>
             {games.map((g) => {

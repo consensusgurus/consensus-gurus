@@ -2,7 +2,7 @@
 
 // The unified daily-games tile: one horizontal strip that packages every daily
 // into a single card, each game still its own link. A fixed left cap carries the
-// DAILY GAMES label, a live progress bar with the played count and the ET reset
+// DAILY PUZZLES label, a live progress bar with the played count and the ET reset
 // countdown; each cell shows the game's motif + name, and a game finished TODAY
 // gets a green wash + a large check watermark but never blocks the click (tap
 // through to replay or review). Completion follows the signed-in player across
@@ -567,14 +567,14 @@ export default function DailyStrip({ board = null }) {
           .dstrip-mob-board{display:none;}
         }
       `}</style>
-      <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily games">
+      <div className={`dstrip${hasBoard ? ' has-board' : ''}`} role="navigation" aria-label="Daily puzzles">
         <button type="button" className="dstrip-scroll" hidden={!canScroll} onClick={scrollOn}
           aria-label={atEnd ? 'Back to the first games' : 'More games'} title={atEnd ? 'Back to the start' : 'More games'}>
           {atEnd ? <ChevronLeft size={18} strokeWidth={2.6} /> : <ChevronRight size={18} strokeWidth={2.6} />}
         </button>
         <div className="dstrip-main">
           <div className={`dstrip-cap${hasBoard ? ' has-top3' : ''}`}>
-            <a href="/daily" className="ttl dstrip-cap-ttl" aria-label="All daily games"><span className="lab">Daily</span> Games</a>
+            <a href="/daily" className="ttl dstrip-cap-ttl" aria-label="All daily puzzles"><span className="lab">Daily</span> Puzzles</a>
             <span className="dstrip-progrow">
               <span className="dstrip-bar"><span className="dstrip-fill" style={{ width: `${pct}%` }} /></span>
               <span className="dstrip-count"><span>You: <b>{n}</b> of {GAMES.length}</span></span>
@@ -635,8 +635,8 @@ export default function DailyStrip({ board = null }) {
             <div className="dstrip-hero no-streak">
               <div className="hd-eb"><Trophy size={10} strokeWidth={2.4} /> All {GAMES.length} done today</div>
               <div className="hd-row"><span><span className="hd-nm">Clean sweep</span><span className="hd-tag">Fresh puzzles drop at midnight ET</span></span></div>
-              <div className="hd-meta"><Clock size={10} strokeWidth={2.4} /><span>New games in</span><b>{resetLbl || 'midnight ET'}</b></div>
-              <div className="hd-ctas"><a href="/daily" className="hd-play arch">Daily games archive</a></div>
+              <div className="hd-meta"><Clock size={10} strokeWidth={2.4} /><span>New puzzles in</span><b>{resetLbl || 'midnight ET'}</b></div>
+              <div className="hd-ctas"><a href="/daily" className="hd-play arch">Daily puzzles archive</a></div>
             </div>
           )}
           <div className="dstrip-cells" ref={mainRef} onScroll={onScroll}>
@@ -646,7 +646,7 @@ export default function DailyStrip({ board = null }) {
               const st = streaks[g.key] >= 2 ? streaks[g.key] : null;
               const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
               return (
-                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${sun ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''}${st ? ` — ${st}-day streak` : ''} — daily game`}>
+                <a key={g.key} href={g.href} className={`dstrip-cell${done.has(g.key) ? ' done' : ''}`} title={`${g.name} — ${g.tag}`} aria-label={`${g.name} — ${g.tag}${sun ? ' — Sunday edition' : ''}${done.has(g.key) ? ' — done today' : ''}${!done.has(g.key) && inprog.has(g.key) ? ' — started, not finished' : ''}${st ? ` — ${st}-day streak` : ''} — daily puzzle`}>
                   <span className="dstrip-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
                   {done.has(g.key) && (
                     <span className="dstrip-wm" aria-hidden="true">
@@ -686,12 +686,12 @@ export default function DailyStrip({ board = null }) {
                 </a>
               );
             })}
-            {/* The former "See all" tile is now a real game tile (Shards); every daily game renders in the grid. */}
+            {/* The former "See all" tile is now a real game tile (Shards); every daily puzzle renders in the grid. */}
             {/* When the whole set is done the 2-row grid leaves a trailing empty
-                slot (odd cell count); fill it with a Daily games archive button. */}
+                slot (odd cell count); fill it with a Daily puzzles archive button. */}
             {!nextGame && cellGames.length % 2 === 1 ? (
-              <a href="/daily" className="dstrip-cell archivecell" aria-label="Daily games archive">
-                <span className="arch-btn">Daily games archive <ArrowRight size={11} strokeWidth={2.6} /></span>
+              <a href="/daily" className="dstrip-cell archivecell" aria-label="Daily puzzles archive">
+                <span className="arch-btn">Daily puzzles archive <ArrowRight size={11} strokeWidth={2.6} /></span>
               </a>
             ) : null}
           </div>

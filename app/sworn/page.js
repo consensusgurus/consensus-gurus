@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import SwornClient from './SwornClient';
 import { PUZZLES } from './puzzles';
 
-// Sworn launched 2026-07-18 as one of the daily games: linked from
+// Sworn launched 2026-07-18 as one of the daily puzzles: linked from
 // the daily strip, the footer, the /daily archive, and the sitemap (/sworn is
 // the canonical, evergreen URL — the dated /quiz/sworn-* stubs canonicalize
 // here). One inquest a day, machine-verified to a unique consistent world
@@ -99,7 +99,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily liars puzzle &mdash; sworn statements, an exact number of lies, one thief. Come back when the first inquest is sworn.
         </p>
-        <a href="/daily" style={{ color: '#be185d', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#be185d', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

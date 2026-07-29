@@ -1,6 +1,6 @@
 'use client';
 
-// DailyEndCard — the shared end-of-game result popup for every daily game
+// DailyEndCard — the shared end-of-game result popup for every daily puzzle
 // (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra,
 // Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn,
 // Outrank, Axiom, Hearsay). One component, used by all daily clients.
@@ -19,7 +19,7 @@
 //      (the thinnest field, a podium is easiest there);
 //   6. "More of today's games" — the still-to-play games grouped by family;
 //   7. a bottom actions row — Leaderboards, Play a past <Game>, and a right-hand
-//      "Daily game landing page" link.
+//      "Daily puzzle landing page" link.
 //
 // Each client passes only its result strings + handlers (unchanged API):
 //   <DailyEndCard modal self="tuck" completed
@@ -45,7 +45,7 @@ import ReportIssue from './ReportIssue';
 
 const RUST = '#c0392b';
 
-// LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily games lead the
+// LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily puzzles lead the
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
@@ -363,7 +363,7 @@ export default function DailyEndCard({
   const hasEmail = !!(ident && ident.email);
   const username = ident && ident.username ? ident.username : null;
 
-  // Which daily games the viewer has completed today. The just-finished game is
+  // Which daily puzzles the viewer has completed today. The just-finished game is
   // always checked; dailyMe.perGame fills in every other game already played so
   // the whole day resolves, not just the leaf they came from.
   const doneKeys = new Set();
@@ -537,7 +537,7 @@ export default function DailyEndCard({
 
   // Win-only celebratory confetti (fires when the player fully completes the
   // game). Deterministic + reduced-motion aware; the shared card means every
-  // daily game gets the same burst on a finish, with no per-client wiring.
+  // daily puzzle gets the same burst on a finish, with no per-client wiring.
   const confetti = React.useMemo(() => {
     if (!won) return [];
     const cols = [meta.accent, GOLD, '#2563eb', '#15803d', '#c0392b', '#c026d3', '#0e7490'];
@@ -900,7 +900,7 @@ export default function DailyEndCard({
       </div>
       {openTile && openTile !== 'calendar' ? (() => {
         const rows = tileBoard(openTile);
-        const ti = openTile === 'today' ? `${selfName} · today` : openTile === 'alltime' ? `${selfName} · all-time` : 'Combined Daily Games · Today';
+        const ti = openTile === 'today' ? `${selfName} · today` : openTile === 'alltime' ? `${selfName} · all-time` : 'Combined Daily Puzzles · Today';
         return (
           <div className="dec-expand">
             <div className="dec-expand-hd">
@@ -1017,7 +1017,7 @@ export default function DailyEndCard({
       {completionKnown && showMore ? (
         <>
           <div className="dec-morehd">
-            <span className="dec-more-eye">More of today&rsquo;s games</span>
+            <span className="dec-more-eye">More of today&rsquo;s puzzles</span>
             <span className="dec-more-count">{doneCount} of {total} played</span>
           </div>
           <div className={`dec-grid cols-${packedCols.length}`}>
@@ -1110,7 +1110,7 @@ export default function DailyEndCard({
         ) : null}
       </div>
 
-      <a className="dec-land-btn" href="/daily">Daily game landing page &rarr;</a>
+      <a className="dec-land-btn" href="/daily">Daily puzzle landing page &rarr;</a>
 
       {self ? (
         <ReportIssue

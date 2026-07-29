@@ -88,7 +88,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily mini crossword — everyday words, fair clues, a minute or two. Come back when the first grid drops.
         </p>
-        <a href="/daily" style={{ color: '#c026d3', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#c026d3', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

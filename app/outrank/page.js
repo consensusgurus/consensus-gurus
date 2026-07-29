@@ -16,7 +16,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Outrank — Daily Crowd Game: Predict the Crowd’s Ranking | Source of Truths',
   description:
-    'A free daily game where the crowd is the answer key. Vote your favorite from a themed slate, then predict how everyone playing today ranks the whole list. Seven items in the Sunday Edition. Exact slot pays double; the order shifts all day as votes arrive.',
+    'A free daily puzzle where the crowd is the answer key. Vote your favorite from a themed slate, then predict how everyone playing today ranks the whole list. Seven items in the Sunday Edition. Exact slot pays double; the order shifts all day as votes arrive.',
   alternates: { canonical: '/outrank' },
   manifest: '/outrank.webmanifest',
   icons: {
@@ -107,7 +107,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily crowd-ranking game — vote your favorite, then call the order everyone playing puts them in. Come back when the first crowd forms.
         </p>
-        <a href="/daily" style={{ color: '#4338ca', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#4338ca', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

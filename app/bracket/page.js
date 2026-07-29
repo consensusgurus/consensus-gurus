@@ -10,7 +10,7 @@ import { PUZZLES } from './puzzles';
 // and the client recomputes each matchup, exactly as the verifier does.
 
 export const metadata = {
-  title: 'Bracket — Free Daily Game: Fill the Bracket of Facts | Source of Truths',
+  title: 'Bracket — Free Daily Puzzle: Fill the Bracket of Facts | Source of Truths',
   description:
     'A free daily bracket game. Sixteen real things, one comparison question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
   alternates: { canonical: '/bracket' },
@@ -61,7 +61,7 @@ function ComingSoon({ first }) {
     <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Bracket opens {first ? first.dateLabel : 'soon'}.</h1>
-        <a href="/daily" style={{ color: '#c2410c', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#c2410c', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

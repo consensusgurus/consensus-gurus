@@ -1,6 +1,6 @@
 'use client';
 
-// ReportIssue — a small "Report an issue" affordance for the daily games.
+// ReportIssue — a small "Report an issue" affordance for the daily puzzles.
 // It wires into the site's existing submission system: the same `complaints`
 // table + admin "Notices" tab used for list feedback, via POST /api/complaints.
 // Name and email are optional; only a short message is asked for.
@@ -46,7 +46,7 @@ export default function ReportIssue({ self, name, accent = '#0e1d40', align = 'c
     let path = '';
     try { path = window.location.pathname + window.location.search; } catch (e) {}
     const listId = `${self || 'daily'}-${etTodayId()}`;
-    const listTitle = `Daily game: ${gameName}${path ? ` · ${path}` : ''}`.slice(0, 200);
+    const listTitle = `Daily puzzle: ${gameName}${path ? ` · ${path}` : ''}`.slice(0, 200);
     try {
       await fetch('/api/complaints', {
         method: 'POST',

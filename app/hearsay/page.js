@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import HearsayClient from './HearsayClient';
 import { PUZZLES } from './puzzles';
 
-// Hearsay launched 2026-07-25 as one of the daily games: linked from the daily
+// Hearsay launched 2026-07-25 as one of the daily puzzles: linked from the daily
 // strip, the /daily archive, and the sitemap (/hearsay is the canonical,
 // evergreen URL — the dated /quiz/hearsay-* stubs canonicalize here). One case
 // a day, machine-verified to leave exactly one card and to stay ambiguous until
@@ -89,7 +89,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily puzzle of what other people do not know. Come back when the first case is heard.
         </p>
-        <a href="/daily" style={{ color: '#7c2d92', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#7c2d92', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

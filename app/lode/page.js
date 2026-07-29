@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import LodeClient from './LodeClient';
 import { PUZZLES } from './puzzles';
 
-// Lode launched 2026-07-25 as a daily game: linked from the daily strip, the
+// Lode launched 2026-07-25 as a daily puzzle: linked from the daily strip, the
 // footer, the /daily archive, and the sitemap (/lode is the canonical, evergreen
 // URL — the dated /quiz/lode-* stubs canonicalize here). Seven letters, one core
 // letter, and scoring that pays for rare words rather than long ones.
@@ -91,7 +91,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily letter-mining word game &mdash; seven letters, one core, and points that pay for the rare finds. Come back when the first seam opens.
         </p>
-        <a href="/daily" style={{ color: '#a16207', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#a16207', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

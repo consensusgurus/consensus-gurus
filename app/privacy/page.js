@@ -19,7 +19,7 @@ export default function PrivacyPage() {
 
       <H2>What we collect</H2>
       <p>
-        <strong>Quiz and game results.</strong> When you finish a quiz or one of our daily games, we store the result &mdash; which quiz or puzzle it was, your score, guesses and time, whether you played on a mobile device, and the page you arrived from. Results are tied to a random anonymous identifier generated in your browser, not to your name, unless you have joined a leaderboard.
+        <strong>Quiz and game results.</strong> When you finish a quiz or one of our daily puzzles, we store the result &mdash; which quiz or puzzle it was, your score, guesses and time, whether you played on a mobile device, and the page you arrived from. Results are tied to a random anonymous identifier generated in your browser, not to your name, unless you have joined a leaderboard.
       </p>
       <p>
         <strong>Leaderboard names.</strong> Joining a leaderboard is optional. If you join, we store the display name you choose and, if you provide one, an email address used only to recover your name on another device. Emails are never displayed publicly and are not used for marketing.
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
 
       <H2>Children</H2>
       <p>
-        Most of Source of Truths &mdash; the lists, quizzes, and daily games &mdash; is written for a general audience. Our Kids Corner offers games designed for children: they require no sign-up, ask for no name, email, or other personal information, and progress is stored only on the device. We do not knowingly collect personal information from children under 13 anywhere on the site, and leaderboard sign-up is intended for users 13 and older. If you believe a child under 13 has provided us personal information, please contact us and we will delete it.
+        Most of Source of Truths &mdash; the lists, quizzes, and daily puzzles &mdash; is written for a general audience. Our Kids Corner offers games designed for children: they require no sign-up, ask for no name, email, or other personal information, and progress is stored only on the device. We do not knowingly collect personal information from children under 13 anywhere on the site, and leaderboard sign-up is intended for users 13 and older. If you believe a child under 13 has provided us personal information, please contact us and we will delete it.
       </p>
 
       <H2>Changes to this policy</H2>

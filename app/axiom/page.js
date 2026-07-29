@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import AxiomClient from './AxiomClient';
 import { PUZZLES } from './puzzles';
 
-// Axiom launched 2026-07-25 as one of the daily games: linked from the daily
+// Axiom launched 2026-07-25 as one of the daily puzzles: linked from the daily
 // strip, the /daily archive, and the sitemap (/axiom is the canonical,
 // evergreen URL — the dated /quiz/axiom-* stubs canonicalize here). One board a
 // day, machine-verified to have exactly one consistent rule AND to need at
@@ -89,7 +89,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily hidden-rule game. Green tiles obey it, red tiles break it, and most tiles teach you nothing at all.
         </p>
-        <a href="/daily" style={{ color: '#0f766e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#0f766e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

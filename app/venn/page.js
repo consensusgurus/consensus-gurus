@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import VennClient from './VennClient';
 import { PUZZLES } from './puzzles';
 
-// Venn launched 2026-07-24 as one of the daily games: linked from the daily
+// Venn launched 2026-07-24 as one of the daily puzzles: linked from the daily
 // strip, the /daily archive, and the sitemap (/venn is the canonical,
 // evergreen URL). One board a day, machine-verified (scripts/verify-venn.mjs).
 //
@@ -59,7 +59,7 @@ function ComingSoon({ first }) {
     <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Venn opens {first ? first.dateLabel : 'soon'}.</h1>
-        <a href="/daily" style={{ color: '#b45309', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#b45309', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

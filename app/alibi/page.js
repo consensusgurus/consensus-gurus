@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import AlibiClient from './AlibiClient';
 import { PUZZLES } from './puzzles';
 
-// Alibi launched 2026-07-18 as one of the daily games: linked from
+// Alibi launched 2026-07-18 as one of the daily puzzles: linked from
 // the daily strip, the footer, the /daily archive, and the sitemap (/alibi is
 // the canonical, evergreen URL — the dated /quiz/alibi-* stubs canonicalize
 // here). One whodunit a day, machine-verified to a unique solution.
@@ -97,7 +97,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The nightly whodunit — four suspects, three deduction boards, exactly one solution. Come back when the first case opens.
         </p>
-        <a href="/daily" style={{ color: '#8b1e2d', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#8b1e2d', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

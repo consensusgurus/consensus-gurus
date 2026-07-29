@@ -121,17 +121,17 @@ function gameFamily(id) { const m = (id || '').match(DAILY_GAME_FAMILY_RE); retu
 // ('<key>-M-D-YY') and has NO /quiz/<id> route -- its board lives at /<family>.
 // Route daily-game plays to the game; everything else to its quiz page.
 function playHref(id) { const fam = gameFamily(id); return fam ? `/${fam}` : `/quiz/${id}`; }
-// Rule: daily games (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Closer) publish a fresh
+// Rule: daily puzzles (Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Closer) publish a fresh
 // dated entry every day, so by publishedAt they are ALWAYS the "newest" quiz and
 // would monopolize the Newest tile. They have their own hub tiles, so the Newest
 // tile/list must never surface one. Keep this in sync with DAILY_GAME_FAMILY_RE.
 const isDailyGame = (id) => DAILY_GAME_FAMILY_RE.test(id || '');
 // Daily-game category (Word/Logic/Numbers/Geography/History) keyed by family.
 const DG_CAT = Object.fromEntries((DAILY_GAMES || []).map((g) => [g.key, CAT_META[g.cat] || null]));
-// Daily games publish a fresh dated instance ('<key>-M-D-YY') each day that is
+// Daily puzzles publish a fresh dated instance ('<key>-M-D-YY') each day that is
 // NOT a static QUIZZES entry, so titleById can't resolve it. Build a display
 // title from the roster so the live feed / Last Played tile still surface daily
-// plays; without this a whole daily game silently drops out of the feed (the
+// plays; without this a whole daily puzzle silently drops out of the feed (the
 // newer games were missing for exactly this reason).
 const DG_NAME = Object.fromEntries((DAILY_GAMES || []).map((g) => [g.key, g.name]));
 const DAILY_DATED_ID_RE = /^([a-z]+)-(\d{1,2})-(\d{1,2})-(\d{2})$/;
@@ -154,14 +154,14 @@ function dailyTitleFor(id) {
 // lays a dark scrim over the image and a light banner would vanish under it.
 //
 // These REPLACE the per-date /quiz-heroes/<family>.png entries that QUIZ_HEROES
-// carries for every daily game. Those are wide promo cards (big wordmark, tagline,
+// carries for every daily puzzle. Those are wide promo cards (big wordmark, tagline,
 // a sourceoftruths.com URL) built for sharing, and they read as an advert rather
 // than a hero when cropped into a column card, which is why the banner wins here.
 // Checked BEFORE QUIZ_HEROES for exactly that reason (owner, 2026-07-20).
 // `closer` is deliberately absent: it has no btn art, so it keeps its promo card.
 const DG_HERO_FAMS = new Set(['alibi', 'axiom', 'bracket', 'carve', 'cipher', 'circa', 'crux', 'dating', 'emcee', 'extra',
   'garble', 'hearsay', 'jester', 'links', 'outwit', 'outrank', 'ping', 'span', 'stands', 'stet', 'suds', 'sworn', 'tally', 'tuck', 'venn', 'warmer', 'shards', 'lode']);
-// One resolver for every hero image on the page: a daily game's icon banner if it
+// One resolver for every hero image on the page: a daily puzzle's icon banner if it
 // has one, else the quiz's own photo, else the department hero, else the fallback.
 // `pos` is the background-position that goes with the chosen image.
 function heroFor(id, dept) {
@@ -372,7 +372,7 @@ export default function QuizHomeClient() {
   const [doneFilter, setDoneFilter] = useState('all'); // 'all' | 'unplayed' | 'played' | 'completed' (my-progress filter)
   const [boardsExpanded, setBoardsExpanded] = useState(false); // header click expands both boards 5 -> 10
   const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
-  // Daily games row: Crux is pinned top-right on mobile; the top-LEFT slot
+  // Daily puzzles row: Crux is pinned top-right on mobile; the top-LEFT slot
   // cycles through the other dailies on each page load (localStorage counter,
   // set post-mount so SSR/hydration stay deterministic).
   const [gameRot, setGameRot] = useState('garble');
@@ -1182,7 +1182,7 @@ export default function QuizHomeClient() {
   function colRows(cat, lim, exclude) {
     // Business tile preview hides the whole Business News quiz hub (daily/weekly
     // recaps, company earnings, sector updates); they still show under View all.
-    // Daily games are hidden from tile previews for all categories EXCEPT Word
+    // Daily puzzles are hidden from tile previews for all categories EXCEPT Word
     // Games; they still appear in the expanded CategoryFull (View All) view.
     const hideDG = cat.key !== 'word';
     let base = cat.key === 'business' ? cat.quizzes.filter((q) => !isBusinessNewsHubQuiz(q.id)) : cat.quizzes;
@@ -1268,7 +1268,7 @@ export default function QuizHomeClient() {
     @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-    /* Daily games row: four half-height buttons above the hero tiles */
+    /* Daily puzzles row: four half-height buttons above the hero tiles */
     .qzh .th-games{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px;}
     @media(min-width:761px){.qzh .th-g-crux{order:1;}.qzh .th-g-garble{order:2;}.qzh .th-g-links{order:3;}.qzh .th-g-span{order:4;}.qzh .th-g-dating{order:5;}.qzh .th-g-tally{order:6;}}
     .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
@@ -1660,7 +1660,7 @@ export default function QuizHomeClient() {
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
-        {/* Daily games row: one button per daily. Art lives in /public/games;
+        {/* Daily puzzles row: one button per daily. Art lives in /public/games;
             each button is ~half the Newest tile's height. */}
         <DailyStrip board={dailyBoard} />
 
@@ -1947,7 +1947,7 @@ export default function QuizHomeClient() {
                 (added 2026-07-20 per Marshall), so the three activity columns
                 match the category columns beside them instead of reading as a
                 wall of text. The hero IS the column's own #1 row, pulled out of
-                the list below it so nothing shows twice. Daily games resolve to
+                the list below it so nothing shows twice. Daily puzzles resolve to
                 their icon banner via heroFor(). */}
             {(() => {
               const nowMs = Date.now();
@@ -2007,7 +2007,7 @@ export default function QuizHomeClient() {
                       const dc = DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc;
                       const fam = gameFamily(f.quizId);
                       const dgc = fam ? DG_CAT[fam] : null;
-                      const catLabel = dgc ? dgc.name : (fam ? 'Daily Game' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
+                      const catLabel = dgc ? dgc.name : (fam ? 'Daily Puzzle' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
                       const catColor = dgc ? dgc.color : (fam ? '#5b6472' : dc.c);
                       const frac = f.total ? f.score / f.total : 0;
                       const pctScore = Math.min(100, Math.round(frac * 100));
@@ -2073,7 +2073,7 @@ export default function QuizHomeClient() {
               const heroQ = catHeroQ[c.key];
               const heroId = heroQ && heroQ.id;
               // Same resolver as the activity columns, so a Word Games hero that
-              // lands on a daily game gets its icon banner rather than a dept photo.
+              // lands on a daily puzzle gets its icon banner rather than a dept photo.
               const ch = heroFor(heroId, c.key);
               const heroUrl = ch.src;
               const heroPos = ch.pos;

@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import JesterClient from './JesterClient';
 import { PUZZLES } from './puzzles';
 
-// Jester launched 2026-07-18 as one of the daily games: linked from
+// Jester launched 2026-07-18 as one of the daily puzzles: linked from
 // the daily strip, the footer, the /daily archive, and the sitemap (/jester is
 // the canonical, evergreen URL — the dated /quiz/jester-* stubs canonicalize
 // here). One court a day, machine-verified to a unique solution AND to fall
@@ -98,7 +98,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily court-placement puzzle &mdash; one jester per row, column and court, no touching, exactly one solution. Come back when the first court convenes.
         </p>
-        <a href="/daily" style={{ color: '#7c3aed', fontWeight: 800, textDecoration: 'underline' }}>See the other daily games &rarr;</a>
+        <a href="/daily" style={{ color: '#7c3aed', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

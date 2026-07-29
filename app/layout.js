@@ -12,17 +12,17 @@ export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Source of Truths' },
   title: `Source of Truths | Exercise Your Mind`,
-  description: `Exercise your mind every day: word, number, and logic games, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+  description: `Exercise your mind every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   openGraph: {
     title: `Source of Truths | Exercise Your Mind`,
-    description: `Exercise your mind every day: word, number, and logic games, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+    description: `Exercise your mind every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: `Source of Truths | Exercise Your Mind`,
-    description: `Exercise your mind every day: word, number, and logic games, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+    description: `Exercise your mind every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   },
 formatDetection: {
     telephone: false,
