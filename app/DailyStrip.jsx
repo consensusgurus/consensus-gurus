@@ -387,11 +387,11 @@ export default function DailyStrip({ board = null }) {
         .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
         .dh-stat.g b{color:#34d399;}
         .dh-stat.y b{color:#e8b43a;}
-        .dh-fil{position:relative;flex:none;display:flex;align-items:center;}
+        .dh-fil{position:relative;flex:none;display:flex;align-items:center;align-self:stretch;}
         .dh-fbtn{display:none;align-items:center;justify-content:center;width:34px;height:32px;border-radius:8px;border:1px solid #2a4166;background:rgba(255,255,255,0.06);color:#c3d2e8;cursor:pointer;padding:0;flex:none;}
         .dh-fbtn:hover{color:#fff;background:rgba(255,255,255,0.12);}
         .dh-fbtn.on{border-color:#e8b43a;color:#e8b43a;}
-        .dh-fmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:20;min-width:170px;background:#13264c;border:1px solid #2a4166;border-radius:10px;padding:5px;display:flex;flex-direction:column;gap:2px;box-shadow:0 10px 26px rgba(6,12,26,0.55);}
+        .dh-fmenu{position:absolute;top:calc(100% + 11px);right:0;z-index:20;min-width:170px;background:#13264c;border:1px solid #2a4166;border-radius:10px;padding:5px;display:flex;flex-direction:column;gap:2px;box-shadow:0 10px 26px rgba(6,12,26,0.55);}
         .dh-fitem{border:none;background:transparent;color:#c3d2e8;font-weight:700;font-size:12.5px;text-align:left;padding:8px 10px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .dh-fitem:hover{background:rgba(255,255,255,0.08);color:#fff;}
         .dh-fitem.on{background:#e8b43a;color:#1c1e24;}
