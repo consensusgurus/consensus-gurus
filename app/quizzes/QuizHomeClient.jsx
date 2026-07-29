@@ -386,6 +386,18 @@ export default function QuizHomeClient() {
     if (typeof window !== 'undefined') window.addEventListener('resize', measure);
     return () => { try { ro && ro.disconnect(); } catch (e) {} if (typeof window !== 'undefined') window.removeEventListener('resize', measure); };
   }, []);
+  // Leaderboard data for the left element (rebuilt from data so the three
+  // sections lay out cleanly — no embedded-tile gaps / overlap / mobile break).
+  const [refData, setRefData] = useState(null); // community referrals { top:[{username,credits}] }
+  const [xpTop, setXpTop] = useState([]); // all-time XP [{ name, value }]
+  useEffect(() => {
+    let alive = true;
+    const qs = new URLSearchParams();
+    try { const anon = localStorage.getItem('sot_quiz_anon'); if (anon) qs.set('anonId', anon); const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (id && id.email) qs.set('email', id.email); } catch (e) {}
+    fetch('/api/quiz/referrals' + (qs.toString() ? `?${qs.toString()}` : '')).then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d) setRefData(d); }).catch(() => {});
+    fetch('/api/quiz/xp').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXpTop(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp }))); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
   const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
   // Daily puzzles row: Crux is pinned top-right on mobile; the top-LEFT slot
   // cycles through the other dailies on each page load (localStorage counter,
@@ -1756,8 +1768,11 @@ export default function QuizHomeClient() {
             .qzh .dhx-lone > *{flex:1 1 0 !important;min-height:0 !important;overflow:hidden !important;}
             .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;line-height:1.15 !important;}
             .qzh .dhx-lone .cm-namewrap,.qzh .dhx-lone .xp-namewrap{min-height:0 !important;}
-            /* Daily Puzzle Leaderboard in the dark tile format */
-            .qzh .dhx-lb{padding:14px 15px;}
+            /* the three leaderboard sections: identical layout, equal size (flex:1),
+               content distributed so each has the same spacing and no dead gaps */
+            .qzh .dhx-lb{padding:15px 16px;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-height:0;overflow:hidden;}
+            .qzh .dhx-lb .dhx-lb-hero{margin:0;}
+            .qzh .dhx-lb.xp .dhx-lb-name{color:#5b8bff;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
             .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1862,10 +1877,48 @@ export default function QuizHomeClient() {
                 </div>
               );
             })() : null}
-            {/* 2. Top Community Member */}
-            <CommunityTile />
-            {/* 3. Top SoT Player */}
-            <XpTile />
+            {/* 2. Top Community Member (rebuilt from /api/quiz/referrals) */}
+            {(() => {
+              const top = (refData && Array.isArray(refData.top)) ? refData.top : [];
+              const one = top[0];
+              const num = (n) => (n || 0).toLocaleString();
+              return (
+                <div className="dhx-lb comm">
+                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> TOP COMMUNITY MEMBER</span>
+                  <div className="dhx-lb-hero">
+                    <span className="dhx-lb-name">{(one && one.username) || '—'}</span>
+                    <span className="dhx-lb-sub">{one ? `${one.credits} ${one.credits === 1 ? 'player' : 'players'} brought in over the last 90 days` : 'Nobody has brought in a player yet recently'}</span>
+                  </div>
+                  <div className="dhx-lb-grid">
+                    {top.slice(1, 5).map((r, i) => (
+                      <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">({num(r.credits)})</span></span>
+                    ))}
+                  </div>
+                  <a href="/quizzes/hub" className="dhx-lb-more">How to get credit →</a>
+                </div>
+              );
+            })()}
+            {/* 3. Top SoT Player (rebuilt from /api/quiz/xp, all-time) */}
+            {(() => {
+              const top = xpTop || [];
+              const one = top[0];
+              const num = (n) => (n || 0).toLocaleString();
+              return (
+                <div className="dhx-lb xp">
+                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#5b8bff' }} fill="#5b8bff" /> TOP SOT PLAYER</span>
+                  <div className="dhx-lb-hero">
+                    <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
+                    <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned all time` : 'No XP earned yet'}</span>
+                  </div>
+                  <div className="dhx-lb-grid">
+                    {top.slice(1, 5).map((r, i) => (
+                      <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b></span>
+                    ))}
+                  </div>
+                  <a href="/quizzes/hub" className="dhx-lb-more">Full leaderboard →</a>
+                </div>
+              );
+            })()}
             </div>
           </div>
           <div className="dhx-center" ref={centerRef}>
