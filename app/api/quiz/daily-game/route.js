@@ -83,7 +83,9 @@ function chooseGuestRow(rows, anonId) {
 // GET /api/quiz/daily-game?game=<key>&anonId=&email=&fresh=
 //   -> { game,
 //        allTime: { field, myRank, myPoints, board:[{ userKey, username, points, rank, isMe }] },
-//        drops:   [{ date, dateISO, num, href, played, isToday }] }
+//        drops:   [{ date, dateISO, num, href, played, isToday }],
+//        mine:    { plays, bestPoints, avgPoints, currentStreak, longestStreak,
+//                   perDrop: { <dateISO>: points } } }
 //
 // all-time = the game's OWN cumulative leaderboard: each registered player's
 // per-drop daily points (first completion, scored exactly like the live per-game
@@ -99,7 +101,7 @@ export async function GET(request) {
   const email = (searchParams.get('email') || '').trim() || null;
   const fresh = searchParams.get('fresh') === '1' || searchParams.get('fresh') === 'true';
 
-  const none = { game, allTime: { field: 0, plays: 0, myRank: null, myPoints: null, board: [] }, drops: [] };
+  const none = { game, allTime: { field: 0, plays: 0, myRank: null, myPoints: null, board: [] }, drops: [], mine: { plays: 0, bestPoints: null, avgPoints: null, currentStreak: 0, longestStreak: 0, perDrop: {} } };
   if (!DAILY_KEYS.includes(game)) return NextResponse.json(none, { headers: CACHE_HEADERS });
 
   const today = etTodayServer();
@@ -158,7 +160,11 @@ export async function GET(request) {
     // Cumulative per-registered-player points across every drop. scoreGame handles
     // first-completion selection and the 0..15 per-drop daily scale; we just sum.
     const cum = new Map(); // userKey -> { userKey, username, points, drops }
-    for (const rows of byDrop.values()) {
+    // The viewer's own daily points per drop, keyed by quizId. Registered players
+    // come straight off scoreGame's player map; a guest is scored the same way the
+    // provisional standing below is, so both agree.
+    const minePts = new Map();
+    for (const [qid, rows] of byDrop.entries()) {
       const gr = scoreGame(rows);
       for (const p of gr.players.values()) {
         let u = cum.get(p.userKey);
@@ -169,7 +175,10 @@ export async function GET(request) {
       }
       if (isGuestViewer) {
         const grow = chooseGuestRow(rows, anonId);
-        if (grow) { const res = guestGameResult(grow, { field: gr.field, players: gr.players }); guestPts += res.points; guestDrops += 1; }
+        if (grow) { const res = guestGameResult(grow, { field: gr.field, players: gr.players }); guestPts += res.points; guestDrops += 1; minePts.set(qid, res.points); }
+      } else if (myKey) {
+        const mineRow = gr.players.get(myKey);
+        if (mineRow) minePts.set(qid, mineRow.points);
       }
     }
     const ranked = [...cum.values()].sort((a, b) =>
@@ -229,7 +238,53 @@ export async function GET(request) {
       };
     }).sort((a, b) => (a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : 0));
 
-    return NextResponse.json({ game, allTime, drops }, { headers: CACHE_HEADERS });
+    // ── the viewer's own all-time record for this game ──
+    const perDrop = {};
+    let bestPoints = null, sumPoints = 0, ptsPlays = 0;
+    for (const [qid, pts] of minePts.entries()) {
+      const m = qid.match(DAILY_ONE_RE);
+      if (!m) continue;
+      const iso = isoOfSuffix(`${m[1]}-${m[2]}-${m[3]}`);
+      const p = Math.round(Number(pts) * 10) / 10;
+      perDrop[iso] = p;
+      if (bestPoints == null || p > bestPoints) bestPoints = p;
+      sumPoints += p; ptsPlays += 1;
+    }
+    // Every drop the viewer has a row for (a drop they opened but never scored
+    // still counts as played, exactly as the calendar marks it).
+    const playedISO = [];
+    for (const qid of played) {
+      const m = qid.match(DAILY_ONE_RE);
+      if (m) playedISO.push(isoOfSuffix(`${m[1]}-${m[2]}-${m[3]}`));
+    }
+    playedISO.sort();
+    const playedSet = new Set(playedISO);
+    const dayBefore = (iso) => {
+      const d = new Date(iso + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() - 1);
+      return d.toISOString().slice(0, 10);
+    };
+    let currentStreak = 0;
+    if (playedSet.size) {
+      let cursor = playedSet.has(today) ? today : dayBefore(today);
+      while (playedSet.has(cursor)) { currentStreak += 1; cursor = dayBefore(cursor); }
+    }
+    let longestStreak = 0, run = 0, prevISO = null;
+    for (const iso of playedISO) {
+      run = (prevISO && dayBefore(iso) === prevISO) ? run + 1 : 1;
+      if (run > longestStreak) longestStreak = run;
+      prevISO = iso;
+    }
+    const mine = {
+      plays: playedSet.size,
+      bestPoints,
+      avgPoints: ptsPlays ? Math.round((sumPoints / ptsPlays) * 10) / 10 : null,
+      currentStreak,
+      longestStreak,
+      perDrop,
+    };
+
+    return NextResponse.json({ game, allTime, drops, mine }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-game exception', e);
     return NextResponse.json(none, { headers: CACHE_HEADERS });

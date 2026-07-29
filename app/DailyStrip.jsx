@@ -5,10 +5,16 @@
 // the old horizontal strip becomes a paper-and-ink TILE BOARD. An UP NEXT hero
 // (navy block) sits on top; a filter row (All / Unplayed / Streak at risk) plus
 // a "Daily leaderboard" toggle sits below it; then a white-tile grid of every
-// daily. Clicking a tile expands a full-width navy detail panel in place —
-// nothing navigates until you hit Play. The panel shows the game's identity,
-// YOUR RECORD (today's score, rank, streak), and TODAY'S STANDINGS for that one
-// game (from the /api/quiz/daily-combined per-game board). The OVERALL daily
+// daily. Clicking a tile expands it IN PLACE as an overlay: DailyTilePanel is
+// rendered absolutely inside .dh-boardwrap, covering the grid rather than
+// displacing it, so the board's height never changes and nothing below moves
+// (owner request, 2026-07-29; it previously inserted a strip at the end of the
+// selected tile's row, which pushed every later tile down the page). Nothing
+// navigates until you hit Play. The panel carries the game's identity and a
+// one-line how-to-play, today's record and standings (from the
+// /api/quiz/daily-combined per-game board), and, from one lazy
+// /api/quiz/daily-game fetch, the archive calendar, the game's all-time
+// leaderboard, and the viewer's own all-time record. The OVERALL daily
 // leaderboard (overall top 3, per-game minis, recent champions) is still
 // reachable via the "Daily leaderboard" toggle so nothing is lost before Stage 2
 // promotes the page into three columns.
@@ -29,6 +35,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Crown, ChevronDown, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, X } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
+import DailyTilePanel from './DailyTilePanel';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -254,24 +261,26 @@ export default function DailyStrip({ board = null }) {
     return () => { alive = false; };
   }, [lbOpen, hasBoard, hist]);
 
-  // Measure the board's real column count so the expand panel can be inserted at
-  // the end of the selected tile's row regardless of the responsive breakpoint.
-  const boardRef = useRef(null);
-  const [cols, setCols] = useState(6);
+  // Per-game archive + all-time record, fetched on first expand and cached by
+  // game key (so re-opening a tile costs nothing). Shape: { allTime, drops, mine }.
+  const [gameData, setGameData] = useState({});
+  const fetchedRef = useRef(new Set());
   useEffect(() => {
-    const measure = () => {
-      const el = boardRef.current;
-      if (!el) return;
-      try {
-        const tpl = getComputedStyle(el).gridTemplateColumns || '';
-        const nCol = tpl.split(' ').filter(Boolean).length;
-        if (nCol) setCols(nCol);
-      } catch (e) {}
-    };
-    measure();
-    window.addEventListener('resize', measure);
-    return () => window.removeEventListener('resize', measure);
-  });
+    if (!sel || fetchedRef.current.has(sel)) return;
+    fetchedRef.current.add(sel);
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams({ game: sel });
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    let alive = true;
+    fetch('/api/quiz/daily-game?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && !d.error) setGameData((cur) => ({ ...cur, [sel]: d })); })
+      .catch(() => { fetchedRef.current.delete(sel); });
+    return () => { alive = false; };
+  }, [sel]);
 
   // filtered tile set
   const todoCount = GAMES.filter((g) => !done.has(g.key)).length;
@@ -281,88 +290,31 @@ export default function DailyStrip({ board = null }) {
     : filter === 'risk'
       ? games.filter((g) => !done.has(g.key) && (streaks[g.key] || 0) >= 2)
       : games;
-  const selIdx = sel != null ? list.findIndex((g) => g.key === sel) : -1;
+  const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
   const chip = (f, label) => (
     <button type="button" className={`dh-chip${filter === f ? ' on' : ''}`} onClick={() => { setFilter(f); setSel(null); }}>{label}</button>
   );
 
-  // ── the per-game expand panel ──
+  // ── the per-game expand panel (overlays the board; see DailyTilePanel) ──
   const renderPanel = (g) => {
-    const col = tcol(g.key);
     const bg = byKey[g.key] || null;
-    const isDone = done.has(g.key);
-    const st = streaks[g.key] || 0;
-    const row = myRow(g.key);
-    const scoreLine = todayScoreLine(row);
-    const rankToday = row ? row.rank : null;
-    const field = bg && typeof bg.field === 'number' ? bg.field : null;
-    const beatPct = row && field && field > 0 ? Math.max(0, Math.round(((field - row.rank) / field) * 100)) : null;
-    const stand = bg && Array.isArray(bg.board) ? bg.board.slice(0, 5) : [];
-    const standHasMe = meKey && stand.some((r) => r.userKey === meKey);
     return (
-      <div className="dh-panel" style={{ '--gc': col }} key={`panel-${g.key}`}>
-        <button type="button" className="dh-panel-close" aria-label="Close" onClick={() => setSel(null)}><X size={16} /></button>
-        {/* col 1 — identity + CTAs */}
-        <div className="dh-pc">
-          <div className="dh-pid">
-            <span className="dh-pic"><img src={g.img} alt="" aria-hidden="true" /></span>
-            <div>
-              <div className="dh-pname">{g.name}{st >= 2 ? <span className="dh-flamechip"><Flame size={11} strokeWidth={2.6} />{st}</span> : null}</div>
-              <div className="dh-pmeta">{g.tag} · {g.cat}</div>
-            </div>
-          </div>
-          <div className="dh-pctas">
-            {isDone ? (
-              <a href={g.href} className="dh-ghostD">Play again</a>
-            ) : (
-              <a href={g.href} className="dh-play"><Play size={12} fill="#1c1e24" strokeWidth={0} />{inprog.has(g.key) ? 'Resume' : 'Play'}</a>
-            )}
-          </div>
-        </div>
-        {/* col 2 — your record */}
-        <div className="dh-pc">
-          <div className="dh-plab">Your record</div>
-          <div className="dh-prec">
-            <div><div className="dh-pnum">{scoreLine || (isDone ? 'Done' : '—')}</div><div className="dh-psub">Today</div></div>
-            <div><div className="dh-pnum">{rankToday ? `#${rankToday}` : '—'}</div><div className="dh-psub">Rank today</div></div>
-            <div><div className="dh-pnum">{st || '—'}</div><div className="dh-psub">Streak</div></div>
-          </div>
-          {beatPct != null ? (
-            <div className="dh-pbeat">Beat <b>{beatPct}%</b> of players today</div>
-          ) : (
-            <div className="dh-pbeat dim">{isDone ? 'Standings updating…' : 'Play to rank today'}</div>
-          )}
-        </div>
-        {/* col 3 — standings today */}
-        <div className="dh-pc">
-          <div className="dh-plab">Standings today</div>
-          {stand.length ? (
-            <>
-              {stand.map((r, i) => {
-                const mine = meKey && r.userKey === meKey;
-                return (
-                  <div key={r.userKey || i} className={`dh-lrow${mine ? ' me' : ''}`}>
-                    <span className="dh-lpl">{r.rank || i + 1}</span>
-                    <b>{r.username || 'Player'}{mine ? ' (you)' : ''}</b>
-                    <span className="dh-lsc">{fmtPts(r.points)}</span>
-                  </div>
-                );
-              })}
-              {meKey && row && !standHasMe ? (
-                <div className="dh-lrow me">
-                  <span className="dh-lpl">{row.rank}</span>
-                  <b>You</b>
-                  <span className="dh-lsc">{fmtPts(row.points)}</span>
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className="dh-pempty">{hasBoard ? 'No scores yet — be the first.' : 'Standings load when the day starts.'}</div>
-          )}
-        </div>
-      </div>
+      <DailyTilePanel
+        key={'panel-' + g.key}
+        game={g}
+        accent={ACCENTS[g.key] || '#5b9bff'}
+        isDone={done.has(g.key)}
+        inProgress={inprog.has(g.key)}
+        streak={streaks[g.key] || 0}
+        todayRow={myRow(g.key)}
+        todayField={bg && typeof bg.field === 'number' ? bg.field : null}
+        standings={bg && Array.isArray(bg.board) ? bg.board : []}
+        meKey={meKey}
+        data={gameData[g.key] || null}
+        onClose={() => setSel(null)}
+      />
     );
   };
 
@@ -414,6 +366,8 @@ export default function DailyStrip({ board = null }) {
         .dh-dtop-exp svg{flex:none;color:#e8b43a;}
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
+        .dh-boardwrap{position:relative;}
+        .dh-boardwrap.open{min-height:430px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
@@ -438,34 +392,6 @@ export default function DailyStrip({ board = null }) {
         .dh-lead svg{flex:none;color:#e8b43a;}
         .dh-lead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         /* ── expand panel (navy, full width) ── */
-        .dh-panel{position:relative;grid-column:1/-1;background:#0e1d40;border-radius:12px;color:#eef3fb;padding:18px;display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:20px;}
-        .dh-panel-close{position:absolute;top:11px;right:12px;background:transparent;border:none;color:#93a3bd;cursor:pointer;display:flex;padding:2px;}
-        .dh-panel-close:hover{color:#fff;}
-        .dh-pc{min-width:0;}
-        .dh-pid{display:flex;gap:13px;align-items:center;margin-bottom:14px;}
-        .dh-pic{flex:none;width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;}
-        .dh-pic img{height:34px;width:auto;max-width:44px;object-fit:contain;}
-        .dh-pname{font-size:21px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;}
-        .dh-flamechip{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 7px;font-size:11px;font-weight:800;color:#e8b43a;}
-        .dh-flamechip svg{flex:none;}
-        .dh-pmeta{font-size:12px;color:#93a3bd;font-weight:600;margin-top:2px;}
-        .dh-pctas{display:flex;gap:9px;flex-wrap:wrap;}
-        .dh-plab{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;font-weight:500;margin-bottom:10px;}
-        .dh-prec{display:flex;gap:22px;margin-bottom:12px;}
-        .dh-pnum{font-size:21px;font-weight:800;line-height:1.1;}
-        .dh-psub{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#6c7e9b;margin-top:3px;}
-        .dh-pbeat{font-size:12px;color:#93a3bd;font-weight:600;}
-        .dh-pbeat b{color:#fff;font-weight:800;}
-        .dh-pbeat.dim{color:#6c7e9b;}
-        .dh-lrow{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid #1e3050;font-size:12px;color:#93a3bd;}
-        .dh-lrow:last-child{border-bottom:none;}
-        .dh-lpl{width:16px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#6c7e9b;flex:none;}
-        .dh-lrow b{color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
-        .dh-lsc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#fff;flex:none;}
-        .dh-lrow.me{background:#2a2107;border-radius:6px;padding:5px 8px;border-bottom:none;margin:2px -8px;}
-        .dh-lrow.me b{color:#e8b43a;}
-        .dh-lrow.me .dh-lpl,.dh-lrow.me .dh-lsc{color:#e8b43a;}
-        .dh-pempty{font-size:12px;color:#6c7e9b;font-weight:600;padding:6px 0;}
         /* ── overall daily leaderboard (toggled) ── */
         .dh-lbpanel{background:#0b1733;border:1px solid rgba(232,180,58,0.28);border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#eef3fb;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
@@ -521,7 +447,7 @@ export default function DailyStrip({ board = null }) {
         .dsd-none{color:#6a80a8;font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
-        @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-panel{grid-template-columns:1fr;gap:16px;}}
+        @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
           .dh-hero{flex-wrap:wrap;gap:11px 14px;padding:13px 14px;}
           .dh-hero-mid{flex:1 1 60%;}
@@ -538,6 +464,7 @@ export default function DailyStrip({ board = null }) {
           .dh-hint{display:none;}
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}}
+        @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
       `}</style>
 
       {/* Up Next hero */}
@@ -667,44 +594,46 @@ export default function DailyStrip({ board = null }) {
         </div>
       ) : null}
 
-      {/* tile board */}
-      <div className="dh-board" ref={boardRef} role="navigation" aria-label="Daily puzzles">
-        {list.map((g, i) => {
-          const isDone = done.has(g.key);
-          const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
-          const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
-          const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
-          const row = isDone ? myRow(g.key) : null;
-          const sl = row ? todayScoreLine(row) : null;
-          const tile = (
-            <button
-              type="button"
-              key={g.key}
-              className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
-              onClick={() => pick(g.key)}
-              aria-expanded={sel === g.key}
-              aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
-            >
-              <span className="dh-acc" style={{ background: tcol(g.key) }} aria-hidden="true" />
-              <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
-              {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
-              <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
-              <span className="dh-tnm">{g.name}</span>
-              {isDone ? (
-                <span className="dh-tsub done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
-              ) : st ? (
-                <span className="dh-tsub strk"><Flame size={10} strokeWidth={2.6} />{st} day</span>
-              ) : lead ? (
-                <span className="dh-lead"><Crown size={10} /><span>{lead}</span></span>
-              ) : (
-                <span className="dh-tsub">Not played</span>
-              )}
-            </button>
-          );
-          const endOfRow = (i % cols === cols - 1) || (i === list.length - 1);
-          const showPanel = selIdx >= 0 && endOfRow && Math.floor(selIdx / cols) === Math.floor(i / cols);
-          return showPanel ? [tile, renderPanel(list[selIdx])] : tile;
-        })}
+      {/* tile board. The expand panel is absolutely positioned inside this
+          wrapper, so opening a tile covers the grid rather than displacing it. */}
+      <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
+        <div className="dh-board" role="navigation" aria-label="Daily puzzles" aria-hidden={selGame ? 'true' : undefined}>
+          {list.map((g, i) => {
+            const isDone = done.has(g.key);
+            const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
+            const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
+            const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
+            const row = isDone ? myRow(g.key) : null;
+            const sl = row ? todayScoreLine(row) : null;
+            const tile = (
+              <button
+                type="button"
+                key={g.key}
+                className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
+                onClick={() => pick(g.key)}
+                aria-expanded={sel === g.key}
+                aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
+              >
+                <span className="dh-acc" style={{ background: tcol(g.key) }} aria-hidden="true" />
+                <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
+                {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
+                <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
+                <span className="dh-tnm">{g.name}</span>
+                {isDone ? (
+                  <span className="dh-tsub done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
+                ) : st ? (
+                  <span className="dh-tsub strk"><Flame size={10} strokeWidth={2.6} />{st} day</span>
+                ) : lead ? (
+                  <span className="dh-lead"><Crown size={10} /><span>{lead}</span></span>
+                ) : (
+                  <span className="dh-tsub">Not played</span>
+                )}
+              </button>
+            );
+            return tile;
+          })}
+        </div>
+        {selGame ? renderPanel(selGame) : null}
       </div>
     </div>
   );

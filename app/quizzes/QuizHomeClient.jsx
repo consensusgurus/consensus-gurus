@@ -1765,7 +1765,9 @@ export default function QuizHomeClient() {
             .qzh .dhx-lpr .rt{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
             .qzh .dhx-lpr .rt .s{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:#16a34a;background:#e7f7ed;border-radius:999px;padding:1px 6px;}
-            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#8b909d;font-weight:600;}
+            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#8b909d;font-weight:600;white-space:nowrap;}
+            /* beat chip and "how long ago" share one line under the score */
+            .qzh .dhx-lpr .rt .when{display:flex;align-items:center;gap:5px;}
             /* quick play element */
             .qzh .dhx-quick{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:5px;flex:none;}
             .qzh .dhx-qrow{display:flex;align-items:center;gap:11px;padding:9px 9px;border-radius:11px;text-decoration:none;}
@@ -1996,7 +1998,7 @@ export default function QuizHomeClient() {
                     <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
                       <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
                       <span className="mid"><span className="t">{stripVerb(resolveTitle(f.quizId) || f.title || f.quizId)}</span><span className="c"><i style={{ background: catColor }} />{catLabel}{todayPlays(f.quizId) > 0 ? <span className="x"> · x{todayPlays(f.quizId).toLocaleString()} today</span> : null}</span></span>
-                      <span className="rt"><span className="s" style={{ color: good ? '#16a34a' : '#1c1e24' }}>{f.score}/{f.total}</span>{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : <span className="tm">{relTime(f.playedAt)}</span>}</span>
+                      <span className="rt"><span className="s" style={{ color: good ? '#16a34a' : '#1c1e24' }}>{f.score}/{f.total}</span><span className="when">{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : null}{relTime(f.playedAt) ? <span className="tm">{relTime(f.playedAt)} ago</span> : null}</span></span>
                     </a>
                   );
                 })}

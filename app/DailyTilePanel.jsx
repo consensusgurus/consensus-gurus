@@ -1,0 +1,320 @@
+'use client';
+
+// The expanded state of a daily-puzzle tile on the quiz home board (owner
+// request, 2026-07-29). Clicking a tile used to insert a full-width strip at the
+// end of that tile's row, which pushed every tile below it down the page. This
+// panel instead OVERLAYS the tile grid: DailyStrip renders it absolutely
+// positioned over the board, so the board's outer height never changes and
+// nothing on the page moves. One tile visually takes over the whole board.
+//
+// What it shows, per the owner's brief:
+//   • the game's identity plus a ONE-SENTENCE instruction (roster field `how`
+//     in lib/daily-games.js, the single source of truth for game metadata);
+//   • a large, obvious Play button, and an equally obvious button to re-shrink;
+//   • today's record (score, rank, beat %), carried in from the board payload;
+//   • the viewer's all-time record for this game, archive completion, streak
+//     detail, and the size of the community, from `mine` + `allTime`;
+//   • a mini month calendar of the game's archive, matching the /daily and
+//     end-card calendars (played days green, today ringed, past days playable);
+//   • the game's all-time leaderboard, with the viewer's own row pinned when
+//     they sit outside the visible top.
+//
+// Everything after "today" comes from ONE fetch of /api/quiz/daily-game, which
+// already served the end card's calendar and all-time board and now also returns
+// the viewer's `mine` record. Fetched lazily on expand and cached by the parent,
+// so opening a tile costs one request the first time and nothing after that.
+
+import React, { useEffect, useMemo, useState } from 'react';
+import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy } from 'lucide-react';
+import { DAILY_GAME_MAP } from '../lib/daily-games';
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+function etTodayISO() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+
+export default function DailyTilePanel({
+  game,              // roster row from DailyStrip's GAMES (key, name, href, img, tag, cat)
+  accent,            // navy-legible accent for this game
+  isDone = false,
+  inProgress = false,
+  streak = 0,        // today's live streak, from daily-status
+  todayRow = null,   // the viewer's row on today's per-game board
+  todayField = null, // how many played this game today
+  standings = [],    // today's per-game top rows
+  meKey = null,
+  data = null,       // { allTime, drops, mine } from /api/quiz/daily-game, or null while loading
+  onClose,
+}) {
+  const todayISO = etTodayISO();
+  const how = (DAILY_GAME_MAP[game.key] && DAILY_GAME_MAP[game.key].how) || game.tag;
+
+  const drops = (data && Array.isArray(data.drops)) ? data.drops : [];
+  const allTime = (data && data.allTime) || null;
+  const mine = (data && data.mine) || null;
+  const loading = !data;
+
+  // ── calendar month state: opens on the month of the newest drop ──
+  const [calMonth, setCalMonth] = useState(() => todayISO.slice(0, 7));
+  useEffect(() => { setCalMonth(todayISO.slice(0, 7)); }, [game.key, todayISO]);
+
+  // Esc re-shrinks the tile, matching the Collapse button.
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose && onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const dropByISO = useMemo(() => new Map(drops.map((d) => [d.dateISO, d])), [drops]);
+  const earliestYM = drops.length ? drops[0].dateISO.slice(0, 7) : todayISO.slice(0, 7);
+  const latestYM = todayISO.slice(0, 7);
+  const [calY, calM] = calMonth.split('-').map(Number);
+  const firstWeekday = new Date(Date.UTC(calY, calM - 1, 1)).getUTCDay();
+  const daysInMonth = new Date(Date.UTC(calY, calM, 0)).getUTCDate();
+  const cells = [];
+  for (let k = 0; k < firstWeekday; k++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  const shiftMonth = (delta) => {
+    let y = calY, m = calM + delta;
+    while (m < 1) { m += 12; y -= 1; }
+    while (m > 12) { m -= 12; y += 1; }
+    setCalMonth(y + '-' + String(m).padStart(2, '0'));
+  };
+
+  // ── today's numbers (from the board payload the strip already holds) ──
+  const todayScore = todayRow
+    ? (todayRow.total != null && Number(todayRow.total) > 0
+      ? fmtPts(todayRow.score) + '/' + fmtPts(todayRow.total)
+      : (todayRow.score != null ? fmtPts(todayRow.score) : fmtPts(todayRow.points)))
+    : null;
+  const beatPct = (todayRow && todayField > 0)
+    ? Math.max(0, Math.round(((todayField - todayRow.rank) / todayField) * 100))
+    : null;
+
+  // ── all-time record ──
+  const totalDrops = drops.length;
+  const playedCount = mine ? mine.plays : drops.filter((d) => d.played).length;
+  const archivePct = totalDrops ? Math.round((playedCount / totalDrops) * 100) : null;
+  const longest = mine ? Math.max(mine.longestStreak || 0, streak || 0) : streak;
+  const dash = loading ? '·' : '—';
+
+  const board = (allTime && Array.isArray(allTime.board)) ? allTime.board.slice(0, 5) : [];
+  const meOnBoard = board.some((r) => r.isMe);
+  const myRank = allTime && allTime.myRank;
+
+  return (
+    <div className="dtp" style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
+      {/* ── header: identity, instruction, and the two big buttons ── */}
+      <div className="dtp-hd">
+        <span className="dtp-ic"><img src={game.img} alt="" aria-hidden="true" /></span>
+        <div className="dtp-idt">
+          <div className="dtp-nm">
+            {game.name}
+            {streak >= 2 ? <span className="dtp-flame"><Flame size={12} strokeWidth={2.6} />{streak}</span> : null}
+            {isDone ? <span className="dtp-donechip">Done today</span> : null}
+          </div>
+          <div className="dtp-cat">{game.cat} · {game.tag}</div>
+          <p className="dtp-how">{how}</p>
+        </div>
+        <div className="dtp-acts">
+          <a href={game.href} className="dtp-play">
+            <Play size={16} fill="#1c1e24" strokeWidth={0} />
+            {isDone ? 'Play again' : (inProgress ? 'Resume' : 'Play')}
+          </a>
+          <button type="button" className="dtp-shrink" onClick={onClose}>
+            <X size={14} strokeWidth={2.6} />Close
+          </button>
+        </div>
+      </div>
+
+      <div className="dtp-grid">
+        {/* ── your record ── */}
+        <section className="dtp-col">
+          <div className="dtp-lab">Your record</div>
+          <div className="dtp-stats">
+            <div><b>{todayScore || (isDone ? 'Done' : '—')}</b><span>Today</span></div>
+            <div><b>{todayRow && todayRow.rank ? '#' + todayRow.rank : '—'}</b><span>Rank today</span></div>
+            <div><b>{streak || '—'}</b><span>Streak</span></div>
+            <div><b>{loading ? dash : (myRank ? '#' + myRank : '—')}</b><span>All-time rank</span></div>
+          </div>
+          <div className="dtp-rows">
+            <div className="dtp-row"><span>Archive played</span><b>{loading ? dash : playedCount + ' of ' + totalDrops + (archivePct != null ? ' · ' + archivePct + '%' : '')}</b></div>
+            <div className="dtp-row"><span>Best day</span><b>{loading ? dash : (mine && mine.bestPoints != null ? fmtPts(mine.bestPoints) + ' pts' : '—')}</b></div>
+            <div className="dtp-row"><span>Average day</span><b>{loading ? dash : (mine && mine.avgPoints != null ? fmtPts(mine.avgPoints) + ' pts' : '—')}</b></div>
+            <div className="dtp-row"><span>Longest streak</span><b>{loading ? dash : (longest ? longest + ' day' + (longest === 1 ? '' : 's') : '—')}</b></div>
+            <div className="dtp-row"><span>Players all-time</span><b>{loading ? dash : ((allTime && allTime.plays != null) ? allTime.plays.toLocaleString() : '—')}</b></div>
+            <div className="dtp-row"><span>Playing today</span><b>{todayField != null ? todayField.toLocaleString() : '—'}</b></div>
+          </div>
+          {beatPct != null ? <div className="dtp-beat">You beat <b>{beatPct}%</b> of today&rsquo;s players</div> : null}
+        </section>
+
+        {/* ── archive calendar ── */}
+        <section className="dtp-col">
+          <div className="dtp-lab"><CalendarDays size={12} strokeWidth={2.4} />Archive</div>
+          <div className="dtp-calhd">
+            <button type="button" onClick={() => shiftMonth(-1)} disabled={calMonth <= earliestYM} aria-label="Previous month"><ChevronLeft size={15} strokeWidth={2.6} /></button>
+            <span className="dtp-mo">{MONTH_NAMES[(calM - 1) % 12]} {calY}</span>
+            <button type="button" onClick={() => shiftMonth(1)} disabled={calMonth >= latestYM} aria-label="Next month"><ChevronRight size={15} strokeWidth={2.6} /></button>
+          </div>
+          <div className="dtp-cal">
+            {CAL_WD.map((w, i) => <span key={'w' + i} className="dtp-wd">{w}</span>)}
+            {cells.map((d, i) => {
+              if (d === null) return <span key={'e' + i} className="dtp-cell empty" />;
+              const iso = calY + '-' + String(calM).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+              const drop = dropByISO.get(iso);
+              if (!drop) return <span key={iso} className="dtp-cell none">{d}</span>;
+              const cls = 'dtp-cell' + (drop.played ? ' played' : ' open') + (drop.isToday ? ' today' : '');
+              return <a key={iso} href={drop.href} className={cls} title={drop.played ? 'Played' : 'Not played yet'}>{d}</a>;
+            })}
+          </div>
+          <div className="dtp-key">
+            <span><i className="sw played" />Played</span>
+            <span><i className="sw open" />Open</span>
+            <span><i className="sw today" />Today</span>
+          </div>
+        </section>
+
+        {/* ── all-time leaderboard ── */}
+        <section className="dtp-col">
+          <div className="dtp-lab"><Trophy size={12} strokeWidth={2.4} />All-time leaderboard</div>
+          {loading ? (
+            <div className="dtp-empty">Loading standings…</div>
+          ) : board.length ? (
+            <>
+              {board.map((r, i) => (
+                <div key={r.userKey || i} className={'dtp-lrow' + (r.isMe ? ' me' : '')}>
+                  <span className="pl">{r.rank === 1 ? <Crown size={12} /> : r.rank}</span>
+                  <b>{r.username || 'Player'}{r.isMe ? ' (you)' : ''}</b>
+                  <span className="sc">{fmtPts(r.points)}</span>
+                </div>
+              ))}
+              {myRank && !meOnBoard ? (
+                <div className="dtp-lrow me">
+                  <span className="pl">{myRank}</span>
+                  <b>You{allTime && allTime.provisional ? ' (prov.)' : ''}</b>
+                  <span className="sc">{allTime.myPoints != null ? fmtPts(allTime.myPoints) : '—'}</span>
+                </div>
+              ) : null}
+              <div className="dtp-lfoot">
+                {allTime && allTime.field ? allTime.field.toLocaleString() + ' ranked players' : ''}
+                <a href="/daily">Full standings →</a>
+              </div>
+            </>
+          ) : (
+            <div className="dtp-empty">No all-time standings yet. Be the first.</div>
+          )}
+          {standings && standings.length ? (
+            <>
+              <div className="dtp-lab sm">Today&rsquo;s top</div>
+              {standings.slice(0, 3).map((r, i) => {
+                const mineRow = meKey && r.userKey === meKey;
+                return (
+                  <div key={'t' + (r.userKey || i)} className={'dtp-lrow' + (mineRow ? ' me' : '')}>
+                    <span className="pl">{r.rank || i + 1}</span>
+                    <b>{r.username || 'Player'}{mineRow ? ' (you)' : ''}</b>
+                    <span className="sc">{fmtPts(r.points)}</span>
+                  </div>
+                );
+              })}
+            </>
+          ) : null}
+        </section>
+      </div>
+
+      <style>{`
+        .dtp{position:absolute;inset:0;z-index:6;background:#0e1d40;border:1px solid #23375c;border-radius:12px;color:#eef3fb;
+             padding:16px 18px;display:flex;flex-direction:column;gap:13px;overflow:auto;font-family:'Manrope',system-ui,-apple-system,sans-serif;
+             box-shadow:0 16px 44px rgba(6,12,26,0.5);animation:dtpIn .16s ease-out;}
+        @keyframes dtpIn{from{opacity:0;transform:scale(.985);}to{opacity:1;transform:none;}}
+        .dtp::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gc);border-radius:12px 12px 0 0;}
+        /* header */
+        .dtp-hd{display:flex;align-items:flex-start;gap:14px;flex:none;}
+        .dtp-ic{flex:none;width:54px;height:54px;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;}
+        .dtp-ic img{height:34px;width:auto;max-width:44px;object-fit:contain;}
+        .dtp-idt{flex:1;min-width:0;}
+        .dtp-nm{font-size:23px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.1;}
+        .dtp-flame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:800;color:#e8b43a;}
+        .dtp-donechip{display:inline-flex;align-items:center;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#6ee7b7;}
+        .dtp-cat{font-size:12px;font-weight:700;color:var(--gc);margin-top:3px;}
+        .dtp-how{font-size:13px;line-height:1.45;color:#c3d2e8;font-weight:600;margin:5px 0 0;max-width:62ch;}
+        .dtp-acts{flex:none;display:flex;flex-direction:column;gap:8px;align-items:stretch;min-width:150px;}
+        .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:16px;
+                  border-radius:11px;padding:14px 26px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
+        .dtp-play:hover{background:#f0c358;transform:translateY(-1px);}
+        .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;
+                    font-weight:700;font-size:12.5px;border-radius:9px;padding:9px 14px;cursor:pointer;font-family:inherit;transition:background .12s,color .12s;}
+        .dtp-shrink:hover{background:rgba(255,255,255,0.07);color:#fff;}
+        /* three columns */
+        .dtp-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1.08fr 1fr 1fr;gap:20px;}
+        .dtp-col{min-width:0;display:flex;flex-direction:column;}
+        .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;font-weight:500;margin-bottom:9px;}
+        .dtp-lab.sm{margin-top:13px;}
+        .dtp-lab svg{color:var(--gc);}
+        /* your record */
+        .dtp-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px;}
+        .dtp-stats>div{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:8px 10px;}
+        .dtp-stats b{display:block;font-size:19px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
+        .dtp-stats span{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#6c7e9b;margin-top:2px;display:block;}
+        .dtp-rows{display:flex;flex-direction:column;}
+        .dtp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #1e3050;font-size:12px;}
+        .dtp-row:last-child{border-bottom:none;}
+        .dtp-row span{color:#93a3bd;font-weight:600;}
+        .dtp-row b{color:#fff;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+        .dtp-beat{margin-top:9px;font-size:12px;color:#93a3bd;font-weight:600;}
+        .dtp-beat b{color:#6ee7b7;font-weight:800;}
+        /* calendar */
+        .dtp-calhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+        .dtp-mo{font-size:13px;font-weight:800;color:#eef3fb;}
+        .dtp-calhd button{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;cursor:pointer;}
+        .dtp-calhd button:hover:not(:disabled){background:rgba(255,255,255,0.08);color:#fff;}
+        .dtp-calhd button:disabled{opacity:.32;cursor:default;}
+        .dtp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+        .dtp-wd{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#6c7e9b;text-align:center;padding-bottom:2px;}
+        .dtp-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;border-radius:7px;color:#5a6d8f;text-decoration:none;font-variant-numeric:tabular-nums;}
+        .dtp-cell.empty{background:transparent;}
+        .dtp-cell.none{color:#3d4f70;}
+        a.dtp-cell.played{background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.45);color:#6ee7b7;}
+        a.dtp-cell.open{background:rgba(255,255,255,0.05);border:1px solid #2a4166;color:#c3d2e8;}
+        a.dtp-cell.open:hover{border-color:var(--gc);color:#fff;}
+        a.dtp-cell.today{box-shadow:0 0 0 2px #e8b43a;}
+        .dtp-key{display:flex;flex-wrap:wrap;gap:6px 13px;margin-top:9px;font-size:10.5px;color:#93a3bd;font-weight:600;}
+        .dtp-key span{display:inline-flex;align-items:center;gap:5px;}
+        .dtp-key .sw{width:10px;height:10px;border-radius:3px;flex:none;}
+        .dtp-key .sw.played{background:rgba(34,197,94,0.35);border:1px solid rgba(34,197,94,0.55);}
+        .dtp-key .sw.open{background:rgba(255,255,255,0.06);border:1px solid #2a4166;}
+        .dtp-key .sw.today{background:transparent;border:2px solid #e8b43a;}
+        /* leaderboards */
+        .dtp-lrow{display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid #1e3050;font-size:12px;color:#93a3bd;}
+        .dtp-lrow:last-of-type{border-bottom:none;}
+        .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#6c7e9b;flex:none;display:flex;align-items:center;}
+        .dtp-lrow .pl svg{color:#e8b43a;}
+        .dtp-lrow b{color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
+        .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#fff;flex:none;}
+        .dtp-lrow.me{background:#2a2107;border-radius:6px;padding:5px 8px;border-bottom:none;margin:2px -8px;}
+        .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#e8b43a;}
+        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;font-size:10.5px;color:#6c7e9b;font-weight:600;}
+        .dtp-lfoot a{color:#e8b43a;text-decoration:none;font-weight:700;}
+        .dtp-lfoot a:hover{text-decoration:underline;}
+        .dtp-empty{font-size:12px;color:#6c7e9b;font-weight:600;padding:6px 0;}
+        /* responsive: the overlay scrolls internally, so stacking is safe */
+        @media(max-width:980px){
+          .dtp-grid{grid-template-columns:1fr 1fr;gap:16px;}
+          .dtp-col:nth-child(3){grid-column:1/-1;}
+        }
+        @media(max-width:720px){
+          .dtp{padding:14px;}
+          .dtp-hd{flex-wrap:wrap;gap:11px;}
+          .dtp-acts{flex-direction:row;width:100%;min-width:0;}
+          .dtp-play{flex:1;font-size:15px;padding:13px 18px;}
+          .dtp-nm{font-size:20px;}
+          .dtp-grid{grid-template-columns:1fr;gap:15px;}
+          .dtp-col:nth-child(3){grid-column:auto;}
+        }
+      `}</style>
+    </div>
+  );
+}
