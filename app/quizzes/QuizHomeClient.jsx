@@ -392,6 +392,8 @@ export default function QuizHomeClient() {
   const [xp30, setXp30] = useState([]); // 30-day XP [{ name, value }]
   const [xpAll, setXpAll] = useState([]); // all-time XP [{ name, value }]
   const [xpFlip, setXpFlip] = useState(0); // Top SoT Player flips 30d (even) <-> all-time (odd), like the old tile
+  const [creditOpen, setCreditOpen] = useState(false); // "share a link to get credit" modal
+  const [creditCopied, setCreditCopied] = useState(false);
   useEffect(() => {
     let alive = true;
     const qs = new URLSearchParams();
@@ -1692,6 +1694,31 @@ export default function QuizHomeClient() {
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
+        {creditOpen && (() => {
+          const shareUrl = (refData && refData.me && refData.me.shareUrl) || null;
+          const copyIt = async () => { if (!shareUrl) return; try { await navigator.clipboard.writeText(shareUrl); setCreditCopied(true); setTimeout(() => setCreditCopied(false), 1800); } catch (e) {} };
+          return (
+            <div onClick={() => setCreditOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: 400, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.ink }}>How to get credit</h3>
+                  <button onClick={() => setCreditOpen(false)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
+                </div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: C.ink, margin: '0 0 8px' }}>I&apos;m a single person startup! Word of mouth is how this grows.</p>
+                <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Registered users get a share link, and the Share button on every quiz and daily game already includes it. Anyone who opens one and finishes credits you, once.</p>
+                {shareUrl ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: C.ink, background: C.bg, border: `1px solid ${C.line}`, borderRadius: 9, padding: '10px 12px' }} title={shareUrl}>{shareUrl.replace(/^https:\/\//, '')}</span>
+                    <button onClick={copyIt} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 9, padding: '10px 14px', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: FONT }}>{creditCopied ? <Check size={14} /> : null}{creditCopied ? 'Copied' : 'Copy'}</button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setCreditOpen(false); setSignupOpen(true); }} style={{ width: '100%', background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 10, padding: 12, fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: FONT }}>Register to get your link →</button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Stage 2: three-column daily section — the puzzle board flanked by a
             community rail (Top Community Member + Daily Challenge) and an activity
             rail (Quiz of the Day + Last Played). The board carries the daily
@@ -1904,21 +1931,20 @@ export default function QuizHomeClient() {
                       <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">({num(r.credits)})</span></span>
                     ))}
                   </div>
-                  <button type="button" onClick={() => setSignupOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Share a link to get credit →</button>
+                  <button type="button" onClick={() => setCreditOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Share a link to get credit →</button>
                 </div>
               );
             })()}
             {/* 3. Top SoT Player (rebuilt from /api/quiz/xp; flips 30-day <-> all-time) */}
             {(() => {
               const is30 = xpFlip % 2 === 0;
-              const top = (is30 ? xp30 : xpAll) || [];
+              const top = (is30 ? (xp30.length ? xp30 : xpAll) : (xpAll.length ? xpAll : xp30)) || [];
               const one = top[0];
               const num = (n) => (n || 0).toLocaleString();
               return (
                 <div className="dhx-lb xp">
-                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#5b8bff' }} fill="#5b8bff" /> TOP SOT PLAYER<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
+                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#5b8bff' }} fill="#5b8bff" /> TOP SOT PLAYER · {is30 ? 'LAST 30 DAYS' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                   <div className="dhx-lb-hero">
-                    <span className="dhx-lb-scope">{is30 ? 'Last 30 days' : 'All time'}</span>
                     <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
                     <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No XP earned yet'}</span>
                   </div>
