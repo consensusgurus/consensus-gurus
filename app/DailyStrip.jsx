@@ -396,10 +396,23 @@ export default function DailyStrip({ board = null }) {
         .dh-chip{border:1px solid #cfd4de;background:#fff;color:#1c1e24;font-weight:700;font-size:12px;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;transition:background .12s,border-color .12s;}
         .dh-chip:hover{border-color:#0e1d40;}
         .dh-chip.on{background:#0e1d40;color:#fff;border-color:#0e1d40;}
-        .dh-lbbtn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;border:1px solid #f0dcae;background:#fdf7ec;color:#a16207;font-weight:800;font-size:12px;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;transition:background .12s;}
-        .dh-lbbtn:hover{background:#faedd2;}
-        .dh-lbbtn svg{flex:none;color:#e8b43a;}
-        .dh-hint{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8b909d;}
+        .dh-hint{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8b909d;margin-left:auto;}
+        /* daily leaderboard: always-visible Today's Top 3 + expand */
+        .dh-dtop{display:flex;align-items:center;gap:9px 13px;flex-wrap:wrap;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;padding:9px 13px;margin-bottom:11px;}
+        .dh-dtop-lab{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#a16207;flex:none;}
+        .dh-dtop-lab svg{color:#e8b43a;flex:none;}
+        .dh-dtop-rows{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0;}
+        .dh-dtop-row{display:inline-flex;align-items:baseline;gap:5px;font-size:12px;background:#f7f8fa;border:1px solid rgba(20,22,28,0.07);border-radius:8px;padding:3px 9px;max-width:100%;}
+        .dh-dtop-row b{color:#a16207;font-weight:800;font-variant-numeric:tabular-nums;}
+        .dh-dtop-row .nm{font-weight:700;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;}
+        .dh-dtop-row .pt{font-weight:700;color:#6b7280;font-variant-numeric:tabular-nums;}
+        .dh-dtop-row.me{background:#fdf7ec;border-color:#f0dcae;}
+        .dh-dtop-row.me .nm{color:#a16207;}
+        .dh-dtop-none{font-size:12px;color:#6b7280;font-weight:600;}
+        .dh-dtop-exp{margin-left:auto;display:inline-flex;align-items:center;gap:5px;border:1px solid #f0dcae;background:#fdf7ec;color:#a16207;font-weight:800;font-size:12px;border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;transition:background .12s;}
+        .dh-dtop-exp:hover{background:#faedd2;}
+        .dh-dtop-exp svg{flex:none;color:#e8b43a;}
+        @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
         .dh-tile{position:relative;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,border-color .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;}
@@ -517,7 +530,6 @@ export default function DailyStrip({ board = null }) {
           .dh-tnm{font-size:11px;}
           .dh-filters{gap:6px;}
           .dh-chip{font-size:11px;padding:6px 10px;}
-          .dh-lbbtn{font-size:11px;padding:6px 10px;}
           .dh-hint{display:none;}
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}}
@@ -559,17 +571,35 @@ export default function DailyStrip({ board = null }) {
         </div>
       )}
 
+      {/* daily leaderboard: always-visible Today's Top 3 + expand to full board */}
+      {hasBoard ? (
+        <div className="dh-dtop">
+          <span className="dh-dtop-lab"><Crown size={12} strokeWidth={2.4} /> Daily leaderboard</span>
+          {top3.length ? (
+            <div className="dh-dtop-rows">
+              {top3.map((r) => {
+                const mine = meKey && r.userKey === meKey;
+                return (
+                  <span key={r.userKey} className={`dh-dtop-row${mine ? ' me' : ''}`}>
+                    <b>{r.rank}</b><span className="nm">{r.username || 'Player'}{mine ? ' (you)' : ''}</span><span className="pt">{fmtPts(r.total)}</span>
+                  </span>
+                );
+              })}
+            </div>
+          ) : <span className="dh-dtop-none">No scores yet today — be the first.</span>}
+          <button type="button" className="dh-dtop-exp" aria-expanded={lbOpen} onClick={() => { setSel(null); setLbOpen((v) => !v); }}>
+            {lbOpen ? 'Hide' : 'Full board'}
+            <ChevronDown size={12} strokeWidth={2.6} style={{ transition: 'transform .2s', transform: lbOpen ? 'rotate(180deg)' : 'none' }} />
+          </button>
+        </div>
+      ) : null}
+
       {/* filter row */}
       <div className="dh-filters">
         <span className="dh-lab">Daily puzzles</span>
         {chip('all', `All ${GAMES.length}`)}
         {chip('todo', `Unplayed · ${todoCount}`)}
         {riskCount > 0 ? chip('risk', `Streak at risk · ${riskCount}`) : null}
-        {hasBoard ? (
-          <button type="button" className="dh-lbbtn" aria-expanded={lbOpen} onClick={() => { setSel(null); setLbOpen((v) => !v); }}>
-            <Crown size={13} strokeWidth={2.4} />{lbOpen ? 'Hide leaderboard' : 'Daily leaderboard'}
-          </button>
-        ) : null}
         <span className="dh-hint">Click a tile for stats</span>
       </div>
 

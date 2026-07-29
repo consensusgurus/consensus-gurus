@@ -1598,7 +1598,8 @@ export default function QuizHomeClient() {
     <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
-      <QuizCommandHeader search={search} onSearch={setSearch} me={me} onSignup={() => setSignupOpen(true)} ticker={tickerItems} />
+      {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
+      <QuizCommandHeader search={search} onSearch={setSearch} me={me} onSignup={() => setSignupOpen(true)} ticker={[]} />
       <div className="qzh qzf-w" style={{ maxWidth: 1480, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style>
 
         {(() => {
