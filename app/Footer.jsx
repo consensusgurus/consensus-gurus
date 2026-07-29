@@ -15,7 +15,7 @@ const NEUTRAL = {
 
 const COLS = [
   {
-    head: 'Quizzes',
+    head: 'Puzzles & Quizzes',
     links: [
       { label: 'Browse Quizzes', href: '/' },
       { label: 'Daily Puzzles & Archive', href: '/daily' },

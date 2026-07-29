@@ -200,7 +200,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
             ))}
           </div>
           <nav className="shc-seg">
-            <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Quizzes</Link>
+            <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
             <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
           </nav>
         </div>
@@ -258,7 +258,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             </div>
             <div className="sh-right">
               <nav className="sh-nav">
-                <Link href="/" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Quizzes</Link>
+                <Link href="/" className={`sh-navbtn${active === 'quizzes' ? ' on' : ''}`}>Puzzles &amp; Quizzes</Link>
                 <Link href="/lists" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists</Link>
               </nav>
             </div>
