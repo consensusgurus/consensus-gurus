@@ -403,7 +403,11 @@ export default function DailyStrip({ board = null }) {
         @container (max-width:760px){.dh-stat.opt2{display:none;}}
         /* Narrow bars swap the segmented filter for a hamburger and shed the
            remaining optional stats, so the topper never wraps to a second row. */
-        @container (max-width:620px){.dh-stat.opt3{display:none;}.dh-seg{display:none;}.dh-fbtn{display:inline-flex;}}
+        @container (max-width:620px){.dh-stat.opt3{display:none;}.dh-seg{display:none;}.dh-fbtn{display:inline-flex;}
+          .dh-sbar{justify-content:space-between;gap:8px;}
+          .dh-stats{justify-content:space-evenly;}
+          .dh-stat{border-right:none;padding:0 6px;}
+          .dh-bup{padding-right:0;}}
         @container (max-width:430px){.dh-stat.opt4{display:none;}}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}

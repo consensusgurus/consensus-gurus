@@ -243,9 +243,9 @@ export default function DailyTilePanel({
         .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:15px;
                   border-radius:10px;padding:12px 24px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
         .dtp-play:hover{background:#f0c358;transform:translateY(-1px);}
-        .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;
-                    font-weight:700;font-size:12.5px;border-radius:10px;padding:12px 14px;cursor:pointer;font-family:inherit;transition:background .12s,color .12s;}
-        .dtp-shrink:hover{background:rgba(255,255,255,0.07);color:#fff;}
+        .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e8b43a;background:#e8b43a;color:#1c1e24;
+                    font-weight:800;font-size:13px;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:background .12s,transform .12s;}
+        .dtp-shrink:hover{background:#f0c358;border-color:#f0c358;transform:translateY(-1px);}
         /* three columns take every remaining pixel */
         .dtp-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:20px;align-items:start;}
         .dtp-col{min-width:0;display:flex;flex-direction:column;}
