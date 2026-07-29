@@ -415,25 +415,26 @@ export default function DailyStrip({ board = null }) {
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;}
-        .dh-tile{position:relative;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,border-color .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;}
-        .dh-tile:hover{border-color:#c3cdd9;transform:translateY(-2px);box-shadow:0 4px 14px rgba(20,30,50,0.09);}
-        .dh-tile.sel{border-color:#0e1d40;box-shadow:0 0 0 2px #0e1d40;}
-        .dh-tile.done{background:#f2f7f3;}
-        .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.9;}
-        .dh-tile.done .dh-acc{background:#16a34a !important;}
-        /* icon chip: the game art was drawn for a navy field, so it sits on a
-           navy chip to stay legible on the white tile (owner note 2026-07-28). */
-        .dh-tic{width:46px;height:40px;border-radius:10px;background:#0e1d40;display:flex;align-items:center;justify-content:center;flex:none;}
-        .dh-tic img{height:27px;width:auto;max-width:34px;object-fit:contain;}
-        .dh-tile.done .dh-tic{opacity:.62;}
-        .dh-tnm{font-size:12.5px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-        .dh-tsub{font-size:10px;font-weight:700;color:#8b909d;display:inline-flex;align-items:center;gap:3px;}
-        .dh-tsub.done{color:#16a34a;}
-        .dh-tsub.strk{color:#a16207;}
+        /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
+           field, so the whole tile is navy and the icon renders directly on it. */
+        .dh-tile{position:relative;background:#0e1d40;border:1px solid #223353;border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,border-color .12s,box-shadow .12s,background .12s;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;}
+        .dh-tile:hover{border-color:#3a557f;background:#13264c;transform:translateY(-2px);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
+        .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
+        .dh-tile.done{background:#0c2a1e;border-color:#245c3d;}
+        .dh-tile.done:hover{background:#0f351f;}
+        .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
+        .dh-tile.done .dh-acc{background:#22c55e !important;}
+        .dh-tic{width:44px;height:38px;display:flex;align-items:center;justify-content:center;flex:none;}
+        .dh-tic img{height:30px;width:auto;max-width:40px;object-fit:contain;}
+        .dh-tile.done .dh-tic{opacity:.6;}
+        .dh-tnm{font-size:12.5px;font-weight:800;letter-spacing:-.2px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+        .dh-tsub{font-size:10px;font-weight:700;color:#93a3bd;display:inline-flex;align-items:center;gap:3px;}
+        .dh-tsub.done{color:#6ee7b7;}
+        .dh-tsub.strk{color:#f0c95a;}
         .dh-tsub svg{flex:none;}
         .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
         .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
-        .dh-lead{font-size:10px;font-weight:700;color:#6b7280;display:inline-flex;align-items:center;gap:3px;max-width:100%;}
+        .dh-lead{font-size:10px;font-weight:700;color:#c3d2e8;display:inline-flex;align-items:center;gap:3px;max-width:100%;}
         .dh-lead svg{flex:none;color:#e8b43a;}
         .dh-lead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         /* ── expand panel (navy, full width) ── */
