@@ -1661,30 +1661,42 @@ export default function QuizHomeClient() {
 
         {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
 
-        {/* Daily puzzles row: one button per daily. Art lives in /public/games;
-            each button is ~half the Newest tile's height. */}
-        <DailyStrip board={dailyBoard} />
-
-        <div className="thub">
-          <div className="thub-left">
-          <div className="th-heroes">
-          {qotd && (<Link href={`/quiz/${qotd.id}`} className="qotd th-qotd" aria-label={`Quiz of the day: ${qotd.title}`}>
-            <div className="qotd-photo" style={{ backgroundImage: `url("${qotd.hero}")`, backgroundPosition: qotd.pos || 'center' }} aria-hidden="true" />
-            <div className="qotd-body">
-              <div className="qotd-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span>Quiz of the Day</span>{plays(qotd.id) > 0 ? <span style={{ textTransform: 'none', letterSpacing: 0, color: '#9fb0d4', fontWeight: 700 }}>{plays(qotd.id).toLocaleString()} plays</span> : null}</div>
-              <div className="qotd-title">{qotd.title}</div>
-              <div className="qotd-foot">
-                <span className="qotd-play"><Play size={15} fill="#1c1e24" strokeWidth={0} />Play now</span>
-                <span className="qotd-stats">{leader(qotd.id) ? <><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(qotd.id)}</> : (plays(qotd.id) > 0 ? null : <span>New quiz</span>)}</span>
-              </div>
-            </div>
-          </Link>)}
-          {/* Top Community Member. Swapped into the Newest tile's row-1 slot 2026-07-20
-              per Marshall; Newest moved to the front of th-r2 below. */}
-          <CommunityTile />
-          {geoFaces.length ? (
-            <FeaturedFlipTile items={geoFaces} className="gtile th-only-mob" />
-          ) : <div className="th-only-mob" />}
+        {/* Stage 2: three-column daily section — the puzzle board flanked by a
+            community rail (Top Community Member + Daily Challenge) and an activity
+            rail (Quiz of the Day + Last Played). The board carries the daily
+            leaderboard (Today's Top 3 + expand) itself. Stacks to one column
+            (board first) below 1200px. */}
+        <div className="dhx">
+          <style>{`
+            .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:14px;align-items:start;margin-bottom:16px;}
+            .qzh .dhx-rail{display:flex;flex-direction:column;gap:13px;min-width:0;}
+            .qzh .dhx-center{min-width:0;}
+            .qzh .dhx-center .dstrip-wrap,.qzh .dhx-center .dhome{margin-bottom:0;}
+            /* Quiz of the Day sized for the narrow right rail: photo over body */
+            .qzh .dhx-qotd{flex-direction:column;min-height:0;}
+            .qzh .dhx-qotd .qotd-photo{flex:0 0 auto;min-height:132px;}
+            .qzh .dhx-qotd .qotd-body{padding:14px 16px;}
+            /* Last Played rail card (navy) */
+            .qzh .dhx-lp{background:#0e1d40;border:1px solid #0e1d40;border-radius:14px;padding:14px 15px;color:#eef3fb;}
+            .qzh .dhx-lp-top{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
+            .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#fff;}
+            .qzh .dhx-lp-ttl svg{color:#fff;flex:none;}
+            .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#a7f3cf;background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
+            .qzh .dhx-live i{width:5px;height:5px;border-radius:999px;background:#10b981;display:block;}
+            .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.8);font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
+            .qzh .dhx-lp-stats{display:flex;gap:18px;margin-bottom:11px;}
+            .qzh .dhx-lp-stats b{display:block;font-size:20px;font-weight:800;line-height:1;}
+            .qzh .dhx-lp-stats span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-top:4px;}
+            .qzh .dhx-lp-rows{display:flex;flex-direction:column;gap:1px;}
+            .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #1e3050;text-decoration:none;}
+            .qzh .dhx-lp-row:last-child{border-bottom:none;}
+            .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lp-sc{flex:none;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;border-radius:7px;padding:2px 7px;}
+            .qzh .dhx-lp-none{font-size:12px;color:#93a3bd;padding:6px 0;}
+            @media(max-width:1200px){.qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}}
+          `}</style>
+          <div className="dhx-rail dhx-left">
+            <CommunityTile />
             {daily && DAILY_CHALLENGE_ON ? (
               <div className={`dtile th-only-desk mc-${mDaily ? 'open' : 'closed'}`}>
                 <div className="dtile-head" onClick={() => { if (isMobile) setMDaily((v) => !v); }}>
@@ -1707,10 +1719,54 @@ export default function QuizHomeClient() {
                   <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dtile-cta">{dailyAllDone ? (<span className="dtile-cta-go">Results<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>) : (dailyRows && dailyRows.length) ? (<span className="dtile-cta-go dtile-cta-unseat">Unseat the leader<Crown size={14} fill="#7d5510" strokeWidth={0} style={{ flex: 'none' }} /><span className="dtile-cta-nm">{dailyRows[0].username || 'Player'}</span><ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>) : (<span className="dtile-cta-go">{dailyDoneCount > 0 ? 'Continue' : 'Play'}<ArrowRight size={14} strokeWidth={2.75} style={{ flex: 'none' }} /></span>)}</Link>
                 </div>
               </div>
-            ) : <div className="th-only-desk" />}
+            ) : null}
           </div>
+          <div className="dhx-center">
+            <DailyStrip board={dailyBoard} />
+          </div>
+          <div className="dhx-rail dhx-right">
+            {qotd && (<Link href={`/quiz/${qotd.id}`} className="qotd dhx-qotd" aria-label={`Quiz of the day: ${qotd.title}`}>
+              <div className="qotd-photo" style={{ backgroundImage: `url("${qotd.hero}")`, backgroundPosition: qotd.pos || 'center' }} aria-hidden="true" />
+              <div className="qotd-body">
+                <div className="qotd-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><span>Quiz of the Day</span>{plays(qotd.id) > 0 ? <span style={{ textTransform: 'none', letterSpacing: 0, color: '#9fb0d4', fontWeight: 700 }}>{plays(qotd.id).toLocaleString()} plays</span> : null}</div>
+                <div className="qotd-title">{qotd.title}</div>
+                <div className="qotd-foot">
+                  <span className="qotd-play"><Play size={15} fill="#1c1e24" strokeWidth={0} />Play now</span>
+                  <span className="qotd-stats">{leader(qotd.id) ? <><Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />{leader(qotd.id)}</> : (plays(qotd.id) > 0 ? null : <span>New quiz</span>)}</span>
+                </div>
+              </div>
+            </Link>)}
+            <div className="dhx-lp">
+              <div className="dhx-lp-top">
+                <span className="dhx-lp-ttl"><Play size={13} fill="#fff" strokeWidth={0} />Last Played</span>
+                <span className="dhx-live"><i />LIVE</span>
+                <button type="button" className="dhx-lp-all" onClick={() => setListMode('live')}>All ›</button>
+              </div>
+              <div className="dhx-lp-stats">
+                <div><b>{(playsToday || 0).toLocaleString()}</b><span>plays today</span></div>
+                <div><b>{(() => { const x = Math.round((totals && totals.todayTime) || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; })()}</b><span>played today</span></div>
+              </div>
+              <div className="dhx-lp-rows">
+                {(lastPlayed || []).slice(0, 5).map((f, i) => {
+                  const ok = f.total ? (f.score / f.total) >= 0.8 : false;
+                  return (
+                    <a key={i} href={playHref(f.quizId)} className="dhx-lp-row" title={titleById[f.quizId] || f.quizId}>
+                      <span className="dhx-lp-nm">{stripVerb(titleById[f.quizId] || f.quizId)}</span>
+                      <span className="dhx-lp-sc" style={{ background: ok ? '#e7f7ed' : '#eef1f6', color: ok ? '#16a34a' : '#6b7280' }}>{f.score}/{f.total}</span>
+                    </a>
+                  );
+                })}
+                {(!lastPlayed || lastPlayed.length === 0) ? <div className="dhx-lp-none">No recent plays yet.</div> : null}
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <div className="thub">
+          <div className="thub-left">
           <div className="th-r2">
+          {/* mobile featured-geo tile, relocated from the (removed) th-heroes row */}
+          {geoFaces.length ? <FeaturedFlipTile items={geoFaces} className="gtile th-only-mob" /> : <div className="th-only-mob" />}
           {/* Row 2, left to right: Featured Geo, Featured Sports, Top SoT Player,
               Duel. The Newest tile was retired 2026-07-20 (its job is done by
               the Newest browse column, which now carries its own hero), so Geo
