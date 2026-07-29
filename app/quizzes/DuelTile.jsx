@@ -190,7 +190,7 @@ export default function DuelTile() {
                     {quizResults.map((x) => (
                       <button key={x.id} onClick={() => { setQuiz({ id: x.id, title: x.title }); setQuizOpen(false); }} style={item}>
                         <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#1c1e24', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
-                        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#9aa0ab' }}>{x.category || 'Quiz'}</span>
+                        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#6b7280' }}>{x.category || 'Quiz'}</span>
                       </button>
                     ))}
                     {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: '#6b7280' }}>No quizzes match.</div>}

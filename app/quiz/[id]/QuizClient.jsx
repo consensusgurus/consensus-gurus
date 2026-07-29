@@ -66,7 +66,7 @@ const COLORS = {
   paper: '#eceef1',
   ink: '#1c1e24',
   ember: '#0e1d40',
-  soft: '#9aa0ab',
+  soft: '#6b7280',
   line: 'rgba(20,22,28,0.09)',
   accSoft: '#eef3ff',
   accBorder: '#cddffb',

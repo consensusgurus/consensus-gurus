@@ -98,7 +98,7 @@ function mixHex(hex, pct, base) {
 // consistent layer of grouping. Navy-legible hues, one clearly distinct per
 // category.
 const CAT_COLOR = {
-  Word: '#2563eb', Numbers: '#9a3412', Logic: '#be123c',
+  Word: '#1d4ed8', Numbers: '#9a3412', Logic: '#be123c',
   History: '#7c3aed', Geography: '#166534', 'Crowd Psychology': '#854d0e',
 };
 const CAT_CHIP_BG = {}, CAT_BG = {}, CAT_BD = {};
@@ -475,7 +475,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
-        .dh-nolead{color:#6b7280;font-weight:600;}
+        .dh-nolead{color:#5a6472;font-weight:600;}
         .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;flex:none;}
         .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;flex:none;}
         .dh-mstrk.none{color:#4d5872;}

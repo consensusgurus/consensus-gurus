@@ -217,7 +217,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
     <div>
       {!isMobile && (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
-        <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#9aa0ab', marginRight: 2 }}>Map size</span>
+        <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#6b7280', marginRight: 2 }}>Map size</span>
         {SIZE_ORDER.map((s) => {
           const on = s === size;
           return (

@@ -23,7 +23,7 @@ import { formatCount } from '../Count';
 // the default card size (so dense boards do not balloon on big screens). Players
 // (1-4) are chosen on a pre-game screen. Page views are recorded via the
 // quiz-view system (the given `quizId`).
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)' };
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', soft: '#6b7280', line: 'rgba(20,22,28,0.09)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const Star = () => (

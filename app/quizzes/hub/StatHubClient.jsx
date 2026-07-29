@@ -15,7 +15,7 @@ import { withRef } from '@/lib/referrals';
 
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
+  soft: '#6b7280', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981', danger: '#c0392b',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];

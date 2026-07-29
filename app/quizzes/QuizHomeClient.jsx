@@ -1397,7 +1397,7 @@ export default function QuizHomeClient() {
     .qzh .th-game:hover{border-color:#2563eb;}
     .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;overflow:hidden;}
     .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;max-width:56px;object-fit:contain;}
-    .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#b26b00;margin-bottom:3px;}
+    .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#8a5300;margin-bottom:3px;}
     .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#1c1e24;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#6b7280;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     @media(max-width:1180px){.qzh .th-game-art{height:44px;max-width:48px;}.qzh .th-game-p{display:none;}}
@@ -1416,7 +1416,7 @@ export default function QuizHomeClient() {
     .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#ffffff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#1c1e24;}
     .qzh .qotd-photo{flex:0 0 48%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
-    .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#b26b00;margin-bottom:7px;}
+    .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8a5300;margin-bottom:7px;}
     .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#1c1e24;}
     .qzh .qotd-meta{font-size:13px;color:#6b7280;margin-top:7px;max-width:560px;line-height:1.45;}
     .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
@@ -1966,7 +1966,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone .dhx-qrow .qs{color:#6b7280 !important;}
             .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
             .qzh .dhx-rone .dhx-cm{border-top:1px solid #e6e8ee !important;}
-            .qzh .dhx-rone .dhx-cm-h{color:#b26b00 !important;}
+            .qzh .dhx-rone .dhx-cm-h{color:#8a5300 !important;}
             .qzh .dhx-rone .dhx-cm-h .cmchev{color:#6b7280 !important;}
             .qzh .dhx-rone .dhx-cmbar{background:#f1f3f6 !important;}
             .qzh .dhx-rone .dhx-cmbar .mtr{background:#22406e !important;}

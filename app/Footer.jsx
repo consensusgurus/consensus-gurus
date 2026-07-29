@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 const NEUTRAL = {
   ink: '#1c1e24',
   muted: '#6b7280',
-  soft: '#9aa0ab',
+  soft: '#6b7280',
   line: 'rgba(20,22,28,0.12)',
 };
 

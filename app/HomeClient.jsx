@@ -1587,7 +1587,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
 // icons. Mirrors app/quizzes/QuizHomeClient.jsx so Lists and Quizzes match.
 const NT = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#9aa0ab', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
+  soft: '#6b7280', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981',
 };
 const NFONT = "'Manrope', system-ui, -apple-system, sans-serif";

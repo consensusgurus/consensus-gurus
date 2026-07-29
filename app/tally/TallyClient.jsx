@@ -524,7 +524,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     return (
       <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 13, border: `1.5px solid ${bd}`, background: bg, fontFamily: MONO, lineHeight: 1.02, padding: '2px 0', minHeight: 34 }}>
         <span style={{ fontSize: 15, fontWeight: 500, color: tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
-        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : '#9aa0ab' }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
+        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : '#6b7280' }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
       </div>
     );
   }

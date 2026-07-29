@@ -9,7 +9,7 @@ import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
 import { withRef } from '@/lib/referrals';
 
-const C = { bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb', gold: '#e8b43a', win: '#16a34a', lose: '#c0392b' };
+const C = { bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280', soft: '#6b7280', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb', gold: '#e8b43a', win: '#16a34a', lose: '#c0392b' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function anonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
