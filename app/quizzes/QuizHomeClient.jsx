@@ -1760,7 +1760,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb{padding:14px 15px;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
-            .qzh .dhx-lb-name{display:block;font-size:30px;font-weight:800;color:#e8b43a;line-height:1.02;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-name{display:block;font-size:30px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#93a3bd;margin-top:3px;}
             .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;}
             .qzh .dhx-lb-gi{display:flex;align-items:baseline;gap:6px;font-size:11.5px;min-width:0;}
