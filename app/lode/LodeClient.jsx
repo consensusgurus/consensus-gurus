@@ -527,7 +527,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:${COLORS.accent};}
           .ld-wtag.pan{background:${COLORS.accentSoft};border-color:${COLORS.accent};font-weight:700;}
           .ld-wtag.new{outline:2px solid ${COLORS.accent};outline-offset:1px;}
-          .ld-found{max-height:280px;overflow-y:auto;}
+          .ld-found{max-height:280px;overflow-y:auto;overflow-x:hidden;padding:4px;}
         `}</style>
 
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -627,7 +627,11 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 16 }}>
+                <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', color: COLORS.faded, textAlign: 'center', marginTop: 11 }}>
+                  Letters can be reused.
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
                   <button type="button" className="ld-btn" onMouseDown={keepFocus} onClick={() => setEntry((e) => e.slice(0, -1))} disabled={!entry}><Delete size={14} /> Delete</button>
                   <button type="button" className="ld-btn" onMouseDown={keepFocus} onClick={shuffleLetters}><Shuffle size={14} /> Shuffle</button>
                   <button type="button" className="ld-btn primary" onMouseDown={keepFocus} onClick={submitEntry} disabled={!playing || !entry}>Mine</button>
