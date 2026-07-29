@@ -165,7 +165,13 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
            here. Below 1181px everything collapses to the stacked two-line chip,
            unchanged, and the existing 980 / 620 rules still take over from there. */
         @media(min-width:1181px){
-          .qch-me{flex:1 1 auto;display:flex;justify-content:flex-end;}
+          /* The welcome block is centred on the PAGE, not parked at the right
+             edge (owner, 2026-07-29). Taking it out of flow is what makes it a
+             true centre: the brand keeps the left, and the Stat Hub + toggle
+             group is pushed flush right by the auto margin below. */
+          .qch-bar{position:relative;}
+          .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin-left:0;flex:none;display:flex;justify-content:center;max-width:min(48vw,640px);}
+          .qch-me ~ .qch-hub{margin-left:auto;}
           .qch-melink{gap:13px;}
           .qch-mecol{flex-direction:row;align-items:center;gap:clamp(14px,2.6vw,38px);}
           .qch-nm{font-size:15px;max-width:none;}
