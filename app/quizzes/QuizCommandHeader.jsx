@@ -1,5 +1,6 @@
 'use client';
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef, useState } from 'react';
+import { guestHandleFromAnon } from '@/lib/quiz-xp';
 import Link from 'next/link';
 import SourcesPopover from '../SourcesPopover';
 import { getAllSources } from '@/lib/sources';
@@ -89,6 +90,17 @@ function focusListSearch() {
 
 export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
   const found = !!(me && me.found);
+  // A signed-out visitor still gets a name: the same stable Guest-XXXX handle
+  // the leaderboards already show them under, derived from this browser's anon
+  // id. Resolved after mount because it reads localStorage.
+  const [guestName, setGuestName] = useState('');
+  useEffect(() => {
+    if (found) return;
+    try {
+      const a = localStorage.getItem('sot_quiz_anon');
+      if (a) setGuestName(guestHandleFromAnon(a));
+    } catch (e) {}
+  }, [found]);
   const signed = !!(found && me.signed);
   const rank = found ? ((me.ranks && me.ranks.xp) || me.rank) : null;
   const completed = (found && me.activity && me.activity.completed != null) ? me.activity.completed : null;
@@ -181,8 +193,8 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-sub{font-size:10.5px;font-weight:700;color:#bcd2fb;line-height:1;white-space:nowrap;}
         .qch-rankm{display:none;font-size:11px;font-weight:800;color:#dbe7ff;line-height:1;white-space:nowrap;}
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#fff;color:#0e1d40;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
-        .qch-signup{display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,255,255,0.45);border-radius:9px;color:#fff;font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 12px;cursor:pointer;white-space:nowrap;}
-        .qch-signup:hover{background:rgba(255,255,255,0.14);border-color:#fff;}
+        .qch-signup{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;border:1px solid #e8b43a;border-radius:9px;color:#1c1e24;font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;}
+        .qch-signup:hover{background:#f0c358;border-color:#f0c358;color:#1c1e24;}
         .qch-seg{display:flex;gap:2px;background:rgba(255,255,255,0.16);border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.22);cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
         .qch-seg a{font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
         .qch-seg a.on{background:#fff;color:#0e1d40;}
@@ -246,10 +258,21 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
               </span>
             </Link>
           ) : (
-            <button type="button" className="qch-signup" onClick={onSignup}>
+            <div className="qch-melink">
+              {guestName ? (
+                <>
+                  <span className="qch-ava">G</span>
+                  <span className="qch-mecol">
+                    <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {guestName}</span>
+                    <span className="qch-sub">Sign up to keep your scores and rank</span>
+                  </span>
+                </>
+              ) : null}
+              <button type="button" className="qch-signup" onClick={onSignup}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M15 19a5 5 0 0 0-10 0M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM19 8v6M22 11h-6" /></svg>
-              Sign Up
-            </button>
+                Sign Up
+              </button>
+            </div>
           )}
         </div>
         {/* Stat Hub button. ALWAYS sits immediately to the LEFT of the

@@ -23,10 +23,13 @@ import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 
 export const SHARE_CREDIT_EVENT = 'sot:share-credit';
 
-export function notifyShareCredit(resultText) {
+export function notifyShareCredit(resultText, url) {
   if (typeof window === 'undefined') return false;
   try {
-    const detail = { resultText: typeof resultText === 'string' ? resultText : '' };
+    const detail = {
+      resultText: typeof resultText === 'string' ? resultText : '',
+      url: typeof url === 'string' && url ? url : '',
+    };
     window.dispatchEvent(new CustomEvent(SHARE_CREDIT_EVENT, { detail }));
     return true;
   } catch (e) {
@@ -48,11 +51,18 @@ export default function ShareCreditPop() {
   const [link, setLink] = useState('');
   const [result, setResult] = useState('');
   const [copiedKey, setCopiedKey] = useState(null);
+  const [srcUrl, setSrcUrl] = useState(''); // page the credit link should point at
 
   useEffect(() => {
     const onEvt = (e) => {
+      // A caller can name the page the link should point at; share buttons that
+      // sit somewhere other than the thing being shared (the daily board's
+      // expanded tile shares a game from the quizzes home) pass it. Everyone
+      // else omits it and gets the current page, exactly as before.
+      const raw = (e && e.detail && e.detail.url) ? e.detail.url : window.location.href;
       let u = '';
-      try { u = withRef(window.location.href); } catch (err) { u = ''; }
+      try { u = withRef(raw); } catch (err) { u = ''; }
+      setSrcUrl(raw);
       const rt = (e && e.detail && typeof e.detail.resultText === 'string') ? e.detail.resultText.trim() : '';
       const registered = !!myRefCode();
       setLink(u);
@@ -78,7 +88,7 @@ export default function ShareCreditPop() {
     // credit link. Resolve the new code first so withRef includes it.
     try { await ensureMyRefCode(); } catch (e) {}
     let u = '';
-    try { u = withRef(window.location.href); } catch (err) { u = ''; }
+    try { u = withRef(srcUrl || window.location.href); } catch (err) { u = ''; }
     setLink(u);
     setResult('');
     setCopiedKey(null);

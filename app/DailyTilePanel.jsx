@@ -20,7 +20,8 @@
 // /api/quiz/daily-game, cached per game by the parent.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp } from 'lucide-react';
+import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2 } from 'lucide-react';
+import { notifyShareCredit } from './ShareCreditPop';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -136,6 +137,16 @@ export default function DailyTilePanel({
             {game.name}
             {streak >= 2 ? <span className="dtp-flame"><Flame size={12} strokeWidth={2.6} />{streak}</span> : null}
             {isDone ? <span className="dtp-donechip">Done today</span> : null}
+            {/* Shares THIS game rather than the quizzes home the panel sits on,
+                so the credit link sends people straight to it. */}
+            <button
+              type="button"
+              className="dtp-sharechip"
+              onClick={() => {
+                const base = (typeof window !== 'undefined' && window.location) ? window.location.origin : '';
+                notifyShareCredit('', base + game.href);
+              }}
+            ><Share2 size={11} strokeWidth={2.6} />Share for credit</button>
           </div>
           <p className="dtp-how">{how}</p>
         </div>
@@ -311,7 +322,11 @@ export default function DailyTilePanel({
         .dtp-idt{flex:1;min-width:0;}
         .dtp-nm{font-size:22px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.1;}
         .dtp-flame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:800;color:#e8b43a;}
-        .dtp-donechip{display:inline-flex;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#6ee7b7;}
+        .dtp-donechip{display:inline-flex;align-items:center;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#6ee7b7;}
+        .dtp-sharechip{display:inline-flex;align-items:center;gap:5px;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#e8b43a;font-family:inherit;cursor:pointer;transition:background .12s,color .12s;}
+        .dtp-sharechip svg{transition:color .12s;}
+        .dtp-sharechip:hover{background:#e8b43a;color:#1c1e24;}
+        .dtp-sharechip:hover svg{color:#1c1e24;}
         .dtp-how{font-size:12.5px;line-height:1.4;color:#c3d2e8;font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
         .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:15px;
