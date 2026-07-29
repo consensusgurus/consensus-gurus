@@ -1393,13 +1393,13 @@ export default function QuizHomeClient() {
     /* Daily puzzles row: four half-height buttons above the hero tiles */
     .qzh .th-games{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px;}
     @media(min-width:761px){.qzh .th-g-crux{order:1;}.qzh .th-g-garble{order:2;}.qzh .th-g-links{order:3;}.qzh .th-g-span{order:4;}.qzh .th-g-dating{order:5;}.qzh .th-g-tally{order:6;}}
-    .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#0e1d40;padding:11px 15px;text-decoration:none;overflow:hidden;}
-    .qzh .th-game:hover{border-color:#5b8bff;}
+    .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#ffffff;padding:11px 15px;text-decoration:none;overflow:hidden;}
+    .qzh .th-game:hover{border-color:#2563eb;}
     .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;overflow:hidden;}
     .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;max-width:56px;object-fit:contain;}
-    .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#f8b84a;margin-bottom:3px;}
+    .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#b26b00;margin-bottom:3px;}
     .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#9fb0d4;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#6b7280;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     @media(max-width:1180px){.qzh .th-game-art{height:44px;max-width:48px;}.qzh .th-game-p{display:none;}}
     @media(max-width:1080px){.qzh .th-game-art{height:40px;}.qzh .th-game{padding:11px 12px;gap:8px;}}
     @media(max-width:980px){.qzh .th-game-art{height:34px;max-width:36px;}.qzh .th-game{padding:10px 10px;gap:7px;}.qzh .th-game-t{font-size:15.5px;}}
@@ -1413,12 +1413,12 @@ export default function QuizHomeClient() {
       .qzh .th-game:nth-child(n+3) .th-game-t{font-size:13.5px;}
       .qzh .th-game:nth-child(n+3) .th-game-art{height:24px;}
     }
-    .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#0e1d40;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#fff;}
+    .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#ffffff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#1c1e24;}
     .qzh .qotd-photo{flex:0 0 48%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
-    .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#f8b84a;margin-bottom:7px;}
+    .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#b26b00;margin-bottom:7px;}
     .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#fff;}
-    .qzh .qotd-meta{font-size:13px;color:#9fb0d4;margin-top:7px;max-width:560px;line-height:1.45;}
+    .qzh .qotd-meta{font-size:13px;color:#6b7280;margin-top:7px;max-width:560px;line-height:1.45;}
     .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
     .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.cta};color:${C.ctaInk};border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
     .qzh .qotd:hover .qotd-play{background:${C.ctaHover};}
@@ -1487,15 +1487,15 @@ export default function QuizHomeClient() {
       .qzh .dtile-head .x8{font-size:12px !important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .qzh .dtile-chip{font-size:9px;padding:2px 7px;}
     }
-    .qzh .dtile{background:#0e1d40;border-radius:14px;padding:14px 15px;color:#fff;display:flex;flex-direction:column;min-height:190px;}
+    .qzh .dtile{background:#ffffff;border:1px solid #e6e8ee;border-radius:14px;padding:14px 15px;color:#1c1e24;display:flex;flex-direction:column;min-height:190px;}
     .qzh .th-only-desk{display:none !important;}
     @media(min-width:1025px){.qzh .th-only-mob{display:none !important;}.qzh .th-only-desk{display:flex !important;}}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
-    .qzh .dtile-chip{font-size:10px;font-weight:800;background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
+    .qzh .dtile-chip{font-size:10px;font-weight:800;background:#eef1f5;border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
     .qzh .dtile-rows{display:flex;flex-direction:column;justify-content:space-evenly;flex:1;margin:2px 0 8px;}
     .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#fff;text-decoration:none;padding:2px 0;}
-    .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.6);flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
+    .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid #c8ced9;flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:9px 12px;font-weight:800;font-size:12.5px;text-decoration:none;}
     .qzh .dtile-cta-go{display:inline-flex;align-items:center;gap:6px;flex:none;font-size:13.5px;font-weight:900;letter-spacing:0.01em;}
@@ -1508,16 +1508,16 @@ export default function QuizHomeClient() {
     .qzh .dueltile-chev{display:none;}
     .qzh .duel-mob-last{display:none;flex-direction:column;flex:1;}
     @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}.qzh .dueltile.has-mob-last .duel-flip{display:none !important;}.qzh .dueltile.has-mob-last .duel-mob-last{display:flex !important;}}
-    .qzh .rail{background:#0e1d40;border:1px solid #1e3a6b;border-radius:14px;padding:10px 9px 9px;display:flex;flex-direction:column;}
+    .qzh .rail{background:#ffffff;border:1px solid #e6e8ee;border-radius:14px;padding:10px 9px 9px;display:flex;flex-direction:column;}
     .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:7px;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;}
-    .qzh .rseg{position:relative;isolation:isolate;overflow:hidden;flex:1 1 0;min-height:24px;display:flex;align-items:center;background:#122446;border:none;border-radius:7px;margin:0;padding:0 9px;cursor:pointer;width:100%;text-align:left;}
-    .qzh .rseg:hover{background:#16294f;}
+    .qzh .rseg{position:relative;isolation:isolate;overflow:hidden;flex:1 1 0;min-height:24px;display:flex;align-items:center;background:#f1f3f6;border:none;border-radius:7px;margin:0;padding:0 9px;cursor:pointer;width:100%;text-align:left;}
+    .qzh .rseg:hover{background:#e9edf3;}
     .qzh .rseg:hover .rmeter{filter:brightness(1.18);}
-    .qzh .rmeter{position:absolute;left:0;top:0;bottom:0;z-index:0;min-width:3px;background:linear-gradient(90deg,rgba(91,139,255,.45),rgba(91,139,255,.18));border-right:2px solid #6f9bff;border-radius:7px 0 0 7px;}
+    .qzh .rmeter{position:absolute;left:0;top:0;bottom:0;z-index:0;min-width:3px;background:linear-gradient(90deg,rgba(37,99,235,.16),rgba(37,99,235,.05));border-right:2px solid #2563eb;border-radius:7px 0 0 7px;}
     .qzh .rseg-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
-    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:#eaf0fc;}
-    .qzh .rseg .rpct{font-size:10.5px;font-weight:800;flex:none;color:#c2d4ff;font-variant-numeric:tabular-nums;}
+    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:#1c1e24;}
+    .qzh .rseg .rpct{font-size:10.5px;font-weight:800;flex:none;color:#46506a;font-variant-numeric:tabular-nums;}
     /* Search + category + submit moved into the top command bar on desktop, so
        the browse control row collapses to just its (conditional) heading there. */
     @media(min-width:821px){.qzh .qz-browserow .qz-catbtn,.qzh .qz-browserow .qz-searchwrap,.qzh .qz-browserow .qz-submit,.qzh .qz-browserow .qz-daily{display:none !important;}}
@@ -1541,19 +1541,19 @@ export default function QuizHomeClient() {
     /* Full-width tool row under the three-column daily section, styled as ONE
        integrated element (owner 2026-07-29): a navy casing wraps the white search
        field and the three white action buttons, all one uniform treatment. */
-    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:${C.accent};border:1px solid #223353;border-radius:13px;padding:8px;}
-    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.06);border:1px solid #2a4166;border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
-    .qzh .qz-toolsearch:hover{border-color:#3a557f;}
-    .qzh .qz-toolsearch:focus-within{border-color:#3a557f;background:rgba(255,255,255,0.1);}
-    .qzh .qz-toolsearch svg{flex:none;color:#93a3bd;}
-    .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:#eef3fb;}
-    .qzh .qz-toolsearch input::placeholder{color:#8195b5;font-weight:500;}
-    .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:#93a3bd;display:flex;}
+    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:#ffffff;border:1px solid #e6e8ee;border-radius:13px;padding:8px;}
+    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#f7f8fa;border:1px solid #e6e8ee;border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
+    .qzh .qz-toolsearch:hover{border-color:#b8c0cc;}
+    .qzh .qz-toolsearch:focus-within{border-color:#b8c0cc;background:#f7f8fa;}
+    .qzh .qz-toolsearch svg{flex:none;color:#6b7280;}
+    .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:#1c1e24;}
+    .qzh .qz-toolsearch input::placeholder{color:#8a93a6;font-weight:500;}
+    .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:#6b7280;display:flex;}
     .qzh .qz-toolclear:hover{color:#fff;}
     .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
-    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
-    .qzh .qz-toolbtn svg{flex:none;color:#93a3bd;transition:color .14s ease;}
-    .qzh .qz-toolbtn:hover{background:rgba(255,255,255,0.07);border-color:#3a557f;color:#fff;}
+    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1px solid #e6e8ee;background:transparent;color:#46506a;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
+    .qzh .qz-toolbtn svg{flex:none;color:#6b7280;transition:color .14s ease;}
+    .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#b8c0cc;color:#1c1e24;}
     .qzh .qz-toolbtn:hover svg{color:#fff;}
     /* One accent in the row: the only button that creates something. */
     .qzh .qz-toolbtn-cta{background:#e8b43a;border-color:#e8b43a;color:#1c1e24;font-weight:800;}
@@ -1915,13 +1915,13 @@ export default function QuizHomeClient() {
             .qzh .dhx-cmbar .p{position:relative;margin-left:auto;font-size:11px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
             .qzh .dhx-cm-empty{padding:0 14px 13px;font-size:11px;color:#7d92bd;font-weight:600;}
             /* ── LEFT: one integrated navy element (three leaderboards) ── */
-            .qzh .dhx-lone{background:#0e1d40;border:1px solid #1e3050;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-lone{background:#ffffff;border:1px solid #e6e8ee;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-lone > *{border:0 !important;border-radius:0 !important;box-shadow:none !important;margin:0 !important;background:transparent !important;}
-            .qzh .dhx-lone > * + *{border-top:1px solid #1e3050 !important;}
+            .qzh .dhx-lone > * + *{border-top:1px solid #e6e8ee !important;}
             /* neutralize CommunityTile / XpTile tile chrome so they read as sections of the one card */
-            .qzh .dhx-lone .cmtile,.qzh .dhx-lone .ttile{min-height:0 !important;background:#0e1d40 !important;}
+            .qzh .dhx-lone .cmtile,.qzh .dhx-lone .ttile{min-height:0 !important;background:#ffffff !important;}
             .qzh .dhx-lone .cmtile:before,.qzh .dhx-lone .cmtile:after,.qzh .dhx-lone .ttile:before,.qzh .dhx-lone .ttile:after{display:none !important;}
-            .qzh .dhx-lone .xp-body{background:#0e1d40 !important;}
+            .qzh .dhx-lone .xp-body{background:#ffffff !important;}
             /* three equal fixed boxes that fill the element; clip hover panels/scrollers; no load shift */
             .qzh .dhx-lone > *{flex:1 1 0 !important;min-height:0 !important;overflow:hidden !important;}
             .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;line-height:1.15 !important;}
@@ -1930,17 +1930,17 @@ export default function QuizHomeClient() {
                content distributed so each has the same spacing and no dead gaps */
             .qzh .dhx-lb{padding:15px 16px;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-height:0;overflow:hidden;}
             .qzh .dhx-lb .dhx-lb-hero{margin:0;}
-            .qzh .dhx-lb.xp .dhx-lb-name{color:#5b8bff;}
+            .qzh .dhx-lb.xp .dhx-lb-name{color:#2563eb;}
             .qzh .dhx-lb.comm .dhx-lb-name{color:#a78bfa;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
             .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-            .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#93a3bd;margin-top:3px;}
+            .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#6b7280;margin-top:3px;}
             .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;}
             .qzh .dhx-lb-gi{display:flex;align-items:baseline;gap:6px;font-size:11.5px;min-width:0;}
             .qzh .dhx-lb-gi .rk{width:12px;font-size:10px;font-weight:800;color:#8fa3cf;flex:none;}
             .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#eaf0fb;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-            .qzh .dhx-lb-gi .sc{flex:none;color:#93a3bd;font-weight:700;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lb-gi .sc{flex:none;color:#6b7280;font-weight:700;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-gi.me b{color:#e8b43a;}
             .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#7fb0f5;text-decoration:none;}
             .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
@@ -1949,7 +1949,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb-dots i{width:4px;height:4px;border-radius:50%;background:#c3cdd9;display:block;}
             .qzh .dhx-lb-dots i.on{background:#2563eb;}
             /* ── RIGHT: one integrated navy element ── */
-            .qzh .dhx-rone{background:#0e1d40;border:1px solid #1e3050;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-rone{background:#ffffff;border:1px solid #e6e8ee;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-rone > *{border-radius:0 !important;border-left:0 !important;border-right:0 !important;box-shadow:none !important;background:transparent !important;}
             .qzh .dhx-rone .dhx-lp{border:0 !important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
             .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;min-height:0;overflow:hidden;}
@@ -1959,42 +1959,42 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone.cm-open .dhx-lp{flex:0 0 auto;max-height:104px;}
             .qzh .dhx-rone.cm-open .dhx-cm{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
             .qzh .dhx-rone.cm-open .dhx-cm-bars{flex:1 1 auto;min-height:0;overflow-y:auto;}
-            .qzh .dhx-rone .dhx-quick{border-top:1px solid #1e3050 !important;padding:5px;}
-            .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#1e3050 !important;}
-            .qzh .dhx-rone .dhx-qrow:hover{background:rgba(255,255,255,0.06) !important;}
+            .qzh .dhx-rone .dhx-quick{border-top:1px solid #e6e8ee !important;padding:5px;}
+            .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#e6e8ee !important;}
+            .qzh .dhx-rone .dhx-qrow:hover{background:#f7f8fa !important;}
             .qzh .dhx-rone .dhx-qrow .qt{color:#fff !important;}
-            .qzh .dhx-rone .dhx-qrow .qs{color:#93a3bd !important;}
+            .qzh .dhx-rone .dhx-qrow .qs{color:#6b7280 !important;}
             .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
-            .qzh .dhx-rone .dhx-cm{border-top:1px solid #1e3050 !important;}
-            .qzh .dhx-rone .dhx-cm-h{color:#f8b84a !important;}
+            .qzh .dhx-rone .dhx-cm{border-top:1px solid #e6e8ee !important;}
+            .qzh .dhx-rone .dhx-cm-h{color:#b26b00 !important;}
             .qzh .dhx-rone .dhx-cm-h .cmchev{color:#8fa3cf !important;}
-            .qzh .dhx-rone .dhx-cmbar{background:#122446 !important;}
+            .qzh .dhx-rone .dhx-cmbar{background:#f1f3f6 !important;}
             .qzh .dhx-rone .dhx-cmbar .mtr{background:#22406e !important;}
             .qzh .dhx-rone .dhx-cmbar .nm{color:#eaf0fb !important;}
-            .qzh .dhx-rone .dhx-cmbar .p{color:#c3d2e8 !important;}
-            .qzh .dhx-rone .dhx-cm-empty{color:#93a3bd !important;}
+            .qzh .dhx-rone .dhx-cmbar .p{color:#46506a !important;}
+            .qzh .dhx-rone .dhx-cm-empty{color:#6b7280 !important;}
             .qzh .dhx-center .dstrip-wrap,.qzh .dhx-center .dhome{margin-bottom:0;}
             /* Quiz of the Day sized for the narrow right rail: photo over body */
             .qzh .dhx-qotd{flex-direction:column;min-height:0;}
             .qzh .dhx-qotd .qotd-photo{flex:0 0 auto;min-height:132px;}
             .qzh .dhx-qotd .qotd-body{padding:14px 16px;}
             /* Last Played rail card (navy) */
-            .qzh .dhx-lp{background:#0e1d40;border:1px solid #0e1d40;border-radius:14px;padding:14px 15px;color:#eef3fb;}
+            .qzh .dhx-lp{background:#ffffff;border:1px solid #e6e8ee;border-radius:14px;padding:14px 15px;color:#1c1e24;}
             .qzh .dhx-lp-top{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
             .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#fff;}
             .qzh .dhx-lp-ttl svg{color:#fff;flex:none;}
             .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#a7f3cf;background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
             .qzh .dhx-live i{width:5px;height:5px;border-radius:999px;background:#10b981;display:block;}
-            .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.8);font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
+            .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:#46506a;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
             .qzh .dhx-lp-stats{display:flex;gap:18px;margin-bottom:11px;}
             .qzh .dhx-lp-stats b{display:block;font-size:20px;font-weight:800;line-height:1;}
-            .qzh .dhx-lp-stats span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-top:4px;}
+            .qzh .dhx-lp-stats span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a93a6;margin-top:4px;}
             .qzh .dhx-lp-rows{display:flex;flex-direction:column;gap:1px;}
-            .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #1e3050;text-decoration:none;}
+            .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #e6e8ee;text-decoration:none;}
             .qzh .dhx-lp-row:last-child{border-bottom:none;}
             .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lp-sc{flex:none;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;border-radius:7px;padding:2px 7px;}
-            .qzh .dhx-lp-none{font-size:12px;color:#93a3bd;padding:6px 0;}
+            .qzh .dhx-lp-none{font-size:12px;color:#6b7280;padding:6px 0;}
             @media(max-width:1200px){
               .qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}
               /* mobile: rails stack at natural height — no fixed boxes, no clipping/collapse */
@@ -2065,7 +2065,7 @@ export default function QuizHomeClient() {
               const num = (n) => (n || 0).toLocaleString();
               return (
                 <div className="dhx-lb xp">
-                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#5b8bff' }} fill="#5b8bff" /> TOP SOT PLAYER · {is30 ? 'LAST 30 DAYS' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
+                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#2563eb' }} fill="#2563eb" /> TOP SOT PLAYER · {is30 ? 'LAST 30 DAYS' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
                     <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No XP earned yet'}</span>
@@ -2149,7 +2149,7 @@ export default function QuizHomeClient() {
             {/* Category Mastery (moved from the removed hub row) — collapses to its title by default */}
             <div className={`dhx-cm${cmOpen ? ' open' : ''}`}>
               <button type="button" className="dhx-cm-h" onClick={() => setCmOpen((v) => !v)} aria-expanded={cmOpen}>
-                <BarChart3 size={13} style={{ color: '#5b8bff', flex: 'none' }} /><span>Category Mastery</span>
+                <BarChart3 size={13} style={{ color: '#2563eb', flex: 'none' }} /><span>Category Mastery</span>
                 <ChevronDown size={15} strokeWidth={2.5} className="cmchev" />
               </button>
               {cmOpen ? (catMastery.length > 0 ? (
@@ -2400,19 +2400,19 @@ export default function QuizHomeClient() {
                 <section className="mc-open catcard" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ background: C.accent, color: '#fff', padding: '11px 13px 12px', borderRadius: '8px 8px 0 0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.16)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={13} /></span>
+                      <span style={{ width: 24, height: 24, borderRadius: 7, background: '#eef1f5', color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={13} /></span>
                       <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: '#fff' }}>Last Played</h3>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: '#a7f3cf', background: 'rgba(16,185,129,0.16)', borderRadius: 999, padding: '2px 7px' }}><span style={{ width: 5, height: 5, borderRadius: 999, background: C.live }} />LIVE</span>
-                      <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.82)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>View all ›</button>
+                      <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: '#46506a', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>View all ›</button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 12 }}>
                       <div style={{ flex: 'none' }}>
                         <div style={{ fontSize: 21, fontWeight: 800, lineHeight: 1, letterSpacing: '-.02em' }}>{(playsToday || 0).toLocaleString()}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: 'rgba(255,255,255,0.5)', marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#8a93a6', marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
                       </div>
                       <div style={{ flex: 'none' }}>
                         <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1, letterSpacing: '-.01em', paddingBottom: 1 }}>{fmtT(totals.todayTime)}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: 'rgba(255,255,255,0.5)', marginTop: 5, textTransform: 'uppercase' }}>played today</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#8a93a6', marginTop: 5, textTransform: 'uppercase' }}>played today</div>
                       </div>
                       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', gap: 2, height: 32 }} title="plays per hour (last 11h)">
                         {bars.map((b, i) => (
@@ -2422,13 +2422,13 @@ export default function QuizHomeClient() {
                     </div>
                     <div style={{ marginTop: 11, display: 'flex', gap: 6 }}>
                       {hot ? (
-                        <a href={playHref(hot.id)} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                        <a href={playHref(hot.id)} style={{ flex: '1 1 0', minWidth: 0, background: '#f7f8fa', border: '1px solid #eef1f5', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
                           <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#f4b183', textTransform: 'uppercase', display: 'block' }}>🔥 Hot now</span>
                           <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(titleById[hot.id] || hot.title)}</span>
                         </a>
                       ) : null}
                       {tough ? (
-                        <a href={playHref(tough.quizId)} style={{ flex: '1 1 0', minWidth: 0, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.13)', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                        <a href={playHref(tough.quizId)} style={{ flex: '1 1 0', minWidth: 0, background: '#f7f8fa', border: '1px solid #eef1f5', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
                           <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#9ec5e8', textTransform: 'uppercase', display: 'block' }}>🧠 Toughest · {Math.round((tough.aceRate || 0) * 100)}% ace</span>
                           <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(resolveTitle(tough.quizId) || '')}</span>
                         </a>
