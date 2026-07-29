@@ -92,11 +92,16 @@ function mixHex(hex, pct, base) {
   const m = (a, b) => Math.round(a * pct + b * (1 - pct)).toString(16).padStart(2, '0');
   return '#' + m(r1, r2) + m(g1, g2) + m(b1, b2);
 }
-const TINT_BG = {}, TINT_BD = {};
+const TINT_BG = {}, TINT_BD = {}, TINT_CHIP = {};
 for (const k of Object.keys(TCOL)) {
   TINT_BG[k] = mixHex(TCOL[k], 0.20, TINT_BASE);
   TINT_BD[k] = mixHex(TCOL[k], 0.42, TINT_BASE);
+  // Category chip: the same game hue as the tile, in the navy-legible variant,
+  // so the chip reads as part of its own tile rather than a separate palette.
+  TINT_CHIP[k] = mixHex(ACCENTS[k] || '#5b9bff', 0.18, TINT_BASE);
 }
+// 'Crowd Psychology' is too long for a tile chip.
+const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Consecutive ET days on which the player finished at least one daily, counted
 // back from today. Today is optional (a live streak shows before you have played
 // today); any earlier gap ends it. Derived from the played quiz ids that
@@ -397,17 +402,19 @@ export default function DailyStrip({ board = null }) {
                 <span className="dh-acc" style={{ background: ACCENTS[g.key] || '#5b9bff' }} aria-hidden="true" />
                 <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
                 {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
-                <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
                 <span className="dh-tnm">{g.name}</span>
-                {isDone ? (
-                  <span className="dh-tsub done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
-                ) : st ? (
-                  <span className="dh-tsub strk"><Flame size={10} strokeWidth={2.6} />{st} day</span>
-                ) : lead ? (
-                  <span className="dh-lead"><Crown size={10} /><span>{lead}</span></span>
-                ) : (
-                  <span className="dh-tsub">Not played</span>
-                )}
+                <span className="dh-tcat" style={{ background: TINT_CHIP[g.key], color: ACCENTS[g.key] || '#5b9bff' }}>
+                  {CAT_SHORT[g.cat] || g.cat}
+                </span>
+                <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
+                <span className="dh-tmeta">
+                  {isDone ? (
+                    <span className="dh-msc"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#22c55e" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
+                  ) : null}
+                  {st ? <span className="dh-mstrk"><Flame size={9} strokeWidth={2.8} />{st}</span> : null}
+                  {lead ? <span className="dh-mlead"><Crown size={9} strokeWidth={2.6} /><span>{lead}</span></span> : null}
+                  {!isDone && !st && !lead ? <span className="dh-tsub">Not played</span> : null}
+                </span>
               </button>
             );
     return dim ? React.cloneElement(tile, { className: tile.props.className + ' dim' }) : tile;
@@ -465,28 +472,28 @@ export default function DailyStrip({ board = null }) {
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
-        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:12px 8px 10px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-family:inherit;min-height:100px;}
+        .dh-tile{position:relative;overflow:hidden;background:#0e1d40;border:1px solid #223353;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#eef3fb;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-family:inherit;min-height:104px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#e8b43a;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.dim{opacity:.4;}
         .dh-tile.dim:hover{opacity:.8;}
         .dh-tile.done{background:#0d2a1d;border-color:#1f5537;}
-        .dh-tile.done .dh-tnm{color:#8fd6ac;font-size:11.5px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
-        .dh-tic{width:44px;height:38px;display:flex;align-items:center;justify-content:center;flex:none;}
-        .dh-tic img{height:30px;width:auto;max-width:40px;object-fit:contain;}
-        .dh-tile.done .dh-tic{opacity:.45;}
-        .dh-tnm{font-size:12.5px;font-weight:800;letter-spacing:-.2px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+        .dh-tic{width:44px;height:28px;display:flex;align-items:center;justify-content:center;flex:none;margin:4px 0;}
+        .dh-tic img{height:21px;width:auto;max-width:28px;object-fit:contain;}
+        .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+        .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+        .dh-tmeta{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px 6px;max-width:100%;}
+        .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;}
+        .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;}
+        .dh-mlead{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:#a9bcd8;min-width:0;max-width:100%;}
+        .dh-mlead svg{flex:none;color:#e8b43a;}
+        .dh-mlead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dh-tsub{font-size:10px;font-weight:700;color:#93a3bd;display:inline-flex;align-items:center;gap:3px;}
-        .dh-tsub.done{color:#6ee7b7;}
-        .dh-tsub.strk{color:#f0c95a;}
         .dh-tsub svg{flex:none;}
         .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
         .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
-        .dh-lead{font-size:10px;font-weight:700;color:#c3d2e8;display:inline-flex;align-items:center;gap:3px;max-width:100%;}
-        .dh-lead svg{flex:none;color:#e8b43a;}
-        .dh-lead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
         .dh-lbpanel{background:#0b1733;border:1px solid rgba(232,180,58,0.28);border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#eef3fb;}
@@ -547,12 +554,16 @@ export default function DailyStrip({ board = null }) {
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
           .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
-          .dh-tile{padding:11px 5px 9px;border-radius:10px;min-height:88px;}
+          .dh-tile{padding:9px 4px 8px;border-radius:10px;min-height:94px;}
+          .dh-tnm{font-size:12.5px;}
+          .dh-tcat{font-size:7px;padding:1px 5px;}
+          .dh-tmeta{gap:2px 4px;}
+          .dh-msc,.dh-mstrk,.dh-mlead{font-size:9px;}
           .dh-tic{width:40px;height:34px;}
           .dh-tic img{height:23px;}
           .dh-tnm{font-size:11px;}
         }
-        @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}}
+        @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-mlead{display:none;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
         /* Small screens: the expanded panel is IN FLOW (see DailyTilePanel), so
            the grid hides beneath it and the wrapper takes the panel's own
