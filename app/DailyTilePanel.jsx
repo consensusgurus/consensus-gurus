@@ -19,7 +19,7 @@
 // all-time leaderboard. Everything past "today" comes from ONE lazy fetch of
 // /api/quiz/daily-game, cached per game by the parent.
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy } from 'lucide-react';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 
@@ -37,6 +37,7 @@ export default function DailyTilePanel({
   todayRow = null, todayField = null, standings = [], meKey = null,
   data = null, onClose,
 }) {
+  const rootRef = useRef(null);
   const todayISO = etTodayISO();
   const how = (DAILY_GAME_MAP[game.key] && DAILY_GAME_MAP[game.key].how) || game.tag;
 
@@ -47,6 +48,20 @@ export default function DailyTilePanel({
 
   const [calMonth, setCalMonth] = useState(() => todayISO.slice(0, 7));
   useEffect(() => { setCalMonth(todayISO.slice(0, 7)); }, [game.key, todayISO]);
+
+  // On a small screen the panel is IN FLOW and the grid is hidden beneath it,
+  // so a tile tapped low in a long grid can leave the page scrolled past where
+  // the panel now begins. 'nearest' only moves the page when the panel is
+  // actually out of view, so it never yanks the page on desktop.
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth > 980) return;
+    const el = rootRef.current;
+    if (!el) return;
+    const id = window.setTimeout(() => {
+      try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
+    }, 40);
+    return () => window.clearTimeout(id);
+  }, [game.key]);
 
   // Esc closes, matching the Close button.
   useEffect(() => {
@@ -92,7 +107,7 @@ export default function DailyTilePanel({
   const myRank = allTime && allTime.myRank;
 
   return (
-    <div className="dtp" style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
+    <div className="dtp" ref={rootRef} style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
       <div className="dtp-hd">
         <span className="dtp-ic"><img src={game.img} alt="" aria-hidden="true" /></span>
         <div className="dtp-idt">
@@ -285,7 +300,13 @@ export default function DailyTilePanel({
         .dtp-lfoot a:hover{text-decoration:underline;}
         .dtp-empty{font-size:12px;color:#6c7e9b;font-weight:600;padding:6px 0;}
         @media(max-width:980px){
-          .dtp{overflow:auto;}
+          /* IN FLOW below 980px. As an absolutely positioned overlay with its
+             own scrollbar, the panel swallowed the touch gesture: the page
+             could only be scrolled by grabbing the thin margin outside it,
+             which is near impossible on a phone (owner, 2026-07-29). In flow it
+             grows to its natural height, DailyStrip hides the grid underneath
+             it, and the page scrolls normally with no nested scroller. */
+          .dtp{position:static;overflow:visible;height:auto;border-radius:11px;animation:none;}
           .dtp-grid{grid-template-columns:1fr 1fr;gap:16px;}
           .dtp-col:nth-child(3){grid-column:1/-1;}
         }

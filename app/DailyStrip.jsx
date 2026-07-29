@@ -504,6 +504,14 @@ export default function DailyStrip({ board = null }) {
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
+        /* Small screens: the expanded panel is IN FLOW (see DailyTilePanel), so
+           the grid hides beneath it and the wrapper takes the panel's own
+           height. No min-height floor, no overlay, no nested scroller: the page
+           scrolls normally wherever you drag. */
+        @media(max-width:980px){
+          .dh-boardwrap.open{min-height:0;}
+          .dh-boardwrap.open .dh-board{display:none;}
+        }
       `}</style>
 
       {/* Stats bar. This is welded directly onto the grid below (rounded top
