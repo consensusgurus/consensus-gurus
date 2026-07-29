@@ -678,7 +678,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
             <div className="dl-glabel">
               <span className="k">{grp.label}</span>
               <span className="line" />
-              <span className="ct">{grp.games.length} game{grp.games.length === 1 ? '' : 's'}</span>
+              <span className="ct">{grp.games.length} puzzle{grp.games.length === 1 ? '' : 's'}</span>
             </div>
             <div className="dl-cards">
               {grp.games.map((g) => (
