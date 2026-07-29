@@ -1710,7 +1710,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lp-bars{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:30px;}
             .qzh .dhx-lp-bars span{width:5px;border-radius:2px;flex:none;}
             .qzh .dhx-lp .dhx-lp-rows{background:#fff;border-radius:12px;padding:3px 11px;margin-top:2px;overflow:hidden;gap:0;}
-            .qzh .dhx-lpr{display:flex;align-items:center;gap:10px;padding:7px 0;text-decoration:none;border-bottom:1px solid #eef1f6;}
+            .qzh .dhx-lpr{display:flex;align-items:center;gap:10px;padding:7px 0;text-decoration:none;border-bottom:1px solid #eef1f6;flex:1 1 auto;min-height:0;}
             .qzh .dhx-lpr:last-child{border-bottom:none;}
             .qzh .dhx-lpr .ring{width:30px;height:30px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center;}
             .qzh .dhx-lpr .ring .in{width:23px;height:23px;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#1c1e24;}
@@ -1754,13 +1754,13 @@ export default function QuizHomeClient() {
             .qzh .dhx-lone .xp-body{background:#0e1d40 !important;}
             /* three equal fixed boxes that fill the element; clip hover panels/scrollers; no load shift */
             .qzh .dhx-lone > *{flex:1 1 0 !important;min-height:0 !important;overflow:hidden !important;}
-            .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:24px !important;}
+            .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;line-height:1.15 !important;}
             .qzh .dhx-lone .cm-namewrap,.qzh .dhx-lone .xp-namewrap{min-height:0 !important;}
             /* Daily Puzzle Leaderboard in the dark tile format */
             .qzh .dhx-lb{padding:14px 15px;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
-            .qzh .dhx-lb-name{display:block;font-size:30px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#93a3bd;margin-top:3px;}
             .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;}
             .qzh .dhx-lb-gi{display:flex;align-items:baseline;gap:6px;font-size:11.5px;min-width:0;}
@@ -1820,7 +1820,18 @@ export default function QuizHomeClient() {
             .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:#eaf0fb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lp-sc{flex:none;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;border-radius:7px;padding:2px 7px;}
             .qzh .dhx-lp-none{font-size:12px;color:#93a3bd;padding:6px 0;}
-            @media(max-width:1200px){.qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}}
+            @media(max-width:1200px){
+              .qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}
+              /* mobile: rails stack at natural height — no fixed boxes, no clipping/collapse */
+              .qzh .dhx-rail{height:auto !important;}
+              .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;}
+              .qzh .dhx-lone > *{flex:none !important;overflow:visible !important;}
+              .qzh .dhx-rone .dhx-lp{flex:none !important;}
+              .qzh .dhx-rone .dhx-lp .dhx-lp-rows,.qzh .dhx-rone.cm-open .dhx-cm-bars{overflow:visible !important;max-height:none !important;}
+              .qzh .dhx-rone.cm-open .dhx-lp{max-height:none !important;}
+              .qzh .dhx-lpr{flex:none !important;}
+              .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;}
+            }
           `}</style>
           <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>
             <div className="dhx-lone">
@@ -1837,11 +1848,11 @@ export default function QuizHomeClient() {
                   <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> DAILY PUZZLE LEADERBOARD</span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.username) || 'Player'}</span>
-                    <span className="dhx-lb-sub">{one ? `${one.gamesPlayed}/${gc} puzzles · ${fp(one.total)} pts today` : 'No scores yet today'}</span>
+                    <span className="dhx-lb-sub">{one ? `${one.gamesPlayed}/${gc} puzzles today` : 'No scores yet today'}</span>
                   </div>
                   <div className="dhx-lb-grid">
                     {ov.slice(1, 5).map((r) => (
-                      <span key={r.userKey} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b><span className="sc">{fp(r.total)}</span></span>
+                      <span key={r.userKey} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></span>
                     ))}
                   </div>
                   {mk && dailyBoard.me && !shown ? (
@@ -1880,7 +1891,7 @@ export default function QuizHomeClient() {
                 })()}
               </div>
               <div className="dhx-lp-rows">
-                {(lastPlayed || []).slice(0, 6).map((f, i) => {
+                {(lastPlayed || []).slice(0, 7).map((f, i) => {
                   const frac = f.total ? f.score / f.total : 0;
                   const pct = Math.min(100, Math.round(frac * 100));
                   const ring = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? '#e8b43a' : '#dc2626');
