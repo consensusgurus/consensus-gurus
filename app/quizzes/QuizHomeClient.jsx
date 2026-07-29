@@ -1901,8 +1901,8 @@ export default function QuizHomeClient() {
             /* who currently leads this row, beside the title */
             .qzh .dhx-qrow .qm .qlead{display:inline-flex;align-items:center;gap:3px;margin-left:6px;vertical-align:1px;max-width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;font-weight:800;border-radius:999px;padding:1px 7px;background:#fdf7ec;color:#a16207;border:1px solid #f0dcae;}
             .qzh .dhx-qrow .qm .qlead svg{flex:none;}
-            .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(232,180,58,0.16);color:#e8b43a;border-color:rgba(232,180,58,0.42);}
-            .qzh .dhx-qrow .qa{flex:none;color:#b8c0cc;font-weight:800;font-size:16px;}
+            .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(232,180,58,0.16);color:#a16207;border-color:rgba(232,180,58,0.42);}
+            .qzh .dhx-qrow .qa{flex:none;color:#8a93a6;font-weight:800;font-size:16px;}
             /* Category Mastery (collapsible) */
             .qzh .dhx-cm{background:#fff;border:1px solid ${C.line};border-radius:14px;flex:none;overflow:hidden;}
             .qzh .dhx-cm-h{width:100%;display:flex;align-items:center;gap:7px;padding:12px 14px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;color:#a16207;}

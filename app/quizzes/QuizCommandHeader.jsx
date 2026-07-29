@@ -149,7 +149,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:linear-gradient(100deg,#14294d,#0a1730);}
+        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #e6e8ee;}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
         .qch-word em{font-style:normal;color:#6b7280;font-weight:600;}
         .qch-ws{display:none;}
@@ -201,7 +201,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;color:#1c1e24;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
         .qch-hub:hover{background:#d49a2a;color:#1c1e24;}
         .qch-tickwrap{display:flex;align-items:stretch;background:#0e1b33;}
-        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #e6e8ee;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#6b7280;position:relative;z-index:2;}
+        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#6b7280;position:relative;z-index:2;}
         .qch-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,0.5);animation:qchpul 2s infinite;}
         @keyframes qchpul{0%{box-shadow:0 0 0 0 rgba(90,212,143,0.45)}70%{box-shadow:0 0 0 7px rgba(90,212,143,0)}100%{box-shadow:0 0 0 0 rgba(90,212,143,0)}}
         .qch-ticker{position:relative;overflow:hidden;flex:1 1 0;min-width:0;height:34px;}
