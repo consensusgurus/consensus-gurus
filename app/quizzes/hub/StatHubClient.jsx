@@ -16,16 +16,17 @@ import { withRef } from '@/lib/referrals';
 const C = {
   bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
   soft: '#6b7280', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
-  accsoft: '#e8effb', live: '#10b981', danger: '#c0392b',
+  accsoft: '#e8effb', live: '#047857', danger: '#c0392b',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
+const MEDAL_INK = ['#8a5300', '#5b6472', '#8a4f24'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const MEDAL_BG = ['#fbf2dc', '#eef0f2', '#f6e9df'];
 // Rank bubble. #1/#2/#3 render in gold/silver/bronze; everything else accent blue.
 function RankChip({ rank, total }) {
   if (!rank) return null;
   const i = rank >= 1 && rank <= 3 ? rank - 1 : -1;
-  const st = i >= 0 ? { color: MEDAL[i], background: MEDAL_BG[i] } : undefined;
+  const st = i >= 0 ? { color: MEDAL_INK[i], background: MEDAL_BG[i] } : undefined;
   return <span className="rankchip" style={st}>#{rank}{total ? ` of ${total.toLocaleString()}` : ''}</span>;
 }
 
@@ -478,7 +479,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
                 role={canOpen ? 'button' : undefined}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', cursor: canOpen ? 'pointer' : 'default' }}
               >
-                <span style={{ flex: 'none', width: 25, height: 25, borderRadius: '50%', background: mi >= 0 ? MEDAL_BG[mi] : '#eef0f2', color: mi >= 0 ? MEDAL[mi] : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11.5 }}>{i + 1}</span>
+                <span style={{ flex: 'none', width: 25, height: 25, borderRadius: '50%', background: mi >= 0 ? MEDAL_BG[mi] : '#eef0f2', color: mi >= 0 ? MEDAL_INK[mi] : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11.5 }}>{i + 1}</span>
                 <span
                   onClick={(e) => { e.stopPropagation(); if (onSelectPlayer) onSelectPlayer(p.key || `a:${p.anon}`); }}
                   title="View profile"
@@ -849,8 +850,8 @@ export default function StatHubClient() {
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: '#10b981' }} /> Played</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> Completed (100%)</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: '#047857' }} /> Played</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#a16207" /> Completed (100%)</span>
       </div>
       <Footer />
     </div>
@@ -995,7 +996,7 @@ function DailyGamesView({ onSelectPlayer }) {
       {/* 2. Day-by-day champion history. */}
       <div id="daily-champions" className="card" style={{ padding: '16px 18px', marginTop: 16, scrollMarginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Crown size={17} style={{ color: '#e8b43a' }} /> Daily Champions</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Crown size={17} style={{ color: '#a16207' }} /> Daily Champions</span>
           {hist == null ? null : <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>{history.length} {history.length === 1 ? 'day' : 'days'} crowned</span>}
         </div>
         {topChamp && topChamp.wins > 1 ? (
@@ -1020,7 +1021,7 @@ function DailyGamesView({ onSelectPlayer }) {
               <div key={h.date} style={{ display: 'grid', gridTemplateColumns: col, gap: 8, alignItems: 'center', padding: '9px 4px', borderTop: `1px solid ${C.line}` }}>
                 <span style={{ fontSize: 12.5, fontWeight: 700, color: C.ink }}>{h.label}</span>
                 <span style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  {i === 0 ? <Crown size={13} style={{ color: '#e8b43a', flex: 'none' }} /> : null}
+                  {i === 0 ? <Crown size={13} style={{ color: '#a16207', flex: 'none' }} /> : null}
                   {nameBtn(h.winner.userKey, h.winner.username, 13.5)}
                 </span>
                 <span style={{ textAlign: 'right', fontSize: 13, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{fmtPts1(h.winner.total)}<span style={{ fontSize: 10.5, fontWeight: 600, color: C.soft }}>/{h.maxTotal}</span></span>
@@ -1072,7 +1073,7 @@ function DailyGamesView({ onSelectPlayer }) {
                   <div style={{ marginTop: 10, paddingTop: 9, borderTop: `1px solid ${C.line}`, fontSize: 11.5, color: C.muted, fontWeight: 600 }}>
                     {leader ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                        <span style={{ color: '#e8b43a', flex: 'none', display: 'inline-flex' }}><Crown size={12} /></span>
+                        <span style={{ color: '#a16207', flex: 'none', display: 'inline-flex' }}><Crown size={12} /></span>
                         <span style={{ color: C.soft, flex: 'none' }}>Today:</span>
                         {nameBtn(leader.userKey, leader.username, 11.5)}
                       </span>
@@ -1165,7 +1166,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
               const first = (cr.rank || 0) === 1;
               return (
                 <div key={c.key} className="card" style={{ padding: '13px 14px', position: 'relative', ...(crowned ? { border: '1.5px solid #f0d9a8', background: '#fffdf5' } : {}) }}>
-                  {crowned ? <span style={{ position: 'absolute', top: 10, right: 12, color: '#e8b43a', display: 'flex' }} title={viewing ? 'Best category' : 'Your best category'}><Crown size={17} /></span> : null}
+                  {crowned ? <span style={{ position: 'absolute', top: 10, right: 12, color: '#a16207', display: 'flex' }} title={viewing ? 'Best category' : 'Your best category'}><Crown size={17} /></span> : null}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                     <span className="dot" style={{ background: c.c, borderRadius: '50%', width: 9, height: 9 }} />
                     <span style={{ fontSize: 13, fontWeight: 800 }}>{c.label}</span>
@@ -1441,8 +1442,8 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
           return (
             <div key={p.userKey} style={{ background: mine ? '#f3f7fe' : C.bg, border: `1px solid ${mine ? '#c6d8f5' : C.line}`, borderTop: `3px solid ${MEDAL[i]}`, borderRadius: '0 0 12px 12px', padding: '14px 12px 12px', textAlign: 'center', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
               <span style={{ position: 'relative', display: 'inline-flex', flex: 'none' }}>
-                <Avatar name={p.name} bg={MEDAL_BG[i]} fg={MEDAL[i]} size={40} />
-                {i === 0 ? <span style={{ position: 'absolute', top: -7, right: -9, width: 19, height: 19, borderRadius: '50%', background: '#fff', border: `1px solid ${C.line}`, color: MEDAL[0], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Crown size={11} /></span> : null}
+                <Avatar name={p.name} bg={MEDAL_BG[i]} fg={MEDAL_INK[i]} size={40} />
+                {i === 0 ? <span style={{ position: 'absolute', top: -7, right: -9, width: 19, height: 19, borderRadius: '50%', background: '#fff', border: `1px solid ${C.line}`, color: MEDAL_INK[0], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Crown size={11} /></span> : null}
               </span>
               <div style={{ marginTop: 7, fontSize: 13, fontWeight: 800, lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 <button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: mine ? C.ink : C.accent, cursor: 'pointer' }}>{p.name}</button>
@@ -1482,7 +1483,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
               const mi = idx < 3 ? idx : -1;
               return (
                 <tr key={p.userKey} style={mine ? { background: C.accsoft } : (viewed ? { background: '#fdf2e3' } : undefined)}>
-                  <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL[mi] : C.soft }}>{idx + 1}</td>
+                  <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL_INK[mi] : C.soft }}>{idx + 1}</td>
                   <td style={{ fontWeight: (mine || viewed) ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}{viewed ? <span style={{ fontSize: 10, color: '#b5560f', fontWeight: 700, marginLeft: 6 }}>viewing</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.xp || 0).toLocaleString()}</td>
                   {hasTrend ? <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{trendCell(p)}</td> : null}
@@ -1554,7 +1555,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
                   <td style={{ fontWeight: 600, maxWidth: 280 }}>
                     <span style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                       <Link href={`/quiz/${q.id}`} className="qlink" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{q.title}</Link>
-                      {doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ flex: 'none', marginLeft: 5 }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ flex: 'none', color: '#10b981', marginLeft: 5 }} aria-label="Played" /> : null}
+                      {doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill="#e8b43a" color="#a16207" style={{ flex: 'none', marginLeft: 5 }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ flex: 'none', color: '#047857', marginLeft: 5 }} aria-label="Played" /> : null}
                     </span>
                   </td>
                   <td className="score" style={{ textAlign: 'right' }}>{(s.plays || 0).toLocaleString()}</td>
