@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Daily tile redesign: name first, 3 variants</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#0e1d40;--line:#223353;--line2:#2a4166;--ground:#f7f8fa;--gold:#e8b43a;--dim:#93a3bd;--soft:#c3d2e8;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ground);font-family:'Manrope',system-ui,sans-serif;color:#1c1e24;padding:32px 26px 80px;}
+  .page{max-width:1180px;margin:0 auto;}
+  h1{font-size:22px;font-weight:800;letter-spacing:-.4px;margin:0 0 6px;}
+  .sub{font-size:14px;color:#5b6472;font-weight:600;margin:0 0 30px;max-width:84ch;line-height:1.5;}
+  .concept{margin:0 0 44px;}
+  .chd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+  .cnum{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8b909d;}
+  .cttl{font-size:17px;font-weight:800;letter-spacing:-.2px;}
+  .cwhy{font-size:13px;color:#5b6472;font-weight:600;margin:0 0 13px;max-width:94ch;line-height:1.5;}
+  .board{max-width:830px;background:var(--navy);border-radius:13px;padding:10px;}
+  .grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;}
+  .t{position:relative;overflow:hidden;border-radius:11px;padding:10px 8px 9px;display:flex;flex-direction:column;align-items:center;cursor:pointer;}
+  .acc{position:absolute;top:0;left:0;right:0;height:3px;}
+  .t.done .acc{background:#22c55e !important;}
+  .nm{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+  .cat{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#8195b5;}
+  .ic{display:flex;align-items:center;justify-content:center;}
+  .ic img{width:auto;object-fit:contain;}
+  .meta{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;max-width:100%;}
+  .strk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;}
+  .lead{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;color:#93a3bd;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .lead b{color:var(--soft);font-weight:700;}
+  .sc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;}
+  .dot{position:absolute;top:7px;right:8px;width:6px;height:6px;border-radius:50%;}
+  /* 1: single meta line */
+  .v1 .t{min-height:104px;}
+  .v1 .cat{margin-top:1px;}
+  .v1 .ic{height:34px;margin:5px 0 4px;}
+  .v1 .ic img{height:26px;max-width:34px;}
+  /* 2: stacked meta */
+  .v2 .t{min-height:116px;}
+  .v2 .ic{height:30px;margin:5px 0 5px;}
+  .v2 .ic img{height:23px;max-width:30px;}
+  .v2 .meta{flex-direction:column;gap:2px;}
+  /* 3: category as a chip, icon smallest */
+  .v3 .t{min-height:102px;}
+  .v3 .catchip{font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;margin-top:3px;}
+  .v3 .ic{height:28px;margin:4px 0 4px;}
+  .v3 .ic img{height:21px;max-width:28px;}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Daily tile: name first, icon under, with streak, leader and category</h1>
+  <p class="sub">Same thirty games, same live data (today's real leaders, your real streaks and scores). The name leads at the top, the art drops underneath at a smaller size, and each tile now carries the category plus both your streak and the day's leader. Three ways to arrange the lower half.</p>
+
+  <div class="concept">
+    <div class="chd"><span class="cnum">Variant 1</span><span class="cttl">One meta line</span></div>
+    <p class="cwhy">Name, category eyebrow, icon, then a single line holding whichever signals apply: your score if you finished, your streak, and the day's leader. Tightest of the three and closest to the current tile height.</p>
+    <div class="board"><div class="grid v1" id="v1"></div></div>
+  </div>
+
+  <div class="concept">
+    <div class="chd"><span class="cnum">Variant 2</span><span class="cttl">Stacked meta</span></div>
+    <p class="cwhy">Same order, but your own status and the day's leader get their own lines. Easier to scan when a tile carries both, at the cost of about 12px of tile height.</p>
+    <div class="board"><div class="grid v2" id="v2"></div></div>
+  </div>
+
+  <div class="concept">
+    <div class="chd"><span class="cnum">Variant 3</span><span class="cttl">Category as a colored chip</span></div>
+    <p class="cwhy">The category becomes a small tinted chip in the game's own color rather than a grey eyebrow, which gives the grid a second layer of grouping you can read at a glance. Icon is smallest here to pay for it.</p>
+    <div class="board"><div class="grid v3" id="v3"></div></div>
+  </div>
+</div>
+
+<script>
+const CAT={crux:'Word',emcee:'Word',garble:'Word',links:'Word',stet:'Word',tuck:'Word',warmer:'Word',shards:'Word',lode:'Word',
+ span:'Geography',ping:'Geography',dating:'History',extra:'History',bracket:'History',listed:'History',
+ tally:'Numbers',suds:'Numbers',carve:'Numbers',cipher:'Numbers',hedge:'Numbers',
+ outwit:'Crowd',outrank:'Crowd',alibi:'Logic',jester:'Logic',sworn:'Logic',axiom:'Logic',hearsay:'Logic',venn:'Logic',stands:'Logic',etch:'Logic'};
+const NAME={crux:'Crux',emcee:'Emcee',garble:'Garble',links:'Links',span:'Span',dating:'Dating',tally:'Tally',suds:'Suds',extra:'Extra',carve:'Carve',stet:'Stet',outwit:'Outwit',tuck:'Tuck',alibi:'Alibi',cipher:'Cipher',ping:'Ping',warmer:'Warmer',jester:'Jesters',sworn:'Sworn',outrank:'Outrank',shards:'Shards',axiom:'Axiom',hearsay:'Hearsay',venn:'Venn',stands:'Stands',bracket:'Bracket',lode:'Lode',etch:'Etch',hedge:'Hedge',listed:'Listed'};
+const TCOL={crux:'#2563eb',emcee:'#a21caf',shards:'#0d9488',garble:'#8a6d1a',links:'#166534',span:'#9d174d',dating:'#6d28d9',tally:'#15803d',suds:'#ea580c',carve:'#7c3aed',extra:'#b91c1c',stet:'#0369a1',outwit:'#334155',outrank:'#4338ca',tuck:'#92400e',alibi:'#8b1e2d',cipher:'#0f766e',ping:'#0284c7',warmer:'#dc2626',jester:'#7c3aed',sworn:'#be185d',axiom:'#0f766e',hearsay:'#5b21b6',venn:'#b45309',stands:'#1d4ed8',bracket:'#c2410c',lode:'#a16207',etch:'#4d7c0f',hedge:'#0891b2',listed:'#c026a8'};
+const ACC={crux:'#5b9bff',emcee:'#e879f9',garble:'#f0c95a',links:'#4ca878',span:'#e06aa0',dating:'#a483f0',tally:'#4cb377',suds:'#f0894c',extra:'#e06a6a',carve:'#a483f0',stet:'#41b1e8',outwit:'#c3cfe3',tuck:'#e0a568',alibi:'#ef8896',cipher:'#3fc9b8',ping:'#4cb3f0',warmer:'#f3705c',jester:'#a78bfa',sworn:'#f472b6',outrank:'#8b8af5',shards:'#2dd4bf',axiom:'#5eead4',hearsay:'#d8b4fe',venn:'#fbbf24',stands:'#93c5fd',bracket:'#fb923c',lode:'#e0b13f',etch:'#a3e635',hedge:'#67e8f9',listed:'#e9b8f5'};
+const RAW='crux|MasonGraham|2|;emcee|EE|4|10/10;garble|EE|3|9/10;links|MasonGraham|3|;span|steinni1|0|;dating|donkeythunder|2|9/10;tally|charchuk|0|;suds|WiganMich|2|;extra|ludovciusrex|0|;carve|charchuk|2|;stet|EE|0|;outwit|gnomiem8|0|;tuck|charchuk|0|;alibi|charchuk|0|;cipher|steinni1|0|;ping|MasonGraham|4|6/10;warmer|wahwah|0|;jester|donkeythunder|4|10/10;sworn|charchuk|0|;outrank|e4n|2|4/12;shards|wahwah|3|90/100;axiom|steinni1|0|;hearsay|VicMcDoogle|0|;venn|wahwah|2|12/12;stands|chazzyd|0|;bracket|MasonGraham|3|;lode|VicMcDoogle|5|13/105;etch|MasonGraham|2|;hedge|EE|2|;listed|MasonGraham|2|2/10';
+const G=RAW.split(';').map(s=>{const[k,lead,streak,done]=s.split('|');return{k,lead,streak:+streak,done};});
+const IMG=k=>'https://sourceoftruths.com/games/btn-'+k+'.png';
+const flame='<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.8" style="vertical-align:-1px"><path d="M12 22c4 0 7-3 7-7 0-5-5-6-4-13-4 2-8 6-8 12 0 4 2 8 5 8z"/></svg>';
+const crown='<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="#e8b43a" stroke-width="2.6" style="vertical-align:-1px"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 12H5L3 7z"/></svg>';
+const check='<svg viewBox="0 0 24 24" width="9" height="9" fill="none" style="vertical-align:-1px"><path d="M4 12.5 L10 18.5 L20 6" stroke="#22c55e" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function tile(g,variant){
+  const c=TCOL[g.k], done=!!g.done;
+  const bg=done?'#0d2a1d':mix(c,0.20), bd=done?'#1f5537':mix(c,0.42);
+  const mine=done?`<span class="sc">${check}${g.done}</span>`:'';
+  const strk=g.streak>=2?`<span class="strk">${flame}${g.streak}</span>`:'';
+  const lead=`<span class="lead">${crown}<b>${g.lead||'—'}</b></span>`;
+  const cat=variant===3
+    ? `<span class="catchip" style="background:${mix(ACC[g.k],0.18)};color:${ACC[g.k]}">${CAT[g.k]}</span>`
+    : `<span class="cat">${CAT[g.k]}</span>`;
+  return `<div class="t${done?' done':''}" style="background:${bg};border:1px solid ${bd}">
+    <span class="acc" style="background:${ACC[g.k]}"></span>
+    <span class="nm">${NAME[g.k]}</span>
+    ${cat}
+    <span class="ic"><img src="${IMG(g.k)}" alt=""></span>
+    <span class="meta">${mine}${strk}${lead}</span>
+  </div>`;
+}
+function mix(hex,p){const h=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16));const[r1,g1,b1]=h(hex),[r2,g2,b2]=h('#0a1631');
+  const m=(a,b)=>Math.round(a*p+b*(1-p)).toString(16).padStart(2,'0');return '#'+m(r1,r2)+m(g1,g2)+m(b1,b2);}
+for (const v of [1,2,3]) document.getElementById('v'+v).innerHTML=G.map(g=>tile(g,v)).join('');
+</script>
+</body>
+</html>
