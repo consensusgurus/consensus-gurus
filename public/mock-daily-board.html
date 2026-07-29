@@ -22,21 +22,21 @@
   .board{max-width:830px;}
 
   /* ── the shared STATS BAR: wide, dense, welded flat onto the grid ── */
-  .bar{background:var(--navy);border-radius:13px 13px 0 0;padding:11px 15px;display:flex;align-items:center;gap:14px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,.07);}
-  .bar .up{display:flex;align-items:center;gap:10px;flex:none;padding-right:14px;border-right:1px solid var(--line);}
+  .bar{background:var(--navy);border-radius:13px 13px 0 0;padding:10px 12px;display:flex;align-items:center;gap:10px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,.07);}
+  .bar .up{display:flex;align-items:center;gap:8px;flex:none;padding-right:10px;border-right:1px solid var(--line);}
   .bar .up img{height:26px;width:auto;max-width:32px;object-fit:contain;}
-  .bar .upn{font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.1;}
+  .bar .upn{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.1;}
   .bar .upe{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);}
-  .stats{display:flex;align-items:center;gap:0;flex:1;min-width:0;}
-  .stat{padding:0 12px;white-space:nowrap;border-right:1px solid rgba(255,255,255,.07);line-height:1.15;}
+  .stats{display:flex;align-items:center;gap:0;flex:1 1 auto;min-width:0;overflow:hidden;}
+  .stat{padding:0 9px;white-space:nowrap;border-right:1px solid rgba(255,255,255,.07);line-height:1.15;}
   .stat:last-child{border-right:none;}
-  .stat b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;}
+  .stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
   .stat span{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#6c7e9b;white-space:nowrap;}
   .stat.g b{color:#34d399;} .stat.y b{color:var(--gold);}
   .seg{display:flex;flex:none;background:rgba(255,255,255,.06);border-radius:8px;padding:2px;}
-  .seg button{border:none;background:transparent;color:var(--dim);font-weight:800;font-size:11px;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .seg button{border:none;background:transparent;color:var(--dim);font-weight:800;font-size:10.5px;padding:5px 8px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;}
   .seg button.on{background:var(--gold);color:#1c1e24;}
-  .play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--gold);color:#1c1e24;font-weight:800;font-size:12.5px;border-radius:8px;padding:9px 15px;text-decoration:none;border:none;cursor:pointer;flex:none;}
+  .play{display:inline-flex;align-items:center;justify-content:center;gap:5px;background:var(--gold);color:#1c1e24;font-weight:800;font-size:12px;border-radius:8px;padding:8px 12px;text-decoration:none;border:none;cursor:pointer;flex:none;}
   .grid{background:var(--navy);border-radius:0 0 13px 13px;padding:10px;}
   .flame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,.15);border:1px solid rgba(232,180,58,.42);border-radius:999px;padding:0 6px;font-size:10px;font-weight:800;color:var(--gold);}
 
@@ -147,7 +147,7 @@ const BAR = `
     <div class="stat"><b>383</b><span>Players</span></div>
     <div class="stat"><b>4h 12m</b><span>Resets in</span></div>
   </div>
-  <div class="seg"><button class="on">All 30</button><button>Unplayed 22</button><button>At risk 8</button></div>
+  <div class="seg"><button class="on">All</button><button>Unplayed 22</button><button>At risk 8</button></div>
  </div>`;
 
 function st1(s){
