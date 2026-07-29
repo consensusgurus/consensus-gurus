@@ -1531,23 +1531,25 @@ export default function QuizHomeClient() {
     /* Full-width tool row under the three-column daily section, styled as ONE
        integrated element (owner 2026-07-29): a navy casing wraps the white search
        field and the three white action buttons, all one uniform treatment. */
-    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:${C.accent};border:1.5px solid ${C.accent};border-radius:14px;padding:8px;box-shadow:0 1px 4px rgba(14,29,64,0.16);}
-    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid transparent;border-radius:10px;padding:0 12px;height:42px;}
-    .qzh .qz-toolsearch:focus-within{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,0.28);}
-    .qzh .qz-toolsearch svg{flex:none;color:${C.soft};}
-    .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:${C.ink};}
-    .qzh .qz-toolsearch input::placeholder{color:${C.soft};font-weight:500;}
-    .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:${C.soft};display:flex;}
-    .qzh .qz-toolclear:hover{color:${C.ink};}
+    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:${C.accent};border:1px solid #223353;border-radius:13px;padding:8px;}
+    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.06);border:1px solid #2a4166;border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
+    .qzh .qz-toolsearch:hover{border-color:#3a557f;}
+    .qzh .qz-toolsearch:focus-within{border-color:#3a557f;background:rgba(255,255,255,0.1);}
+    .qzh .qz-toolsearch svg{flex:none;color:#93a3bd;}
+    .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:#eef3fb;}
+    .qzh .qz-toolsearch input::placeholder{color:#8195b5;font-weight:500;}
+    .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:#93a3bd;display:flex;}
+    .qzh .qz-toolclear:hover{color:#fff;}
     .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
-    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1.5px solid transparent;background:#fff;color:${C.accent};font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease;}
-    .qzh .qz-toolbtn svg{flex:none;color:${C.accent};}
-    .qzh .qz-toolbtn:hover{background:${C.accsoft};color:${C.accent};}
-    .qzh .qz-toolbtn:hover svg{color:${C.accent};}
-    .qzh .qz-toolbtn-cta{background:#fff;border-color:transparent;color:${C.accent};}
-    .qzh .qz-toolbtn-cta svg{color:${C.accent};}
-    .qzh .qz-toolbtn-cta:hover{background:${C.accsoft};border-color:transparent;color:${C.accent};}
-    .qzh .qz-toolbtn-cta:hover svg{color:${C.accent};}
+    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1px solid #2a4166;background:transparent;color:#c3d2e8;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
+    .qzh .qz-toolbtn svg{flex:none;color:#93a3bd;transition:color .14s ease;}
+    .qzh .qz-toolbtn:hover{background:rgba(255,255,255,0.07);border-color:#3a557f;color:#fff;}
+    .qzh .qz-toolbtn:hover svg{color:#fff;}
+    /* One accent in the row: the only button that creates something. */
+    .qzh .qz-toolbtn-cta{background:#e8b43a;border-color:#e8b43a;color:#1c1e24;font-weight:800;}
+    .qzh .qz-toolbtn-cta svg{color:#1c1e24;}
+    .qzh .qz-toolbtn-cta:hover{background:#f0c358;border-color:#f0c358;color:#1c1e24;}
+    .qzh .qz-toolbtn-cta:hover svg{color:#1c1e24;}
     @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
     /* ONE search bar at every width. The browse row's own field is hidden from
        821px up (rule above), so this tool-row field is the desktop search; at
