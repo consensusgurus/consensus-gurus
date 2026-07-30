@@ -499,7 +499,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tile.done .dh-acc{background:#22c55e !important;}
         .dh-tic{width:46px;height:30px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
         .dh-tic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
-        .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+        .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.34;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
@@ -571,11 +571,13 @@ export default function DailyStrip({ board = null }) {
         @media(max-width:940px){.dh-bup{border-left:none;padding-left:4px;}}
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
-          .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;grid-auto-rows:minmax(96px,1fr);}
-          /* Phones drop the art entirely and spend the space on the name, the
-             category and the day's leader instead (owner, 2026-07-29). */
-          .dh-tile{padding:10px 5px 9px;border-radius:10px;min-height:96px;}
-          .dh-tic{display:none;}
+          .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;grid-auto-rows:minmax(122px,1fr);}
+          /* Phones KEEP the game art (owner, 2026-07-30), reversing the 07-29
+             decision to drop it: the tile is 26px taller instead, which is room
+             for a smaller icon between the category chip and the day's leader. */
+          .dh-tile{padding:9px 5px 8px;border-radius:10px;min-height:122px;}
+          .dh-tic{display:flex;width:38px;height:26px;margin:4px 0 5px;}
+          .dh-tic img{height:22px;max-width:26px;}
           .dh-tnm{font-size:14.5px;}
           .dh-tcat{font-size:8.5px;padding:1px 7px;margin-top:4px;}
           .dh-tmeta{gap:3px;}
