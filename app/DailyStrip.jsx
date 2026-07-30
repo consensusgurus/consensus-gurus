@@ -602,13 +602,20 @@ export default function DailyStrip({ board = null }) {
           .dh-mcell b{display:block;font-size:25px;font-weight:800;line-height:1;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
           .dh-mcell.iq b{color:#2563eb;}
           .dh-mcell.g b{color:#15803d;}
-          .dh-mcell span{display:block;margin-top:4px;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#46506a;white-space:nowrap;}
+          .dh-mcell span{display:block;margin-top:4px;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#46506a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .dh-bup .dh-play{margin-left:auto;flex:0 0 auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
           /* The wider button leaves the eyebrow 95px; at 9px/.09em it needs 119
              and, since .dh-bue is overflow:visible, it spilled under the button
              rather than truncating. 7.5px/.02em needs 89. Ellipsis is a safety net
              for the longer Sunday Edition variant of this label. */
           .dh-bue{font-size:7.5px;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;}
+        }
+        /* Sub-360px (iPhone SE 1st gen and similar): "IQ POINTS TODAY" outgrows
+           its cell, so ease the cap's labels down. The ellipsis above is the
+           safety net if a longer label is ever used. */
+        @media(max-width:355px){
+          .dh-mcell span{font-size:8.5px;letter-spacing:.02em;}
+          .dh-mlead{font-size:12px;padding-right:7px;}
         }
       `}</style>
 
