@@ -428,6 +428,9 @@ export default function DailyStrip({ board = null }) {
         .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1.5px solid #c3ccda;}
         .dh-bup .dh-play{flex:1 1 auto;min-width:96px;max-width:none;font-size:13.5px;padding:11px 18px;}
         .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
+        /* Mobile: the easiest-leaderboard text collides with the Play button, so
+           drop the game icon there to buy back the width (owner 2026-07-29). */
+        @media(max-width:640px){.dh-bup>img{display:none;}}
         .dh-bupt{min-width:0;}
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#a16207;white-space:nowrap;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
