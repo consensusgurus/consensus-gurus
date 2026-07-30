@@ -236,22 +236,28 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
-        /* Mobile header (owner 2026-07-29): three slots, nothing else.
-           Registered players: search left, username + rank centred, menu right.
-           Guests: username, Sign Up and the menu only, with no search and no
-           Stat Hub, so an unregistered visitor sees no stats chrome at all.
-           The brand mark and wordmark step aside on both so the three slots
-           actually reach the edges; home stays reachable from the menu. */
+        /* Mobile header (owner 2026-07-29, revised): exactly three slots, with the
+           identity truly centred in the bar rather than merely sitting between the
+           side controls. Two things the first attempt got wrong, both caught on a
+           real 369px viewport: the brand link carries an inline display:flex so it
+           needs !important to step aside, and the absolute-centring rule for
+           .qch-me lives in a wider block, so on mobile it was still display:block
+           and flowed after the search button. Both are set explicitly here. */
         @media(max-width:600px){
-          .qch-brandlogo,.qch-word{display:none;}
-          .qch-burger{margin-left:auto;}
-          .qch-bar.is-user .qch-searchbtn{margin-left:0;}
-          .qch-bar.is-user .qch-me{max-width:64vw;}
-          .qch-bar.is-user .qch-mecol{flex-direction:column;align-items:center;gap:1px;}
-          .qch-bar.is-user .qch-nm,.qch-bar.is-user .qch-rankm{text-align:center;}
-          .qch-bar.is-guest .qch-searchbtn{display:none;}
-          .qch-bar.is-guest .qch-hub{display:none;}
+          .qch-bar{justify-content:space-between;}
+          .qch-brandlogo{display:none !important;}
+          .qch-word,.qch-src{display:none !important;}
+          .qch-hub{display:none !important;}
+          .qch-searchbtn{margin-left:0 !important;flex:none;}
+          .qch-burger{margin-left:auto;flex:none;}
+          .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin:0;display:flex;justify-content:center;flex:none;max-width:calc(100% - 132px);}
+          .qch-melink{justify-content:center;min-width:0;gap:0;}
+          .qch-mecol{flex-direction:column;align-items:center;gap:1px;min-width:0;}
+          .qch-nm,.qch-rankm{text-align:center;max-width:100%;}
+          .qch-bar.is-guest .qch-searchbtn{display:none !important;}
           .qch-bar.is-guest .qch-me{position:static;left:auto;transform:none;max-width:none;flex:1 1 auto;justify-content:flex-start;}
+          .qch-bar.is-guest .qch-melink{justify-content:flex-start;gap:9px;}
+          .qch-bar.is-guest .qch-mecol{align-items:flex-start;}
         }
       `}</style>
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
