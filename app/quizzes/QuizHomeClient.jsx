@@ -1860,7 +1860,15 @@ export default function QuizHomeClient() {
             (board first) below 1200px. */}
         <div className="dhx">
           <style>{`
-            .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:14px;align-items:stretch;margin-bottom:16px;}
+            .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:14px;align-items:start;margin-bottom:16px;}
+            /* start, not stretch: the CENTRE column has to report its own content
+               height, because railH below measures it and pins both rails to it. With
+               stretch the centre reported the row height instead, which was itself the
+               tallest rail, so a rail that grew through the day (Last Played filling up)
+               dragged the whole row taller and left the board floating in a long column
+               (owner, 2026-07-30: "right and left columns are far too long"). The rails
+               are built to compress into whatever height they are given: .dhx-lp-rows is
+               overflow:hidden and its rows are flex:1 1 auto. */
             .qzh .dhx-rail{display:flex;flex-direction:column;gap:13px;min-width:0;}
             .qzh .dhx-center{min-width:0;display:flex;flex-direction:column;}
             /* right rail: Last Played absorbs the slack, so collapsing Category Mastery gives it back its space */
