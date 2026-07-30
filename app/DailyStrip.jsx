@@ -460,11 +460,17 @@ export default function DailyStrip({ board = null }) {
           .dh-busub{display:none;}
           .dh-wideonly{display:none;}
           .dh-bup .dh-play{flex:0 0 auto;min-width:0;font-size:12px;padding:9px 13px;margin-left:4px;}}
-        @container (max-width:450px){.dh-stat.opt4{display:none;}}
+        @container (max-width:430px){.dh-stat.opt4{display:none;}}
         /* opt5 = the last stat to go. IQ Points earned today outranks the streak
-           on a phone (owner, 2026-07-30), so it holds the final slot down to
-           375px; below that even two stats clip the bar. */
-        @container (max-width:374px){.dh-stat.opt5{display:none;}}
+           on a phone (owner, 2026-07-30), so it holds the final slot.
+           NOTE these @container widths are the bar's CONTENT box, not the
+           viewport: .dh-sbar is border-box with 12px side padding (10px under
+           640px), so a 390px phone queries at ~366px. Measured on the live bar,
+           Completed + IQ Points fits down to a 349px content box and clips at
+           342px, hence 344px. In viewport terms IQ survives every real phone
+           (375 SE, 390 iPhone 14, 430 Pro Max). The 430px opt4 cutoff above is
+           already correct for three stats, which need a ~424px content box. */
+        @container (max-width:344px){.dh-stat.opt5{display:none;}}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
         .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#46506a;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
