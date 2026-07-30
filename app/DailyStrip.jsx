@@ -460,7 +460,11 @@ export default function DailyStrip({ board = null }) {
           .dh-busub{display:none;}
           .dh-wideonly{display:none;}
           .dh-bup .dh-play{flex:0 0 auto;min-width:0;font-size:12px;padding:9px 13px;margin-left:4px;}}
-        @container (max-width:430px){.dh-stat.opt4{display:none;}}
+        @container (max-width:450px){.dh-stat.opt4{display:none;}}
+        /* opt5 = the last stat to go. IQ Points earned today outranks the streak
+           on a phone (owner, 2026-07-30), so it holds the final slot down to
+           375px; below that even two stats clip the bar. */
+        @container (max-width:374px){.dh-stat.opt5{display:none;}}
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
         .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#46506a;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
@@ -601,7 +605,7 @@ export default function DailyStrip({ board = null }) {
         <div className="dh-stats">
           <div className="dh-statlead"><span>Your</span><span>day:</span></div>
           <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
-          {todayXp != null ? <div className="dh-stat iq opt4"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
+          {todayXp != null ? <div className="dh-stat iq opt5"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
           {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
         </div>
