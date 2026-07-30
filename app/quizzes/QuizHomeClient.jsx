@@ -1549,12 +1549,12 @@ export default function QuizHomeClient() {
     .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:#1c1e24;}
     .qzh .qz-toolsearch input::placeholder{color:#262b35;font-weight:500;}
     .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:#262b35;display:flex;}
-    .qzh .qz-toolclear:hover{color:#fff;}
+    .qzh .qz-toolclear:hover{color:#1c1e24;}
     .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
     .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1.5px solid #c3ccda;background:transparent;color:#46506a;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
     .qzh .qz-toolbtn svg{flex:none;color:#262b35;transition:color .14s ease;}
     .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#262b35;color:#1c1e24;}
-    .qzh .qz-toolbtn:hover svg{color:#fff;}
+    .qzh .qz-toolbtn:hover svg{color:#1c1e24;}
     /* One accent in the row: the only button that creates something. */
     .qzh .qz-toolbtn-cta{background:#e8b43a;border-color: #a16207;color:#1c1e24;font-weight:800;}
     .qzh .qz-toolbtn-cta svg{color:#1c1e24;}
