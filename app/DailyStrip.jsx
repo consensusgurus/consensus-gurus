@@ -380,23 +380,37 @@ export default function DailyStrip({ board = null }) {
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   // Measure the board window so the sheet can be shifted by exactly one row.
-  // The window's height comes from the page grid ABOVE it, never from the tiles,
-  // so writing a row height back into the grid cannot feed back into the window
-  // and start a loop. The min-height floor is what makes a narrower desktop (five
-  // columns, so six rows of thirty) grow the console the way it always did.
+  //
+  // The TILES decide the height here, never the column. An earlier version did
+  // the opposite, deriving a row height from whatever vertical space the page
+  // grid handed the board, which meant a tall right hand rail stretched every
+  // tile (they came out at 154px instead of their natural ~127px). So the row
+  // step is now READ OFF the laid out grid and the window is sized to exactly
+  // `vis` of those rows. Rows keep their natural height, and any space the
+  // column has left over simply sits under the board.
+  //
+  // No feedback loop: the grid is absolutely positioned, so its own row heights
+  // are content driven and do not depend on the window height we write back.
   useEffect(() => {
     const vp = vpRef.current, bd = boardRef.current;
     if (!vp || !bd) return undefined;
-    const GAP = 8, MIN_ROW = 118;
+    const GAP = 8;
     const measure = () => {
       // Below this width the board simply flows: the spare tiles take their own
       // row, no window, no arrow, no animation (owner, 2026-07-30).
       if (typeof window === 'undefined' || window.innerWidth < 861) { setMetrics(null); return; }
       const cols = (getComputedStyle(bd).gridTemplateColumns || '').split(' ').filter(Boolean).length || 6;
       const vis = Math.max(1, Math.ceil(BOARD_WINDOW / cols));
-      const rowH = Math.max(MIN_ROW, (vp.clientHeight - GAP * (vis - 1)) / vis);
+      const tiles = bd.children;
+      if (!tiles.length) return;
+      // distance from one row to the next, gap included
+      const rowStep = tiles.length > cols
+        ? tiles[cols].offsetTop - tiles[0].offsetTop
+        : tiles[0].offsetHeight + GAP;
+      if (!(rowStep > 1)) return;
       const maxOffset = Math.max(0, Math.ceil(list.length / cols) - vis);
-      setMetrics((cur) => (cur && cur.rowH === rowH && cur.vis === vis && cur.maxOffset === maxOffset ? cur : { rowH, vis, maxOffset }));
+      setMetrics((cur) => (cur && cur.rowStep === rowStep && cur.vis === vis && cur.maxOffset === maxOffset
+        ? cur : { rowStep, vis, maxOffset }));
     };
     measure();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
@@ -532,13 +546,15 @@ export default function DailyStrip({ board = null }) {
 /* The board window. Until it has been measured (and always below 861px) this is
            a plain passthrough, so the grid flows normally and nothing is ever clipped
            by a stylesheet the JS has not caught up with. The .on class is what arms it. */
+        .dh-vpwrap{position:relative;flex:0 0 auto;}
         .dh-vp{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+        .dh-vp.on{flex:0 0 auto;}
         .dh-vp.on{overflow:hidden;}
         .dh-vp.on > .dh-board{position:absolute;top:0;left:0;right:0;transition:transform .32s cubic-bezier(.4,0,.2,1);}
         /* The arrow sits ON the window's bottom edge, centred, so it half-covers the
            bottom of the two middle tiles in the last visible row (owner, 2026-07-30).
            It lives outside .dh-vp because the window clips its own overflow. */
-        .dh-more{position:absolute;left:50%;bottom:10px;transform:translate(-50%,50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #c3ccda;box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:#0e1d40;font-family:inherit;}
+        .dh-more{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #c3ccda;box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:#0e1d40;font-family:inherit;}
         .dh-more:hover{border-color:#0e1d40;background:#f7f8fa;box-shadow:0 4px 13px rgba(20,22,28,0.26);}
         @media(max-width:860px){.dh-more{display:none;}}
         /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
@@ -833,10 +849,13 @@ export default function DailyStrip({ board = null }) {
           console (see below), so opening a tile covers this rather than
           displacing it. */}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
+        <div className="dh-vpwrap">
         <div
           ref={vpRef}
           className={'dh-vp' + (metrics && metrics.maxOffset > 0 ? ' on' : '')}
-          style={metrics ? { minHeight: metrics.vis * 118 + (metrics.vis - 1) * 8 } : undefined}
+          style={metrics && metrics.maxOffset > 0
+            ? { height: metrics.vis * metrics.rowStep - 8 }
+            : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
           <div
@@ -846,7 +865,7 @@ export default function DailyStrip({ board = null }) {
             aria-label="Daily puzzles"
             aria-hidden={selGame ? 'true' : undefined}
             style={metrics && metrics.maxOffset > 0
-              ? { gridAutoRows: `${metrics.rowH}px`, transform: `translateY(-${shift * (metrics.rowH + 8)}px)` }
+              ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
             {renderTiles(list, false)}
@@ -865,6 +884,7 @@ export default function DailyStrip({ board = null }) {
               : <ChevronUp size={19} strokeWidth={2.8} />}
           </button>
         ) : null}
+        </div>
       </div>
       {/* The panel is a child of .dhome, not of the board, so it covers the
           stats bar as well as the grid: one expanded console, one Play button
