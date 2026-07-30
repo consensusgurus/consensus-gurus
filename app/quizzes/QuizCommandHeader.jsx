@@ -236,16 +236,15 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
-        /* Mobile header (owner 2026-07-29, revised): exactly three slots, with the
-           identity truly centred in the bar rather than merely sitting between the
-           side controls. Two things the first attempt got wrong, both caught on a
-           real 369px viewport: the brand link carries an inline display:flex so it
-           needs !important to step aside, and the absolute-centring rule for
-           .qch-me lives in a wider block, so on mobile it was still display:block
-           and flowed after the search button. Both are set explicitly here. */
+        /* Mobile header (owner 2026-07-29, rev 3): three slots, edges fixed, the
+           identity absolutely centred in the bar for BOTH states so it is centred
+           in the header rather than merely sitting between the side controls.
+           Registered players put the search button on the left edge, so the brand
+           steps aside there. Guests keep the brand on the left instead, since they
+           get no search, and no Stat Hub either. Note .qch-brandlogo carries an
+           inline display:flex, so hiding it needs !important. */
         @media(max-width:600px){
           .qch-bar{justify-content:space-between;}
-          .qch-brandlogo{display:none !important;}
           .qch-word,.qch-src{display:none !important;}
           .qch-hub{display:none !important;}
           .qch-searchbtn{margin-left:0 !important;flex:none;}
@@ -254,10 +253,10 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-melink{justify-content:center;min-width:0;gap:0;}
           .qch-mecol{flex-direction:column;align-items:center;gap:1px;min-width:0;}
           .qch-nm,.qch-rankm{text-align:center;max-width:100%;}
+          .qch-bar.is-user .qch-brandlogo{display:none !important;}
           .qch-bar.is-guest .qch-searchbtn{display:none !important;}
-          .qch-bar.is-guest .qch-me{position:static;left:auto;transform:none;max-width:none;flex:1 1 auto;justify-content:flex-start;}
-          .qch-bar.is-guest .qch-melink{justify-content:flex-start;gap:9px;}
-          .qch-bar.is-guest .qch-mecol{align-items:flex-start;}
+          .qch-bar.is-guest .qch-brandlogo{flex:none;}
+          .qch-bar.is-guest .qch-melink{gap:9px;}
         }
       `}</style>
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
