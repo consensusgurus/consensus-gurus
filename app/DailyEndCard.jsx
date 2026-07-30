@@ -753,7 +753,9 @@ export default function DailyEndCard({
         document.body.appendChild(el); el.click(); el.remove();
         setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
       }
-      notifyShareCredit('', 'https://sourceoftruths.com');
+      // No explicit url: the pop-up derives the credit link from the current
+      // page, so it points at THIS game rather than the bare home page.
+      notifyShareCredit('');
     } catch (e) { /* nothing to show: the button just re-enables */ }
     setDayBusy(false);
   };

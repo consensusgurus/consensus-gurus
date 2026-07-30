@@ -2032,7 +2032,7 @@ export default function QuizHomeClient() {
                       <span key={r.userKey} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></span>
                     ))}
                   </div>
-                  <a href="/daily" className="dhx-lb-more">Full standings &amp; game boards →</a>
+                  <a href="/quizzes/hub?tab=daily" className="dhx-lb-more">Full standings &amp; game boards →</a>
                 </div>
               );
             })() : null}
@@ -2053,7 +2053,10 @@ export default function QuizHomeClient() {
                       <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">({num(r.credits)})</span></span>
                     ))}
                   </div>
-                  <button type="button" onClick={() => setCreditOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Share a link to get credit →</button>
+                  <span style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                    <a href="/quizzes/community" className="dhx-lb-more">Full community leaderboard →</a>
+                    <button type="button" onClick={() => setCreditOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Get credit →</button>
+                  </span>
                 </div>
               );
             })()}
@@ -2075,7 +2078,7 @@ export default function QuizHomeClient() {
                       <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b></span>
                     ))}
                   </div>
-                  <a href="/quizzes/hub" className="dhx-lb-more">Full leaderboard →</a>
+                  <a href="/quizzes/hub?tab=player" className="dhx-lb-more">Full leaderboard →</a>
                 </div>
               );
             })()}
