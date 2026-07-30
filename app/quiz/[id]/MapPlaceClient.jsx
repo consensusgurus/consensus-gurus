@@ -52,7 +52,7 @@ const COLORS = {
   ember: '#0e1d40',
   rust: '#c0392b',
   forest: '#10b981',
-  faded: '#6b7280',
+  faded: '#4b5563',
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";

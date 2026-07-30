@@ -13,7 +13,7 @@ import ClueBox from './ClueBox';
 
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
-  rust: '#c0392b', forest: '#10b981', faded: '#6b7280',
+  rust: '#c0392b', forest: '#10b981', faded: '#4b5563',
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";

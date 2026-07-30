@@ -66,8 +66,8 @@ const COLORS = {
   paper: '#eceef1',
   ink: '#1c1e24',
   ember: '#0e1d40',
-  soft: '#6b7280',
-  line: 'rgba(20,22,28,0.09)',
+  soft: '#4b5563',
+  line: 'rgba(20,22,28,0.16)',
   accSoft: '#eef3ff',
   accBorder: '#cddffb',
   gold: '#e8b43a',
@@ -75,7 +75,7 @@ const COLORS = {
   bronze: '#c88a55',
   rust: '#c0392b',
   forest: '#10b981',
-  faded: '#6b7280',
+  faded: '#4b5563',
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";

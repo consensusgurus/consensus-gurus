@@ -10,8 +10,8 @@ import Footer from '../Footer';
 // Standard site theme (matches the homepage, list pages, and Stat Hub):
 // Manrope, light-gray canvas, white cards, blue accent.
 const C = {
-  bg: '#f7f8fa', surface: '#fff', ink: '#1c1e24', muted: '#6b7280',
-  soft: '#6b7280', line: 'rgba(20,22,28,0.09)', accent: '#0e1d40',
+  bg: '#e9ecf2', surface: '#fff', ink: '#1c1e24', muted: '#4b5563',
+  soft: '#4b5563', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40',
   accsoft: '#e8effb', danger: '#c0392b',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";

@@ -28,7 +28,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const INK = '#1c1e24';
 const SLATE = '#46506a';
-const FADED = '#6b7280';
+const FADED = '#4b5563';
 const BORD = '#e7eaf1';
 const BLUE = '#2563eb';
 
@@ -265,7 +265,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-lbrow .nm .you{color:${BLUE};font-weight:800;}
         .dbp-lbrow.me .nm{font-weight:800;}
         .dbp-lbrow .vl{font-family:${MONO};font-size:12px;color:${SLATE};flex-shrink:0;}
-        .dbp-lbrow .vl .u{color:#6b7280;}
+        .dbp-lbrow .vl .u{color:#4b5563;}
         .dbp-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
 
         /* Today board: richer per-attempt detail (score / time / mistakes / pts) */

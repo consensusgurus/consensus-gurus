@@ -129,7 +129,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark, p
               >
                 Experts and Aggregators
               </div>
-              <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, color: '#6b7280' }}>
+              <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, color: '#4b5563' }}>
                 {sources.length} publications, with how many lists each shapes
               </div>
             </div>

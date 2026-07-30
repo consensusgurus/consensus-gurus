@@ -43,7 +43,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#0369a1',       // Stet identity — the copy editor's blue pencil
   accentSoft: '#e8f3fa',
   green: '#15803d',

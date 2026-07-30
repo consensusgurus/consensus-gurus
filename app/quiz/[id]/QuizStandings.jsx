@@ -9,7 +9,7 @@ import React from 'react';
 // Props keep their historical names (eloAfter/eloBefore are simply the
 // /api/quiz/me profiles after/before the game) so none of the eleven board
 // callers had to change when Elo was retired for XP (2026-07-08).
-const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#6b7280', forest: '#10b981' };
+const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#4b5563', forest: '#10b981' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLabel = 'Category', fill = false, hideCategory = false }) {

@@ -75,7 +75,7 @@ function ComingSoon({ first }) {
           ))}
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Hedge launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <p style={{ fontSize: 15, color: '#4b5563', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily loop puzzle — one closed loop, every number satisfied. Come back when the first grid drops.
         </p>
         <a href="/daily" style={{ color: '#0891b2', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

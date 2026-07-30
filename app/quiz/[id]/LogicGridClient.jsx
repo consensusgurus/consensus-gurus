@@ -39,7 +39,7 @@ const COLORS = {
   ember: '#0e1d40',
   rust: '#c0392b',
   forest: '#10b981',
-  faded: '#6b7280',
+  faded: '#4b5563',
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -543,7 +543,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                                 <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 14, lineHeight: 1.1, color: isMiss ? COLORS.rust : COLORS.ink }}>{cell.t}</span>
                               )}
                               {cell.clue ? (
-                                <span style={{ fontFamily: SANS, fontSize: 11, lineHeight: 1.25, color: isSolved || isMiss ? COLORS.faded : '#6b7280' }}>{cell.clue}</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, lineHeight: 1.25, color: isSolved || isMiss ? COLORS.faded : '#4b5563' }}>{cell.clue}</span>
                               ) : (
                                 !isSolved && !isMiss && <span style={{ fontFamily: MONO, fontSize: 10, fontStyle: 'italic', color: COLORS.faded, opacity: 0.7 }}>no clue — deduce it</span>
                               )}

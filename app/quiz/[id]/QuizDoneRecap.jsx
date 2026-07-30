@@ -22,7 +22,7 @@ import { nextQuizMeta } from '@/lib/quiz-similar';
 //   Challenge Someone button links to the duel composer with this quiz
 //   prefilled (needs `quiz`); the old onShare prop is accepted but ignored.
 
-const C = { cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40', forest: '#10b981', faded: '#6b7280' };
+const C = { cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40', forest: '#10b981', faded: '#4b5563' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function btn(bg, fg, outline) {

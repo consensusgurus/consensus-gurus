@@ -571,7 +571,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             fontSize: 15,
             lineHeight: 1.55,
             margin: '10px 0 0',
-            color: '#6b7280',
+            color: '#4b5563',
             maxWidth: 680,
           }}
         >
@@ -582,14 +582,14 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       {!compact && (
         <div style={{ marginTop: 18 }}>
           <div style={{ display: 'flex', gap: 16, marginBottom: 10, justifyContent: 'flex-end' }}>
-            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#0e1d40' : '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
-            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
+            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#0e1d40' : '#4b5563', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#4b5563', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
           </div>
           <div style={{ display: 'flex', gap: 6, background: '#eceef1', borderRadius: 10, padding: 4 }}>
             {[['consensus', 'The Ranking'], ['source', 'Sources'], ['method', 'Methodology'], ['activity', 'Activity']]
               .filter(([id]) => id !== 'source' || showSourceTab)
               .map(([id, label]) => (
-                <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? '#fff' : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? '#1c1e24' : '#6b7280', cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? '#fff' : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? '#1c1e24' : '#4b5563', cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
               ))}
           </div>
         </div>
@@ -1018,7 +1018,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
       {/* RELATED LISTS — internal linking for SEO and stickiness */}
       {relatedLists && relatedLists.length > 0 && (
-        <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(20,22,28,0.09)' }}>
+        <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(20,22,28,0.16)' }}>
           <h2 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 16px', color: COLORS.ink }}>More Lists</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
             {relatedLists.map((rl) => (
@@ -1619,7 +1619,7 @@ export default function DetailClient({ listId }) {
           <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#1e3a6b,#0a1730)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sotpulse 1.2s ease-in-out infinite' }}>
             <div style={{ width: 17, height: 17, borderRadius: '50%', border: '2.5px solid #fff' }} />
           </div>
-          <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: '#6b7280' }}>Loading the ranking…</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: '#4b5563' }}>Loading the ranking…</div>
         </div>
       ) : list ? (
         <ListDetail
@@ -1637,7 +1637,7 @@ export default function DetailClient({ listId }) {
         />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontWeight: 600, color: '#6b7280' }}>
+          <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontWeight: 600, color: '#4b5563' }}>
             That list seems to have wandered off.
           </p>
           <button

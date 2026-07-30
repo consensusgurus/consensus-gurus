@@ -85,7 +85,7 @@ function ComingSoon({ first }) {
           ))}
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Emcee launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#6b7280', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <p style={{ fontSize: 15, color: '#4b5563', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily mini crossword — everyday words, fair clues, a minute or two. Come back when the first grid drops.
         </p>
         <a href="/daily" style={{ color: '#c026d3', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

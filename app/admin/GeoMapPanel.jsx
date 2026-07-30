@@ -24,8 +24,8 @@ import { downloadCsvFile } from './csv-export';
 const C = {
   paper: '#ffffff',
   ink: '#1c1e24',
-  faded: '#6b7280',
-  line: 'rgba(20,22,28,0.09)',
+  faded: '#4b5563',
+  line: 'rgba(20,22,28,0.16)',
   lineStrong: 'rgba(20,22,28,0.18)',
   land: '#e9edf3',
   landLine: '#ffffff',

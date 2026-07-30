@@ -7,7 +7,7 @@ import { ensureMyRefCode } from '@/lib/referrals';
 // its name/email fields (email optional, display name capped at 15). onJoined(id)
 // fires after a successful join so the board can update its own identity and
 // navigate; onViewLeaderboard switches to the leaderboard tab.
-const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#6b7280', forest: '#10b981' };
+const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#4b5563', forest: '#10b981' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const labelStyle = { display: 'block', fontFamily: FONT, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.faded, marginBottom: 6 };

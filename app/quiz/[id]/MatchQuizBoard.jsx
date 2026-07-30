@@ -19,7 +19,7 @@ const COLORS = {
   ember: '#0e1d40',
   rust: '#c0392b',
   forest: '#10b981',
-  faded: '#6b7280',
+  faded: '#4b5563',
 };
 // Distinct column tints so the two sides read as separate at a glance: the
 // clues (prompt) sit on a warm parchment panel with an ember accent, the

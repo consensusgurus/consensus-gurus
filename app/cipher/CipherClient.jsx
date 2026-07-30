@@ -40,7 +40,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#0f766e',        // Cipher identity — codebreaker teal
   accentSoft: '#d9f0ee',
   green: '#15803d',

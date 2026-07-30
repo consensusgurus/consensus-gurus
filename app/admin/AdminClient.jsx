@@ -15,11 +15,11 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#ffffff',
   ink: '#1c1e24',
-  faded: '#6b7280',
+  faded: '#4b5563',
   ember: '#0e1d40',
   forest: '#10b981',
   rust: '#b45309',
-  line: 'rgba(20,22,28,0.09)',
+  line: 'rgba(20,22,28,0.16)',
 };
 
 function formatDate(iso) {

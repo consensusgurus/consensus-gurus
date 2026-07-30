@@ -39,7 +39,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#2563eb',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 // Editorial ink-and-paper identity (owner-approved mockup, 2026-07-11).
@@ -899,7 +899,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   });
 
   const KB = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
-  const kbColors = { g: { bg: COLORS.ink, fg: '#fff' }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#6b7280' } };
+  const kbColors = { g: { bg: COLORS.ink, fg: '#fff' }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#4b5563' } };
 
   const lastG = g.lastGuess[sel];
   const markColor = { g: { bg: COLORS.ink, fg: '#fff' }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };

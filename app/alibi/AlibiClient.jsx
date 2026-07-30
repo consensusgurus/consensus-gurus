@@ -45,7 +45,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#8b1e2d',        // Alibi identity — drawing-room oxblood
   accentSoft: '#f6e3e5',
   green: '#15803d',

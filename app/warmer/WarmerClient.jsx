@@ -39,7 +39,7 @@ const COLORS = {
   cream: '#f7f8fa',
   ink: '#1c1e24',
   ember: '#0e1d40',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#dc2626',        // Warmer identity — hot red
   accentSoft: '#fef2f2',
   green: '#15803d',

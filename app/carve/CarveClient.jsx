@@ -39,7 +39,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#7c3aed',       // Carve identity — plum
   accentSoft: '#f5f0ff',
   green: '#15803d',

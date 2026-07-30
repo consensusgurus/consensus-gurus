@@ -34,7 +34,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40', rust: '#c0392b', faded: '#6b7280',
+  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40', rust: '#c0392b', faded: '#4b5563',
   accent: '#b45309', accentSoft: '#fef3c7', accentDeep: '#92400e', green: '#15803d', greenSoft: '#dcfce7',
   cA: '#2563eb', cB: '#be185d', cC: '#0f766e',
 };

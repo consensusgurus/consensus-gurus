@@ -42,7 +42,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#1f2937',       // Outwit identity — graphite, with the site gold
   accentSoft: '#eef1f5',
   gold: '#e8b43a',

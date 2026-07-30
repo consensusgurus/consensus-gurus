@@ -123,7 +123,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
         .dgg-art{flex:0 0 auto;height:42px;width:auto;}
         .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:#1c1e24;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dgg-p{font-size:10.5px;font-weight:700;color:#6b7280;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dgg-p{font-size:10.5px;font-weight:700;color:#4b5563;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.14),rgba(22,163,74,0.14)),#0e1d40;border-color:rgba(34,197,94,0.5);}
         .dgg-done .dgg-art{opacity:.5;}
         .dgg-done .dgg-nm{color:#dfeee4;}
@@ -139,7 +139,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-t{background:#fff;border-color:rgba(20,22,28,0.12);}
         .dgg-light .dgg-t:hover{border-color:#5b8bff;}
         .dgg-light .dgg-nm{color:#1c1e24;}
-        .dgg-light .dgg-p{color:#6b7280;}
+        .dgg-light .dgg-p{color:#4b5563;}
         /* The letter-tile game icons are drawn for a dark ground and wash out on
            white, so give the icon its own navy chip on the light tiles. */
         .dgg-light .dgg-art{background:#f1f3f6;border-radius:9px;padding:5px;box-sizing:border-box;}

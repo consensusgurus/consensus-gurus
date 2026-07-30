@@ -8,8 +8,8 @@ import { useState, useEffect } from 'react';
 // BOTH the cream list/home pages and the blue quiz pages. No heavy accent color.
 const NEUTRAL = {
   ink: '#1c1e24',
-  muted: '#6b7280',
-  soft: '#6b7280',
+  muted: '#4b5563',
+  soft: '#4b5563',
   line: 'rgba(20,22,28,0.12)',
 };
 

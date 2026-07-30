@@ -45,7 +45,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#0d9488',       // Shards identity - teal
   accentDk: '#0b7c72',
   accentSoft: '#d7f0ec',

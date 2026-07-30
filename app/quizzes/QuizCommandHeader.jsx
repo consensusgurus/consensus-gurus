@@ -149,9 +149,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #e6e8ee;}
+        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #d3d9e3;}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
-        .qch-word em{font-style:normal;color:#6b7280;font-weight:600;}
+        .qch-word em{font-style:normal;color:#4b5563;font-weight:600;}
         .qch-ws{display:none;}
         .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#1c1e24;flex:none;}
         /* The search INPUT left this bar on 2026-07-29 (it now sits in the
@@ -161,10 +161,10 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
            ICON button stays exactly as it was: hidden on desktop, shown at
            <=820px, where it focuses the browse-row field (the one visible at
            that width) so phone layout is untouched. */
-        .qch-searchbtn{display:none;align-items:center;justify-content:center;width:36px;height:36px;flex:none;background:#f7f8fa;border:1px solid #e6e8ee;border-radius:10px;cursor:pointer;padding:0;}
+        .qch-searchbtn{display:none;align-items:center;justify-content:center;width:36px;height:36px;flex:none;background:#f7f8fa;border:1px solid #d3d9e3;border-radius:10px;cursor:pointer;padding:0;}
         .qch-me{margin-left:auto;flex:none;min-width:0;}
         .qch-melink{display:flex;align-items:center;gap:8px;text-decoration:none;min-width:0;}
-        .qch-ava{width:30px;height:30px;border-radius:50%;background:#eef1f5;border:1px solid #e6e8ee;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#1c1e24;flex:none;}
+        .qch-ava{width:30px;height:30px;border-radius:50%;background:#eef1f5;border:1px solid #d3d9e3;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#1c1e24;flex:none;}
         .qch-mecol{display:flex;flex-direction:column;gap:2px;min-width:0;}
         .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:#1c1e24;line-height:1;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
         .qch-hi{font-weight:600;color:#46506a;}
@@ -187,21 +187,21 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-melink{gap:13px;}
           .qch-mecol{flex-direction:row;align-items:center;gap:clamp(14px,2.6vw,38px);}
           .qch-nm{font-size:15px;max-width:none;}
-          .qch-sub{font-size:12.5px;border-left:1px solid #e6e8ee;padding-left:clamp(14px,2.6vw,38px);}
-          .qch-of{display:inline;color:#6b7280;}
+          .qch-sub{font-size:12.5px;border-left:1px solid #d3d9e3;padding-left:clamp(14px,2.6vw,38px);}
+          .qch-of{display:inline;color:#4b5563;}
         }
         .qch-sub{font-size:10.5px;font-weight:700;color:#46506a;line-height:1;white-space:nowrap;}
         .qch-rankm{display:none;font-size:11px;font-weight:800;color:#1c1e24;line-height:1;white-space:nowrap;}
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#eef1f5;color:#0e1d40;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
         .qch-signup{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;border:1px solid #e8b43a;border-radius:9px;color:#1c1e24;font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;}
         .qch-signup:hover{background:#f0c358;border-color:#f0c358;color:#1c1e24;}
-        .qch-seg{display:flex;gap:2px;background:#eef1f5;border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:#eef1f5;border:1px solid #e6e8ee;cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
+        .qch-seg{display:flex;gap:2px;background:#eef1f5;border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:#eef1f5;border:1px solid #d3d9e3;cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
         .qch-seg a{font-size:12px;font-weight:700;color:#1c1e24;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
         .qch-seg a.on{background:#0e1d40;color:#fff;}
         .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;color:#1c1e24;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
         .qch-hub:hover{background:#d49a2a;color:#1c1e24;}
         .qch-tickwrap{display:flex;align-items:stretch;background:#ffffff;}
-        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#6b7280;position:relative;z-index:2;}
+        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#4b5563;position:relative;z-index:2;}
         .qch-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,0.5);animation:qchpul 2s infinite;}
         @keyframes qchpul{0%{box-shadow:0 0 0 0 rgba(90,212,143,0.45)}70%{box-shadow:0 0 0 7px rgba(90,212,143,0)}100%{box-shadow:0 0 0 0 rgba(90,212,143,0)}}
         .qch-ticker{position:relative;overflow:hidden;flex:1 1 0;min-width:0;height:34px;}
@@ -216,8 +216,8 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-titem{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#46506a;text-decoration:none;white-space:nowrap;}
         .qch-titem:hover .qch-ts{text-decoration:underline;text-underline-offset:2px;}
         .qch-ts{color:#1c1e24;font-weight:800;}
-        .qch-td{color:#6b7280;}
-        .qch-tdot{width:4px;height:4px;border-radius:50%;background:#e6e8ee;margin:0 14px;flex:none;}
+        .qch-td{color:#4b5563;}
+        .qch-tdot{width:4px;height:4px;border-radius:50%;background:#d3d9e3;margin:0 14px;flex:none;}
         .qch-tico{width:17px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none;}
         .qch-tico-play{background:rgba(46,163,106,0.22);}
         .qch-tico-lead{background:rgba(232,180,58,0.2);}

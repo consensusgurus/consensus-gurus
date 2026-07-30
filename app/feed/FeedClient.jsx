@@ -5,7 +5,7 @@ import { Flag, ListPlus, BarChart3, MessageSquare, PenLine, RefreshCw, BookMarke
 // Re-themed to the site's white/Manrope/blue design (was the cream COLORS from
 // lib/data). Same keys, new values, so every COLORS.* reference below picks up
 // the new palette with no other change.
-const COLORS = { ink: '#1c1e24', faded: '#6b7280', ember: '#0e1d40', cream: '#ffffff', paper: 'rgba(20,22,28,0.12)', soft: '#6b7280' };
+const COLORS = { ink: '#1c1e24', faded: '#4b5563', ember: '#0e1d40', cream: '#ffffff', paper: 'rgba(20,22,28,0.12)', soft: '#4b5563' };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 

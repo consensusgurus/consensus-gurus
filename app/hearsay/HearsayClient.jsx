@@ -44,7 +44,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#7c2d92',        // Hearsay identity — parlour violet
   accentSoft: '#f5e8fb',
   accentDeep: '#5b1d6d',

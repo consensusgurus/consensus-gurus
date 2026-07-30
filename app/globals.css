@@ -4,7 +4,7 @@
 
 body {
   margin: 0;
-  background: #f7f8fa;
+  background: #e9ecf2;
   color: #1c1e24;
   font-family: 'DM Sans', system-ui, sans-serif;
 }
@@ -41,22 +41,22 @@ a {
    browse page AND the "More Lists" grid on list detail pages). Global so the
    classes are styled wherever the tile component is rendered, not only inside
    the browse page's inline <style>. */
-.nt-tile{height:100%;background:#fff;border:1px solid rgba(20,22,28,0.09);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:#1c1e24;font-family:'Manrope',system-ui,-apple-system,sans-serif;transition:box-shadow .15s,transform .15s;}
+.nt-tile{height:100%;background:#fff;border:1px solid rgba(20,22,28,0.16);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:#1c1e24;font-family:'Manrope',system-ui,-apple-system,sans-serif;transition:box-shadow .15s,transform .15s;}
 .nt-tile:hover{box-shadow:0 8px 24px rgba(20,22,28,0.10);transform:translateY(-2px);}
 .nt-timg{position:relative;height:180px;display:flex;align-items:center;justify-content:center;}
 .nt-tcat{position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;padding:3px 7px 3px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
 .nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
 .nt-tbody{padding:12px 14px 13px;display:flex;flex-direction:column;flex:1 1 auto;}
 .nt-ttitle{font-size:16px;font-weight:800;line-height:1.18;letter-spacing:-0.01em;margin:0 0 9px;}
-.nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6b7280;}
+.nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#4b5563;}
 .nt-crow{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(20,22,28,0.12);font-size:12.5px;}
 .nt-crow:last-of-type{border-bottom:none;}
 .nt-cnum{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;margin-top:1px;}
 .nt-cname{flex:1 1 auto;min-width:0;line-height:1.3;}
-.nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:9px;border-top:1px solid rgba(20,22,28,0.09);}
-.nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6b7280;display:flex;align-items:center;gap:4px;}
+.nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:9px;border-top:1px solid rgba(20,22,28,0.16);}
+.nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#4b5563;display:flex;align-items:center;gap:4px;}
 .nt-relwrap{flex:1 1 0;min-height:0;position:relative;overflow:hidden;margin-top:10px;}
-.nt-rel{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f7f8fa;border:1px solid rgba(20,22,28,0.09);border-radius:8px;padding:8px 11px;cursor:pointer;color:#1c1e24;transition:background .12s,border-color .12s;}
+.nt-rel{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f7f8fa;border:1px solid rgba(20,22,28,0.16);border-radius:8px;padding:8px 11px;cursor:pointer;color:#1c1e24;transition:background .12s,border-color .12s;}
 .nt-rel:hover{background:#fff;border-color:#0e1d40;}
 .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .nt-rel-a{flex:none;color:#0e1d40;font-weight:800;}

@@ -32,7 +32,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   gold: '#e6b93f',
   goldInk: '#5c4a06',
 };

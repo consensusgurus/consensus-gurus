@@ -9,7 +9,7 @@ import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { PLACE_MAP_GEO } from '@/lib/place-map-geo';
 
 const LAND = '#eef1f4', LINE = '#94a0b0', SEA = '#bcd4ec';
-const GREEN = '#10b981', RED = '#c0392b', INK = '#1c1e24', FADED = '#6b7280';
+const GREEN = '#10b981', RED = '#c0392b', INK = '#1c1e24', FADED = '#4b5563';
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function StreetMapBoard({ answers, found, revealed, region, mobile = false }) {

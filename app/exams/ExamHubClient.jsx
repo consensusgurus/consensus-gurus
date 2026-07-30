@@ -14,7 +14,7 @@ const COLORS = {
   paper: '#eceef1',
   ink: '#1c1e24',
   ember: '#0e1d40',
-  faded: '#6b7280',
+  faded: '#4b5563',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 

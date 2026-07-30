@@ -40,7 +40,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#b91c1c',       // Extra identity — pressroom red
   accentSoft: '#fdeeee',
   green: '#15803d',

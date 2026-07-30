@@ -66,7 +66,7 @@ export default function UpNextCard({ quiz, seconds = 25 }) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
         <a href={`/quiz/${meta.id}`} style={{ ...mini, background: BLUE, color: '#fff' }}>Go to quiz</a>
-        {autoRun ? <button onClick={() => setCancelled(true)} style={{ ...mini, background: '#fff', color: '#6b7280', border: '1px solid rgba(20,22,28,0.14)' }}>Not now</button> : null}
+        {autoRun ? <button onClick={() => setCancelled(true)} style={{ ...mini, background: '#fff', color: '#4b5563', border: '1px solid rgba(20,22,28,0.14)' }}>Not now</button> : null}
       </div>
     </div>
   );

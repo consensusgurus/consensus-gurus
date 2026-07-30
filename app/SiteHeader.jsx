@@ -14,7 +14,7 @@ import { EXAM_ORDER } from './exams/examData';
 // category nav on lists home, the section tabs on a list, the player stat bar on
 // quizzes. Desktop keeps the card inset and rounded; mobile goes full-bleed and
 // the nav condenses to a compact segmented toggle next to the "SoT" mark.
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#6b7280', line: 'rgba(20,22,28,0.09)' };
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#4b5563', line: 'rgba(20,22,28,0.16)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 
@@ -104,9 +104,9 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .shc{width:100vw;margin-left:calc(50% - 50vw);}
-        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #e6e8ee;}
+        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #d3d9e3;}
         .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
-        .shc-word em{font-style:normal;color:#6b7280;font-weight:600;}
+        .shc-word em{font-style:normal;color:#4b5563;font-weight:600;}
         .shc-ws{display:none;}
         .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#1c1e24;flex:none;}
         .shc-games{display:flex;align-items:center;gap:9px;min-width:0;flex:none;}
@@ -115,13 +115,13 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         .shc-dot{width:8px;height:8px;border-radius:50%;flex:none;}
         .shc-gtxt{display:flex;flex-direction:column;gap:2px;line-height:1;}
         .shc-gnm{font-size:13px;font-weight:800;color:#1c1e24;letter-spacing:-.2px;}
-        .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#6b7280;white-space:nowrap;}
+        .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#4b5563;white-space:nowrap;}
         .shc-search{flex:0 1 auto;width:clamp(200px,26vw,460px);min-width:130px;margin-left:auto;display:flex;align-items:center;gap:7px;height:36px;padding:0 10px 0 12px;background:#eef1f5;border:1px solid #eef1f5;border-radius:11px;}
-        .shc-search svg{flex:none;color:#6b7280;}
+        .shc-search svg{flex:none;color:#4b5563;}
         .shc-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#1c1e24;font-family:inherit;font-size:13px;font-weight:600;}
-        .shc-search input::placeholder{color:#6b7280;opacity:1;}
+        .shc-search input::placeholder{color:#4b5563;opacity:1;}
         .shc-search:focus-within{border-color:#46506a;background:#eef1f5;}
-        .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:#6b7280;cursor:pointer;padding:2px;flex:none;}
+        .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:#4b5563;cursor:pointer;padding:2px;flex:none;}
         .shc-clear:hover{color:#1c1e24;}
         /* margin-left:auto pins the Sort + Lists/Quizzes toggle group to the
            far-right edge. When the search box caps at its max width on wide
@@ -222,7 +222,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
     <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#ffffff;border:1px solid #e6e8ee;;border-radius:16px;}
+        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#ffffff;border:1px solid #d3d9e3;;border-radius:16px;}
         .sh-bar.flush{border-radius:16px 16px 0 0;}
         .qzf-line{position:absolute;top:0;bottom:0;left:24px;right:24px;border-left:1px solid rgba(20,22,28,0.16);border-right:1px solid rgba(20,22,28,0.16);border-bottom:1px solid rgba(20,22,28,0.16);border-bottom-left-radius:16px;border-bottom-right-radius:16px;pointer-events:none;z-index:0;}
         @media(max-width:560px){.qzf-line{display:none;}.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
@@ -234,7 +234,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-word-sot{display:none;}
         .sh-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex:none;}
         .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}.sh-burger{display:none;position:relative;flex:none;}.sh-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:#eef1f5;border:1px solid #eef1f5;cursor:pointer;}.sh-burger>summary::-webkit-details-marker{display:none;}.sh-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.sh-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.sh-bmenu a.on,.sh-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.sh-nav{display:none;}.sh-burger{display:block;}}
-        .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#1c1e24;border:1px solid #e6e8ee;border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
+        .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#1c1e24;border:1px solid #d3d9e3;border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
         .sh-navbtn:hover{background:#eef1f5;border-color:#1c1e24;color:#1c1e24;}
         .sh-navbtn.on{background:#fff;border-color:#1c1e24;border-bottom:2px solid #e8b43a;color:#0e1d40;}
         @media(max-width:860px){.sh-tag{display:none;}}
@@ -259,7 +259,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <div className="sh-brand">
               <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
               <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'nowrap' }}>
-                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:'#1c1e24' }}><span className="sh-word-full">Source <span style={{ color: '#6b7280', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#6b7280', fontWeight: 600 }}>o</span>T</span></Link>
+                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:'#1c1e24' }}><span className="sh-word-full">Source <span style={{ color: '#4b5563', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#4b5563', fontWeight: 600 }}>o</span>T</span></Link>
                 <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color:'#1c1e24', marginTop: 0 }}><HeaderTagline active={active} /></span>
               </span>
             </div>

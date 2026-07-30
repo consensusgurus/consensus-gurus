@@ -40,7 +40,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#6b7280',
+  faded: '#4b5563',
   accent: '#4d7c0f',       // Etch identity — moss
   accentSoft: '#f3f8e8',
   green: '#15803d',
