@@ -85,7 +85,7 @@ function chooseGuestRow(rows, anonId) {
 // GET /api/quiz/daily-game?game=<key>&anonId=&email=&fresh=
 //   -> { game,
 //        allTime: { field, myRank, myPoints, board:[{ userKey, username, points, rank, isMe }] },
-//        drops:   [{ date, dateISO, num, href, played, isToday }],
+//        drops:   [{ date, dateISO, num, href, played, players, isToday }],
 //        mine:    { plays, bestPoints, avgPoints, currentStreak, longestStreak,
 //                   perDrop: { <dateISO>: points } } }
 //
@@ -149,12 +149,17 @@ export async function GET(request) {
     // earn (each inserted into that drop's registered field) and rank that total
     // against the registered cumulative totals, mirroring the today/combined tiles.
     // Count unique all-time players (registered + guests) across all drops.
+    // Same pass also counts each DROP's own unique players, which the tile
+    // panel's trend chart bubbles above every bar (owner, 2026-07-30).
     const uniqueAllTimePlayers = new Set();
-    for (const rows of byDrop.values()) {
+    const playersPerDrop = new Map(); // quizId -> unique player count
+    for (const [qid, rows] of byDrop.entries()) {
+      const day = new Set();
       for (const r of rows) {
         const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
-        if (pk) uniqueAllTimePlayers.add(pk);
+        if (pk) { day.add(pk); uniqueAllTimePlayers.add(pk); }
       }
+      playersPerDrop.set(qid, day.size);
     }
     const isGuestViewer = !!(myKey && myKey.indexOf('a:') === 0);
     let guestPts = 0, guestDrops = 0;
@@ -236,6 +241,7 @@ export async function GET(request) {
         num: p.num,
         href: isToday ? `/${game}` : `/${game}?p=${p.num}`,
         played: played.has(p.quizId),
+        players: playersPerDrop.get(p.quizId) || 0,
         isToday,
       };
     }).sort((a, b) => (a.dateISO < b.dateISO ? -1 : a.dateISO > b.dateISO ? 1 : 0));

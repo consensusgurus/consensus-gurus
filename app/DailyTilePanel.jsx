@@ -117,6 +117,7 @@ export default function DailyTilePanel({
     const vals = drops.slice(-TREND_MAX).map((d) => ({
       iso: d.dateISO, href: d.href, isToday: d.isToday,
       pts: (per[d.dateISO] != null ? Number(per[d.dateISO]) : null),
+      plays: (d.players != null ? Number(d.players) : null),
     }));
     const played = vals.filter((v) => v.pts != null);
     const max = played.length ? Math.max(...played.map((v) => v.pts)) : 0;
@@ -124,6 +125,9 @@ export default function DailyTilePanel({
     return { vals, max, avg, count: played.length };
   }, [drops, mine]);
   const avgPct = (trend.max > 0 && trend.avg != null) ? Math.min(97, (trend.avg / trend.max) * 100) : null;
+  // Past ~12 columns a per-bar date label stops fitting, so the chart falls back
+  // to the two end dates and the player bubbles shrink.
+  const denseTrend = trend.vals.length > 12;
 
   const board = (allTime && Array.isArray(allTime.board)) ? allTime.board.slice(0, 3) : [];
   const meOnBoard = board.some((r) => r.isMe);
@@ -275,18 +279,40 @@ export default function DailyTilePanel({
           <TrendingUp size={12} strokeWidth={2.4} />
           {trend.count > 0 ? `Your last ${trend.vals.length} days` : 'Your history'}
           {trend.count > 0 ? (
-            <span className="dtp-tsum">best {fmtPts(mine.bestPoints)} &middot; avg {fmtPts(mine.avgPoints)}</span>
+            <span className="dtp-tsum">all-time best {fmtPts(mine.bestPoints)} &middot; avg {fmtPts(mine.avgPoints)}</span>
           ) : null}
         </div>
         {loading ? (
           <div className="dtp-empty">Loading your history…</div>
         ) : trend.count > 0 ? (
           <>
+            {/* The chart is three parallel rows sharing one column rule, so the
+                player bubble, the bar and the date always line up. The dashed
+                average line stays inside the bar row, whose height is the only
+                thing the bar percentages are measured against. */}
+            <div className="dtp-tkey">
+              <span><i className="sw bar" />Your daily points</span>
+              {trend.avg != null ? <span><i className="sw avg" />Your average, {fmtPts(trend.avg)}</span> : null}
+              <span><i className="sw bub" />Players that day</span>
+            </div>
+            <div className={'dtp-bubrow' + (denseTrend ? ' dense' : '')} aria-hidden="true">
+              {trend.vals.map((v) => (
+                <span key={'p' + v.iso} className="dtp-bubc">
+                  {v.plays ? <i className={'dtp-bub' + (v.isToday ? ' today' : '')}>{v.plays}</i> : null}
+                </span>
+              ))}
+            </div>
             <div className="dtp-bars">
-              {avgPct != null ? <span className="dtp-avg" style={{ bottom: avgPct + '%' }} aria-hidden="true" /> : null}
+              {avgPct != null ? (
+                <span className="dtp-avg" style={{ bottom: avgPct + '%' }} aria-hidden="true">
+                  <i>avg {fmtPts(trend.avg)}</i>
+                </span>
+              ) : null}
               {trend.vals.map((v) => {
                 const h = v.pts != null && trend.max > 0 ? Math.max(5, (v.pts / trend.max) * 100) : 0;
-                const title = shortDate(v.iso) + (v.pts != null ? ' · ' + fmtPts(v.pts) + ' pts' : ' · not played');
+                const title = shortDate(v.iso)
+                  + (v.pts != null ? ' · you scored ' + fmtPts(v.pts) : ' · you did not play')
+                  + (v.plays ? ' · ' + v.plays + (v.plays === 1 ? ' player' : ' players') + ' that day' : '');
                 return (
                   <a key={v.iso} href={v.href} className="dtp-barw" title={title} aria-label={title}>
                     {v.pts != null
@@ -296,16 +322,18 @@ export default function DailyTilePanel({
                 );
               })}
             </div>
-            <div className="dtp-bx">
-              {trend.vals.length >= 8 ? (
-                <>
-                  <span>{shortDate(trend.vals[0].iso)}</span>
-                  <span>{shortDate(trend.vals[trend.vals.length - 1].iso)}</span>
-                </>
-              ) : (
-                <span>{shortDate(trend.vals[0].iso)} to {shortDate(trend.vals[trend.vals.length - 1].iso)}</span>
-              )}
-            </div>
+            {denseTrend ? (
+              <div className="dtp-bx">
+                <span>{shortDate(trend.vals[0].iso)}</span>
+                <span>{shortDate(trend.vals[trend.vals.length - 1].iso)}</span>
+              </div>
+            ) : (
+              <div className="dtp-daterow">
+                {trend.vals.map((v) => (
+                  <span key={'d' + v.iso} className={'dtp-dc' + (v.isToday ? ' today' : '')}>{shortDate(v.iso)}</span>
+                ))}
+              </div>
+            )}
           </>
         ) : (
           <div className="dtp-empty">Play it once and your day by day history shows up here.</div>
@@ -399,8 +427,29 @@ export default function DailyTilePanel({
         /* score trend */
         .dtp-trend{flex:1 1 auto;min-height:92px;display:flex;flex-direction:column;padding-top:2px;}
         .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#262b35;}
-        .dtp-bars{position:relative;flex:1 1 auto;min-height:56px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #dde3ec;padding-bottom:1px;}
+        /* legend, so the bars, the dashed line and the bubbles all say what they are */
+        .dtp-tkey{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:3px 14px;margin:-3px 0 6px;
+                  font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:#5b6577;}
+        .dtp-tkey span{display:inline-flex;align-items:center;gap:5px;}
+        .dtp-tkey .sw{flex:none;display:inline-block;}
+        .dtp-tkey .sw.bar{width:7px;height:11px;border-radius:2px;background:var(--gc);opacity:.85;}
+        .dtp-tkey .sw.avg{width:14px;height:0;border-top:1px dashed #8a9bb8;}
+        .dtp-tkey .sw.bub{width:9px;height:9px;border-radius:999px;background:#f2f5fa;border:1px solid #c3ccda;}
+        /* the count bubbles ride in their own row above the bars, so a tall bar
+           never collides with its number and the plot just gets shorter */
+        .dtp-bubrow{flex:none;display:flex;gap:3px;margin-bottom:3px;min-height:15px;}
+        .dtp-bubc{flex:1 1 0;min-width:0;max-width:48px;display:flex;align-items:flex-end;justify-content:center;}
+        .dtp-bub{font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;line-height:1;color:#46506a;
+                 background:#f2f5fa;border:1px solid #dde3ec;border-radius:999px;padding:2px 5px;white-space:nowrap;}
+        .dtp-bub.today{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:#8a5300;}
+        .dtp-bubrow.dense .dtp-bub{font-size:8px;padding:1px 3px;}
+        .dtp-bars{position:relative;flex:1 1 auto;min-height:48px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #dde3ec;padding-bottom:1px;}
         .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed #c3ccda;pointer-events:none;}
+        .dtp-avg i{position:absolute;right:0;bottom:2px;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;
+                   font-size:8.5px;letter-spacing:.04em;color:#5b6577;background:#ffffff;padding:0 3px;border-radius:3px;}
+        .dtp-daterow{flex:none;display:flex;gap:3px;margin-top:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#5b6577;}
+        .dtp-dc{flex:1 1 0;min-width:0;max-width:48px;display:flex;justify-content:center;white-space:nowrap;overflow:hidden;}
+        .dtp-dc.today{color:#8a5300;font-weight:500;}
         .dtp-barw{flex:1 1 0;min-width:0;max-width:48px;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
         .dtp-barw:hover{background:#f7f8fa;}
         .dtp-bar{display:block;width:100%;max-width:22px;background:var(--gc);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:opacity .12s;}
