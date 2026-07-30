@@ -432,7 +432,7 @@ export default function DailyStrip({ board = null }) {
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#a16207;white-space:nowrap;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
         .dh-busub{font-size:11px;font-weight:600;color:#262b35;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dh-statlead{flex:none;font-size:11.5px;font-weight:800;color:#1c1e24;white-space:nowrap;padding-right:11px;letter-spacing:-.1px;}
+        .dh-statlead{flex:none;display:flex;flex-direction:column;justify-content:center;font-size:15.5px;font-weight:800;line-height:1.06;color:#1c1e24;white-space:nowrap;padding-right:12px;letter-spacing:-.25px;}
         .dh-stats{display:flex;align-items:center;flex:none;min-width:0;overflow:hidden;}
         .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid #eef0f4;}
         .dh-stat:last-child{border-right:none;}
@@ -447,7 +447,8 @@ export default function DailyStrip({ board = null }) {
            remaining optional stats, so the topper never wraps to a second row. */
         @container (max-width:620px){.dh-stat.opt3{display:none;}
           .dh-sbar{justify-content:space-between;gap:8px;}
-          .dh-stat{border-right:none;padding:0 5px;}
+          .dh-statlead{font-size:13px;padding-right:7px;}
+        .dh-stat{border-right:none;padding:0 5px;}
           .dh-bup{padding-left:8px;gap:9px;}
           .dh-busub{display:none;}
           .dh-wideonly{display:none;}
@@ -575,7 +576,7 @@ export default function DailyStrip({ board = null }) {
           sits between the bar and the tiles. */}
       <div className="dh-sbar">
         <div className="dh-stats">
-          <div className="dh-statlead">Your day:</div>
+          <div className="dh-statlead"><span>Your</span><span>day:</span></div>
           <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
           {board && board.me ? <div className="dh-stat opt3"><b>{fmtPts(board.me.total)}</b><span>Points</span></div> : null}
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
