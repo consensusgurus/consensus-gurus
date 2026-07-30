@@ -2065,7 +2065,7 @@ export default function QuizHomeClient() {
               const num = (n) => (n || 0).toLocaleString();
               return (
                 <div className="dhx-lb xp">
-                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#2563eb' }} fill="#2563eb" /> {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
+                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#2563eb' }} fill="#2563eb" /> TOP PLAYER: {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
                     <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No XP earned yet'}</span>
