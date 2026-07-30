@@ -424,8 +424,8 @@ export default function DailyStrip({ board = null }) {
       <style>{`
         .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
-        .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#ffffff;border:1px solid #d3d9e3;border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:#1c1e24;border-bottom:1px solid #eef0f4;}
-        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1px solid #d3d9e3;}
+        .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#ffffff;border:1.5px solid #c3ccda;border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:#1c1e24;border-bottom:1px solid #eef0f4;}
+        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1.5px solid #c3ccda;}
         .dh-bup .dh-play{flex:1 1 auto;min-width:96px;max-width:none;font-size:13.5px;padding:11px 18px;}
         .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
@@ -458,12 +458,12 @@ export default function DailyStrip({ board = null }) {
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
-        .dh-boardwrap{position:relative;background:#ffffff;border:1px solid #d3d9e3;border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
+        .dh-boardwrap{position:relative;background:#ffffff;border:1.5px solid #c3ccda;border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
         /* navy game tiles (owner 2026-07-29): the icon art was drawn for a navy
            field, so the whole tile is navy and the icon renders directly on it. */
-        .dh-tile{position:relative;overflow:hidden;background:#ffffff;border:1px solid #d3d9e3;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
+        .dh-tile{position:relative;overflow:hidden;background:#ffffff;border:1.5px solid #c3ccda;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);filter:brightness(1.28);box-shadow:0 6px 16px rgba(6,12,26,0.45);}
         .dh-tile.sel{border-color:#a16207;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.done{background:#f0fdf4;border-color:#1f5537;}
@@ -486,7 +486,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
-        .dh-lbpanel{background:#ffffff;border:1px solid #d3d9e3;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
+        .dh-lbpanel{background:#ffffff;border:1.5px solid #c3ccda;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
         .dsd-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#a16207;font-weight:800;}
         .dsd-r{font-size:10.5px;color:#262b35;font-weight:600;}

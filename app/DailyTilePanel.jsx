@@ -308,7 +308,7 @@ export default function DailyTilePanel({
       </section>
 
       <style>{`
-        .dtp{position:absolute;inset:0;z-index:6;background:#eef1f6;border-radius:0 0 13px 13px;color:#1c1e24;
+        .dtp{position:absolute;inset:0;z-index:6;background:#ffffff;border-radius:0 0 13px 13px;color:#1c1e24;
              padding:13px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;animation:dtpIn .16s ease-out;}
         /* Opacity only. A scale here left the panel measurably inset from the
@@ -317,13 +317,13 @@ export default function DailyTilePanel({
            scale never settled and the panel sat ~4px inside its box. */
         @keyframes dtpIn{from{opacity:0;}to{opacity:1;}}
         .dtp-hd{display:flex;align-items:flex-start;gap:13px;flex:none;}
-        .dtp-ic{flex:none;width:50px;height:50px;border-radius:12px;background:#f7f9fc;border:1px solid #d3d9e3;display:flex;align-items:center;justify-content:center;}
+        .dtp-ic{flex:none;width:50px;height:50px;border-radius:12px;background:#f7f9fc;border:1.5px solid #c3ccda;display:flex;align-items:center;justify-content:center;}
         .dtp-ic img{height:32px;width:auto;max-width:42px;object-fit:contain;}
         .dtp-idt{flex:1;min-width:0;}
         .dtp-nm{font-size:22px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.1;}
-        .dtp-flame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:800;color:#e8b43a;}
-        .dtp-donechip{display:inline-flex;align-items:center;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#6ee7b7;}
-        .dtp-sharechip{display:inline-flex;align-items:center;gap:5px;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#e8b43a;font-family:inherit;cursor:pointer;transition:background .12s,color .12s;}
+        .dtp-flame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:800;color:#8a5300;}
+        .dtp-donechip{display:inline-flex;align-items:center;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#116932;}
+        .dtp-sharechip{display:inline-flex;align-items:center;gap:5px;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#8a5300;font-family:inherit;cursor:pointer;transition:background .12s,color .12s;}
         .dtp-sharechip svg{transition:color .12s;}
         .dtp-sharechip:hover{background:#e8b43a;color:#1c1e24;}
         .dtp-sharechip:hover svg{color:#1c1e24;}
@@ -337,7 +337,7 @@ export default function DailyTilePanel({
         .dtp-shrink:hover{background:#f0c358;border-color:#f0c358;transform:translateY(-1px);}
         /* three columns take every remaining pixel */
         .dtp-grid{flex:none;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:13px;align-items:start;}
-        .dtp-col{min-width:0;display:flex;flex-direction:column;background:#fff;border:1px solid #d3d9e3;border-radius:11px;padding:12px 13px;}
+        .dtp-col{min-width:0;display:flex;flex-direction:column;background:#fff;border:1.5px solid #c3ccda;border-radius:11px;padding:12px 13px;}
         .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;font-weight:500;margin-bottom:8px;flex:none;}
         .dtp-lab.sm{margin-top:10px;}
         .dtp-lab svg{color:var(--gc);}
@@ -379,20 +379,20 @@ export default function DailyTilePanel({
         .dtp-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;border-bottom:1px solid #dde3ec;font-size:11.5px;color:#262b35;}
         .dtp-lrow:last-child{border-bottom:none;}
         .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#262b35;flex:none;display:flex;align-items:center;}
-        .dtp-lrow .pl svg{color:#e8b43a;}
+        .dtp-lrow .pl svg{color:#a16207;}
         .dtp-lrow b{color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
         .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#1c1e24;flex:none;}
-        .dtp-lrow.me{background:#2a2107;border-radius:6px;padding:3px 8px;border-bottom:none;margin:1px -8px;}
-        .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#e8b43a;}
+        .dtp-lrow.me{background:#fdf4dd;border-radius:6px;padding:3px 8px;border-bottom:none;margin:1px -8px;}
+        .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#8a5300;}
         .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;font-size:10.5px;color:#262b35;font-weight:600;flex:none;}
-        .dtp-lfoot a{color:#e8b43a;text-decoration:none;font-weight:700;}
+        .dtp-lfoot a{color:#8a5300;text-decoration:none;font-weight:700;}
         .dtp-lfoot a:hover{text-decoration:underline;}
         .dtp-empty{font-size:12px;color:#262b35;font-weight:600;padding:6px 0;}
         /* score trend */
         .dtp-trend{flex:1 1 auto;min-height:92px;display:flex;flex-direction:column;padding-top:2px;}
         .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#262b35;}
         .dtp-bars{position:relative;flex:1 1 auto;min-height:56px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #dde3ec;padding-bottom:1px;}
-        .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed #d3d9e3;pointer-events:none;}
+        .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed #c3ccda;pointer-events:none;}
         .dtp-barw{flex:1 1 0;min-width:0;max-width:48px;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
         .dtp-barw:hover{background:#f7f8fa;}
         .dtp-bar{display:block;width:100%;max-width:22px;background:var(--gc);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:opacity .12s;}

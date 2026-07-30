@@ -25,7 +25,7 @@ const C = {
   paper: '#ffffff',
   ink: '#1c1e24',
   faded: '#262b35',
-  line: 'rgba(20,22,28,0.16)',
+  line: 'rgba(20,22,28,0.30)',
   lineStrong: 'rgba(20,22,28,0.18)',
   land: '#e9edf3',
   landLine: '#ffffff',

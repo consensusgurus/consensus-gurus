@@ -11,7 +11,7 @@ import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 // identity, and the quiz total. No "Quiz stats" boxes (that info lives in the
 // header line), per the owner rule.
 
-const C = { ink: '#1c1e24', ember: '#0e1d40', faded: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.16)', accSoft: '#eef3ff', accBorder: '#cddffb' };
+const C = { ink: '#1c1e24', ember: '#0e1d40', faded: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.30)', accSoft: '#eef3ff', accBorder: '#cddffb' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }

@@ -17,7 +17,7 @@ export const metadata = {
   twitter: { card: 'summary_large_image', title: 'A Sporcle Alternative With No Ads', description: 'Fast, ad-free trivia quizzes with leaderboards and a modern interface.' },
 };
 
-const C = { bg: '#dbe1ea', card: '#ffffff', ink: '#1c1e24', blue: '#0e1d40', gold: '#fbb615', muted: '#262b35', border: '#e2e5ea', green: '#10b981' };
+const C = { bg: '#ffffff', card: '#ffffff', ink: '#1c1e24', blue: '#0e1d40', gold: '#fbb615', muted: '#262b35', border: '#e2e5ea', green: '#10b981' };
 const F = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function Prop({ title, body }) {

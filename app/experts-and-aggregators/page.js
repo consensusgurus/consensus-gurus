@@ -10,12 +10,12 @@ export const metadata = {
 };
 
 const C = {
-  bg: '#dbe1ea',
+  bg: '#ffffff',
   ink: '#1c1e24',
   muted: '#262b35',
   soft: '#262b35',
   accent: '#0e1d40',
-  line: 'rgba(20,22,28,0.16)',
+  line: 'rgba(20,22,28,0.30)',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 

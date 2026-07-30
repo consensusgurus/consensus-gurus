@@ -57,8 +57,8 @@ function Logo({ size = 22 }) {
 
 // ─── palette / type ─────────────────────────────────────────────────────────
 const C = {
-  bg: '#dbe1ea', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40',
+  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
+  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981',
   cta: '#e8b43a', ctaInk: '#1c1e24', ctaHover: '#d49a2a',
 };
@@ -1487,7 +1487,7 @@ export default function QuizHomeClient() {
       .qzh .dtile-head .x8{font-size:12px !important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .qzh .dtile-chip{font-size:9px;padding:2px 7px;}
     }
-    .qzh .dtile{background:#ffffff;border:1px solid #d3d9e3;border-radius:14px;padding:14px 15px;color:#1c1e24;display:flex;flex-direction:column;min-height:190px;}
+    .qzh .dtile{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;padding:14px 15px;color:#1c1e24;display:flex;flex-direction:column;min-height:190px;}
     .qzh .th-only-desk{display:none !important;}
     @media(min-width:1025px){.qzh .th-only-mob{display:none !important;}.qzh .th-only-desk{display:flex !important;}}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
@@ -1508,7 +1508,7 @@ export default function QuizHomeClient() {
     .qzh .dueltile-chev{display:none;}
     .qzh .duel-mob-last{display:none;flex-direction:column;flex:1;}
     @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}.qzh .dueltile.has-mob-last .duel-flip{display:none !important;}.qzh .dueltile.has-mob-last .duel-mob-last{display:flex !important;}}
-    .qzh .rail{background:#ffffff;border:1px solid #d3d9e3;border-radius:14px;padding:10px 9px 9px;display:flex;flex-direction:column;}
+    .qzh .rail{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;padding:10px 9px 9px;display:flex;flex-direction:column;}
     .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:7px;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;}
     .qzh .rseg{position:relative;isolation:isolate;overflow:hidden;flex:1 1 0;min-height:24px;display:flex;align-items:center;background:#f1f3f6;border:none;border-radius:7px;margin:0;padding:0 9px;cursor:pointer;width:100%;text-align:left;}
@@ -1541,8 +1541,8 @@ export default function QuizHomeClient() {
     /* Full-width tool row under the three-column daily section, styled as ONE
        integrated element (owner 2026-07-29): a navy casing wraps the white search
        field and the three white action buttons, all one uniform treatment. */
-    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:#ffffff;border:1px solid #d3d9e3;border-radius:13px;padding:8px;}
-    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#f7f8fa;border:1px solid #d3d9e3;border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
+    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:#ffffff;border:1.5px solid #c3ccda;border-radius:13px;padding:8px;}
+    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#f7f8fa;border:1.5px solid #c3ccda;border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
     .qzh .qz-toolsearch:hover{border-color:#262b35;}
     .qzh .qz-toolsearch:focus-within{border-color:#262b35;background:#f7f8fa;}
     .qzh .qz-toolsearch svg{flex:none;color:#262b35;}
@@ -1551,7 +1551,7 @@ export default function QuizHomeClient() {
     .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:#262b35;display:flex;}
     .qzh .qz-toolclear:hover{color:#fff;}
     .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
-    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1px solid #d3d9e3;background:transparent;color:#46506a;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
+    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1.5px solid #c3ccda;background:transparent;color:#46506a;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
     .qzh .qz-toolbtn svg{flex:none;color:#262b35;transition:color .14s ease;}
     .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#262b35;color:#1c1e24;}
     .qzh .qz-toolbtn:hover svg{color:#fff;}
@@ -1915,9 +1915,9 @@ export default function QuizHomeClient() {
             .qzh .dhx-cmbar .p{position:relative;margin-left:auto;font-size:11px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
             .qzh .dhx-cm-empty{padding:0 14px 13px;font-size:11px;color:#7d92bd;font-weight:600;}
             /* ── LEFT: one integrated navy element (three leaderboards) ── */
-            .qzh .dhx-lone{background:#ffffff;border:1px solid #d3d9e3;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-lone{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-lone > *{border:0 !important;border-radius:0 !important;box-shadow:none !important;margin:0 !important;background:transparent !important;}
-            .qzh .dhx-lone > * + *{border-top:1px solid #d3d9e3 !important;}
+            .qzh .dhx-lone > * + *{border-top:1.5px solid #c3ccda !important;}
             /* neutralize CommunityTile / XpTile tile chrome so they read as sections of the one card */
             .qzh .dhx-lone .cmtile,.qzh .dhx-lone .ttile{min-height:0 !important;background:#ffffff !important;}
             .qzh .dhx-lone .cmtile:before,.qzh .dhx-lone .cmtile:after,.qzh .dhx-lone .ttile:before,.qzh .dhx-lone .ttile:after{display:none !important;}
@@ -1949,7 +1949,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb-dots i{width:4px;height:4px;border-radius:50%;background:#c3cdd9;display:block;}
             .qzh .dhx-lb-dots i.on{background:#2563eb;}
             /* ── RIGHT: one integrated navy element ── */
-            .qzh .dhx-rone{background:#ffffff;border:1px solid #d3d9e3;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-rone{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-rone > *{border-radius:0 !important;border-left:0 !important;border-right:0 !important;box-shadow:none !important;background:transparent !important;}
             .qzh .dhx-rone .dhx-lp{border:0 !important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
             .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;min-height:0;overflow:hidden;}
@@ -1959,13 +1959,13 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone.cm-open .dhx-lp{flex:0 0 auto;max-height:104px;}
             .qzh .dhx-rone.cm-open .dhx-cm{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
             .qzh .dhx-rone.cm-open .dhx-cm-bars{flex:1 1 auto;min-height:0;overflow-y:auto;}
-            .qzh .dhx-rone .dhx-quick{border-top:1px solid #d3d9e3 !important;padding:5px;}
-            .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#d3d9e3 !important;}
+            .qzh .dhx-rone .dhx-quick{border-top:1.5px solid #c3ccda !important;padding:5px;}
+            .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#c3ccda !important;}
             .qzh .dhx-rone .dhx-qrow:hover{background:#f7f8fa !important;}
             .qzh .dhx-rone .dhx-qrow .qt{color:#1c1e24 !important;}
             .qzh .dhx-rone .dhx-qrow .qs{color:#262b35 !important;}
             .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
-            .qzh .dhx-rone .dhx-cm{border-top:1px solid #d3d9e3 !important;}
+            .qzh .dhx-rone .dhx-cm{border-top:1.5px solid #c3ccda !important;}
             .qzh .dhx-rone .dhx-cm-h{color:#8a5300 !important;}
             .qzh .dhx-rone .dhx-cm-h .cmchev{color:#262b35 !important;}
             .qzh .dhx-rone .dhx-cmbar{background:#f1f3f6 !important;}
@@ -1979,7 +1979,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-qotd .qotd-photo{flex:0 0 auto;min-height:132px;}
             .qzh .dhx-qotd .qotd-body{padding:14px 16px;}
             /* Last Played rail card (navy) */
-            .qzh .dhx-lp{background:#ffffff;border:1px solid #d3d9e3;border-radius:14px;padding:14px 15px;color:#1c1e24;}
+            .qzh .dhx-lp{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;padding:14px 15px;color:#1c1e24;}
             .qzh .dhx-lp-top{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
             .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#1c1e24;}
             .qzh .dhx-lp-ttl svg{color:#1c1e24;flex:none;}
@@ -1990,7 +1990,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lp-stats b{display:block;font-size:20px;font-weight:800;line-height:1;}
             .qzh .dhx-lp-stats span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#262b35;margin-top:4px;}
             .qzh .dhx-lp-rows{display:flex;flex-direction:column;gap:1px;}
-            .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #d3d9e3;text-decoration:none;}
+            .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1.5px solid #c3ccda;text-decoration:none;}
             .qzh .dhx-lp-row:last-child{border-bottom:none;}
             .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lp-sc{flex:none;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;border-radius:7px;padding:2px 7px;}

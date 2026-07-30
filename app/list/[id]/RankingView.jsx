@@ -5,7 +5,7 @@ import { HERO_IMAGES } from '@/lib/hero-images';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { buildLinks, picsConfig } from './ListOverview';
 
-const C = { ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40', accsoft: '#e8effb', bg: '#dbe1ea' };
+const C = { ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40', accsoft: '#e8effb', bg: '#ffffff' };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 

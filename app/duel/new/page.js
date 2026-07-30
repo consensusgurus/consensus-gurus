@@ -8,7 +8,7 @@ import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
 
-const C = { bg: '#dbe1ea', surface: '#fff', ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb' };
+const C = { bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function ensureAnon() {

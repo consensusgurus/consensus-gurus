@@ -20,7 +20,7 @@ const C = {
   faded: '#262b35',
   ember: '#0e1d40',
   forest: '#10b981',
-  line: 'rgba(20,22,28,0.16)',
+  line: 'rgba(20,22,28,0.30)',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 

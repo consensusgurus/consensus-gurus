@@ -1018,7 +1018,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
 
       {/* RELATED LISTS — internal linking for SEO and stickiness */}
       {relatedLists && relatedLists.length > 0 && (
-        <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(20,22,28,0.16)' }}>
+        <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(20,22,28,0.30)' }}>
           <h2 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 16px', color: COLORS.ink }}>More Lists</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
             {relatedLists.map((rl) => (

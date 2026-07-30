@@ -15,7 +15,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   soft: '#262b35',
-  line: 'rgba(20,22,28,0.16)',
+  line: 'rgba(20,22,28,0.30)',
   accSoft: '#eef3ff',
   accBorder: '#cddffb',
   forest: '#10b981',

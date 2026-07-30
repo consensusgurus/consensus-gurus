@@ -7,7 +7,7 @@ import Grain from '@/app/Grain';
 // public site is untouched.
 const COLORS = {
   cream: '#f7f8fa', paper: '#ffffff', ink: '#1c1e24', faded: '#262b35',
-  ember: '#0e1d40', forest: '#10b981', rust: '#b45309', line: 'rgba(20,22,28,0.16)',
+  ember: '#0e1d40', forest: '#10b981', rust: '#b45309', line: 'rgba(20,22,28,0.30)',
 };
 
 export default function LoginClient() {

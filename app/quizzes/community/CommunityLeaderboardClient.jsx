@@ -13,8 +13,8 @@ import Footer from '../../Footer';
 // viewer's own standing and share link.
 
 const C = {
-  bg: '#dbe1ea', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40', cta: '#e8b43a',
+  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
+  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40', cta: '#e8b43a',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";

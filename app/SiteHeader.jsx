@@ -14,7 +14,7 @@ import { EXAM_ORDER } from './exams/examData';
 // category nav on lists home, the section tabs on a list, the player stat bar on
 // quizzes. Desktop keeps the card inset and rounded; mobile goes full-bleed and
 // the nav condenses to a compact segmented toggle next to the "SoT" mark.
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#262b35', line: 'rgba(20,22,28,0.16)' };
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#262b35', line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 
@@ -104,7 +104,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .shc{width:100vw;margin-left:calc(50% - 50vw);}
-        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #d3d9e3;}
+        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1.5px solid #c3ccda;}
         .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
         .shc-word em{font-style:normal;color:#262b35;font-weight:600;}
         .shc-ws{display:none;}
@@ -222,9 +222,9 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
     <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#ffffff;border:1px solid #d3d9e3;;border-radius:16px;}
+        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#ffffff;border:1.5px solid #c3ccda;;border-radius:16px;}
         .sh-bar.flush{border-radius:16px 16px 0 0;}
-        .qzf-line{position:absolute;top:0;bottom:0;left:24px;right:24px;border-left:1px solid rgba(20,22,28,0.16);border-right:1px solid rgba(20,22,28,0.16);border-bottom:1px solid rgba(20,22,28,0.16);border-bottom-left-radius:16px;border-bottom-right-radius:16px;pointer-events:none;z-index:0;}
+        .qzf-line{position:absolute;top:0;bottom:0;left:24px;right:24px;border-left:1px solid rgba(20,22,28,0.30);border-right:1px solid rgba(20,22,28,0.30);border-bottom:1px solid rgba(20,22,28,0.30);border-bottom-left-radius:16px;border-bottom-right-radius:16px;pointer-events:none;z-index:0;}
         @media(max-width:560px){.qzf-line{display:none;}.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
         .sh-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:nowrap;}
         .sh-inlay{margin-top:12px;}
@@ -234,7 +234,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-word-sot{display:none;}
         .sh-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex:none;}
         .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}.sh-burger{display:none;position:relative;flex:none;}.sh-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:#eef1f5;border:1px solid #eef1f5;cursor:pointer;}.sh-burger>summary::-webkit-details-marker{display:none;}.sh-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.sh-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.sh-bmenu a.on,.sh-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.sh-nav{display:none;}.sh-burger{display:block;}}
-        .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#1c1e24;border:1px solid #d3d9e3;border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
+        .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#1c1e24;border:1.5px solid #c3ccda;border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
         .sh-navbtn:hover{background:#eef1f5;border-color:#1c1e24;color:#1c1e24;}
         .sh-navbtn.on{background:#fff;border-color:#1c1e24;border-bottom:2px solid #e8b43a;color:#0e1d40;}
         @media(max-width:860px){.sh-tag{display:none;}}

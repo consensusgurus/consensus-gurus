@@ -9,7 +9,7 @@ import { Trophy } from 'lucide-react';
 // hairline border, medal circles, blue accent). Renders a "be the first" link
 // when the quiz has no scores yet so the leaderboard stays reachable.
 
-const C = { ink: '#1c1e24', soft: '#262b35', muted: '#262b35', acc: '#0e1d40', line: 'rgba(20,22,28,0.16)', gold: '#e8b43a', silver: '#aeb4bd', bronze: '#c88a55' };
+const C = { ink: '#1c1e24', soft: '#262b35', muted: '#262b35', acc: '#0e1d40', line: 'rgba(20,22,28,0.30)', gold: '#e8b43a', silver: '#aeb4bd', bronze: '#c88a55' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const MEDAL = [C.gold, C.silver, C.bronze];
 const CSS = `.qz-lbstrip{scrollbar-width:none;-ms-overflow-style:none;}

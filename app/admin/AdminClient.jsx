@@ -19,7 +19,7 @@ const COLORS = {
   ember: '#0e1d40',
   forest: '#10b981',
   rust: '#b45309',
-  line: 'rgba(20,22,28,0.16)',
+  line: 'rgba(20,22,28,0.30)',
 };
 
 function formatDate(iso) {

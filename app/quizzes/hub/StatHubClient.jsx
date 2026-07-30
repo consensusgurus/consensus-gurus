@@ -14,8 +14,8 @@ import Footer from '../../Footer';
 import { withRef } from '@/lib/referrals';
 
 const C = {
-  bg: '#dbe1ea', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40',
+  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
+  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#047857', danger: '#c0392b',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
@@ -762,11 +762,11 @@ export default function StatHubClient() {
     .qzhub .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 14px;}
     @media(max-width:900px){.qzhub .tiles{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:680px){.qzhub .tiles{grid-template-columns:1fr 1fr;gap:8px;}}
-    .qzhub .tile{position:relative;text-align:left;background:#fff;border:1px solid rgba(20,22,28,0.16);border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
+    .qzhub .tile{position:relative;text-align:left;background:#fff;border:1px solid rgba(20,22,28,0.30);border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
     .qzhub .tile:hover{border-color:#cddffb;}
     .qzhub .tile.on{background:${C.accent};border-color:${C.accent};}
     .qzhub .tilebadge{position:absolute;top:9px;right:11px;background:${C.danger};color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;}
-    .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(20,22,28,0.16);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
+    .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(20,22,28,0.30);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
     .qzhub .pill:hover{border-color:#cddffb;}
     .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:#fff;font-weight:800;}
   `;

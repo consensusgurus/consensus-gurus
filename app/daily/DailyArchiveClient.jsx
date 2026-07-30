@@ -520,7 +520,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-morechip{border-style:dashed;color:${FADED};font-family:${MONO};font-size:11px;cursor:pointer;}
 
         /* leaderboard panel (matches DailyCombinedLeaderboard navy/gold) */
-        .lb{background:#ffffff;border:1px solid #d3d9e3;;border:1px solid rgba(232,180,58,0.26);border-radius:12px;padding:14px 15px 12px;}
+        .lb{background:#ffffff;border:1.5px solid #c3ccda;;border:1px solid rgba(232,180,58,0.26);border-radius:12px;padding:14px 15px 12px;}
         .lb-tabs{display:flex;gap:6px;margin-bottom:12px;}
         .lb-tab{font-family:${SANS};font-size:11.5px;font-weight:800;padding:6px 13px;border-radius:999px;cursor:pointer;border:1.5px solid #eef1f5;background:transparent;color:#262b35;}
         .lb-tab.on{background:${GOLD};color:#10203f;border-color:${GOLD};}

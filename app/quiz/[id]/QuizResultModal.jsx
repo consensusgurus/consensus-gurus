@@ -26,7 +26,7 @@ import { registerRank } from '@/lib/quiz-lb';
 // for the top-right rank), leaderboard (node = the full leaderboard element),
 // standings (node), quiz (Challenge + Similar quizzes), onPlayAgain, onReport.
 
-const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#0e1d40', forest: '#10b981', faded: '#262b35', line: 'rgba(20,22,28,0.16)' };
+const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#0e1d40', forest: '#10b981', faded: '#262b35', line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const stackBtn = { fontFamily: FONT, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
 

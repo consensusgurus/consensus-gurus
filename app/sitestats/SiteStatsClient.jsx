@@ -14,7 +14,7 @@ const SURFACE = '#f4f6fa';
 const CARD = '#ffffff';
 const UP = '#15803d';
 const DOWN = '#c0392b';
-const LINE = 'rgba(20,22,28,0.16)';
+const LINE = 'rgba(20,22,28,0.30)';
 
 // Compact number formatting: 1,284 / 12.9K / 3.4M.
 function fmt(n) {

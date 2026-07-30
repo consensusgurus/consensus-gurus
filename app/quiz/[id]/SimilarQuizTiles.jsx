@@ -27,7 +27,7 @@ export default function SimilarQuizTiles({ items }) {
         const hero = tileHero(rq);
         const grad = GRADS[i % GRADS.length];
         return (
-          <a key={rq.id} href={`/quiz/${rq.id}`} style={{ position: 'relative', display: 'block', textDecoration: 'none', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(20,22,28,0.16)', background: '#1c1e24', aspectRatio: '16 / 10', boxShadow: '0 1px 2px rgba(20,22,28,0.06)' }}>
+          <a key={rq.id} href={`/quiz/${rq.id}`} style={{ position: 'relative', display: 'block', textDecoration: 'none', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(20,22,28,0.30)', background: '#1c1e24', aspectRatio: '16 / 10', boxShadow: '0 1px 2px rgba(20,22,28,0.06)' }}>
             <div style={{ position: 'absolute', inset: 0, background: grad }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, fontSize: 64, fontWeight: 800, letterSpacing: '-0.03em', color: 'rgba(255,255,255,0.16)' }}>{initial(rq.title)}</div>
             {hero ? (
