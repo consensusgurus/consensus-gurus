@@ -475,7 +475,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
-        .dh-nolead{color:#5a6472;font-weight:600;}
+        .dh-nolead{color:#49525f;font-weight:600;}
         .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;flex:none;}
         .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;flex:none;}
         .dh-mstrk.none{color:#4d5872;}
