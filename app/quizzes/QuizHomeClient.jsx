@@ -1567,7 +1567,8 @@ export default function QuizHomeClient() {
     .qzh .qz-toolbtn svg{flex:none;color:#262b35;transition:color .14s ease;}
     .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#262b35;color:#1c1e24;}
     .qzh .qz-toolbtn:hover svg{color:#1c1e24;}
-    /* One accent in the row: the only button that creates something. */
+    /* One accent in the row: Share my day, the button we most want pressed
+       (owner 2026-07-30). It leads the row, left of the search field. */
     .qzh .qz-toolbtn-cta{background:#e8b43a;border-color: #a16207;color:#1c1e24;font-weight:800;}
     .qzh .qz-toolbtn-cta svg{color:#1c1e24;}
     .qzh .qz-toolbtn-cta:hover{background:#f0c358;border-color:#f0c358;color:#1c1e24;}
@@ -2199,6 +2200,11 @@ export default function QuizHomeClient() {
             `search` state as the browse-row field below, so typing in either
             filters the same feed. */}
         <div className="qz-toolrow">
+          {dayPlayed ? (
+            <button type="button" className="qz-toolbtn qz-toolbtn-cta" onClick={shareMyDay} disabled={dayBusy}>
+              <Brain size={15} aria-hidden="true" />{dayBusy ? 'Building\u2026' : 'Share my day (for credit)'}
+            </button>
+          ) : null}
           <div className="qz-toolsearch">
             <Search size={17} aria-hidden="true" />
             <input
@@ -2217,12 +2223,7 @@ export default function QuizHomeClient() {
             <button type="button" className="qz-toolbtn" onClick={() => setFeedbackMode('issue')}>
               <Flag size={15} aria-hidden="true" />Report an issue
             </button>
-            {dayPlayed ? (
-              <button type="button" className="qz-toolbtn" onClick={shareMyDay} disabled={dayBusy}>
-                <Brain size={15} aria-hidden="true" />{dayBusy ? 'Building\u2026' : 'Share my day (for credit)'}
-              </button>
-            ) : null}
-            <Link href="/request" className="qz-toolbtn qz-toolbtn-cta">
+            <Link href="/request" className="qz-toolbtn">
               <Sparkles size={15} aria-hidden="true" />Request a quiz
             </Link>
           </div>
