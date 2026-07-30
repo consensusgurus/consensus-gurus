@@ -16,7 +16,9 @@
 //      across every drop), and "Combined today" — each with a field size and an
 //      enlarge control that expands in place to that board's top 10;
 //   3. guest-only claim slip (ranks unclaimed until a username is chosen);
-//   4. calendar slip — expands to a month calendar of this game's past drops;
+//   4. calendar slip — MOBILE ONLY (desktop uses the Archive tile): a wide
+//      button under the tiles showing "N/M played · P%" over a completion bar,
+//      expanding to a month calendar of this game's past drops;
 //   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
 //      (the thinnest field, a podium is easiest there);
 //   6. "More of today's games" — the still-to-play games grouped by family;
@@ -798,9 +800,16 @@ export default function DailyEndCard({
         .dec-slip .clink{font:inherit;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
         .dec-slip .chev{margin-left:auto;display:inline-flex;color:${SLATE};}
         .dec-slip-archive{display:none;}
-        .dec-slip-right{margin-left:auto;display:inline-flex;align-items:center;gap:9px;}
+        .dec-slip-right{margin-left:auto;display:inline-flex;align-items:center;gap:9px;flex:none;}
         .dec-slip-archive .chev{margin-left:0;}
         .dec-slip-pct{font-weight:800;color:${INK};white-space:nowrap;}
+        /* Mobile archive slip: the label row, then a completion bar spanning the
+           button. The bar is aria-hidden because the row already states the same
+           value in words ("8/13 played · 62%"). */
+        .dec-arc-row{display:flex;align-items:center;gap:8px;width:100%;min-width:0;}
+        .dec-arc-lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dec-arc-track{display:block;width:100%;height:5px;border-radius:999px;background:#e2e6ee;overflow:hidden;}
+        .dec-arc-fill{display:block;height:100%;border-radius:999px;background:${BLUE};transition:width .3s ease;}
 
         .dec-cal{border:1px solid ${BORD};border-radius:12px;padding:12px 13px;margin:-2px 0 12px;background:#fff;}
         .dec-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
@@ -893,16 +902,16 @@ export default function DailyEndCard({
           .dec-idrow{gap:8px;}
           .dec-idrow > *{flex:1;justify-content:center;}
           /* Mobile: drop the 4th Archive tile (the slip below handles the archive),
-             keep the three rank tiles side by side, and reveal the archive slip. */
+             keep the four rank tiles side by side, and reveal the archive slip. */
           .dec-tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
-          /* Four across on a phone is tight: drop the IQ tile's "of N" field
-             size (the expander shows it) and ease the type down a notch. */
-          .dec-tile{padding:10px 9px 9px;}
-          .dec-tile-rk{font-size:20px;}
-          .dec-tile-of{font-size:10.5px;margin-left:4px;}
+          /* Four across on a phone is tight, so the IQ tile drops its "of N"
+             field size (the expander shows it). The tighter .dec-tile type sizes
+             below apply here too. */
           .dec-tile-iq .ofn{display:none;}
           .dec-tile-archive{display:none;}
-          .dec-slip-archive{display:flex;}
+          /* Archive stays reachable on mobile as the wide slip below the tiles,
+             which carries the completion bar. */
+          .dec-slip-archive{display:flex;flex-direction:column;align-items:stretch;gap:7px;}
           .dec-tile{padding:9px 7px 8px;}
           .dec-tile-lbl{font-size:8px;letter-spacing:.03em;padding-right:15px;}
           .dec-tile-rk{font-size:18px;}
@@ -1031,12 +1040,21 @@ export default function DailyEndCard({
       {drops && drops.length ? (
         <>
           <button type="button" className="dec-slip neutral dec-slip-archive" onClick={() => setCalOpen((v) => !v)} aria-expanded={calOpen}>
-            <CalendarDays size={15} strokeWidth={2} />
-            See the full {selfName} archive
-            <span className="dec-slip-right">
-              {archivePct != null ? <span className="dec-slip-pct">{archivePct}% complete</span> : null}
-              <span className="chev">{calOpen ? <ChevronLeft size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} /> : <ChevronRight size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} />}</span>
+            <span className="dec-arc-row">
+              <CalendarDays size={15} strokeWidth={2} style={{ flex: 'none' }} />
+              <span className="dec-arc-lbl">See the full {selfName} archive</span>
+              <span className="dec-slip-right">
+                {archivePct != null ? <span className="dec-slip-pct">{playedCount}/{totalDrops} &middot; {archivePct}%</span> : null}
+                <span className="chev">{calOpen ? <ChevronLeft size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} /> : <ChevronRight size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} />}</span>
+              </span>
             </span>
+            {archivePct != null ? (
+              <span className="dec-arc-track" aria-hidden="true">
+                {/* A 0% archive still shows a sliver so the track reads as a
+                    progress bar rather than an empty rule. */}
+                <span className="dec-arc-fill" style={{ width: `${Math.max(2, archivePct)}%` }} />
+              </span>
+            ) : null}
           </button>
           {calOpen ? calendarEl : null}
         </>
