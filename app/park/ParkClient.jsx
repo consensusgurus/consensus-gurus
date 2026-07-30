@@ -388,7 +388,19 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
     if (mv) { doMove(mv); return; }
     const r = Math.floor(cell / N), c = cell % N;
     const b = occ ? occ[r][c] : -1;
-    if (b >= 0) { setSel((v) => (v === b ? null : b)); return; }
+    if (b >= 0) {
+      // Most blocks on a jammed board are wedged in. Picking one of those up and
+      // then being told to tap a destination that does not exist reads as a bug,
+      // so a boxed-in block is refused outright rather than selected.
+      if (!slides.some(([i]) => i === b)) {
+        setSel(null);
+        setShake((k) => k + 1);
+        say(b === 0 ? 'The red block is wedged in. Clear its lane first.' : 'That one is boxed in. Nothing can move it yet.');
+        return;
+      }
+      setSel((v) => (v === b ? null : b));
+      return;
+    }
     setSel(null);
   }
 
