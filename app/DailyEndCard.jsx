@@ -12,9 +12,11 @@
 //      (for credit)" button;
 //   2. rank tiles — "IQ Points" (what this game paid, over the player's global
 //      IQ standing; expands to their slot in the IQ ranking with two players
-//      above and below), "<Game> today", "<Game> all-time" (cumulative points
-//      across every drop), and "Combined today" — each with a field size and an
-//      enlarge control that expands in place to that board's top 10;
+//      above and below), "This Puzzle" (today's drop of this game), "All Time"
+//      (this game's cumulative points across every drop), and "Today's Puzzles"
+//      (the combined board) — each with a field size and an enlarge control that
+//      expands in place to that board's top 10. The internal view keys stay
+//      'today' / 'alltime' / 'combined'; only the labels were reframed.
 //   3. guest-only claim slip (ranks unclaimed until a username is chosen);
 //   4. calendar slip — MOBILE ONLY (desktop uses the Archive tile): a wide
 //      button under the tiles showing "N/M played · P%" over a completion bar,
@@ -986,9 +988,9 @@ export default function DailyEndCard({
             <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
           </span>
         </button>
-        {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
-        {renderTile('alltime', 'All-Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
-        {renderTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
+        {renderTile('today', 'This Puzzle', gameTodayRank, gameTodayField, false, provisional)}
+        {renderTile('alltime', 'All Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
+        {renderTile('combined', "Today's Puzzles", combinedRank, combinedField, false, provisional)}
         {/* Archive tile: desktop only (CSS-hidden on mobile, where the slip below
             handles it). Shows % of this game's drops played; opens the calendar. */}
         <button type="button" className={`dec-tile dec-tile-archive${openTile === 'calendar' ? ' open' : ''}`} key="archive" aria-label="Open archive calendar" aria-expanded={openTile === 'calendar'} onClick={() => setOpenTile((o) => (o === 'calendar' ? null : 'calendar'))}>
@@ -1003,9 +1005,9 @@ export default function DailyEndCard({
       {openTile && openTile !== 'calendar' ? (() => {
         const rows = tileBoard(openTile);
         const ti = openTile === 'iq' ? 'Global IQ Points ranking'
-          : openTile === 'today' ? `${selfName} · today`
-          : openTile === 'alltime' ? `${selfName} · all-time`
-          : 'Combined Daily Puzzles · Today';
+          : openTile === 'today' ? `${selfName} · this puzzle`
+          : openTile === 'alltime' ? `${selfName} · all time`
+          : "Today’s Puzzles · combined";
         return (
           <div className="dec-expand">
             <div className="dec-expand-hd">

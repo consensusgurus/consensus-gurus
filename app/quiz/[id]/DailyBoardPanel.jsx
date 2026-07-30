@@ -8,9 +8,9 @@ import { DAILY_GAME_MAP } from '@/lib/daily-games';
 // page. It mirrors the end-of-game card. Header shows the player's name (or a
 // sign-up prompt for guests, who still see their hypothetical standings). Below
 // sit four punchy tiles that double as the leaderboard selector —
-//   1. Today          — my rank of today's per-game field
-//   2. All-time       — my rank of the game's cumulative field
-//   3. Combined Today — my rank of today's combined (best-N) board
+//   1. This Puzzle    — my rank of today's per-game field (key 'today')
+//   2. All Time       — my rank of the game's cumulative field (key 'alltime')
+//   3. Today's Puzzles — my rank of today's combined (best-N) board (key 'combined')
 //   4. <Game> Archive — % of this game's drops I've completed
 // The board area under the tiles is collapsed by default and defaults to Today's
 // daily board; clicking a tile flips the category. Today, All-time and Combined
@@ -326,9 +326,9 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
       </div>
 
       <div className="dbp-tiles">
-        {rankTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
-        {rankTile('alltime', 'All-time', allTimeRank, allTimeField, !(allTime && allTime.myRank != null), allTimeProv)}
-        {rankTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
+        {rankTile('today', 'This Puzzle', gameTodayRank, gameTodayField, false, provisional)}
+        {rankTile('alltime', 'All Time', allTimeRank, allTimeField, !(allTime && allTime.myRank != null), allTimeProv)}
+        {rankTile('combined', "Today's Puzzles", combinedRank, combinedField, false, provisional)}
         {rankTile('archive', `${selfName} Archive`, null, null, false, false, (pct == null ? <span className="dash">&mdash;</span> : `${pct}%`))}
       </div>
 
@@ -336,7 +336,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         <div className="dbp-board">
           {sel === 'today' ? (
             <>
-              <div className="dbp-board-ti">{selfName} &middot; today &middot; top 10</div>
+              <div className="dbp-board-ti">{selfName} &middot; this puzzle &middot; top 10</div>
               {todayRows.length ? (
                 <>
                   <div className="dbp-g dbp-gh">
@@ -367,14 +367,14 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
 
           {sel === 'alltime' ? (
             <>
-              <div className="dbp-board-ti">{selfName} &middot; all-time &middot; top 10</div>
+              <div className="dbp-board-ti">{selfName} &middot; all time &middot; top 10</div>
               {simpleBoard(allTimeRows, (r) => fmtPts(r.points), 'No all-time scores yet. Play a drop to get on the board.')}
             </>
           ) : null}
 
           {sel === 'combined' ? (
             <>
-              <div className="dbp-board-ti">Combined today &middot; top 10{combined && combined.gameCount > 1 ? <> &middot; best {combined.bestN} of {combined.gameCount} &middot; {maxTotal} pts</> : null}</div>
+              <div className="dbp-board-ti">Today&rsquo;s puzzles &middot; top 10{combined && combined.gameCount > 1 ? <> &middot; best {combined.bestN} of {combined.gameCount} &middot; {maxTotal} pts</> : null}</div>
               {simpleBoard(combinedRows, (r) => <>{fmtNum(r.total)}<span className="u">/{maxTotal}</span></>, 'No combined scores yet. Play a game to get on the board.')}
             </>
           ) : null}
