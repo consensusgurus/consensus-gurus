@@ -213,11 +213,6 @@ export default function DailyStrip({ board = null }) {
   const vpRef = useRef(null);
   const boardRef = useRef(null);
   const vpWrapRef = useRef(null);
-  // The row step measured with NO row height written to the grid, i.e. the
-  // tile's own height. Captured per column count, because once a height IS
-  // written the measured step just reads that back.
-  const naturalRef = useRef({ cols: 0, step: 0 });
-  const metricsRef = useRef(null);
 
   // On a phone, default the board to the Unplayed filter (owner mockup).
   useEffect(() => {
@@ -383,71 +378,57 @@ export default function DailyStrip({ board = null }) {
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
   const shift = metrics ? Math.min(rowOffset, metrics.maxOffset) : 0;
-  metricsRef.current = metrics;
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   // Measure the board window so the sheet can be shifted by exactly one row.
   //
-  // The TILES decide the height here, never the column. An earlier version did
-  // the opposite, deriving a row height from whatever vertical space the page
-  // grid handed the board, which meant a tall right hand rail stretched every
-  // tile (they came out at 154px instead of their natural ~127px). So the row
-  // step is now READ OFF the laid out grid and the window is sized to exactly
-  // `vis` of those rows. Rows keep their natural height, and any space the
-  // column has left over simply sits under the board.
+  // SIZING IS THE PRE-MATE SIZING, DELIBERATELY (owner, 2026-07-30: "go back to
+  // that height for all three"). The board has always been five rows stretched
+  // to fill the column, which is what `grid-auto-rows: minmax(118px, 1fr)` plus
+  // `align-content: stretch` did before this window existed, and it is what
+  // keeps the three columns ending level. The window reproduces that formula
+  // exactly; the ONLY thing it adds is clipping the rows past the fifth and
+  // handing them to the arrow. So tile height still follows the column, and the
+  // column still follows the tallest rail, exactly as it always has.
   //
-  // No feedback loop: the grid is absolutely positioned, so its own row heights
-  // are content driven and do not depend on the window height we write back.
+  // No feedback loop: the grid is absolutely positioned, so the row height we
+  // write is not fed back into the height of the wrapper we measure.
   useEffect(() => {
     const vp = vpRef.current, bd = boardRef.current;
     if (!vp || !bd) return undefined;
-    const GAP = 8;
+    const GAP = 8, MIN_ROW = 118;
     const measure = () => {
       // Below this width the board simply flows: the spare tiles take their own
       // row, no window, no arrow, no animation (owner, 2026-07-30).
       if (typeof window === 'undefined' || window.innerWidth < 861) { setMetrics(null); return; }
       const cols = (getComputedStyle(bd).gridTemplateColumns || '').split(' ').filter(Boolean).length || 6;
-      const tiles = bd.children;
-      if (!tiles.length) return;
-      const step = tiles.length > cols
-        ? tiles[cols].offsetTop - tiles[0].offsetTop
-        : tiles[0].offsetHeight + GAP;
-      if (!(step > 1)) return;
-
-      // Capture the tile's OWN row height. Only a pass with no height written to
-      // the grid measures that honestly, so when the column count changes while
-      // a height is applied, drop the height first and read on the next pass.
-      if (naturalRef.current.cols !== cols) {
-        if (metricsRef.current) { naturalRef.current = { cols: 0, step: 0 }; setMetrics(null); return; }
-        naturalRef.current = { cols, step };
-      }
-      const naturalStep = naturalRef.current.step;
-      if (!(naturalStep > 1)) return;
-
-      // Fit as many whole rows as the console offers. Rows may be squeezed a
-      // little to make one more fit (down to MIN_FIT of their own height), but
-      // they are NEVER taller than the tile wants: stretching rows to fill the
-      // column is what blew the tiles up to 154px against a natural 127px.
-      const MIN_FIT = 0.9;
+      if (!bd.children.length) return;
+      // The window is the board the site has always had: thirty tiles, which is
+      // five rows at the full width desktop column count.
+      const vis = Math.max(1, Math.ceil(BOARD_WINDOW / cols));
       const avail = (vpWrapRef.current ? vpWrapRef.current.clientHeight : vp.clientHeight);
       if (!(avail > 1)) return;
-      const totalRows = Math.ceil(list.length / cols);
-      const vis = Math.max(1, Math.min(totalRows, Math.floor((avail + GAP) / (naturalStep * MIN_FIT))));
-      const rowStep = Math.min(naturalStep, (avail + GAP) / vis);
-      const windowH = Math.round(vis * rowStep - GAP);
+      // The original stretch, restated: rows share the column, with the same
+      // 118px floor the old `minmax(118px, 1fr)` had.
+      const rowH = Math.max(MIN_ROW, (avail - GAP * (vis - 1)) / vis);
+      const rowStep = rowH + GAP;
+      const windowH = Math.round(vis * rowH + GAP * (vis - 1));
       if (!(windowH > 1)) return;
-      const maxOffset = Math.max(0, totalRows - vis);
+      const maxOffset = Math.max(0, Math.ceil(list.length / cols) - vis);
       setMetrics((cur) => (cur && cur.rowStep === rowStep && cur.windowH === windowH
-        && cur.vis === vis && cur.maxOffset === maxOffset && cur.naturalStep === naturalStep
-        ? cur : { rowStep, windowH, vis, maxOffset, naturalStep }));
+        && cur.vis === vis && cur.maxOffset === maxOffset
+        ? cur : { rowStep, windowH, vis, maxOffset }));
     };
     measure();
     // Re-measure once the first paint and any late web font have settled, so a
     // row height that arrives a frame later still produces an exact window.
     const raf = requestAnimationFrame(() => requestAnimationFrame(measure));
     const settle = setTimeout(measure, 500);
+    // Observe the WRAPPER, which is the box whose height we read: the window
+    // itself carries an explicit height, so it would not resize when the column
+    // grows (a rail filling up through the day) and would go stale.
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
-    if (ro) ro.observe(vp);
+    if (ro) { ro.observe(vp); if (vpWrapRef.current) ro.observe(vpWrapRef.current); }
     window.addEventListener('resize', measure);
     return () => {
       if (ro) ro.disconnect();
