@@ -734,7 +734,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
           Park is a free daily sliding-block puzzle from Source of Truths. A jammed six by six lot, a dozen blocks that each slide on one axis only, and a red block that has to reach the gap in the wall. Tap a block, tap where you want it, and it goes if the lane is clear.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every board is machine generated and then solved exactly, so the par you are scored against is the true minimum rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. Weekday boards run to about twenty moves and Sundays a good deal longer.
+          Every board is machine generated and then solved exactly, so the par you are scored against is the true minimum rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. Boards climb through the week, from about a dozen moves on Monday to twenty by Saturday, and the Sunday Edition runs a good deal longer than any of them.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new board drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, <a href="/four" style={{ color: COLORS.ink, fontWeight: 800 }}>Four</a>, our daily Connect Four position, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.

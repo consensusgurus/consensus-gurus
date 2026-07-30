@@ -4,8 +4,9 @@ import { PUZZLES } from './puzzles';
 
 // Park launched 2026-07-30 as the 34th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/park is the canonical,
-// evergreen URL). Weekday boards run to a par of 16 to 20 moves, Sundays 24 to
-// 30. Puzzles are gated by Eastern date here, so tomorrow's board never reaches
+// evergreen URL). The week climbs in three rungs: Monday to Wednesday run to a
+// par of 11 to 14 moves, Thursday to Saturday 16 to 20, and Sundays 32 to 38.
+// Puzzles are gated by Eastern date here, so tomorrow's board never reaches
 // the browser.
 
 export const metadata = {
@@ -30,7 +31,7 @@ const gameJsonLd = {
   alternateName: 'Park — Daily Sliding Block Puzzle',
   url: 'https://sourceoftruths.com/park',
   description:
-    'A free daily sliding-block puzzle. Blocks fill a six by six lot and each slides along one axis only; the red block must reach the exit gap. Every board is machine generated and solved exactly, so par is the true minimum number of moves rather than an estimate. Solving at par scores ten and every two moves over costs a point. Weekday boards run 16 to 20 moves and Sundays 24 to 30.',
+    'A free daily sliding-block puzzle. Blocks fill a six by six lot and each slides along one axis only; the red block must reach the exit gap. Every board is machine generated and solved exactly, so par is the true minimum number of moves rather than an estimate. Solving at par scores ten and every two moves over costs a point. The week climbs: Monday to Wednesday run 11 to 14 moves, Thursday to Saturday 16 to 20, and Sundays 32 to 38.',
   genre: ['Sliding block puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
