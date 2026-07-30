@@ -403,20 +403,37 @@ export default function DailyStrip({ board = null }) {
       const vis = Math.max(1, Math.ceil(BOARD_WINDOW / cols));
       const tiles = bd.children;
       if (!tiles.length) return;
-      // distance from one row to the next, gap included
+      // Distance from one row to the next, gap included, for the shift.
       const rowStep = tiles.length > cols
         ? tiles[cols].offsetTop - tiles[0].offsetTop
         : tiles[0].offsetHeight + GAP;
       if (!(rowStep > 1)) return;
+      // The window height is taken from the BOTTOM OF THE LAST VISIBLE TILE
+      // rather than from vis * rowStep. Row heights can settle a pixel or two
+      // late (web fonts, tile art), and multiplying an early row step left the
+      // last row clipped by the accumulated error.
+      const last = tiles[Math.min(vis * cols, tiles.length) - 1];
+      const windowH = last.offsetTop + last.offsetHeight - tiles[0].offsetTop;
+      if (!(windowH > 1)) return;
       const maxOffset = Math.max(0, Math.ceil(list.length / cols) - vis);
-      setMetrics((cur) => (cur && cur.rowStep === rowStep && cur.vis === vis && cur.maxOffset === maxOffset
-        ? cur : { rowStep, vis, maxOffset }));
+      setMetrics((cur) => (cur && cur.rowStep === rowStep && cur.windowH === windowH
+        && cur.vis === vis && cur.maxOffset === maxOffset
+        ? cur : { rowStep, windowH, vis, maxOffset }));
     };
     measure();
+    // Re-measure once the first paint and any late web font have settled, so a
+    // row height that arrives a frame later still produces an exact window.
+    const raf = requestAnimationFrame(() => requestAnimationFrame(measure));
+    const settle = setTimeout(measure, 500);
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
     if (ro) ro.observe(vp);
     window.addEventListener('resize', measure);
-    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
+    return () => {
+      if (ro) ro.disconnect();
+      cancelAnimationFrame(raf);
+      clearTimeout(settle);
+      window.removeEventListener('resize', measure);
+    };
   }, [list.length]);
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
@@ -854,7 +871,7 @@ export default function DailyStrip({ board = null }) {
           ref={vpRef}
           className={'dh-vp' + (metrics && metrics.maxOffset > 0 ? ' on' : '')}
           style={metrics && metrics.maxOffset > 0
-            ? { height: metrics.vis * metrics.rowStep - 8 }
+            ? { height: metrics.windowH }
             : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
