@@ -595,10 +595,10 @@ export default function DailyStrip({ board = null }) {
           .dh-sbar .dh-stats{display:none;}
           .dh-sbar .dh-bup{display:none;}
           .dh-mcap{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);align-items:center;width:100%;flex:1 1 auto;}
-          .dh-mlead{font-size:13px;font-weight:800;line-height:1.06;letter-spacing:-.25px;color:#1c1e24;white-space:nowrap;padding-right:9px;}
-          .dh-mlead span{display:block;}
+          .dh-caplead{font-size:15px;font-weight:800;line-height:1.04;letter-spacing:-.3px;color:#1c1e24;white-space:nowrap;padding:0 11px 0 2px;}
+          .dh-caplead span{display:block;}
           .dh-mcell{padding:8px 4px 9px;text-align:center;min-width:0;}
-          .dh-mcell + .dh-mcell{border-left:1px solid #eef0f4;}
+          .dh-mcap .dh-mcell{border-left:1px solid #eef0f4;}
           .dh-mcell b{display:block;font-size:25px;font-weight:800;line-height:1;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
           .dh-mcell.iq b{color:#2563eb;}
           .dh-mcell.g b{color:#15803d;}
@@ -615,7 +615,7 @@ export default function DailyStrip({ board = null }) {
            safety net if a longer label is ever used. */
         @media(max-width:355px){
           .dh-mcell span{font-size:8.5px;letter-spacing:.02em;}
-          .dh-mlead{font-size:12px;padding-right:7px;}
+          .dh-caplead{font-size:13px;padding-right:8px;}
         }
       `}</style>
 
@@ -629,7 +629,7 @@ export default function DailyStrip({ board = null }) {
             both hidden below 640px and the phone gets this two-cell cap instead.
             Numbers are large because this is the only stat surface on mobile. */}
         <div className="dh-mcap">
-          <div className="dh-mlead"><span>Your</span><span>day:</span></div>
+          <div className="dh-caplead"><span>Your</span><span>day:</span></div>
           <div className="dh-mcell iq">
             <b>{todayXp != null ? `+${todayXp.toLocaleString()}` : '\u2014'}</b>
             <span>IQ Points today</span>
