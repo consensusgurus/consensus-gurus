@@ -48,7 +48,7 @@ import {
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
-import { notifyShareCredit } from './ShareCreditPop';
+import shareDayCard from './shareDayCard';
 
 const RUST = '#c0392b';
 
@@ -727,36 +727,7 @@ export default function DailyEndCard({
   const shareDay = async () => {
     if (dayBusy) return;
     setDayBusy(true);
-    try {
-      let a = null, em = null;
-      try { a = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
-      try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); em = id && id.email; } catch (e) {}
-      const qs = new URLSearchParams();
-      if (a) qs.set('anonId', a);
-      if (em) qs.set('email', em);
-      const res = await fetch('/api/quiz/day-card?' + qs.toString());
-      if (!res.ok) throw new Error('day-card ' + res.status);
-      const blob = await res.blob();
-      const name = 'source-of-truths-day.png';
-      let shared = false;
-      try {
-        const file = new File([blob], name, { type: 'image/png' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file] });
-          shared = true;
-        }
-      } catch (e) { shared = false; }
-      if (!shared) {
-        const url = URL.createObjectURL(blob);
-        const el = document.createElement('a');
-        el.href = url; el.download = name;
-        document.body.appendChild(el); el.click(); el.remove();
-        setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
-      }
-      // No explicit url: the pop-up derives the credit link from the current
-      // page, so it points at THIS game rather than the bare home page.
-      notifyShareCredit('');
-    } catch (e) { /* nothing to show: the button just re-enables */ }
+    try { await shareDayCard(); } catch (e) { /* nothing to show: the button just re-enables */ }
     setDayBusy(false);
   };
 

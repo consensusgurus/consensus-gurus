@@ -12,12 +12,13 @@ import {
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
   Check, Star, Target, Swords, Newspaper, Blocks, GraduationCap,
-  Flag, MessageSquare,
+  Flag, Brain,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
 import XpTile from './XpTile';
+import shareDayCard from '../shareDayCard';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
 import { DAILY_GAMES, CAT_META } from '@/app/DailyEndCard';
 import {
@@ -516,6 +517,7 @@ export default function QuizHomeClient() {
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
   const [feedbackMode, setFeedbackMode] = useState(null); // null | 'issue' | 'manager' (the tool row's first two buttons)
+  const [dayBusy, setDayBusy] = useState(false); // 'Share my day' card is rendering
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
   const [dailyLead, setDailyLead] = useState(null); // daily-board leader for the header ticker
   const [dailyBoard, setDailyBoard] = useState(null); // full daily-combined payload (passed to DailyStrip's leaderboard)
@@ -966,6 +968,16 @@ export default function QuizHomeClient() {
       .catch(() => {});
     return () => { alive = false; };
   }, []);
+
+  // Tool-row "Share my day": only offered once the viewer has actually played
+  // something today, since the card would otherwise render an empty day.
+  const dayPlayed = !!(dailyBoard && ((dailyBoard.me && dailyBoard.me.gamesPlayed) || dailyBoard.meProvisional));
+  const shareMyDay = async () => {
+    if (dayBusy) return;
+    setDayBusy(true);
+    try { await shareDayCard(); } catch (e) { /* nothing to show: the button just re-enables */ }
+    setDayBusy(false);
+  };
 
   const tickerItems = useMemo(() => {
     const ago = (iso) => {
@@ -2180,9 +2192,10 @@ export default function QuizHomeClient() {
         {/* Full-width tool row (owner 2026-07-29): the search box that used to
             live in the blue header now sits HERE, spanning the whole content
             width directly below the three-column daily section, with three
-            actions beside it. Report an issue and Talk to the manager share one
-            form and one pipeline (/api/complaints, see FeedbackModal); Request a
-            quiz links to the existing /request form. It stays bound to the same
+            actions beside it. Report an issue posts to /api/complaints (see
+            FeedbackModal); Share my day downloads the day card and opens the
+            credit pop-up, and only shows once the viewer has played today;
+            Request a quiz links to the existing /request form. It stays bound to the same
             `search` state as the browse-row field below, so typing in either
             filters the same feed. */}
         <div className="qz-toolrow">
@@ -2204,9 +2217,11 @@ export default function QuizHomeClient() {
             <button type="button" className="qz-toolbtn" onClick={() => setFeedbackMode('issue')}>
               <Flag size={15} aria-hidden="true" />Report an issue
             </button>
-            <button type="button" className="qz-toolbtn" onClick={() => setFeedbackMode('manager')}>
-              <MessageSquare size={15} aria-hidden="true" />Talk to the manager
-            </button>
+            {dayPlayed ? (
+              <button type="button" className="qz-toolbtn" onClick={shareMyDay} disabled={dayBusy}>
+                <Brain size={15} aria-hidden="true" />{dayBusy ? 'Building\u2026' : 'Share my day (for credit)'}
+              </button>
+            ) : null}
             <Link href="/request" className="qz-toolbtn qz-toolbtn-cta">
               <Sparkles size={15} aria-hidden="true" />Request a quiz
             </Link>
