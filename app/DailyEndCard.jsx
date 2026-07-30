@@ -18,9 +18,11 @@
 //      expands in place to that board's top 10. The internal view keys stay
 //      'today' / 'alltime' / 'combined'; only the labels were reframed.
 //   3. guest-only claim slip (ranks unclaimed until a username is chosen);
-//   4. calendar slip — MOBILE ONLY (desktop uses the Archive tile): a wide
-//      button under the tiles showing "N/M played · P%" over a completion bar,
-//      expanding to a month calendar of this game's past drops;
+//   4. archive bar — a full-width button under the tiles (desktop and mobile
+//      alike, owner 2026-07-30) showing "N/M played · P%" over a completion bar,
+//      expanding to a month calendar of this game's past drops. It replaced a
+//      desktop-only 5th "<Game> Archive" tile, which was a cramped duplicate of
+//      the same control;
 //   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
 //      (the thinnest field, a podium is easiest there);
 //   6. "More of today's games" — the still-to-play games grouped by family;
@@ -777,7 +779,7 @@ export default function DailyEndCard({
         .dec-day:hover{background:#e4edfb;}
         .dec-day[disabled]{opacity:.6;cursor:default;}
 
-        .dec-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+        .dec-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
         .dec-tiles-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @media(prefers-reduced-motion:reduce){.dec-tiles-loading::after{animation:none;}}
@@ -825,11 +827,11 @@ export default function DailyEndCard({
         .dec-slip.neutral:hover{background:#eef0f4;}
         .dec-slip .clink{font:inherit;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
         .dec-slip .chev{margin-left:auto;display:inline-flex;color:${SLATE};}
-        .dec-slip-archive{display:none;}
+        .dec-slip-archive{display:flex;flex-direction:column;align-items:stretch;gap:7px;}
         .dec-slip-right{margin-left:auto;display:inline-flex;align-items:center;gap:9px;flex:none;}
         .dec-slip-archive .chev{margin-left:0;}
         .dec-slip-pct{font-weight:800;color:${INK};white-space:nowrap;}
-        /* Mobile archive slip: the label row, then a completion bar spanning the
+        /* Archive bar: the label row, then a completion bar spanning the
            button. The bar is aria-hidden because the row already states the same
            value in words ("8/13 played · 62%"). */
         .dec-arc-row{display:flex;align-items:center;gap:8px;width:100%;min-width:0;}
@@ -927,17 +929,12 @@ export default function DailyEndCard({
           .dec-title{font-size:22px;}
           .dec-idrow{gap:8px;}
           .dec-idrow > *{flex:1;justify-content:center;}
-          /* Mobile: drop the 4th Archive tile (the slip below handles the archive),
-             keep the four rank tiles side by side, and reveal the archive slip. */
+          /* Mobile: the four rank tiles stay side by side, tighter. */
           .dec-tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
           /* Four across on a phone is tight, so the IQ tile drops its "of N"
              field size (the expander shows it). The tighter .dec-tile type sizes
              below apply here too. */
           .dec-tile-iq .ofn{display:none;}
-          .dec-tile-archive{display:none;}
-          /* Archive stays reachable on mobile as the wide slip below the tiles,
-             which carries the completion bar. */
-          .dec-slip-archive{display:flex;flex-direction:column;align-items:stretch;gap:7px;}
           .dec-tile{padding:9px 7px 8px;}
           .dec-tile-lbl{font-size:8px;letter-spacing:.03em;padding-right:15px;}
           .dec-tile-rk{font-size:18px;}
@@ -992,7 +989,7 @@ export default function DailyEndCard({
         </div>
       </div>
 
-      {/* ---- 2. rank tiles (3 on mobile; a 4th Archive tile on desktop) ---- */}
+      {/* ---- 2. rank tiles (four, identical on desktop and mobile) ---- */}
       {ranksLoading ? (
         <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
       ) : null}
@@ -1020,18 +1017,8 @@ export default function DailyEndCard({
         {renderTile('today', 'This Puzzle', gameTodayRank, gameTodayField, false, provisional)}
         {renderTile('alltime', 'All Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
         {renderTile('combined', "Today's Puzzles", combinedRank, combinedField, false, provisional)}
-        {/* Archive tile: desktop only (CSS-hidden on mobile, where the slip below
-            handles it). Shows % of this game's drops played; opens the calendar. */}
-        <button type="button" className={`dec-tile dec-tile-archive${openTile === 'calendar' ? ' open' : ''}`} key="archive" aria-label="Open archive calendar" aria-expanded={openTile === 'calendar'} onClick={() => setOpenTile((o) => (o === 'calendar' ? null : 'calendar'))}>
-          <div className="dec-tile-lbl">{selfName} Archive</div>
-          <div className="dec-tile-rk">{archivePct == null ? <span className="dash">&mdash;</span> : <>{archivePct}%</>}</div>
-          <div className="dec-tile-of">{totalDrops ? <>{playedCount}/{totalDrops} played</> : ' '}</div>
-          <span className="dec-tile-mx">
-            <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'calendar' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
-          </span>
-        </button>
       </div>
-      {openTile && openTile !== 'calendar' ? (() => {
+      {openTile ? (() => {
         const rows = tileBoard(openTile);
         const ti = openTile === 'iq' ? 'Global IQ Points ranking'
           : openTile === 'today' ? `${selfName} · this puzzle`
@@ -1057,9 +1044,6 @@ export default function DailyEndCard({
           </div>
         );
       })() : null}
-      {/* desktop: archive tile expands the calendar in place */}
-      {openTile === 'calendar' ? calendarEl : null}
-
       {/* ---- 3. guest claim slip ---- */}
       {!hasEmail ? (
         <div className="dec-slip info">
@@ -1067,7 +1051,7 @@ export default function DailyEndCard({
         </div>
       ) : null}
 
-      {/* ---- 4. archive slip (MOBILE ONLY; desktop uses the archive tile) ---- */}
+      {/* ---- 4. archive bar (desktop and mobile alike) ---- */}
       {drops && drops.length ? (
         <>
           <button type="button" className="dec-slip neutral dec-slip-archive" onClick={() => setCalOpen((v) => !v)} aria-expanded={calOpen}>
