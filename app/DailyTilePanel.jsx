@@ -437,17 +437,20 @@ export default function DailyTilePanel({
         .dtp-tkey .sw.bub{width:9px;height:9px;border-radius:999px;background:#f2f5fa;border:1px solid #c3ccda;}
         /* the count bubbles ride in their own row above the bars, so a tall bar
            never collides with its number and the plot just gets shorter */
-        .dtp-bubrow{flex:none;display:flex;gap:3px;margin-bottom:3px;min-height:15px;}
+        /* every row reserves the same right gutter (--agut) so the columns stay in
+           lockstep and the average label has clear space to sit in */
+        .dtp-trend{--agut:44px;}
+        .dtp-bubrow{flex:none;display:flex;gap:3px;margin-bottom:3px;min-height:15px;padding-right:var(--agut);}
         .dtp-bubc{flex:1 1 0;min-width:0;max-width:48px;display:flex;align-items:flex-end;justify-content:center;}
         .dtp-bub{font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;line-height:1;color:#46506a;
                  background:#f2f5fa;border:1px solid #dde3ec;border-radius:999px;padding:2px 5px;white-space:nowrap;}
         .dtp-bub.today{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:#8a5300;}
         .dtp-bubrow.dense .dtp-bub{font-size:8px;padding:1px 3px;}
-        .dtp-bars{position:relative;flex:1 1 auto;min-height:48px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #dde3ec;padding-bottom:1px;}
-        .dtp-avg{position:absolute;left:0;right:0;height:0;border-top:1px dashed #c3ccda;pointer-events:none;}
-        .dtp-avg i{position:absolute;right:0;bottom:2px;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;
-                   font-size:8.5px;letter-spacing:.04em;color:#5b6577;background:#ffffff;padding:0 3px;border-radius:3px;}
-        .dtp-daterow{flex:none;display:flex;gap:3px;margin-top:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#5b6577;}
+        .dtp-bars{position:relative;flex:1 1 auto;min-height:48px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #dde3ec;padding-bottom:1px;padding-right:var(--agut);}
+        .dtp-avg{position:absolute;left:0;right:var(--agut);height:0;border-top:1px dashed #c3ccda;pointer-events:none;}
+        .dtp-avg i{position:absolute;left:100%;bottom:-6px;margin-left:5px;font-style:normal;white-space:nowrap;
+                   font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;line-height:12px;letter-spacing:.04em;color:#5b6577;}
+        .dtp-daterow{flex:none;display:flex;gap:3px;margin-top:5px;padding-right:var(--agut);font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#5b6577;}
         .dtp-dc{flex:1 1 0;min-width:0;max-width:48px;display:flex;justify-content:center;white-space:nowrap;overflow:hidden;}
         .dtp-dc.today{color:#8a5300;font-weight:500;}
         .dtp-barw{flex:1 1 0;min-width:0;max-width:48px;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
@@ -456,7 +459,7 @@ export default function DailyTilePanel({
         .dtp-barw:hover .dtp-bar{opacity:1;}
         .dtp-bar.today{background:#e8b43a;opacity:1;}
         .dtp-bar.miss{height:5px;background:#f7f8fa;border-radius:2px;}
-        .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#262b35;}
+        .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;padding-right:var(--agut);font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#262b35;}
         @media(max-width:980px){
           /* IN FLOW below 980px. As an absolutely positioned overlay with its
              own scrollbar, the panel swallowed the touch gesture: the page
