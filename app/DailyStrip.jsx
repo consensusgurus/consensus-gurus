@@ -76,10 +76,12 @@ const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {})
 // Recent Champions list length (yesterday plus the prior days), sized to fill
 // the overall-leaderboard column beside the per-game minis.
 const CHAMPION_DAYS = 8;
-// Tiles per page of the daily board: the grid is six columns wide, so thirty
-// fills exactly five rows and the console keeps one height no matter how many
-// dailies the site runs. Games past thirty page under the down arrow.
-const BOARD_PAGE = 30;
+// How many tiles the board WINDOW shows before the rest have to be scrolled to.
+// The grid is six columns wide on a full-width desktop, so thirty is exactly the
+// five rows the board has always been, and the console keeps one height no matter
+// how many dailies the site runs. At narrower desktop widths the column count
+// drops and the window keeps showing thirty tiles, just in more rows.
+const BOARD_WINDOW = 30;
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
 const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#7c3aed', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf', hearsay: '#c4b5fd', venn: '#e0a568', stands: '#6aa3ff', bracket: '#f0894c', lode: '#e0b34c', etch: '#8fbf5a', hedge: '#4cc0d4', listed: '#e07ad0', axiom: '#3fc9b8', mate: '#d9b38c' };
 // Saturated one-color-per-game identity for the tile accent + expand panel
@@ -203,9 +205,13 @@ export default function DailyStrip({ board = null }) {
     if (ip.size) setInprog(ip);
   }, []);
 
-  // Which page of the tile board is showing. Reset is not needed when the list
-  // reorders: pageSafe clamps to the last page that exists.
-  const [page, setPage] = useState(0);
+  // How many rows the sheet has been shifted up by, and the geometry needed to
+  // shift it. `metrics` is null until measured AND on narrow screens, which is
+  // what turns the whole mechanism off there.
+  const [rowOffset, setRowOffset] = useState(0);
+  const [metrics, setMetrics] = useState(null);
+  const vpRef = useRef(null);
+  const boardRef = useRef(null);
 
   // On a phone, default the board to the Unplayed filter (owner mockup).
   useEffect(() => {
@@ -370,14 +376,34 @@ export default function DailyStrip({ board = null }) {
 
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
-  // The board is a fixed five rows of six, so it holds thirty tiles and keeps a
-  // constant height however many dailies exist. Anything past that lives on a
-  // further page reached by the down arrow under the grid (owner, 2026-07-30);
-  // the last page is usually part full, so it is told not to stretch its rows.
-  const pageCount = Math.max(1, Math.ceil(list.length / BOARD_PAGE));
-  const pageSafe = Math.min(page, pageCount - 1);
-  const pageList = list.slice(pageSafe * BOARD_PAGE, (pageSafe + 1) * BOARD_PAGE);
+  const shift = metrics ? Math.min(rowOffset, metrics.maxOffset) : 0;
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
+
+  // Measure the board window so the sheet can be shifted by exactly one row.
+  // The window's height comes from the page grid ABOVE it, never from the tiles,
+  // so writing a row height back into the grid cannot feed back into the window
+  // and start a loop. The min-height floor is what makes a narrower desktop (five
+  // columns, so six rows of thirty) grow the console the way it always did.
+  useEffect(() => {
+    const vp = vpRef.current, bd = boardRef.current;
+    if (!vp || !bd) return undefined;
+    const GAP = 8, MIN_ROW = 118;
+    const measure = () => {
+      // Below this width the board simply flows: the spare tiles take their own
+      // row, no window, no arrow, no animation (owner, 2026-07-30).
+      if (typeof window === 'undefined' || window.innerWidth < 861) { setMetrics(null); return; }
+      const cols = (getComputedStyle(bd).gridTemplateColumns || '').split(' ').filter(Boolean).length || 6;
+      const vis = Math.max(1, Math.ceil(BOARD_WINDOW / cols));
+      const rowH = Math.max(MIN_ROW, (vp.clientHeight - GAP * (vis - 1)) / vis);
+      const maxOffset = Math.max(0, Math.ceil(list.length / cols) - vis);
+      setMetrics((cur) => (cur && cur.rowH === rowH && cur.vis === vis && cur.maxOffset === maxOffset ? cur : { rowH, vis, maxOffset }));
+    };
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    if (ro) ro.observe(vp);
+    window.addEventListener('resize', measure);
+    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [list.length]);
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
 
@@ -503,11 +529,18 @@ export default function DailyStrip({ board = null }) {
         .dh-boardwrap{position:relative;background:#ffffff;border:1.5px solid #c3ccda;border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
-        .dh-pager{display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 0 1px;flex:0 0 auto;}
-        .dh-pgbtn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0e1d40;background:#fff;border:1.5px solid #c3ccda;border-radius:999px;padding:7px 15px;cursor:pointer;}
-        .dh-pgbtn:hover{border-color:#0e1d40;background:#f7f8fa;}
-        .dh-pgn{font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;letter-spacing:.08em;color:#46506a;}
-        .dh-board.part{align-content:start;}
+/* The board window. Until it has been measured (and always below 861px) this is
+           a plain passthrough, so the grid flows normally and nothing is ever clipped
+           by a stylesheet the JS has not caught up with. `.on` is what arms it. */
+        .dh-vp{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+        .dh-vp.on{overflow:hidden;}
+        .dh-vp.on > .dh-board{position:absolute;top:0;left:0;right:0;transition:transform .32s cubic-bezier(.4,0,.2,1);}
+        /* The arrow sits ON the window's bottom edge, centred, so it half-covers the
+           bottom of the two middle tiles in the last visible row (owner, 2026-07-30).
+           It lives outside .dh-vp because the window clips its own overflow. */
+        .dh-more{position:absolute;left:50%;bottom:10px;transform:translate(-50%,50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #c3ccda;box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:#0e1d40;font-family:inherit;}
+        .dh-more:hover{border-color:#0e1d40;background:#f7f8fa;box-shadow:0 4px 13px rgba(20,22,28,0.26);}
+        @media(max-width:860px){.dh-more{display:none;}}
         /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
        white tile with no plate. warmer, carve and suds resisted the recolour, so
        those three PNGs carry a baked navy plate instead (owner 2026-07-29). */
@@ -801,27 +834,36 @@ export default function DailyStrip({ board = null }) {
           displacing it. */}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
         <div
-          className={'dh-board' + (pageList.length < BOARD_PAGE ? ' part' : '')}
-          role="navigation"
-          aria-label="Daily puzzles"
-          aria-hidden={selGame ? 'true' : undefined}
+          ref={vpRef}
+          className={'dh-vp' + (metrics && metrics.maxOffset > 0 ? ' on' : '')}
+          style={metrics ? { minHeight: metrics.vis * 118 + (metrics.vis - 1) * 8 } : undefined}
+          onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
-          {renderTiles(pageList, false)}
-        </div>
-        {pageCount > 1 && !selGame ? (
-          <div className="dh-pager">
-            {pageSafe > 0 ? (
-              <button type="button" className="dh-pgbtn" onClick={() => setPage(pageSafe - 1)} aria-label="Back to the previous page of daily puzzles">
-                <ChevronUp size={14} strokeWidth={2.6} /> Back
-              </button>
-            ) : null}
-            <span className="dh-pgn">{pageSafe + 1} / {pageCount}</span>
-            {pageSafe < pageCount - 1 ? (
-              <button type="button" className="dh-pgbtn" onClick={() => setPage(pageSafe + 1)} aria-label="More daily puzzles">
-                More <ChevronDown size={14} strokeWidth={2.6} />
-              </button>
-            ) : null}
+          <div
+            ref={boardRef}
+            className="dh-board"
+            role="navigation"
+            aria-label="Daily puzzles"
+            aria-hidden={selGame ? 'true' : undefined}
+            style={metrics && metrics.maxOffset > 0
+              ? { gridAutoRows: `${metrics.rowH}px`, transform: `translateY(-${shift * (metrics.rowH + 8)}px)` }
+              : undefined}
+          >
+            {renderTiles(list, false)}
           </div>
+        </div>
+        {metrics && metrics.maxOffset > 0 && !selGame ? (
+          <button
+            type="button"
+            className="dh-more"
+            onClick={() => setRowOffset(shift < metrics.maxOffset ? shift + 1 : 0)}
+            aria-label={shift < metrics.maxOffset ? 'Show more daily puzzles' : 'Back to the top of the daily puzzles'}
+            title={shift < metrics.maxOffset ? 'More puzzles' : 'Back to the top'}
+          >
+            {shift < metrics.maxOffset
+              ? <ChevronDown size={19} strokeWidth={2.8} />
+              : <ChevronUp size={19} strokeWidth={2.8} />}
+          </button>
         ) : null}
       </div>
       {/* The panel is a child of .dhome, not of the board, so it covers the
