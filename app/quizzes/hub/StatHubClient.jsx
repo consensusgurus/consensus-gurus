@@ -1910,7 +1910,7 @@ function XpPanel({ me, titleById, viewing }) {
           <span style={{ fontSize: 15, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{xp.toLocaleString()} IQ</span>
           {prog.matches > 0 ? (
             <span style={{ fontSize: 11, fontWeight: 800, background: weekGain > 0 ? '#e6f7f0' : '#eef0f2', color: weekGain > 0 ? '#0b7a55' : C.muted, borderRadius: 999, padding: '3px 9px' }}>
-              {weekGain > 0 ? `▲ ${weekGain.toLocaleString()} IQ this week` : 'No IQ gained this week'}
+              {weekGain > 0 ? `▲ +${weekGain.toLocaleString()} IQ this week` : 'No IQ gained this week'}
             </span>
           ) : null}
           <span style={{ fontSize: 11, fontWeight: 800, background: tierBg, color: tierFg, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{tierLabel}</span>

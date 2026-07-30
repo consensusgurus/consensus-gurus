@@ -601,7 +601,7 @@ export default function DailyStrip({ board = null }) {
         <div className="dh-stats">
           <div className="dh-statlead"><span>Your</span><span>day:</span></div>
           <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
-          {todayXp != null ? <div className="dh-stat iq opt4"><b>{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
+          {todayXp != null ? <div className="dh-stat iq opt4"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
           {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
         </div>
