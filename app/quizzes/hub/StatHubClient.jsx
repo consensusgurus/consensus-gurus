@@ -1018,6 +1018,8 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
           <div style={{ color: C.muted, fontSize: 13 }}>No completed days yet. The first champion is crowned once today wraps up.</div>
         ) : (
           <div>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <div style={{ minWidth: 480 }}>
             <div style={{ display: 'grid', gridTemplateColumns: col, gap: 8, padding: '0 4px 8px', ...sub }}>
               <span>Day</span><span>Champion</span><span style={{ textAlign: 'right' }}>Total</span><span style={{ textAlign: 'right' }}>Puzzles</span><span style={{ textAlign: 'right' }}>Field</span>
             </div>
@@ -1033,6 +1035,8 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
                 <span style={{ textAlign: 'right', fontSize: 12.5, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{h.field}</span>
               </div>
             ))}
+            </div>
+            </div>
             <p style={{ fontSize: 11, color: C.soft, marginTop: 11, lineHeight: 1.5 }}>Each day{"'"}s champion is the #1 on that day{"'"}s combined board (best 10 of the day{"'"}s puzzles). Today is still live, so it{"'"}s not crowned yet. Field is the registered players who played any daily puzzle that day.</p>
           </div>
         )}

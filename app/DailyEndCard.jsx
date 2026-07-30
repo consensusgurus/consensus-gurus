@@ -823,6 +823,8 @@ export default function DailyEndCard({
 
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
+          .dec-titlerow{padding-right:40px;}
+          .dec-title{font-size:22px;}
           .dec-idrow{gap:8px;}
           .dec-idrow > *{flex:1;justify-content:center;}
           /* Mobile: drop the 4th Archive tile (the slip below handles the archive),
@@ -852,7 +854,7 @@ export default function DailyEndCard({
           <span className={`dec-check${won ? '' : ' loss'}`}>
             {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
           </span>
-          <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Not quite there for today</>}</span>
+          <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Not quite there today</>}</span>
           {score ? <span className="dec-detail">{score}</span> : null}
         </div>
         {answer ? (
