@@ -10,7 +10,9 @@
 //      "<Game> · <Family> · <score>", the answer, and a right-hand stack with the
 //      player's username (or a "Sign up" link for guests) and the "Share result
 //      (for credit)" button;
-//   2. three rank tiles — "<Game> today", "<Game> all-time" (cumulative points
+//   2. rank tiles — "IQ Points" (what this game paid, over the player's global
+//      IQ standing; expands to their slot in the IQ ranking with two players
+//      above and below), "<Game> today", "<Game> all-time" (cumulative points
 //      across every drop), and "Combined today" — each with a field size and an
 //      enlarge control that expands in place to that board's top 10;
 //   3. guest-only claim slip (ranks unclaimed until a username is chosen);
@@ -181,6 +183,7 @@ export default function DailyEndCard({
   onClose,
   boardId = 'daily-leaderboard',
   onLeaderboard,
+  quizId = null,
 }) {
   // "(for credit)" only for a registered viewer: every caller's share handler
   // builds its URL through withRef, so a registered sharer genuinely earns the
@@ -206,7 +209,9 @@ export default function DailyEndCard({
   const [skelTimedOut, setSkelTimedOut] = useState(false);          // collapse loading skeletons if the fetch is very slow
   const [popularCats, setPopularCats] = useState(null);             // popular quiz per category, once every daily is done
   const [pastHref, setPastHref] = useState(null);     // most-recent unplayed PAST drop of this game
-  const [openTile, setOpenTile] = useState(null);     // which rank tile is expanded: 'today'|'alltime'|'combined'|null
+  const [iq, setIq] = useState(null);                 // { gained, todayGained, rank, total, xp, level, window, provisional }
+  const [iqResolved, setIqResolved] = useState(false); // iq-standing answered (or gave up retrying)
+  const [openTile, setOpenTile] = useState(null);     // which rank tile is expanded: 'iq'|'today'|'alltime'|'combined'|null
   const [calOpen, setCalOpen] = useState(false);      // calendar slip expanded
   const [calMonth, setCalMonth] = useState(() => etTodayEC().slice(0, 7)); // 'YYYY-MM'
 
@@ -360,6 +365,44 @@ export default function DailyEndCard({
   const headColor = won ? meta.accent : RUST;
   const isCompleted = (completed == null ? won : completed);
 
+  // The player's IQ Points standing: what this game paid, what they have banked
+  // today, and their window of the global IQ ranking. Same write-propagation race
+  // as the combined board above (our /api/quiz/result row is POSTed as this card
+  // mounts), and the route reports gained:null until that row is visible, so
+  // retry on the same schedule rather than render a stale number.
+  useEffect(() => {
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    if (!anonId && !email) { setIqResolved(true); return undefined; }
+    let alive = true;
+    let timer = null;
+    let i = 0;
+    const delays = [0, 1500, 3500, 6000, 10000];
+    const run = () => {
+      const qs = new URLSearchParams();
+      if (anonId) qs.set('anonId', anonId);
+      if (email) qs.set('email', email);
+      if (self) qs.set('game', self);
+      if (quizId) qs.set('quizId', quizId);
+      if (i > 0) qs.set('_', String(Date.now())); // bust the edge cache on retries
+      fetch('/api/quiz/iq-standing?' + qs.toString())
+        .then((r) => r.json())
+        .then((d) => {
+          if (!alive || !d) return;
+          if (d.found) setIq(d);
+          // Done when the row landed (gained known), the player has no profile at
+          // all, or we are out of tries.
+          if (!d.found || d.gained != null || i >= delays.length - 1) { setIqResolved(true); return; }
+          i += 1;
+          timer = setTimeout(run, delays[i] - delays[i - 1]);
+        })
+        .catch(() => { if (alive) setIqResolved(true); });
+    };
+    timer = setTimeout(run, delays[0]);
+    return () => { alive = false; if (timer) clearTimeout(timer); };
+  }, [self, quizId]);
+
   const hasEmail = !!(ident && ident.email);
   const username = ident && ident.username ? ident.username : null;
 
@@ -417,6 +460,13 @@ export default function DailyEndCard({
   const ranksLoading = !(combinedResolved && allTimeResolved);
 
   const myKey = dailyMe ? dailyMe.userKey : null;
+
+  // IQ tile values. `gained` stays null until our result row is visible, so the
+  // tile shows a placeholder rather than a wrong number. The "today" line only
+  // appears once the day's total exceeds this game's gain (i.e. this is not the
+  // player's first daily today), where it would otherwise just repeat it.
+  const iqGained = (iq && typeof iq.gained === 'number') ? iq.gained : null;
+  const showIqToday = !!(iq && typeof iq.todayGained === 'number' && iqGained != null && iq.todayGained > iqGained);
 
   // Most open leaderboard = the thinnest-field daily among the REMAINING unplayed
   // games, AFTER excluding the "closest" (up-next) pick. So the two cards are
@@ -557,6 +607,10 @@ export default function DailyEndCard({
   // Each rank tile expands in place to its board's top 10, the viewer's own row
   // highlighted, plus a "Full leaderboard" link to the on-page board below.
   function tileBoard(which) {
+    if (which === 'iq') {
+      const rows = (iq && Array.isArray(iq.window)) ? iq.window : [];
+      return rows.map((r) => ({ rank: r.rank, name: r.name, val: `${(r.xp || 0).toLocaleString()} IQ`, me: !!r.me }));
+    }
     if (which === 'today') {
       const rows = (todayGame && Array.isArray(todayGame.board)) ? todayGame.board : [];
       return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!(myKey && r.userKey === myKey) }));
@@ -695,7 +749,7 @@ export default function DailyEndCard({
         .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
         .dec-share:hover{filter:brightness(1.12);}
 
-        .dec-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+        .dec-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
         .dec-tiles-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @media(prefers-reduced-motion:reduce){.dec-tiles-loading::after{animation:none;}}
@@ -708,6 +762,17 @@ export default function DailyEndCard({
            right of the number) to reclaim vertical space and fill the tile width. */
         .dec-tile-rk{font-size:23px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.1;margin-top:3px;display:inline-block;vertical-align:baseline;}
         .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
+        /* IQ tile: the number is a GAIN, so it reads green, and it carries a
+           second line for the day's running total (suppressed when this is the
+           player's first daily of the day, where it would just repeat the gain). */
+        .dec-tile-rk.gain{color:#15803d;}
+        /* At five across the card is 760px wide, so a tile's inner width is only
+           ~112px. "+96" plus a baseline-shared "#7 of 2,000" needs ~116px and
+           would wrap, so the IQ tile puts its rank on its OWN line instead of
+           sharing the number's baseline the way the rank tiles do. */
+        .dec-tile-iq .dec-tile-of{display:block;margin-left:0;font-size:11px;margin-top:1px;}
+        .dec-tile-of .prov{font-weight:700;color:${FADED};}
+        .dec-tile-sub2{font-size:10.5px;font-weight:700;color:#15803d;margin-top:2px;line-height:1.2;}
         .dec-tile-rk .dash{color:#c2c8d2;}
         .dec-tile-of{font-size:11.5px;color:${FADED};display:inline-block;vertical-align:baseline;margin-left:6px;}
         .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
@@ -829,7 +894,13 @@ export default function DailyEndCard({
           .dec-idrow > *{flex:1;justify-content:center;}
           /* Mobile: drop the 4th Archive tile (the slip below handles the archive),
              keep the three rank tiles side by side, and reveal the archive slip. */
-          .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+          .dec-tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
+          /* Four across on a phone is tight: drop the IQ tile's "of N" field
+             size (the expander shows it) and ease the type down a notch. */
+          .dec-tile{padding:10px 9px 9px;}
+          .dec-tile-rk{font-size:20px;}
+          .dec-tile-of{font-size:10.5px;margin-left:4px;}
+          .dec-tile-iq .ofn{display:none;}
           .dec-tile-archive{display:none;}
           .dec-slip-archive{display:flex;}
           .dec-tile{padding:9px 7px 8px;}
@@ -886,6 +957,26 @@ export default function DailyEndCard({
         <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
       ) : null}
       <div className="dec-tiles" style={ranksLoading ? { display: 'none' } : undefined}>
+        {/* IQ Points: what this game paid, with the player's global IQ standing
+            underneath. First tile because it is the one number that carries across
+            every game, not just this drop. */}
+        <button type="button" className={`dec-tile dec-tile-iq${openTile === 'iq' ? ' open' : ''}`} key="iq" aria-label="Expand your IQ Points ranking" aria-expanded={openTile === 'iq'} onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}>
+          <div className="dec-tile-lbl">IQ Points</div>
+          {iqGained != null ? (
+            <div className="dec-tile-rk gain">+{iqGained.toLocaleString()}</div>
+          ) : (
+            <div className="dec-tile-rk"><span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span></div>
+          )}
+          <div className="dec-tile-of">
+            {iq && iq.rank ? (
+              <>#{iq.rank.toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}<span className="ofn"> of {(iq.total || 0).toLocaleString()}</span></>
+            ) : ' '}
+          </div>
+          {showIqToday ? <div className="dec-tile-sub2">+{iq.todayGained.toLocaleString()} today</div> : null}
+          <span className="dec-tile-mx">
+            <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
+          </span>
+        </button>
         {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
         {renderTile('alltime', 'All-Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
         {renderTile('combined', 'Combined Today', combinedRank, combinedField, false, provisional)}
@@ -902,12 +993,19 @@ export default function DailyEndCard({
       </div>
       {openTile && openTile !== 'calendar' ? (() => {
         const rows = tileBoard(openTile);
-        const ti = openTile === 'today' ? `${selfName} · today` : openTile === 'alltime' ? `${selfName} · all-time` : 'Combined Daily Puzzles · Today';
+        const ti = openTile === 'iq' ? 'Global IQ Points ranking'
+          : openTile === 'today' ? `${selfName} · today`
+          : openTile === 'alltime' ? `${selfName} · all-time`
+          : 'Combined Daily Puzzles · Today';
         return (
           <div className="dec-expand">
             <div className="dec-expand-hd">
               <span className="dec-expand-ti">{ti}</span>
-              <button type="button" className="dec-expand-full" onClick={() => openPanel(openTile)}>Full leaderboard <ArrowRight size={12} strokeWidth={2.4} /></button>
+              {openTile === 'iq' ? (
+                <a className="dec-expand-full" href="/quizzes/hub?tab=player">Full ranking <ArrowRight size={12} strokeWidth={2.4} /></a>
+              ) : (
+                <button type="button" className="dec-expand-full" onClick={() => openPanel(openTile)}>Full leaderboard <ArrowRight size={12} strokeWidth={2.4} /></button>
+              )}
             </div>
             {rows.length ? rows.map((r, idx) => (
               <div className={`dec-lbrow${r.me ? ' me' : ''}`} key={idx}>
@@ -915,7 +1013,7 @@ export default function DailyEndCard({
                 <span className="nm">{r.name || '—'}</span>
                 <span className="vl">{r.val}</span>
               </div>
-            )) : <div className="dec-lbempty">No board yet. Be the first to post a score.</div>}
+            )) : <div className="dec-lbempty">{openTile === 'iq' ? 'Your IQ ranking appears once this game is counted.' : 'No board yet. Be the first to post a score.'}</div>}
           </div>
         );
       })() : null}
