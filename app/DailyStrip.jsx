@@ -463,6 +463,8 @@ export default function DailyStrip({ board = null }) {
         @container (max-width:430px){.dh-stat.opt4{display:none;}}
         /* opt5 = the last stat to go. IQ Points earned today outranks the streak
            on a phone (owner, 2026-07-30), so it holds the final slot.
+           IQ leads the bar, so it carries no opt class and never drops; Completed
+           is the opt5 last-to-go behind it.
            NOTE these @container widths are the bar's CONTENT box, not the
            viewport: .dh-sbar is border-box with 12px side padding (10px under
            640px), so a 390px phone queries at ~366px. Measured on the live bar,
@@ -610,8 +612,8 @@ export default function DailyStrip({ board = null }) {
       <div className="dh-sbar">
         <div className="dh-stats">
           <div className="dh-statlead"><span>Your</span><span>day:</span></div>
-          <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
-          {todayXp != null ? <div className="dh-stat iq opt5"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
+          {todayXp != null ? <div className="dh-stat iq"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
+          <div className="dh-stat g opt5"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
           {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
         </div>
