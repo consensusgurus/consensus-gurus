@@ -152,6 +152,7 @@ export default function DailyStrip({ board = null }) {
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
   const [dayStreak, setDayStreak] = useState(0); // cross-game: days in a row with at least one daily played
   const [todayXp, setTodayXp] = useState(null);   // IQ Points earned today (ET), from daily-status
+  const [rankChange, setRankChange] = useState(null); // places climbed on the global IQ board today
   const [sel, setSel] = useState(null); // selected game key (expanded tile), or null
   const [lbOpen, setLbOpen] = useState(false); // overall daily leaderboard toggle
 
@@ -218,6 +219,7 @@ export default function DailyStrip({ board = null }) {
         if (!alive || !data) return;
         if (data.streaks && typeof data.streaks === 'object') setStreaks(data.streaks);
         if (typeof data.todayXp === 'number') setTodayXp(data.todayXp);
+        if (typeof data.rankChange === 'number') setRankChange(data.rankChange);
         setDayStreak(computeDayStreak(data.played));
         const [Y, M, D] = etToday().split('-').map(Number);
         const yy = Y % 100;
@@ -244,6 +246,14 @@ export default function DailyStrip({ board = null }) {
       .catch(() => {});
     return () => { alive = false; };
   }, []);
+
+  // Rank movement reads as an arrow, never a bare signed number: up is a climb
+  // toward #1, so a POSITIVE rankChange must render as an up arrow even though
+  // the rank number itself went down. Flat or unknown shows an em dash.
+  const rankMove = rankChange == null || rankChange === 0
+    ? '\u2014'
+    : (rankChange > 0 ? `\u25b2${rankChange}` : `\u25bc${Math.abs(rankChange)}`);
+  const rankMoveColor = (rankChange == null || rankChange === 0) ? undefined : (rankChange > 0 ? '#15803d' : '#c0392b');
 
   const n = GAMES.filter((g) => done.has(g.key)).length;
   const pct = Math.round((n / GAMES.length) * 100);
@@ -594,15 +604,14 @@ export default function DailyStrip({ board = null }) {
           /* The phone cap replaces the stat row AND the Easiest-leaderboard CTA. */
           .dh-sbar .dh-stats{display:none;}
           .dh-sbar .dh-bup{display:none;}
-          .dh-mcap{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);align-items:center;width:100%;flex:1 1 auto;}
+          .dh-mcap{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));align-items:center;width:100%;flex:1 1 auto;}
           .dh-caplead{font-size:15px;font-weight:800;line-height:1.04;letter-spacing:-.3px;color:#1c1e24;white-space:nowrap;padding:0 11px 0 2px;}
           .dh-caplead span{display:block;}
-          .dh-mcell{padding:8px 4px 9px;text-align:center;min-width:0;}
-          .dh-mcap .dh-mcell{border-left:1px solid #eef0f4;}
-          .dh-mcell b{display:block;font-size:25px;font-weight:800;line-height:1;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
+          .dh-mcell{padding:8px 3px 9px;text-align:center;min-width:0;}
+          .dh-mcell b{display:block;font-size:22px;font-weight:800;line-height:1;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
           .dh-mcell.iq b{color:#2563eb;}
           .dh-mcell.g b{color:#15803d;}
-          .dh-mcell span{display:block;margin-top:4px;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#46506a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .dh-mcell span{display:block;margin-top:4px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#46506a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .dh-bup .dh-play{margin-left:auto;flex:0 0 auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
           /* The wider button leaves the eyebrow 95px; at 9px/.09em it needs 119
              and, since .dh-bue is overflow:visible, it spilled under the button
@@ -614,7 +623,7 @@ export default function DailyStrip({ board = null }) {
            its cell, so ease the cap's labels down. The ellipsis above is the
            safety net if a longer label is ever used. */
         @media(max-width:355px){
-          .dh-mcell span{font-size:8.5px;letter-spacing:.02em;}
+          .dh-mcell span{font-size:7.5px;letter-spacing:.01em;}
           .dh-caplead{font-size:13px;padding-right:8px;}
         }
       `}</style>
@@ -632,17 +641,22 @@ export default function DailyStrip({ board = null }) {
           <div className="dh-caplead"><span>Your</span><span>day:</span></div>
           <div className="dh-mcell iq">
             <b>{todayXp != null ? `+${todayXp.toLocaleString()}` : '\u2014'}</b>
-            <span>IQ Points today</span>
+            <span>IQ Points</span>
           </div>
           <div className="dh-mcell g">
             <b>{n}/{GAMES.length}</b>
             <span>Games played</span>
+          </div>
+          <div className="dh-mcell">
+            <b style={rankMoveColor ? { color: rankMoveColor } : undefined}>{rankMove}</b>
+            <span>IQ rank change</span>
           </div>
         </div>
         <div className="dh-stats">
           <div className="dh-statlead"><span>Your</span><span>day:</span></div>
           {todayXp != null ? <div className="dh-stat iq"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
           <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
+          <div className="dh-stat opt3"><b style={rankMoveColor ? { color: rankMoveColor } : undefined}>{rankMove}</b><span>IQ rank change</span></div>
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
           {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
         </div>

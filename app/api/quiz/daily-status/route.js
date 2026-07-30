@@ -21,8 +21,10 @@ const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|c
 // end-screen cross-promo show played/completed marks that FOLLOW THE USER across
 // devices — localStorage only knows this one browser. Reads the shared in-process
 // quiz_results cache (no fresh full-table query) per the egress guardrails.
-// Also returns `todayXp`: the player's IQ Points earned today (ET), across every
-// game, which feeds the IQ Points stat in the "Your day" strip.
+// Also returns `todayXp` (IQ Points earned today, ET, across every game) and
+// `rankChange` (places climbed on the global IQ board since the day started,
+// negative = dropped, null = no standing to move from). Both feed the "Your day"
+// strip.
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
@@ -92,18 +94,40 @@ export async function GET(request) {
     // row, so there is no cheaper single-player shortcut. Wrapped so a failure
     // degrades to null instead of breaking played/completed, this route's real job.
     let todayXp = null;
+    let rankChange = null;
     try {
       const { players } = computeXp(data || [], { recentN: 400 });
       const me = players.get(myKey);
       if (me) {
         const etDay = (ts) => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
         const today = etDay(Date.now());
-        todayXp = Math.round((me.recent || [])
+        const gainedToday = (p) => (p.recent || [])
           .filter((r) => r.createdAt && etDay(r.createdAt) === today)
-          .reduce((acc, r) => acc + (Number(r.xp) || 0), 0));
+          .reduce((acc, r) => acc + (Number(r.xp) || 0), 0);
+        todayXp = Math.round(gainedToday(me));
+
+        // Global IQ rank movement across today (ET). Ranks the whole field twice:
+        // as it stands now, and on the IQ everyone held BEFORE today's games.
+        // Doing it this way counts other players passing you, which a sum of your
+        // own per-play rankDelta would miss. Two sorts over the field is cheap
+        // next to the computeXp pass already done above.
+        const all = [...players.values()];
+        const before = new Map(all.map((p) => [p.key, p.xp - gainedToday(p)]));
+        // Key as the final tiebreak so both orderings are deterministic and a tie
+        // can never register as phantom movement.
+        const posBy = (val) => {
+          const sorted = all.slice().sort((a, b) => val(b) - val(a) || (a.key < b.key ? -1 : 1));
+          return sorted.findIndex((p) => p.key === myKey) + 1;
+        };
+        // A player whose first ever game is today had no standing to move from.
+        if (before.get(myKey) > 0) {
+          const now = posBy((p) => p.xp);
+          const then = posBy((p) => before.get(p.key) || 0);
+          if (now > 0 && then > 0) rankChange = then - now; // positive = climbed
+        }
       }
     } catch (e) { console.error('daily-status todayXp', e); }
-    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp, rankChange }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [] });
