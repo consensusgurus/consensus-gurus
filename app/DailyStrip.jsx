@@ -582,6 +582,11 @@ export default function DailyStrip({ board = null }) {
         @media(max-width:640px){
           .dh-sbar{padding-left:10px;padding-right:10px;}
           .dh-bup .dh-play{margin-left:auto;flex:0 0 auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
+          /* The wider button leaves the eyebrow 95px; at 9px/.09em it needs 119
+             and, since .dh-bue is overflow:visible, it spilled under the button
+             rather than truncating. 7.5px/.02em needs 89. Ellipsis is a safety net
+             for the longer Sunday Edition variant of this label. */
+          .dh-bue{font-size:7.5px;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;}
         }
       `}</style>
 
