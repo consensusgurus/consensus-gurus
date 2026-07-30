@@ -26,6 +26,10 @@
 //   python3 scripts/lode-words.py > scripts/.lode-freq.json   (once, or to refresh)
 //   node scripts/gen-lode.mjs --from 2026-08-01 --days 400 > app/lode/puzzles.js
 //
+// Changing the word pool reshuffles the WHOLE bank, including boards already
+// played, so a refresh regenerates future dates only and splices them under the
+// boards that have gone live (--from tomorrow, --startnum after the last one).
+//
 // Regenerating is safe and idempotent: the day chosen for a given date is a
 // pure function of the date seed, so re-running never reshuffles history.
 
@@ -36,23 +40,36 @@ import { dirname, join } from 'path';
 const here = dirname(fileURLToPath(import.meta.url));
 
 // ─── tunables ──────────────────────────────────────────────────────────────
-// The junk floor is scaled BY LENGTH, which is the single biggest quality lever
-// on the whole game. Measured on the shipped dictionary: almost every piece of
-// garbage a flat floor lets through is four letters long (berk, naik, kana,
-// arak, ecco, coll, comm, tung), because short strings pick up frequency from
-// proper nouns, brands and foreign words. Genuine rare words are long
-// (commode 2.30, granary 2.57, fandango 2.68, domicile 2.75). So four-letter
-// words must clear a higher bar than long ones — which also makes them
-// uniformly tier 1, the board's chip shots — while length earns a word the
-// benefit of the doubt. The four-letter floor was 4.0 at launch, but that was
-// too aggressive: it rejected hundreds of everyday words that sit just under it
-// (unto 3.96, oath 3.96, atom 3.72, barn, deaf, neat, halt, verb, idle...),
-// which players reasonably typed and got bounced. Lowered to 3.4 (2026-07-26):
-// real junk lives below ~3.3 at four letters, so 3.4 keeps the board clean
-// while accepting common vocabulary.
-const FLOORS = { 4: 3.4, 5: 2.6, 6: 2.25 };
-const FLOOR_LONG = 2.1;      // seven letters and up
+// The junk floor is scaled BY LENGTH, and for most of Lode's life it was the
+// ONLY thing standing between a reader and the Scrabble tail. That was the
+// wrong tool. The shipped dictionary is full of proper nouns (james, texas,
+// paris, facebook), and a name is FREQUENT, so the only floor high enough to
+// stop names also stopped ordinary vocabulary that simply is not written down
+// much. Four letters was where it hurt: at a 3.4 floor the board rejected lard
+// (2.98), howl (3.18), silt (2.96), coax (2.96), hilt (2.90), faze (2.91),
+// cowl (2.87), ruse (3.16) and yelp (3.25), all words a player will type and
+// expect to count. Frequency cannot tell "nobody knows it" from "nobody writes
+// it"; only a dictionary can.
+//
+// So as of 2026-07-30 the vocabulary gate moved into scripts/lode-words.py,
+// which checks every word against hunspell's CASE SENSITIVE en_US dictionary
+// and drops anything that exists only as a capitalized name. With names gone,
+// the floor no longer has to do their policing and drops to where the gated
+// list genuinely stops being placeable vocabulary: about 2.7 at four letters,
+// 2.25 at five, 2.1 at six and just above 2 beyond that. Below those the gated
+// list turns into words that are real but nobody could place (fulvous, bascule,
+// catechin, ecotone), which is the category Lode exists to keep off the board.
+//
+// These MUST stay in sync with NEW / NEW_LONG in scripts/lode-words.py, which
+// applies the same floors when it freezes the data — the JSON is authoritative
+// and these are the second gate.
+const FLOORS = { 4: 2.7, 5: 2.25, 6: 2.1 };
+const FLOOR_LONG = 2.05;     // seven letters and up
 const floorFor = (n) => FLOORS[n] ?? FLOOR_LONG;
+// Four-letter words used to be uniformly tier 1 because nothing under 3.4 could
+// reach a board. Now the 2.7-2.9 band opens up, so a genuinely uncommon short
+// word (faze, cask, curd, cowl) can score as rare. That is the game's promise
+// working as intended: knowing the word is the achievement, not its length.
 const TIER_RARE = 2.9;       // < this (and above the floor) is RARE (x3)
 const TIER_UNCOMMON = 3.9;   // < this (and >= RARE)  is UNCOMMON  (x2)
 const MIN_LEN = 4;
@@ -172,6 +189,11 @@ const arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i
 const START = arg('from', '2026-08-01');
 const DAYS = Number(arg('days', 400));
 const SEED = Number(arg('seed', 20260801));
+// Boards already played must not be renumbered or reshuffled, so a regeneration
+// that changes the word pool covers only future dates and picks up the
+// numbering where the surviving bank left off:
+//   node scripts/gen-lode.mjs --from 2026-07-31 --startnum 7 --days 494
+const START_NUM = Number(arg('startnum', 1));
 
 const weekday = rootSets(LETTERS);
 const sunday = rootSets(LETTERS_SUNDAY);
@@ -232,7 +254,7 @@ for (let i = 0; i < DAYS; i++) {
   const vein = rk.find((x) => x.n === 'Lode').at;
   const others = [...b.sig].filter((c) => c !== b.core).sort();
   lines.push(JSON.stringify({
-    num: i + 1,
+    num: START_NUM + i,
     quizId: `lode-${mo}-${da}-${String(y).slice(2)}`,
     live: `${y}-${String(mo).padStart(2, '0')}-${String(da).padStart(2, '0')}`,
     dateLabel: `${MONTHS[mo - 1]} ${da}, ${y}`,
