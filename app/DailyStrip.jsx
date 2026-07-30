@@ -640,26 +640,26 @@ export default function DailyStrip({ board = null }) {
             Numbers are large because this is the only stat surface on mobile. */}
         <div className="dh-mcap">
           <div className="dh-caplead"><span>Your</span><span>day:</span></div>
-          <div className="dh-mcell iq">
-            <b>{todayXp != null ? `+${todayXp.toLocaleString()}` : '\u2014'}</b>
-            <span>IQ Points</span>
-          </div>
           <div className="dh-mcell g">
             <b>{n}/{GAMES.length}</b>
             <span>Games played</span>
           </div>
+          <div className="dh-mcell iq">
+            <b>{todayXp != null ? `+${todayXp.toLocaleString()}` : '\u2014'}</b>
+            <span>IQ Points</span>
+          </div>
           <div className="dh-mcell">
             <b style={rankMoveColor ? { color: rankMoveColor } : undefined}>{rankMove}</b>
-            <span>IQ rank change</span>
+            <span>IQ rank</span>
           </div>
         </div>
         <div className="dh-stats">
           <div className="dh-statlead"><span>Your</span><span>day:</span></div>
-          {todayXp != null ? <div className="dh-stat iq"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
           <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
-          <div className="dh-stat opt3"><b style={rankMoveColor ? { color: rankMoveColor } : undefined}>{rankMove}</b><span>IQ rank change</span></div>
+          {todayXp != null ? <div className="dh-stat iq"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
+          <div className="dh-stat opt3"><b style={rankMoveColor ? { color: rankMoveColor } : undefined}>{rankMove}</b><span>IQ rank</span></div>
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
-          {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
+          {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Streak</span></div> : null}
         </div>
         <div className="dh-bup">
           {easiest ? (

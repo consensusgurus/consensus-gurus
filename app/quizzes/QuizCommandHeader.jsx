@@ -104,6 +104,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
   const signed = !!(found && me.signed);
   const rank = found ? ((me.ranks && me.ranks.xp) || me.rank) : null;
   const completed = (found && me.activity && me.activity.completed != null) ? me.activity.completed : null;
+  // Lifetime IQ Points. A running total, so it renders bare: the "+" prefix is
+  // reserved for amounts EARNED (the Your day strip, the end card).
+  const xp = (found && typeof me.xp === 'number') ? me.xp : null;
   const totalPlayers = (found && typeof me.totalPlayers === 'number' && me.totalPlayers > 0) ? me.totalPlayers : null;
   // Share of the whole catalogue this player has completed, shown next to the
   // raw count (owner 2026-07-29). Under 10% keeps one decimal so an early
@@ -245,11 +248,17 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
            inline display:flex, so hiding it needs !important. */
         @media(max-width:600px){
           .qch-bar{justify-content:space-between;}
-          .qch-word,.qch-src{display:none !important;}
+          /* Owner 2026-07-30: keep the SoT wordmark on the left edge (it already
+             precedes the search button in the DOM). Only the tagline goes. */
+          .qch-src{display:none !important;}
+          .qch-word{font-size:15px;flex:none;}
           .qch-hub{display:none !important;}
           .qch-searchbtn{margin-left:0 !important;flex:none;}
           .qch-burger{margin-left:auto;flex:none;}
-          .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin:0;display:flex;justify-content:center;flex:none;max-width:calc(100% - 132px);}
+          /* Reserve grew from 132px: the wordmark now sits on the left edge
+             alongside the search button, and the identity is absolutely centred,
+             so it must be told about the extra side furniture or it overlaps. */
+          .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin:0;display:flex;justify-content:center;flex:none;max-width:calc(100% - 188px);}
           .qch-melink{justify-content:center;min-width:0;gap:0;}
           .qch-mecol{flex-direction:column;align-items:center;gap:1px;min-width:0;}
           .qch-nm,.qch-rankm{text-align:center;max-width:100%;}
@@ -272,11 +281,19 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
                 <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
                 <span className="qch-sub">
                   {rank ? <>{`Rank #${fmtK(rank)}`}{totalPlayers ? <span className="qch-of">{` of ${totalPlayers.toLocaleString()}`}</span> : null}</> : null}
-                  {rank && completed != null ? ' · ' : ''}
+                  {rank && xp != null ? ' · ' : ''}
+                  {xp != null ? `${xp.toLocaleString()} IQ` : ''}
+                  {(rank || xp != null) && completed != null ? ' · ' : ''}
                   {completed != null ? `${completed.toLocaleString()} completed` : ''}
                   {completed != null && donePct ? ` · ${donePct}` : ''}
                 </span>
-                {rank ? <span className="qch-rankm">Rank #{fmtK(rank)}</span> : null}
+                {rank || xp != null ? (
+                  <span className="qch-rankm">
+                    {rank ? `Rank #${fmtK(rank)}` : ''}
+                    {rank && xp != null ? ' · ' : ''}
+                    {xp != null ? `${xp.toLocaleString()} IQ` : ''}
+                  </span>
+                ) : null}
               </span>
             </Link>
           ) : (
