@@ -47,6 +47,9 @@ export const DAILY_GAMES = [
   { key: 'four', href: '/four', name: 'Four', tag: 'one column wins', store: 'sot_four_day', accent: '#1e3a8a', bg: '#e8eefc', border: 'rgba(30,58,138,0.35)' },
   { key: 'park', href: '/park', name: 'Park', tag: 'free the red block', store: 'sot_park_day', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)' },
   { key: 'check', href: '/check', name: 'Check', tag: 'give a piece, take them all', store: 'sot_check_day', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)' },
+  { key: 'rung', href: '/rung', name: 'Rung', tag: 'one letter at a time', store: 'sot_rung_day', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)' },
+  { key: 'crunch', href: '/crunch', name: 'Crunch', tag: 'six numbers, one target', store: 'sot_crunch_day', accent: '#b45309', bg: '#fdf3e3', border: 'rgba(180,83,9,0.35)' },
+  { key: 'bid', href: '/bid', name: 'Bid', tag: 'one purse, five lots', store: 'sot_bid_day', accent: '#7c2d12', bg: '#f7ece4', border: 'rgba(124,45,18,0.35)' },
 ];
 
 function etToday() {

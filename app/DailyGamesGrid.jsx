@@ -53,6 +53,9 @@ const GAMES = [
   { key: 'four', href: '/four', name: 'Four', tag: 'One column wins', img: '/games/btn-four.png' },
   { key: 'park', href: '/park', name: 'Park', tag: 'Free the red block', img: '/games/btn-park.png' },
   { key: 'check', href: '/check', name: 'Check', tag: 'Give a piece, take them all', img: '/games/btn-check.png' },
+  { key: 'rung', href: '/rung', name: 'Rung', tag: 'One letter at a time', img: '/games/btn-rung.png' },
+  { key: 'crunch', href: '/crunch', name: 'Crunch', tag: 'Six numbers, one target', img: '/games/btn-crunch.png' },
+  { key: 'bid', href: '/bid', name: 'Bid', tag: 'One purse, five lots', img: '/games/btn-bid.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -64,8 +67,8 @@ const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
   { key: 'history', label: 'History', keys: ['dating', 'extra', 'bracket', 'listed'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge'] },
-  { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge', 'crunch'] },
+  { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'bid'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'mate', 'four', 'park', 'check'] },
 ];
 
