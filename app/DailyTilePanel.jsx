@@ -3,7 +3,10 @@
 // The expanded state of a daily-puzzle tile on the quiz home board (owner
 // request, 2026-07-29). It OVERLAYS the tile grid rather than being inserted
 // into it, so the board's height never changes and nothing on the page moves.
-// DailyStrip renders it absolutely inside .dh-boardwrap.
+// DailyStrip renders it absolutely inside .dhome, so it covers the ENTIRE
+// console including the stats bar at the top: the bar's own Play button sat
+// inches from this panel's Play button, which read as two competing controls
+// (owner, 2026-07-29).
 //
 // LAYOUT (owner, 2026-07-29): the panel is pinned to all four edges of the board
 // body so it covers the grid, but its CONTENT is compact and top-aligned. An
@@ -310,7 +313,7 @@ export default function DailyTilePanel({
       </section>
 
       <style>{`
-        .dtp{position:absolute;inset:0;z-index:6;background:#0e1d40;border-radius:0 0 13px 13px;color:#eef3fb;
+        .dtp{position:absolute;inset:0;z-index:6;background:#0e1d40;border-radius:13px;color:#eef3fb;
              padding:13px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;animation:dtpIn .16s ease-out;}
         /* Opacity only. A scale here left the panel measurably inset from the

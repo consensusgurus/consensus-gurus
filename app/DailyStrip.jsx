@@ -6,7 +6,8 @@
 // (navy block) sits on top; a filter row (All / Unplayed / Streak at risk) plus
 // a "Daily leaderboard" toggle sits below it; then a white-tile grid of every
 // daily. Clicking a tile expands it IN PLACE as an overlay: DailyTilePanel is
-// rendered absolutely inside .dh-boardwrap, covering the grid rather than
+// rendered absolutely inside .dhome, covering the whole console (stats bar and
+// grid alike, so only the panel's own Play button shows) rather than
 // displacing it, so the board's height never changes and nothing below moves
 // (owner request, 2026-07-29; it previously inserted a strip at the end of the
 // selected tile's row, which pushed every later tile down the page). Nothing
@@ -420,9 +421,9 @@ export default function DailyStrip({ board = null }) {
   });
 
   return (
-    <div className="dhome">
+    <div className={'dhome' + (selGame ? ' open' : '')}>
       <style>{`
-        .dhome{margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
+        .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#0e1d40;border-radius:13px 13px 0 0;padding:10px 12px;color:#eef3fb;border-bottom:1px solid rgba(255,255,255,0.07);}
         .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1px solid #223353;}
@@ -561,7 +562,8 @@ export default function DailyStrip({ board = null }) {
            scrolls normally wherever you drag. */
         @media(max-width:980px){
           .dh-boardwrap.open{min-height:0;}
-          .dh-boardwrap.open .dh-board{display:none;}
+          .dhome.open .dh-sbar{display:none;}
+          .dhome.open .dh-boardwrap{display:none;}
         }
       `}</style>
 
@@ -689,14 +691,18 @@ export default function DailyStrip({ board = null }) {
         </div>
       ) : null}
 
-      {/* tile board. The expand panel is absolutely positioned inside this
-          wrapper, so opening a tile covers the grid rather than displacing it. */}
+      {/* tile board. The expand panel is absolutely positioned over the whole
+          console (see below), so opening a tile covers this rather than
+          displacing it. */}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
         <div className="dh-board" role="navigation" aria-label="Daily puzzles" aria-hidden={selGame ? 'true' : undefined}>
           {renderTiles(list, false)}
         </div>
-        {selGame ? renderPanel(selGame) : null}
       </div>
+      {/* The panel is a child of .dhome, not of the board, so it covers the
+          stats bar as well as the grid: one expanded console, one Play button
+          (owner, 2026-07-29). */}
+      {selGame ? renderPanel(selGame) : null}
     </div>
   );
 }
