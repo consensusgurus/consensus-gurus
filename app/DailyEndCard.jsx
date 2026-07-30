@@ -56,7 +56,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['listed', 'etch', 'hedge'], until: '2026-08-10' };
+const LAUNCH_PIN = { keys: ['mate', 'listed', 'etch', 'hedge'], until: '2026-08-13' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -106,6 +106,7 @@ export const GAME_META = {
   etch: { accent: '#4d7c0f', badgeBg: '#4d7c0f', badgeInk: '#fff', Fin: ImageIcon },
   hedge: { accent: '#0891b2', badgeBg: '#0891b2', badgeInk: '#fff', Fin: Route },
   listed: { accent: '#86198f', badgeBg: '#86198f', badgeInk: '#fff', Fin: BarChart3 },
+  mate: { accent: '#6b4423', badgeBg: '#6b4423', badgeInk: '#fff', Fin: Crown },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -145,6 +146,7 @@ export const DAILY_GAMES = [
   { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             href: '/sworn' },
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
   { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', href: '/listed' },
+  { key: 'mate',   cat: 'logic',     name: 'Mate',   tag: 'White to play and mate',      href: '/mate' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },

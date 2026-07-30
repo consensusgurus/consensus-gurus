@@ -33,7 +33,7 @@
 // to the board everywhere it's used.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, ChevronDown, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, X } from 'lucide-react';
+import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, X } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 import DailyTilePanel from './DailyTilePanel';
@@ -69,17 +69,22 @@ const GAMES = [
   { key: 'etch', href: '/etch', name: 'Etch', img: '/games/btn-etch.png', store: 'sot_etch_day', tag: "A picture in the numbers" , cat: 'Logic' },
   { key: 'hedge', href: '/hedge', name: 'Hedge', img: '/games/btn-hedge.png', store: 'sot_hedge_day', tag: "Draw one closed loop" , cat: 'Numbers' },
   { key: 'listed', href: '/listed', name: 'Listed', img: '/games/btn-listed.png', store: 'sot_listed_day', tag: "Rank the list, top to bottom" , cat: 'History' },
+  { key: 'mate', href: '/mate', name: 'Mate', img: '/games/btn-mate.png', store: 'sot_mate_day', tag: "White to play and mate" , cat: 'Logic' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
 // Recent Champions list length (yesterday plus the prior days), sized to fill
 // the overall-leaderboard column beside the per-game minis.
 const CHAMPION_DAYS = 8;
+// Tiles per page of the daily board: the grid is six columns wide, so thirty
+// fills exactly five rows and the console keeps one height no matter how many
+// dailies the site runs. Games past thirty page under the down arrow.
+const BOARD_PAGE = 30;
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
-const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#7c3aed', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf', hearsay: '#c4b5fd', venn: '#e0a568', stands: '#6aa3ff', bracket: '#f0894c', lode: '#e0b34c', etch: '#8fbf5a', hedge: '#4cc0d4', listed: '#e07ad0', axiom: '#3fc9b8' };
+const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#7c3aed', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf', hearsay: '#c4b5fd', venn: '#e0a568', stands: '#6aa3ff', bracket: '#f0894c', lode: '#e0b34c', etch: '#8fbf5a', hedge: '#4cc0d4', listed: '#e07ad0', axiom: '#3fc9b8', mate: '#d9b38c' };
 // Saturated one-color-per-game identity for the tile accent + expand panel
 // (the "one saturated color per game" system used on the live game pages).
-const TCOL = { crux: '#2563eb', emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c', lode: '#a16207', etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f' };
+const TCOL = { crux: '#2563eb', emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c', lode: '#a16207', etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f', mate: '#6b4423' };
 const tcol = (k) => TCOL[k] || '#2563eb';
 // Faint tile tints (owner, 2026-07-29: "the colours should be more faint").
 // Each game's saturated hue is mixed down into the board's own deep navy, so a
@@ -197,6 +202,10 @@ export default function DailyStrip({ board = null }) {
     if (d.size) setDone(d);
     if (ip.size) setInprog(ip);
   }, []);
+
+  // Which page of the tile board is showing. Reset is not needed when the list
+  // reorders: pageSafe clamps to the last page that exists.
+  const [page, setPage] = useState(0);
 
   // On a phone, default the board to the Unplayed filter (owner mockup).
   useEffect(() => {
@@ -361,6 +370,13 @@ export default function DailyStrip({ board = null }) {
 
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
+  // The board is a fixed five rows of six, so it holds thirty tiles and keeps a
+  // constant height however many dailies exist. Anything past that lives on a
+  // further page reached by the down arrow under the grid (owner, 2026-07-30);
+  // the last page is usually part full, so it is told not to stretch its rows.
+  const pageCount = Math.max(1, Math.ceil(list.length / BOARD_PAGE));
+  const pageSafe = Math.min(page, pageCount - 1);
+  const pageList = list.slice(pageSafe * BOARD_PAGE, (pageSafe + 1) * BOARD_PAGE);
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
   const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
@@ -487,6 +503,11 @@ export default function DailyStrip({ board = null }) {
         .dh-boardwrap{position:relative;background:#ffffff;border:1.5px solid #c3ccda;border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
+        .dh-pager{display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 0 1px;flex:0 0 auto;}
+        .dh-pgbtn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0e1d40;background:#fff;border:1.5px solid #c3ccda;border-radius:999px;padding:7px 15px;cursor:pointer;}
+        .dh-pgbtn:hover{border-color:#0e1d40;background:#f7f8fa;}
+        .dh-pgn{font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;letter-spacing:.08em;color:#46506a;}
+        .dh-board.part{align-content:start;}
         /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
        white tile with no plate. warmer, carve and suds resisted the recolour, so
        those three PNGs carry a baked navy plate instead (owner 2026-07-29). */
@@ -779,9 +800,29 @@ export default function DailyStrip({ board = null }) {
           console (see below), so opening a tile covers this rather than
           displacing it. */}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
-        <div className="dh-board" role="navigation" aria-label="Daily puzzles" aria-hidden={selGame ? 'true' : undefined}>
-          {renderTiles(list, false)}
+        <div
+          className={'dh-board' + (pageList.length < BOARD_PAGE ? ' part' : '')}
+          role="navigation"
+          aria-label="Daily puzzles"
+          aria-hidden={selGame ? 'true' : undefined}
+        >
+          {renderTiles(pageList, false)}
         </div>
+        {pageCount > 1 && !selGame ? (
+          <div className="dh-pager">
+            {pageSafe > 0 ? (
+              <button type="button" className="dh-pgbtn" onClick={() => setPage(pageSafe - 1)} aria-label="Back to the previous page of daily puzzles">
+                <ChevronUp size={14} strokeWidth={2.6} /> Back
+              </button>
+            ) : null}
+            <span className="dh-pgn">{pageSafe + 1} / {pageCount}</span>
+            {pageSafe < pageCount - 1 ? (
+              <button type="button" className="dh-pgbtn" onClick={() => setPage(pageSafe + 1)} aria-label="More daily puzzles">
+                More <ChevronDown size={14} strokeWidth={2.6} />
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       {/* The panel is a child of .dhome, not of the board, so it covers the
           stats bar as well as the grid: one expanded console, one Play button
