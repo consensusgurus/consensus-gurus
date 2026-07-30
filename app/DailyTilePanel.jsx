@@ -173,14 +173,14 @@ export default function DailyTilePanel({
             <div className="dtp-row"><span>Best day</span><b>{loading ? dash : (mine && mine.bestPoints != null ? fmtPts(mine.bestPoints) + ' pts' : '—')}</b></div>
             <div className="dtp-row"><span>Average day</span><b>{loading ? dash : (mine && mine.avgPoints != null ? fmtPts(mine.avgPoints) + ' pts' : '—')}</b></div>
             <div className="dtp-row"><span>Longest streak</span><b>{loading ? dash : (longest ? longest + ' day' + (longest === 1 ? '' : 's') : '—')}</b></div>
-            <div className="dtp-row"><span>Players all-time</span><b>{loading ? dash : ((allTime && allTime.plays != null) ? allTime.plays.toLocaleString() : '—')}</b></div>
-            <div className="dtp-row"><span>Playing today</span><b>{todayField != null ? todayField.toLocaleString() : '—'}</b></div>
             {beatPct != null ? <div className="dtp-row beat"><span>Today you beat</span><b>{beatPct}% of players</b></div> : null}
           </div>
         </section>
 
         <section className="dtp-col">
-          <div className="dtp-lab"><Trophy size={12} strokeWidth={2.4} />Today</div>
+          <div className="dtp-lab"><Trophy size={12} strokeWidth={2.4} />Today
+            {todayField != null ? <span className="dtp-labct">{todayField.toLocaleString()} playing</span> : null}
+          </div>
           <div className="dtp-lb">
             {todayTop.length ? (
               <>
@@ -207,7 +207,9 @@ export default function DailyTilePanel({
             )}
           </div>
 
-          <div className="dtp-lab sm"><Trophy size={12} strokeWidth={2.4} />All-time</div>
+          <div className="dtp-lab sm"><Trophy size={12} strokeWidth={2.4} />All-time
+            {!loading && allTime && allTime.plays != null ? <span className="dtp-labct">{allTime.plays.toLocaleString()} players</span> : null}
+          </div>
           <div className="dtp-lb">
             {loading ? (
               <div className="dtp-empty">Loading standings…</div>
@@ -340,6 +342,9 @@ export default function DailyTilePanel({
         .dtp-col{min-width:0;display:flex;flex-direction:column;}
         .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#6c7e9b;font-weight:500;margin-bottom:8px;flex:none;}
         .dtp-lab.sm{margin-top:10px;}
+        /* community size lives in the leaderboard label, right aligned, rather than
+           as its own stat row in column one (owner, 2026-07-29). */
+        .dtp-labct{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.06em;color:#8a9bb8;font-weight:500;flex:none;}
         .dtp-lab svg{color:var(--gc);}
         .dtp-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none;}
         .dtp-stats>div{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:6px 9px;}
