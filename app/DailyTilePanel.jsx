@@ -239,7 +239,7 @@ export default function DailyTilePanel({
           </div>
           <div className="dtp-lfoot">
             {allTime && allTime.field ? allTime.field.toLocaleString() + ' ranked' : ''}
-            <a href="/daily">Full standings →</a>
+            <a href={`/quizzes/hub?tab=daily&game=${game.key}`}>Full standings →</a>
           </div>
         </section>
 

@@ -609,6 +609,8 @@ export default function StatHubClient() {
   // Inline player viewing: clicking a player in the ranking loads their full
   // profile in place (no page nav). null = my own stats.
   const [viewKey, setViewKey] = useState(null);
+  // /quizzes/hub?tab=daily&game=<key> preselects that game's daily board.
+  const [dailyGame, setDailyGame] = useState(null);
   const [viewProfile, setViewProfile] = useState(null);
   const [pview, setPview] = useState('ranking');
   useEffect(() => {
@@ -624,6 +626,8 @@ export default function StatHubClient() {
     const sp = new URLSearchParams(window.location.search);
     const pk = sp.get('player');
     if (pk) setViewKey(pk);
+    const dg = sp.get('game');
+    if (dg) setDailyGame(dg);
     const tb = sp.get('tab');
     if (tb && TABS.some((x) => x.t === tb)) setTab(tb);
     // Deep link to a section within a tab (e.g. the daily-games Hall of Fame):
@@ -841,7 +845,7 @@ export default function StatHubClient() {
           })()}
         </div>
 
-        {tab === 'daily' && <DailyGamesView onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); setTab('player'); }} />}
+        {tab === 'daily' && <DailyGamesView initialGame={dailyGame} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); setTab('player'); }} />}
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
@@ -951,7 +955,7 @@ function fmtPts1(n) {
   return Number.isInteger(v) ? String(v) : v.toFixed(1);
 }
 
-function DailyGamesView({ onSelectPlayer }) {
+function DailyGamesView({ onSelectPlayer, initialGame = null }) {
   const [hist, setHist] = useState(null);   // /api/quiz/daily-history
   const [today, setToday] = useState(null); // /api/quiz/daily-combined (today's per-game boards)
   useEffect(() => {
@@ -991,7 +995,7 @@ function DailyGamesView({ onSelectPlayer }) {
   return (
     <div>
       {/* 1. The combined daily leaderboard (full board + per-game tabs). */}
-      <DailyCombinedLeaderboard light />
+      <DailyCombinedLeaderboard light allTimeToggle initialTab={initialGame} key={initialGame || 'overall'} />
 
       {/* 2. Day-by-day champion history. */}
       <div id="daily-champions" className="card" style={{ padding: '16px 18px', marginTop: 16, scrollMarginTop: 16 }}>
