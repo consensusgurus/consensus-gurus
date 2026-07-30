@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X, Crown, Medal } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
-const ACCENT='#0e1d40', INK='#1c1e24', MUTED='#4b5563', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.16)';
+const ACCENT='#0e1d40', INK='#1c1e24', MUTED='#262b35', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.16)';
 const BARBG='#0a1730', ONBLUE='#ffffff', ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
 const MEDAL=['#e8b43a','#c3c7cf','#cf8b4e'];
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:ONBLUE_SOFT,marginBottom:2};

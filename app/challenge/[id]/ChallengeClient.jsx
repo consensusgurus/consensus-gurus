@@ -14,12 +14,12 @@ const COLORS = {
   paper: '#eceef1',
   ink: '#1c1e24',
   ember: '#0e1d40',
-  soft: '#4b5563',
+  soft: '#262b35',
   line: 'rgba(20,22,28,0.16)',
   accSoft: '#eef3ff',
   accBorder: '#cddffb',
   forest: '#10b981',
-  faded: '#4b5563',
+  faded: '#262b35',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 

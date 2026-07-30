@@ -10,10 +10,10 @@ export const metadata = {
 };
 
 const C = {
-  bg: '#e9ecf2',
+  bg: '#dbe1ea',
   ink: '#1c1e24',
-  muted: '#4b5563',
-  soft: '#4b5563',
+  muted: '#262b35',
+  soft: '#262b35',
   accent: '#0e1d40',
   line: 'rgba(20,22,28,0.16)',
 };

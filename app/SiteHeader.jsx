@@ -14,7 +14,7 @@ import { EXAM_ORDER } from './exams/examData';
 // category nav on lists home, the section tabs on a list, the player stat bar on
 // quizzes. Desktop keeps the card inset and rounded; mobile goes full-bleed and
 // the nav condenses to a compact segmented toggle next to the "SoT" mark.
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#4b5563', line: 'rgba(20,22,28,0.16)' };
+const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#262b35', line: 'rgba(20,22,28,0.16)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 
@@ -106,7 +106,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         .shc{width:100vw;margin-left:calc(50% - 50vw);}
         .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #d3d9e3;}
         .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
-        .shc-word em{font-style:normal;color:#4b5563;font-weight:600;}
+        .shc-word em{font-style:normal;color:#262b35;font-weight:600;}
         .shc-ws{display:none;}
         .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#1c1e24;flex:none;}
         .shc-games{display:flex;align-items:center;gap:9px;min-width:0;flex:none;}
@@ -115,13 +115,13 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         .shc-dot{width:8px;height:8px;border-radius:50%;flex:none;}
         .shc-gtxt{display:flex;flex-direction:column;gap:2px;line-height:1;}
         .shc-gnm{font-size:13px;font-weight:800;color:#1c1e24;letter-spacing:-.2px;}
-        .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#4b5563;white-space:nowrap;}
+        .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#262b35;white-space:nowrap;}
         .shc-search{flex:0 1 auto;width:clamp(200px,26vw,460px);min-width:130px;margin-left:auto;display:flex;align-items:center;gap:7px;height:36px;padding:0 10px 0 12px;background:#eef1f5;border:1px solid #eef1f5;border-radius:11px;}
-        .shc-search svg{flex:none;color:#4b5563;}
+        .shc-search svg{flex:none;color:#262b35;}
         .shc-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#1c1e24;font-family:inherit;font-size:13px;font-weight:600;}
-        .shc-search input::placeholder{color:#4b5563;opacity:1;}
+        .shc-search input::placeholder{color:#262b35;opacity:1;}
         .shc-search:focus-within{border-color:#46506a;background:#eef1f5;}
-        .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:#4b5563;cursor:pointer;padding:2px;flex:none;}
+        .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:#262b35;cursor:pointer;padding:2px;flex:none;}
         .shc-clear:hover{color:#1c1e24;}
         /* margin-left:auto pins the Sort + Lists/Quizzes toggle group to the
            far-right edge. When the search box caps at its max width on wide
@@ -259,7 +259,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <div className="sh-brand">
               <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
               <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'nowrap' }}>
-                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:'#1c1e24' }}><span className="sh-word-full">Source <span style={{ color: '#4b5563', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#4b5563', fontWeight: 600 }}>o</span>T</span></Link>
+                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:'#1c1e24' }}><span className="sh-word-full">Source <span style={{ color: '#262b35', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#262b35', fontWeight: 600 }}>o</span>T</span></Link>
                 <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color:'#1c1e24', marginTop: 0 }}><HeaderTagline active={active} /></span>
               </span>
             </div>

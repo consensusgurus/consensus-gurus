@@ -85,7 +85,7 @@ function ComingSoon({ first }) {
           ))}
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Tuck launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#4b5563', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily tile-tucking word puzzle — 14 letters, one empty board, and a par to beat. Come back when the first rack drops.
         </p>
         <a href="/daily" style={{ color: '#92400e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

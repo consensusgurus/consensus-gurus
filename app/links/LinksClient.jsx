@@ -36,7 +36,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";

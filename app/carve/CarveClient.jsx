@@ -39,7 +39,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
   accent: '#7c3aed',       // Carve identity — plum
   accentSoft: '#f5f0ff',
   green: '#15803d',
@@ -63,7 +63,7 @@ const REGION_HUES = [
   { soft: '#fde4f1', mid: '#f8c1dd', line: '#c02572' }, // pink
   { soft: '#e2f3f5', mid: '#bde3e8', line: '#0e7490' }, // teal
   { soft: '#f0ecd9', mid: '#e0d7ae', line: '#8a6d1a' }, // gold
-  { soft: '#e8e9ef', mid: '#cfd2de', line: '#4b5563' }, // slate
+  { soft: '#e8e9ef', mid: '#cfd2de', line: '#262b35' }, // slate
 ];
 
 const isIosDevice = () =>

@@ -14,8 +14,8 @@ import Footer from '../../Footer';
 import { withRef } from '@/lib/referrals';
 
 const C = {
-  bg: '#e9ecf2', surface: '#fff', ink: '#1c1e24', muted: '#4b5563',
-  soft: '#4b5563', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40',
+  bg: '#dbe1ea', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
+  soft: '#262b35', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#047857', danger: '#c0392b',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];

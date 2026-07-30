@@ -99,7 +99,7 @@ export default function DailyGamesPromo({ self, refresh }) {
   if (!open.length) return null;
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', color: '#4b5563', marginBottom: 7 }}>
+      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', color: '#262b35', marginBottom: 7 }}>
         Still on the table today
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>

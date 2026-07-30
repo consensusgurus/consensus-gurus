@@ -43,7 +43,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
   accent: '#92400e',        // Tuck identity — tile-rack umber
   accentSoft: '#f5e9dc',
   green: '#15803d',

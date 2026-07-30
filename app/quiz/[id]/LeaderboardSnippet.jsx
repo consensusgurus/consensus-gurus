@@ -5,7 +5,7 @@ import React from 'react';
 // gap, then the player's finishing place (highlighted) when outside the top 3.
 // Returns null when the quiz has no scores yet. Pass `fill` for a flex-1 column
 // that sits beside the standings panel (timed-mcq); omit it for a centered card.
-const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#4b5563' };
+const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#262b35' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function LeaderboardSnippet({ board, identity, score, lastElapsed, fill = false, maxWidth = 320, margin = '0 auto 18px' }) {

@@ -128,7 +128,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
     resize: 'vertical',
     fontSize: 16,
     minHeight: 60,
-    fontFamily: 'DM Sans, sans-serif',
+    fontFamily: 'Manrope, sans-serif',
   };
 
   const selectStyle = {
@@ -412,7 +412,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
               padding: 14,
               border: `1.5px solid ${COLORS.ember}`,
               background: 'rgba(192, 57, 43, 0.08)',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Manrope, sans-serif',
               fontSize: 14,
               color: COLORS.ember,
               display: 'flex',

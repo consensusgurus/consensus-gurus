@@ -16,7 +16,7 @@ import { Flag, Check } from 'lucide-react';
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const INK = '#1c1e24';
-const FADED = '#4b5563';
+const FADED = '#262b35';
 
 // Today's puzzle id fragment in the daily convention (M-D-YY, e.g. 7-18-26),
 // in Eastern time — the day the daily puzzles roll over.

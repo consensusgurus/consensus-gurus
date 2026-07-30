@@ -151,7 +151,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1px solid #d3d9e3;}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
-        .qch-word em{font-style:normal;color:#4b5563;font-weight:600;}
+        .qch-word em{font-style:normal;color:#262b35;font-weight:600;}
         .qch-ws{display:none;}
         .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#1c1e24;flex:none;}
         /* The search INPUT left this bar on 2026-07-29 (it now sits in the
@@ -188,7 +188,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-mecol{flex-direction:row;align-items:center;gap:clamp(14px,2.6vw,38px);}
           .qch-nm{font-size:15px;max-width:none;}
           .qch-sub{font-size:12.5px;border-left:1px solid #d3d9e3;padding-left:clamp(14px,2.6vw,38px);}
-          .qch-of{display:inline;color:#4b5563;}
+          .qch-of{display:inline;color:#262b35;}
         }
         .qch-sub{font-size:10.5px;font-weight:700;color:#46506a;line-height:1;white-space:nowrap;}
         .qch-rankm{display:none;font-size:11px;font-weight:800;color:#1c1e24;line-height:1;white-space:nowrap;}
@@ -201,7 +201,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;color:#1c1e24;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
         .qch-hub:hover{background:#d49a2a;color:#1c1e24;}
         .qch-tickwrap{display:flex;align-items:stretch;background:#ffffff;}
-        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#4b5563;position:relative;z-index:2;}
+        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#262b35;position:relative;z-index:2;}
         .qch-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,0.5);animation:qchpul 2s infinite;}
         @keyframes qchpul{0%{box-shadow:0 0 0 0 rgba(90,212,143,0.45)}70%{box-shadow:0 0 0 7px rgba(90,212,143,0)}100%{box-shadow:0 0 0 0 rgba(90,212,143,0)}}
         .qch-ticker{position:relative;overflow:hidden;flex:1 1 0;min-width:0;height:34px;}
@@ -216,7 +216,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-titem{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#46506a;text-decoration:none;white-space:nowrap;}
         .qch-titem:hover .qch-ts{text-decoration:underline;text-underline-offset:2px;}
         .qch-ts{color:#1c1e24;font-weight:800;}
-        .qch-td{color:#4b5563;}
+        .qch-td{color:#262b35;}
         .qch-tdot{width:4px;height:4px;border-radius:50%;background:#d3d9e3;margin:0 14px;flex:none;}
         .qch-tico{width:17px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none;}
         .qch-tico-play{background:rgba(46,163,106,0.22);}

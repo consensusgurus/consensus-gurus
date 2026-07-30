@@ -315,7 +315,7 @@ export default function SiteStatsClient() {
 }
 
 const CSS = `
-.ss-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;font-family:'DM Sans',system-ui,-apple-system,sans-serif;color:${INK};background:${SURFACE};min-height:100vh;}
+.ss-wrap{max-width:480px;margin:0 auto;padding:14px 12px 40px;font-family:'Manrope',system-ui,-apple-system,sans-serif;color:${INK};background:${SURFACE};min-height:100vh;}
 .ss-top{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 12px;}
 .ss-title{font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${NAVY};}
 .ss-sub{font-size:12px;color:${MUTED};margin-top:2px;}
@@ -365,7 +365,7 @@ const CSS = `
 .ss-ro-h{font-weight:800;color:${NAVY};font-size:12.5px;}
 .ss-ro-i b{color:${INK};font-weight:800;}
 .ss-ro-rate{color:${GOLD};font-weight:800;}
-.ss-xlab{fill:${FAINT};font-size:9px;font-weight:700;font-family:'DM Sans',system-ui,sans-serif;}
+.ss-xlab{fill:${FAINT};font-size:9px;font-weight:700;font-family:'Manrope',system-ui,sans-serif;}
 
 .ss-note{font-size:11px;color:${MUTED};margin-top:8px;background:${SURFACE};border-radius:8px;padding:7px 9px;}
 .ss-note-solo{margin:-4px 0 12px;}

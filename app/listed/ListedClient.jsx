@@ -45,7 +45,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
   brand: '#86198f',
   brandInk: '#5b0f63',
   brandSoft: '#fdf2fe',

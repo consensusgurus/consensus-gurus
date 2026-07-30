@@ -39,7 +39,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
   accent: '#0e7490',       // Circa identity — aged-ink teal
   accentSoft: '#e8f7fa',
   green: '#15803d',        // solved / dead on

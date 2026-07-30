@@ -13,7 +13,7 @@
 import React from 'react';
 
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const COLORS = { ink: '#1c1e24', faded: '#4b5563', ember: '#0e1d40', paper: '#eceef1' };
+const COLORS = { ink: '#1c1e24', faded: '#262b35', ember: '#0e1d40', paper: '#eceef1' };
 
 export default function DailyTopNav({ player, compact = false }) {
   const fz = compact ? 10 : 11;

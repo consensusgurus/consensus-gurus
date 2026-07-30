@@ -41,7 +41,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
   accent: '#4338ca',       // Outrank identity — indigo podium
   accentSoft: '#eef0fb',
   gold: '#e8b43a',

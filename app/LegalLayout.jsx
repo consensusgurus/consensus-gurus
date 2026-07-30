@@ -97,7 +97,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
 
         <div
           style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Manrope, sans-serif',
             fontSize: 16,
             lineHeight: 1.7,
             color: COLORS.ink,

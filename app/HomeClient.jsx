@@ -1441,7 +1441,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
               margin: 0,
               padding: 0,
               listStyle: 'none',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Manrope, sans-serif',
               fontSize: 14,
             }}
           >
@@ -1586,8 +1586,8 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
 // Modern light theme: Manrope, soft gray bg, white cards, blue accent, lucide
 // icons. Mirrors app/quizzes/QuizHomeClient.jsx so Lists and Quizzes match.
 const NT = {
-  bg: '#e9ecf2', surface: '#fff', ink: '#1c1e24', muted: '#4b5563',
-  soft: '#4b5563', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40',
+  bg: '#dbe1ea', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
+  soft: '#262b35', line: 'rgba(20,22,28,0.16)', accent: '#0e1d40',
   accsoft: '#e8effb', live: '#10b981',
 };
 const NFONT = "'Manrope', system-ui, -apple-system, sans-serif";

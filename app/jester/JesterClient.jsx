@@ -48,7 +48,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
   accent: '#7c3aed',        // Jester identity — motley violet
   accentSoft: '#ede9fe',
   accentDeep: '#5b21b6',

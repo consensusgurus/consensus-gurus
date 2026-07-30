@@ -38,7 +38,7 @@ const COLORS = {
   ink: '#1c1e24',
   ember: '#0e1d40',
   rust: '#c0392b',
-  faded: '#4b5563',
+  faded: '#262b35',
   accent: '#ea580c',       // Suds identity — orange
   accentSoft: '#fff5ed',
   green: '#15803d',        // correctness / solved

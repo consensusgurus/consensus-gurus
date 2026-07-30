@@ -4,9 +4,9 @@
 
 body {
   margin: 0;
-  background: #e9ecf2;
+  background: #dbe1ea;
   color: #1c1e24;
-  font-family: 'DM Sans', system-ui, sans-serif;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
 
 html {
@@ -48,13 +48,13 @@ a {
 .nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
 .nt-tbody{padding:12px 14px 13px;display:flex;flex-direction:column;flex:1 1 auto;}
 .nt-ttitle{font-size:16px;font-weight:800;line-height:1.18;letter-spacing:-0.01em;margin:0 0 9px;}
-.nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#4b5563;}
+.nt-lbl{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#262b35;}
 .nt-crow{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(20,22,28,0.12);font-size:12.5px;}
 .nt-crow:last-of-type{border-bottom:none;}
 .nt-cnum{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;margin-top:1px;}
 .nt-cname{flex:1 1 auto;min-width:0;line-height:1.3;}
 .nt-tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:9px;border-top:1px solid rgba(20,22,28,0.16);}
-.nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#4b5563;display:flex;align-items:center;gap:4px;}
+.nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#262b35;display:flex;align-items:center;gap:4px;}
 .nt-relwrap{flex:1 1 0;min-height:0;position:relative;overflow:hidden;margin-top:10px;}
 .nt-rel{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f7f8fa;border:1px solid rgba(20,22,28,0.16);border-radius:8px;padding:8px 11px;cursor:pointer;color:#1c1e24;transition:background .12s,border-color .12s;}
 .nt-rel:hover{background:#fff;border-color:#0e1d40;}
@@ -75,3 +75,11 @@ button, input, textarea, select { border-radius: 8px; }
      doesn't zoom on focus). */
   input::placeholder, textarea::placeholder { font-size: 13px !important; }
 }
+
+/* Light-theme panel elevation: white cards need a real step above the
+   #dbe1ea page ground, a hairline alone reads as flat. Global so the
+   classes lift wherever they render. */
+.dhx-lone,.dhx-rone,.dh-boardwrap,.dh-sbar,.dhx-lp,.dh-lbpanel,.qch-bar,.dtp,.dgg-tile{
+  box-shadow:0 1px 3px rgba(20,22,28,0.08),0 1px 1px rgba(20,22,28,0.05);
+}
+.dh-tile{box-shadow:0 1px 1px rgba(20,22,28,0.04);}

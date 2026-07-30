@@ -15,7 +15,7 @@ const COLORS = {
   cream: '#f7f8fa',
   paper: '#ffffff',
   ink: '#1c1e24',
-  faded: '#4b5563',
+  faded: '#262b35',
   ember: '#0e1d40',
   forest: '#10b981',
   rust: '#b45309',

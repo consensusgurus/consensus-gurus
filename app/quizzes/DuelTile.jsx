@@ -165,7 +165,7 @@ export default function DuelTile() {
                 </div>
                 {oppOpen && !opp && oppQ.trim() && (
                   <div style={menu}>
-                    {oppResults.length === 0 ? <div style={{ padding: '8px 10px', fontSize: 12, color: '#4b5563' }}>No players match. Leave blank for a shareable link.</div>
+                    {oppResults.length === 0 ? <div style={{ padding: '8px 10px', fontSize: 12, color: '#262b35' }}>No players match. Leave blank for a shareable link.</div>
                       : oppResults.map((p) => (
                         <button key={p.anon} onClick={() => { setOpp(p); setOppOpen(false); }} style={item}>{p.name}</button>
                       ))}
@@ -190,10 +190,10 @@ export default function DuelTile() {
                     {quizResults.map((x) => (
                       <button key={x.id} onClick={() => { setQuiz({ id: x.id, title: x.title }); setQuizOpen(false); }} style={item}>
                         <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#1c1e24', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
-                        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#4b5563' }}>{x.category || 'Quiz'}</span>
+                        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#262b35' }}>{x.category || 'Quiz'}</span>
                       </button>
                     ))}
-                    {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: '#4b5563' }}>No quizzes match.</div>}
+                    {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: '#262b35' }}>No quizzes match.</div>}
                   </div>
                 )}
               </div>

@@ -6,7 +6,7 @@ import Grain from '@/app/Grain';
 // Local theme palette (live-site look), shadowing the magazine COLORS so the
 // public site is untouched.
 const COLORS = {
-  cream: '#f7f8fa', paper: '#ffffff', ink: '#1c1e24', faded: '#4b5563',
+  cream: '#f7f8fa', paper: '#ffffff', ink: '#1c1e24', faded: '#262b35',
   ember: '#0e1d40', forest: '#10b981', rust: '#b45309', line: 'rgba(20,22,28,0.16)',
 };
 
@@ -142,7 +142,7 @@ export default function LoginClient() {
           {error && (
             <p
               style={{
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Manrope, sans-serif',
                 fontSize: 14,
                 color: COLORS.ember,
                 marginTop: 14,

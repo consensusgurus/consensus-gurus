@@ -454,7 +454,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
           <LinkWrap href={href} rel={rel}>
             <p
               style={{
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Manrope, sans-serif',
                 fontSize: 14,
                 color: desc ? '#5a5045' : COLORS.faded,
                 fontStyle: desc ? 'normal' : 'italic',
@@ -543,7 +543,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
       <LinkWrap href={href} rel={rel} style={{ flex: 1 }}>
         <p
           style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Manrope, sans-serif',
             fontSize: 14,
             color: desc ? '#5a5045' : COLORS.faded,
             fontStyle: desc ? 'normal' : 'italic',
@@ -680,7 +680,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
           <LinkWrap href={href} rel={rel}>
             <p
               style={{
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Manrope, sans-serif',
                 fontSize: 14,
                 color: desc ? '#5a5045' : COLORS.faded,
                 fontStyle: desc ? 'normal' : 'italic',
@@ -1176,7 +1176,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             {complainSent ? (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
                   Your note went to the editors' desk. Flagged lists get re-researched.
                 </p>
                 <button
@@ -1189,7 +1189,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             ) : (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -1199,7 +1199,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                     onChange={(e) => setComplainName(e.target.value)}
                     maxLength={120}
                     placeholder="Name (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
                   />
                   <input
                     type="email"
@@ -1207,7 +1207,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                     onChange={(e) => setComplainEmail(e.target.value)}
                     maxLength={200}
                     placeholder="Email (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
                   />
                 </div>
                 <textarea
@@ -1216,7 +1216,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                   maxLength={1000}
                   rows={4}
                   placeholder="What's off about this list? (optional)"
-                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
                 />
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button

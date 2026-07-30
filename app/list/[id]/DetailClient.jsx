@@ -571,7 +571,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             fontSize: 15,
             lineHeight: 1.55,
             margin: '10px 0 0',
-            color: '#4b5563',
+            color: '#262b35',
             maxWidth: 680,
           }}
         >
@@ -582,14 +582,14 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       {!compact && (
         <div style={{ marginTop: 18 }}>
           <div style={{ display: 'flex', gap: 16, marginBottom: 10, justifyContent: 'flex-end' }}>
-            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#0e1d40' : '#4b5563', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
-            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#4b5563', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
+            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#0e1d40' : '#262b35', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#262b35', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
           </div>
           <div style={{ display: 'flex', gap: 6, background: '#eceef1', borderRadius: 10, padding: 4 }}>
             {[['consensus', 'The Ranking'], ['source', 'Sources'], ['method', 'Methodology'], ['activity', 'Activity']]
               .filter(([id]) => id !== 'source' || showSourceTab)
               .map(([id, label]) => (
-                <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? '#fff' : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? '#1c1e24' : '#4b5563', cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? '#fff' : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? '#1c1e24' : '#262b35', cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
               ))}
           </div>
         </div>
@@ -606,7 +606,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             {complainSent ? (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
                   Your note went to the editors' desk. Flagged lists get re-researched.
                 </p>
                 <button
@@ -619,7 +619,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             ) : (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -629,7 +629,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     onChange={(e) => setComplainName(e.target.value)}
                     maxLength={120}
                     placeholder="Name (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
                   />
                   <input
                     type="email"
@@ -637,7 +637,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     onChange={(e) => setComplainEmail(e.target.value)}
                     maxLength={200}
                     placeholder="Email (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
                   />
                 </div>
                 <textarea
@@ -646,7 +646,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   maxLength={1000}
                   rows={4}
                   placeholder="What's off about this list? (optional)"
-                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
                 />
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button
@@ -1003,7 +1003,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           {addError && (
             <p
               style={{
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Manrope, sans-serif',
                 fontSize: 13,
                 color: COLORS.ember,
                 margin: '-8px 0 16px',
@@ -1370,7 +1370,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
           <p
             style={{
               margin: '10px 0 0',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Manrope, sans-serif',
               fontSize: 14,
               lineHeight: 1.55,
               color: COLORS.faded,
@@ -1619,7 +1619,7 @@ export default function DetailClient({ listId }) {
           <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#1e3a6b,#0a1730)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sotpulse 1.2s ease-in-out infinite' }}>
             <div style={{ width: 17, height: 17, borderRadius: '50%', border: '2.5px solid #fff' }} />
           </div>
-          <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: '#4b5563' }}>Loading the ranking…</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: '#262b35' }}>Loading the ranking…</div>
         </div>
       ) : list ? (
         <ListDetail
@@ -1637,7 +1637,7 @@ export default function DetailClient({ listId }) {
         />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontWeight: 600, color: '#4b5563' }}>
+          <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontWeight: 600, color: '#262b35' }}>
             That list seems to have wandered off.
           </p>
           <button

@@ -5,7 +5,7 @@ import { Flag, ListPlus, BarChart3, MessageSquare, PenLine, RefreshCw, BookMarke
 // Re-themed to the site's white/Manrope/blue design (was the cream COLORS from
 // lib/data). Same keys, new values, so every COLORS.* reference below picks up
 // the new palette with no other change.
-const COLORS = { ink: '#1c1e24', faded: '#4b5563', ember: '#0e1d40', cream: '#ffffff', paper: 'rgba(20,22,28,0.12)', soft: '#4b5563' };
+const COLORS = { ink: '#1c1e24', faded: '#262b35', ember: '#0e1d40', cream: '#ffffff', paper: 'rgba(20,22,28,0.12)', soft: '#262b35' };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -159,7 +159,7 @@ function Event({ kind, kicker, date, children, color: colorOverride, chips }) {
           </span>
         )}
       </div>
-      <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 6, lineHeight: 1.45 }}>{children}</div>
+      <div style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, marginTop: 6, lineHeight: 1.45 }}>{children}</div>
     </div>
   );
 }
@@ -393,7 +393,7 @@ export default function FeedClient({ events = [] }) {
 
       <div>
         {shown.length === 0 ? (
-          <p style={{ fontStyle: 'italic', color: COLORS.faded, fontFamily: 'DM Sans, sans-serif' }}>Nothing in this category yet.</p>
+          <p style={{ fontStyle: 'italic', color: COLORS.faded, fontFamily: 'Manrope, sans-serif' }}>Nothing in this category yet.</p>
         ) : (
           shown.map((e, i) => renderEvent(e, i))
         )}

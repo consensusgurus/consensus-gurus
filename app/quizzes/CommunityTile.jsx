@@ -160,7 +160,7 @@ export default function CommunityTile() {
         .cmtile .cm-join{margin-top:auto;align-self:flex-start;font-size:12.5px;}
         .cm-modal{position:fixed;inset:0;z-index:9999;background:rgba(24,18,8,.66);display:flex;align-items:center;justify-content:center;padding:20px;cursor:default;}
         .cm-modal-card{position:relative;width:100%;max-width:390px;background:#fff;border-radius:16px;padding:22px 20px 20px;max-height:88vh;overflow:auto;}
-        .cm-modal-x{position:absolute;top:11px;right:11px;background:none;border:0;padding:5px;cursor:pointer;color:#4b5563;line-height:0;}
+        .cm-modal-x{position:absolute;top:11px;right:11px;background:none;border:0;padding:5px;cursor:pointer;color:#262b35;line-height:0;}
       `}</style>
 
       <span className="cm-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> TOP COMMUNITY MEMBER</span>

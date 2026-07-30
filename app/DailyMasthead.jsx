@@ -23,7 +23,7 @@ import { HelpCircle } from 'lucide-react';
 
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const INK = '#1c1e24';
-const FADED = '#4b5563';
+const FADED = '#262b35';
 
 export default function DailyMasthead({
   blocks,

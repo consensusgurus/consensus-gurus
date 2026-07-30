@@ -104,10 +104,10 @@ const CAT_COLOR = {
 const CAT_CHIP_BG = {}, CAT_BG = {}, CAT_BD = {};
 for (const [k, v] of Object.entries(CAT_COLOR)) {
   CAT_CHIP_BG[k] = mixHex(v, 0.13, TINT_BASE);
-  CAT_BG[k] = mixHex(v, 0.14, TINT_BASE);
-  CAT_BD[k] = mixHex(v, 0.55, TINT_BASE);
+  CAT_BG[k] = mixHex(v, 0.16, TINT_BASE);
+  CAT_BD[k] = mixHex(v, 0.72, TINT_BASE);
 }
-const catCol = (cat) => CAT_COLOR[cat] || '#4b5563';
+const catCol = (cat) => CAT_COLOR[cat] || '#262b35';
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Consecutive ET days on which the player finished at least one daily, counted
@@ -397,7 +397,7 @@ export default function DailyStrip({ board = null }) {
                 <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
                 {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
                 <span className="dh-tnm">{g.name}</span>
-                <span className="dh-tcat" style={{ background: CAT_CHIP_BG[g.cat] || '#eef0f4', color: catCol(g.cat) }}>
+                <span className="dh-tcat" style={{ background: catCol(g.cat), color: '#fff' }}>
                   {CAT_SHORT[g.cat] || g.cat}
                 </span>
                 <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
@@ -431,12 +431,12 @@ export default function DailyStrip({ board = null }) {
         .dh-bupt{min-width:0;}
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#a16207;white-space:nowrap;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
-        .dh-busub{font-size:11px;font-weight:600;color:#4b5563;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dh-busub{font-size:11px;font-weight:600;color:#262b35;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dh-stats{display:flex;align-items:center;flex:none;min-width:0;overflow:hidden;}
         .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid #eef0f4;}
         .dh-stat:last-child{border-right:none;}
         .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:#4b5563;white-space:nowrap;}
+        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:#262b35;white-space:nowrap;}
         .dh-stat.g b{color:#15803d;}
         .dh-stat.y b{color:#a16207;}
         @container (max-width:900px){.dh-stat.opt{display:none;}}
@@ -472,14 +472,14 @@ export default function DailyStrip({ board = null }) {
         .dh-tic{width:44px;height:28px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
         .dh-tic img{height:21px;width:auto;max-width:28px;object-fit:contain;}
         .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-        .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+        .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
         .dh-nolead{color:#5a6472;font-weight:600;}
         .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#6ee7b7;flex:none;}
         .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#f0c95a;flex:none;}
         .dh-mstrk.none{color:#4d5872;}
-        .dh-mlead{display:flex;align-items:center;justify-content:center;gap:3px;font-size:9.5px;font-weight:700;color:#4b5563;min-width:0;max-width:100%;width:100%;}
+        .dh-mlead{display:flex;align-items:center;justify-content:center;gap:3px;font-size:9.5px;font-weight:700;color:#262b35;min-width:0;max-width:100%;width:100%;}
         .dh-mlead svg{flex:none;color:#a16207;}
         .dh-mlead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
@@ -489,22 +489,22 @@ export default function DailyStrip({ board = null }) {
         .dh-lbpanel{background:#ffffff;border:1px solid #d3d9e3;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
         .dsd-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#a16207;font-weight:800;}
-        .dsd-r{font-size:10.5px;color:#4b5563;font-weight:600;}
+        .dsd-r{font-size:10.5px;color:#262b35;font-weight:600;}
         .dsd-grid{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
         @media(max-width:900px){.dsd-grid{grid-template-columns:1fr;}}
-        .dsd-sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;font-weight:800;margin-bottom:8px;}
-        .dsd-cols{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;padding:0 11px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;}
+        .dsd-sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;font-weight:800;margin-bottom:8px;}
+        .dsd-cols{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;padding:0 11px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;}
         .dsd-row{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;align-items:center;padding:8px 11px;margin-bottom:5px;border-radius:10px;background:#fdf3dd;border:1px solid #fdf3dd;}
-        .dsd-row.plain{background:#f7f8fa;border-color:#4b5563;}
+        .dsd-row.plain{background:#f7f8fa;border-color:#262b35;}
         .dsd-row.me{background:#fdf3dd;border-color:#8a5300;}
         .dsd-rk{font-weight:800;font-size:15px;color:#8a5300;font-variant-numeric:tabular-nums;}
-        .dsd-row.plain .dsd-rk{color:#4b5563;}
+        .dsd-row.plain .dsd-rk{color:#262b35;}
         .dsd-pn{font-size:13.5px;font-weight:500;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dsd-pn b{color:#a16207;font-weight:700;}
-        .dsd-g{font-size:12px;color:#4b5563;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+        .dsd-g{font-size:12px;color:#262b35;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
         .dsd-tt{font-size:13.5px;font-weight:800;color:#8a5300;text-align:right;font-variant-numeric:tabular-nums;}
-        .dsd-tt s{font-size:10px;font-weight:600;color:#4b5563;text-decoration:none;}
-        .dsd-empty{font-size:12.5px;color:#4b5563;font-weight:600;padding:8px 2px;}
+        .dsd-tt s{font-size:10px;font-weight:600;color:#262b35;text-decoration:none;}
+        .dsd-empty{font-size:12.5px;color:#262b35;font-weight:600;padding:8px 2px;}
         .dsd-row.first{background:#fdf3dd;border-color:#8a5300;}
         .dsd-row.first .dsd-rk{font-size:17px;color:#8a5300;}
         .dsd-row.first .dsd-pn{font-weight:800;font-size:14.5px;color:#8a5300;display:flex;align-items:center;gap:5px;}
@@ -512,22 +512,22 @@ export default function DailyStrip({ board = null }) {
         .dsd-row.first .dsd-tt{font-size:15px;}
         .dsd-past{margin-top:20px;padding-top:16px;border-top:1px solid #eef0f4;}
         .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:#f7f8fa;border:1px solid #eef0f4;}
-        .dsd-yest.top{padding:9px 11px;background:#f7f8fa;border-color:#4b5563;}
-        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#4b5563;font-weight:800;flex:none;min-width:56px;}
+        .dsd-yest.top{padding:9px 11px;background:#f7f8fa;border-color:#262b35;}
+        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;font-weight:800;flex:none;min-width:56px;}
         .dsd-yest b{min-width:0;font-size:12px;color:#c9d6ee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dsd-yest.top b{font-size:13px;color:#1c1e24;font-weight:700;}
         .dsd-yest .yt{margin-left:auto;flex:none;font-size:11.5px;font-weight:700;color:#d8c489;font-variant-numeric:tabular-nums;}
         .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#8a5300;}
-        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#4b5563;text-decoration:none;}
-        .dsd-yest .ynone{font-size:12px;color:#4b5563;font-weight:600;}
+        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#262b35;text-decoration:none;}
+        .dsd-yest .ynone{font-size:12px;color:#262b35;font-weight:600;}
         .dsd-hof{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:#fdf3dd;border:1px solid #e8c46a;color:#8a5300;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
         .dsd-hof:hover{background:#fdf3dd;}
         .dsd-hof svg{color:#a16207;flex:none;}
-        .dsd-players{margin-top:9px;font-size:11.5px;color:#4b5563;font-weight:600;}
+        .dsd-players{margin-top:9px;font-size:11.5px;color:#262b35;font-weight:600;}
         .dsd-players b{color:#1c1e24;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dsd-players s{color:#4b5563;text-decoration:none;font-size:10.5px;}
+        .dsd-players s{color:#262b35;text-decoration:none;font-size:10.5px;}
         .dsd-gt{font-size:11px;font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
-        .dsd-gt span{font-size:9px;color:#4b5563;font-weight:600;}
+        .dsd-gt span{font-size:9px;color:#262b35;font-weight:600;}
         .dsd-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
         @media(max-width:1200px){.dsd-minis{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:900px){.dsd-minis{grid-template-columns:repeat(2,1fr);}}
@@ -536,8 +536,8 @@ export default function DailyStrip({ board = null }) {
         .dsd-k{width:11px;font-weight:800;color:#8a5300;font-variant-numeric:tabular-nums;flex:0 0 auto;}
         .dsd-n2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1c1e24;font-weight:500;}
         .dsd-n2 b{color:#a16207;font-weight:700;}
-        .dsd-p{color:#4b5563;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
-        .dsd-none{color:#4b5563;font-size:10.5px;padding:2px 0;}
+        .dsd-p{color:#262b35;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
+        .dsd-none{color:#262b35;font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-bup{border-right:none;padding-right:4px;}}

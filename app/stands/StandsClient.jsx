@@ -32,7 +32,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40', rust: '#c0392b', faded: '#4b5563',
+  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40', rust: '#c0392b', faded: '#262b35',
   accent: '#1d4ed8', accentSoft: '#dbeafe', accentDeep: '#1e3a8a', green: '#15803d', greenSoft: '#dcfce7', amber: '#b45309',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";

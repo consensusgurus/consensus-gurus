@@ -199,7 +199,7 @@ export default function CreateClient({ lists }) {
       >
         Create Your Own Grid
       </h1>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 28px', maxWidth: 560 }}>
+      <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 28px', maxWidth: 560 }}>
         Pick a format, add lists in order to fill the tiles, drop in a title if you like, then download a clean image to share.
       </p>
 
@@ -256,7 +256,7 @@ export default function CreateClient({ lists }) {
       {/* Step 3 — add lists in order */}
       <SectionLabel>3 · Add lists ({filledCount} of {tiles.length})</SectionLabel>
       {gridFull ? (
-        <div style={{ padding: '14px 16px', border: `1.5px dashed ${COLORS.faded}`, marginBottom: 16, fontFamily: 'DM Sans, sans-serif', fontSize: 14, color: COLORS.faded }}>
+        <div style={{ padding: '14px 16px', border: `1.5px dashed ${COLORS.faded}`, marginBottom: 16, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.faded }}>
           All {tiles.length} tiles are filled. Remove one below to swap in a different list.
         </div>
       ) : (
@@ -268,7 +268,7 @@ export default function CreateClient({ lists }) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`Search lists to fill tile ${filledCount + 1}…`}
-              style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 16, color: COLORS.ink }}
+              style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'Manrope, sans-serif', fontSize: 16, color: COLORS.ink }}
             />
             {query && (
               <button onClick={() => setQuery('')} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: COLORS.faded, display: 'flex', flex: '0 0 auto' }}>
@@ -373,7 +373,7 @@ export default function CreateClient({ lists }) {
           <Download size={16} strokeWidth={2.5} />
           {downloading ? 'Generating…' : 'Download image'}
         </button>
-        <span style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: COLORS.faded }}>
+        <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 13, color: COLORS.faded }}>
           On a phone, press and hold the saved image to share it.
         </span>
       </div>
@@ -459,7 +459,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
                     </div>
                     <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 28, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 16px', fontVariationSettings: '"SOFT" 100' }}>{t.title}</h3>
                     <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 10 }}>{pv.label}</div>
-                    <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'DM Sans, sans-serif', fontSize: 19 }}>
+                    <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'Manrope, sans-serif', fontSize: 19 }}>
                       {pv.items.map((it, idx) => (
                         <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>
                           {idx < 3 ? (

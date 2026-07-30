@@ -85,7 +85,7 @@ function ComingSoon({ first }) {
           ))}
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Extra launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#4b5563', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily front page — a historic headline with the giveaway words blacked out. Come back when the first edition hits the stands.
         </p>
         <a href="/daily" style={{ color: '#b91c1c', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
