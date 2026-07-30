@@ -460,16 +460,17 @@ export default function DailyStrip({ board = null }) {
         .dh-boardwrap{position:relative;background:#ffffff;border:1.5px solid #c3ccda;border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
-        /* The icon art is drawn for a navy field. The tile is white, so the icon
-       keeps a navy plate behind it rather than washing out (owner 2026-07-29). */
+        /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
+       white tile with no plate. warmer, carve and suds resisted the recolour, so
+       those three PNGs carry a baked navy plate instead (owner 2026-07-29). */
         .dh-tile{position:relative;overflow:hidden;background:#ffffff;border:1.5px solid #c3ccda;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);background:#f7f9fc;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
         .dh-tile.sel{border-color:#a16207;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.done{background:#f0fdf4;border-color:#1f5537;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
-        .dh-tic{width:46px;height:30px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;background:#0e1d40;border-radius:8px;}
-        .dh-tic img{height:21px;width:auto;max-width:28px;object-fit:contain;}
+        .dh-tic{width:46px;height:30px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
+        .dh-tic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
         .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
