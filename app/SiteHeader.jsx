@@ -204,7 +204,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
             <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
           </nav>
           <details className="shc-burger">
-            <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+            <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1e24" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
             <div className="shc-bmenu">
               <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
               <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
@@ -269,7 +269,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
                 <Link href="/lists" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists</Link>
               </nav>
               <details className="sh-burger">
-                <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+                <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1e24" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
                 <div className="sh-bmenu">
                   <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
                   <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>

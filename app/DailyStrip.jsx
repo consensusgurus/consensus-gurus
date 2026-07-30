@@ -387,7 +387,7 @@ export default function DailyStrip({ board = null }) {
               <button
                 type="button"
                 key={g.key}
-                className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
+                className={`dh-tile${isDone ? ' done' : ''}${!isDone && inprog.has(g.key) ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}`}
               style={isDone ? undefined : { borderColor: CAT_BD[g.cat] }}
                 onClick={() => pick(g.key)}
                 aria-expanded={sel === g.key}
@@ -425,15 +425,17 @@ export default function DailyStrip({ board = null }) {
         .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#ffffff;border:1.5px solid #c3ccda;border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:#1c1e24;border-bottom:1px solid #eef0f4;}
-        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-right:14px;border-right:1.5px solid #c3ccda;}
+        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1.5px solid #c3ccda;}
         .dh-bup .dh-play{flex:1 1 auto;min-width:96px;max-width:none;font-size:13.5px;padding:11px 18px;}
         .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#a16207;white-space:nowrap;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
         .dh-busub{font-size:11px;font-weight:600;color:#262b35;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dh-statlead{flex:none;font-size:11.5px;font-weight:800;color:#1c1e24;white-space:nowrap;padding-right:11px;letter-spacing:-.1px;}
         .dh-stats{display:flex;align-items:center;flex:none;min-width:0;overflow:hidden;}
         .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid #eef0f4;}
+        .dh-stat:last-child{border-right:none;}
         .dh-stat:last-child{border-right:none;}
         .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
         .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:#262b35;white-space:nowrap;}
@@ -446,7 +448,7 @@ export default function DailyStrip({ board = null }) {
         @container (max-width:620px){.dh-stat.opt3{display:none;}
           .dh-sbar{justify-content:space-between;gap:8px;}
           .dh-stat{border-right:none;padding:0 5px;}
-          .dh-bup{padding-right:8px;gap:9px;}
+          .dh-bup{padding-left:8px;gap:9px;}
           .dh-busub{display:none;}
           .dh-wideonly{display:none;}
           .dh-bup .dh-play{flex:0 0 auto;min-width:0;font-size:12px;padding:9px 13px;margin-left:4px;}}
@@ -467,6 +469,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tile{position:relative;overflow:hidden;background:#ffffff;border:1.5px solid #c3ccda;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);background:#f7f9fc;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
         .dh-tile.sel{border-color:#a16207;box-shadow:0 0 0 2px #e8b43a;}
+        .dh-tile.inprog{background:#fffaeb;}
         .dh-tile.done{background:#f0fdf4;border-color:#1f5537;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
@@ -541,7 +544,7 @@ export default function DailyStrip({ board = null }) {
         .dsd-none{color:#262b35;font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
-        @media(max-width:940px){.dh-bup{border-right:none;padding-right:4px;}}
+        @media(max-width:940px){.dh-bup{border-left:none;padding-left:4px;}}
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
           .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;grid-auto-rows:minmax(96px,1fr);}
@@ -571,6 +574,13 @@ export default function DailyStrip({ board = null }) {
           corners only, no margin), and the filters live inside it, so nothing
           sits between the bar and the tiles. */}
       <div className="dh-sbar">
+        <div className="dh-stats">
+          <div className="dh-statlead">Your day:</div>
+          <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
+          {board && board.me ? <div className="dh-stat opt3"><b>{fmtPts(board.me.total)}</b><span>Points</span></div> : null}
+          {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
+          {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
+        </div>
         <div className="dh-bup">
           {easiest ? (
             <>
@@ -601,14 +611,6 @@ export default function DailyStrip({ board = null }) {
               <a href="/daily" className="dh-ghostD"><Clock size={11} strokeWidth={2.4} />Archive</a>
             </>
           )}
-        </div>
-        <div className="dh-stats">
-          <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span><span className="dh-wideonly">Done </span>today</span></div>
-          {board && board.me ? <div className="dh-stat opt3"><b>{fmtPts(board.me.total)}</b><span>Points</span></div> : null}
-          {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
-          {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
-          {uniquePlayers != null ? <div className="dh-stat opt"><b>{uniquePlayers.toLocaleString()}</b><span>Players</span></div> : null}
-          {resetLbl ? <div className="dh-stat opt2"><b>{resetLbl}</b><span>Resets in</span></div> : null}
         </div>
       </div>
 

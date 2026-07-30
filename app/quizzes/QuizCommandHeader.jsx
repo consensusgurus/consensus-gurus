@@ -292,7 +292,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           <Link href="/lists">Top 10 Lists</Link>
         </nav>
         <details className="qch-burger">
-          <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+          <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1e24" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
           <div className="qch-bmenu">
             <Link href="/" className="on">Puzzles &amp; Quizzes</Link>
             <Link href="/lists">Top 10 Lists</Link>

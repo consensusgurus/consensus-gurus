@@ -1913,7 +1913,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-cmbar .mtr{position:absolute;left:0;top:0;bottom:0;background:#dbe6fb;border-radius:7px;}
             .qzh .dhx-cmbar .nm{position:relative;font-size:11.5px;font-weight:700;color:#1c1e24;}
             .qzh .dhx-cmbar .p{position:relative;margin-left:auto;font-size:11px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
-            .qzh .dhx-cm-empty{padding:0 14px 13px;font-size:11px;color:#7d92bd;font-weight:600;}
+            .qzh .dhx-cm-empty{padding:0 14px 13px;font-size:11px;color:#4b5563;font-weight:600;}
             /* ── LEFT: one integrated navy element (three leaderboards) ── */
             .qzh .dhx-lone{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-lone > *{border:0 !important;border-radius:0 !important;box-shadow:none !important;margin:0 !important;background:transparent !important;}
@@ -1969,7 +1969,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone .dhx-cm-h{color:#8a5300 !important;}
             .qzh .dhx-rone .dhx-cm-h .cmchev{color:#262b35 !important;}
             .qzh .dhx-rone .dhx-cmbar{background:#f1f3f6 !important;}
-            .qzh .dhx-rone .dhx-cmbar .mtr{background:#22406e !important;}
+            .qzh .dhx-rone .dhx-cmbar .mtr{background:#dbe6fb !important;}
             .qzh .dhx-rone .dhx-cmbar .nm{color:#1c1e24 !important;}
             .qzh .dhx-rone .dhx-cmbar .p{color:#46506a !important;}
             .qzh .dhx-rone .dhx-cm-empty{color:#262b35 !important;}
@@ -2089,7 +2089,7 @@ export default function QuizHomeClient() {
             {/* full Last Played (moved up from the browse row): rings + time + plays today */}
             <div className="dhx-lp">
               <div className="dhx-lp-top">
-                <span className="dhx-lp-ttl"><Play size={13} fill="#fff" strokeWidth={0} />Last Played</span>
+                <span className="dhx-lp-ttl">Last Played</span>
                 <span className="dhx-live"><i />LIVE</span>
                 <button type="button" className="dhx-lp-all" onClick={() => setListMode('live')}>All ›</button>
               </div>
@@ -2100,7 +2100,7 @@ export default function QuizHomeClient() {
                   const nowMs = Date.now(); const HB = 11; const bars = new Array(HB).fill(0);
                   for (const p of (recent || [])) { const tt = (p && p.playedAt) ? Date.parse(p.playedAt) : 0; if (!tt) continue; const hrsAgo = Math.floor((nowMs - tt) / 3600000); if (hrsAgo >= 0 && hrsAgo < HB) bars[HB - 1 - hrsAgo] += 1; }
                   const maxBar = Math.max(1, ...bars);
-                  return (<div className="dhx-lp-bars" title="plays per hour (last 11h)">{bars.map((b, i) => (<span key={i} style={{ height: `${Math.max(9, Math.round((b / maxBar) * 100))}%`, background: i >= HB - 2 ? '#10b981' : 'rgba(255,255,255,0.22)' }} />))}</div>);
+                  return (<div className="dhx-lp-bars" title="plays per hour (last 11h)">{bars.map((b, i) => (<span key={i} style={{ height: `${Math.max(9, Math.round((b / maxBar) * 100))}%`, background: i >= HB - 2 ? '#15803d' : '#c3ccda' }} />))}</div>);
                 })()}
               </div>
               <div className="dhx-lp-rows">
