@@ -582,7 +582,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {!playing && !endClosed && (
-        <DailyEndCard modal self="stands" won={won}
+        <DailyEndCard modal self="stands" won={g.status === 'done'}
           headline={g.status === 'done' ? <>The season is reconstructed</> : <>The record kept its secret</>}
           subline={<>Stands #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.rejected} rejected &middot; {elapsed}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'} onReplay={resetGame} onClose={() => setEndClosed(true)} />

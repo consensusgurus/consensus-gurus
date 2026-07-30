@@ -1986,9 +1986,9 @@ export default function QuizHomeClient() {
             .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#15803d;background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
             .qzh .dhx-live i{width:5px;height:5px;border-radius:999px;background:#10b981;display:block;}
             .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:#46506a;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
-            .qzh .dhx-lp-stats{display:flex;gap:18px;margin-bottom:11px;}
-            .qzh .dhx-lp-stats b{display:block;font-size:20px;font-weight:800;line-height:1;}
-            .qzh .dhx-lp-stats span{display:block;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#262b35;margin-top:4px;}
+            .qzh .dhx-lp-stats{display:flex;flex-wrap:nowrap;align-items:flex-start;gap:12px;margin-bottom:11px;}
+            .qzh .dhx-lp-stats b{display:block;font-size:15px;font-weight:800;line-height:1;white-space:nowrap;}
+            .qzh .dhx-lp-stats span{display:block;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#262b35;margin-top:4px;white-space:nowrap;}
             .qzh .dhx-lp-rows{display:flex;flex-direction:column;gap:1px;}
             .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1.5px solid #c3ccda;text-decoration:none;}
             .qzh .dhx-lp-row:last-child{border-bottom:none;}
