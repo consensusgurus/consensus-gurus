@@ -44,6 +44,7 @@ export const DAILY_GAMES = [
   { key: 'hedge', href: '/hedge', name: 'Hedge', tag: 'draw one closed loop', store: 'sot_hedge_day', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)' },
   { key: 'listed', href: '/listed', name: 'Listed', tag: 'rank the list, top to bottom', store: 'sot_listed_day', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)' },
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'white to play and mate', store: 'sot_mate_day', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)' },
+  { key: 'four', href: '/four', name: 'Four', tag: 'one column wins', store: 'sot_four_day', accent: '#1e3a8a', bg: '#e8eefc', border: 'rgba(30,58,138,0.35)' },
 ];
 
 function etToday() {

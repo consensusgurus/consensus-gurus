@@ -50,6 +50,7 @@ const GAMES = [
   { key: 'hedge', href: '/hedge', name: 'Hedge', tag: 'Draw one closed loop', img: '/games/btn-hedge.png' },
   { key: 'listed', href: '/listed', name: 'Listed', tag: 'Rank the list, top to bottom', img: '/games/btn-listed.png' },
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'White to play and mate', img: '/games/btn-mate.png' },
+  { key: 'four', href: '/four', name: 'Four', tag: 'One column wins', img: '/games/btn-four.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -63,7 +64,7 @@ const CATEGORIES = [
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank'] },
-  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'mate'] },
+  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'mate', 'four'] },
 ];
 
 export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null, light = false }) {

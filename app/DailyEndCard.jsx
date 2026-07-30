@@ -44,7 +44,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
-  FlaskConical, Ear, CircleDot, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
+  FlaskConical, Ear, CircleDot, Disc, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
@@ -56,7 +56,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['mate', 'listed', 'etch', 'hedge'], until: '2026-08-13' };
+const LAUNCH_PIN = { keys: ['four', 'mate', 'listed', 'etch'], until: '2026-08-13' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -107,6 +107,7 @@ export const GAME_META = {
   hedge: { accent: '#0891b2', badgeBg: '#0891b2', badgeInk: '#fff', Fin: Route },
   listed: { accent: '#86198f', badgeBg: '#86198f', badgeInk: '#fff', Fin: BarChart3 },
   mate: { accent: '#6b4423', badgeBg: '#6b4423', badgeInk: '#fff', Fin: Crown },
+  four: { accent: '#1e3a8a', badgeBg: '#1e3a8a', badgeInk: '#fff', Fin: Disc },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -147,6 +148,7 @@ export const DAILY_GAMES = [
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
   { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', href: '/listed' },
   { key: 'mate',   cat: 'logic',     name: 'Mate',   tag: 'White to play and mate',      href: '/mate' },
+  { key: 'four',   cat: 'logic',     name: 'Four',   tag: 'One column wins',             href: '/four' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },

@@ -31,6 +31,7 @@ import { PUZZLES as ETCH_FULL } from '../etch/puzzles';
 import { PUZZLES as HEDGE_FULL } from '../hedge/puzzles';
 import { PUZZLES as LISTED_FULL } from '../listed/puzzles';
 import { PUZZLES as MATE_FULL } from '../mate/puzzles';
+import { PUZZLES as FOUR_FULL } from '../four/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -56,6 +57,7 @@ const ETCH = ETCH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num,
 const HEDGE = HEDGE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const LISTED = LISTED_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const MATE = MATE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const FOUR = FOUR_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -131,6 +133,7 @@ const GAMES = [
   { key: 'hedge', name: 'Hedge', path: '/hedge', tag: 'Draw one closed loop', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)', src: HEDGE },
   { key: 'listed', name: 'Listed', path: '/listed', tag: 'Rank the list, top to bottom', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)', src: LISTED },
   { key: 'mate', name: 'Mate', path: '/mate', tag: 'White to play and mate', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)', src: MATE },
+  { key: 'four', name: 'Four', path: '/four', tag: 'One column wins', accent: '#1e3a8a', bg: '#e8eefc', border: 'rgba(30,58,138,0.35)', src: FOUR },
 ];
 
 const breadcrumbJsonLd = {
