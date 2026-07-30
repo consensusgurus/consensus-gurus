@@ -464,9 +464,27 @@ export default function QuizHomeClient() {
     if (!el) return undefined;
     const measure = () => { try { setRailH((typeof window !== 'undefined' && window.innerWidth > 1200) ? el.offsetHeight : null); } catch (e) {} };
     measure();
-    let ro; try { ro = new ResizeObserver(measure); ro.observe(el); } catch (e) {}
+    // The centre settles LATE: the daily board measures itself after mount and
+    // then sizes its own window, which changes this column's height. Observing
+    // only the column missed that, so the rails stayed pinned to the taller
+    // first-paint height until something else fired a resize. Watch the console
+    // itself as well, and re-measure once the first frames have settled.
+    const raf = requestAnimationFrame(() => requestAnimationFrame(measure));
+    const t1 = setTimeout(measure, 400);
+    const t2 = setTimeout(measure, 1200);
+    let ro;
+    try {
+      ro = new ResizeObserver(measure);
+      ro.observe(el);
+      const console_ = el.querySelector('.dhome');
+      if (console_) ro.observe(console_);
+    } catch (e) {}
     if (typeof window !== 'undefined') window.addEventListener('resize', measure);
-    return () => { try { ro && ro.disconnect(); } catch (e) {} if (typeof window !== 'undefined') window.removeEventListener('resize', measure); };
+    return () => {
+      try { ro && ro.disconnect(); } catch (e) {}
+      cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2);
+      if (typeof window !== 'undefined') window.removeEventListener('resize', measure);
+    };
   }, []);
   // Leaderboard data for the left element (rebuilt from data so the three
   // sections lay out cleanly — no embedded-tile gaps / overlap / mobile break).
