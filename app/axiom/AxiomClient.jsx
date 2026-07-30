@@ -62,6 +62,9 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_axiom_help_seen';
 const STATS_KEY = 'sot_axiom_stats';
 const TOTAL = 12;
+const WRONG_COST = 4;      // a wrong name
+const UNPROVEN_COST = 4;   // per rule still standing when you name the right one
+const MAX_WRONG = 2;       // wrong names allowed before the day is over
 
 // ─── the rule language ──────────────────────────────────────────────────────
 // Specs are data in puzzles.js; the predicate and the reader-facing label both
@@ -85,7 +88,7 @@ const SETS = {
   vegetable: ['PEA', 'BEAN', 'CORN', 'KALE', 'LEEK', 'BEET', 'OKRA', 'ONION', 'CARROT', 'POTATO', 'CELERY', 'PEPPER', 'TURNIP', 'RADISH', 'SQUASH', 'GARLIC', 'CABBAGE', 'SPINACH', 'PARSNIP'],
   drink: ['TEA', 'COLA', 'SODA', 'MILK', 'WINE', 'BEER', 'CIDER', 'COCOA', 'JUICE', 'WATER', 'LATTE', 'MOCHA', 'COFFEE', 'NECTAR'],
   country: ['CUBA', 'PERU', 'CHINA', 'INDIA', 'SPAIN', 'EGYPT', 'KENYA', 'CHILE', 'ITALY', 'JAPAN', 'BRAZIL', 'FRANCE', 'CANADA', 'MEXICO', 'NORWAY', 'SWEDEN', 'POLAND', 'GREECE', 'TURKEY', 'RUSSIA', 'GERMANY', 'IRELAND', 'ICELAND', 'MOROCCO', 'NIGERIA', 'AUSTRIA', 'BELGIUM', 'FINLAND', 'HUNGARY', 'DENMARK', 'THAILAND', 'PORTUGAL'],
-  ballsport: ['GOLF', 'POLO', 'RUGBY', 'TENNIS', 'SOCCER', 'SQUASH', 'BOWLING', 'CRICKET', 'NETBALL', 'SNOOKER', 'HANDBALL', 'BASEBALL', 'LACROSSE', 'BILLIARDS'],
+  ballsport: ['GOLF', 'POLO', 'RUGBY', 'BOCCE', 'FUTSAL', 'PELOTA', 'BOULES', 'SHINTY', 'TENNIS', 'SOCCER', 'SQUASH', 'CROQUET', 'HURLING', 'BOWLING', 'CRICKET', 'NETBALL', 'SNOOKER', 'FOOTBALL', 'SOFTBALL', 'KICKBALL', 'FOOSBALL', 'KORFBALL', 'PETANQUE', 'HANDBALL', 'BASEBALL', 'LACROSSE', 'WATERPOLO', 'DODGEBALL', 'BILLIARDS'],
 };
 const TOPIC_LABEL = {
   mammal: 'It is a mammal', bird: 'It is a bird', fish: 'It is a fish',
@@ -131,11 +134,14 @@ function ruleLabel(r) {
     default: return 'Unknown rule';
   }
 }
-// The hidden-word rules need their vocabulary on the table, or the player is
-// guessing at what counts.
+// The hidden-word and topic rules run off CLOSED lists, so the whole list goes
+// on the table. Showing six members and "and so on" was the one place Axiom was
+// not solvable by pure deduction: a player could not know whether SOW or EWE
+// counted as a hidden animal, or whether a given creature was in the mammal set.
+// Nothing here should ever be a judgement call.
 function ruleNote(r) {
-  if (r.k === 'hides') return HIDDEN[r.set].slice(0, 6).map((h) => h.toLowerCase()).join(', ') + ', and so on';
-  if (r.k === 'in') return 'for example: ' + SETS[r.set].slice(0, 6).map((h) => h.toLowerCase()).join(', ') + ', and so on';
+  if (r.k === 'hides') return 'counts as ' + HIDDEN_NAME[r.set] + ': ' + HIDDEN[r.set].map((h) => h.toLowerCase()).join(', ');
+  if (r.k === 'in') return 'the full list: ' + SETS[r.set].map((h) => h.toLowerCase()).join(', ');
   return null;
 }
 
@@ -219,6 +225,14 @@ function solveBoard(puzzle) {
   return { answer, live, par };
 }
 
+// How many candidates besides the answer still fit everything the player can
+// see. Zero means the board is genuinely solved; anything above zero means the
+// answer has not been earned yet, however confident the hunch.
+function countStanding(puzzle, answer, tested) {
+  const seen = puzzle.tiles.filter((t, i) => t.g || tested.includes(i));
+  return puzzle.rules.filter((r, i) => i !== answer && seen.every((t) => (ruleFn(r)(t.w) ? 1 : 0) === t.t)).length;
+}
+
 // ─── Personal stats + streak (localStorage), the shared daily pattern ───────
 function getStats() {
   try {
@@ -274,6 +288,7 @@ function freshState() {
     tested: [],        // tile indexes the player has spent a test on
     struck: [],        // rules the player has crossed out as scratch
     wrongPicks: [],    // rule indexes already named and rejected
+    unproven: 0,       // rules left standing at the moment the answer was named
     naming: false,     // the rule list is armed for a pick
     status: 'playing', // playing | done | lost
     t0: null,
@@ -316,9 +331,16 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const testsUsed = g.tested.length;
   const testsLeft = Math.max(0, PUZZLE.budget - testsUsed);
   const overPar = Math.max(0, testsUsed - PAR);
-  const liveScore = Math.max(1, TOTAL - 2 * overPar - 3 * g.wrongPicks.length);
+  // Candidates OTHER than the answer that still agree with every tile the player
+  // can see. While this is above zero the board has not been solved, it has been
+  // narrowed, and naming now is a guess dressed up as an answer. Scoring it is
+  // what stops a tapper from clicking a rule at zero tests and banking 12.
+  const standing = countStanding(PUZZLE, ANSWER, g.tested);
+  const unproven = g.status === 'done' ? (g.unproven || 0) : standing;
+  const liveScore = Math.max(1, TOTAL - 2 * overPar - WRONG_COST * g.wrongPicks.length - UNPROVEN_COST * unproven);
   const score = g.status === 'done' ? liveScore : 0;
-  const won = g.status === 'done' && testsUsed <= PAR && g.wrongPicks.length === 0;
+  const won = g.status === 'done' && testsUsed <= PAR && g.wrongPicks.length === 0 && unproven === 0;
+  const namesLeft = Math.max(0, MAX_WRONG - g.wrongPicks.length);
 
   useEffect(() => {
     try {
@@ -467,16 +489,20 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   function nameRule(i) {
     if (!playing) return;
     if (g.wrongPicks.includes(i)) { say('You already ruled that one out.'); return; }
+    if (g.wrongPicks.length >= MAX_WRONG) { say(`No names left. ${MAX_WRONG} wrong is the limit.`); return; }
     if (i === ANSWER) {
-      const g2 = { ...g, status: 'done', naming: false, tEnd: Date.now(), t0: g.t0 || Date.now() };
+      const up = countStanding(PUZZLE, ANSWER, g.tested);
+      const g2 = { ...g, status: 'done', naming: false, unproven: up, tEnd: Date.now(), t0: g.t0 || Date.now() };
       setG(g2);
       setVerdict(null);
       setEndClosed(false);
-      postResult(g2, Math.max(1, TOTAL - 2 * Math.max(0, g2.tested.length - PAR) - 3 * g2.wrongPicks.length));
+      postResult(g2, Math.max(1, TOTAL - 2 * Math.max(0, g2.tested.length - PAR) - WRONG_COST * g2.wrongPicks.length - UNPROVEN_COST * up));
     } else {
       setG((cur) => ({ ...cur, wrongPicks: [...cur.wrongPicks, i], t0: cur.t0 || Date.now() }));
       const bad = PUZZLE.tiles.find((t, ti) => (t.g || g.tested.includes(ti)) && (ruleFn(PUZZLE.rules[i])(t.w) ? 1 : 0) !== t.t);
-      setVerdict({ msg: bad ? `That rule is already dead: ${bad.w} disagrees with it. (−3)` : 'That is not the rule. (−3)' });
+      const left = MAX_WRONG - (g.wrongPicks.length + 1);
+      const tail = left > 0 ? ` ${left} name${left === 1 ? '' : 's'} left.` : ' That was your last name.';
+      setVerdict({ msg: (bad ? `That rule is already dead: ${bad.w} disagrees with it. (−${WRONG_COST})` : `That is not the rule. (−${WRONG_COST})`) + tail });
     }
   }
 
@@ -533,8 +559,12 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         <b>The knack:</b> a rule dies the moment one tile contradicts it. FALSE above is red, so the rule cannot be &ldquo;has exactly two vowels&rdquo; &mdash; FALSE has two. Most tiles kill nothing, so spend tests where the surviving rules disagree.
       </div>
 
+      <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.rust}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45, marginTop: 8 }}>
+        <b>You score what you prove.</b> Naming the rule while others are still standing costs {UNPROVEN_COST} points for each one, so a lucky pick banks very little. The counter above the board tells you how many are left before you commit.
+      </div>
+
       <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
-        12 points at par ({PAR} tests). Each extra test costs 2, each wrong name costs 3. Vowels are A, E, I, O, U, never Y.
+        12 points for naming it proved, at par ({PAR} tests). Each extra test costs 2, each wrong name costs {WRONG_COST}, and {MAX_WRONG} wrong names end the day. Vowels are A, E, I, O, U, never Y.
       </p>
     </div>
   );
@@ -585,7 +615,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
         {!preStart && (
         <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
-          One rule is true of every green word and false of every red one. {PUZZLE.rules.length} candidates are on the table and <b style={{ fontStyle: 'normal' }}>exactly one fits the whole board</b>. Test a tile to flip it. You have {PUZZLE.budget}, and par is {PAR}.
+          One rule is true of every green word and false of every red one. {PUZZLE.rules.length} candidates are on the table and <b style={{ fontStyle: 'normal' }}>exactly one fits the whole board</b>. Test a tile to flip it. You have {PUZZLE.budget}, par is {PAR}, and you only score the rules you have actually ruled out.
         </div>
         )}
 
@@ -594,6 +624,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>tests left <b style={{ color: testsLeft <= 1 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{testsLeft}</b> of {PUZZLE.budget}</span>
           <span>par <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PAR}</b></span>
+          <span>rules still standing <b style={{ color: standing ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{standing + 1}</b>{standing > 0 ? ` · naming now costs ${UNPROVEN_COST * standing}` : ' · proved'}</span>
           <span>on the board <b style={{ color: overPar || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
           {g.wrongPicks.length > 0 && <span>wrong names <b style={{ color: COLORS.rust, fontWeight: 500 }}>{g.wrongPicks.length}</b></span>}
         </div>
@@ -684,13 +715,13 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             <button
               type="button"
               className="ax-btn"
-              onClick={() => setG((cur) => ({ ...cur, naming: !cur.naming }))}
+              onClick={() => { if (namesLeft <= 0) { say('No names left today.'); return; } setG((cur) => ({ ...cur, naming: !cur.naming })); }}
               style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' } : { background: COLORS.accentSoft, borderColor: 'rgba(15,118,110,0.5)', color: COLORS.accentDeep }}
             >
-              <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : 'Name the rule'}
+              <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : 'Name the rule'}{g.wrongPicks.length ? ` (${namesLeft} left)` : ''}
             </button>
             {g.struck.length > 0 && <button type="button" className="ax-btn" onClick={clearStrikes}><Eraser size={14} /> Clear cross-outs</button>}
-            {(testsLeft === 0 || g.wrongPicks.length >= 2) && (
+            {(testsLeft === 0 || g.wrongPicks.length >= MAX_WRONG) && (
               <button type="button" className="ax-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
             )}
           </div>

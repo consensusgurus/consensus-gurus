@@ -7,15 +7,30 @@
 //   - C1 EXACTLY ONE candidate is consistent with every tile
 //   - C2 every candidate calls all three given greens true (the gift greens
 //        eliminate nothing, so no rule starts dead)
-//   - C3 the given reds kill 1..2 candidates, never the answer
+//   - C3 the given reds kill 1..2 candidates (1..3 on Sunday), never the answer
 //   - C4 >= 2 decoys survive the reds, each exposed by >= 2 testable tiles
 //   - C5 >= 6 testable tiles where every surviving decoy agrees with the truth
 //   - C6 par is exactly 2: no single test splits the field, some pair does
+// and, for every board built under the v2 generator (num > LEGACY_THROUGH):
+//   - C7 the filler kinds are capped: at most one "contains no letter X" (two
+//     on a Sunday's wider field) and at most one "exactly N letters long", so
+//     the field stops being padded with rules that are never the answer
+//   - C8 enough tiles are informative that the deduction is findable by hand
+//   - C9 par-2 pairs are at least 12% of all tile pairs (9% on Sunday), so a
+//     thinking player is not hunting one needle in 171
+//   - C10 bank-wide: the answer is spread across the candidate slots, and no
+//     rule kind that appears often is a free cross-out
 // Run: node scripts/verify-axiom.mjs
 import { PUZZLES } from '../app/axiom/puzzles.js';
 
 let fails = 0;
 const fail = (msg) => { console.error('FAIL:', msg); fails++; };
+
+// Boards 1-6 shipped under the v1 generator and are already live or played, so
+// they are frozen: structure and the uniqueness constraints still apply to them,
+// the v2 quality floors do not.
+const LEGACY_THROUGH = 6;
+const bank = [];
 
 const VOW = new Set(['A', 'E', 'I', 'O', 'U']);
 const nv = (w) => [...w].filter((c) => VOW.has(c)).length;
@@ -32,7 +47,7 @@ const SETS = {
   vegetable: ['PEA', 'BEAN', 'CORN', 'KALE', 'LEEK', 'BEET', 'OKRA', 'ONION', 'CARROT', 'POTATO', 'CELERY', 'PEPPER', 'TURNIP', 'RADISH', 'SQUASH', 'GARLIC', 'CABBAGE', 'SPINACH', 'PARSNIP'],
   drink: ['TEA', 'COLA', 'SODA', 'MILK', 'WINE', 'BEER', 'CIDER', 'COCOA', 'JUICE', 'WATER', 'LATTE', 'MOCHA', 'COFFEE', 'NECTAR'],
   country: ['CUBA', 'PERU', 'CHINA', 'INDIA', 'SPAIN', 'EGYPT', 'KENYA', 'CHILE', 'ITALY', 'JAPAN', 'BRAZIL', 'FRANCE', 'CANADA', 'MEXICO', 'NORWAY', 'SWEDEN', 'POLAND', 'GREECE', 'TURKEY', 'RUSSIA', 'GERMANY', 'IRELAND', 'ICELAND', 'MOROCCO', 'NIGERIA', 'AUSTRIA', 'BELGIUM', 'FINLAND', 'HUNGARY', 'DENMARK', 'THAILAND', 'PORTUGAL'],
-  ballsport: ['GOLF', 'POLO', 'RUGBY', 'TENNIS', 'SOCCER', 'SQUASH', 'BOWLING', 'CRICKET', 'NETBALL', 'SNOOKER', 'HANDBALL', 'BASEBALL', 'LACROSSE', 'BILLIARDS'],
+  ballsport: ['GOLF', 'POLO', 'RUGBY', 'BOCCE', 'FUTSAL', 'PELOTA', 'BOULES', 'SHINTY', 'TENNIS', 'SOCCER', 'SQUASH', 'CROQUET', 'HURLING', 'BOWLING', 'CRICKET', 'NETBALL', 'SNOOKER', 'FOOTBALL', 'SOFTBALL', 'KICKBALL', 'FOOSBALL', 'KORFBALL', 'PETANQUE', 'HANDBALL', 'BASEBALL', 'LACROSSE', 'WATERPOLO', 'DODGEBALL', 'BILLIARDS'],
 };
 
 // Kept byte-identical to RULES in app/axiom/AxiomClient.jsx. If one changes,
@@ -102,8 +117,9 @@ PUZZLES.forEach((p, idx) => {
 
   // C3
   const killed = p.rules.map((r, i) => i).filter((i) => i !== answer && reds.some((t) => fns[i](t.w)));
-  if (killed.length < 1 || killed.length > 2) fail(`${tag}: gift reds kill ${killed.length} candidates (want 1 or 2)`);
+  if (killed.length < 1) fail(`${tag}: gift reds kill nothing`);
   if (reds.some((t) => fns[answer](t.w))) fail(`${tag}: the answer contradicts a gift red`);
+  if (killed.length > (p.sunday ? 3 : 2)) fail(`${tag}: gift reds kill ${killed.length} candidates`);
 
   // C4
   const live = p.rules.map((r, i) => i).filter((i) => i !== answer && !killed.includes(i));
@@ -127,7 +143,60 @@ PUZZLES.forEach((p, idx) => {
   }
   if (!pair) fail(`${tag}: no pair of tests isolates the answer (par > 2, unfair at this budget)`);
   if (p.budget < 4) fail(`${tag}: budget below the par-2 floor`);
+
+  if (p.num > LEGACY_THROUGH) {
+    // C7 filler caps
+    const nolet = p.rules.filter((r) => r.k === 'nolet').length;
+    const lens = p.rules.filter((r) => r.k === 'len').length;
+    if (nolet > (p.sunday ? 2 : 1)) fail(`${tag}: ${nolet} "no letter X" candidates (cap ${p.sunday ? 2 : 1})`);
+    if (lens > 1) fail(`${tag}: ${lens} "exactly N letters" candidates (cap 1)`);
+
+    // C8 informative-tile floor
+    const inform = testable.length - traps.length;
+    const informMin = p.sunday ? 10 : 8;
+    if (inform < informMin) fail(`${tag}: only ${inform} informative tiles (want >= ${informMin})`);
+
+    // C9 par-2 pairs have to be findable, not a needle
+    let pairs = 0; let totPairs = 0;
+    for (let a = 0; a < testable.length; a++) {
+      for (let b = a + 1; b < testable.length; b++) {
+        totPairs++;
+        if (killers.every((s) => s.has(testable[a]) || s.has(testable[b]))) pairs++;
+      }
+    }
+    const pct = pairs / totPairs;
+    const pctMin = p.sunday ? 0.09 : 0.12;
+    if (pct < pctMin) fail(`${tag}: only ${pairs}/${totPairs} par-2 pairs (${(100 * pct).toFixed(0)}%, want >= ${(100 * pctMin).toFixed(0)}%)`);
+  }
+
+  bank.push({ num: p.num, slot: answer, kinds: p.rules.map((r) => r.k), answerKind: p.rules[answer].k });
 });
+
+// C10 bank-wide balance. A single board can look fine while the BANK teaches a
+// shortcut: before this check the topic and hidden-word rules were the answer
+// every single time they appeared, and slot A held 44% of the answers, so a
+// player could skip the board entirely and still be right most days. Only the
+// v2 boards are measured, and only once there are enough of them to mean
+// anything.
+const v2 = bank.filter((b) => b.num > LEGACY_THROUGH);
+if (v2.length >= 12) {
+  const slots = {};
+  v2.forEach((b) => { slots[b.slot] = (slots[b.slot] || 0) + 1; });
+  const worstSlot = Math.max(...Object.values(slots));
+  if (worstSlot / v2.length > 0.45) fail(`bank: one candidate slot holds ${worstSlot} of ${v2.length} answers (>45%), the answer order is not shuffled enough`);
+
+  const seen = {};
+  v2.forEach((b) => {
+    b.kinds.forEach((k) => { seen[k] = seen[k] || [0, 0]; seen[k][0]++; });
+    seen[b.answerKind][1]++;
+  });
+  Object.entries(seen).forEach(([k, [appears, isAnswer]]) => {
+    if (appears < 4) return;                       // too rare to teach anything
+    const rate = isAnswer / appears;
+    if (rate < 0.08) fail(`bank: "${k}" appears ${appears} times and is the answer ${isAnswer} (${(100 * rate).toFixed(0)}%), so crossing it out on sight is a free win`);
+    if (rate > 0.75) fail(`bank: "${k}" is the answer ${isAnswer} of the ${appears} times it appears (${(100 * rate).toFixed(0)}%), so picking it on sight is a free win`);
+  });
+}
 
 if (fails) { console.error(`\nverify-axiom: ${fails} FAILURE(S)`); process.exit(1); }
 console.log(`verify-axiom: all ${PUZZLES.length} boards pass (unique rule, gift greens neutral, par 2, structure OK)`);
