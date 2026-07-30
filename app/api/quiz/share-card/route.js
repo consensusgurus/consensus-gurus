@@ -10,8 +10,8 @@ export const dynamic = 'force-dynamic';
 
 // Downloadable Share Stats player card (1080x1080 PNG). Mirrors the in-page
 // ShareStatsModal in app/quizzes/hub/StatHubClient.jsx: overall rank, level +
-// tier + XP, completed/correct/accuracy with ranks, and the top-3
-// categories by XP. GET /api/quiz/share-card?key=u:123|a:<anon>
+// tier + IQ Points, completed/correct/accuracy with ranks, and the top-3
+// categories by IQ Points. GET /api/quiz/share-card?key=u:123|a:<anon>
 const SZ = 1080;
 const PAL = { bg: '#ffffff', text: '#1c1e24', accent: '#0e1d40', faded: '#262b35', soft: '#9aa0ab', line: 'rgba(20,22,28,0.10)', cell: '#f1f3f6', accsoft: '#e8effb' };
 
@@ -89,7 +89,7 @@ export async function GET(request) {
               <span style={{ display: 'flex', fontWeight: 800, fontSize: 76, letterSpacing: '-0.03em', lineHeight: 1 }}>{profile.name}</span>
               <div style={{ display: 'flex', alignItems: 'center', marginTop: 22 }}>
                 <span style={{ display: 'flex', background: profile.tierBg || PAL.cell, color: profile.tierFg || PAL.faded, fontWeight: 700, fontSize: 26, padding: '5px 16px', borderRadius: 10 }}>{(profile.tier || '').replace(/ Tier$/, '')}</span>
-                <span style={{ display: 'flex', fontWeight: 600, fontSize: 26, color: PAL.faded, marginLeft: 16 }}>{`Level ${profile.level || 1} · ${Number(profile.xp || 0).toLocaleString()} XP`}</span>
+                <span style={{ display: 'flex', fontWeight: 600, fontSize: 26, color: PAL.faded, marginLeft: 16 }}>{`Level ${profile.level || 1} · ${Number(profile.xp || 0).toLocaleString()} IQ`}</span>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
@@ -113,7 +113,7 @@ export async function GET(request) {
                   <div key={k} style={{ display: 'flex', flexDirection: 'column', marginBottom: 22 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 }}>
                       <span style={{ display: 'flex', fontWeight: 700, fontSize: 28 }}>{catLabel(k)}</span>
-                      <span style={{ display: 'flex', fontWeight: 700, fontSize: 26, color: PAL.faded }}>{`${Number(v.xp || 0).toLocaleString()} XP`}</span>
+                      <span style={{ display: 'flex', fontWeight: 700, fontSize: 26, color: PAL.faded }}>{`${Number(v.xp || 0).toLocaleString()} IQ`}</span>
                     </div>
                     <div style={{ display: 'flex', height: 16, background: PAL.cell, borderRadius: 10 }}>
                       <div style={{ display: 'flex', width: `${Math.round(((v.xp || 0) / maxR) * 100)}%`, height: '100%', background: PAL.accent, borderRadius: 10 }} />

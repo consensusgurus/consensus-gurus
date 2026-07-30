@@ -470,8 +470,8 @@ export default function QuizHomeClient() {
   // Leaderboard data for the left element (rebuilt from data so the three
   // sections lay out cleanly — no embedded-tile gaps / overlap / mobile break).
   const [refData, setRefData] = useState(null); // community referrals { top:[{username,credits}] }
-  const [xp30, setXp30] = useState([]); // 30-day XP [{ name, value }]
-  const [xpAll, setXpAll] = useState([]); // all-time XP [{ name, value }]
+  const [xp30, setXp30] = useState([]); // 30-day IQ Points [{ name, value }]
+  const [xpAll, setXpAll] = useState([]); // all-time IQ Points [{ name, value }]
   const [xpFlip, setXpFlip] = useState(0); // Top SoT Player flips 30d (even) <-> all-time (odd), like the old tile
   const [creditOpen, setCreditOpen] = useState(false); // "share a link to get credit" modal
   const [creditCopied, setCreditCopied] = useState(false);
@@ -719,11 +719,11 @@ export default function QuizHomeClient() {
     return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('focus', read); };
   }, []);
 
-  // XP leaderboard re-loads when the scope changes.
+  // IQ Points leaderboard re-loads when the scope changes.
   useEffect(() => {
-    // Pull the FULL ranking (not just top-12-by-XP) so the cycling
-    // leaderboard's non-XP slides (Most Correct, etc.) surface the true
-    // per-metric leaders, not just whoever is already top by XP.
+    // Pull the FULL ranking (not just top-12-by-IQ Points) so the cycling
+    // leaderboard's non-IQ Points slides (Most Correct, etc.) surface the true
+    // per-metric leaders, not just whoever is already top by IQ Points.
     const q = scope === 'all' ? '?full=1' : `?scope=${encodeURIComponent(scope)}&full=1`;
     let alive = true;
     fetch(`/api/quiz/xp${q}`).then((r) => r.json()).then((d) => {
@@ -733,8 +733,8 @@ export default function QuizHomeClient() {
     return () => { alive = false; };
   }, [scope]);
 
-  // Per-category XP boards (computed once) power the rotating
-  // "<Category> XP Leaders" leaderboard slides.
+  // Per-category IQ Points boards (computed once) power the rotating
+  // "<Category> IQ Leaders" leaderboard slides.
   useEffect(() => {
     fetch('/api/quiz/xp-categories').then((r) => r.json()).then((d) => {
       if (d && d.boards) setCatBoards(d.boards);
@@ -835,9 +835,9 @@ export default function QuizHomeClient() {
   }, [me, scope]);
 
   // ── leaderboard: re-ranks per slide AND per category ──
-  // Each slide sorts the board by that slide's metric (desc; ties by XP then
-  // name), scoped to the selected category (the XP API already returns the
-  // per-category metric values). The Most XP slide DOES show the XP total.
+  // Each slide sorts the board by that slide's metric (desc; ties by IQ Points then
+  // name), scoped to the selected category (the IQ Points API already returns the
+  // per-category metric values). The Most IQ Points slide DOES show the IQ Points total.
   // Today's daily-challenge standings, ranked by total correct then least time.
   const dailyRows = useMemo(() => (dailyLb || []).slice()
     .sort((a, b) => (b.totalCorrect || 0) - (a.totalCorrect || 0) || (a.totalTime || 0) - (b.totalTime || 0) || (a.username || '').localeCompare(b.username || ''))
@@ -847,7 +847,7 @@ export default function QuizHomeClient() {
   const bestCat = useMemo(() => {
     if (!me || !me.byCategory) return null;
     // Best category = where the player ranks highest on COMPLETED; ties break to
-    // XP rank in that category, then to played rank.
+    // IQ Points rank in that category, then to played rank.
     let best = null;
     for (const k of Object.keys(me.byCategory)) {
       const c = me.byCategory[k];
@@ -864,7 +864,7 @@ export default function QuizHomeClient() {
   // players have played today's challenge.
   const LB_METRICS = useMemo(() => {
     const base = [
-      { key: 'xp', label: 'Most XP', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
+      { key: 'xp', label: 'Most IQ Points', fmt: (v) => (v || 0).toLocaleString(), ms: 7000 },
       { key: 'correct', label: 'Most Correct Answers', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
       { key: 'completed', label: 'Most Quizzes Aced (100%)', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
       { key: 'daysPlayed', label: 'Most Days Played', fmt: (v) => (v || 0).toLocaleString(), ms: 5000 },
@@ -880,12 +880,12 @@ export default function QuizHomeClient() {
     const catSlides = scope === 'all'
       ? DEPT_NAV
           .filter((d) => Array.isArray(catBoards[d.id]) && catBoards[d.id].length > 0)
-          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `${DEPT_LABEL[d.id] || d.label} XP Leaders`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
+          .map((d) => ({ key: 'catRating', catKey: d.id, special: true, label: `${DEPT_LABEL[d.id] || d.label} IQ Leaders`, fmt: (v) => (v || 0).toLocaleString(), ms: 5000 }))
       : [];
     return [...base, ...catSlides];
   }, [dailyRows.length, dailyCat, todayCorrectRows.length, todayQuizRows.length, scope, catBoards]);
   const lbMetric = LB_METRICS[Math.min(lbIdx, LB_METRICS.length - 1)];
-  // Per-slide timeout: the XP slide holds 7s, every other slide 5s.
+  // Per-slide timeout: the IQ Points slide holds 7s, every other slide 5s.
   useEffect(() => {
     const id = setTimeout(() => setLbIdx((i) => (i + 1) % LB_METRICS.length), lbMetric.ms);
     return () => clearTimeout(id);
@@ -1021,12 +1021,12 @@ export default function QuizHomeClient() {
     const stat = playsToday > 0 ? [{ type: 'stat', href: '/quizzes/hub', segs: [
       { text: `${playsToday.toLocaleString()} plays today`, strong: true },
     ] }] : [];
-    // Top community member: the #1 all-time XP player.
+    // Top community member: the #1 all-time IQ Points player.
     const topP = (xpBoard || []).find((p) => p && !p.isAnon);
     const top = topP ? [{ type: 'top', href: '/quizzes/hub', segs: [
       { text: topP.name || 'Player', strong: true },
       { text: ' tops the community' },
-      { text: ` · Lvl ${topP.level} · ${(topP.xp || 0).toLocaleString()} XP`, dim: true },
+      { text: ` · Lvl ${topP.level} · ${(topP.xp || 0).toLocaleString()} IQ`, dim: true },
     ] }] : [];
     // Category wins: the #1 player in a spread of departments.
     const champCats = ['movies', 'music', 'sports', 'geography', 'history', 'science', 'gaming', 'food'];
@@ -2068,7 +2068,7 @@ export default function QuizHomeClient() {
                   <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#2563eb' }} fill="#2563eb" /> TOP PLAYER: {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
-                    <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No XP earned yet'}</span>
+                    <span className="dhx-lb-sub">{one ? `${num(one.value)} IQ Points earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No IQ Points earned yet'}</span>
                   </div>
                   <div className="dhx-lb-grid">
                     {top.slice(1, 5).map((r, i) => (

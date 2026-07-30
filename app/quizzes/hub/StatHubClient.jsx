@@ -85,7 +85,7 @@ const TABS = [
   { t: 'challenges', label: 'Challenges', Icon: Flame },
   { t: 'duels', label: 'Duels', Icon: Swords },];
 
-// Share Stats: a shareable player card (overall rank, level + tier + XP,
+// Share Stats: a shareable player card (overall rank, level + tier + IQ Points,
 // completed/correct/accuracy with their ranks, top-3 categories) plus a copy
 // link to this player's Stat Hub profile (?player=<key>).
 // Sign-up popup (mirrors the Browse Quizzes one): claim a display name (email
@@ -153,7 +153,7 @@ function ShareStatsModal({ profile, byKey, onClose }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '18px 18px 12px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{profile.name}</div>
-            <div style={{ marginTop: 5 }}><span style={{ background: profile.tierBg || C.bg, color: profile.tierFg || C.muted, fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{(profile.tier || '').replace(/ Tier$/, '')}</span> <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Level {profile.level || 1} · {Number(profile.xp || 0).toLocaleString()} XP</span></div>
+            <div style={{ marginTop: 5 }}><span style={{ background: profile.tierBg || C.bg, color: profile.tierFg || C.muted, fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>{(profile.tier || '').replace(/ Tier$/, '')}</span> <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>Level {profile.level || 1} · {Number(profile.xp || 0).toLocaleString()} IQ</span></div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={lbl}>Overall rank</div>
@@ -172,7 +172,7 @@ function ShareStatsModal({ profile, byKey, onClose }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {cats3.map(([k, v]) => (
                 <div key={k}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{label(k)}</span><span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{Number(v.xp || 0).toLocaleString()} XP</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}><span style={{ fontSize: 12.5, fontWeight: 700 }}>{label(k)}</span><span style={{ fontSize: 12, fontWeight: 700, color: C.muted }}>{Number(v.xp || 0).toLocaleString()} IQ</span></div>
                   <div style={{ height: 8, background: C.bg, borderRadius: 5, overflow: 'hidden' }}><div style={{ width: `${Math.round(((v.xp || 0) / maxR) * 100)}%`, height: '100%', background: C.accent }} /></div>
                 </div>
               ))}
@@ -543,7 +543,7 @@ export default function StatHubClient() {
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, total: 0, totalTime: 0 });
   const [shareOpen, setShareOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
-  const [board, setBoard] = useState(null); // full XP ranking of every player (incl. anon)
+  const [board, setBoard] = useState(null); // full IQ Points ranking of every player (incl. anon)
   // Duel data lives at page level so the Duels nav tile can show the live
   // record, streak, and waiting-on-you badge before the tab is ever opened.
   const [duels, setDuels] = useState({ yourMove: [], awaiting: [], completed: [] });
@@ -655,7 +655,7 @@ export default function StatHubClient() {
     const bc = profile && profile.byCategory;
     if (!bc) return null;
     // Best category = where the player ranks highest on COMPLETED; ties break to
-    // XP rank in that category, then to played rank.
+    // IQ Points rank in that category, then to played rank.
     let best = null;
     for (const k of Object.keys(bc)) {
       const c = bc[k];
@@ -817,7 +817,7 @@ export default function StatHubClient() {
                 <button className={`tile${on('player') ? ' on' : ''}`} onClick={() => setTab('player')}>
                   <span style={lblSt('player')}><User size={15} /> {(profile && profile.found && profile.name) || 'Player'}</span>
                   <span style={bigSt('player')}>{profile && profile.found && profile.rank ? <>#{profile.rank} <span style={smSt('player')}>of {((me && me.totalPlayers) || 0).toLocaleString()}</span></> : '—'}</span>
-                  <span style={subSt('player')}>{profile && profile.found ? `Level ${profile.level || 1} · ${(profile.xp || 0).toLocaleString()} XP` : 'Play to get ranked'}</span>
+                  <span style={subSt('player')}>{profile && profile.found ? `Level ${profile.level || 1} · ${(profile.xp || 0).toLocaleString()} IQ` : 'Play to get ranked'}</span>
                 </button>
                 <button className={`tile${on('daily') ? ' on' : ''}`} onClick={() => setTab('daily')}>
                   <span style={lblSt('daily')}><CalendarDays size={15} /> Daily Puzzles</span>
@@ -883,7 +883,7 @@ const CAT_COLS = [
   { key: 'completed', label: 'Completed', align: 'right', get: (c, cr) => cr.completed, chip: 'completedRank' },
   { key: 'accuracy', label: 'Accuracy', align: 'right', get: (c, cr) => cr.accuracy, chip: 'accuracyRank' },
   { key: 'days', label: 'Days', align: 'right', get: (c, cr) => cr.daysPlayed || 0, chip: 'daysRank' },
-  { key: 'xp', label: 'XP', align: 'right', get: (c, cr) => cr.xp, chip: 'rank' },
+  { key: 'xp', label: 'IQ', align: 'right', get: (c, cr) => cr.xp, chip: 'rank' },
 ];
 
 // Share of a quiz pool a player has aced (completed / pool size). Used in the
@@ -915,7 +915,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
 
   const toggle = (
     <div style={{ display: 'flex', gap: 8, width: '100%', flexWrap: 'wrap' }}>
-      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'XP & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
+      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'IQ & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
         <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
       ))}
     </div>
@@ -1137,12 +1137,12 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
     ? { col: col.key, dir: st.dir === 'desc' ? 'asc' : 'desc' }
     : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
 
-  // Card-mode ordering: played categories by XP desc, unplayed after.
+  // Card-mode ordering: played categories by IQ Points desc, unplayed after.
   const playedCats = catRows.filter((c) => byCat[c.key] && byCat[c.key].matches > 0)
     .sort((x, y) => (byCat[y.key].xp || 0) - (byCat[x.key].xp || 0));
   const unplayedCats = catRows.filter((c) => !byCat[c.key] || !(byCat[c.key].matches > 0));
-  // Crown = best XP RANK (the standing, not the raw number); ties break to
-  // the higher XP.
+  // Crown = best IQ Points RANK (the standing, not the raw number); ties break to
+  // the higher IQ Points.
   let crownKey = null;
   for (const c of playedCats) {
     const cr = byCat[c.key];
@@ -1201,7 +1201,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 10 }}>Each #rank chip is the standing among players active in that category. The bar compares XP across {viewing ? 'this player' : 'your'}{viewing ? "'s" : ''} categories.</div>
+          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 10 }}>Each #rank chip is the standing among players active in that category. The bar compares IQ Points across {viewing ? 'this player' : 'your'}{viewing ? "'s" : ''} categories.</div>
         </div>
       ) : (
       <div className="card" style={{ padding: '14px 16px' }}>
@@ -1252,7 +1252,7 @@ function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
 }
 
 // Activity view: play-streak stats + a 12-week heatmap, milestone highlights
-// (perfects, personal bests, big XP hauls), then the full game log. All of
+// (perfects, personal bests, big IQ Points hauls), then the full game log. All of
 // it derives client-side from `recent`, which carries the player's FULL history.
 function ActivityFeed({ recent, titleById, viewing }) {
   const who = viewing ? 'This player' : 'You';
@@ -1287,7 +1287,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
     } else if (prevB != null && m.scorePct > prevB) {
       events.push({ kind: 'pb', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}%, up from ${prevB}%`, chip: `+${m.scorePct - prevB}%` });
     }
-    if ((m.xp || 0) >= 75) events.push({ kind: 'surge', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}% on a heavyweight quiz`, chip: `+${m.xp} XP` });
+    if ((m.xp || 0) >= 75) events.push({ kind: 'surge', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}% on a heavyweight quiz`, chip: `+${m.xp} IQ` });
     if (prevB == null || m.scorePct > prevB) bestByQuiz.set(m.quizId, m.scorePct);
   }
   const mile = events.slice(-8).reverse();
@@ -1295,7 +1295,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
   const MK = {
     perfect: { bg: '#fbf2dc', fg: '#a97b12', Icon: Star, label: (q) => `Perfect score on ${q}` },
     pb: { bg: '#e6f7f0', fg: '#0b7a55', Icon: Trophy, label: (q) => `New personal best on ${q}` },
-    surge: { bg: C.accsoft, fg: C.accent, Icon: ArrowUpRight, label: (q) => `Big XP haul on ${q}` },
+    surge: { bg: C.accsoft, fg: C.accent, Icon: ArrowUpRight, label: (q) => `Big IQ haul on ${q}` },
   };
   const statLbl = { fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase' };
   return (
@@ -1352,7 +1352,7 @@ function ActivityFeed({ recent, titleById, viewing }) {
               <th>Quiz</th>
               <th style={{ textAlign: 'right' }}>When</th>
               <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
-              <th style={{ textAlign: 'right' }}>XP</th>
+              <th style={{ textAlign: 'right' }}>IQ</th>
               <th style={{ textAlign: 'right' }}>Rank &Delta;</th>
               <th style={{ textAlign: 'right' }}>Cat. Rank &Delta;</th>
             </tr></thead>
@@ -1396,7 +1396,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
     if (p.trend7d < 0) return <span style={{ fontWeight: 800, color: C.danger }}>▼ {Math.abs(p.trend7d)}</span>;
     return <span style={{ fontWeight: 700, color: C.muted }}>±0</span>;
   };
-  // Podium + chase read the board in its served (XP) order regardless of
+  // Podium + chase read the board in its served (IQ Points) order regardless of
   // how the table below is sorted.
   const top3 = board.slice(0, 3);
   const myIdx = board.findIndex(isMine);
@@ -1405,18 +1405,18 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   if (my) {
     if (myIdx === 0) {
       const second = board[1];
-      chase = { title: 'You hold #1', sub: second ? `${second.name} is ${Math.max(0, (my.xp || 0) - (second.xp || 0))} XP behind you. Stay sharp.` : 'The board is yours.', pct: 100, cta: 'Defend #1' };
+      chase = { title: 'You hold #1', sub: second ? `${second.name} is ${Math.max(0, (my.xp || 0) - (second.xp || 0))} IQ Points behind you. Stay sharp.` : 'The board is yours.', pct: 100, cta: 'Defend #1' };
     } else {
       const ahead = board[myIdx - 1];
       const below = board[myIdx + 1];
       const gap = Math.max(0, (ahead.xp || 0) - (my.xp || 0));
-      let sub = gap === 0 ? `You are tied with ${ahead.name} at ${(my.xp || 0).toLocaleString()} XP.` : `${ahead.name} sits at ${(ahead.xp || 0).toLocaleString()} XP.`;
+      let sub = gap === 0 ? `You are tied with ${ahead.name} at ${(my.xp || 0).toLocaleString()} IQ Points.` : `${ahead.name} sits at ${(ahead.xp || 0).toLocaleString()} IQ Points.`;
       if (below) {
         const back = Math.max(0, (my.xp || 0) - (below.xp || 0));
-        sub += back === 0 ? ` ${below.name} is tied right behind you.` : ` ${below.name} is ${back} XP behind you.`;
+        sub += back === 0 ? ` ${below.name} is tied right behind you.` : ` ${below.name} is ${back} IQ Points behind you.`;
       }
       chase = {
-        title: gap === 0 ? `Tied for #${myIdx}: any game breaks it` : `The chase: ${gap} XP to #${myIdx}`,
+        title: gap === 0 ? `Tied for #${myIdx}: any game breaks it` : `The chase: ${gap} IQ Points to #${myIdx}`,
         sub,
         pct: Math.round(Math.max(6, Math.min(96, ((my.xp || 0) / Math.max(1, ahead.xp || 1)) * 100))),
         cta: `Chase #${myIdx}`,
@@ -1426,7 +1426,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
   const COLS = [
     { key: 'rank', label: 'Rank', w: 60, align: 'left' },
     { key: 'name', label: 'Player', align: 'left', get: (p) => (p.name || '').toLowerCase() },
-    { key: 'xp', label: 'XP', align: 'right', get: (p) => p.xp || 0 },
+    { key: 'xp', label: 'IQ', align: 'right', get: (p) => p.xp || 0 },
     ...(hasTrend ? [{ key: 'trend', label: '7-Day', align: 'right', get: (p) => (p.trend7d == null ? -1e9 : p.trend7d) }] : []),
     { key: 'correct', label: 'Correct', align: 'right', get: (p) => p.correct || 0 },
     { key: 'completed', label: 'Completed', align: 'right', get: (p) => p.completed || 0 },
@@ -1474,7 +1474,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
           <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
         </div>
       ) : null}
-      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = XP earned over the last week.' : ''}</div>
+      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = IQ Points earned over the last week.' : ''}</div>
       <div style={{ overflow: 'auto', maxHeight: 600 }}>
         <table>
           <thead><tr>
@@ -1835,10 +1835,10 @@ function ChallengesPanel({ me }) {
     </div>
   );
 }
-// ─── XP tab ────────────────────────────────────────────────────────────────
-// XP & Level view: the level, progress to the next level, and the cumulative
-// XP trend chart lead; the formula explainer collapses behind a "How this
-// works" toggle. XP is additive — it never goes down and never decays.
+// ─── IQ Points tab ────────────────────────────────────────────────────────────────
+// IQ & Level view: the level, progress to the next level, and the cumulative
+// IQ Points trend chart lead; the formula explainer collapses behind a "How this
+// works" toggle. IQ Points are additive: they never go down and never decay.
 function XpPanel({ me, titleById, viewing }) {
   const found = me && me.found;
   const recent = (found && me.recent) || [];
@@ -1847,14 +1847,14 @@ function XpPanel({ me, titleById, viewing }) {
   const xp = found ? (me.xp || 0) : 0;
   const level = found ? (me.level || 1) : 1;
 
-  // Cumulative XP series from the full game history (oldest first).
+  // Cumulative IQ Points series from the full game history (oldest first).
   const hist = recent.slice().reverse();
   const series = [0];
   { let cum = 0; for (const m of hist) { cum += (m.xp || 0); series.push(cum); } }
   const weekCut = Date.now() - 7 * 86400000;
   const weekGain = Math.round(hist.reduce((acc, m) => acc + ((m.createdAt && Date.parse(m.createdAt) >= weekCut) ? (m.xp || 0) : 0), 0));
 
-  // Chart: the full XP history sampled to ~70 points and drawn at the
+  // Chart: the full IQ Points history sampled to ~70 points and drawn at the
   // container's real pixel width as a smoothed curve over light gridlines.
   const chartRef = useRef(null);
   const [cw, setCw] = useState(0);
@@ -1874,19 +1874,19 @@ function XpPanel({ me, titleById, viewing }) {
   const explainerCards = (
     <div className="rgrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
       <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How XP Works</div>
+        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How IQ Points Work</div>
         <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-          Every quiz you finish ADDS XP: your correct answers, multiplied by the quiz{"'"}s difficulty. Easy quizzes pay 1×, the hardest pay 2×. A perfect 100% game earns a 25% bonus, and replaying a quiz you{"'"}ve already taken pays 25% of the usual XP (first attempts pay full).
+          Every quiz you finish ADDS IQ Points: your correct answers, multiplied by the quiz{"'"}s difficulty. Easy quizzes pay 1×, the hardest pay 2×. A perfect 100% game earns a 25% bonus, and replaying a quiz you{"'"}ve already taken pays 25% of the usual IQ Points (first attempts pay full).
         </p>
         <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-          <b style={{ color: C.ink }}>XP only goes up.</b> There is no way to lose it and it never decays — every game moves you forward.
+          <b style={{ color: C.ink }}>IQ Points only go up.</b> There is no way to lose them and they never decay — every game moves you forward.
         </p>
         <div className="formula">
-          XP = correct × (Dq / 1000)<br />
+          IQ Points = correct × (Dq / 1000)<br />
           × 1.25 if perfect · × 0.25 on replays
         </div>
         <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.8, marginTop: 10 }}>
-          Dq = quiz difficulty (1,000 easiest – 2,000 hardest) · the step from level L to L+1 costs 25·L XP
+          Dq = quiz difficulty (1,000 easiest – 2,000 hardest) · the step from level L to L+1 costs 25·L IQ Points
         </div>
       </div>
       <div className="card" style={{ padding: '14px 16px' }}>
@@ -1894,9 +1894,9 @@ function XpPanel({ me, titleById, viewing }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <div className="hrow" style={{ borderTop: 'none' }}><span style={{ flex: 1 }}>Level</span><span style={{ fontWeight: 700 }}>{level}</span></div>
           <div className="hrow"><span style={{ flex: 1 }}>Games Counted</span><span style={{ fontWeight: 700 }}>{prog.matches}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>XP This Week</span><span className="score" style={{ color: weekGain > 0 ? C.accent : C.muted }}>{weekGain > 0 ? `+${weekGain.toLocaleString()}` : '0'}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>Next Level At</span><span style={{ fontWeight: 700 }}>{nextLevelAt.toLocaleString()} XP</span></div>
-          <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Total XP</span><span style={{ fontWeight: 800, color: C.accent }}>{xp.toLocaleString()}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>IQ Points This Week</span><span className="score" style={{ color: weekGain > 0 ? C.accent : C.muted }}>{weekGain > 0 ? `+${weekGain.toLocaleString()}` : '0'}</span></div>
+          <div className="hrow"><span style={{ flex: 1 }}>Next Level At</span><span style={{ fontWeight: 700 }}>{nextLevelAt.toLocaleString()} IQ</span></div>
+          <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Total IQ Points</span><span style={{ fontWeight: 800, color: C.accent }}>{xp.toLocaleString()}</span></div>
         </div>
       </div>
     </div>
@@ -1907,15 +1907,15 @@ function XpPanel({ me, titleById, viewing }) {
       <div className="card" style={{ padding: '14px 16px', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 30, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>Level {level}</span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{xp.toLocaleString()} XP</span>
+          <span style={{ fontSize: 15, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{xp.toLocaleString()} IQ</span>
           {prog.matches > 0 ? (
             <span style={{ fontSize: 11, fontWeight: 800, background: weekGain > 0 ? '#e6f7f0' : '#eef0f2', color: weekGain > 0 ? '#0b7a55' : C.muted, borderRadius: 999, padding: '3px 9px' }}>
-              {weekGain > 0 ? `▲ ${weekGain.toLocaleString()} XP this week` : 'No XP this week'}
+              {weekGain > 0 ? `▲ ${weekGain.toLocaleString()} IQ this week` : 'No IQ gained this week'}
             </span>
           ) : null}
           <span style={{ fontSize: 11, fontWeight: 800, background: tierBg, color: tierFg, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{tierLabel}</span>
           <span style={{ flex: 1 }} />
-          {prog.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>LEVEL {level + 1} AT {nextLevelAt.toLocaleString()} XP</span> : null}
+          {prog.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>LEVEL {level + 1} AT {nextLevelAt.toLocaleString()} IQ</span> : null}
         </div>
         {hasChart ? (
           <div ref={chartRef} style={{ marginTop: 10 }}>
@@ -1952,7 +1952,7 @@ function XpPanel({ me, titleById, viewing }) {
                   {goalY != null ? (
                     <g>
                       <line x1={Lp} y1={goalY} x2={W - Rp} y2={goalY} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
-                      <text x={Lp + 2} y={Math.max(11, goalY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>Level {level + 1} at {nextLevelAt.toLocaleString()} XP</text>
+                      <text x={Lp + 2} y={Math.max(11, goalY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>Level {level + 1} at {nextLevelAt.toLocaleString()} IQ</text>
                     </g>
                   ) : null}
                   <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke="#fff" strokeWidth="1.5" />
@@ -1961,22 +1961,22 @@ function XpPanel({ me, titleById, viewing }) {
             })() : <div style={{ height: 150 }} />}
           </div>
         ) : (
-          <div style={{ fontSize: 13, color: C.soft, padding: '14px 0 6px' }}>{viewing ? 'A few more finished quizzes and the XP trend chart appears here.' : 'Finish a few quizzes and your XP trend chart appears here.'}</div>
+          <div style={{ fontSize: 13, color: C.soft, padding: '14px 0 6px' }}>{viewing ? 'A few more finished quizzes and the IQ Points trend chart appears here.' : 'Finish a few quizzes and your IQ Points trend chart appears here.'}</div>
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, fontWeight: 800, color: tierFg, letterSpacing: '.04em', textTransform: 'uppercase', flex: 'none' }}>{tierLabel.replace(' Tier', '')}</span>
           <span style={{ flex: 1, minWidth: 120, height: 8, borderRadius: 999, background: '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${bandPct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: C.soft, letterSpacing: '.04em', flex: 'none' }}>{`${prog.toNext.toLocaleString()} XP TO LEVEL ${level + 1}`}</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: C.soft, letterSpacing: '.04em', flex: 'none' }}>{`${prog.toNext.toLocaleString()} IQ TO LEVEL ${level + 1}`}</span>
         </div>
       </div>
 
       <button onClick={() => setHow((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: C.accent, fontFamily: FONT, fontSize: 12.5, fontWeight: 800, cursor: 'pointer', padding: '2px 0', marginBottom: 12 }}>
-        <ChevronDown size={15} style={{ transform: how ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} /> How your XP works
+        <ChevronDown size={15} style={{ transform: how ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} /> How your IQ Points work
       </button>
       {how ? explainerCards : null}
 
       <div className="card" style={{ padding: '4px 6px' }}>
-        <div style={{ padding: '12px 12px 4px', fontSize: 14, fontWeight: 700 }}>Recent XP</div>
+        <div style={{ padding: '12px 12px 4px', fontSize: 14, fontWeight: 700 }}>Recent IQ Points</div>
         <div style={{ overflow: 'auto' }}>
           <table>
             <thead><tr>
@@ -1984,11 +1984,11 @@ function XpPanel({ me, titleById, viewing }) {
               <th style={{ textAlign: 'right' }}>Difficulty</th>
               <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
               <th style={{ textAlign: 'right' }}>Notes</th>
-              <th style={{ textAlign: 'right' }}>XP</th>
+              <th style={{ textAlign: 'right' }}>IQ</th>
             </tr></thead>
             <tbody>
               {recent.length === 0 && (
-                <tr><td colSpan={5} style={{ color: C.soft }}>No games yet. Finish a quiz to start earning XP.</td></tr>
+                <tr><td colSpan={5} style={{ color: C.soft }}>No games yet. Finish a quiz to start earning IQ Points.</td></tr>
               )}
               {recent.slice(0, 40).map((m, i) => (
                 <tr key={i}>

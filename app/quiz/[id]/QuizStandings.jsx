@@ -1,14 +1,14 @@
 'use client';
 import React from 'react';
 
-// Shared "Your standing" XP panel for quiz results cards. Renders three
-// metrics (XP earned, Global rank, Category rank) as compact SIDE-BY-SIDE
+// Shared "Your standing" IQ Points panel for quiz results cards. Renders three
+// metrics (IQ Points earned, Global rank, Category rank) as compact SIDE-BY-SIDE
 // columns so the results card stays short enough to fit on small screens.
 // Returns null until the post-game profile is known. Pass `fill` to sit
 // beside the leaderboard snippet (timed-mcq); omit it for a centered card.
 // Props keep their historical names (eloAfter/eloBefore are simply the
 // /api/quiz/me profiles after/before the game) so none of the eleven board
-// callers had to change when Elo was retired for XP (2026-07-08).
+// callers had to change when Elo was retired for IQ Points (2026-07-08).
 const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#262b35', forest: '#10b981' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -42,13 +42,13 @@ export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLab
       <div style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.ember, textAlign: 'center', padding: '9px 0 8px' }}>Your standing</div>
       <div style={{ display: 'grid', gridTemplateColumns: hideCategory ? 'minmax(0,1fr) minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)', borderTop: `1px solid ${C.faded}22` }}>
         <div style={cellSt(true)}>
-          <div style={lblSt}>XP earned</div>
+          <div style={lblSt}>IQ Points earned</div>
           <div style={{ ...bigSt, color: (gained || 0) > 0 ? C.forest : C.ink }}>{gained != null ? `+${fmtN(gained)}` : fmtN(aXp)}</div>
           <div style={{ marginTop: 6, minHeight: 15, lineHeight: 1 }}>
             {leveledUp ? (
               <span style={{ fontFamily: FONT, fontSize: 9, fontWeight: 700, color: C.forest, background: '#e7ecdf', padding: '2px 6px' }}>▲ LEVEL {aLevel}!</span>
             ) : (
-              <span style={{ fontFamily: FONT, fontSize: 10, color: C.faded }}>Level {aLevel} · {fmtN(aXp)} XP</span>
+              <span style={{ fontFamily: FONT, fontSize: 10, color: C.faded }}>Level {aLevel} · {fmtN(aXp)} IQ</span>
             )}
           </div>
         </div>

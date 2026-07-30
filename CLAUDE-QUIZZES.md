@@ -113,9 +113,30 @@ each leaderboard row stores its own `total`. Because of that, **adding a new ans
 does not break prior perfect scores** — they were graded against the old total and stay perfect
 automatically. No migration code is needed when you extend a quiz's answer set.
 
+### IQ Points is the USER-FACING name; `xp` is the CODE name (owner rule, 2026-07-30)
+
+The progression metric is called **IQ Points** everywhere a reader can see it. It was previously
+called "XP"; the rename was display-only. Two vocabularies now coexist on purpose, do NOT
+"clean this up" by unifying them:
+
+- **Reader-facing copy says IQ Points.** Use the full "IQ Points" in prose, labels, headings, and
+  empty states ("IQ Points earned", "Total IQ Points", "How IQ Points Work", "start earning IQ
+  Points"). Use the bare short form **"IQ"** only where the full phrase would wrap or overflow:
+  table column headers, chips, tab labels, and values sitting immediately after a number
+  ("Level 7 · 1,240 IQ", "+96 IQ", the "IQ & Level" tab). Never write "XP" in reader-facing copy.
+- **Code keeps `xp`.** Every identifier, prop, API response field, query param, route and DB column
+  stays `xp` / `xp7d` / `xp30d` / `xpForLevel` / `xpTier` / `XP_REPLAY_FACTOR` /
+  `XpTile` / `.xp-*` CSS classes / `/api/quiz/xp` / `?sort=xp30d`. Renaming any of those
+  would need a migration and would break live rows for no reader benefit.
+- **Grammar changed with the noun.** "XP" was a mass noun ("XP only goes up", "No XP this week");
+  "IQ Points" is plural, so verbs and pronouns must agree ("IQ Points only go up", "there is no way
+  to lose them and they never decay"). Watch this when writing new copy.
+- Code COMMENTS use the reader vocabulary (IQ Points) even though the identifiers beside them say
+  `xp`, so the two stay legible together.
+
 ### Points games vs answer games (read before touching a result payload)
 
-Player stats (Completed, Accuracy, Correct, XP) are computed in ANSWER terms, never in points.
+Player stats (Completed, Accuracy, Correct, IQ Points) are computed in ANSWER terms, never in points.
 `correctAnswersOf(row)` and `answeredOf(row)` in `lib/quiz-scoring.js` are the single place that
 converts a stored row into that pair, and everything downstream (`lib/quiz-xp.js`, the champions
 route, the anon board) must go through them rather than reading `score / total` directly. Three
@@ -139,7 +160,7 @@ is not a plain solved/not-solved game, to the `DAILY_HALF` set or the `crux` cas
 `dailyAnswered`.** A daily whose payload does not fit either shape needs its own case, not a
 `total` fallback.
 
-XP pays per correct answer, so a one-question daily would earn 1-2 XP against 50+ for a large
+IQ Points pay per correct answer, so a one-question daily would earn 1-2 IQ Points against 50+ for a large
 name-them-all quiz. `XP_DAILY_ANSWERS` in `lib/quiz-xp.js` (currently 12) gives each daily a flat
 answer-equivalent instead, pro-rated by solve share and scaled by difficulty like any other game.
 Tune that constant to reprice the daily slate; it is the only knob.

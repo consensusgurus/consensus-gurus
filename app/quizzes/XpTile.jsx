@@ -8,14 +8,14 @@ import { Zap, ArrowRight } from 'lucide-react';
 // 2026-07-20 (the Newest tile was retired and Geo + Sports each shifted left).
 //
 // The tile FLIPS between two boards (owner request 2026-07-24): the front face
-// ranks by XP earned in the LAST 30 DAYS, the back face by ALL-TIME XP. It uses
+// ranks by IQ Points earned in the LAST 30 DAYS, the back face by ALL-TIME IQ Points. It uses
 // the same 3D card flip the Featured tiles use (rotateY, ~8s hold, paused on
 // hover, wide-viewport + motion-ok only), so a visitor sees both the always-in-
 // play rolling board and the all-time hall of fame from one tile. /api/quiz/xp
 // serves both: ?sort=xp30d for the 30-day board, the default sort for all-time.
 //
-// The hover panel explains the XP system itself, because the tile is the only
-// place on the hub that says out loud what XP is and how to earn it. It sits
+// The hover panel explains the IQ Points system itself, because the tile is the only
+// place on the hub that says out loud what IQ Points are and how to earn them. It sits
 // OUTSIDE the flip (shared by both faces), and the TOP SOT PLAYER tag stays on
 // the tile frame; only the body (name + podium) turns.
 
@@ -84,11 +84,11 @@ function XpBody({ face }) {
           <div className="xp-namewrap" ref={wrapRef}>
             <span className="xp-who" ref={textRef}>{leader.name}</span>
           </div>
-          <div className="xp-sub">{num(leader.value)} XP earned {face.subWord}</div>
+          <div className="xp-sub">{num(leader.value)} IQ Points earned {face.subWord}</div>
           {/* Runners-up 2-5 as a 2x2 grid, so the tile reads as a podium
               rather than a single name. Rendered 2, 4, 3, 5 so the grid places
               4 to the right of 2 and 5 to the right of 3. To save the space, the
-              XP total is shown only for the leader above; the runners-up carry
+              IQ Points total is shown only for the leader above; the runners-up carry
               the name alone. Empty places render as "Open" on purpose: it shows
               the spot is contested and reachable instead of hiding that it is free. */}
           <div className="xp-podium">
@@ -121,8 +121,8 @@ function XpBody({ face }) {
 }
 
 export default function XpTile() {
-  const [top30, setTop30] = useState(null); // [{name,value}] by 30-day XP
-  const [topAll, setTopAll] = useState(null); // [{name,value}] by all-time XP
+  const [top30, setTop30] = useState(null); // [{name,value}] by 30-day IQ Points
+  const [topAll, setTopAll] = useState(null); // [{name,value}] by all-time IQ Points
   const [open, setOpen] = useState(false);
   const [n, setN] = useState(0); // flip counter; even face = 30d, odd = all-time
   const [hovered, setHovered] = useState(false);
@@ -138,7 +138,7 @@ export default function XpTile() {
         setTop30(d.players.filter((p) => (p.xp30d || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp30d })));
       })
       .catch(() => { /* face falls back to its empty state */ });
-    // All-time board (default sort is all-time XP).
+    // All-time board (default sort is all-time IQ Points).
     fetch('/api/quiz/xp')
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
@@ -173,8 +173,8 @@ export default function XpTile() {
   }, [n, running]);
 
   const faces = [
-    { key: 'd30', chip: 'Last 30 days', subWord: 'over the last 30 days', empty: 'Nobody has banked XP in the last 30 days yet.', top: top30 },
-    { key: 'all', chip: 'All time', subWord: 'all time', empty: 'Nobody has banked XP yet.', top: topAll },
+    { key: 'd30', chip: 'Last 30 days', subWord: 'over the last 30 days', empty: 'Nobody has banked IQ Points in the last 30 days yet.', top: top30 },
+    { key: 'all', chip: 'All time', subWord: 'all time', empty: 'Nobody has banked IQ Points yet.', top: topAll },
   ];
 
   return (
@@ -185,7 +185,7 @@ export default function XpTile() {
       onMouseLeave={() => { setHovered(false); setOpen(false); }}
     >
       <style>{`
-        /* Electric-blue ground, so it reads as the XP slot and stays distinct
+        /* Electric-blue ground, so it reads as the IQ Points slot and stays distinct
            from the bronze Community tile it sits in a row with. The gradient is
            on the frame, shared by both flip faces. */
         .xptile{background:radial-gradient(135% 105% at 24% 36%, rgba(91,139,255,.34) 0%, rgba(91,139,255,.08) 46%, rgba(0,0,0,0) 74%), linear-gradient(155deg,#132a5c 0%,#0e1d40 58%,#080f23 100%);cursor:pointer;perspective:1100px;}
@@ -233,18 +233,18 @@ export default function XpTile() {
       </div>
 
       <div className="xp-panel">
-        <div className="xp-h">How XP works</div>
-        {/* The "why": XP rewards volume, not just talent, so the board is
+        <div className="xp-h">How IQ Points work</div>
+        {/* The "why": IQ Points reward volume, not just talent, so the board is
             winnable by anyone willing to keep playing. Keep the copy below it
             SHORT: the panel is capped at the tile's height, and anything longer
             than about three short lines starts scrolling (owner, 2026-07-20). */}
         <div className="xp-why">The more you play, the more you win.</div>
         <div className="xp-p">
-          Every correct answer banks XP, and a perfect run pays a 25% bonus.
+          Every correct answer banks IQ Points, and a perfect run pays a 25% bonus.
           Points are never deducted.
         </div>
         <div className="xp-p">The tile flips between the last 30 days and the all-time board.</div>
-        {/* The full XP ranking lives in the Stat Hub's Player tab (PlayerPanel
+        {/* The full IQ Points ranking lives in the Stat Hub's Player tab (PlayerPanel
             renders the whole board); there is no standalone leaderboard route. */}
         <Link href="/quizzes/hub?tab=player" className="xp-cta" onClick={(e) => e.stopPropagation()}>
           Full leaderboard <ArrowRight size={13} />
