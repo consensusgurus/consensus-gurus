@@ -619,10 +619,11 @@ export default function DailyStrip({ board = null }) {
              for the longer Sunday Edition variant of this label. */
           .dh-bue{font-size:7.5px;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;}
         }
-        /* Sub-360px (iPhone SE 1st gen and similar): "IQ POINTS TODAY" outgrows
-           its cell, so ease the cap's labels down. The ellipsis above is the
+        /* Under 375px the third cap cell squeezes the labels ("IQ RANK CHANGE"
+           truncates at 8.5px between 356 and 374), so ease them down. Measured:
+           8.5px is clean at 375 and clips at 360. The ellipsis above is the
            safety net if a longer label is ever used. */
-        @media(max-width:355px){
+        @media(max-width:374px){
           .dh-mcell span{font-size:7.5px;letter-spacing:.01em;}
           .dh-caplead{font-size:13px;padding-right:8px;}
         }
