@@ -27,7 +27,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, FlaskConical, Eraser } from 'lucide-react';
+import { HelpCircle, X, Smartphone, FlaskConical, Eraser, Ban } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -61,6 +61,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_axiom_help_seen';
 const STATS_KEY = 'sot_axiom_stats';
+const TOOL_KEY = 'sot_axiom_tool';   // remembered tool: 'mark' | 'test'
 const TOTAL = 12;
 const WRONG_COST = 4;      // a wrong name
 const UNPROVEN_COST = 4;   // per rule still standing when you name the right one
@@ -287,6 +288,7 @@ function freshState() {
     v: 1,
     tested: [],        // tile indexes the player has spent a test on
     struck: [],        // rules the player has crossed out as scratch
+    marks: [],         // tiles crossed out as scratch: free, cosmetic, unscored
     wrongPicks: [],    // rule indexes already named and rejected
     unproven: 0,       // rules left standing at the moment the answer was named
     naming: false,     // the rule list is armed for a pick
@@ -303,6 +305,11 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
   const [g, setG] = useState(() => freshState());
   const [verdict, setVerdict] = useState(null);
+  // Tile scratch tool. Defaults to Mark, like Etch / Hedge / Jesters: on an
+  // Axiom board you rule out ten or more tiles but only ever spend two to six
+  // tests, and testing is the action that costs points, so the free note is the
+  // safe default. Hold or right-click a tile to test without switching tool.
+  const [mode, setMode] = useState('mark');   // 'mark' | 'test'
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [toast, setToast] = useState(null);
@@ -322,6 +329,8 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
+  const pressTimer = useRef(null);
+  const longFired = useRef(false);
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
@@ -364,11 +373,17 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         if (saved && saved.v === 1 && Array.isArray(saved.tested)) setG({ ...freshState(), ...saved });
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
+      const tl = localStorage.getItem(TOOL_KEY);
+      if (tl === 'mark' || tl === 'test') setMode(tl);
     } catch (e) {}
     try { setStats(getStats()); } catch (e) {}
     setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(TOOL_KEY, mode); } catch (e) {}
+  }, [mode, hydrated]);
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
@@ -473,6 +488,36 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
     setG((cur) => ({ ...cur, tested: [...cur.tested, i], t0: cur.t0 || Date.now() }));
     setVerdict(null);
   }
+  // Free scratch. Crossing a tile out changes nothing except the player's own
+  // view of the board: it never enters `tested`, so it cannot spend a test or
+  // move the score. The board never marks a tile for you either, because
+  // working out which tiles split the field IS the puzzle.
+  function toggleMark(i) {
+    if (!playing) return;
+    if (PUZZLE.tiles[i].g || g.tested.includes(i)) return;
+    setG((cur) => ({
+      ...cur,
+      marks: (cur.marks || []).includes(i) ? (cur.marks || []).filter((x) => x !== i) : [...(cur.marks || []), i],
+      t0: cur.t0 || Date.now(),
+    }));
+  }
+  // Hold (mobile) or right-click (desktop) spends a test whatever the tool is
+  // set to; longFired swallows the click that follows the long press.
+  function startPress(i) {
+    longFired.current = false;
+    clearTimeout(pressTimer.current);
+    pressTimer.current = setTimeout(() => {
+      longFired.current = true;
+      testTile(i);
+      try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+    }, 420);
+  }
+  function endPress() { clearTimeout(pressTimer.current); }
+  function tapTile(i) {
+    if (longFired.current) { longFired.current = false; return; }
+    if (mode === 'test') testTile(i); else toggleMark(i);
+  }
+
   function toggleStrike(i) {
     if (!playing) return;
     setG((cur) => ({
@@ -481,9 +526,9 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       t0: cur.t0 || Date.now(),
     }));
   }
-  function clearStrikes() {
+  function clearNotes() {
     if (!playing) return;
-    setG((cur) => ({ ...cur, struck: [] }));
+    setG((cur) => ({ ...cur, struck: [], marks: [] }));
   }
 
   function nameRule(i) {
@@ -550,7 +595,8 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
       <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
         <li style={{ marginBottom: 5 }}>{PUZZLE.rules.length} candidate rules sit under the board. <b>Exactly one</b> fits every tile.</li>
-        <li style={{ marginBottom: 5 }}>Tap a grey tile to <b>test</b> it and flip its colour. You get <b>{PUZZLE.budget}</b>.</li>
+        <li style={{ marginBottom: 5 }}>Tiles start on <b>Mark &times;</b>. Tapping one crosses it out as a note: free, and it changes nothing on the board.</li>
+        <li style={{ marginBottom: 5 }}>Switch to <b>Test</b>, or hold a tile, to <b>spend a test</b> and flip its colour. You get <b>{PUZZLE.budget}</b>.</li>
         <li style={{ marginBottom: 5 }}>Tap a rule to cross it out once the colours have killed it.</li>
         <li>Hit <b>Name the rule</b> and pick the one still standing.</li>
       </ol>
@@ -585,6 +631,10 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-tile.yes{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .ax-tile.no{background:${COLORS.redSoft};border-color:${COLORS.redInk};color:#7f1d1d;}
           .ax-tile.given{box-shadow:inset 0 0 0 2px rgba(28,30,36,0.28);}
+          .ax-tile.marked{background:${COLORS.paper};border-style:dashed;border-color:rgba(28,30,36,0.32);color:${COLORS.faded};text-decoration:line-through;text-decoration-thickness:1.5px;opacity:0.7;}
+          .ax-tile.marked:hover:not(:disabled){opacity:1;}
+          .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
+          .ax-tool.on{background:${COLORS.ink};color:#fff;border-color:${COLORS.ink};}
           .ax-rule{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
           .ax-rule.struck{opacity:0.5;}
           .ax-rule.struck .ax-rule-t{text-decoration:line-through;}
@@ -653,19 +703,37 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {/* the board */}
         {!preStart && (
           <>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>The board</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded }}>The board</div>
+              {playing && (
+                <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+                  <button type="button" className={`ax-tool${mode === 'mark' ? ' on' : ''}`} onClick={() => setMode('mark')} title="Cross tiles out as notes. Free, and it changes nothing on the board.">
+                    <Ban size={13} /> Mark &times;
+                  </button>
+                  <button type="button" className={`ax-tool${mode === 'test' ? ' on' : ''}`} onClick={() => setMode('test')} title="Tap a tile to spend a test and flip its colour.">
+                    <FlaskConical size={13} /> Test
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="ax-grid">
               {PUZZLE.tiles.map((t, i) => {
                 const shown = revealed(i);
+                const marked = !shown && (g.marks || []).includes(i);
                 const cls = shown ? (t.t ? 'yes' : 'no') : '';
                 return (
                   <button
                     key={t.w}
                     type="button"
-                    className={`ax-tile ${cls}${t.g ? ' given' : ''}`}
-                    onClick={() => testTile(i)}
+                    className={`ax-tile ${cls}${t.g ? ' given' : ''}${marked ? ' marked' : ''}`}
+                    onClick={() => tapTile(i)}
+                    onContextMenu={(e) => { e.preventDefault(); if (longFired.current) { longFired.current = false; return; } testTile(i); }}
+                    onPointerDown={(e) => { if (e.pointerType === 'touch') startPress(i); }}
+                    onPointerUp={endPress}
+                    onPointerLeave={endPress}
+                    onPointerCancel={endPress}
                     disabled={shown || !playing}
-                    title={t.g ? 'Given' : shown ? 'Tested' : 'Spend a test on this tile'}
+                    title={t.g ? 'Given' : shown ? 'Tested' : mode === 'test' ? 'Spend a test on this tile' : 'Cross this tile out (free). Hold or right-click to spend a test.'}
                   >{t.w}</button>
                 );
               })}
@@ -720,7 +788,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             >
               <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : 'Name the rule'}{g.wrongPicks.length ? ` (${namesLeft} left)` : ''}
             </button>
-            {g.struck.length > 0 && <button type="button" className="ax-btn" onClick={clearStrikes}><Eraser size={14} /> Clear cross-outs</button>}
+            {(g.struck.length > 0 || (g.marks || []).length > 0) && <button type="button" className="ax-btn" onClick={clearNotes}><Eraser size={14} /> Clear notes</button>}
             {(testsLeft === 0 || g.wrongPicks.length >= MAX_WRONG) && (
               <button type="button" className="ax-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
             )}
