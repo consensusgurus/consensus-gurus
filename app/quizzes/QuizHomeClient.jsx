@@ -1932,7 +1932,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb .dhx-lb-hero{margin:0;}
             .qzh .dhx-lb.xp .dhx-lb-name{color:#2563eb;}
             .qzh .dhx-lb.comm .dhx-lb-name{color:#7c3aed;}
-            .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
+            .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:#fff;background:#262b35;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
             .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color: #a16207;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#262b35;margin-top:3px;}
@@ -2719,6 +2719,7 @@ function usePillProbe(url, region, scrim, useParentBox) {
 function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled, fill, baseCount }) {
   const hasHero = !!heroUrl;
   const blueHead = hasHero || filled;
+  const headBar = `color-mix(in srgb, ${color} 74%, #1c1e24)`
   const headFg = blueHead ? '#fff' : color;
   const heroLink = heroHref || (heroId ? `/quiz/${heroId}` : '#');
   const base = baseCount || rows.length;
@@ -2785,7 +2786,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
           </div>
         </Link>
       ) : null}
-      <div ref={headRef} className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: blueHead ? C.accent : color, background: blueHead ? C.accent : `color-mix(in srgb, ${color} 6%, #fff)` }}>
+      <div ref={headRef} className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: blueHead ? headBar : color, background: blueHead ? headBar : `color-mix(in srgb, ${color} 6%, #fff)` }}>
         <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: blueHead ? 'rgba(255,255,255,0.22)' : tint, color: blueHead ? '#fff' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>
