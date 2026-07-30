@@ -212,7 +212,6 @@ export default function DailyStrip({ board = null }) {
   const [metrics, setMetrics] = useState(null);
   const vpRef = useRef(null);
   const boardRef = useRef(null);
-  const vpWrapRef = useRef(null);
 
   // On a phone, default the board to the Unplayed filter (owner mockup).
   useEffect(() => {
@@ -382,37 +381,39 @@ export default function DailyStrip({ board = null }) {
 
   // Measure the board window so the sheet can be shifted by exactly one row.
   //
-  // SIZING IS THE PRE-MATE SIZING, DELIBERATELY (owner, 2026-07-30: "go back to
-  // that height for all three"). The board has always been five rows stretched
-  // to fill the column, which is what `grid-auto-rows: minmax(118px, 1fr)` plus
-  // `align-content: stretch` did before this window existed, and it is what
-  // keeps the three columns ending level. The window reproduces that formula
-  // exactly; the ONLY thing it adds is clipping the rows past the fifth and
-  // handing them to the arrow. So tile height still follows the column, and the
-  // column still follows the tallest rail, exactly as it always has.
+  // The TILES decide the height here, never the column. An earlier version did
+  // the opposite, deriving a row height from whatever vertical space the page
+  // grid handed the board, which meant a tall right hand rail stretched every
+  // tile (they came out at 154px instead of their natural ~127px). So the row
+  // step is now READ OFF the laid out grid and the window is sized to exactly
+  // `vis` of those rows. Rows keep their natural height, and any space the
+  // column has left over simply sits under the board.
   //
-  // No feedback loop: the grid is absolutely positioned, so the row height we
-  // write is not fed back into the height of the wrapper we measure.
+  // No feedback loop: the grid is absolutely positioned, so its own row heights
+  // are content driven and do not depend on the window height we write back.
   useEffect(() => {
     const vp = vpRef.current, bd = boardRef.current;
     if (!vp || !bd) return undefined;
-    const GAP = 8, MIN_ROW = 118;
+    const GAP = 8;
     const measure = () => {
       // Below this width the board simply flows: the spare tiles take their own
       // row, no window, no arrow, no animation (owner, 2026-07-30).
       if (typeof window === 'undefined' || window.innerWidth < 861) { setMetrics(null); return; }
       const cols = (getComputedStyle(bd).gridTemplateColumns || '').split(' ').filter(Boolean).length || 6;
-      if (!bd.children.length) return;
-      // The window is the board the site has always had: thirty tiles, which is
-      // five rows at the full width desktop column count.
       const vis = Math.max(1, Math.ceil(BOARD_WINDOW / cols));
-      const avail = (vpWrapRef.current ? vpWrapRef.current.clientHeight : vp.clientHeight);
-      if (!(avail > 1)) return;
-      // The original stretch, restated: rows share the column, with the same
-      // 118px floor the old `minmax(118px, 1fr)` had.
-      const rowH = Math.max(MIN_ROW, (avail - GAP * (vis - 1)) / vis);
-      const rowStep = rowH + GAP;
-      const windowH = Math.round(vis * rowH + GAP * (vis - 1));
+      const tiles = bd.children;
+      if (!tiles.length) return;
+      // Distance from one row to the next, gap included, for the shift.
+      const rowStep = tiles.length > cols
+        ? tiles[cols].offsetTop - tiles[0].offsetTop
+        : tiles[0].offsetHeight + GAP;
+      if (!(rowStep > 1)) return;
+      // The window height is taken from the BOTTOM OF THE LAST VISIBLE TILE
+      // rather than from vis * rowStep. Row heights can settle a pixel or two
+      // late (web fonts, tile art), and multiplying an early row step left the
+      // last row clipped by the accumulated error.
+      const last = tiles[Math.min(vis * cols, tiles.length) - 1];
+      const windowH = last.offsetTop + last.offsetHeight - tiles[0].offsetTop;
       if (!(windowH > 1)) return;
       const maxOffset = Math.max(0, Math.ceil(list.length / cols) - vis);
       setMetrics((cur) => (cur && cur.rowStep === rowStep && cur.windowH === windowH
@@ -424,11 +425,8 @@ export default function DailyStrip({ board = null }) {
     // row height that arrives a frame later still produces an exact window.
     const raf = requestAnimationFrame(() => requestAnimationFrame(measure));
     const settle = setTimeout(measure, 500);
-    // Observe the WRAPPER, which is the box whose height we read: the window
-    // itself carries an explicit height, so it would not resize when the column
-    // grows (a rail filling up through the day) and would go stale.
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
-    if (ro) { ro.observe(vp); if (vpWrapRef.current) ro.observe(vpWrapRef.current); }
+    if (ro) ro.observe(vp);
     window.addEventListener('resize', measure);
     return () => {
       if (ro) ro.disconnect();
@@ -510,7 +508,6 @@ export default function DailyStrip({ board = null }) {
     <div className={'dhome' + (selGame ? ' open' : '')}>
       <style>{`
         .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
-
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#ffffff;border:1.5px solid #c3ccda;border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:#1c1e24;border-bottom:1px solid #eef0f4;}
         .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1.5px solid #c3ccda;}
@@ -566,7 +563,7 @@ export default function DailyStrip({ board = null }) {
 /* The board window. Until it has been measured (and always below 861px) this is
            a plain passthrough, so the grid flows normally and nothing is ever clipped
            by a stylesheet the JS has not caught up with. The .on class is what arms it. */
-        .dh-vpwrap{position:relative;flex:1 1 auto;min-height:0;}
+        .dh-vpwrap{position:relative;flex:0 0 auto;}
         .dh-vp{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
         .dh-vp.on{flex:0 0 auto;}
         .dh-vp.on{overflow:hidden;}
@@ -574,7 +571,7 @@ export default function DailyStrip({ board = null }) {
         /* The arrow sits ON the window's bottom edge, centred, so it half-covers the
            bottom of the two middle tiles in the last visible row (owner, 2026-07-30).
            It lives outside .dh-vp because the window clips its own overflow. */
-        .dh-more{position:absolute;left:50%;transform:translate(-50%,-50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #c3ccda;box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:#0e1d40;font-family:inherit;}
+        .dh-more{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #c3ccda;box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:#0e1d40;font-family:inherit;}
         .dh-more:hover{border-color:#0e1d40;background:#f7f8fa;box-shadow:0 4px 13px rgba(20,22,28,0.26);}
         @media(max-width:860px){.dh-more{display:none;}}
         /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
@@ -869,11 +866,13 @@ export default function DailyStrip({ board = null }) {
           console (see below), so opening a tile covers this rather than
           displacing it. */}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
-        <div className="dh-vpwrap" ref={vpWrapRef}>
+        <div className="dh-vpwrap">
         <div
           ref={vpRef}
-          className={'dh-vp' + (metrics ? ' on' : '')}
-          style={metrics ? { height: metrics.windowH } : undefined}
+          className={'dh-vp' + (metrics && metrics.maxOffset > 0 ? ' on' : '')}
+          style={metrics && metrics.maxOffset > 0
+            ? { height: metrics.windowH }
+            : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
           <div
@@ -882,8 +881,8 @@ export default function DailyStrip({ board = null }) {
             role="navigation"
             aria-label="Daily puzzles"
             aria-hidden={selGame ? 'true' : undefined}
-            style={metrics
-              ? { gridAutoRows: `${metrics.rowStep - 8}px`, transform: `translateY(-${shift * metrics.rowStep}px)` }
+            style={metrics && metrics.maxOffset > 0
+              ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
             {renderTiles(list, false)}
@@ -893,7 +892,6 @@ export default function DailyStrip({ board = null }) {
           <button
             type="button"
             className="dh-more"
-            style={{ top: metrics.windowH }}
             onClick={() => setRowOffset(shift < metrics.maxOffset ? shift + 1 : 0)}
             aria-label={shift < metrics.maxOffset ? 'Show more daily puzzles' : 'Back to the top of the daily puzzles'}
             title={shift < metrics.maxOffset ? 'More puzzles' : 'Back to the top'}
