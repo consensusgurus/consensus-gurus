@@ -531,7 +531,7 @@ export default function DailyStrip({ board = null }) {
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
 /* The board window. Until it has been measured (and always below 861px) this is
            a plain passthrough, so the grid flows normally and nothing is ever clipped
-           by a stylesheet the JS has not caught up with. `.on` is what arms it. */
+           by a stylesheet the JS has not caught up with. The .on class is what arms it. */
         .dh-vp{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
         .dh-vp.on{overflow:hidden;}
         .dh-vp.on > .dh-board{position:absolute;top:0;left:0;right:0;transition:transform .32s cubic-bezier(.4,0,.2,1);}
