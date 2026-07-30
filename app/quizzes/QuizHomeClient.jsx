@@ -1556,7 +1556,7 @@ export default function QuizHomeClient() {
     .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#4b5563;color:#1c1e24;}
     .qzh .qz-toolbtn:hover svg{color:#fff;}
     /* One accent in the row: the only button that creates something. */
-    .qzh .qz-toolbtn-cta{background:#e8b43a;border-color:#e8b43a;color:#1c1e24;font-weight:800;}
+    .qzh .qz-toolbtn-cta{background:#e8b43a;border-color: #a16207;color:#1c1e24;font-weight:800;}
     .qzh .qz-toolbtn-cta svg{color:#1c1e24;}
     .qzh .qz-toolbtn-cta:hover{background:#f0c358;border-color:#f0c358;color:#1c1e24;}
     .qzh .qz-toolbtn-cta:hover svg{color:#1c1e24;}
@@ -1856,7 +1856,7 @@ export default function QuizHomeClient() {
             /* left leaderboards element */
             .qzh .dhx-lb{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:13px 14px;}
             .qzh .dhx-lb-eb{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.02em;margin-bottom:8px;color:#a16207;}
-            .qzh .dhx-lb-eb svg{color:#e8b43a;flex:none;}
+            .qzh .dhx-lb-eb svg{color: #a16207;flex:none;}
             .qzh .dhx-lb1{display:flex;align-items:center;gap:9px;border-radius:11px;padding:8px 10px;margin-bottom:4px;background:linear-gradient(90deg,#fdf1d3,#fff);border:1px solid #f0dcae;}
             .qzh .dhx-lb1 .av{width:32px;height:32px;border-radius:50%;background:#e8b43a;color:#2b1d00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none;}
             .qzh .dhx-lb1 .m{flex:1;min-width:0;}
@@ -1934,14 +1934,14 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb.comm .dhx-lb-name{color:#7c3aed;}
             .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.05em;color:#0e1d40;background:#fff;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
-            .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color:#e8b43a;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color: #a16207;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#4b5563;margin-top:3px;}
             .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;}
             .qzh .dhx-lb-gi{display:flex;align-items:baseline;gap:6px;font-size:11.5px;min-width:0;}
             .qzh .dhx-lb-gi .rk{width:12px;font-size:10px;font-weight:800;color:#4b5563;flex:none;}
             .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-gi .sc{flex:none;color:#4b5563;font-weight:700;font-variant-numeric:tabular-nums;}
-            .qzh .dhx-lb-gi.me b{color:#e8b43a;}
+            .qzh .dhx-lb-gi.me b{color: #a16207;}
             .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
             .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
             .qzh .dhx-lb-scope{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7f93b8;margin-bottom:2px;}
@@ -2022,7 +2022,7 @@ export default function QuizHomeClient() {
               const one = ov[0];
               return (
                 <div className="dhx-lb">
-                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> DAILY PUZZLE LEADERBOARD</span>
+                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#a16207' }} /> DAILY PUZZLE LEADERBOARD</span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.username) || 'Player'}</span>
                     <span className="dhx-lb-sub">{one ? `${one.gamesPlayed}/${gc} puzzles today` : 'No scores yet today'}</span>
@@ -2778,7 +2778,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
       {hasHero ? (
         <Link href={heroLink} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
           <span className="cc-ov" ref={pillRef} />
-          {heroId ? <span className={`cc-stat${statPill ? ' pill' : ''}`}>{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#e8b43a', flex: 'none' }} /> {heroLeader}</> : null}</span> : null}
+          {heroId ? <span className={`cc-stat${statPill ? ' pill' : ''}`}>{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#a16207', flex: 'none' }} /> {heroLeader}</> : null}</span> : null}
           <div className="cc-btm">
             <span className="cc-htitle">{stripVerb(heroTitle)}</span>
             <span className="cc-play">{heroCta || 'Play'} <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>

@@ -98,12 +98,12 @@ function mixHex(hex, pct, base) {
 // consistent layer of grouping. Navy-legible hues, one clearly distinct per
 // category.
 const CAT_COLOR = {
-  Word: '#1d4ed8', Numbers: '#9a3412', Logic: '#be123c',
-  History: '#7c3aed', Geography: '#166534', 'Crowd Psychology': '#854d0e',
+  Word: '#1d4ed8', Numbers: '#9a3412', Logic: '#9f0f31',
+  History: '#6b21a8', Geography: '#166534', 'Crowd Psychology': '#854d0e',
 };
 const CAT_CHIP_BG = {}, CAT_BG = {}, CAT_BD = {};
 for (const [k, v] of Object.entries(CAT_COLOR)) {
-  CAT_CHIP_BG[k] = mixHex(v, 0.20, TINT_BASE);
+  CAT_CHIP_BG[k] = mixHex(v, 0.13, TINT_BASE);
   CAT_BG[k] = mixHex(v, 0.14, TINT_BASE);
   CAT_BD[k] = mixHex(v, 0.55, TINT_BASE);
 }
