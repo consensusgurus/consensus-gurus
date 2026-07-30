@@ -101,10 +101,9 @@ const CAT_COLOR = {
   Word: '#1d4ed8', Numbers: '#9a3412', Logic: '#9f0f31',
   History: '#6b21a8', Geography: '#166534', 'Crowd Psychology': '#854d0e',
 };
-const CAT_CHIP_BG = {}, CAT_BG = {}, CAT_BD = {};
+const CAT_CHIP_BG = {}, CAT_BD = {};
 for (const [k, v] of Object.entries(CAT_COLOR)) {
   CAT_CHIP_BG[k] = mixHex(v, 0.13, TINT_BASE);
-  CAT_BG[k] = mixHex(v, 0.16, TINT_BASE);
   CAT_BD[k] = mixHex(v, 0.72, TINT_BASE);
 }
 const catCol = (cat) => CAT_COLOR[cat] || '#262b35';
@@ -388,7 +387,7 @@ export default function DailyStrip({ board = null }) {
                 type="button"
                 key={g.key}
                 className={`dh-tile${isDone ? ' done' : ''}${sel === g.key ? ' sel' : ''}`}
-              style={isDone ? undefined : { background: CAT_BG[g.cat], borderColor: CAT_BD[g.cat] }}
+              style={isDone ? undefined : { borderColor: CAT_BD[g.cat] }}
                 onClick={() => pick(g.key)}
                 aria-expanded={sel === g.key}
                 aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
