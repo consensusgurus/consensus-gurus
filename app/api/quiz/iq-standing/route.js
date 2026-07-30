@@ -58,8 +58,14 @@ export async function GET(request) {
     // badge the rank as unclaimed rather than hide it.
     const ranked = rankPlayers(players, 'all');
     const idx = ranked.findIndex((p) => p.key === myKey);
-    const from = Math.max(0, idx - span);
-    const windowRows = idx < 0 ? [] : ranked.slice(from, idx + span + 1).map((p, i) => ({
+    // Always return the full 2*span+1 rows when the board is that long, sliding
+    // the window instead of truncating it: the #1 player would otherwise see only
+    // themselves plus two below, and the last player only two above.
+    const size = span * 2 + 1;
+    // Clamp so the window never runs off the end (a board of exactly `size`
+    // viewed from its last rank would otherwise slice short and return 3 rows).
+    const from = Math.max(0, Math.min(Math.max(0, idx - span), ranked.length - size));
+    const windowRows = idx < 0 ? [] : ranked.slice(from, from + Math.min(size, ranked.length)).map((p, i) => ({
       rank: from + i + 1,
       name: p.name,
       xp: Math.round(p.xp),
