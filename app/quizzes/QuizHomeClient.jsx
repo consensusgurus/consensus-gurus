@@ -1730,7 +1730,7 @@ export default function QuizHomeClient() {
                       {dailyIds.includes(f.quizId) ? <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 800, letterSpacing: '.03em', textTransform: 'uppercase', color: C.accent, background: C.accsoft, padding: '1px 6px', borderRadius: 6 }}><Flame size={10} />Daily</span> : null}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: C.soft }}>
-                          <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
+                          <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#15803d' : C.soft }}>{f.score}/{f.total}</span>
                       <span style={{ fontWeight: 700 }}>{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ marginLeft: 'auto' }}>{relTime(f.playedAt)}</span>
                     </span>
@@ -2117,7 +2117,7 @@ export default function QuizHomeClient() {
                     <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
                       <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
                       <span className="mid"><span className="t">{stripVerb(resolveTitle(f.quizId) || f.title || f.quizId)}</span><span className="c"><i style={{ background: catColor }} />{catLabel}{todayPlays(f.quizId) > 0 ? <span className="x"> · x{todayPlays(f.quizId).toLocaleString()} today</span> : null}</span></span>
-                      <span className="rt"><span className="s" style={{ color: good ? '#16a34a' : '#1c1e24' }}>{f.score}/{f.total}</span><span className="when">{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : null}{relTime(f.playedAt) ? <span className="tm">{relTime(f.playedAt)} ago</span> : null}</span></span>
+                      <span className="rt"><span className="s" style={{ color: good ? '#15803d' : '#1c1e24' }}>{f.score}/{f.total}</span><span className="when">{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : null}{relTime(f.playedAt) ? <span className="tm">{relTime(f.playedAt)} ago</span> : null}</span></span>
                     </a>
                   );
                 })}
@@ -2357,7 +2357,7 @@ export default function QuizHomeClient() {
               <Link href={playHref(f.quizId)} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
-                  <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#16a34a' : C.soft }}>{f.score}/{f.total}</span>
+                  <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#15803d' : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>
               </Link>
@@ -2466,9 +2466,9 @@ export default function QuizHomeClient() {
                             </span>
                           </span>
                           <span style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, color: good ? '#16a34a' : C.ink, fontVariantNumeric: 'tabular-nums' }}>{f.score}/{f.total}</span>
+                            <span style={{ fontSize: 12, fontWeight: 800, color: good ? '#15803d' : C.ink, fontVariantNumeric: 'tabular-nums' }}>{f.score}/{f.total}</span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                              {typeof f.pct === 'number' ? <span style={{ fontSize: 9, fontWeight: 800, color: good ? '#16a34a' : '#b45309', background: good ? '#e7f7ed' : '#fef6e7', borderRadius: 999, padding: '1px 6px' }}>beat {f.pct}%</span> : null}
+                              {typeof f.pct === 'number' ? <span style={{ fontSize: 9, fontWeight: 800, color: good ? '#15803d' : '#b45309', background: good ? '#e7f7ed' : '#fef6e7', borderRadius: 999, padding: '1px 6px' }}>beat {f.pct}%</span> : null}
                               <span style={{ fontSize: 9.5, color: C.soft, fontWeight: 600 }}>{relTime(f.playedAt)}</span>
                             </span>
                           </span>
