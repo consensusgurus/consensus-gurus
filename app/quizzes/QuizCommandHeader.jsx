@@ -236,8 +236,25 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
+        /* Mobile header (owner 2026-07-29): three slots, nothing else.
+           Registered players: search left, username + rank centred, menu right.
+           Guests: username, Sign Up and the menu only, with no search and no
+           Stat Hub, so an unregistered visitor sees no stats chrome at all.
+           The brand mark and wordmark step aside on both so the three slots
+           actually reach the edges; home stays reachable from the menu. */
+        @media(max-width:600px){
+          .qch-brandlogo,.qch-word{display:none;}
+          .qch-burger{margin-left:auto;}
+          .qch-bar.is-user .qch-searchbtn{margin-left:0;}
+          .qch-bar.is-user .qch-me{max-width:64vw;}
+          .qch-bar.is-user .qch-mecol{flex-direction:column;align-items:center;gap:1px;}
+          .qch-bar.is-user .qch-nm,.qch-bar.is-user .qch-rankm{text-align:center;}
+          .qch-bar.is-guest .qch-searchbtn{display:none;}
+          .qch-bar.is-guest .qch-hub{display:none;}
+          .qch-bar.is-guest .qch-me{position:static;left:auto;transform:none;max-width:none;flex:1 1 auto;justify-content:flex-start;}
+        }
       `}</style>
-      <div className="qch-bar" ref={barRef}>
+      <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
         <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={30} /></Link>
         <Link href="/" className="qch-word"><span className="qch-wl">Source <em>of</em> Truths</span><span className="qch-ws">S<em>o</em>T</span></Link>
         <span className="qch-src">Exercise Your Mind</span>
