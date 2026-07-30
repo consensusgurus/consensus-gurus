@@ -576,11 +576,12 @@ export default function DailyStrip({ board = null }) {
            stopped 2px short of the tile grid, because .dh-sbar uses 12px side
            padding where .dh-boardwrap uses 10px. Matching the padding puts the
            button's right edge exactly on the grid's, and margin-left:auto anchors
-           it there rather than letting it hug the leaderboard text. Placed last so
-           it wins over the @container rule that sizes .dh-play for narrow bars. */
+           it there rather than letting it hug the leaderboard text. Selector matches the
+           @container rule's .dh-bup .dh-play specificity, since a bare .dh-play loses
+           to it regardless of source order. */
         @media(max-width:640px){
           .dh-sbar{padding-left:10px;padding-right:10px;}
-          .dh-play{margin-left:auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
+          .dh-bup .dh-play{margin-left:auto;flex:0 0 auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
         }
       `}</style>
 
