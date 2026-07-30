@@ -43,11 +43,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
-  Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
+  Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
+import { notifyShareCredit } from './ShareCreditPop';
 
 const RUST = '#c0392b';
 
@@ -217,6 +218,7 @@ export default function DailyEndCard({
   const [iqResolved, setIqResolved] = useState(false); // iq-standing answered (or gave up retrying)
   const [openTile, setOpenTile] = useState(null);     // which rank tile is expanded: 'iq'|'today'|'alltime'|'combined'|null
   const [calOpen, setCalOpen] = useState(false);      // calendar slip expanded
+  const [dayBusy, setDayBusy] = useState(false);      // 'Share my day' card is rendering
   const [calMonth, setCalMonth] = useState(() => etTodayEC().slice(0, 7)); // 'YYYY-MM'
 
   // Win reveal delay: on a win, hold the popup back ~2s so the player sees the
@@ -718,6 +720,44 @@ export default function DailyEndCard({
     </div>
   );
 
+  // Share the whole day as one 1080x1080 card (brain meter filled by how much of
+  // the slate is cleared, the day's IQ gain, the standing tiles). Native share
+  // sheet where the browser takes files, download everywhere else. The credit
+  // pop-up follows so the player has their referral link to post with the image.
+  const shareDay = async () => {
+    if (dayBusy) return;
+    setDayBusy(true);
+    try {
+      let a = null, em = null;
+      try { a = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+      try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); em = id && id.email; } catch (e) {}
+      const qs = new URLSearchParams();
+      if (a) qs.set('anonId', a);
+      if (em) qs.set('email', em);
+      const res = await fetch('/api/quiz/day-card?' + qs.toString());
+      if (!res.ok) throw new Error('day-card ' + res.status);
+      const blob = await res.blob();
+      const name = 'source-of-truths-day.png';
+      let shared = false;
+      try {
+        const file = new File([blob], name, { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file] });
+          shared = true;
+        }
+      } catch (e) { shared = false; }
+      if (!shared) {
+        const url = URL.createObjectURL(blob);
+        const el = document.createElement('a');
+        el.href = url; el.download = name;
+        document.body.appendChild(el); el.click(); el.remove();
+        setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} }, 4000);
+      }
+      notifyShareCredit('', 'https://sourceoftruths.com');
+    } catch (e) { /* nothing to show: the button just re-enables */ }
+    setDayBusy(false);
+  };
+
   const inner = (
     <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
       {modal && (
@@ -752,6 +792,9 @@ export default function DailyEndCard({
         button.dec-idbox:hover{background:#e4eefc;}
         .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
         .dec-share:hover{filter:brightness(1.12);}
+        .dec-day{font-family:${SANS};font-weight:800;font-size:12.5px;color:${BLUE};background:#eff4fd;border:1px solid #d7e3f8;border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
+        .dec-day:hover{background:#e4edfb;}
+        .dec-day[disabled]{opacity:.6;cursor:default;}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
@@ -950,6 +993,11 @@ export default function DailyEndCard({
           <button type="button" className="dec-share" onClick={onShare}>
             <Share2 size={14} strokeWidth={2.2} /> Share result{!/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
           </button>
+          {doneCount >= 3 ? (
+            <button type="button" className="dec-day" onClick={shareDay} disabled={dayBusy}>
+              <Brain size={14} strokeWidth={2.2} /> {dayBusy ? 'Building\u2026' : 'Share my day'}
+            </button>
+          ) : null}
           {hasEmail && username ? (
             <span className="dec-idbox">
               <span className="av" style={{ background: meta.accent }}>{String(username).slice(0, 1).toUpperCase()}</span>
