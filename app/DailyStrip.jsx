@@ -151,6 +151,7 @@ export default function DailyStrip({ board = null }) {
   const [inprog, setInprog] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
   const [dayStreak, setDayStreak] = useState(0); // cross-game: days in a row with at least one daily played
+  const [todayXp, setTodayXp] = useState(null);   // IQ Points earned today (ET), from daily-status
   const [sel, setSel] = useState(null); // selected game key (expanded tile), or null
   const [lbOpen, setLbOpen] = useState(false); // overall daily leaderboard toggle
 
@@ -216,6 +217,7 @@ export default function DailyStrip({ board = null }) {
       .then((data) => {
         if (!alive || !data) return;
         if (data.streaks && typeof data.streaks === 'object') setStreaks(data.streaks);
+        if (typeof data.todayXp === 'number') setTodayXp(data.todayXp);
         setDayStreak(computeDayStreak(data.played));
         const [Y, M, D] = etToday().split('-').map(Number);
         const yy = Y % 100;
@@ -444,6 +446,8 @@ export default function DailyStrip({ board = null }) {
         .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:#262b35;white-space:nowrap;}
         .dh-stat.g b{color:#15803d;}
         .dh-stat.y b{color:#a16207;}
+        /* IQ Points reads blue, not green: Completed already owns green in this bar. */
+        .dh-stat.iq b{color:#2563eb;}
         @container (max-width:900px){.dh-stat.opt{display:none;}}
         @container (max-width:760px){.dh-stat.opt2{display:none;}}
         /* Narrow bars swap the segmented filter for a hamburger and shed the
@@ -597,7 +601,7 @@ export default function DailyStrip({ board = null }) {
         <div className="dh-stats">
           <div className="dh-statlead"><span>Your</span><span>day:</span></div>
           <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
-          {board && board.me ? <div className="dh-stat opt3"><b>{fmtPts(board.me.total)}</b><span>Points</span></div> : null}
+          {todayXp != null ? <div className="dh-stat iq opt4"><b>{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
           {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
           {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Day streak</span></div> : null}
         </div>

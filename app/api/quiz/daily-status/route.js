@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
+import { computeXp } from '@/lib/quiz-xp';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -20,6 +21,8 @@ const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|c
 // end-screen cross-promo show played/completed marks that FOLLOW THE USER across
 // devices — localStorage only knows this one browser. Reads the shared in-process
 // quiz_results cache (no fresh full-table query) per the egress guardrails.
+// Also returns `todayXp`: the player's IQ Points earned today (ET), across every
+// game, which feeds the IQ Points stat in the "Your day" strip.
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
@@ -82,7 +85,25 @@ export async function GET(request) {
         if (s >= 2) streaks[g] = s;
       }
     } catch (e) {}
-    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks }, { headers: CACHE_HEADERS });
+    // Today's IQ Points (ET), for the "Your day" strip. Computed HERE rather than
+    // in its own request because this route already holds the rows and the strip
+    // already fetches it, and the 30s edge cache bounds the cost of the full
+    // computeXp pass. IQ needs per-quiz difficulty, which is derived from every
+    // row, so there is no cheaper single-player shortcut. Wrapped so a failure
+    // degrades to null instead of breaking played/completed, this route's real job.
+    let todayXp = null;
+    try {
+      const { players } = computeXp(data || [], { recentN: 400 });
+      const me = players.get(myKey);
+      if (me) {
+        const etDay = (ts) => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        const today = etDay(Date.now());
+        todayXp = Math.round((me.recent || [])
+          .filter((r) => r.createdAt && etDay(r.createdAt) === today)
+          .reduce((acc, r) => acc + (Number(r.xp) || 0), 0));
+      }
+    } catch (e) { console.error('daily-status todayXp', e); }
+    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [] });
