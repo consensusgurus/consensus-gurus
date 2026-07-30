@@ -572,6 +572,16 @@ export default function DailyStrip({ board = null }) {
           .dhome.open .dh-sbar{display:none;}
           .dhome.open .dh-boardwrap{display:none;}
         }
+        /* Mobile "Your day" bar (owner 2026-07-29): the Play button was 68x35 and
+           stopped 2px short of the tile grid, because .dh-sbar uses 12px side
+           padding where .dh-boardwrap uses 10px. Matching the padding puts the
+           button's right edge exactly on the grid's, and margin-left:auto anchors
+           it there rather than letting it hug the leaderboard text. Placed last so
+           it wins over the @container rule that sizes .dh-play for narrow bars. */
+        @media(max-width:640px){
+          .dh-sbar{padding-left:10px;padding-right:10px;}
+          .dh-play{margin-left:auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
+        }
       `}</style>
 
       {/* Stats bar. This is welded directly onto the grid below (rounded top
