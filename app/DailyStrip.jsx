@@ -505,9 +505,14 @@ export default function DailyStrip({ board = null }) {
   });
 
   return (
-    <div className={'dhome' + (selGame ? ' open' : '')}>
+    <div className={'dhome' + (selGame ? ' open' : '') + (metrics && metrics.maxOffset > 0 ? ' fit' : '')}>
       <style>{`
         .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
+        /* With the board window on, the tiles set the height, so the console
+           stops stretching to match the taller right hand rail and simply ends
+           under the last row (owner, 2026-07-30: "tile board is still stretched"). */
+        .dhome.fit{min-height:0;}
+        .dhome.fit .dh-boardwrap{flex:0 0 auto;}
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#ffffff;border:1.5px solid #c3ccda;border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:#1c1e24;border-bottom:1px solid #eef0f4;}
         .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1.5px solid #c3ccda;}
