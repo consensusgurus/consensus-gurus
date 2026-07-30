@@ -1666,10 +1666,10 @@ export default function QuizHomeClient() {
       .qzh section.mc-closed > .qrow{display:none !important;}
       .qzh .dailyicon{color:#374151 !important;}
       .qzh .livedot{background:#9aa1ab !important;animation:none !important;}
-      .qzh .colhead{background:${C.accent} !important;}
-      .qzh .colhead .colicon{background:rgba(255,255,255,0.22) !important;color:#fff !important;}
-      .qzh .colhead h3{color:#fff !important;}
-      .qzh .colhead .viewall{color:#fff !important;}
+      .qzh .colhead{background:#ffffff !important;}
+      .qzh .colhead .colicon{background:#f1f3f6 !important;}
+      .qzh .colhead h3{color:#1c1e24 !important;}
+      .qzh .colhead .viewall{color:#262b35 !important;}
       .qzh .dot{background:#9aa1ab !important;}
       .qzh .mc-closed .vall{display:none !important;}
       .qzh .vall{text-transform:uppercase !important;font-size:10px !important;font-weight:700 !important;letter-spacing:.05em !important;}
@@ -1932,7 +1932,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb .dhx-lb-hero{margin:0;}
             .qzh .dhx-lb.xp .dhx-lb-name{color:#2563eb;}
             .qzh .dhx-lb.comm .dhx-lb-name{color:#7c3aed;}
-            .qzh .dhx-lb-tag{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:#fff;background:#262b35;border:none;border-radius:999px;padding:4px 11px;text-transform:uppercase;}
+            .qzh .dhx-lb-tag{display:flex;width:100%;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:#262b35;background:transparent;border:none;border-bottom:2px solid #1c1e24;border-radius:0;padding:0 0 5px;text-transform:uppercase;}
             .qzh .dhx-lb-hero{margin:10px 0 11px;}
             .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color: #a16207;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#262b35;margin-top:3px;}
@@ -2065,7 +2065,7 @@ export default function QuizHomeClient() {
               const num = (n) => (n || 0).toLocaleString();
               return (
                 <div className="dhx-lb xp">
-                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#2563eb' }} fill="#2563eb" /> TOP SOT PLAYER · {is30 ? 'LAST 30 DAYS' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
+                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#2563eb' }} fill="#2563eb" /> {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                   <div className="dhx-lb-hero">
                     <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
                     <span className="dhx-lb-sub">{one ? `${num(one.value)} XP earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No XP earned yet'}</span>
@@ -2637,7 +2637,7 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   const { Icon, c: color, t: tint } = cat;
   return (
     <section style={{ minWidth: 0 }}>
-      <div className="colhead" style={{ borderColor: C.accent, background: C.accent }}>
+      <div className="colhead" style={{ borderColor: C.ink, background: '#ffffff' }}>
         <span style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.22)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} />
         </span>
@@ -2719,8 +2719,7 @@ function usePillProbe(url, region, scrim, useParentBox) {
 function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled, fill, baseCount }) {
   const hasHero = !!heroUrl;
   const blueHead = hasHero || filled;
-  const headBar = `color-mix(in srgb, ${color} 74%, #1c1e24)`
-  const headFg = blueHead ? '#fff' : color;
+  const headFg = '#1c1e24';
   const heroLink = heroHref || (heroId ? `/quiz/${heroId}` : '#');
   const base = baseCount || rows.length;
   // A column with its own hero is already the full row height, so the gap-fill
@@ -2786,8 +2785,8 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
           </div>
         </Link>
       ) : null}
-      <div ref={headRef} className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: blueHead ? headBar : color, background: blueHead ? headBar : `color-mix(in srgb, ${color} 6%, #fff)` }}>
-        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: blueHead ? 'rgba(255,255,255,0.22)' : tint, color: blueHead ? '#fff' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+      <div ref={headRef} className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: '#1c1e24', background: '#ffffff' }}>
+        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: tint, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>
         <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: headFg }}>{label}</h3>
