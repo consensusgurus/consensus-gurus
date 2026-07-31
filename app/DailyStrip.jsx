@@ -706,11 +706,13 @@ export default function DailyStrip({ board = null }) {
         /* Stats + archive, for a game you have not finished. Bottom-right
            rather than top-right: the top corners already carry the play count,
            the Sunday chip and the status dot, and a button up there would run
-           under the centred game name on a six-across tile. .dh-mlead takes a
-           matching right pad so the leader name never runs under it. */
+           under the centred game name on a six-across tile. .dh-mlead pads
+           EQUALLY on both sides (owner, 2026-07-31): a right-only pad cleared
+           the button but pushed the leader name visibly off centre, so the
+           name now sits dead centre and simply ellipsizes 16px earlier. */
         .dh-tstats{position:absolute;right:3px;bottom:4px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #d5dce6;border-radius:5px;background:#ffffff;color:#6b7686;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,border-color .12s;}
         .dh-tstats:hover{color:#0e1d40;background:#eef1f6;border-color:#0e1d40;}
-        .dh-tile:not(.done) .dh-mlead{padding-right:15px;}
+        .dh-tile:not(.done) .dh-mlead{padding:0 16px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
         .dh-tic{width:46px;height:30px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
