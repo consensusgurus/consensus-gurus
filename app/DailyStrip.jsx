@@ -619,7 +619,7 @@ export default function DailyStrip({ board = null }) {
         /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
        white tile with no plate. warmer, carve and suds resisted the recolour, so
        those three PNGs carry a baked navy plate instead (owner 2026-07-29). */
-        .dh-tile{position:relative;overflow:hidden;background:#ffffff;border:1.5px solid #c3ccda;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
+        .dh-tile{container-type:inline-size;position:relative;overflow:hidden;background:#ffffff;border:1.5px solid #c3ccda;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);background:#f7f9fc;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
         .dh-tile.sel{border-color:#a16207;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.inprog{background:#fffaeb;}
@@ -647,6 +647,14 @@ export default function DailyStrip({ board = null }) {
         .dh-tsun{font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;flex:none;}
         .dh-tplays{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;line-height:1;color:#4d5872;font-variant-numeric:tabular-nums;flex:none;}
         .dh-tplays svg{flex:none;opacity:.85;}
+        /* The glyph only earns its place when the tile is wide enough to clear
+           the centred game name (measured 2026-07-31: a 117px tile leaves the
+           longest names, Outrank / Hearsay / Bracket, nothing to spare). Keyed
+           to the TILE's own width via a container query rather than to the
+           viewport, so it stays correct at every column count and survives any
+           future change to the grid breakpoints. Below that the number goes it
+           alone, which reads fine and never runs under the title. */
+        @container (max-width:117px){.dh-tplays svg{display:none;}}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
         .dh-lbpanel{background:#ffffff;border:1.5px solid #c3ccda;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
@@ -719,7 +727,6 @@ export default function DailyStrip({ board = null }) {
           .dh-msc,.dh-mstrk,.dh-mlead{font-size:10px;}
           .dh-tcorner{top:6px;left:5px;gap:3px;}
           .dh-tplays{font-size:9px;}
-          .dh-tplays svg{display:none;}
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-tnm{font-size:13px;}.dh-tcat{font-size:8px;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
