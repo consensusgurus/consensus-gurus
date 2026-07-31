@@ -831,4 +831,1610 @@ export const PUZZLES = [
       },
     ],
   },
+  {
+    num: 26,
+    quizId: 'stet-8-11-26',
+    live: '2026-08-11',
+    dateLabel: 'August 11, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The engineer said the beam had began to sag under the load.",
+        errors: [{ wrong: "began", fix: "begun", kind: 'grammar', note: "After had the verb takes begun, not began." }],
+      },
+      {
+        text: "The council voted to rescind the by-law after a long hearing.",
+        errors: [],
+        cleanNote: "Clean copy: rescind and by-law are both correct here.",
+      },
+      {
+        text: "The developer applied to raise the old mill and build flats.",
+        errors: [{ wrong: "raise", fix: "raze", kind: 'wordchoice', note: "To raze is to demolish; to raise is to lift up." }],
+      },
+      {
+        text: "The mayor promised to allay fears about the new levee.",
+        errors: [],
+        cleanNote: "Clean copy: allay and levee are the right words, odd as levee looks.",
+      },
+      {
+        text: "The farmer sells his produce at the weekly bizarre.",
+        errors: [{ wrong: "bizarre", fix: "bazaar", kind: 'wordchoice', note: "A bazaar is a market; bizarre means strange." }],
+      },
+    ],
+  },
+  {
+    num: 27,
+    quizId: 'stet-8-12-26',
+    live: '2026-08-12',
+    dateLabel: 'August 12, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The porter admitted he had drank nothing since the early shift.",
+        errors: [{ wrong: "drank", fix: "drunk", kind: 'grammar', note: "After had the verb takes drunk, not drank." }],
+      },
+      {
+        text: "Residents complained about the sheer volume of freight passing through.",
+        errors: [],
+        cleanNote: "Clean copy: sheer means utter here, and it is spelled correctly.",
+      },
+      {
+        text: "A stray dog was found wandering the mote at the castle.",
+        errors: [{ wrong: "mote", fix: "moat", kind: 'wordchoice', note: "A moat is a defensive ditch; a mote is a speck of dust." }],
+      },
+      {
+        text: "The inspector said the wiring posed a serious fire hazard.",
+        errors: [],
+        cleanNote: "Clean copy: posed and hazard are used correctly throughout.",
+      },
+      {
+        text: "The tenor sang the aria with remarkable pour.",
+        errors: [{ wrong: "pour", fix: "poise", kind: 'wordchoice', note: "Poise is composure; to pour is to tip a liquid out." }],
+      },
+    ],
+  },
+  {
+    num: 28,
+    quizId: 'stet-8-13-26',
+    live: '2026-08-13',
+    dateLabel: 'August 13, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The captain reported the hull had took on water overnight.",
+        errors: [{ wrong: "took", fix: "taken", kind: 'grammar', note: "After had the verb takes taken, not took." }],
+      },
+      {
+        text: "She was granted a reprieve on the eve of the deadline.",
+        errors: [],
+        cleanNote: "Clean copy: reprieve is the right word and correctly spelled.",
+      },
+      {
+        text: "The estate agent described the flat as a real steel.",
+        errors: [{ wrong: "steel", fix: "steal", kind: 'wordchoice', note: "A steal is a bargain; steel is the metal." }],
+      },
+      {
+        text: "The county surveyor measured the site before the works began.",
+        errors: [],
+        cleanNote: "Clean copy: surveyor and works are both correct as written.",
+      },
+      {
+        text: "The band played a taught, disciplined set.",
+        errors: [{ wrong: "taught", fix: "taut", kind: 'wordchoice', note: "Taut means tight and controlled; taught is the past of teach." }],
+      },
+    ],
+  },
+  {
+    num: 29,
+    quizId: 'stet-8-14-26',
+    live: '2026-08-14',
+    dateLabel: 'August 14, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The tenant complained the boiler had blew a fuse again.",
+        errors: [{ wrong: "blew", fix: "blown", kind: 'grammar', note: "After had the verb takes blown, not blew." }],
+      },
+      {
+        text: "He accepted the award with genuine humility.",
+        errors: [],
+        cleanNote: "Clean copy: accepted is right here, and humility is spelled correctly.",
+      },
+      {
+        text: "The old barn was sold with its timbre roof intact.",
+        errors: [{ wrong: "timbre", fix: "timber", kind: 'wordchoice', note: "Timber is wood; timbre is the character of a sound." }],
+      },
+      {
+        text: "The gallery will exhibit the bequest in the autumn.",
+        errors: [],
+        cleanNote: "Clean copy: exhibit and bequest are both used correctly.",
+      },
+      {
+        text: "The cyclist was fined for riding on the pavement.",
+        errors: [{ wrong: "fined", fix: "cautioned", kind: 'wordchoice', note: "A caution is a warning; a fine is a money penalty." }],
+      },
+    ],
+  },
+  {
+    num: 30,
+    quizId: 'stet-8-15-26',
+    live: '2026-08-15',
+    dateLabel: 'August 15, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The gardener said the frost had did real damage to the espaliers.",
+        errors: [{ wrong: "did", fix: "done", kind: 'grammar', note: "After had the verb takes done, not did." }],
+      },
+      {
+        text: "Officers found the vault door had been forced with a pry bar.",
+        errors: [],
+        cleanNote: "Clean copy: forced is the right verb for a broken lock.",
+      },
+      {
+        text: "The captain gave the order to way anchor at first light.",
+        errors: [{ wrong: "way", fix: "weigh", kind: 'wordchoice', note: "To weigh anchor is to raise it; way is a route." }],
+      },
+      {
+        text: "Ministers agreed to waive the fee for small charities.",
+        errors: [],
+        cleanNote: "Clean copy: waive means to give up a right, exactly as used.",
+      },
+      {
+        text: "The tenant was asked to vacate the premise by Friday.",
+        errors: [{ wrong: "premise", fix: "premises", kind: 'wordchoice', note: "Premises means the building; a premise is a proposition." }],
+      },
+    ],
+  },
+  {
+    num: 31,
+    quizId: 'stet-8-16-26',
+    live: '2026-08-16',
+    dateLabel: 'August 16, 2026',
+    sunday: true,
+    items: [
+      {
+        text: "The pipes had froze solid by the second morning of the cold snap.",
+        errors: [{ wrong: "froze", fix: "frozen", kind: 'grammar', note: "After had the verb takes frozen, not froze." }],
+      },
+      {
+        text: "The parade passed the stand in marshal order.",
+        errors: [{ wrong: "marshal", fix: "martial", kind: 'wordchoice', note: "Martial means military; a marshal is an officer." }],
+      },
+      {
+        text: "Heavy rain delayed the harvest across the eastern counties.",
+        errors: [],
+        cleanNote: "Clean copy: delayed and harvest are correct as written.",
+      },
+      {
+        text: "The hikers were warned to keep of the loose scree.",
+        errors: [{ wrong: "of", fix: "off", kind: 'wordchoice', note: "Off means away from; of is a possessive preposition." }],
+      },
+      {
+        text: "The developer promised to reign back the costs.",
+        errors: [{ wrong: "reign", fix: "curb", kind: 'wordchoice', note: "To curb is to restrain; a reign is a monarch's rule." }],
+      },
+      {
+        text: "The bridge was closed after engineers found a hairline fracture.",
+        errors: [],
+        cleanNote: "Clean copy: hairline fracture is the right term for the crack.",
+      },
+      {
+        text: "The bidder withdrew after the reserve was reveiled.",
+        errors: [{ wrong: "reveiled", fix: "revealed", kind: 'spelling', note: "Revealed is the correct spelling; reveiled is not a word." }],
+      },
+    ],
+  },
+  {
+    num: 32,
+    quizId: 'stet-8-17-26',
+    live: '2026-08-17',
+    dateLabel: 'August 17, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The lay brothers had ate in silence since the founding.",
+        errors: [{ wrong: "ate", fix: "eaten", kind: 'grammar', note: "After had the verb takes eaten, not ate." }],
+      },
+      {
+        text: "The lifeboat crew launched within four minutes of the call.",
+        errors: [],
+        cleanNote: "Clean copy: launched and crew are used correctly here.",
+      },
+      {
+        text: "The auctioneer noted a sliver of vernier missing from the case.",
+        errors: [{ wrong: "vernier", fix: "veneer", kind: 'wordchoice', note: "Veneer is a thin surface layer; a vernier is a measuring scale." }],
+      },
+      {
+        text: "Snow fell steadily through the night on the high fells.",
+        errors: [],
+        cleanNote: "Clean copy: fells is the correct northern word for the hills.",
+      },
+      {
+        text: "The judge called the delay completely unexcusable.",
+        errors: [{ wrong: "unexcusable", fix: "inexcusable", kind: 'wordchoice', note: "Inexcusable is the standard form; unexcusable is not." }],
+      },
+    ],
+  },
+  {
+    num: 33,
+    quizId: 'stet-8-18-26',
+    live: '2026-08-18',
+    dateLabel: 'August 18, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The choir had sang the same anthem at every installation.",
+        errors: [{ wrong: "sang", fix: "sung", kind: 'grammar', note: "After had the verb takes sung, not sang." }],
+      },
+      {
+        text: "The chef reduced the sauce until it began to thicken.",
+        errors: [],
+        cleanNote: "Clean copy: reduced is the correct culinary term here.",
+      },
+      {
+        text: "The applicant was asked to precise his claim in writing.",
+        errors: [{ wrong: "precise", fix: "specify", kind: 'wordchoice', note: "Specify is the verb; precise is an adjective." }],
+      },
+      {
+        text: "The archive holds letters from every decade of the last century.",
+        errors: [],
+        cleanNote: "Clean copy: archive and decade are correct as written.",
+      },
+      {
+        text: "The tenor's voice carried to the nave without ampliation.",
+        errors: [{ wrong: "ampliation", fix: "amplification", kind: 'wordchoice', note: "Amplification is the word; ampliation is a legal rarity." }],
+      },
+    ],
+  },
+  {
+    num: 34,
+    quizId: 'stet-8-19-26',
+    live: '2026-08-19',
+    dateLabel: 'August 19, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The swimmer had swam the channel twice before that summer.",
+        errors: [{ wrong: "swam", fix: "swum", kind: 'grammar', note: "After had the verb takes swum, not swam." }],
+      },
+      {
+        text: "The minister refused to be drawn on the leaked memo.",
+        errors: [],
+        cleanNote: "Clean copy: drawn is idiomatic and correct in this sense.",
+      },
+      {
+        text: "The porter found the seal on the parcel was brocken.",
+        errors: [{ wrong: "brocken", fix: "broken", kind: 'spelling', note: "Broken is the correct spelling; Brocken is a German peak." }],
+      },
+      {
+        text: "The scheme was designed to complement the existing service.",
+        errors: [],
+        cleanNote: "Clean copy: complement means to complete, which is what is meant.",
+      },
+      {
+        text: "The choir processed to the chancel in full vestures.",
+        errors: [{ wrong: "vestures", fix: "vestments", kind: 'wordchoice', note: "Vestments are church robes; vesture is a poetic covering." }],
+      },
+    ],
+  },
+  {
+    num: 35,
+    quizId: 'stet-8-20-26',
+    live: '2026-08-20',
+    dateLabel: 'August 20, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The ringers had rang a full peal on the coronation morning.",
+        errors: [{ wrong: "rang", fix: "rung", kind: 'grammar', note: "After had the verb takes rung, not rang." }],
+      },
+      {
+        text: "The auditors examined every invoice from the last quarter.",
+        errors: [],
+        cleanNote: "Clean copy: auditors and invoice are used correctly.",
+      },
+      {
+        text: "The porter carried the trunk up four flights without pause for breathe.",
+        errors: [{ wrong: "breathe", fix: "breath", kind: 'wordchoice', note: "Breath is the noun; breathe is the verb." }],
+      },
+      {
+        text: "The letter was addressed to the executor of the estate.",
+        errors: [],
+        cleanNote: "Clean copy: executor is the correct legal term here.",
+      },
+      {
+        text: "The lecturer said the argument was entirely fatuitous.",
+        errors: [{ wrong: "fatuitous", fix: "fatuous", kind: 'spelling', note: "Fatuous means silly; fatuitous is not a word." }],
+      },
+    ],
+  },
+  {
+    num: 36,
+    quizId: 'stet-8-21-26',
+    live: '2026-08-21',
+    dateLabel: 'August 21, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The river had rose four feet by the time the sirens went.",
+        errors: [{ wrong: "rose", fix: "risen", kind: 'grammar', note: "After had the verb takes risen, not rose." }],
+      },
+      {
+        text: "The society was founded to preserve the old drove roads.",
+        errors: [],
+        cleanNote: "Clean copy: drove roads is the correct historical term.",
+      },
+      {
+        text: "The surveyor found the wall was badly out of plum.",
+        errors: [{ wrong: "plum", fix: "plumb", kind: 'wordchoice', note: "Plumb means vertical; a plum is a fruit." }],
+      },
+      {
+        text: "Inspectors praised the school's pastoral care.",
+        errors: [],
+        cleanNote: "Clean copy: pastoral care is standard usage in schools.",
+      },
+      {
+        text: "The clerk read the notice allowed to the meeting.",
+        errors: [{ wrong: "allowed", fix: "aloud", kind: 'wordchoice', note: "Aloud means out loud; allowed means permitted." }],
+      },
+    ],
+  },
+  {
+    num: 37,
+    quizId: 'stet-8-22-26',
+    live: '2026-08-22',
+    dateLabel: 'August 22, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The timbers had shrank in the long dry spell.",
+        errors: [{ wrong: "shrank", fix: "shrunk", kind: 'grammar', note: "After had the verb takes shrunk, not shrank." }],
+      },
+      {
+        text: "He was hoping to home in on the source of the leak.",
+        errors: [],
+        cleanNote: "Clean copy: home in is correct; hone in is the common error.",
+      },
+      {
+        text: "The lens floated on mercury, reducing friction to almost nought.",
+        errors: [{ wrong: "nought", fix: "naught", kind: 'wordchoice', note: "Naught means nothing; nought is a British zero digit." }],
+      },
+      {
+        text: "The trust appealed for volunteers to man the phone lines.",
+        errors: [],
+        cleanNote: "Clean copy: man the lines is idiomatic and correctly used.",
+      },
+      {
+        text: "The precinct wall was breeched during the dissolution.",
+        errors: [{ wrong: "breeched", fix: "breached", kind: 'wordchoice', note: "To breach is to break through; breeches are trousers." }],
+      },
+    ],
+  },
+  {
+    num: 38,
+    quizId: 'stet-8-23-26',
+    live: '2026-08-23',
+    dateLabel: 'August 23, 2026',
+    sunday: true,
+    items: [
+      {
+        text: "The barge had sank in shallow water off the staithe.",
+        errors: [{ wrong: "sank", fix: "sunk", kind: 'grammar', note: "After had the verb takes sunk, not sank." }],
+      },
+      {
+        text: "The clerk complained of a cramped and illegable script.",
+        errors: [{ wrong: "illegable", fix: "illegible", kind: 'spelling', note: "Illegible is the correct spelling for unreadable writing." }],
+      },
+      {
+        text: "The trawler returned to port with a full hold.",
+        errors: [],
+        cleanNote: "Clean copy: hold is the right word for a ship's cargo space.",
+      },
+      {
+        text: "The inquest censured the deputy for a lax inspection regiment.",
+        errors: [{ wrong: "regiment", fix: "regime", kind: 'wordchoice', note: "A regime is a system; a regiment is a military unit." }],
+      },
+      {
+        text: "The basin silted up, unnoticed accept by the herons.",
+        errors: [{ wrong: "accept", fix: "except", kind: 'wordchoice', note: "Except means apart from; to accept is to receive." }],
+      },
+      {
+        text: "The lecture drew a capacity crowd to the old hall.",
+        errors: [],
+        cleanNote: "Clean copy: capacity crowd is standard and correct.",
+      },
+      {
+        text: "The company blamed an act of God rather than the affect of pumping.",
+        errors: [{ wrong: "affect", fix: "effect", kind: 'wordchoice', note: "The effect is the result; to affect is to influence." }],
+      },
+    ],
+  },
+  {
+    num: 39,
+    quizId: 'stet-8-24-26',
+    live: '2026-08-24',
+    dateLabel: 'August 24, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The curate had wrote to the bishop twice that winter.",
+        errors: [{ wrong: "wrote", fix: "written", kind: 'grammar', note: "After had the verb takes written, not wrote." }],
+      },
+      {
+        text: "The report was full of vague allusions to a second site.",
+        errors: [],
+        cleanNote: "Clean copy: allusions means indirect references, which fits.",
+      },
+      {
+        text: "The apprentice was always maid to clear the wheel pit.",
+        errors: [{ wrong: "maid", fix: "made", kind: 'wordchoice', note: "Made is the past of make; a maid is a servant." }],
+      },
+      {
+        text: "The vet said the mare had made a full recovery.",
+        errors: [],
+        cleanNote: "Clean copy: mare and recovery are both correct here.",
+      },
+      {
+        text: "The warden described the cliff path as quite treacherous in wet weather, and advised walkers to where boots.",
+        errors: [{ wrong: "where", fix: "wear", kind: 'wordchoice', note: "To wear is to have on; where asks about place." }],
+      },
+    ],
+  },
+  {
+    num: 40,
+    quizId: 'stet-8-25-26',
+    live: '2026-08-25',
+    dateLabel: 'August 25, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The witness had spoke to officers before the inquest opened.",
+        errors: [{ wrong: "spoke", fix: "spoken", kind: 'grammar', note: "After had the verb takes spoken, not spoke." }],
+      },
+      {
+        text: "The exhibition traces the rise of the cotton trade.",
+        errors: [],
+        cleanNote: "Clean copy: traces is the right verb for a historical survey.",
+      },
+      {
+        text: "The clerk noted the meeting was adjourned sign die.",
+        errors: [{ wrong: "sign", fix: "sine", kind: 'wordchoice', note: "The Latin is sine die, meaning without a day fixed." }],
+      },
+      {
+        text: "The candidate made a passionate plea for calm.",
+        errors: [],
+        cleanNote: "Clean copy: plea is correct; the homophone please is not needed.",
+      },
+      {
+        text: "The society bought the plot to prevent it being built upon by a spectator developer.",
+        errors: [{ wrong: "spectator", fix: "speculative", kind: 'wordchoice', note: "Speculative means done on a gamble; a spectator watches." }],
+      },
+    ],
+  },
+  {
+    num: 41,
+    quizId: 'stet-8-26-26',
+    live: '2026-08-26',
+    dateLabel: 'August 26, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The warden had saw the vessel drifting an hour earlier.",
+        errors: [{ wrong: "saw", fix: "seen", kind: 'grammar', note: "After had the verb takes seen, not saw." }],
+      },
+      {
+        text: "Divers surveyed the wreck at a depth of forty metres.",
+        errors: [],
+        cleanNote: "Clean copy: surveyed and depth are used correctly.",
+      },
+      {
+        text: "The vicar read the lesson from the leggern at the crossing.",
+        errors: [{ wrong: "leggern", fix: "lectern", kind: 'spelling', note: "A lectern is a reading stand; leggern is not a word." }],
+      },
+      {
+        text: "The village pump has not drawn water since 1974.",
+        errors: [],
+        cleanNote: "Clean copy: drawn is the correct participle after has.",
+      },
+      {
+        text: "The mason repaired the quoins with a lime morter.",
+        errors: [{ wrong: "morter", fix: "mortar", kind: 'spelling', note: "Mortar is the correct spelling for the binding mix." }],
+      },
+    ],
+  },
+  {
+    num: 42,
+    quizId: 'stet-8-27-26',
+    live: '2026-08-27',
+    dateLabel: 'August 27, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The relief crew had came ashore before the gale.",
+        errors: [{ wrong: "came", fix: "come", kind: 'grammar', note: "After had the verb takes come, not came." }],
+      },
+      {
+        text: "The choir sang unaccompanied in the north aisle.",
+        errors: [],
+        cleanNote: "Clean copy: aisle is correctly spelled, and unaccompanied fits.",
+      },
+      {
+        text: "The gardener said the yew hedge needed a hard prune to reinvigerate it.",
+        errors: [{ wrong: "reinvigerate", fix: "reinvigorate", kind: 'spelling', note: "Reinvigorate is the correct spelling." }],
+      },
+      {
+        text: "The bakery has traded on the same corner since 1908.",
+        errors: [],
+        cleanNote: "Clean copy: traded and corner are used correctly.",
+      },
+      {
+        text: "The barn owl quartered the meadow at dusk, silent as a wraith, hunting voles among the tussuck grass.",
+        errors: [{ wrong: "tussuck", fix: "tussock", kind: 'spelling', note: "Tussock is the correct spelling for a clump of grass." }],
+      },
+    ],
+  },
+  {
+    num: 43,
+    quizId: 'stet-8-28-26',
+    live: '2026-08-28',
+    dateLabel: 'August 28, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The trustees had gave notice of the sale in March.",
+        errors: [{ wrong: "gave", fix: "given", kind: 'grammar', note: "After had the verb takes given, not gave." }],
+      },
+      {
+        text: "Rescuers worked through the night to shore up the wall.",
+        errors: [],
+        cleanNote: "Clean copy: shore up is the correct idiom for propping something.",
+      },
+      {
+        text: "The archivist wore cotton gloves to handle the vellum manuscripts.",
+        errors: [{ wrong: "vellum", fix: "parchment", kind: 'wordchoice', note: "Vellum is calfskin; parchment is the general term used here." }],
+      },
+      {
+        text: "The tenant complained of a persistent draft under the door.",
+        errors: [],
+        cleanNote: "Clean copy: draft is acceptable US style for a current of air.",
+      },
+      {
+        text: "The society restored the sundial and its knomon.",
+        errors: [{ wrong: "knomon", fix: "gnomon", kind: 'spelling', note: "A gnomon is the pointer on a sundial; knomon is not a word." }],
+      },
+    ],
+  },
+  {
+    num: 44,
+    quizId: 'stet-8-29-26',
+    live: '2026-08-29',
+    dateLabel: 'August 29, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The foreman had knew about the fault for a fortnight.",
+        errors: [{ wrong: "knew", fix: "known", kind: 'grammar', note: "After had the verb takes known, not knew." }],
+      },
+      {
+        text: "The museum acquired the diary at a country sale.",
+        errors: [],
+        cleanNote: "Clean copy: acquired is exact and correctly spelled.",
+      },
+      {
+        text: "The engineer measured the fall of the drain in millimetres per meter.",
+        errors: [{ wrong: "meter", fix: "metre", kind: 'spelling', note: "Metre is the British spelling of the unit; a meter measures." }],
+      },
+      {
+        text: "The magistrate imposed a suspended sentence.",
+        errors: [],
+        cleanNote: "Clean copy: suspended sentence is the correct legal phrase.",
+      },
+      {
+        text: "The auctioneer described the chest as a fine example of marquetary.",
+        errors: [{ wrong: "marquetary", fix: "marquetry", kind: 'spelling', note: "Marquetry is the correct spelling for inlaid woodwork." }],
+      },
+    ],
+  },
+  {
+    num: 45,
+    quizId: 'stet-8-30-26',
+    live: '2026-08-30',
+    dateLabel: 'August 30, 2026',
+    sunday: true,
+    items: [
+      {
+        text: "The storm had threw slates across the whole terrace.",
+        errors: [{ wrong: "threw", fix: "thrown", kind: 'grammar', note: "After had the verb takes thrown, not threw." }],
+      },
+      {
+        text: "The abbot's tomb bears a brass effigee worn smooth by pilgrims.",
+        errors: [{ wrong: "effigee", fix: "effigy", kind: 'spelling', note: "Effigy is the correct spelling for a carved likeness." }],
+      },
+      {
+        text: "The tide had turned before the boat cleared the bar.",
+        errors: [],
+        cleanNote: "Clean copy: bar is the correct word for a sandbank at a harbour mouth.",
+      },
+      {
+        text: "The trust replaced the rotten barge boards on the gable end.",
+        errors: [{ wrong: "barge", fix: "bargeboards", kind: 'wordchoice', note: "Bargeboards is one word in building usage." }],
+      },
+      {
+        text: "The parish paid a mason to repair the lych gate roof.",
+        errors: [{ wrong: "lych", fix: "lychgate", kind: 'wordchoice', note: "Lychgate is written as one word in modern usage." }],
+      },
+      {
+        text: "The station master rang the bell twice before departure.",
+        errors: [],
+        cleanNote: "Clean copy: station master and departure are correct.",
+      },
+      {
+        text: "The keeper logged a pod of dolphins passing the head at dusk.",
+        errors: [{ wrong: "pod", fix: "school", kind: 'wordchoice', note: "A school is the usual term for the fish shoal meant here." }],
+      },
+    ],
+  },
+  {
+    num: 46,
+    quizId: 'stet-8-31-26',
+    live: '2026-08-31',
+    dateLabel: 'August 31, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The pilot had flew the route in worse weather than this.",
+        errors: [{ wrong: "flew", fix: "flown", kind: 'grammar', note: "After had the verb takes flown, not flew." }],
+      },
+      {
+        text: "Surveyors marked the boundary with cast-iron posts.",
+        errors: [],
+        cleanNote: "Clean copy: boundary and cast-iron are correctly used.",
+      },
+      {
+        text: "The tenant left the cottage in a filthy state, and the agent found the flue completely choaked with soot.",
+        errors: [{ wrong: "choaked", fix: "choked", kind: 'spelling', note: "Choked is the correct spelling; choaked is not a word." }],
+      },
+      {
+        text: "The scheme will benefit those who are most vulnerable.",
+        errors: [],
+        cleanNote: "Clean copy: benefit and vulnerable are the right words here.",
+      },
+      {
+        text: "The society published a memoire of the founder's early years.",
+        errors: [{ wrong: "memoire", fix: "memoir", kind: 'spelling', note: "Memoir is the English spelling; memoire is French." }],
+      },
+    ],
+  },
+  {
+    num: 47,
+    quizId: 'stet-9-1-26',
+    live: '2026-09-01',
+    dateLabel: 'September 1, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The committee had chose the site before the survey arrived.",
+        errors: [{ wrong: "chose", fix: "chosen", kind: 'grammar', note: "After had the verb takes chosen, not chose." }],
+      },
+      {
+        text: "The orchard has produced fruit for over a century.",
+        errors: [],
+        cleanNote: "Clean copy: orchard and produced are used correctly.",
+      },
+      {
+        text: "The stonemason worked the granite with a pitching tool and a bolstor.",
+        errors: [{ wrong: "bolstor", fix: "bolster", kind: 'spelling', note: "A bolster is a broad chisel; bolstor is a misspelling." }],
+      },
+      {
+        text: "The inquiry found no evidence of deliberate concealment.",
+        errors: [],
+        cleanNote: "Clean copy: concealment is the right noun and correctly spelled.",
+      },
+      {
+        text: "The trustees asked whether the covenant was still enforcable.",
+        errors: [{ wrong: "enforcable", fix: "enforceable", kind: 'wordchoice', note: "Enforceable keeps the e before able." }],
+      },
+    ],
+  },
+  {
+    num: 48,
+    quizId: 'stet-9-2-26',
+    live: '2026-09-02',
+    dateLabel: 'September 2, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The frost had broke the top course of brickwork.",
+        errors: [{ wrong: "broke", fix: "broken", kind: 'grammar', note: "After had the verb takes broken, not broke." }],
+      },
+      {
+        text: "The gallery mounted the canvas in a plain oak frame.",
+        errors: [],
+        cleanNote: "Clean copy: canvas is right here, since it means the cloth.",
+      },
+      {
+        text: "The curator catalogued the coins as a hord of the late fourth century.",
+        errors: [{ wrong: "hord", fix: "hoard", kind: 'spelling', note: "A hoard is a buried store; hord is not a word." }],
+      },
+      {
+        text: "The union warned that morale had reached a new nadir.",
+        errors: [],
+        cleanNote: "Clean copy: morale and nadir are both correct as written.",
+      },
+      {
+        text: "The engineer proposed a sluice to releive the pressure on the culvert.",
+        errors: [{ wrong: "releive", fix: "relieve", kind: 'wordchoice', note: "Relieve follows the i before e rule after the l." }],
+      },
+    ],
+  },
+  {
+    num: 49,
+    quizId: 'stet-9-3-26',
+    live: '2026-09-03',
+    dateLabel: 'September 3, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The thieves had stole the lead from the chancel roof.",
+        errors: [{ wrong: "stole", fix: "stolen", kind: 'grammar', note: "After had the verb takes stolen, not stole." }],
+      },
+      {
+        text: "The lighthouse was automated in the early nineties.",
+        errors: [],
+        cleanNote: "Clean copy: automated is exact and correctly spelled.",
+      },
+      {
+        text: "The vicar thanked the ringers for a quarter peal rung in memorium.",
+        errors: [{ wrong: "memorium", fix: "memoriam", kind: 'wordchoice', note: "The Latin phrase is in memoriam." }],
+      },
+      {
+        text: "The auctioneer withdrew the lot before bidding closed.",
+        errors: [],
+        cleanNote: "Clean copy: withdrew is the correct past tense of withdraw.",
+      },
+      {
+        text: "The wall plate had rotted where the gutter had over flowed for years.",
+        errors: [{ wrong: "over", fix: "overflowed", kind: 'wordchoice', note: "Overflowed is a single word." }],
+      },
+    ],
+  },
+  {
+    num: 50,
+    quizId: 'stet-9-4-26',
+    live: '2026-09-04',
+    dateLabel: 'September 4, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The ferryman had wore the same oilskin for thirty years.",
+        errors: [{ wrong: "wore", fix: "worn", kind: 'grammar', note: "After had the verb takes worn, not wore." }],
+      },
+      {
+        text: "The path skirts the reservoir for about a mile.",
+        errors: [],
+        cleanNote: "Clean copy: skirts and reservoir are used correctly.",
+      },
+      {
+        text: "The society bought a set of chairs said to be Chippendale, though the provenence was thin.",
+        errors: [{ wrong: "provenence", fix: "provenance", kind: 'spelling', note: "Provenance is the correct spelling for an object's history." }],
+      },
+      {
+        text: "The forge has stood beside the ford since Tudor times.",
+        errors: [],
+        cleanNote: "Clean copy: forge and ford are the right words here.",
+      },
+      {
+        text: "The farmer drained the low meadow with a herringbone of clay tiles laid on a gentle grade.",
+        errors: [{ wrong: "grade", fix: "gradient", kind: 'wordchoice', note: "Gradient is the usual British term for a slope in drainage." }],
+      },
+    ],
+  },
+  {
+    num: 51,
+    quizId: 'stet-9-5-26',
+    live: '2026-09-05',
+    dateLabel: 'September 5, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The gale had tore the sail clean from the yard.",
+        errors: [{ wrong: "tore", fix: "torn", kind: 'grammar', note: "After had the verb takes torn, not tore." }],
+      },
+      {
+        text: "The bursar reconciled the accounts on the last day of term.",
+        errors: [],
+        cleanNote: "Clean copy: bursar and reconciled are correct as written.",
+      },
+      {
+        text: "The organist complained the bellows leaked and the wind pressure was iregular.",
+        errors: [{ wrong: "iregular", fix: "irregular", kind: 'wordchoice', note: "Irregular doubles the r after the prefix." }],
+      },
+      {
+        text: "Officials denied that the decision had been made in advance.",
+        errors: [],
+        cleanNote: "Clean copy: denied and in advance are used correctly.",
+      },
+      {
+        text: "The society keeps the founder's papers in a fire proof safe.",
+        errors: [{ wrong: "proof", fix: "fireproof", kind: 'wordchoice', note: "Fireproof is a single word in modern usage." }],
+      },
+    ],
+  },
+  {
+    num: 52,
+    quizId: 'stet-9-6-26',
+    live: '2026-09-06',
+    dateLabel: 'September 6, 2026',
+    sunday: true,
+    items: [
+      {
+        text: "The carrier had drove the same lane since the war.",
+        errors: [{ wrong: "drove", fix: "driven", kind: 'grammar', note: "After had the verb takes driven, not drove." }],
+      },
+      {
+        text: "The warden reported a heard of deer on the golf links at dawn.",
+        errors: [{ wrong: "heard", fix: "herd", kind: 'wordchoice', note: "A herd is a group of animals; heard is the past of hear." }],
+      },
+      {
+        text: "The abbey ruins are managed by a small charitable trust.",
+        errors: [],
+        cleanNote: "Clean copy: ruins and charitable are correct as written.",
+      },
+      {
+        text: "The chandler sold rope, tar and canvas to the whole quay side.",
+        errors: [{ wrong: "side", fix: "quayside", kind: 'wordchoice', note: "Quayside is written as one word." }],
+      },
+      {
+        text: "The bell ringers practised a method called Grandsire Triples every Tuesday, and the tower captain kept a peel book.",
+        errors: [{ wrong: "peel", fix: "peal", kind: 'wordchoice', note: "A peal is a run of bell changes; to peel is to strip." }],
+      },
+      {
+        text: "Wardens counted seals hauled out on the sandbank.",
+        errors: [],
+        cleanNote: "Clean copy: hauled out is the correct term for seals on shore.",
+      },
+      {
+        text: "The gamekeeper found a snair set in the plantation.",
+        errors: [{ wrong: "snair", fix: "snare", kind: 'spelling', note: "A snare is a wire trap; snair is not a word." }],
+      },
+    ],
+  },
+  {
+    num: 53,
+    quizId: 'stet-9-7-26',
+    live: '2026-09-07',
+    dateLabel: 'September 7, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The postmistress had rode to the outlying farms by pony.",
+        errors: [{ wrong: "rode", fix: "ridden", kind: 'grammar', note: "After had the verb takes ridden, not rode." }],
+      },
+      {
+        text: "The paper printed a full retraction the following week.",
+        errors: [],
+        cleanNote: "Clean copy: retraction is the right word for a printed correction.",
+      },
+      {
+        text: "The trust asked walkers to keep dogs on a leash near the ewes.",
+        errors: [{ wrong: "leash", fix: "lead", kind: 'wordchoice', note: "Lead is the British term for a dog's leash." }],
+      },
+      {
+        text: "The estate has kept the same tenant farmers for decades.",
+        errors: [],
+        cleanNote: "Clean copy: tenant is correct here, since it means a renter.",
+      },
+      {
+        text: "The auctioneer knocked the lot down to a telephone bider.",
+        errors: [{ wrong: "bider", fix: "bidder", kind: 'spelling', note: "A bidder makes an offer; bider is not a word." }],
+      },
+    ],
+  },
+  {
+    num: 54,
+    quizId: 'stet-9-8-26',
+    live: '2026-09-08',
+    dateLabel: 'September 8, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The smugglers had hid the casks beneath the stable floor.",
+        errors: [{ wrong: "hid", fix: "hidden", kind: 'grammar', note: "After had the verb takes hidden, not hid." }],
+      },
+      {
+        text: "The society restored the organ pipe by pipe.",
+        errors: [],
+        cleanNote: "Clean copy: restored and pipe by pipe are used correctly.",
+      },
+      {
+        text: "The keeper set a line of lobster creels along the reef.",
+        errors: [{ wrong: "creels", fix: "pots", kind: 'wordchoice', note: "Pots is the usual term for lobster traps in this trade." }],
+      },
+      {
+        text: "He gave a candid account of the night's events.",
+        errors: [],
+        cleanNote: "Clean copy: candid is the right word and correctly spelled.",
+      },
+      {
+        text: "The blacksmith drew the bar down on the anvil's beek.",
+        errors: [{ wrong: "beek", fix: "beak", kind: 'wordchoice', note: "The beak is the pointed horn of an anvil." }],
+      },
+    ],
+  },
+  {
+    num: 55,
+    quizId: 'stet-9-9-26',
+    live: '2026-09-09',
+    dateLabel: 'September 9, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The sheepdog had bit the auctioneer during the sale.",
+        errors: [{ wrong: "bit", fix: "bitten", kind: 'grammar', note: "After had the verb takes bitten, not bit." }],
+      },
+      {
+        text: "The ferry runs hourly from the slipway in summer.",
+        errors: [],
+        cleanNote: "Clean copy: slipway is the right word and correctly spelled.",
+      },
+      {
+        text: "The society traced the family through the parish regesters.",
+        errors: [{ wrong: "regesters", fix: "registers", kind: 'spelling', note: "Registers is the correct spelling for parish record books." }],
+      },
+      {
+        text: "The flock of geese was grazing on the winter wheat.",
+        errors: [],
+        cleanNote: "Clean copy: a flock takes a singular verb, so was is right.",
+      },
+      {
+        text: "The tenant said the chimney had not been swept in living memory, and the flu was blocked with jackdaw nests.",
+        errors: [{ wrong: "flu", fix: "flue", kind: 'wordchoice', note: "A flue is a chimney passage; flu is the illness." }],
+      },
+    ],
+  },
+  {
+    num: 56,
+    quizId: 'stet-9-10-26',
+    live: '2026-09-10',
+    dateLabel: 'September 10, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The scaffolding had fell before the inspector arrived.",
+        errors: [{ wrong: "fell", fix: "fallen", kind: 'grammar', note: "After had the verb takes fallen, not fell." }],
+      },
+      {
+        text: "The bishop consecrated the new chapel in June.",
+        errors: [],
+        cleanNote: "Clean copy: consecrated is exact and correctly spelled.",
+      },
+      {
+        text: "The mason cut a drip mould to throw water clear of the wall face.",
+        errors: [{ wrong: "mould", fix: "moulding", kind: 'wordchoice', note: "A moulding is the shaped band of stone meant here." }],
+      },
+      {
+        text: "The tenant claimed the landlord had reneged on the deal.",
+        errors: [],
+        cleanNote: "Clean copy: reneged is the right verb and correctly spelled.",
+      },
+      {
+        text: "The bursar found the accounts did not tally, being out by a considerable some.",
+        errors: [{ wrong: "some", fix: "sum", kind: 'wordchoice', note: "A sum is an amount of money; some means a few." }],
+      },
+    ],
+  },
+  {
+    num: 57,
+    quizId: 'stet-9-11-26',
+    live: '2026-09-11',
+    dateLabel: 'September 11, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The verger had forgot to wind the tower clock.",
+        errors: [{ wrong: "forgot", fix: "forgotten", kind: 'grammar', note: "After had the verb takes forgotten, not forgot." }],
+      },
+      {
+        text: "The quarry closed in 1962 and has since flooded.",
+        errors: [],
+        cleanNote: "Clean copy: quarry and flooded are used correctly.",
+      },
+      {
+        text: "The society photographed every grave stone before the clearance.",
+        errors: [{ wrong: "stone", fix: "headstone", kind: 'wordchoice', note: "Headstone is the usual single word for a grave marker." }],
+      },
+      {
+        text: "The tribunal ordered the firm to reinstate the worker.",
+        errors: [],
+        cleanNote: "Clean copy: reinstate is the correct legal term here.",
+      },
+      {
+        text: "The ferry was held at the quay by a strong ebb and a foul birth.",
+        errors: [{ wrong: "birth", fix: "berth", kind: 'wordchoice', note: "A berth is a mooring; birth is being born." }],
+      },
+    ],
+  },
+  {
+    num: 58,
+    quizId: 'stet-9-12-26',
+    live: '2026-09-12',
+    dateLabel: 'September 12, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The keeper had awoke to find the lamp still burning.",
+        errors: [{ wrong: "awoke", fix: "awoken", kind: 'grammar', note: "After had the verb takes awoken, not awoke." }],
+      },
+      {
+        text: "The choir master rehearsed the descant until dusk.",
+        errors: [],
+        cleanNote: "Clean copy: descant is the right musical term, oddly as it reads.",
+      },
+      {
+        text: "The forester marked the diseased elms with a paint blaise.",
+        errors: [{ wrong: "blaise", fix: "blaze", kind: 'wordchoice', note: "A blaze is a mark cut or painted on a tree." }],
+      },
+      {
+        text: "The library keeps the parish registers on microfilm.",
+        errors: [],
+        cleanNote: "Clean copy: registers and microfilm are correct as written.",
+      },
+      {
+        text: "The clerk filed the deeds under a docket numbered in serial order, and noted the seel was intact.",
+        errors: [{ wrong: "seel", fix: "seal", kind: 'wordchoice', note: "A seal is a wax impression; seel is a falconry term." }],
+      },
+    ],
+  },
+  {
+    num: 59,
+    quizId: 'stet-9-13-26',
+    live: '2026-09-13',
+    dateLabel: 'September 13, 2026',
+    sunday: true,
+    items: [
+      {
+        text: "A dispute had arose over the boundary hedge.",
+        errors: [{ wrong: "arose", fix: "arisen", kind: 'grammar', note: "After had the verb takes arisen, not arose." }],
+      },
+      {
+        text: "The publican kept a slate for the regulars and rubbed it clean each quarter.",
+        errors: [{ wrong: "slate", fix: "tab", kind: 'wordchoice', note: "Tab is the standard word for a running bar account." }],
+      },
+      {
+        text: "The society published a facsimile of the 1745 map.",
+        errors: [],
+        cleanNote: "Clean copy: facsimile is the right word and correctly spelled.",
+      },
+      {
+        text: "The keeper counted forty grey seal pups on the skear at low water.",
+        errors: [{ wrong: "skear", fix: "skerry", kind: 'wordchoice', note: "A skerry is a rocky islet; skear is a dialect variant." }],
+      },
+      {
+        text: "The trust rebuilt the sea wall with rock armour brought by barge, and graded the aprin behind it.",
+        errors: [{ wrong: "aprin", fix: "apron", kind: 'wordchoice', note: "An apron is the sloping surface at the base of a wall." }],
+      },
+      {
+        text: "Her testimony was consistent throughout the hearing.",
+        errors: [],
+        cleanNote: "Clean copy: testimony and consistent are used correctly.",
+      },
+      {
+        text: "The archivist unfolded a plan drawn on linen and backed with pased paper.",
+        errors: [{ wrong: "pased", fix: "pasted", kind: 'wordchoice', note: "Pasted is the correct past participle of paste." }],
+      },
+    ],
+  },
+  {
+    num: 60,
+    quizId: 'stet-9-14-26',
+    live: '2026-09-14',
+    dateLabel: 'September 14, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The surveyor had mistook the datum for the old benchmark.",
+        errors: [{ wrong: "mistook", fix: "mistaken", kind: 'grammar', note: "After had the verb takes mistaken, not mistook." }],
+      },
+      {
+        text: "The bell tower leans a little to the south.",
+        errors: [],
+        cleanNote: "Clean copy: leans is the right verb and correctly spelled.",
+      },
+      {
+        text: "The gardener staked the espalier against the south facing wall.",
+        errors: [{ wrong: "facing", fix: "south-facing", kind: 'wordchoice', note: "South-facing takes a hyphen before the noun." }],
+      },
+      {
+        text: "The tunnel was bored through solid chalk.",
+        errors: [],
+        cleanNote: "Clean copy: bored is correct here, meaning drilled.",
+      },
+      {
+        text: "The society recorded the ring of six bells, the tenor weighing eleven hundred weight.",
+        errors: [{ wrong: "hundred", fix: "hundredweight", kind: 'wordchoice', note: "Hundredweight is one word as a unit of mass." }],
+      },
+    ],
+  },
+  {
+    num: 61,
+    quizId: 'stet-9-15-26',
+    live: '2026-09-15',
+    dateLabel: 'September 15, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "Him and the foreman signed the completion notice together.",
+        errors: [{ wrong: "Him", fix: "He", kind: 'grammar', note: "A subject takes the nominative, so it reads he and the foreman." }],
+      },
+      {
+        text: "The harbour wall was rebuilt after the winter storms.",
+        errors: [],
+        cleanNote: "Clean copy: rebuilt and harbour are used correctly.",
+      },
+      {
+        text: "The engineer said the culvert had silted and would need jetting to clear the invart.",
+        errors: [{ wrong: "invart", fix: "invert", kind: 'wordchoice', note: "The invert is the lowest inside surface of a pipe." }],
+      },
+      {
+        text: "The lock keeper opened the gates at six.",
+        errors: [],
+        cleanNote: "Clean copy: lock keeper is the correct canal term.",
+      },
+      {
+        text: "The trustees agreed to insure the collection for its full replacment value.",
+        errors: [{ wrong: "replacment", fix: "replacement", kind: 'wordchoice', note: "Replacement keeps the e before ment." }],
+      },
+    ],
+  },
+  {
+    num: 62,
+    quizId: 'stet-9-16-26',
+    live: '2026-09-16',
+    dateLabel: 'September 16, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "Us surveyors were asked to file a single joint report.",
+        errors: [{ wrong: "Us", fix: "We", kind: 'grammar', note: "The subject takes we, so it reads we surveyors were asked." }],
+      },
+      {
+        text: "The rector read the banns for the third time.",
+        errors: [],
+        cleanNote: "Clean copy: banns is the correct church spelling.",
+      },
+      {
+        text: "The porter said the lift had been out of order for a fortnight, which was a serious inconvenence.",
+        errors: [{ wrong: "inconvenence", fix: "inconvenience", kind: 'spelling', note: "Inconvenience is the correct spelling." }],
+      },
+      {
+        text: "The farm has diversified into cheese and cider.",
+        errors: [],
+        cleanNote: "Clean copy: diversified is exact and correctly spelled.",
+      },
+      {
+        text: "The society published a guide to the church, its glass and its monuments, with a foreward by the archdeacon.",
+        errors: [{ wrong: "foreward", fix: "foreword", kind: 'wordchoice', note: "A foreword is an introduction; forward means ahead." }],
+      },
+    ],
+  },
+  {
+    num: 63,
+    quizId: 'stet-9-17-26',
+    live: '2026-09-17',
+    dateLabel: 'September 17, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "Between you and I, the tender was never going to succeed.",
+        errors: [{ wrong: "I", fix: "me", kind: 'grammar', note: "After between the pronoun takes the object form, me." }],
+      },
+      {
+        text: "The kiln was fired for the last time in 1978.",
+        errors: [],
+        cleanNote: "Clean copy: kiln and fired are used correctly.",
+      },
+      {
+        text: "The keeper described the otter's tracks in the silt as unmistakeable.",
+        errors: [{ wrong: "unmistakeable", fix: "unmistakable", kind: 'wordchoice', note: "Unmistakable drops the e before able." }],
+      },
+      {
+        text: "The report recommended a phased withdrawal of funding.",
+        errors: [],
+        cleanNote: "Clean copy: phased and withdrawal are correct as written.",
+      },
+      {
+        text: "The society dated the roof by dendochronology of the tie beams.",
+        errors: [{ wrong: "dendochronology", fix: "dendrochronology", kind: 'spelling', note: "Dendrochronology is the correct spelling for tree-ring dating." }],
+      },
+    ],
+  },
+  {
+    num: 64,
+    quizId: 'stet-9-18-26',
+    live: '2026-09-18',
+    dateLabel: 'September 18, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The archivist thanked they who had catalogued the plates.",
+        errors: [{ wrong: "they", fix: "those", kind: 'grammar', note: "The object form is needed, so it reads thanked those who." }],
+      },
+      {
+        text: "The chapel retains its original box pews.",
+        errors: [],
+        cleanNote: "Clean copy: box pews is the correct architectural term.",
+      },
+      {
+        text: "The vicar said the parish had been served by the same family of clerks for four generations, a remarkable continuum.",
+        errors: [{ wrong: "continuum", fix: "continuity", kind: 'wordchoice', note: "Continuity is unbroken succession; a continuum is a range." }],
+      },
+      {
+        text: "The signal box was decommissioned last autumn.",
+        errors: [],
+        cleanNote: "Clean copy: decommissioned is exact and correctly spelled.",
+      },
+      {
+        text: "The trust cleared the pond of blanket weed and restored the sluce.",
+        errors: [{ wrong: "sluce", fix: "sluice", kind: 'spelling', note: "Sluice is the correct spelling for the water gate." }],
+      },
+    ],
+  },
+  {
+    num: 65,
+    quizId: 'stet-9-19-26',
+    live: '2026-09-19',
+    dateLabel: 'September 19, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The society honoured the man whom donated the collection.",
+        errors: [{ wrong: "whom", fix: "who", kind: 'grammar', note: "Who is the subject of donated, so whom is wrong." }],
+      },
+      {
+        text: "The society holds an annual lecture in the guildhall.",
+        errors: [],
+        cleanNote: "Clean copy: guildhall is the right word and correctly spelled.",
+      },
+      {
+        text: "The archivist found a letter signed by the steward, dated Michelmas 1788.",
+        errors: [{ wrong: "Michelmas", fix: "Michaelmas", kind: 'spelling', note: "Michaelmas is the correct spelling of the September feast." }],
+      },
+      {
+        text: "The cellar was dry despite the high water table.",
+        errors: [],
+        cleanNote: "Clean copy: water table is the correct hydrological term.",
+      },
+      {
+        text: "The trust rehung the gate on new pintels driven into the pier.",
+        errors: [{ wrong: "pintels", fix: "pintles", kind: 'spelling', note: "A pintle is the pin a gate hangs on; pintels is a misspelling." }],
+      },
+    ],
+  },
+  {
+    num: 66,
+    quizId: 'stet-9-20-26',
+    live: '2026-09-20',
+    dateLabel: 'September 20, 2026',
+    sunday: true,
+    items: [
+      {
+        text: "The trustees argued about who to appoint as chair.",
+        errors: [{ wrong: "who", fix: "whom", kind: 'grammar', note: "Who is the object of appoint here, so it takes whom." }],
+      },
+      {
+        text: "The society recorded a fine hammerbeem roof over the nave.",
+        errors: [{ wrong: "hammerbeem", fix: "hammerbeam", kind: 'wordchoice', note: "Hammerbeam is the correct name for the roof truss." }],
+      },
+      {
+        text: "The weir was rebuilt to allow salmon to pass.",
+        errors: [],
+        cleanNote: "Clean copy: weir is spelled correctly and used properly.",
+      },
+      {
+        text: "The keeper reported a raft of eider off the point, riding the swell.",
+        errors: [{ wrong: "raft", fix: "flock", kind: 'wordchoice', note: "Flock is the plain term for the group of birds meant." }],
+      },
+      {
+        text: "The farmer said the ewes were due to lamb within the fortnite.",
+        errors: [{ wrong: "fortnite", fix: "fortnight", kind: 'wordchoice', note: "A fortnight is two weeks; Fortnite is a video game." }],
+      },
+      {
+        text: "The parish council agreed to fund the repair.",
+        errors: [],
+        cleanNote: "Clean copy: parish council and repair are correct.",
+      },
+      {
+        text: "The mason repaired the parapit above the porch.",
+        errors: [{ wrong: "parapit", fix: "parapet", kind: 'spelling', note: "Parapet is the correct spelling for a low wall." }],
+      },
+    ],
+  },
+  {
+    num: 67,
+    quizId: 'stet-9-21-26',
+    live: '2026-09-21',
+    dateLabel: 'September 21, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The dome was turned by hand, which cut the effort considerable.",
+        errors: [{ wrong: "considerable", fix: "considerably", kind: 'grammar', note: "An adverb is needed to modify cut, so considerably." }],
+      },
+      {
+        text: "The bridge carries a single track over the gorge.",
+        errors: [],
+        cleanNote: "Clean copy: carries and gorge are used correctly.",
+      },
+      {
+        text: "The archivist described the binding as limp velum over boards.",
+        errors: [{ wrong: "velum", fix: "vellum", kind: 'wordchoice', note: "Vellum is fine calfskin; velum is an anatomical membrane." }],
+      },
+      {
+        text: "The observatory recorded the transit in fine weather.",
+        errors: [],
+        cleanNote: "Clean copy: transit is the right astronomical term.",
+      },
+      {
+        text: "The engineer found the retaining wall was bulging and would need buttrressing.",
+        errors: [{ wrong: "buttrressing", fix: "buttressing", kind: 'wordchoice', note: "Buttressing has a single r after the double t." }],
+      },
+    ],
+  },
+  {
+    num: 68,
+    quizId: 'stet-9-22-26',
+    live: '2026-09-22',
+    dateLabel: 'September 22, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The lifeboat answered the call remarkable quickly that night.",
+        errors: [{ wrong: "remarkable", fix: "remarkably", kind: 'grammar', note: "An adverb modifies quickly, so it reads remarkably quickly." }],
+      },
+      {
+        text: "The trust replanted the avenue with limes.",
+        errors: [],
+        cleanNote: "Clean copy: limes is correct here, meaning lime trees.",
+      },
+      {
+        text: "The gardener pruned the wistaria back to two buds after flowering.",
+        errors: [{ wrong: "wistaria", fix: "wisteria", kind: 'spelling', note: "Wisteria is the standard modern spelling." }],
+      },
+      {
+        text: "The scheme drew objections from three parishes.",
+        errors: [],
+        cleanNote: "Clean copy: objections and parishes are used correctly.",
+      },
+      {
+        text: "The vicar said the organ needed a new tremulent stop.",
+        errors: [{ wrong: "tremulent", fix: "tremulant", kind: 'wordchoice', note: "A tremulant is the organ stop that wavers the tone." }],
+      },
+    ],
+  },
+  {
+    num: 69,
+    quizId: 'stet-9-23-26',
+    live: '2026-09-23',
+    dateLabel: 'September 23, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The mason worked slow and steady through the frost.",
+        errors: [{ wrong: "slow", fix: "slowly", kind: 'grammar', note: "The verb needs an adverb, so it reads worked slowly." }],
+      },
+      {
+        text: "The mill race still runs beneath the old floor.",
+        errors: [],
+        cleanNote: "Clean copy: mill race is the correct term for the channel.",
+      },
+      {
+        text: "The keeper found the barn owl roosting on a purloin above the byre.",
+        errors: [{ wrong: "purloin", fix: "purlin", kind: 'wordchoice', note: "A purlin is a roof timber; to purloin is to steal." }],
+      },
+      {
+        text: "The board deferred the decision until October.",
+        errors: [],
+        cleanNote: "Clean copy: deferred is exact and correctly spelled.",
+      },
+      {
+        text: "The engineer said the beam would need to be jacked and the pad stone renewed.",
+        errors: [{ wrong: "pad", fix: "padstone", kind: 'wordchoice', note: "Padstone is a single word in building usage." }],
+      },
+    ],
+  },
+  {
+    num: 70,
+    quizId: 'stet-9-24-26',
+    live: '2026-09-24',
+    dateLabel: 'September 24, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The choir sang particular well at the Christmas service.",
+        errors: [{ wrong: "particular", fix: "particularly", kind: 'grammar', note: "An adverb is needed before well, so particularly." }],
+      },
+      {
+        text: "The path is impassable after heavy rain.",
+        errors: [],
+        cleanNote: "Clean copy: impassable is the right adjective, correctly spelled.",
+      },
+      {
+        text: "The trust rebuilt the dry stone wall using the original throughs.",
+        errors: [{ wrong: "throughs", fix: "throughstones", kind: 'wordchoice', note: "Throughstones is the term for the tie stones in a wall." }],
+      },
+      {
+        text: "The dairy bottles its milk on the farm.",
+        errors: [],
+        cleanNote: "Clean copy: dairy and bottles are used correctly.",
+      },
+      {
+        text: "The society noted the font cover was suspended from a counter weight.",
+        errors: [{ wrong: "counter", fix: "counterweight", kind: 'wordchoice', note: "Counterweight is a single word." }],
+      },
+    ],
+  },
+  {
+    num: 71,
+    quizId: 'stet-9-25-26',
+    live: '2026-09-25',
+    dateLabel: 'September 25, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The scheme was received bad by the parish meeting.",
+        errors: [{ wrong: "bad", fix: "badly", kind: 'grammar', note: "The verb needs an adverb, so it reads received badly." }],
+      },
+      {
+        text: "The cottage is thatched in Norfolk reed.",
+        errors: [],
+        cleanNote: "Clean copy: thatched and reed are correct as written.",
+      },
+      {
+        text: "The vicar thanked the flower guild for the harvest displays around the chancel arch and the pulput.",
+        errors: [{ wrong: "pulput", fix: "pulpit", kind: 'spelling', note: "Pulpit is the correct spelling for the preacher's stand." }],
+      },
+      {
+        text: "The council refused to comment on the settlement.",
+        errors: [],
+        cleanNote: "Clean copy: settlement is the right word in this legal sense.",
+      },
+      {
+        text: "The mason set the sill on a bed of mortar and checked it with a spirit levl.",
+        errors: [{ wrong: "levl", fix: "level", kind: 'spelling', note: "Level is the correct spelling of the tool." }],
+      },
+    ],
+  },
+  {
+    num: 72,
+    quizId: 'stet-9-26-26',
+    live: '2026-09-26',
+    dateLabel: 'September 26, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The engine ran different after the rebuild.",
+        errors: [{ wrong: "different", fix: "differently", kind: 'grammar', note: "The verb needs an adverb, so it reads ran differently." }],
+      },
+      {
+        text: "The forge bell still hangs above the door.",
+        errors: [],
+        cleanNote: "Clean copy: forge and hangs are used correctly here.",
+      },
+      {
+        text: "The farmer said the crop had been flattened by a summer squal.",
+        errors: [{ wrong: "squal", fix: "squall", kind: 'spelling', note: "A squall is a sudden storm; squal is a misspelling." }],
+      },
+      {
+        text: "The riverbank was reinforced with willow spiling.",
+        errors: [],
+        cleanNote: "Clean copy: spiling is the correct riverbank engineering term.",
+      },
+      {
+        text: "The trust surveyed the leadwork and found the bay was badly corrogated.",
+        errors: [{ wrong: "corrogated", fix: "corrugated", kind: 'spelling', note: "Corrugated is the correct spelling." }],
+      },
+    ],
+  },
+  {
+    num: 73,
+    quizId: 'stet-9-27-26',
+    live: '2026-09-27',
+    dateLabel: 'September 27, 2026',
+    sunday: true,
+    items: [
+      {
+        text: "The tide came in sudden and cut off the causeway.",
+        errors: [{ wrong: "sudden", fix: "suddenly", kind: 'grammar', note: "The verb needs an adverb, so it reads came in suddenly." }],
+      },
+      {
+        text: "The keeper counted nine curlew probing the tide line at first light.",
+        errors: [{ wrong: "line", fix: "tideline", kind: 'wordchoice', note: "Tideline is written as one word." }],
+      },
+      {
+        text: "The lease runs for a further eleven years.",
+        errors: [],
+        cleanNote: "Clean copy: lease and further are used correctly.",
+      },
+      {
+        text: "The archivist noted the seal matrix was chipped but the legand was legible.",
+        errors: [{ wrong: "legand", fix: "legend", kind: 'wordchoice', note: "The legend is the inscription round a seal." }],
+      },
+      {
+        text: "The society published a transcript of the court rolls, with a glossery of the Latin terms.",
+        errors: [{ wrong: "glossery", fix: "glossary", kind: 'spelling', note: "Glossary is the correct spelling for a word list." }],
+      },
+      {
+        text: "The colliery band still rehearses on Thursdays.",
+        errors: [],
+        cleanNote: "Clean copy: colliery and rehearses are correct as written.",
+      },
+      {
+        text: "The gardener said the box hedge was suffering from blite and would be replaced with yew.",
+        errors: [{ wrong: "blite", fix: "blight", kind: 'wordchoice', note: "Blight is the plant disease; blite is an obscure plant name." }],
+      },
+    ],
+  },
+  {
+    num: 74,
+    quizId: 'stet-9-28-26',
+    live: '2026-09-28',
+    dateLabel: 'September 28, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The wall was pointed careful in lime mortar.",
+        errors: [{ wrong: "careful", fix: "carefully", kind: 'grammar', note: "The verb needs an adverb, so it reads pointed carefully." }],
+      },
+      {
+        text: "The chapel roof was releaded in the spring.",
+        errors: [],
+        cleanNote: "Clean copy: releaded is the correct term for renewing lead work.",
+      },
+      {
+        text: "The keeper logged a school of porpoise working the tide race off the head.",
+        errors: [{ wrong: "school", fix: "pod", kind: 'wordchoice', note: "A pod is the usual collective term for porpoises." }],
+      },
+      {
+        text: "The tenant gave notice at the end of the quarter.",
+        errors: [],
+        cleanNote: "Clean copy: quarter is correct here, meaning a rent period.",
+      },
+      {
+        text: "The mason described the arch as a segmentle rather than a true semicircle.",
+        errors: [{ wrong: "segmentle", fix: "segmental", kind: 'wordchoice', note: "Segmental is the correct architectural term." }],
+      },
+    ],
+  },
+  {
+    num: 75,
+    quizId: 'stet-9-29-26',
+    live: '2026-09-29',
+    dateLabel: 'September 29, 2026',
+    sunday: false,
+    items: [
+      {
+        text: "The trust said the mill had lost it's cap in the storm.",
+        errors: [{ wrong: "it's", fix: "its", kind: 'grammar', note: "Its is the possessive; it's is short for it is." }],
+      },
+      {
+        text: "The harbour master logged every arrival by hand.",
+        errors: [],
+        cleanNote: "Clean copy: logged and arrival are used correctly.",
+      },
+      {
+        text: "The engineer said the sluice paddle was seized and the gearing would need to be striped and greased.",
+        errors: [{ wrong: "striped", fix: "stripped", kind: 'wordchoice', note: "Stripped means taken apart; striped means marked with lines." }],
+      },
+      {
+        text: "The bakery still uses a peel to load the oven.",
+        errors: [],
+        cleanNote: "Clean copy: peel is the correct name for a baker's shovel.",
+      },
+      {
+        text: "The society noted the pews were installed in 1843 and the box pews removed at the same juncture.",
+        errors: [{ wrong: "juncture", fix: "time", kind: 'wordchoice', note: "Juncture means a critical moment, which is not what is meant." }],
+      },
+    ],
+  },
 ];
