@@ -622,7 +622,13 @@ export default function BidClient({ puzzles = [], forceNum = null }) {
 
               {result.board.top && result.board.top.length > 0 && (
                 <div style={{ marginTop: 14, borderTop: '1px solid rgba(28,30,36,0.18)', paddingTop: 10 }}>
-                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500, marginBottom: 6 }}>Today&rsquo;s saleroom</div>
+                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500, marginBottom: 6 }}>Today&rsquo;s saleroom &middot; ranked by points taken</div>
+                  <div className="bd-stand" style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500, padding: '0 8px 3px' }}>
+                    <span style={{ width: 26, flex: '0 0 auto' }}>#</span>
+                    <span>Player</span>
+                    <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>Lots taken</span>
+                    <span style={{ width: 34, textAlign: 'right', flex: '0 0 auto' }}>Pts</span>
+                  </div>
                   {result.board.top.map((row) => (
                     <div key={`${row.rank}-${row.name}`} className={`bd-stand${row.you ? ' you' : ''}`}>
                       <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: COLORS.faded, width: 26, flex: '0 0 auto' }}>{row.rank}</span>
@@ -631,6 +637,9 @@ export default function BidClient({ puzzles = [], forceNum = null }) {
                       <span style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums', width: 34, textAlign: 'right', flex: '0 0 auto' }}>{row.points}</span>
                     </div>
                   ))}
+                  <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: COLORS.faded, marginTop: 8, lineHeight: 1.5 }}>
+                    Everyone in the room bids on the same five lots. The saleroom ranks players by the points they took, so the top spot goes to whoever carried out the most value, not to whoever spent the most. Ties go to whoever placed their bids first.
+                  </div>
                   {!result.board.youRegistered && (
                     <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: COLORS.faded, marginTop: 8 }}>
                       The saleroom lists named players only. Join the leaderboard below and your allocation appears here.
