@@ -46,7 +46,7 @@ import {
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
-  FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, Gavel, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
+  FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
@@ -58,7 +58,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['rung', 'crunch', 'bid', 'park'], until: '2026-08-13' };
+const LAUNCH_PIN = { keys: ['rung', 'crunch', 'park'], until: '2026-08-13' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -114,7 +114,6 @@ export const GAME_META = {
   check: { accent: '#166e5a', badgeBg: '#166e5a', badgeInk: '#fff', Fin: Swords },
   rung: { accent: '#155e75', badgeBg: '#155e75', badgeInk: '#fff', Fin: MoveUp },
   crunch: { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: Calculator },
-  bid: { accent: '#7c2d12', badgeBg: '#7c2d12', badgeInk: '#fff', Fin: Gavel },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -160,7 +159,6 @@ export const DAILY_GAMES = [
   { key: 'check',  cat: 'logic',     name: 'Check',  tag: 'Give a piece, take them all', href: '/check' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    href: '/crunch' },
-  { key: 'bid',    cat: 'crowd',     name: 'Bid',    tag: 'One purse, five lots',       href: '/bid' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
