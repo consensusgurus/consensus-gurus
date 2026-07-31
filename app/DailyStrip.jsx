@@ -10,8 +10,16 @@
 // grid alike, so only the panel's own Play button shows) rather than
 // displacing it, so the board's height never changes and nothing below moves
 // (owner request, 2026-07-29; it previously inserted a strip at the end of the
-// selected tile's row, which pushed every later tile down the page). Nothing
-// navigates until you hit Play. The panel carries the game's identity and a
+// selected tile's row, which pushed every later tile down the page).
+//
+// CLICK MODEL (owner, 2026-07-31): the panel is no longer what a tile click
+// does by default. A tile you have NOT finished today is a PLAIN LINK into the
+// game, so the board is one tap from playing and nothing stands between the
+// player and the puzzle; a small chart glyph in its bottom-right corner still
+// opens the panel for anyone who wants the archive first. A FINISHED tile is
+// where the panel lives: it turns solid green, sheds its icon and category
+// chip, reads "Click for stats & archive", and the whole tile opens the panel.
+// The panel carries the game's identity and a
 // one-line how-to-play, today's record and standings (from the
 // /api/quiz/daily-combined per-game board), and, from one lazy
 // /api/quiz/daily-game fetch, the archive calendar, the game's all-time
@@ -33,7 +41,7 @@
 // to the board everywhere it's used.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, Users, X } from 'lucide-react';
+import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, Users, X, BarChart3 } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 import DailyTilePanel from './DailyTilePanel';
@@ -499,57 +507,96 @@ export default function DailyStrip({ board = null }) {
 
   // Renders one group of tiles. `dim` marks the games a filter did not match:
   // they still render (so the board keeps its full height) but recede.
-  const renderTiles = (arr, dim) => arr.map((g, i) => {
+  //
+  // Two shapes, per the click model at the top of this file. UNFINISHED: a div
+  // carrying a stretched <a> over the whole face (a real link, so middle-click
+  // and open-in-new-tab work) plus the corner stats button. FINISHED: a single
+  // button that opens the panel, green, with no icon or category chip.
+  const renderTiles = (arr, dim) => arr.map((g) => {
     const isDone = done.has(g.key);
-            const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
-            const pl = playsOf(g.key);
-            const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
-            const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
-            const row = isDone ? myRow(g.key) : null;
-            const sl = row ? todayScoreLine(row) : null;
-            const tile = (
-              <button
-                type="button"
-                key={g.key}
-                className={`dh-tile${isDone ? ' done' : ''}${!isDone && inprog.has(g.key) ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}`}
-              style={isDone ? undefined : { borderColor: CAT_BD[g.cat] }}
-                onClick={() => pick(g.key)}
-                aria-expanded={sel === g.key}
-                aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}${pl != null ? ` — ${pl} ${pl === 1 ? 'play' : 'plays'} today` : ''}`}
-              >
-                <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
-                <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
-                {sun || pl != null ? (
-                  <span className="dh-tcorner">
-                    {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
-                    {pl != null ? (
-                      <span className="dh-tplays" title={`${pl.toLocaleString()} ${pl === 1 ? 'play' : 'plays'} today`}>
-                        <Users size={9} strokeWidth={2.6} aria-hidden="true" />{fmtPlays(pl)}
-                      </span>
-                    ) : null}
-                  </span>
-                ) : null}
-                <span className="dh-tnm">{g.name}</span>
-                <span className="dh-tcat" style={{ background: catCol(g.cat), color: '#fff' }}>
-                  {CAT_SHORT[g.cat] || g.cat}
-                </span>
-                <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
-                <span className="dh-tmeta">
-                  <span className="dh-mrow">
-                    {isDone ? (
-                      <span className="dh-msc"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="#22c55e" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
-                    ) : null}
-                    <span className={`dh-mstrk${st ? '' : ' none'}`}><Flame size={9} strokeWidth={2.8} />{st || 0}</span>
-                  </span>
-                  <span className="dh-mlead">
-                    {lead
-                      ? <><Crown size={9} strokeWidth={2.6} /><span>{lead}</span></>
-                      : <span className="dh-nolead">Be the first</span>}
-                  </span>
-                </span>
-              </button>
-            );
-    return dim ? React.cloneElement(tile, { className: tile.props.className + ' dim' }) : tile;
+    const ip = !isDone && inprog.has(g.key);
+    const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
+    const pl = playsOf(g.key);
+    const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
+    const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
+    const row = isDone ? myRow(g.key) : null;
+    const sl = row ? todayScoreLine(row) : null;
+    const cls = `dh-tile${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}${dim ? ' dim' : ''}`;
+    const face = (
+      <>
+        <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
+        <span className="dh-tdot" style={{ background: isDone ? '#4ade80' : (ip ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
+        {sun || pl != null ? (
+          <span className="dh-tcorner">
+            {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
+            {pl != null ? (
+              <span className="dh-tplays" title={`${pl.toLocaleString()} ${pl === 1 ? 'play' : 'plays'} today`}>
+                <Users size={9} strokeWidth={2.6} aria-hidden="true" />{fmtPlays(pl)}
+              </span>
+            ) : null}
+          </span>
+        ) : null}
+        <span className="dh-tnm">{g.name}</span>
+        {isDone ? (
+          <span className="dh-tcta">Click for stats &amp; archive</span>
+        ) : (
+          <>
+            <span className="dh-tcat" style={{ background: catCol(g.cat), color: '#fff' }}>
+              {CAT_SHORT[g.cat] || g.cat}
+            </span>
+            <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
+          </>
+        )}
+        <span className="dh-tmeta">
+          <span className="dh-mrow">
+            {isDone ? (
+              <span className="dh-msc"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" aria-hidden="true"><path d="M4 12.5 L10 18.5 L20 6" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" /></svg>{sl || 'Done'}</span>
+            ) : null}
+            <span className={`dh-mstrk${st ? '' : ' none'}`}><Flame size={9} strokeWidth={2.8} />{st || 0}</span>
+          </span>
+          <span className="dh-mlead">
+            {lead
+              ? <><Crown size={9} strokeWidth={2.6} /><span>{lead}</span></>
+              : <span className="dh-nolead">Be the first</span>}
+          </span>
+        </span>
+      </>
+    );
+
+    if (isDone) {
+      return (
+        <button
+          type="button"
+          key={g.key}
+          className={cls}
+          onClick={() => pick(g.key)}
+          aria-expanded={sel === g.key}
+          aria-label={`${g.name} — done today${sl ? `, ${sl}` : ''} — open stats and archive`}
+        >
+          {face}
+        </button>
+      );
+    }
+    return (
+      <div key={g.key} className={cls} style={{ borderColor: CAT_BD[g.cat] }}>
+        <a
+          className="dh-tfill"
+          href={g.href}
+          aria-label={`${ip ? 'Resume' : 'Play'} ${g.name} — ${g.tag}${st ? ` — ${st}-day streak` : ''}${pl != null ? ` — ${pl} ${pl === 1 ? 'play' : 'plays'} today` : ''}`}
+        />
+        {face}
+        <button
+          type="button"
+          className="dh-tstats"
+          onClick={() => pick(g.key)}
+          aria-expanded={sel === g.key}
+          aria-label={`${g.name} stats and archive`}
+          title="Stats & archive"
+        >
+          <BarChart3 size={11} strokeWidth={2.6} aria-hidden="true" />
+        </button>
+      </div>
+    );
   });
 
   return (
@@ -633,7 +680,37 @@ export default function DailyStrip({ board = null }) {
         .dh-tile:hover{transform:translateY(-2px);background:#f7f9fc;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
         .dh-tile.sel{border-color:#a16207;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.inprog{background:#fffaeb;}
-        .dh-tile.done{background:#f0fdf4;border-color:#1f5537;}
+        /* A finished tile is SOLID green (owner, 2026-07-31): the completed
+           games sink to the end of the board, so the block of green is the
+           day's progress read at a glance. It is also the only tile that opens
+           the panel, hence the CTA line where its icon and chip used to be. */
+        .dh-tile.done{background:#166534;border-color:#14532d;color:#ffffff;}
+        .dh-tile.done:hover{background:#14532d;}
+        .dh-tile.done .dh-tnm{color:#ffffff;}
+        .dh-tile.done .dh-msc{color:#86efac;}
+        .dh-tile.done .dh-mstrk{color:#fcd34d;}
+        .dh-tile.done .dh-mstrk.none{color:#9ec7ac;}
+        .dh-tile.done .dh-mlead{color:#d1fae5;}
+        .dh-tile.done .dh-mlead svg{color:#fcd34d;}
+        .dh-tile.done .dh-nolead{color:#9ec7ac;}
+        .dh-tile.done .dh-tplays{color:#a7f3d0;}
+        /* Replaces the icon + category chip on a finished tile. Wraps to two
+           lines on a narrow tile, which is exactly the room those two freed. */
+        .dh-tcta{margin:6px 2px 0;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;color:#a7f3d0;max-width:100%;}
+        /* The play target on an unfinished tile: a real link stretched over the
+           whole face, so the tile is one click from the game and still supports
+           middle-click / open in new tab. It sits ABOVE the tile's own spans
+           (which are decorative) and BELOW the stats button. */
+        .dh-tfill{position:absolute;inset:0;z-index:2;border-radius:10px;text-decoration:none;}
+        .dh-tile:focus-within{outline:2px solid #2563eb;outline-offset:1px;}
+        /* Stats + archive, for a game you have not finished. Bottom-right
+           rather than top-right: the top corners already carry the play count,
+           the Sunday chip and the status dot, and a button up there would run
+           under the centred game name on a six-across tile. .dh-mlead takes a
+           matching right pad so the leader name never runs under it. */
+        .dh-tstats{position:absolute;right:3px;bottom:4px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #d5dce6;border-radius:5px;background:#ffffff;color:#6b7686;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,border-color .12s;}
+        .dh-tstats:hover{color:#0e1d40;background:#eef1f6;border-color:#0e1d40;}
+        .dh-tile:not(.done) .dh-mlead{padding-right:15px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
         .dh-tic{width:46px;height:30px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
