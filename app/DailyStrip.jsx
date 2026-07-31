@@ -246,6 +246,9 @@ export default function DailyStrip({ board = null }) {
   // what turns the whole mechanism off there.
   const [rowOffset, setRowOffset] = useState(0);
   const [metrics, setMetrics] = useState(null);
+  // Phones open on the first eight tiles only (owner, 2026-07-31). This is the
+  // toggle behind .dh-mall; the cut itself is CSS, see .dh-board.mcut below.
+  const [showAll, setShowAll] = useState(false);
   const vpRef = useRef(null);
   const boardRef = useRef(null);
 
@@ -617,6 +620,10 @@ export default function DailyStrip({ board = null }) {
         .dh-more{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #c3ccda;box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:#0e1d40;font-family:inherit;}
         .dh-more:hover{border-color:#0e1d40;background:#f7f8fa;box-shadow:0 4px 13px rgba(20,22,28,0.26);}
         @media(max-width:860px){.dh-more{display:none;}}
+        /* The phone "show all / show fewer" toggle under the board. Hidden
+           everywhere but phones; see the 640px block for the reveal + the cut. */
+        .dh-mall{display:none;width:100%;margin-top:8px;align-items:center;justify-content:center;gap:6px;background:#f7f8fa;border:1.5px solid #c3ccda;border-radius:10px;padding:11px 14px;font-family:inherit;font-size:12.5px;font-weight:800;letter-spacing:-.1px;color:#0e1d40;cursor:pointer;}
+        .dh-mall:active{background:#eef1f6;border-color:#0e1d40;}
         /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
        white tile with no plate. warmer, carve and suds resisted the recolour, so
        those three PNGs carry a baked navy plate instead (owner 2026-07-29). */
@@ -728,6 +735,10 @@ export default function DailyStrip({ board = null }) {
           .dh-msc,.dh-mstrk,.dh-mlead{font-size:10px;}
           .dh-tcorner{top:6px;left:5px;gap:3px;}
           .dh-tplays{font-size:9px;}
+          /* Eight tiles, then the toggle. Two rows at four across, three at
+             three across, either way a board you can take in without scrolling. */
+          .dh-board.mcut > .dh-tile:nth-child(n+9){display:none;}
+          .dh-mall{display:flex;}
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-tnm{font-size:13px;}.dh-tcat{font-size:8px;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
@@ -936,7 +947,7 @@ export default function DailyStrip({ board = null }) {
         >
           <div
             ref={boardRef}
-            className="dh-board"
+            className={'dh-board' + (showAll ? '' : ' mcut')}
             role="navigation"
             aria-label="Daily puzzles"
             aria-hidden={selGame ? 'true' : undefined}
@@ -961,6 +972,22 @@ export default function DailyStrip({ board = null }) {
           </button>
         ) : null}
         </div>
+        {/* Phone board cut (owner, 2026-07-31): eight tiles, then this toggle.
+            The cut is CSS-only -- .mcut hides :nth-child(n+9) under 640px -- so
+            the server renders the collapsed board and a phone never flashes all
+            thirty-seven tiles before the JS makes up its mind. Above 640px the
+            class does nothing and the button is display:none, so the desktop
+            row window is untouched. */}
+        <button
+          type="button"
+          className="dh-mall"
+          onClick={() => setShowAll((v) => !v)}
+          aria-expanded={showAll}
+        >
+          {showAll
+            ? <>Show fewer <ChevronUp size={15} strokeWidth={2.8} /></>
+            : <>Show all {list.length} games <ChevronDown size={15} strokeWidth={2.8} /></>}
+        </button>
       </div>
       {/* The panel is a child of .dhome, not of the board, so it covers the
           stats bar as well as the grid: one expanded console, one Play button
