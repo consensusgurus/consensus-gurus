@@ -10,13 +10,15 @@
 //      "<Game> · <Family> · <score>", the answer, and a right-hand stack with the
 //      player's username (or a "Sign up" link for guests) and the "Share result
 //      (for credit)" button;
-//   2. rank tiles — "IQ Points" (what this game paid, over the player's global
-//      IQ standing; expands to their slot in the IQ ranking with two players
-//      above and below), "This Puzzle" (today's drop of this game), "All Time"
-//      (this game's cumulative points across every drop), and "Today's Puzzles"
-//      (the combined board) — each with a field size and an enlarge control that
-//      expands in place to that board's top 10. The internal view keys stay
-//      'today' / 'alltime' / 'combined'; only the labels were reframed.
+//   2. IQ hero + rank tiles — a full-width green banner leads with the IQ gain
+//      this game paid (the card's headline number), with the day's running
+//      total, the player's total IQ, and their global IQ rank on one sub-line;
+//      it expands to their slot in the IQ ranking. Below it, three rank tiles —
+//      "Today's Puzzle" (today's drop of this game), "All Time" (this game's
+//      cumulative points across every drop), and "Today's Puzzles" (the combined
+//      board) — big centered numerals with the field size spelled out, each
+//      expanding in place to that board's top 10. The internal view keys stay
+//      'today' / 'alltime' / 'combined' (owner redesign 2026-07-31).
 //   3. guest-only claim slip (ranks unclaimed until a username is chosen);
 //   4. archive bar — a full-width button under the tiles (desktop and mobile
 //      alike, owner 2026-07-30) showing "N/M played · P%" over a completion bar,
@@ -721,7 +723,7 @@ export default function DailyEndCard({
       ) : (
         <div className="dec-tile-rk"><span className="dash">·</span></div>
       )}
-      <div className="dec-tile-of">{field ? <>of {field}</> : (dash ? 'registered only' : ' ')}</div>
+      <div className="dec-tile-of">{field ? <>of {Number(field).toLocaleString()} player{Number(field) === 1 ? '' : 's'}</> : (dash ? 'registered only' : ' ')}</div>
       <span className="dec-tile-mx">
         <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === id ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
       </span>
@@ -784,6 +786,14 @@ export default function DailyEndCard({
         .dec-backdrop{position:fixed;inset:0;z-index:85;background:rgba(20,22,28,0.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
         .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:3;}
         .dec-x:hover{color:${INK};background:#f7f8fa;}
+        /* Modal scroller: round the track to match the card's 16px corners
+           (owner 2026-07-31). The track margin insets it below the curve so the
+           bar never pokes into the rounded corner. */
+        .dec-card{scrollbar-width:thin;scrollbar-color:#c9cfda transparent;}
+        .dec-card::-webkit-scrollbar{width:10px;}
+        .dec-card::-webkit-scrollbar-track{background:transparent;border-radius:16px;margin:16px 0;}
+        .dec-card::-webkit-scrollbar-thumb{background:#c9cfda;border-radius:999px;border:2px solid #fff;background-clip:padding-box;}
+        .dec-card::-webkit-scrollbar-thumb:hover{background:#aeb6c5;background-clip:padding-box;}
 
         .dec-head{margin-bottom:12px;}
         .dec-idrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;}
@@ -810,34 +820,39 @@ export default function DailyEndCard({
         .dec-day:hover{background:#e4edfb;}
         .dec-day[disabled]{opacity:.6;cursor:default;}
 
-        .dec-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px;}
+        .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
         .dec-tiles-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @media(prefers-reduced-motion:reduce){.dec-tiles-loading::after{animation:none;}}
         .dec-tile-cal{position:absolute;top:9px;right:8px;color:${SLATE};}
-        .dec-tile{position:relative;display:block;width:100%;text-align:left;font-family:inherit;cursor:pointer;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:11px 12px 10px;min-width:0;transition:background .12s ease,border-color .12s ease;}
+        .dec-tile{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:13px 10px 11px;min-width:0;transition:background .12s ease,border-color .12s ease;}
         .dec-tile:hover{background:#fff;border-color:#cfd6e2;}
         .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
-        .dec-tile-lbl{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:${SLATE};padding-right:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        /* Rank number and "of N" share ONE baseline-aligned line (of N to the
-           right of the number) to reclaim vertical space and fill the tile width. */
-        .dec-tile-rk{font-size:23px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.1;margin-top:3px;display:inline-block;vertical-align:baseline;}
+        .dec-tile-lbl{font-family:${SANS};font-size:12.5px;font-weight:700;color:${SLATE};padding:0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        /* Big centered numeral, with the field size spelled out on its own
+           line below (owner 2026-07-31: larger ranks, easier-to-read text). */
+        .dec-tile-rk{font-size:34px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.1;margin-top:4px;display:block;}
         .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
-        /* IQ tile: the number is a GAIN, so it reads green, and it carries a
-           second line for the day's running total (suppressed when this is the
-           player's first daily of the day, where it would just repeat the gain). */
-        .dec-tile-rk.gain{color:#15803d;}
-        /* At five across the card is 760px wide, so a tile's inner width is only
-           ~112px. "+96" plus a baseline-shared "#7 of 2,000" needs ~116px and
-           would wrap, so the IQ tile puts its rank on its OWN line instead of
-           sharing the number's baseline the way the rank tiles do. */
-        .dec-tile-iq .dec-tile-of{display:block;margin-left:0;font-size:11px;margin-top:1px;}
         .dec-tile-of .prov{font-weight:700;color:${FADED};}
-        .dec-tile-sub2{font-size:10.5px;font-weight:700;color:#15803d;margin-top:2px;line-height:1.2;}
         .dec-tile-rk .dash{color:#c2c8d2;}
-        .dec-tile-of{font-size:11.5px;color:${FADED};display:inline-block;vertical-align:baseline;margin-left:6px;}
+        .dec-tile-of{font-size:12px;color:${FADED};display:block;margin-top:3px;}
         .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
         .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:${BLUE};}
+
+        /* IQ hero: the gain is THE headline number of the card (owner redesign
+           2026-07-31), a full-width green banner above the rank tiles. Expands
+           to the player's slot in the IQ ranking exactly like a tile. */
+        .dec-iqhero{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid #cdeeda;background:#f0faf3;border-radius:14px;padding:14px 16px 12px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease;}
+        .dec-iqhero:hover{border-color:#9fd3ba;}
+        .dec-iqhero.open{border-color:#15803d;box-shadow:0 0 0 1px #15803d;}
+        .dec-iqhero-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#0f6e56;}
+        .dec-iqhero-gain{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.05;color:#15803d;margin-top:2px;}
+        .dec-iqhero-gain .dash{color:#c2c8d2;}
+        .dec-iqhero-sub{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:5px;font-size:12.5px;color:#3d6b58;}
+        .dec-iqhero-sub b{font-weight:800;color:#0f6e56;}
+        .dec-iqhero-sub .prov{font-weight:700;color:${FADED};}
+        .dec-iqhero-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#0f6e56;pointer-events:none;}
+        .dec-iqhero.open .dec-iqhero-mx,.dec-iqhero:hover .dec-iqhero-mx{color:#15803d;}
 
         .dec-expand{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:#fff;}
         .dec-expand-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
@@ -960,18 +975,16 @@ export default function DailyEndCard({
           .dec-title{font-size:22px;}
           .dec-idrow{gap:8px;}
           .dec-idrow > *{flex:1;justify-content:center;}
-          /* Mobile: the four rank tiles stay side by side, tighter. */
-          .dec-tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;}
-          /* Four across on a phone is tight, so the IQ tile drops its "of N"
-             field size (the expander shows it). The tighter .dec-tile type sizes
-             below apply here too. */
-          .dec-tile-iq .ofn{display:none;}
-          .dec-tile{padding:9px 7px 8px;}
-          .dec-tile-lbl{font-size:8px;letter-spacing:.03em;padding-right:15px;}
-          .dec-tile-rk{font-size:18px;}
-          .dec-tile-rk .prov{font-size:8.5px;}
-          .dec-tile-of{font-size:10px;}
+          /* Mobile: the three rank tiles stay side by side, tighter. */
+          .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+          .dec-tile{padding:10px 6px 9px;}
+          .dec-tile-lbl{font-size:10.5px;padding:0 14px;}
+          .dec-tile-rk{font-size:24px;}
+          .dec-tile-rk .prov{font-size:9px;}
+          .dec-tile-of{font-size:10.5px;}
           .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
+          .dec-iqhero-gain{font-size:34px;}
+          .dec-iqhero-sub{font-size:11.5px;gap:3px 12px;}
           .dec-duo{grid-template-columns:1fr;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
@@ -1020,39 +1033,39 @@ export default function DailyEndCard({
         </div>
       </div>
 
-      {/* ---- 2. rank tiles (four, identical on desktop and mobile) ---- */}
+      {/* ---- 2. IQ hero + rank tiles ---- */}
+      {/* IQ Points hero: what this game paid is the card's headline number, with
+          the day's running total, the player's total IQ, and their global rank on
+          the sub-line. Renders immediately (it has its own fetch), showing a
+          placeholder until the standing resolves. */}
+      <button type="button" className={`dec-iqhero${openTile === 'iq' ? ' open' : ''}`} aria-label="Expand your IQ Points ranking" aria-expanded={openTile === 'iq'} onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}>
+        <div className="dec-iqhero-lbl">IQ Points earned</div>
+        {iqGained != null ? (
+          <div className="dec-iqhero-gain">+{iqGained.toLocaleString()}</div>
+        ) : (
+          <div className="dec-iqhero-gain"><span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span></div>
+        )}
+        <div className="dec-iqhero-sub">
+          {showIqToday ? <span><b>+{iq.todayGained.toLocaleString()}</b> today</span> : null}
+          {iq && typeof iq.xp === 'number' ? <span><b>{iq.xp.toLocaleString()}</b> total</span> : null}
+          {iq && iq.rank ? <span>IQ rank <b>#{iq.rank.toLocaleString()}</b> of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span> : null}
+        </div>
+        <span className="dec-iqhero-mx">
+          <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
+        </span>
+      </button>
       {ranksLoading ? (
         <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
       ) : null}
       <div className="dec-tiles" style={ranksLoading ? { display: 'none' } : undefined}>
-        {/* IQ Points: what this game paid, with the player's global IQ standing
-            underneath. First tile because it is the one number that carries across
-            every game, not just this drop. */}
-        <button type="button" className={`dec-tile dec-tile-iq${openTile === 'iq' ? ' open' : ''}`} key="iq" aria-label="Expand your IQ Points ranking" aria-expanded={openTile === 'iq'} onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}>
-          <div className="dec-tile-lbl">IQ Points</div>
-          {iqGained != null ? (
-            <div className="dec-tile-rk gain">+{iqGained.toLocaleString()}</div>
-          ) : (
-            <div className="dec-tile-rk"><span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span></div>
-          )}
-          <div className="dec-tile-of">
-            {iq && iq.rank ? (
-              <>#{iq.rank.toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}<span className="ofn"> of {(iq.total || 0).toLocaleString()}</span></>
-            ) : ' '}
-          </div>
-          {showIqToday ? <div className="dec-tile-sub2">+{iq.todayGained.toLocaleString()} today</div> : null}
-          <span className="dec-tile-mx">
-            <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
-          </span>
-        </button>
-        {renderTile('today', 'This Puzzle', gameTodayRank, gameTodayField, false, provisional)}
+        {renderTile('today', "Today's Puzzle", gameTodayRank, gameTodayField, false, provisional)}
         {renderTile('alltime', 'All Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
         {renderTile('combined', "Today's Puzzles", combinedRank, combinedField, false, provisional)}
       </div>
       {openTile ? (() => {
         const rows = tileBoard(openTile);
         const ti = openTile === 'iq' ? 'Global IQ Points ranking'
-          : openTile === 'today' ? `${selfName} · this puzzle`
+          : openTile === 'today' ? `${selfName} · today's puzzle`
           : openTile === 'alltime' ? `${selfName} · all time`
           : "Today’s Puzzles · combined";
         return (
