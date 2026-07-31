@@ -5,6 +5,7 @@ import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
+import { scoreFeudGame } from '@/lib/feud-score';
 
 // Each game's puzzle list is server-only (answers never ship to the client). We
 // read nothing but `live` and `quizId` off it, exactly like app/daily/page.js,
@@ -50,6 +51,7 @@ import { PUZZLES as P_crunch } from '@/app/crunch/puzzles';
 import { PUZZLES as P_taire } from '@/app/taire/puzzles';
 import { PUZZLES as P_fib } from '@/app/fib/puzzles';
 import { PUZZLES as P_streak } from '@/app/streak/puzzles';
+import { PUZZLES as P_feud } from '@/app/feud/puzzles';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -65,7 +67,7 @@ const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
   tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer,
-  jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak,
+  jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak, feud: P_feud,
 };
 
 function etTodayServer() {
@@ -191,6 +193,51 @@ async function scoreOutrankLive(puzzle) {
   return { field: gr.field, plays: picks.length, players: gr.players };
 }
 
+// Feud is adaptive exactly like Outwit/Outrank: recompute its per-game board
+// from feud_picks (the live crowd) instead of the frozen quiz_results
+// snapshot. Same name-resolution flow as scoreOutwitLive above.
+async function scoreFeudLive(puzzle) {
+  let rows = [];
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('feud_picks')
+      .select('anon_id, user_id, answers, created_at')
+      .eq('quiz_id', puzzle.quizId)
+      .limit(20000);
+    if (error || !Array.isArray(data)) return null;
+    rows = data;
+  } catch (e) { return null; }
+
+  const picks = rows
+    .filter((r) => Array.isArray(r.answers))
+    .map((r) => ({ answers: r.answers, created: r.created_at || '', userId: r.user_id || null, anonId: r.anon_id || null }));
+
+  const userIds = [...new Set(picks.map((p) => p.userId).filter(Boolean))];
+  const anonIds = [...new Set(picks.map((p) => p.anonId).filter(Boolean))];
+  const nameByUser = new Map();
+  const infoByAnon = new Map();
+  try {
+    if (userIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('id', userIds);
+      for (const u of data || []) if (u.username) { nameByUser.set(u.id, u.username); if (u.anon_id) infoByAnon.set(u.anon_id, { username: u.username, id: u.id }); }
+    }
+    if (anonIds.length) {
+      const { data } = await supabaseAdmin.from('quiz_users').select('id, username, anon_id').in('anon_id', anonIds);
+      for (const u of data || []) if (u.username && u.anon_id) infoByAnon.set(u.anon_id, { username: u.username, id: u.id });
+    }
+  } catch (e) { /* no names — board empty, pool still scores */ }
+
+  const named = picks.map((p) => {
+    let name = null, userId = p.userId;
+    if (p.userId && nameByUser.has(p.userId)) name = nameByUser.get(p.userId);
+    else if (p.anonId && infoByAnon.has(p.anonId)) { const info = infoByAnon.get(p.anonId); name = info.username; userId = info.id; }
+    return { answers: p.answers, created: p.created, anonId: p.anonId, userId, name };
+  });
+
+  const gr = scoreFeudGame(puzzle, named);
+  return { field: gr.field, plays: picks.length, players: gr.players };
+}
+
 // The guest's single chosen row for a game (their anon rows only), mirroring
 // scoreGame's selection: a completed attempt beats an abandoned one, then the
 // first attempt (lowest id) wins. Returns null when the guest has no row.
@@ -293,6 +340,13 @@ export async function GET(request) {
       const op = (P_outrank || []).find((x) => x && x.quizId === outrankGame.quizId);
       if (op) outrankLive = await scoreOutrankLive(op);
     }
+    // Same override for Feud (live crowd-survey key; see lib/feud-score).
+    let feudLive = null;
+    const feudGame = games.find((g) => g.key === 'feud');
+    if (feudGame) {
+      const fp = (P_feud || []).find((x) => x && x.quizId === feudGame.quizId);
+      if (fp) feudLive = await scoreFeudLive(fp);
+    }
 
     const gameResults = games.map((g) => {
       if (g.key === 'outwit' && outwitLive) {
@@ -300,6 +354,9 @@ export async function GET(request) {
       }
       if (g.key === 'outrank' && outrankLive) {
         return { key: g.key, quizId: g.quizId, num: g.num, rev: g.rev, href: g.href, field: outrankLive.field, plays: outrankLive.plays, players: outrankLive.players };
+      }
+      if (g.key === 'feud' && feudLive) {
+        return { key: g.key, quizId: g.quizId, num: g.num, rev: g.rev, href: g.href, field: feudLive.field, plays: feudLive.plays, players: feudLive.players };
       }
       const gameRows = rowsByQuiz.get(g.quizId) || [];
       const gr = scoreGame(gameRows);

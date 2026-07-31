@@ -63,7 +63,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['streak', 'fib', 'crunch', 'park'], until: '2026-08-28' };
+const LAUNCH_PIN = { keys: ['feud', 'streak', 'fib', 'crunch', 'park'], until: '2026-08-28' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -122,6 +122,7 @@ export const GAME_META = {
   taire: { accent: '#1d6b4f', badgeBg: '#1d6b4f', badgeInk: '#fff', Fin: Club },
   fib: { accent: '#4c1d95', badgeBg: '#4c1d95', badgeInk: '#fff', Fin: Scale },
   streak: { accent: '#e11d48', badgeBg: '#e11d48', badgeInk: '#fff', Fin: Flame },
+  feud: { accent: '#9f1239', badgeBg: '#9f1239', badgeInk: '#fff', Fin: BarChart3 },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -171,6 +172,7 @@ export const DAILY_GAMES = [
   { key: 'taire',  cat: 'logic',     name: 'Taire',  tag: 'The daily solitaire',        href: '/taire' },
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          href: '/fib' },
   { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  href: '/streak' },
+  { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            href: '/feud' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
