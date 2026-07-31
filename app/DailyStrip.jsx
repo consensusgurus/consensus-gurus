@@ -33,7 +33,7 @@
 // to the board everywhere it's used.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, X } from 'lucide-react';
+import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, Users, X } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 import DailyTilePanel from './DailyTilePanel';
@@ -94,6 +94,10 @@ const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '
 // (the "one saturated color per game" system used on the live game pages).
 const TCOL = { crux: '#2563eb', emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c', lode: '#a16207', etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f', mate: '#6b4423', four: '#1e3a8a', park: '#7c5c2e', check: '#166e5a', rung: '#155e75', crunch: '#b45309' };
 const tcol = (k) => TCOL[k] || '#2563eb';
+// Today's play count, rendered in the tile's top-left corner. The badge has
+// roughly 30px before it reaches a long game name, so four figures collapse to
+// "1.2k" rather than running under the title.
+const fmtPlays = (v) => (v >= 10000 ? Math.round(v / 1000) + 'k' : v >= 1000 ? (Math.round(v / 100) / 10) + 'k' : String(v));
 // Faint tile tints (owner, 2026-07-29: "the colours should be more faint").
 // Each game's saturated hue is mixed down into the board's own deep navy, so a
 // tile is recognisably its game's colour while the board still reads as one
@@ -192,9 +196,34 @@ export default function DailyStrip({ board = null }) {
     const iv = setInterval(tick, 60000);
     return () => clearInterval(iv);
   }, []);
-  // Display order = yesterday's popularity (canonical order until it loads).
+  // -- board payload (per-game plays + standings) --
+  // Read up here, ahead of the display order, because the order now keys off
+  // today's play counts. The leaderboard wiring further down reuses these maps.
+  const bgames = board && Array.isArray(board.games) ? board.games : null;
+  const byKey = {};
+  if (bgames) for (const g of bgames) byKey[g.key] = g;
+  const hasBoard = !!(bgames && bgames.length);
+  // Plays today for one game (everyone, guests included -- the same number the
+  // tile badge shows). Null when no board payload has arrived.
+  const playsOf = (key) => {
+    const b = byKey[key];
+    return b && typeof b.plays === 'number' ? b.plays : null;
+  };
+
+  // Display order = MOST PLAYED TODAY first (owner, 2026-07-31), so the board
+  // matches the play count each tile now shows in its corner. Yesterday's
+  // popularity (useDailyOrder) is the tiebreak, and carries the whole order
+  // until the board payload lands, so first paint never janks and a fresh ET
+  // morning -- when every count is still 0 -- falls back to yesterday rather
+  // than to noise.
   const dailyOrder = useDailyOrder();
-  const games = sortByDailyOrder(GAMES, dailyOrder);
+  const games = (() => {
+    const base = sortByDailyOrder(GAMES, dailyOrder);
+    if (!hasBoard) return base;
+    const rank = new Map(base.map((g, i) => [g.key, i]));
+    return [...base].sort((a, b) => (playsOf(b.key) || 0) - (playsOf(a.key) || 0)
+      || rank.get(a.key) - rank.get(b.key));
+  })();
 
   // first paint: same-device breadcrumbs
   useEffect(() => {
@@ -285,10 +314,7 @@ export default function DailyStrip({ board = null }) {
   const nextGame = games.find((g) => !done.has(g.key)) || null;
 
   // ── leaderboard wiring (only when a board payload is provided) ──
-  const bgames = board && Array.isArray(board.games) ? board.games : null;
-  const byKey = {};
-  if (bgames) for (const g of bgames) byKey[g.key] = g;
-  const hasBoard = !!(bgames && bgames.length);
+  // bgames / byKey / hasBoard are built above, beside the display order.
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const maxTotal = (board && board.maxTotal) || 150;
   const gameCount = (board && board.gameCount) || (bgames ? bgames.length : 0);
@@ -470,6 +496,7 @@ export default function DailyStrip({ board = null }) {
   const renderTiles = (arr, dim) => arr.map((g, i) => {
     const isDone = done.has(g.key);
             const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
+            const pl = playsOf(g.key);
             const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
             const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
             const row = isDone ? myRow(g.key) : null;
@@ -482,11 +509,20 @@ export default function DailyStrip({ board = null }) {
               style={isDone ? undefined : { borderColor: CAT_BD[g.cat] }}
                 onClick={() => pick(g.key)}
                 aria-expanded={sel === g.key}
-                aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}`}
+                aria-label={`${g.name} — ${g.tag}${isDone ? ' — done today' : ''}${st ? ` — ${st}-day streak` : ''}${pl != null ? ` — ${pl} ${pl === 1 ? 'play' : 'plays'} today` : ''}`}
               >
                 <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
                 <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (inprog.has(g.key) ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
-                {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
+                {sun || pl != null ? (
+                  <span className="dh-tcorner">
+                    {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
+                    {pl != null ? (
+                      <span className="dh-tplays" title={`${pl.toLocaleString()} ${pl === 1 ? 'play' : 'plays'} today`}>
+                        <Users size={9} strokeWidth={2.6} aria-hidden="true" />{fmtPlays(pl)}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : null}
                 <span className="dh-tnm">{g.name}</span>
                 <span className="dh-tcat" style={{ background: catCol(g.cat), color: '#fff' }}>
                   {CAT_SHORT[g.cat] || g.cat}
@@ -604,7 +640,13 @@ export default function DailyStrip({ board = null }) {
         .dh-mlead svg{flex:none;color:#a16207;}
         .dh-mlead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
-        .dh-tsun{position:absolute;top:7px;left:7px;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;}
+        /* Top-left corner row: the Sunday chip and today's play count share it,
+           so a Sunday tile reads "SUN  12" rather than stacking the two. It sits
+           opposite .dh-tdot and clears the centred game name on a 123px tile. */
+        .dh-tcorner{position:absolute;top:7px;left:6px;display:flex;align-items:center;gap:4px;max-width:calc(100% - 22px);pointer-events:none;}
+        .dh-tsun{font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;flex:none;}
+        .dh-tplays{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;line-height:1;color:#4d5872;font-variant-numeric:tabular-nums;flex:none;}
+        .dh-tplays svg{flex:none;opacity:.85;}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
         .dh-lbpanel{background:#ffffff;border:1.5px solid #c3ccda;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
@@ -675,6 +717,9 @@ export default function DailyStrip({ board = null }) {
           .dh-tcat{font-size:8.5px;padding:1px 7px;margin-top:4px;}
           .dh-tmeta{gap:3px;}
           .dh-msc,.dh-mstrk,.dh-mlead{font-size:10px;}
+          .dh-tcorner{top:6px;left:5px;gap:3px;}
+          .dh-tplays{font-size:9px;}
+          .dh-tplays svg{display:none;}
         }
         @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-tnm{font-size:13px;}.dh-tcat{font-size:8px;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
