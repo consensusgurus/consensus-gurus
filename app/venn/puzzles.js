@@ -147,4 +147,228 @@ export const PUZZLES = [
       'HATING', 'FEARING', 'WOMBAT', 'YEARS',
     ],
   },
+  {
+    num: 15, quizId: 'venn-8-7-26', live: '2026-08-07', dateLabel: 'August 7, 2026', sunday: false,
+    rules: [{ k: 'startvowel' }, { k: 'sameends' }, { k: 'nolet', c: 'S' }],
+    items: [
+      'UNLESS', 'ENSURE', 'EPISODE', 'ENTRANCE',
+      'ORDERS', 'ONCE', 'MORTGAGE', 'INNOCENT',
+      'EDIT', 'TWIST', 'ENGAGE', 'KNOCK',
+    ],
+  },
+  {
+    num: 16, quizId: 'venn-8-8-26', live: '2026-08-08', dateLabel: 'August 8, 2026', sunday: false,
+    rules: [{ k: 'len', n: 7 }, { k: 'nolet', c: 'R' }, { k: 'onevowel' }],
+    items: [
+      'GLOBE', 'TALK', 'RETURNS', 'FRESH',
+      'BECOMES', 'WRITING', 'VICTIMS', 'PRESENT',
+      'KICKING', 'FIGHTER', 'LARGEST', 'DEVELOP',
+    ],
+  },
+  {
+    num: 17, quizId: 'venn-8-9-26', live: '2026-08-09', dateLabel: 'August 9, 2026', sunday: true,
+    rules: [{ k: 'len', n: 6 }, { k: 'nolet', c: 'E' }, { k: 'dbl' }],
+    items: [
+      'SHEET', 'FOLLOWS', 'CHANNEL', 'CHOICE',
+      'SEEMED', 'ADDING', 'CHILL', 'STRAIN',
+      'DEEPER', 'ACROSS', 'STREET', 'RULING',
+      'TRYING', 'MISSED', 'FLIP',
+    ],
+    hiddenCounts: [3, 4],
+  },
+  {
+    num: 18, quizId: 'venn-8-10-26', live: '2026-08-10', dateLabel: 'August 10, 2026', sunday: false,
+    rules: [{ k: 'dbl' }, { k: 'vowels', n: 3 }, { k: 'hides', set: 'animal' }],
+    items: [
+      'BATHROOM', 'MARATHON', 'REFUGEES', 'GRAMMAR',
+      'IGNORED', 'INSTANT', 'MORRIS', 'BEER',
+      'MARRIED', 'FEEDBACK', 'BATTERY', 'CATCH',
+    ],
+  },
+  {
+    num: 19, quizId: 'venn-8-11-26', live: '2026-08-11', dateLabel: 'August 11, 2026', sunday: false,
+    rules: [{ k: 'len', n: 4 }, { k: 'hides', set: 'body' }, { k: 'nolet', c: 'S' }],
+    items: [
+      'HEART', 'TEARS', 'ROSE', 'SHIP',
+      'ARMY', 'TEACHING', 'FISHING', 'ARMS',
+      'ENTIRELY', 'BROUGHT', 'MACHINES', 'GAVE',
+    ],
+  },
+  {
+    num: 20, quizId: 'venn-8-12-26', live: '2026-08-12', dateLabel: 'August 12, 2026', sunday: false,
+    rules: [{ k: 'vowels', n: 3 }, { k: 'nolet', c: 'S' }, { k: 'endvowel' }],
+    items: [
+      'ARRESTED', 'REALITY', 'WHOLE', 'SHAME',
+      'AIRCRAFT', 'CHAIRMAN', 'PREPARE', 'LICENSED',
+      'LEASE', 'FENCE', 'LANDING', 'SNAKE',
+    ],
+  },
+  {
+    num: 21, quizId: 'venn-8-13-26', live: '2026-08-13', dateLabel: 'August 13, 2026', sunday: false,
+    rules: [{ k: 'dbl' }, { k: 'len', n: 4 }, { k: 'vowels', n: 2 }],
+    items: [
+      'HELP', 'WEEK', 'WITNESS', 'OVER',
+      'EXPAND', 'POPE', 'SIDE', 'POLL',
+      'TRIGGER', 'BOTTLE', 'FOOTAGE', 'WEED',
+    ],
+  },
+  {
+    num: 22, quizId: 'venn-8-14-26', live: '2026-08-14', dateLabel: 'August 14, 2026', sunday: false,
+    rules: [{ k: 'sameends' }, { k: 'startvowel' }, { k: 'len', n: 6 }],
+    items: [
+      'ADULTS', 'SAINTS', 'STEPS', 'ENABLE',
+      'USELESS', 'HUMANS', 'REGULAR', 'EMPIRE',
+      'EDGE', 'KILLER', 'STANDS', 'INTERNAL',
+    ],
+  },
+  {
+    num: 23, quizId: 'venn-8-15-26', live: '2026-08-15', dateLabel: 'August 15, 2026', sunday: false,
+    rules: [{ k: 'len', n: 5 }, { k: 'endvowel' }, { k: 'nolet', c: 'R' }],
+    items: [
+      'DRUGS', 'REFUSE', 'LARGE', 'ANGLE',
+      'TRULY', 'PAYMENTS', 'OUGHT', 'RESPONSE',
+      'RESCUE', 'NERVE', 'UNIQUE', 'DIALOGUE',
+    ],
+  },
+  {
+    num: 24, quizId: 'venn-8-16-26', live: '2026-08-16', dateLabel: 'August 16, 2026', sunday: true,
+    rules: [{ k: 'onevowel' }, { k: 'len', n: 5 }, { k: 'nolet', c: 'A' }],
+    items: [
+      'PROBLEMS', 'COMES', 'HELP', 'YARDS',
+      'PARTY', 'WORD', 'WALL', 'WITNESS',
+      'FEES', 'SOLO', 'LANDS', 'ASKED',
+      'STARS', 'PRAY', 'TREES',
+    ],
+    hiddenCounts: [2, 5],
+  },
+  {
+    num: 25, quizId: 'venn-8-17-26', live: '2026-08-17', dateLabel: 'August 17, 2026', sunday: false,
+    rules: [{ k: 'hides', set: 'number' }, { k: 'nolet', c: 'E' }, { k: 'len', n: 6 }],
+    items: [
+      'GAINED', 'SOONER', 'FOUR', 'MEDIUM',
+      'POUNDS', 'OPPONENT', 'SIXTH', 'LISTEN',
+      'ANYONE', 'BOOK', 'FOURTH', 'NOBODY',
+    ],
+  },
+  {
+    num: 26, quizId: 'venn-8-18-26', live: '2026-08-18', dateLabel: 'August 18, 2026', sunday: false,
+    rules: [{ k: 'endvowel' }, { k: 'lenGte', n: 7 }, { k: 'nolet', c: 'E' }],
+    items: [
+      'FORMULA', 'STUDYING', 'CULTURE', 'ALBUMS',
+      'JUSTICE', 'TABLE', 'RESPONSE', 'TOBACCO',
+      'AUDIO', 'REMEMBER', 'BLAME', 'BOMBS',
+    ],
+  },
+  {
+    num: 27, quizId: 'venn-8-19-26', live: '2026-08-19', dateLabel: 'August 19, 2026', sunday: false,
+    rules: [{ k: 'hides', set: 'animal' }, { k: 'nolet', c: 'R' }, { k: 'vowels', n: 3 }],
+    items: [
+      'EDUCATED', 'RATED', 'FANTASY', 'REACHES',
+      'DRAMATIC', 'PROGRAMS', 'QUIETLY', 'MUTUAL',
+      'LOCATED', 'ESCAPED', 'WINGS', 'POSITIVE',
+    ],
+  },
+  {
+    num: 28, quizId: 'venn-8-20-26', live: '2026-08-20', dateLabel: 'August 20, 2026', sunday: false,
+    rules: [{ k: 'nolet', c: 'A' }, { k: 'len', n: 4 }, { k: 'startvowel' }],
+    items: [
+      'UNIT', 'CHAT', 'EARL', 'CORN',
+      'APPEAR', 'FAKE', 'ANYTHING', 'ENJOYED',
+      'AUTO', 'ACTS', 'DEBT', 'WITNESS',
+    ],
+  },
+  {
+    num: 29, quizId: 'venn-8-21-26', live: '2026-08-21', dateLabel: 'August 21, 2026', sunday: false,
+    rules: [{ k: 'hides', set: 'animal' }, { k: 'nolet', c: 'S' }, { k: 'lenGte', n: 7 }],
+    items: [
+      'BEEF', 'PLANTS', 'CARPET', 'EDUCATED',
+      'BATTLES', 'CONCRETE', 'FILE', 'STRATEGY',
+      'MEANT', 'VERSIONS', 'ALONG', 'PANTS',
+    ],
+  },
+  {
+    num: 30, quizId: 'venn-8-22-26', live: '2026-08-22', dateLabel: 'August 22, 2026', sunday: false,
+    rules: [{ k: 'norepeat' }, { k: 'hides', set: 'body' }, { k: 'altvc' }],
+    items: [
+      'ROMAN', 'STAND', 'BONE', 'HEARD',
+      'EYES', 'FLOATING', 'BONES', 'EARLIER',
+      'CLEARED', 'DEFINE', 'RECIPE', 'YEAR',
+    ],
+  },
+  {
+    num: 31, quizId: 'venn-8-23-26', live: '2026-08-23', dateLabel: 'August 23, 2026', sunday: true,
+    rules: [{ k: 'sameends' }, { k: 'hides', set: 'number' }, { k: 'nolet', c: 'S' }],
+    items: [
+      'ESTATE', 'POET', 'TENSION', 'DEFEND',
+      'STREETS', 'PRISONER', 'EXPENSE', 'EVENING',
+      'PHONES', 'TRIP', 'SOMEONE', 'STONES',
+      'EVERYONE', 'COOK', 'BEATEN',
+    ],
+    hiddenCounts: [1, 6],
+  },
+  {
+    num: 32, quizId: 'venn-8-24-26', live: '2026-08-24', dateLabel: 'August 24, 2026', sunday: false,
+    rules: [{ k: 'nolet', c: 'R' }, { k: 'onevowel' }, { k: 'vowels', n: 2 }],
+    items: [
+      'CHOICE', 'FRAUD', 'WORST', 'COUSIN',
+      'THREAD', 'THREE', 'WORDS', 'CLIP',
+      'VOTED', 'ATHLETES', 'THEME', 'READ',
+    ],
+  },
+  {
+    num: 33, quizId: 'venn-8-25-26', live: '2026-08-25', dateLabel: 'August 25, 2026', sunday: false,
+    rules: [{ k: 'lenGte', n: 8 }, { k: 'dbl' }, { k: 'endvowel' }],
+    items: [
+      'SESSION', 'HANDSOME', 'PRESSURE', 'HAHA',
+      'MACHINES', 'STRESSED', 'CATTLE', 'COLORADO',
+      'EXPENSE', 'PULLED', 'CHAMPION', 'BACTERIA',
+    ],
+  },
+  {
+    num: 34, quizId: 'venn-8-26-26', live: '2026-08-26', dateLabel: 'August 26, 2026', sunday: false,
+    rules: [{ k: 'lenGte', n: 8 }, { k: 'sameends' }, { k: 'nolet', c: 'E' }],
+    items: [
+      'EXTREME', 'CAPACITY', 'SHOPPING', 'PASS',
+      'SETS', 'MIND', 'SPIRITS', 'STATIONS',
+      'CLASSIC', 'SUPPLIES', 'FEATURED', 'SAVINGS',
+    ],
+  },
+  {
+    num: 35, quizId: 'venn-8-27-26', live: '2026-08-27', dateLabel: 'August 27, 2026', sunday: false,
+    rules: [{ k: 'len', n: 7 }, { k: 'hides', set: 'body' }, { k: 'norepeat' }],
+    items: [
+      'MISTAKE', 'HEAR', 'WRITTEN', 'NATURAL',
+      'WARM', 'WELFARE', 'SHIPPING', 'BEARING',
+      'FISHING', 'TEARS', 'ALARM', 'CHARGE',
+    ],
+  },
+  {
+    num: 36, quizId: 'venn-8-28-26', live: '2026-08-28', dateLabel: 'August 28, 2026', sunday: false,
+    rules: [{ k: 'nolet', c: 'T' }, { k: 'hides', set: 'number' }, { k: 'len', n: 7 }],
+    items: [
+      'DONE', 'TENSION', 'COIN', 'DYNAMIC',
+      'FEDERAL', 'SENTENCE', 'SOMEONE', 'RATINGS',
+      'BENEATH', 'HOOK', 'INTENSE', 'WRITTEN',
+    ],
+  },
+  {
+    num: 37, quizId: 'venn-8-29-26', live: '2026-08-29', dateLabel: 'August 29, 2026', sunday: false,
+    rules: [{ k: 'norepeat' }, { k: 'nolet', c: 'S' }, { k: 'lenGte', n: 8 }],
+    items: [
+      'HEARD', 'LOVELY', 'AWARD', 'BOMB',
+      'OBSERVED', 'REPEATED', 'PROVINCE', 'MOREOVER',
+      'PUSHED', 'PRODUCES', 'EQUALITY', 'AVIATION',
+    ],
+  },
+  {
+    num: 38, quizId: 'venn-8-30-26', live: '2026-08-30', dateLabel: 'August 30, 2026', sunday: true,
+    rules: [{ k: 'nolet', c: 'R' }, { k: 'altvc' }, { k: 'onevowel' }],
+    items: [
+      'SEVEN', 'DAWN', 'SENDS', 'NAIL',
+      'HATES', 'WALLS', 'COLOR', 'METRES',
+      'EVEN', 'MAYOR', 'STARTS', 'REMOVAL',
+      'SEVERE', 'CITED', 'SCENES',
+    ],
+    hiddenCounts: [1, 4],
+  },
 ];
