@@ -13,8 +13,13 @@
 //      completed attempt is what the daily leaderboard and the local streak
 //      keep (write-once recordStat in each client), so it never overwrites the
 //      recorded run;
-//   1. an actions row (Challenge a Friend + Share This Puzzle) — a larger 2-up
-//      block on its own (only when the page passes challengeHref/share); and
+//   1. a full-width Share-for-credit button, which copies the player's own
+//      referral link and carries its own one-line explanation of WHY sharing
+//      matters (owner, 2026-07-31). The old 2-up row paired it with a
+//      "Challenge a Friend" duel link; that button was removed and the share
+//      button took the whole width, so the `challengeHref` prop is now ignored
+//      (kept on the signature only so the ~43 game pages that still pass it do
+//      not need touching); and
 //   2. the games grid — the OTHER dailies (plus one evergreen popular quiz to
 //      keep the count even), 2-wide on phones and 3-wide on desktop.
 // Games the viewer has already finished today get a faint green wash + a check
@@ -25,7 +30,7 @@
 // registry here adds it to every other game's page.
 
 import React, { useState, useEffect } from 'react';
-import { Swords, Share2, Check, RotateCcw } from 'lucide-react';
+import { Share2, Check, RotateCcw } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
 
@@ -87,6 +92,8 @@ const CATEGORIES = [
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'mate', 'four', 'park', 'check', 'taire', 'fib'] },
 ];
 
+// `challengeHref` is DEPRECATED and ignored (see the header note); it stays on
+// the signature so existing callers keep working.
 export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null, light = false, replay = null }) {
   // "(for credit)" is appended only for a registered viewer: their share link
   // carries their referral code, so the share genuinely earns them credit. A
@@ -137,7 +144,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
     }
   };
 
-  const actionCount = (challengeHref ? 1 : 0) + (share ? 1 : 0);
+  const copied = /copied/i.test((share && share.label) || '');
 
   return (
     <div className={light ? 'dgg-light' : undefined} style={{ maxWidth, margin: '18px auto 0' }}>
@@ -163,13 +170,15 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act{min-height:76px;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;width:100%;}
         .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#1c1e24;line-height:1.15;text-align:center;}
         .dgg-act svg{flex:0 0 auto;}
-        .dgg-act.dgg-challenge svg{color:#5b8bff;}
         .dgg-act.dgg-share svg{color:#f8b84a;}
         .dgg-replay{margin-bottom:12px;}
         .dgg-act.dgg-again{min-height:64px;background:#eef7f1;border-color:#cfe6d8;}
         .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
         .dgg-act.dgg-again svg{color:#16a34a;}
         .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:#3f6b4e;}
+        /* Share sub-line: its own tone (the base color is tuned for the green
+           replay button) and a readable measure on wide screens. */
+        .dgg-act.dgg-share .dgg-act-s{color:#7c6512;max-width:430px;margin-left:auto;margin-right:auto;font-size:11px;line-height:1.4;}
 
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
            bottom section matches the end-of-game card. Game icons are kept. */
@@ -184,15 +193,12 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-done .dgg-art{opacity:.6;}
         .dgg-light .dgg-done .dgg-nm{color:#15803d;}
         .dgg-light .dgg-check{border-color:#1c1e24;}
-        .dgg-light .dgg-act.dgg-challenge{background:#eff4fd;border-color:#d7e3f8;}
-        .dgg-light .dgg-act.dgg-challenge .dgg-act-l{color:#1e3a8a;}
-        .dgg-light .dgg-act.dgg-challenge svg{color:#2563eb;}
         .dgg-light .dgg-act.dgg-share{background:#fdf6e4;border-color:#f0e3bb;}
         .dgg-light .dgg-act.dgg-share .dgg-act-l{color:#5c4a06;}
         .dgg-light .dgg-act.dgg-share svg{color:#c58a12;}
         /* The .dgg-again tint must be scoped to .dgg-light too: the unscoped
            rule ties on specificity with .dgg-light .dgg-t and loses on order,
-           so the button rendered white. Same pattern as challenge/share. */
+           so the button rendered white. Same pattern as share. */
         .dgg-light .dgg-act.dgg-again{background:#eef7f1;border-color:#cfe6d8;}
         .dgg-light .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
         .dgg-light .dgg-act.dgg-again svg{color:#16a34a;}
@@ -213,24 +219,23 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />
         </div>
       ) : null}
-      {actionCount > 0 ? (
-        <div className="dgg-actions" style={{ gridTemplateColumns: actionCount === 1 ? '1fr' : 'repeat(2,minmax(0,1fr))' }}>
-          {challengeHref ? (
-            <a href={challengeHref} className="dgg-t dgg-act dgg-challenge" aria-label="Challenge a friend">
-              <Swords size={20} strokeWidth={2.5} />
-              <span className="dgg-act-l">Challenge a Friend</span>
-            </a>
-          ) : null}
-          {share ? (
-            <button type="button" onClick={share.onClick} className="dgg-t dgg-act dgg-share" aria-label="Share this puzzle">
-              <Share2 size={20} strokeWidth={2.5} />
-              <span className="dgg-act-l">{share.label}{!/copied/i.test(share.label || '') ? ' (for credit)' : ''}</span>
-            </button>
-          ) : null}
+      {share ? (
+        <div className="dgg-actions" style={{ gridTemplateColumns: '1fr' }}>
+          <button type="button" onClick={share.onClick} className="dgg-t dgg-act dgg-share" aria-label="Share your result and get credit">
+            <Share2 size={20} strokeWidth={2.5} />
+            <span className="dgg-act-l">
+              {copied ? share.label : 'Share Your Result, Get the Credit'}
+              <span className="dgg-act-s">
+                {copied
+                  ? 'Paste it anywhere. Every player who opens it is credited to you.'
+                  : 'One tap copies your result and your own link. Everyone who plays from it is credited to you, and every share helps the daily grow.'}
+              </span>
+            </span>
+          </button>
         </div>
       ) : null}
-      {/* The daily-leaderboard panel sits directly under the Challenge / Share
-          actions, above the games grid (owner layout, 2026-07-23). */}
+      {/* The daily-leaderboard panel sits directly under the Share action,
+          above the games grid (owner layout, 2026-07-23). */}
       {boardSlot}
       {groups.map((grp) => (
         <div className="dgg-grp" key={grp.key}>

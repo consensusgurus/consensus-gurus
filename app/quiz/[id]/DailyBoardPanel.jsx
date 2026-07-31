@@ -12,7 +12,9 @@ import { DAILY_GAME_MAP } from '@/lib/daily-games';
 //   2. All Time       — my rank of the game's cumulative field (key 'alltime')
 //   3. Today's Puzzles — my rank of today's combined (best-N) board (key 'combined')
 //   4. <Game> Archive — % of this game's drops I've completed
-// The board area under the tiles is collapsed by default and defaults to Today's
+// The board area under the tiles is EXPANDED by default (owner, 2026-07-31: a
+// reader who opens a daily page should see the board without a second click) and
+// defaults to Today's
 // daily board; clicking a tile flips the category. Today, All-time and Combined
 // Today all render the same condensed top-10 board style for consistency (the
 // Combined view carries the "best N of M / max pts" caption). Archive opens this
@@ -51,7 +53,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   const [combined, setCombined] = useState(null);  // /api/quiz/daily-combined payload
   const [gameData, setGameData] = useState(null);  // /api/quiz/daily-game payload (allTime + drops)
   const [sel, setSel] = useState('today');          // 'today' | 'alltime' | 'combined' | 'archive'
-  const [open, setOpen] = useState(false);          // is the board area expanded
+  const [open, setOpen] = useState(true);           // is the board area expanded (open by default, owner 2026-07-31)
   const [calMonth, setCalMonth] = useState(() => etTodayEC().slice(0, 7)); // 'YYYY-MM'
 
   const selfName = GAME_NAMES[self] || self;
