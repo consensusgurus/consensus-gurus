@@ -64,6 +64,12 @@ const C = {
   cta: '#e8b43a', ctaInk: '#1c1e24', ctaHover: '#d49a2a',
 };
 const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
+// Leaderboard rail: the #1 name shrinks as it lengthens so a long handle keeps its
+// descenders (the 'g' in VicMcDoogle) instead of being clipped by a fixed 37px line.
+function lbNameSize(s) {
+  const L = (s || '').length;
+  return L > 11 ? 23 : L > 9 ? 26 : L > 7 ? 29 : 33;
+}
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const STATUS_LABEL = { unplayed: 'Unplayed', played: 'Played', completed: 'Completed' };
 // Quiz of the Day is computed per render from the hero registry + rotation (see the qotd useMemo).
@@ -1967,25 +1973,50 @@ export default function QuizHomeClient() {
             .qzh .dhx-lone .cm-namewrap,.qzh .dhx-lone .xp-namewrap{min-height:0 !important;}
             /* the three leaderboard sections: identical layout, equal size (flex:1),
                content distributed so each has the same spacing and no dead gaps */
-            .qzh .dhx-lb{padding:15px 16px;display:flex;flex-direction:column;justify-content:space-between;height:100%;min-height:0;overflow:hidden;}
-            .qzh .dhx-lb .dhx-lb-hero{margin:0;}
-            .qzh .dhx-lb.xp .dhx-lb-name{color:#2563eb;}
-            .qzh .dhx-lb.comm .dhx-lb-name{color:#7c3aed;}
-            .qzh .dhx-lb-tag{display:flex;width:100%;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:#262b35;background:transparent;border:none;border-bottom:2px solid #1c1e24;border-radius:0;padding:0 0 5px;text-transform:uppercase;}
-            .qzh .dhx-lb-hero{margin:10px 0 11px;}
-            .qzh .dhx-lb-name{display:block;font-size:37px;font-weight:800;color: #a16207;line-height:1.2;padding-bottom:2px;letter-spacing:-.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-            .qzh .dhx-lb-sub{display:block;font-size:11.5px;color:#262b35;margin-top:3px;}
-            .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;}
-            .qzh .dhx-lb-gi{display:flex;align-items:baseline;gap:6px;font-size:11.5px;min-width:0;}
-            .qzh .dhx-lb-gi .rk{width:12px;font-size:10px;font-weight:800;color:#262b35;flex:none;}
+            .qzh .dhx-lb{padding:0;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;}
+            .qzh .dhx-lb-band{padding:11px 15px 12px;background:#eef2f7;}
+            .qzh .dhx-lb.comm .dhx-lb-band{background:#f3edff;}
+            .qzh .dhx-lb.daily .dhx-lb-band{background:#fdf3dc;}
+            .qzh .dhx-lb.xp .dhx-lb-band{background:#e9f0ff;}
+            .qzh .dhx-lb-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-between;padding:9px 15px 12px;}
+            .qzh .dhx-lb-tag{display:flex;width:100%;align-items:center;gap:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;}
+            .qzh .dhx-lb-tag svg{flex:none;}
+            .qzh .dhx-lb.comm .dhx-lb-tag{color:#5b21b6;}
+            .qzh .dhx-lb.daily .dhx-lb-tag{color:#7c4a06;}
+            .qzh .dhx-lb.xp .dhx-lb-tag{color:#1c46a8;}
+            .qzh .dhx-lb-hero{display:flex;align-items:flex-end;gap:8px;min-width:0;}
+            .qzh .dhx-lb-name{display:block;flex:1;min-width:0;font-weight:800;line-height:1.18;letter-spacing:-.5px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb.comm .dhx-lb-name{color:#5b21b6;}
+            .qzh .dhx-lb.daily .dhx-lb-name{color:#7c4a06;}
+            .qzh .dhx-lb.xp .dhx-lb-name{color:#1c46a8;}
+            .qzh .dhx-lb-name:hover{text-decoration:underline;}
+            .qzh .dhx-lb-stat{flex:none;text-align:right;padding-bottom:3px;}
+            .qzh .dhx-lb-stat b{display:block;font-size:19px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lb-stat b em{font-style:normal;font-size:12px;opacity:.7;}
+            .qzh .dhx-lb-stat i{display:block;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:600;letter-spacing:.07em;margin-top:3px;white-space:nowrap;}
+            .qzh .dhx-lb.comm .dhx-lb-stat b{color:#7c3aed;}
+            .qzh .dhx-lb.comm .dhx-lb-stat i{color:#6d28d9;}
+            .qzh .dhx-lb.daily .dhx-lb-stat b{color:#a16207;}
+            .qzh .dhx-lb.daily .dhx-lb-stat i{color:#8a5b0a;}
+            .qzh .dhx-lb.xp .dhx-lb-stat b{color:#2563eb;}
+            .qzh .dhx-lb.xp .dhx-lb-stat i{color:#1c46a8;}
+            .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 13px;}
+            .qzh .dhx-lb-gi{display:flex;align-items:center;gap:6px;font-size:11.5px;min-width:0;padding:4px 0;text-decoration:none;border-bottom:1px solid #eef1f6;}
+            .qzh .dhx-lb-gi:nth-last-child(-n+2){border-bottom:none;}
+            .qzh .dhx-lb-gi .rk{width:14px;height:14px;border-radius:4px;flex:none;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+            .qzh .dhx-lb.comm .dhx-lb-gi .rk{background:#ece5fb;color:#5b21b6;}
+            .qzh .dhx-lb.daily .dhx-lb-gi .rk{background:#f6ebd2;color:#7c4a06;}
+            .qzh .dhx-lb.xp .dhx-lb-gi .rk{background:#e1ebfd;color:#1c46a8;}
             .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-            .qzh .dhx-lb-gi .sc{flex:none;color:#262b35;font-weight:700;font-variant-numeric:tabular-nums;}
-            .qzh .dhx-lb-gi.me b{color: #a16207;}
-            .qzh .dhx-lb-more{display:inline-block;margin-top:11px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
+            .qzh .dhx-lb-gi:hover b{text-decoration:underline;}
+            .qzh .dhx-lb-gi .sc{flex:none;color:#6b7280;font-weight:700;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lb-gi.me b{color:#a16207;}
+            .qzh .dhx-lb-none{font-size:11.5px;color:#4b5563;padding:4px 0;}
+            .qzh .dhx-lb-links{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;}
+            .qzh .dhx-lb-more{display:inline-block;margin-top:9px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
             .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
-            .qzh .dhx-lb-scope{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7f93b8;margin-bottom:2px;}
             .qzh .dhx-lb-dots{display:inline-flex;align-items:center;gap:3px;margin-left:5px;}
-            .qzh .dhx-lb-dots i{width:4px;height:4px;border-radius:50%;background:#c3cdd9;display:block;}
+            .qzh .dhx-lb-dots i{width:4px;height:4px;border-radius:50%;background:#c3cdd9;display:block;font-style:normal;}
             .qzh .dhx-lb-dots i.on{background:#2563eb;}
             /* ── RIGHT: one integrated navy element ── */
             .qzh .dhx-rone{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
@@ -2040,8 +2071,9 @@ export default function QuizHomeClient() {
               .qzh .dhx-rail{height:auto !important;}
               .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;overflow:visible !important;}
               .qzh .dhx-lone > *,.qzh .dhx-lb{flex:none !important;overflow:visible !important;height:auto !important;justify-content:flex-start !important;}
-              .qzh .dhx-lb{padding:16px 16px !important;}
-              .qzh .dhx-lb .dhx-lb-hero{margin-top:11px !important;}
+              .qzh .dhx-lb{padding:0 !important;}
+              .qzh .dhx-lb-band{padding:14px 16px 13px !important;}
+              .qzh .dhx-lb-body{padding:11px 16px 15px !important;}
               .qzh .dhx-rone .dhx-lp{flex:none !important;}
               .qzh .dhx-rone .dhx-lp .dhx-lp-rows,.qzh .dhx-rone.cm-open .dhx-cm-bars{overflow:visible !important;max-height:none !important;}
               .qzh .dhx-rone.cm-open .dhx-lp{max-height:none !important;}
@@ -2051,73 +2083,94 @@ export default function QuizHomeClient() {
           `}</style>
           <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>
             <div className="dhx-lone">
-            {/* 1. Daily Puzzle Leaderboard — dark tile format to match Community/SoT */}
-            {dailyBoard && Array.isArray(dailyBoard.overall) && dailyBoard.overall.length ? (() => {
-              const ov = dailyBoard.overall.slice(0, 5);
-              const mk = dailyBoard.me ? dailyBoard.me.userKey : null;
-              const gc = dailyBoard.gameCount || 30;
-              const fp = (x) => { const v = Math.round(Number(x) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); };
-              const shown = ov.some((r) => mk && r.userKey === mk);
-              const one = ov[0];
-              return (
-                <div className="dhx-lb">
-                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#a16207' }} /> DAILY PUZZLE LEADERBOARD</span>
-                  <div className="dhx-lb-hero">
-                    <span className="dhx-lb-name">{(one && one.username) || 'Player'}</span>
-                    <span className="dhx-lb-sub">{one ? `${one.gamesPlayed}/${gc} puzzles today` : 'No scores yet today'}</span>
-                  </div>
-                  <div className="dhx-lb-grid">
-                    {ov.slice(1, 5).map((r) => (
-                      <span key={r.userKey} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></span>
-                    ))}
-                  </div>
-                  <a href="/quizzes/hub?tab=daily" className="dhx-lb-more">Full standings &amp; game boards →</a>
-                </div>
-              );
-            })() : null}
-            {/* 2. Top Community Member (rebuilt from /api/quiz/referrals) */}
+            {/* 1. Top Community Member (rebuilt from /api/quiz/referrals) */}
             {(() => {
               const top = (refData && Array.isArray(refData.top)) ? refData.top : [];
               const one = top[0];
               const num = (n) => (n || 0).toLocaleString();
+              const nm = (one && one.username) || '';
               return (
                 <div className="dhx-lb comm">
-                  <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#7c3aed' }} /> TOP COMMUNITY MEMBER</span>
-                  <div className="dhx-lb-hero">
-                    <span className="dhx-lb-name">{(one && one.username) || '—'}</span>
-                    <span className="dhx-lb-sub">{one ? `${one.credits} ${one.credits === 1 ? 'player' : 'players'} brought in over the last 90 days` : 'Nobody has brought in a player yet recently'}</span>
+                  <div className="dhx-lb-band">
+                    <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1 }} /> TOP COMMUNITY MEMBER</span>
+                    <div className="dhx-lb-hero">
+                      {nm
+                        ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
+                        : <span className="dhx-lb-name" style={{ fontSize: 30 }}>&mdash;</span>}
+                      <span className="dhx-lb-stat"><b>{one ? num(one.credits) : '0'}</b><i>BROUGHT IN &middot; 90D</i></span>
+                    </div>
                   </div>
-                  <div className="dhx-lb-grid">
-                    {top.slice(1, 5).map((r, i) => (
-                      <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">({num(r.credits)})</span></span>
-                    ))}
+                  <div className="dhx-lb-body">
+                    {top.length > 1 ? (
+                      <div className="dhx-lb-grid">
+                        {top.slice(1, 5).map((r, i) => (
+                          <Link key={i} href={`/player/${encodeURIComponent(r.username || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">{num(r.credits)}</span></Link>
+                        ))}
+                      </div>
+                    ) : <span className="dhx-lb-none">{one ? 'Nobody else has brought in a player yet' : 'Nobody has brought in a player yet recently'}</span>}
+                    <span className="dhx-lb-links">
+                      <Link href="/quizzes/community" className="dhx-lb-more">Full community leaderboard &rarr;</Link>
+                      <button type="button" onClick={() => setCreditOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Get credit &rarr;</button>
+                    </span>
                   </div>
-                  <span style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                    <a href="/quizzes/community" className="dhx-lb-more">Full community leaderboard →</a>
-                    <button type="button" onClick={() => setCreditOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Get credit →</button>
-                  </span>
                 </div>
               );
             })()}
+            {/* 2. Daily Puzzle Leaderboard */}
+            {dailyBoard && Array.isArray(dailyBoard.overall) && dailyBoard.overall.length ? (() => {
+              const ov = dailyBoard.overall.slice(0, 5);
+              const mk = dailyBoard.me ? dailyBoard.me.userKey : null;
+              const gc = dailyBoard.gameCount || 30;
+              const one = ov[0];
+              const nm = (one && one.username) || '';
+              return (
+                <div className="dhx-lb daily">
+                  <div className="dhx-lb-band">
+                    <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1 }} /> DAILY PUZZLE LEADERBOARD</span>
+                    <div className="dhx-lb-hero">
+                      {nm
+                        ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
+                        : <span className="dhx-lb-name" style={{ fontSize: 30 }}>Player</span>}
+                      <span className="dhx-lb-stat"><b>{one ? one.gamesPlayed : 0}<em>/{gc}</em></b><i>PUZZLES TODAY</i></span>
+                    </div>
+                  </div>
+                  <div className="dhx-lb-body">
+                    <div className="dhx-lb-grid">
+                      {ov.slice(1, 5).map((r) => (
+                        <Link key={r.userKey} href={`/player/${encodeURIComponent(r.username || '')}`} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></Link>
+                      ))}
+                    </div>
+                    <Link href="/quizzes/hub?tab=daily" className="dhx-lb-more">Full standings &amp; game boards &rarr;</Link>
+                  </div>
+                </div>
+              );
+            })() : null}
             {/* 3. Top SoT Player (rebuilt from /api/quiz/xp; flips 30-day <-> all-time) */}
             {(() => {
               const is30 = xpFlip % 2 === 0;
               const top = (is30 ? (xp30.length ? xp30 : xpAll) : (xpAll.length ? xpAll : xp30)) || [];
               const one = top[0];
               const num = (n) => (n || 0).toLocaleString();
+              const nm = (one && one.name) || '';
               return (
                 <div className="dhx-lb xp">
-                  <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1, color: '#2563eb' }} fill="#2563eb" /> TOP PLAYER: {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
-                  <div className="dhx-lb-hero">
-                    <span className="dhx-lb-name">{(one && one.name) || '—'}</span>
-                    <span className="dhx-lb-sub">{one ? `${num(one.value)} IQ Points earned ${is30 ? 'over the last 30 days' : 'all time'}` : 'No IQ Points earned yet'}</span>
+                  <div className="dhx-lb-band">
+                    <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1 }} fill="currentColor" /> TOP PLAYER: {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
+                    <div className="dhx-lb-hero">
+                      {nm
+                        ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
+                        : <span className="dhx-lb-name" style={{ fontSize: 30 }}>&mdash;</span>}
+                      <span className="dhx-lb-stat"><b>{one ? num(one.value) : '0'}</b><i>IQ &middot; {is30 ? '30D' : 'ALL TIME'}</i></span>
+                    </div>
                   </div>
-                  <div className="dhx-lb-grid">
-                    {top.slice(1, 5).map((r, i) => (
-                      <span key={i} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b></span>
-                    ))}
+                  <div className="dhx-lb-body">
+                    <div className="dhx-lb-grid">
+                      {top.slice(1, 5).map((r, i) => (
+                        <Link key={i} href={`/player/${encodeURIComponent(r.name || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b></Link>
+                      ))}
+                    </div>
+                    <Link href="/quizzes/hub?tab=player" className="dhx-lb-more">Full leaderboard &rarr;</Link>
                   </div>
-                  <a href="/quizzes/hub?tab=player" className="dhx-lb-more">Full leaderboard →</a>
                 </div>
               );
             })()}
