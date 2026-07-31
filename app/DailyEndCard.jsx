@@ -49,6 +49,7 @@ import {
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
+  Flame,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import shareDayCard from './shareDayCard';
@@ -59,7 +60,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['fib', 'crunch', 'park', 'taire'], until: '2026-08-28' };
+const LAUNCH_PIN = { keys: ['streak', 'fib', 'crunch', 'park'], until: '2026-08-28' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -117,6 +118,7 @@ export const GAME_META = {
   crunch: { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: Calculator },
   taire: { accent: '#1d6b4f', badgeBg: '#1d6b4f', badgeInk: '#fff', Fin: Club },
   fib: { accent: '#4c1d95', badgeBg: '#4c1d95', badgeInk: '#fff', Fin: Scale },
+  streak: { accent: '#e11d48', badgeBg: '#e11d48', badgeInk: '#fff', Fin: Flame },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -127,9 +129,10 @@ export const CAT_META = {
   numbers:   { name: 'Numbers',   color: '#ea580c', Icon: Hash },
   logic:     { name: 'Logic',     color: '#9f1239', Icon: Fingerprint },
   crowd:     { name: 'Crowd Psychology', color: '#a16207', Icon: Users },
+  trivia:    { name: 'Trivia',    color: '#0f766e', Icon: Brain },
 };
 // Family render order for the "more games" grid.
-const CAT_ORDER = ['word', 'numbers', 'crowd', 'logic', 'history', 'geography'];
+const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'history', 'geography'];
 
 // ---- the daily slate (31 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
@@ -164,6 +167,7 @@ export const DAILY_GAMES = [
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    href: '/crunch' },
   { key: 'taire',  cat: 'logic',     name: 'Taire',  tag: 'The daily solitaire',        href: '/taire' },
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          href: '/fib' },
+  { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  href: '/streak' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },

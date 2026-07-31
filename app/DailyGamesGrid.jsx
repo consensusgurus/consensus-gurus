@@ -57,6 +57,7 @@ const GAMES = [
   { key: 'crunch', href: '/crunch', name: 'Crunch', tag: 'Six numbers, one target', img: '/games/btn-crunch.png' },
   { key: 'taire', href: '/taire', name: 'Taire', tag: 'The daily solitaire', img: '/games/btn-taire.png' },
   { key: 'fib', href: '/fib', name: 'Fib', tag: 'One clue is lying', img: '/games/btn-fib.png' },
+  { key: 'streak', href: '/streak', name: 'Streak', tag: 'Forty questions, one life', img: '/games/btn-streak.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -70,6 +71,7 @@ const CATEGORIES = [
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge', 'crunch'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank'] },
+  { key: 'trivia', label: 'Trivia', keys: ['streak'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'mate', 'four', 'park', 'check', 'taire', 'fib'] },
 ];
 
