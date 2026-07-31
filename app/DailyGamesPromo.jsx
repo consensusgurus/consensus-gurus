@@ -50,6 +50,7 @@ export const DAILY_GAMES = [
   { key: 'rung', href: '/rung', name: 'Rung', tag: 'one letter at a time', store: 'sot_rung_day', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)' },
   { key: 'crunch', href: '/crunch', name: 'Crunch', tag: 'six numbers, one target', store: 'sot_crunch_day', accent: '#b45309', bg: '#fdf3e3', border: 'rgba(180,83,9,0.35)' },
   { key: 'taire', href: '/taire', name: 'Taire', tag: 'the daily solitaire', store: 'sot_taire_day', accent: '#1d6b4f', bg: '#e6f2ec', border: 'rgba(29,107,79,0.35)' },
+  { key: 'fib', href: '/fib', name: 'Fib', tag: 'one clue is lying', store: 'sot_fib_day', accent: '#4c1d95', bg: '#f1edfb', border: 'rgba(76,29,149,0.35)' },
 ];
 
 function etToday() {

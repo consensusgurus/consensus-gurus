@@ -26,7 +26,7 @@ export default function sitemap() {
   // catalog entries are thin client-side hops to those pages, so the game
   // URLs go in the sitemap (stamped with the newest live puzzle's date) and
   // the stubs stay out — they also canonicalize to the game pages.
-  const WORD_GAME_FORMATS = new Set(['crux', 'emcee', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'circa', 'extra', 'carve', 'stet', 'outwit', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester', 'sworn', 'outrank', 'shards', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'hedge', 'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire']);
+  const WORD_GAME_FORMATS = new Set(['crux', 'emcee', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'circa', 'extra', 'carve', 'stet', 'outwit', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester', 'sworn', 'outrank', 'shards', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'hedge', 'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib']);
   const newestOfFormat = (format) => {
     const times = visibleQuizzes
       .filter((quiz) => quiz.format === format)
@@ -76,6 +76,7 @@ export default function sitemap() {
     { url: `${baseUrl}/rung`, lastModified: newestOfFormat('rung'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/crunch`, lastModified: newestOfFormat('crunch'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/taire`, lastModified: newestOfFormat('taire'), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/fib`, lastModified: newestOfFormat('fib'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/geo/nyc-restaurants`, lastModified: new Date('2026-06-25'), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/sporcle-alternative`, lastModified: newestQuiz, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${baseUrl}/experts-and-aggregators`, lastModified: newestList, changeFrequency: 'weekly', priority: 0.5 },

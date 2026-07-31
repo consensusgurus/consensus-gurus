@@ -37,6 +37,7 @@ import { PUZZLES as CHECK_FULL } from '../check/puzzles';
 import { PUZZLES as RUNG_FULL } from '../rung/puzzles';
 import { PUZZLES as CRUNCH_FULL } from '../crunch/puzzles';
 import { PUZZLES as TAIRE_FULL } from '../taire/puzzles';
+import { PUZZLES as FIB_FULL } from '../fib/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -68,6 +69,7 @@ const CHECK = CHECK_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const RUNG = RUNG_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CRUNCH = CRUNCH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const TAIRE = TAIRE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const FIB = FIB_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -149,6 +151,7 @@ const GAMES = [
   { key: 'rung', name: 'Rung', path: '/rung', tag: 'One letter at a time', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)', src: RUNG },
   { key: 'crunch', name: 'Crunch', path: '/crunch', tag: 'Six numbers, one target', accent: '#b45309', bg: '#fdf3e3', border: 'rgba(180,83,9,0.35)', src: CRUNCH },
   { key: 'taire', name: 'Taire', path: '/taire', tag: 'The daily solitaire', accent: '#1d6b4f', bg: '#e6f2ec', border: 'rgba(29,107,79,0.35)', src: TAIRE },
+  { key: 'fib', name: 'Fib', path: '/fib', tag: 'One clue is lying', accent: '#4c1d95', bg: '#f1edfb', border: 'rgba(76,29,149,0.35)', src: FIB },
 ];
 
 const breadcrumbJsonLd = {

@@ -1,0 +1,910 @@
+'use client';
+
+// Fib — the daily lying-clue Latin square.
+//
+// Each day: an n x n grid where every row and column holds 1..n exactly once.
+// Between some neighbouring squares sits an inequality sign, and the printed
+// digits are always true. Exactly one sign is a lie. Solve the grid, then accuse
+// the sign that lied to you.
+//
+// The twist is that a contradiction is never proof you were wrong — it might be
+// the fib. Every board admits exactly one (grid, lying sign) pair across the
+// whole search space, so both halves of the answer are provably unique.
+//
+// A sign greys out once your grid satisfies it and glows amber once your grid
+// breaks it, which is only what the player could read off the board themselves.
+// A wrong submission costs an error but never says which square is wrong.
+// Score is 10 minus half your errors, floor 1, so a clean solve is a perfect 10
+// and ties break on fewest errors then fastest time.
+//
+// Same daily plumbing as Etch/Suds: banked boards gated by Eastern date on the
+// server (app/fib/page.js), per-puzzle localStorage saves, /fib?p=N archive
+// pinning, streaks + stats, and the shared /api/quiz/* board flow. Weekdays are
+// 5x5; Sundays step up to a 6x6 Edition.
+
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { RotateCcw, X, Lightbulb, Eye, Smartphone, Pencil, Check as CheckIcon } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
+import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
+import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
+import DailyMasthead from '../DailyMasthead';
+
+const COLORS = {
+  cream: '#f7f8fa',
+  paper: '#eceef1',
+  ink: '#1c1e24',
+  ember: '#0e1d40',
+  rust: '#c0392b',
+  faded: '#262b35',
+  accent: '#4c1d95',       // Fib identity — deep indigo
+  accentSoft: '#f1edfb',
+  amber: '#b45309',        // a sign your grid currently breaks
+  green: '#15803d',
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_fib_help_seen';
+const STATS_KEY = 'sot_fib_stats';
+const TOOL_KEY = 'sot_fib_tool';   // remembered tool: 'write' | 'note'
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+// ─── Personal stats + streak (localStorage), Suds/Etch pattern ──────────────
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const sc = Math.max(0, Math.min(10, Math.round(((m.scorePct || 0) / 100) * 10)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t: 10, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+// ─── puzzle helpers ────────────────────────────────────────────────────────
+function givenMap(P) {
+  const m = {};
+  for (const [r, c, v] of P.givens) m[r * P.n + c] = v;
+  return m;
+}
+function freshState(P) {
+  const n = P.n;
+  const vals = Array(n * n).fill(0);
+  for (const [r, c, v] of P.givens) vals[r * n + c] = v;
+  return { v: 1, vals, notes: Array(n * n).fill(0), acc: null, errors: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null };
+}
+// A sign's live state from the current grid: 'idle' until both ends are filled,
+// then 'ok' or 'broken'. This is only what a player can read off the board.
+function clueState(cl, vals, n) {
+  const a = vals[cl[0] * n + cl[1]], b = vals[cl[2] * n + cl[3]];
+  if (!a || !b) return 'idle';
+  const holds = cl[4] === '>' ? a > b : a < b;
+  return holds ? 'ok' : 'broken';
+}
+function clueGlyph(cl) {
+  const vertical = cl[0] !== cl[2];
+  if (!vertical) return cl[4] === '>' ? '>' : '<';
+  return cl[4] === '>' ? '∨' : '∧';
+}
+// duplicates in a row or column, for free (unscored) feedback
+function dupSet(vals, n) {
+  const bad = new Set();
+  for (let r = 0; r < n; r++) {
+    const seen = {};
+    for (let c = 0; c < n; c++) { const v = vals[r * n + c]; if (!v) continue; if (seen[v] !== undefined) { bad.add(seen[v]); bad.add(r * n + c); } else seen[v] = r * n + c; }
+  }
+  for (let c = 0; c < n; c++) {
+    const seen = {};
+    for (let r = 0; r < n; r++) { const v = vals[r * n + c]; if (!v) continue; if (seen[v] !== undefined) { bad.add(seen[v]); bad.add(r * n + c); } else seen[v] = r * n + c; }
+  }
+  return bad;
+}
+
+const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
+function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+export default function FibClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const n = PUZZLE.n, N = n * n;
+  const STORE_KEY = `sot_fib_${PUZZLE.num}`;
+  const GIVEN = useMemo(() => givenMap(PUZZLE), [PUZZLE]);
+  const SOL = useMemo(() => {
+    const f = Array(N).fill(0);
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) f[r * n + c] = Number(PUZZLE.sol[r][c]);
+    return f;
+  }, [PUZZLE, N, n]);
+  // sign lookup by the pair of cells it sits between
+  const CLUE_AT = useMemo(() => {
+    const m = {};
+    PUZZLE.clues.forEach((cl, i) => { m[`${cl[0]},${cl[1]},${cl[2]},${cl[3]}`] = i; });
+    return m;
+  }, [PUZZLE]);
+
+  const [g, setG] = useState(() => freshState(PUZZLE));
+  const gRef = useRef(g);
+  const [sel, setSel] = useState(null);
+  const [mode, setMode] = useState('write');   // 'write' | 'note'
+  const [canUndo, setCanUndo] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [armReveal, setArmReveal] = useState(false);
+  const [justWon, setJustWon] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const [showChrome, setShowChrome] = useState(false);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
+  const undoRef = useRef([]);
+
+  const vals = g.vals;
+  const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
+  const focusMode = playing && !showChrome;
+  const won = g.status === 'won';
+  const errors = g.errors;
+  const finalScore = won ? Math.max(1, Math.min(10, 10 - Math.ceil(errors / 2))) : 0;
+
+  const filled = useMemo(() => vals.reduce((a, v) => a + (v ? 1 : 0), 0), [vals]);
+  const dups = useMemo(() => dupSet(vals, n), [vals, n]);
+  const clueStates = useMemo(() => PUZZLE.clues.map((cl) => clueState(cl, vals, n)), [PUZZLE, vals, n]);
+  const brokenCount = useMemo(() => clueStates.filter((s) => s === 'broken').length, [clueStates]);
+
+  useEffect(() => { gRef.current = g; }, [g]);
+  useEffect(() => {
+    if (!armReveal) return undefined;
+    const t = setTimeout(() => setArmReveal(false), 3500);
+    return () => clearTimeout(t);
+  }, [armReveal]);
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  // ---- persistence ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.vals) && saved.vals.length === N) {
+          const next = { ...freshState(PUZZLE), ...saved };
+          gRef.current = next;
+          setG(next);
+        }
+      }
+      setGateRules(!localStorage.getItem(HELP_KEY));
+      const t = localStorage.getItem(TOOL_KEY);
+      if (t === 'write' || t === 'note') setMode(t);
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        const done = g.status !== 'playing';
+        if (done || g.t0) localStorage.setItem('sot_fib_day', JSON.stringify({ d: etToday(), done }));
+        else localStorage.removeItem('sot_fib_day');
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(TOOL_KEY, mode); } catch (e) {}
+  }, [mode, hydrated]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  // ---- metrics + leaderboard (shared /api/quiz/* flow) ----
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
+  }
+
+  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+
+  const REC_KEY = `sot_fib_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    const cur = gRef.current;
+    const acted = cur.vals.some((v, i) => v && GIVEN[i] === undefined) || cur.errors > 0 || cur.acc !== null || cur.hintUsed;
+    if (!acted || cur.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (cur.t0 || Date.now())) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
+  function postResult(g2, score) {
+    abandon.markFlushed();
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.errors, won: g2.status === 'won' && g2.errors === 0 })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: g2.status === 'won' ? 1 : 0, guessesUsed: g2.errors, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  function commit(next) { gRef.current = next; setG(next); }
+
+  function startGame() {
+    const cur = gRef.current;
+    if (cur.t0) return;
+    commit({ ...cur, t0: Date.now() });
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
+
+  function pushUndo(st) {
+    undoRef.current = [...undoRef.current.slice(-59), { vals: st.vals.slice(), notes: st.notes.slice(), acc: st.acc }];
+    if (!canUndo) setCanUndo(true);
+  }
+  function undo() {
+    const st = undoRef.current;
+    if (!st.length || gRef.current.status !== 'playing') return;
+    const prev = st[st.length - 1];
+    undoRef.current = st.slice(0, -1);
+    setCanUndo(undoRef.current.length > 0);
+    commit({ ...gRef.current, vals: prev.vals.slice(), notes: prev.notes.slice(), acc: prev.acc });
+  }
+
+  function writeDigit(d) {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || sel === null) return;
+    if (GIVEN[sel] !== undefined) return;
+    if (!cur.t0) startGame();
+    pushUndo(cur);
+    if (mode === 'note' && d > 0) {
+      const notes = cur.notes.slice();
+      notes[sel] = notes[sel] ^ (1 << d);
+      commit({ ...cur, notes, t0: cur.t0 || Date.now() });
+      return;
+    }
+    const nv = cur.vals.slice(), nn = cur.notes.slice();
+    nv[sel] = nv[sel] === d ? 0 : d;
+    nn[sel] = 0;
+    vibrate(HAPT.ok);
+    commit({ ...cur, vals: nv, notes: nn, t0: cur.t0 || Date.now() });
+  }
+
+  function accuse(i) {
+    const cur = gRef.current;
+    if (cur.status !== 'playing') return;
+    if (!cur.t0) startGame();
+    pushUndo(cur);
+    commit({ ...cur, acc: cur.acc === i ? null : i, t0: cur.t0 || Date.now() });
+  }
+
+  const gridFull = filled === N;
+  const canSubmit = playing && gridFull && g.acc !== null;
+
+  function submit() {
+    const cur = gRef.current;
+    if (cur.status !== 'playing') return;
+    const gridRight = cur.vals.every((v, i) => v === SOL[i]);
+    if (gridRight && cur.acc === PUZZLE.liar) {
+      const g2 = { ...cur, status: 'won', tEnd: Date.now() };
+      vibrate(HAPT.win);
+      postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
+      commit(g2);
+      setJustWon(true);
+      return;
+    }
+    const g2 = { ...cur, errors: cur.errors + 1 };
+    vibrate(HAPT.wrong);
+    commit(g2);
+    say(gridRight
+      ? 'The grid holds up, but that is not the sign that lied.'
+      : 'Not the answer. Something in the grid does not hold.');
+  }
+
+  // one free hint: fill a correct square that is still empty or wrong
+  function useHint() {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || cur.hintUsed) return;
+    let idx = -1;
+    for (let i = 0; i < N; i++) if (GIVEN[i] === undefined && cur.vals[i] !== SOL[i]) { idx = i; break; }
+    if (idx < 0) { say('Every square already matches. Name the sign that lied.'); return; }
+    pushUndo(cur);
+    const nv = cur.vals.slice(), nn = cur.notes.slice();
+    nv[idx] = SOL[idx]; nn[idx] = 0;
+    const g2 = { ...cur, vals: nv, notes: nn, hintUsed: true, t0: cur.t0 || Date.now() };
+    vibrate(HAPT.ok);
+    commit(g2);
+    setSel(idx);
+    say('Hint placed, one square filled in.');
+  }
+
+  function revealEnd() {
+    const cur = gRef.current;
+    const g2 = { ...cur, vals: SOL.slice(), notes: Array(N).fill(0), acc: PUZZLE.liar, status: 'revealed', tEnd: Date.now() };
+    if (!g2.t0) g2.t0 = Date.now();
+    postResult(g2, 0);
+    commit(g2);
+  }
+
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    undoRef.current = []; setCanUndo(false);
+    commit(freshState(PUZZLE));
+    setSel(null); setJustWon(false); setEndClosed(false);
+  }
+
+  // desktop keyboard: digits write, arrows move, N toggles notes, Ctrl+Z undoes
+  const onKey = useCallback((e) => {
+    if (gRef.current.status !== 'playing') return;
+    const k = e.key;
+    if ((k === 'z' || k === 'Z') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); undo(); return; }
+    if (k === 'n' || k === 'N') { setMode((m) => (m === 'note' ? 'write' : 'note')); return; }
+    if (k === 'Backspace' || k === 'Delete') { e.preventDefault(); writeDigit(0); return; }
+    if (k >= '1' && k <= '9') { const d = Number(k); if (d <= n) { e.preventDefault(); writeDigit(d); } return; }
+    if (sel === null) return;
+    let r = Math.floor(sel / n), c = sel % n;
+    if (k === 'ArrowUp') r = (r + n - 1) % n;
+    else if (k === 'ArrowDown') r = (r + 1) % n;
+    else if (k === 'ArrowLeft') c = (c + n - 1) % n;
+    else if (k === 'ArrowRight') c = (c + 1) % n;
+    else return;
+    e.preventDefault();
+    setSel(r * n + c);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sel, n, mode]);
+  useEffect(() => {
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onKey]);
+
+  function shareUrl() {
+    return withRef(`sourceoftruths.com/fib${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+  }
+  function shareText() {
+    const g5 = won ? Math.max(1, Math.round(finalScore / 2)) : 0;
+    const squares = '\u{1F7EA}'.repeat(g5) + '⬜'.repeat(5 - g5);
+    const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const head2 = won
+      ? `Fib #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · liar caught · ${errors === 0 ? 'clean' : `${errors} error${errors === 1 ? '' : 's'}`} · ${elapsed}${hintBit}${streakBit}`
+      : `Fib #${PUZZLE.num} · the fib got away`;
+    return `${head2}\n${squares}\n${shareUrl()}`;
+  }
+  function copyShare() {
+    const text = playing
+      ? `Fib #${PUZZLE.num} — the daily grid with one lying clue, from Source of Truths.\n${shareUrl()}`
+      : shareText();
+    if (notifyShareCredit(text)) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      });
+    } catch (e) {}
+  }
+
+  const boardMax = n > 5 ? 470 : 410;
+  const track = Array(n).fill('1fr').join(' 0.44fr ');
+  const cellFs = n > 5 ? 'clamp(15px, 4vw, 24px)' : 'clamp(17px, 4.6vw, 27px)';
+  const signFs = n > 5 ? 'clamp(11px, 2.9vw, 17px)' : 'clamp(12px, 3.2vw, 19px)';
+  const noteFs = n > 5 ? 'clamp(6px, 1.5vw, 9px)' : 'clamp(7px, 1.7vw, 10px)';
+
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Every row and every column holds <b>1 to {n}</b>, once each. The <b>printed digits are true</b>. Between some neighbouring squares sits a sign whose open end points at the <b>larger</b> number.</p>
+      <p style={{ margin: '0 0 9px' }}>Exactly <b>one sign is lying</b>. So a contradiction is never proof you slipped up, it might be the fib, and that is the whole puzzle. Fill the grid, then <b>tap the sign you are accusing</b> and hit Submit.</p>
+      <p style={{ margin: '0 0 9px' }}>A sign <b style={{ color: '#9aa2b1' }}>greys out</b> once your grid satisfies it and turns <b style={{ color: COLORS.amber }}>amber</b> once your grid breaks it, which is only what you could read off the board yourself. Finish with exactly one amber sign and that is your liar. A repeated digit in a line shows <b style={{ color: COLORS.rust }}>red</b>, free of charge.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a square then a number, or type. <b>Notes</b> (press N) pencils small candidates. <b>Undo</b> is Ctrl+Z, and one free <b>hint</b> fills a correct square.</p>
+      <p style={{ margin: 0 }}>Exactly one grid and one lying sign fit the board, so the answer is provable, never a guess. A clean solve scores a perfect <b>10</b>, every two wrong submissions cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 6&times;6 Edition.</p>
+    </div>
+  );
+
+  const SIDE = 2 * n - 1;
+  const boardCells = [];
+  for (let i = 0; i < SIDE * SIDE; i++) {
+    const gr = Math.floor(i / SIDE), gc = i % SIDE;
+    const rowIsCell = gr % 2 === 0, colIsCell = gc % 2 === 0;
+    if (rowIsCell && colIsCell) {
+      const r = gr / 2, c = gc / 2, idx = r * n + c;
+      const v = vals[idx];
+      const isGiven = GIVEN[idx] !== undefined;
+      const isSel = sel === idx;
+      const isDup = dups.has(idx);
+      const noteMask = g.notes[idx];
+      boardCells.push(
+        <div
+          key={i}
+          onClick={() => { if (playing) { setSel(idx); if (!gRef.current.t0) startGame(); } }}
+          style={{
+            border: `1.5px solid ${isSel ? COLORS.accent : 'rgba(28,30,36,0.3)'}`,
+            boxShadow: isSel ? `inset 0 0 0 2px ${COLORS.accent}` : undefined,
+            borderRadius: 5,
+            background: isGiven ? COLORS.paper : '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: playing && !isGiven ? 'pointer' : 'default',
+            userSelect: 'none', WebkitTapHighlightColor: 'transparent',
+            minWidth: 0, minHeight: 0, position: 'relative',
+          }}
+        >
+          {v ? (
+            <span style={{ fontFamily: MONO, fontSize: cellFs, lineHeight: 1, fontWeight: 500, color: isDup ? COLORS.rust : isGiven ? COLORS.ink : COLORS.accent }}>{v}</span>
+          ) : noteMask ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', width: '86%', height: '86%', alignItems: 'center', justifyItems: 'center' }}>
+              {Array.from({ length: n }).map((_, k) => (
+                <span key={k} style={{ fontFamily: MONO, fontSize: noteFs, lineHeight: 1, color: '#9aa2b1' }}>
+                  {noteMask & (1 << (k + 1)) ? k + 1 : ''}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      );
+      continue;
+    }
+    if (!rowIsCell && !colIsCell) { boardCells.push(<div key={i} />); continue; }
+    const r1 = rowIsCell ? gr / 2 : (gr - 1) / 2;
+    const c1 = colIsCell ? gc / 2 : (gc - 1) / 2;
+    const r2 = rowIsCell ? r1 : r1 + 1;
+    const c2 = colIsCell ? c1 : c1 + 1;
+    const ci = CLUE_AT[`${r1},${c1},${r2},${c2}`];
+    if (ci === undefined) { boardCells.push(<div key={i} />); continue; }
+    const cl = PUZZLE.clues[ci];
+    const st = clueStates[ci];
+    const accused = g.acc === ci;
+    const isLiar = !playing && ci === PUZZLE.liar;
+    const col = isLiar ? COLORS.rust : st === 'broken' ? COLORS.amber : st === 'ok' ? '#b6bdc9' : COLORS.faded;
+    boardCells.push(
+      <div
+        key={i}
+        onClick={() => accuse(ci)}
+        title={playing ? 'Accuse this sign of lying' : undefined}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: playing ? 'pointer' : 'default', userSelect: 'none',
+          WebkitTapHighlightColor: 'transparent', minWidth: 0, minHeight: 0,
+          borderRadius: 5,
+          background: accused ? 'rgba(192,57,43,0.12)' : isLiar ? 'rgba(192,57,43,0.16)' : 'transparent',
+          boxShadow: accused || isLiar ? `inset 0 0 0 1.5px ${COLORS.rust}` : undefined,
+        }}
+      >
+        <span style={{ fontFamily: MONO, fontSize: signFs, lineHeight: 1, fontWeight: st === 'broken' || accused ? 500 : 400, color: col }}>{clueGlyph(cl)}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+      <Grain />
+      <div className="fb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.fb-wrap{padding-left:10px !important;padding-right:10px !important;}}
+          .fb-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .fb-btn:hover{background:${COLORS.paper};}
+          .fb-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .fb-tool.on{background:${COLORS.ink};color:#fff;border-color:${COLORS.ink};}
+          .fb-key{font-family:${MONO};font-weight:500;font-size:20px;border:1.5px solid rgba(28,30,36,0.3);background:#fff;color:${COLORS.ink};border-radius:8px;height:46px;min-width:46px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
+          .fb-key:hover{background:${COLORS.paper};}
+          .fb-key.note{color:${COLORS.accent};}
+        `}</style>
+
+        <div style={{ maxWidth: 660, margin: '0 auto' }}>
+
+        <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
+
+        <DailyMasthead
+          slug="fib"
+          num={PUZZLE.num}
+          dateLabel={PUZZLE.dateLabel}
+          accent={COLORS.accent}
+          blockGap={5}
+          helpTop={13}
+          marginBottom={16}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6&times;6</span>}
+          blocks={'FIB'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 2 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+        />
+
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Fib is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Every row and column holds 1 to {n} once, and the signs point at the larger number. One sign is lying. Solve the grid, then accuse it. {n}&times;{n} today.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="fb-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!preStart && (
+        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>broken <b style={{ color: brokenCount === 1 ? COLORS.amber : COLORS.ink, fontWeight: 500 }}>{brokenCount}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filled <b style={{ color: filled === N ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filled}</b>/{N}</span>
+          </div>
+
+          <div style={{ maxWidth: boardMax, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: track, gridTemplateRows: track, aspectRatio: '1 / 1', gap: 2 }}>
+              {boardCells}
+            </div>
+          </div>
+
+          {playing && (
+            <>
+              <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginTop: 15, flexWrap: 'wrap' }}>
+                {Array.from({ length: n }).map((_, k) => (
+                  <button key={k} className={`fb-key${mode === 'note' ? ' note' : ''}`} onClick={() => writeDigit(k + 1)}>{k + 1}</button>
+                ))}
+                <button className="fb-key" onClick={() => writeDigit(0)} title="Erase" style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800 }}>Clear</button>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+                <button className={`fb-tool${mode === 'note' ? ' on' : ''}`} onClick={() => setMode((m) => (m === 'note' ? 'write' : 'note'))} title="Pencil small candidates (N)">
+                  <Pencil size={14} /> Notes
+                </button>
+                <button className="fb-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
+                  <RotateCcw size={14} /> Undo
+                </button>
+                {!identity && !g.hintUsed && (
+                  <button className="fb-tool" onClick={useHint} title="Fill one correct square (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(76,29,149,0.45)', color: COLORS.accent }}>
+                    <Lightbulb size={14} /> Hint
+                  </button>
+                )}
+              </div>
+              <div style={{ marginTop: 13, textAlign: 'center' }}>
+                <button
+                  className="fb-btn"
+                  onClick={submit}
+                  disabled={!canSubmit}
+                  style={{ background: canSubmit ? COLORS.accent : '#fff', color: canSubmit ? '#fff' : 'rgba(28,30,36,0.4)', borderColor: canSubmit ? COLORS.accent : 'rgba(28,30,36,0.25)', cursor: canSubmit ? 'pointer' : 'default', fontSize: 15, padding: '11px 26px' }}
+                >
+                  <CheckIcon size={16} /> Submit
+                </button>
+                <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
+                  {g.acc === null
+                    ? 'Tap the sign you are accusing of lying.'
+                    : !gridFull
+                      ? 'Sign accused. Fill every square to submit.'
+                      : brokenCount !== 1
+                        ? `Your grid breaks ${brokenCount} sign${brokenCount === 1 ? '' : 's'}, and only one clue lies.`
+                        : 'One sign broken, one accused. Submit when you are sure.'}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        )}
+
+        {started && identity && (filled > PUZZLE.givens.length || errors > 0) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the answer' : 'Reveal & end'}
+            </button>
+          </div>
+        )}
+
+        {!playing && (
+          <div style={{ maxWidth: 472, margin: '0 auto' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+              The sign ringed in <span style={{ color: COLORS.rust }}>red</span> is the one that lied.
+            </div>
+            {PUZZLE.sunday && (
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a bigger 6&times;6 grid.</div>
+            )}
+            {isTodays && myStats.cur >= 2 && (
+              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+              </div>
+            )}
+            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              {isTodays ? (
+                <>
+                  {countdown ? <>Next Fib in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new grid drops at midnight Eastern.'}
+                  {prevPuzzle && (
+                    <>
+                      {' '}Meanwhile:{' '}
+                      <a href={`/fib?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        play yesterday&rsquo;s Fib &rarr;
+                      </a>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/fib" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Fib &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {focusMode && (
+          <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
+          </div>
+        )}
+        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          <DailyGamesGrid
+            self="fib"
+            maxWidth={620}
+            challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+            share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }}
+            light
+            boardSlot={<DailyBoardPanel self="fib" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
+            divider
+          />
+          {mobileUi && !standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
+        </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Fib to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s grid, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.
+                </p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
+        {!focusMode && !identity && (
+          <div id="daily-join" style={{ margin: '18px auto 0' }}>
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+          </div>
+        )}
+        </div>
+      </div>
+
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="fib"
+          won={won}
+          headline={won ? <>Liar caught!</> : <>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
+          subline={won
+            ? <>{finalScore}/10 &middot; {errors === 0 ? 'clean, no errors' : `${errors} error${errors === 1 ? '' : 's'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>0/10 &middot; the answer is shown above</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+          {toast}
+        </div>
+      )}
+
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            {rulesBody}
+            <button className="fb-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Fib</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Fib is a free daily logic puzzle from Source of Truths. It is a Latin square with inequality signs, close cousin to futoshiki, with one rule added that changes everything: exactly one of the signs is lying to you.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          That single change is what makes the puzzle. In an ordinary grid a contradiction means you slipped up somewhere and have to walk it back. Here it might mean you have just found the fib, so every chain of reasoning carries a second question, and the clue you trusted first is usually the one worth doubting.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Every board was checked to admit exactly one grid and exactly one lying sign, so the answer is provable and you never have to guess. A new grid drops every day at midnight Eastern, and Sundays step up to a 6&times;6 Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/etch" style={{ color: COLORS.ink, fontWeight: 800 }}>Etch</a>, our nonogram, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/hedge" style={{ color: COLORS.ink, fontWeight: 800 }}>Hedge</a>, our loop puzzle.
+        </p>
+      </section>
+
+      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+    </div>
+  );
+}
