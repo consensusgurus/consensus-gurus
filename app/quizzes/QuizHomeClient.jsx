@@ -1984,13 +1984,15 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb.comm .dhx-lb-tag{color:#5b21b6;}
             .qzh .dhx-lb.daily .dhx-lb-tag{color:#7c4a06;}
             .qzh .dhx-lb.xp .dhx-lb-tag{color:#1c46a8;}
-            .qzh .dhx-lb-hero{display:flex;align-items:flex-end;gap:8px;min-width:0;}
+            .qzh .dhx-lb-hero{display:flex;align-items:flex-end;gap:8px;min-width:0;min-height:43px;}
             .qzh .dhx-lb-name{display:block;flex:1;min-width:0;font-weight:800;line-height:1.3;letter-spacing:-.5px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb.comm .dhx-lb-name{color:#5b21b6;}
             .qzh .dhx-lb.daily .dhx-lb-name{color:#7c4a06;}
             .qzh .dhx-lb.xp .dhx-lb-name{color:#1c46a8;}
             .qzh .dhx-lb-name:hover{text-decoration:underline;}
             .qzh .dhx-lb-stat{flex:none;text-align:right;padding-bottom:3px;}
+            .qzh .dhx-lb.xp .dhx-lb-stat i{min-width:13ch;}
+            .qzh .dhx-lb.xp .dhx-lb-stat b{min-width:13ch;}
             .qzh .dhx-lb-stat b{display:block;font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-stat b em{font-style:normal;font-size:12px;opacity:.7;}
             .qzh .dhx-lb-stat i{display:block;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.07em;margin-top:3px;white-space:nowrap;}
@@ -2015,7 +2017,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb-links{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;}
             .qzh .dhx-lb-more{display:inline-block;margin-top:9px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
             .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
-            .qzh .dhx-lb-dots{display:inline-flex;align-items:center;gap:3px;margin-left:5px;}
+            .qzh .dhx-lb-dots{display:inline-flex;align-items:center;gap:3px;margin-left:auto;}
             .qzh .dhx-lb-dots i{width:4px;height:4px;border-radius:50%;background:#c3cdd9;display:block;font-style:normal;}
             .qzh .dhx-lb-dots i.on{background:#2563eb;}
             /* ── RIGHT: one integrated navy element ── */
@@ -2160,7 +2162,7 @@ export default function QuizHomeClient() {
               return (
                 <div className="dhx-lb xp">
                   <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag"><Star size={13} style={{ verticalAlign: -1 }} fill="currentColor" /> TOP PLAYER: {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
+                    <span className="dhx-lb-tag"><Star size={13} style={{ verticalAlign: -1 }} fill="currentColor" /> TOP PLAYER:&nbsp;<span style={{ display: 'inline-block', minWidth: '8ch' }}>{is30 ? 'RECENT' : 'ALL TIME'}</span><span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                     <div className="dhx-lb-hero">
                       {nm
                         ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
