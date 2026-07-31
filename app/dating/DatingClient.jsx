@@ -796,7 +796,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
