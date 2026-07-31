@@ -46,13 +46,40 @@ export async function GET(request) {
     else if (anonId) { myKey = `a:${anonId}`; }
     if (!myKey) return NextResponse.json({ found: false });
 
-    const { data, error } = await loadQuizResults(supabaseAdmin);
+    // force: skip the cache's 5s burst TTL and run the cheap count+delta
+    // refresh, so the result row this card POSTed moments ago is actually
+    // visible. A returning player merely saw a stale number without this; a
+    // FIRST-TIME player was missing from the snapshot altogether and the card
+    // rendered a bare dash with no IQ at all (owner fix 2026-07-31).
+    const { data, error } = await loadQuizResults(supabaseAdmin, { force: true });
     if (error) { console.error('iq-standing error', error); return NextResponse.json({ found: false }); }
     // recentN covers a full day's daily slate with room to spare, so "banked
     // today" is a complete sum rather than a truncated one.
     const { players } = computeXp(data || [], { recentN: 200 });
     const me = players.get(myKey);
-    if (!me) return NextResponse.json({ found: false, signed, username });
+    // Brand-new player whose very first row has not surfaced yet: report a real
+    // zeroed standing rather than found:false. found:false made the card drop
+    // the whole sub-line and settle on a dash, so a first-time guest finished
+    // their first ever puzzle and was told nothing. gained stays null, which
+    // keeps the client retrying until the row lands and the real figures fill in.
+    if (!me) {
+      return NextResponse.json({
+        found: true,
+        firstPlay: true,
+        signed,
+        username,
+        provisional: !signed,
+        xp: 0,
+        level: 1,
+        rank: null,
+        total: rankPlayers(players, 'all').length,
+        gained: null,
+        gainedFor: null,
+        todayGained: 0,
+        trophies: [],
+        window: [],
+      });
+    }
 
     // Guests are ranked here exactly as they are on /api/quiz/xp (every
     // anonymous player gets a numbered slot); `provisional` tells the card to

@@ -189,6 +189,46 @@ const REVEAL_CAP_MS = 3000; // hard cap: pop even if data is slow (usually pops 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
+// The IQ hero's brain art, shared with the downloadable day card
+// (/api/quiz/day-card) so the two read as the same object. 640x576 source.
+const BRAIN_EMPTY = '/day-card/brain-empty.png';
+const BRAIN_BLUE = '/day-card/brain-blue.png';
+const BRAIN_GREEN = '/day-card/brain-green.png';
+
+function prefersReducedMotion() {
+  try { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  catch (e) { return false; }
+}
+
+// Counts a number up from 0 to `target` on an easeOutCubic over ~1s, so the IQ
+// gain lands as an event rather than simply appearing. Returns `target`
+// straight away for a null/zero value or a reduced-motion viewer. `done` flips
+// true on the last frame, which is what fires the panel's glow pulse.
+function useCountUp(target, ms = 1000) {
+  const [n, setN] = useState(target == null ? null : target);
+  const [done, setDone] = useState(target != null);
+  useEffect(() => {
+    if (target == null) { setN(null); setDone(false); return undefined; }
+    if (prefersReducedMotion() || target <= 0) { setN(target); setDone(true); return undefined; }
+    let raf = null;
+    let alive = true;
+    const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    const tick = () => {
+      if (!alive) return;
+      const t = Math.min(1, (now() - start) / ms);
+      setN(Math.round(target * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) raf = requestAnimationFrame(tick);
+      else setDone(true);
+    };
+    setN(0);
+    setDone(false);
+    raf = requestAnimationFrame(tick);
+    return () => { alive = false; if (raf) cancelAnimationFrame(raf); };
+  }, [target, ms]);
+  return [n, done];
+}
+
 /**
  * @param self          game key, e.g. "garble"
  * @param completed      bool; true => "Completed!" title (default = won)
@@ -415,7 +455,11 @@ export default function DailyEndCard({
     let alive = true;
     let timer = null;
     let i = 0;
-    const delays = [0, 1500, 3500, 6000, 10000];
+    // One more try than the combined board: a FIRST-time player's row has to be
+    // inserted, committed, and picked up by the results cache before any IQ
+    // figure exists at all, so give it the extra window rather than settle on a
+    // dash for someone who just finished their first ever puzzle.
+    const delays = [0, 1500, 3500, 6000, 10000, 15000];
     const run = () => {
       const qs = new URLSearchParams();
       if (anonId) qs.set('anonId', anonId);
@@ -505,6 +549,21 @@ export default function DailyEndCard({
   // player's first daily today), where it would otherwise just repeat it.
   const iqGained = (iq && typeof iq.gained === 'number') ? iq.gained : null;
   const showIqToday = !!(iq && typeof iq.todayGained === 'number' && iqGained != null && iq.todayGained > iqGained);
+  // The gain counts up from zero once it is known; `iqLanded` fires the panel's
+  // glow pulse on the last frame.
+  const [iqCount, iqLanded] = useCountUp(iqGained);
+  // Brain meter: filled by the player's progress through today's slate, exactly
+  // as on the shareable day card, and green rather than blue once the whole
+  // slate is done. `brainOn` defers the fill by a beat so it animates up from
+  // empty instead of rendering pre-filled.
+  const slateFrac = total > 0 ? Math.max(0, Math.min(1, doneCount / total)) : 0;
+  const slateFull = total > 0 && doneCount >= total;
+  const [brainOn, setBrainOn] = useState(() => prefersReducedMotion());
+  useEffect(() => {
+    if (brainOn) return undefined;
+    const t = setTimeout(() => setBrainOn(true), 260);
+    return () => clearTimeout(t);
+  }, [brainOn]);
 
   // Most open leaderboard = the thinnest-field daily among the REMAINING unplayed
   // games, AFTER excluding the "closest" (up-next) pick. So the two cards are
@@ -830,19 +889,53 @@ export default function DailyEndCard({
         .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:${BLUE};}
 
         /* IQ hero: the gain is THE headline number of the card (owner redesign
-           2026-07-31), a full-width green banner above the rank tiles. Expands
+           2026-07-31), a full-width banner above the rank tiles, led by the brain
+           meter from the shareable day card. The brain fills with the player's
+           progress through today's slate and turns green once the slate is done,
+           the gain counts up from zero, and the panel pulses as it lands. Expands
            to the player's slot in the IQ ranking exactly like a tile. */
-        .dec-iqhero{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid #cdeeda;background:#f0faf3;border-radius:14px;padding:14px 16px 12px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease;}
-        .dec-iqhero:hover{border-color:#9fd3ba;}
-        .dec-iqhero.open{border-color:#15803d;box-shadow:0 0 0 1px #15803d;}
-        .dec-iqhero-lbl{font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#0f6e56;}
-        .dec-iqhero-gain{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.05;color:#15803d;margin-top:2px;}
+        .dec-iqhero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid #cfe0f7;background:linear-gradient(180deg,#f4f8ff 0%,#eaf2fe 100%);border-radius:16px;padding:15px 16px 13px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
+        .dec-iqhero.full{border-color:#cdeeda;background:linear-gradient(180deg,#f2fcf6 0%,#e6f7ee 100%);}
+        .dec-iqhero:hover{border-color:#9dbdea;}
+        .dec-iqhero.full:hover{border-color:#9fd3ba;}
+        .dec-iqhero.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};}
+        .dec-iqhero.full.open{border-color:#15803d;box-shadow:0 0 0 1px #15803d;}
+        /* Light rays behind the numeral, revealed by the landing pulse. */
+        .dec-iqhero-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(37,99,235,.16) 0%,rgba(37,99,235,0) 62%);}
+        .dec-iqhero.full .dec-iqhero-rays{background:radial-gradient(circle,rgba(21,128,61,.17) 0%,rgba(21,128,61,0) 62%);}
+        .dec-iqhero.landed .dec-iqhero-rays{animation:dec-iqrays 1.1s ease-out 1;}
+        .dec-iqhero.landed{animation:dec-iqpop .5s cubic-bezier(.34,1.56,.64,1) 1;}
+        .dec-iqhero-in{position:relative;display:flex;align-items:center;justify-content:center;gap:16px;}
+        /* Brain meter: empty art as the base, the filled art clipped to the
+           slate fraction and anchored to the bottom, so it fills upward. */
+        .dec-brain{position:relative;display:block;flex:0 0 auto;width:78px;height:70px;}
+        .dec-brain img{display:block;width:78px;height:70px;object-fit:contain;}
+        .dec-brain-base{opacity:.5;}
+        .dec-brain-fill{position:absolute;left:0;bottom:0;width:78px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
+        .dec-iqhero-txt{display:flex;flex-direction:column;align-items:flex-start;min-width:0;}
+        .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3d63a8;}
+        .dec-iqhero.full .dec-iqhero-lbl{color:#0f6e56;}
+        .dec-iqhero-gain{display:block;font-size:58px;font-weight:800;letter-spacing:-.03em;line-height:1;color:${BLUE};margin-top:1px;font-variant-numeric:tabular-nums;}
+        .dec-iqhero.full .dec-iqhero-gain{color:#15803d;}
         .dec-iqhero-gain .dash{color:#c2c8d2;}
-        .dec-iqhero-sub{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:5px;font-size:12.5px;color:#3d6b58;}
-        .dec-iqhero-sub b{font-weight:800;color:#0f6e56;}
+        .dec-iqhero-slate{display:block;font-size:11.5px;font-weight:700;color:#4d6a97;margin-top:3px;}
+        .dec-iqhero.full .dec-iqhero-slate{color:#3d6b58;}
+        .dec-iqhero-sub{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(61,99,168,.16);font-size:12.5px;color:#4d6a97;}
+        .dec-iqhero.full .dec-iqhero-sub{border-top-color:rgba(15,110,86,.16);color:#3d6b58;}
+        .dec-iqhero-sub b{font-weight:800;color:#1d4ed8;}
+        .dec-iqhero.full .dec-iqhero-sub b{color:#0f6e56;}
         .dec-iqhero-sub .prov{font-weight:700;color:${FADED};}
-        .dec-iqhero-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#0f6e56;pointer-events:none;}
-        .dec-iqhero.open .dec-iqhero-mx,.dec-iqhero:hover .dec-iqhero-mx{color:#15803d;}
+        .dec-iqhero-sub:empty{display:none;}
+        .dec-iqhero-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#3d63a8;pointer-events:none;}
+        .dec-iqhero.full .dec-iqhero-mx{color:#0f6e56;}
+        .dec-iqhero.open .dec-iqhero-mx,.dec-iqhero:hover .dec-iqhero-mx{color:${BLUE};}
+        .dec-iqhero.full.open .dec-iqhero-mx,.dec-iqhero.full:hover .dec-iqhero-mx{color:#15803d;}
+        @keyframes dec-iqpop{0%{transform:scale(1);}38%{transform:scale(1.028);}100%{transform:scale(1);}}
+        @keyframes dec-iqrays{0%{opacity:0;transform:scale(.6);}30%{opacity:1;}100%{opacity:0;transform:scale(1.25);}}
+        @media(prefers-reduced-motion:reduce){
+          .dec-iqhero.landed,.dec-iqhero.landed .dec-iqhero-rays{animation:none;}
+          .dec-brain-fill{transition:none;}
+        }
 
         .dec-expand{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:#fff;}
         .dec-expand-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
@@ -973,8 +1066,14 @@ export default function DailyEndCard({
           .dec-tile-rk .prov{font-size:9px;}
           .dec-tile-of{font-size:10.5px;}
           .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
-          .dec-iqhero-gain{font-size:34px;}
-          .dec-iqhero-sub{font-size:11.5px;gap:3px 12px;}
+          .dec-iqhero{padding:13px 12px 11px;}
+          .dec-iqhero-in{gap:11px;}
+          .dec-brain,.dec-brain img,.dec-brain-fill{width:58px;}
+          .dec-brain,.dec-brain img{height:52px;}
+          .dec-iqhero-gain{font-size:42px;}
+          .dec-iqhero-slate{font-size:10.5px;}
+          .dec-iqhero-sub{font-size:11.5px;gap:3px 12px;margin-top:8px;padding-top:7px;}
+          .dec-iqhero-rays{width:300px;height:300px;margin:-150px 0 0 -150px;}
           .dec-duo{grid-template-columns:1fr;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
@@ -1023,22 +1122,46 @@ export default function DailyEndCard({
       </div>
 
       {/* ---- 2. IQ hero + rank tiles ---- */}
-      {/* IQ Points hero: what this game paid is the card's headline number, with
-          the day's running total, the player's total IQ, and their global rank on
-          the sub-line. Renders immediately (it has its own fetch), showing a
-          placeholder until the standing resolves. */}
-      <button type="button" className={`dec-iqhero${openTile === 'iq' ? ' open' : ''}`} aria-label="Expand your IQ Points ranking" aria-expanded={openTile === 'iq'} onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}>
-        <div className="dec-iqhero-lbl">IQ Points earned</div>
-        {iqGained != null ? (
-          <div className="dec-iqhero-gain">+{iqGained.toLocaleString()}</div>
-        ) : (
-          <div className="dec-iqhero-gain"><span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span></div>
-        )}
-        <div className="dec-iqhero-sub">
+      {/* IQ Points hero: what this game paid is the card's headline number, on a
+          full-width banner led by the brain meter from the shareable day card.
+          The brain fills with the player's progress through today's slate (green
+          once it is complete) and the gain counts up from zero as it lands. The
+          whole panel expands to the player's slot in the global IQ ranking.
+          Renders immediately (it has its own fetch), showing a placeholder until
+          the standing resolves. */}
+      <button
+        type="button"
+        className={`dec-iqhero${openTile === 'iq' ? ' open' : ''}${slateFull ? ' full' : ''}${iqLanded && iqGained ? ' landed' : ''}`}
+        aria-label="Expand your IQ Points ranking"
+        aria-expanded={openTile === 'iq'}
+        onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}
+      >
+        <span className="dec-iqhero-rays" aria-hidden="true" />
+        <span className="dec-iqhero-in">
+          <span className="dec-brain" aria-hidden="true">
+            <img className="dec-brain-base" src={BRAIN_EMPTY} alt="" width={640} height={576} />
+            <span className="dec-brain-fill" style={{ height: `${brainOn ? Math.round(slateFrac * 100) : 0}%` }}>
+              <img src={slateFull ? BRAIN_GREEN : BRAIN_BLUE} alt="" width={640} height={576} />
+            </span>
+          </span>
+          <span className="dec-iqhero-txt">
+            <span className="dec-iqhero-lbl">IQ Points earned</span>
+            {iqGained != null ? (
+              <span className="dec-iqhero-gain">+{(iqCount == null ? iqGained : iqCount).toLocaleString()}</span>
+            ) : (
+              <span className="dec-iqhero-gain"><span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span></span>
+            )}
+            <span className="dec-iqhero-slate">
+              {doneCount} of {total} puzzles today{slateFull ? ' \u00b7 slate complete' : ''}
+            </span>
+          </span>
+        </span>
+        <span className="dec-iqhero-sub">
           {showIqToday ? <span><b>+{iq.todayGained.toLocaleString()}</b> today</span> : null}
           {iq && typeof iq.xp === 'number' ? <span><b>{iq.xp.toLocaleString()}</b> total</span> : null}
           {iq && iq.rank ? <span>IQ rank <b>#{iq.rank.toLocaleString()}</b> of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span> : null}
-        </div>
+          {iq && iq.firstPlay ? <span>Your first IQ Points are banking</span> : null}
+        </span>
         <span className="dec-iqhero-mx">
           <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
         </span>
@@ -1078,9 +1201,15 @@ export default function DailyEndCard({
         );
       })() : null}
       {/* ---- 3. guest claim slip ---- */}
+      {/* An unregistered player sees their real IQ figures above (they are scored
+          against this browser's anon id), so the slip asks them to keep what they
+          can already see rather than to unlock it. */}
       {!hasEmail ? (
         <div className="dec-slip info">
-          Ranks are unclaimed &middot; <button type="button" className="clink" onClick={goRegister}>select a username to claim</button>
+          {iq && typeof iq.xp === 'number' && iq.xp > 0
+            ? <>Your {iq.xp.toLocaleString()} IQ Points are unclaimed &middot; </>
+            : <>Your IQ Points and ranks are unclaimed &middot; </>}
+          <button type="button" className="clink" onClick={goRegister}>select a username to keep them</button>
         </div>
       ) : null}
 
