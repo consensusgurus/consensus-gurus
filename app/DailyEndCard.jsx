@@ -847,7 +847,7 @@ export default function DailyEndCard({
         .dec-iqhero{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid #cdeeda;background:#f0faf3;border-radius:14px;padding:14px 16px 12px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease;}
         .dec-iqhero:hover{border-color:#9fd3ba;}
         .dec-iqhero.open{border-color:#15803d;box-shadow:0 0 0 1px #15803d;}
-        .dec-iqhero-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#0f6e56;}
+        .dec-iqhero-lbl{font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#0f6e56;}
         .dec-iqhero-gain{font-size:44px;font-weight:800;letter-spacing:-.02em;line-height:1.05;color:#15803d;margin-top:2px;}
         .dec-iqhero-gain .dash{color:#c2c8d2;}
         .dec-iqhero-sub{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:5px;font-size:12.5px;color:#3d6b58;}
@@ -993,7 +993,10 @@ export default function DailyEndCard({
           .dec-rows.one{grid-template-columns:1fr;}
           .dec-row{margin-bottom:0;padding:8px 9px;}
           .dec-row .pl{display:none;}
-          .dec-foot{flex-wrap:wrap;}
+          /* Mobile: the three footer actions stack full-width (side by side
+             they overflow and wrap unevenly on a phone). */
+          .dec-foot{flex-direction:column;gap:7px;}
+          .dec-foot .dec-btn{width:100%;}
         }
       `}</style>
 
