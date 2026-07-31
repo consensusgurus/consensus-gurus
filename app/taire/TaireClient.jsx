@@ -1,0 +1,785 @@
+'use client';
+
+// Taire — the daily two-suit solitaire.
+//
+// Twenty cards, two suits, ace through ten, dealt face up into five columns of
+// four. Send them all home. Everything is visible from the first second, so
+// nothing here is luck: the deal you get is the deal everybody gets, and it is
+// always winnable.
+//
+// You are scored against PAR, the exact minimum number of single-card moves,
+// computed by breadth-first search over the reachable state space and confirmed
+// by a second solver written independently against the same rules. Par is not a
+// target, it is a ceiling: no line beats it. Par scores ten and every two moves
+// over costs a point, floor of one, so finishing always beats walking away.
+//
+// There is no undo, only a full restart, which is what keeps par meaningful:
+// with a free take-back you could search the tree by hand. A restart redeals the
+// same board and zeroes the move count, but the clock keeps running.
+//
+// Same daily plumbing as Park/Four/Etch: banked deals gated by Eastern date on
+// the server (app/taire/page.js), per-puzzle localStorage saves, /taire?p=N
+// archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { X, Lightbulb, Eye, Smartphone, RotateCcw } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyTopNav from '../DailyTopNav';
+import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
+import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
+import DailyMasthead from '../DailyMasthead';
+import { FREE, FND, RANKS, suitOf, rankOf, RANK_LABEL, fromData, replay, isWon, destinations, apply, movableCards, autoFinish } from './rules';
+
+const COLORS = {
+  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
+  rust: '#c0392b', faded: '#262b35',
+  accent: '#1d6b4f',        // Taire identity — baize green
+  accentSoft: '#e6f2ec', green: '#15803d',
+};
+const FELT = '#1f6b52';
+const FELT_EDGE = '#14503c';
+const CARD_FACE = '#fdfcf9';
+const CARD_EDGE = 'rgba(20,22,28,0.30)';
+const RED_PIP = '#c0392b';
+const BLACK_PIP = '#1c1e24';
+
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_taire_help_seen';
+const STATS_KEY = 'sot_taire_stats';
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const sc = Math.max(0, Math.min(10, Math.round(((m.scorePct || 0) / 100) * 10)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t: 10, g: null, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
+function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+const freshState = () => ({ v: 1, moves: [], restarts: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null });
+const scoreFor = (used, par) => Math.max(1, Math.min(10, 10 - Math.floor(Math.max(0, used - par) / 2)));
+
+function CardFace({ card, small, dim, outline, onClick, label }) {
+  const red = suitOf(card) === 1;
+  const w = small ? 38 : 44;
+  return (
+    <div onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={-1} aria-label={label}
+      className="ta-card"
+      style={{
+        width: w, height: Math.round(w * 1.4), borderRadius: 6, background: CARD_FACE,
+        border: `1px solid ${CARD_EDGE}`, boxShadow: '0 1px 2px rgba(20,22,28,0.28)',
+        color: red ? RED_PIP : BLACK_PIP, fontFamily: SANS, fontWeight: 800,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
+        lineHeight: 1, cursor: onClick ? 'pointer' : 'default', opacity: dim ? 0.42 : 1,
+        outline: outline || 'none', outlineOffset: outline ? '1px' : 0, userSelect: 'none',
+      }}>
+      <span style={{ fontSize: small ? 14 : 16 }}>{RANK_LABEL[rankOf(card)]}</span>
+      <span style={{ fontSize: small ? 12 : 14, marginTop: 1 }}>{red ? '♥' : '♠'}</span>
+    </div>
+  );
+}
+function Slot({ children, onClick, live, label }) {
+  return (
+    <div onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={-1} aria-label={label}
+      style={{
+        width: 44, height: 62, borderRadius: 6, border: `1.5px dashed ${live ? '#fff' : 'rgba(255,255,255,0.34)'}`,
+        background: live ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: onClick ? 'pointer' : 'default',
+      }}>{children}</div>
+  );
+}
+
+export default function TaireClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const STORE_KEY = `sot_taire_${PUZZLE.num}`;
+  const START = useMemo(() => fromData(PUZZLE.cols), [PUZZLE]);
+  const CELLS = PUZZLE.cells;
+
+  const [g, setG] = useState(() => freshState());
+  const gRef = useRef(g);
+  const [sel, setSel] = useState(null);
+  const [shake, setShake] = useState(0);
+  const [hintCards, setHintCards] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [armReveal, setArmReveal] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const [showChrome, setShowChrome] = useState(false);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const toastTimer = useRef(null);
+  const viewedRef = useRef(false);
+
+  const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
+  const focusMode = playing && !showChrome;
+  const won = g.status === 'won';
+  const used = g.moves.length;
+  const par = PUZZLE.par;
+  const finalScore = won ? scoreFor(used, par) : 0;
+
+  const state = useMemo(() => replay(START, g.moves, CELLS) || START, [START, g.moves, CELLS]);
+  const dests = useMemo(() => (sel != null && playing ? destinations(state, sel, CELLS) : []), [sel, state, playing, CELLS]);
+  const movable = useMemo(() => (playing ? movableCards(state, CELLS) : []), [state, playing, CELLS]);
+
+  useEffect(() => { gRef.current = g; }, [g]);
+  useEffect(() => {
+    if (!armReveal) return undefined;
+    const t = setTimeout(() => setArmReveal(false), 3500);
+    return () => clearTimeout(t);
+  }, [armReveal]);
+  useEffect(() => {
+    if (!hintCards) return undefined;
+    const t = setTimeout(() => setHintCards(null), 4000);
+    return () => clearTimeout(t);
+  }, [hintCards]);
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.moves) && replay(START, saved.moves, CELLS)) {
+          const next = { ...freshState(), ...saved };
+          gRef.current = next;
+          setG(next);
+        }
+      }
+      setGateRules(!localStorage.getItem(HELP_KEY));
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        const done = g.status !== 'playing';
+        if (done || g.t0) localStorage.setItem('sot_taire_day', JSON.stringify({ d: etToday(), done }));
+        else localStorage.removeItem('sot_taire_day');
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
+  }
+
+  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+
+  const REC_KEY = `sot_taire_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    const cur = gRef.current;
+    if (!(cur.moves.length || cur.hintUsed) || cur.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (cur.t0 || Date.now())) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: cur.moves.length, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
+  function postResult(g2, score) {
+    abandon.markFlushed();
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.moves.length, won: g2.status === 'won' && g2.moves.length === par })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: g2.status === 'won' ? 1 : 0, guessesUsed: g2.moves.length, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  function commit(next) { gRef.current = next; setG(next); }
+  function startGame() {
+    const cur = gRef.current;
+    if (cur.t0) return;
+    commit({ ...cur, t0: Date.now() });
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
+
+  function doMove(card, dest) {
+    const cur = gRef.current;
+    if (cur.status !== 'playing') return;
+    const after = apply(state, [card, dest], CELLS);
+    if (!after) { setShake((k) => k + 1); vibrate(HAPT.wrong); return; }
+    let moves = [...cur.moves, [card, dest]];
+    setSel(null); setHintCards(null);
+    // The endgame is forced once everything left can go straight home, so play
+    // it out rather than making anyone click twenty times. Each of those cards
+    // still counts as a move, which is exactly how par counts them too.
+    const tail = autoFinish(after);
+    const g2 = { ...cur };
+    if (!g2.t0) g2.t0 = Date.now();
+    if (tail) {
+      moves = moves.concat(tail);
+      const done = { ...g2, moves, status: 'won', tEnd: Date.now() };
+      vibrate(HAPT.win);
+      postResult(done, scoreFor(done.moves.length, par));
+      commit(done);
+      return;
+    }
+    vibrate(HAPT.ok);
+    commit({ ...g2, moves });
+  }
+
+  function onCard(card) {
+    if (!playing) return;
+    if (!gRef.current.t0) { startGame(); return; }
+    if (sel === card) { setSel(null); return; }
+    if (sel != null) {
+      // tapping another card is a destination if you can stack onto it
+      const loc = destinations(state, sel, CELLS);
+      for (let j = 0; j < state.cols.length; j++) {
+        const col = state.cols[j];
+        if (col.length && col[col.length - 1] === card && loc.includes(j)) { doMove(sel, j); return; }
+      }
+    }
+    if (!destinations(state, card, CELLS).length) {
+      setSel(null); setShake((k) => k + 1);
+      say('That card has nowhere to go yet.');
+      return;
+    }
+    setSel(card);
+  }
+  function onDest(dest) {
+    if (!playing || sel == null) return;
+    if (!dests.includes(dest)) { setShake((k) => k + 1); return; }
+    doMove(sel, dest);
+  }
+
+  function restart() {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || !cur.moves.length) return;
+    commit({ ...cur, moves: [], restarts: cur.restarts + 1 });
+    setSel(null); setHintCards(null);
+    say('Redealt the same board. Your move count is reset, the clock is not.');
+  }
+
+  function useHint() {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || cur.hintUsed) return;
+    const g2 = { ...cur, hintUsed: true };
+    if (!g2.t0) g2.t0 = Date.now();
+    commit(g2);
+    const m = movableCards(state, CELLS);
+    setHintCards(m);
+    say(m.length ? `${m.length} card${m.length === 1 ? '' : 's'} can move. Which one is still on you.` : 'Nothing can move. This one is dead, restart it.');
+  }
+
+  function revealEnd() {
+    const cur = gRef.current;
+    if (cur.status !== 'playing') return;
+    const g2 = { ...cur, status: 'gaveup', tEnd: Date.now() };
+    if (!g2.t0) g2.t0 = Date.now();
+    postResult(g2, 0);
+    commit(g2);
+    setSel(null);
+  }
+
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    commit(freshState());
+    setSel(null); setHintCards(null); setEndClosed(false);
+  }
+
+  function shareUrl() { return withRef(`sourceoftruths.com/taire${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareText() {
+    const over = used - par;
+    const g5 = won ? Math.max(1, Math.round(scoreFor(used, par) / 2)) : 0;
+    const squares = '\u{1F7E9}'.repeat(g5) + '⬜'.repeat(5 - g5);
+    const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const head = won
+      ? `Taire #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves (par ${par}${over > 0 ? `, +${over}` : ', on the nose'}) · ${elapsed}${hintBit}${streakBit}`
+      : `Taire #${PUZZLE.num} · gave up · par ${par}`;
+    return `${head}\n${squares}\n${shareUrl()}`;
+  }
+  function copyShare() {
+    const text = playing
+      ? `Taire #${PUZZLE.num} — the daily two-suit solitaire from Source of Truths. Par ${par}.\n${shareUrl()}`
+      : shareText();
+    if (notifyShareCredit(text)) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); });
+    } catch (e) {}
+  }
+
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Twenty cards, two suits, ace through ten, all face up. Send every card <b>home</b> to its pile at the top right, ace first, then two, and so on.</p>
+      <p style={{ margin: '0 0 9px' }}><b>Tap a card</b> to pick it up, then tap where it goes. Only the <b>bottom card</b> of a column can move, one card at a time, never a stack. It can go onto a card one rank higher of the other colour, onto an empty column, into a <b>free cell</b>, or home.</p>
+      <p style={{ margin: '0 0 9px' }}>You have <b>{CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}</b> today. A cell parks a single card for as long as you like.</p>
+      <p style={{ margin: '0 0 9px' }}>Every card moved is <b>one move</b>, sending one home included. <b>Par is {par}</b> on this deal, and par is the proven minimum, so nothing beats it. There is <b>no undo</b>, only a restart that redeals the same board and zeroes your moves, though the clock keeps running.</p>
+      <p style={{ margin: 0 }}>Par scores <b>10</b>, and every two moves over costs a point down to a floor of one, so finishing always beats walking away. One free <b>hint</b> shows which cards can move at all. Every deal is winnable, and the <b>Sunday Edition</b> gives you a single free cell.</p>
+    </div>
+  );
+
+  const fnd = state.fnd;
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+      <Grain />
+      <div className="ta-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.ta-wrap{padding-left:10px !important;padding-right:10px !important;}}
+          .ta-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ta-btn:hover{background:${COLORS.paper};}
+          .ta-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .ta-felt{background:${FELT};border:10px solid ${FELT_EDGE};border-radius:12px;padding:14px 12px 18px;touch-action:manipulation;}
+          .ta-card{-webkit-tap-highlight-color:transparent;transition:transform .12s ease;}
+          .ta-card:active{transform:translateY(1px);}
+          .ta-felt.shake{animation:tashake .34s ease;}
+          @keyframes tashake{0%,100%{transform:translateX(0);}22%{transform:translateX(-6px);}55%{transform:translateX(6px);}80%{transform:translateX(-3px);}}
+          .ta-cols{display:grid;grid-template-columns:repeat(5,44px);gap:10px;justify-content:center;}
+          @media(max-width:420px){.ta-cols{grid-template-columns:repeat(5,38px);gap:6px;}}
+        `}</style>
+
+        <div style={{ maxWidth: 660, margin: '0 auto' }}>
+        <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
+
+        <DailyMasthead
+          slug="taire" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
+          blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; One Cell</span>}
+          blocks={'TAIRE'.split('').map((ch, i) => (
+            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+          ))}
+        />
+
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Taire is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Twenty cards, all face up, {CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}. Send them all home. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="ta-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!preStart && (
+        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: used > par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{used}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
+          </div>
+
+          <div key={shake} className={`ta-felt${shake ? ' shake' : ''}`}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 5 }}>free cells</div>
+                <div style={{ display: 'flex', gap: 7 }}>
+                  {Array.from({ length: CELLS }).map((_, i) => {
+                    const card = state.free[i];
+                    const live = sel != null && dests.includes(FREE) && !card;
+                    return (
+                      <Slot key={i} live={live} label={`free cell ${i + 1}`} onClick={() => (card ? onCard(card) : onDest(FREE))}>
+                        {card != null && <CardFace card={card} onClick={() => onCard(card)} label={`${RANK_LABEL[rankOf(card)]} in a free cell`}
+                          outline={sel === card ? `3px solid ${COLORS.ink}` : hintCards && hintCards.includes(card) ? '3px solid #facc15' : null} />}
+                      </Slot>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 5, textAlign: 'right' }}>home</div>
+                <div style={{ display: 'flex', gap: 7 }}>
+                  {[0, 1].map((s) => {
+                    const top = fnd[s];
+                    const live = sel != null && dests.includes(FND) && suitOf(sel) === s;
+                    return (
+                      <Slot key={s} live={live} label={`${s === 1 ? 'hearts' : 'spades'} home pile`} onClick={() => onDest(FND)}>
+                        {top > 0
+                          ? <CardFace card={s * 16 + top} label={`${RANK_LABEL[top]} home`} />
+                          : <span style={{ color: s === 1 ? 'rgba(255,190,190,0.85)' : 'rgba(255,255,255,0.7)', fontSize: 19 }}>{s === 1 ? '♥' : '♠'}</span>}
+                      </Slot>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="ta-cols">
+              {state.cols.map((col, j) => {
+                const live = sel != null && dests.includes(j);
+                return (
+                  <div key={j} onClick={() => (col.length ? null : onDest(j))}
+                    style={{
+                      minHeight: 96, borderRadius: 7, padding: 3,
+                      border: live ? '1.5px dashed #fff' : '1.5px dashed rgba(255,255,255,0.16)',
+                      background: live ? 'rgba(255,255,255,0.16)' : 'transparent',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, cursor: live ? 'pointer' : 'default',
+                    }}>
+                    {col.map((card, k) => {
+                      const isBottom = k === col.length - 1;
+                      return (
+                        <div key={card} style={{ marginTop: k === 0 ? 0 : -32 }}>
+                          <CardFace card={card} label={`${RANK_LABEL[rankOf(card)]} of ${suitOf(card) === 1 ? 'hearts' : 'spades'}`}
+                            onClick={() => (isBottom ? onCard(card) : live ? onDest(j) : onCard(col[col.length - 1]))}
+                            dim={!isBottom && playing}
+                            outline={sel === card ? `3px solid ${COLORS.ink}` : hintCards && hintCards.includes(card) ? '3px solid #facc15' : null} />
+                        </div>
+                      );
+                    })}
+                    {!col.length && <div style={{ height: 62, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: MONO }}>empty</div>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
+              {!playing
+                ? (won ? `Home in ${used}. Par was ${par}.` : 'You left it on the table.')
+                : sel != null ? 'Now tap where it goes.' : movable.length ? 'Tap a card to pick it up.' : 'Nothing can move. Restart the board.'}
+            </span>
+            {g.restarts > 0 && playing && (
+              <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11, color: COLORS.faded, fontWeight: 500 }}>{g.restarts} restart{g.restarts === 1 ? '' : 's'}</span>
+            )}
+          </div>
+
+          {playing && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
+              <button className="ta-tool" onClick={restart} disabled={!used} title="Redeal the same board and zero the move count" style={{ opacity: used ? 1 : 0.4, cursor: used ? 'pointer' : 'default' }}>
+                <RotateCcw size={14} /> Restart deal
+              </button>
+              {!g.hintUsed && (
+                <button className="ta-tool" onClick={useHint} title="Light up every card that can move (one hint per deal)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,107,79,0.5)', color: '#155e45' }}>
+                  <Lightbulb size={14} /> Hint
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+        )}
+
+        {started && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+              Tap a card, then tap where it goes. No undo.
+            </span>
+            <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Eye size={13} /> {armReveal ? 'Tap again — ends the deal and scores nothing' : 'Give up'}
+            </button>
+          </div>
+        )}
+
+        {!playing && (
+          <div style={{ maxWidth: 472, margin: '0 auto' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+              Par was <span style={{ color: COLORS.accent }}>{par} moves</span>.
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>
+              {won
+                ? used === par ? 'You matched the proven minimum, which is as good as this deal gets.'
+                  : `You got home in ${used}, ${used - par} over the minimum.`
+                : 'The minimum was found by exhaustive search, so it is real, not an estimate. This deal was always winnable.'}
+            </div>
+            {PUZZLE.sunday && (
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition, played on a single free cell.</div>
+            )}
+            {isTodays && myStats.cur >= 2 && (
+              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+              </div>
+            )}
+            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              {isTodays ? (
+                <>
+                  {countdown ? <>Next Taire in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new deal drops at midnight Eastern.'}
+                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/taire?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Taire &rarr;</a></>)}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/taire" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Taire &rarr;</a>
+                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {focusMode && (
+          <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: COLORS.ink, background: 'none', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Other puzzles, challenge, share &amp; leaderboard</div>
+          </div>
+        )}
+        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          <DailyGamesGrid self="taire" maxWidth={620}
+            challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+            share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light
+            boardSlot={<DailyBoardPanel self="taire" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
+            divider />
+          {mobileUi && !standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
+        </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Taire to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s deal, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s deal, every day.</p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
+        {!focusMode && !identity && (
+          <div id="daily-join" style={{ margin: '18px auto 0' }}>
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+          </div>
+        )}
+        </div>
+      </div>
+
+      {!playing && !endClosed && (
+        <DailyEndCard modal self="taire" won={won}
+          headline={won ? (used === par ? <>Par. Nothing wasted.</> : <>All home.</>) : <>You scored 0%</>}
+          subline={won
+            ? <>{finalScore}/10 &middot; {used} moves, par {used === par ? 'matched' : `${par}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>0/10 &middot; par on this deal was {par}</>}
+          onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame} onClose={() => setEndClosed(true)} />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
+      )}
+
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            {rulesBody}
+            <button className="ta-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Taire</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Taire is a free daily solitaire from Source of Truths. Twenty cards, two suits, ace through ten, dealt face up into five columns with a free cell or two beside them. Nothing is hidden and nothing is shuffled mid-game, so there is no luck in it: the deal you get is the deal everybody else gets today, and it is always winnable.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Every deal is machine generated and then solved exactly, so the par you are scored against is the true minimum number of moves rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. That makes par a ceiling rather than a target. Nobody beats it, and the whole game is how close you get. Deals climb through the week, and the Sunday Edition takes away a free cell, which is a far bigger difference than it sounds.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/park" style={{ color: COLORS.ink, fontWeight: 800 }}>Park</a>, our daily sliding-block jam, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.
+        </p>
+      </section>
+
+      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+    </div>
+  );
+}
