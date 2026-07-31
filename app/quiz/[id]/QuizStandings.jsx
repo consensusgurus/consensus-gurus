@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { notifyTrophies } from '../../TrophyPop';
 
 // Shared "Your standing" IQ Points panel for quiz results cards. Renders three
 // metrics (IQ Points earned, Global rank, Category rank) as compact SIDE-BY-SIDE
@@ -13,6 +14,14 @@ const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#262b35', forest: '#10b981
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function QuizStandings({ eloAfter, eloBefore, eloDept, eloDeptLabel = 'Category', fill = false, hideCategory = false }) {
+  // Trophy unlock toast: the post-game /api/quiz/me profile carries the earned
+  // trophy list; hand the ids to the global TrophyPop, which diffs against
+  // what this device has already celebrated. Before the early return so the
+  // hook order is stable.
+  React.useEffect(() => {
+    const list = eloAfter && eloAfter.trophies && eloAfter.trophies.list;
+    if (Array.isArray(list)) notifyTrophies(list.filter((t) => t.earned).map((t) => t.id));
+  }, [eloAfter]);
   if (!eloAfter) return null;
   const fmtN = (x) => (x == null ? null : x.toLocaleString());
   const aXp = eloAfter.xp != null ? eloAfter.xp : 0;

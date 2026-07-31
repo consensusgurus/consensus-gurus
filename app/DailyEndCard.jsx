@@ -52,6 +52,7 @@ import {
   Flame,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
+import { notifyTrophies } from './TrophyPop';
 import shareDayCard from './shareDayCard';
 
 const RUST = '#c0392b';
@@ -425,6 +426,7 @@ export default function DailyEndCard({
         .then((d) => {
           if (!alive || !d) return;
           if (d.found) setIq(d);
+          if (d.found && Array.isArray(d.trophies)) notifyTrophies(d.trophies);
           // Done when the row landed (gained known), the player has no profile at
           // all, or we are out of tries.
           if (!d.found || d.gained != null || i >= delays.length - 1) { setIqResolved(true); return; }

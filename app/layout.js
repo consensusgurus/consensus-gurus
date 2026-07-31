@@ -4,6 +4,7 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 import VisitorBeacon from './VisitorBeacon';
 import ShareCreditPop from './ShareCreditPop';
+import TrophyPop from './TrophyPop';
 import { getAllSources } from '@/lib/sources';
 
 const SOURCE_COUNT = getAllSources().length;
@@ -98,6 +99,7 @@ export default function RootLayout({ children }) {
         {children}
         <VisitorBeacon />
         <ShareCreditPop />
+        <TrophyPop />
         <Analytics />
       </body>
     </html>

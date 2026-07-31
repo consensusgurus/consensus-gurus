@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays,} from 'lucide-react';
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays, Award,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { DAILY_GAMES, dailyLabel } from '@/lib/daily-games';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
@@ -12,6 +12,7 @@ import DailyCombinedLeaderboard from '../../quiz/[id]/DailyCombinedLeaderboard';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { withRef } from '@/lib/referrals';
+import { Metric, CategoryView, ActivityFeed, XpPanel, TrophyCase } from '../../player/ProfileShared';
 
 const C = {
   bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
@@ -23,12 +24,10 @@ const MEDAL_INK = ['#8a5300', '#5b6472', '#8a4f24'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const MEDAL_BG = ['#fbf2dc', '#eef0f2', '#f6e9df'];
 // Rank bubble. #1/#2/#3 render in gold/silver/bronze; everything else accent blue.
-function RankChip({ rank, total }) {
-  if (!rank) return null;
-  const i = rank >= 1 && rank <= 3 ? rank - 1 : -1;
-  const st = i >= 0 ? { color: MEDAL_INK[i], background: MEDAL_BG[i] } : undefined;
-  return <span className="rankchip" style={st}>#{rank}{total ? ` of ${total.toLocaleString()}` : ''}</span>;
-}
+// RankChip, Metric, ChipMetric, CAT_COLS, completedPct, CategoryView,
+// ActivityFeed, XpPanel, and the new TrophyCase moved to
+// app/player/ProfileShared.jsx (2026-07-31), shared with the public
+// /player/[name] profile page. Imported above; edit them THERE.
 
 function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); }
 function getAnonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
@@ -138,7 +137,9 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   const label = (k) => (byKey && byKey[k] && byKey[k].label) || k;
   function copy() {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
-    const url = withRef(`${origin}/quizzes/hub?player=${encodeURIComponent(profile.userKey || '')}`);
+    const url = withRef(!profile.isAnon && profile.name
+      ? `${origin}/player/${encodeURIComponent(profile.name)}`
+      : `${origin}/quizzes/hub?player=${encodeURIComponent(profile.userKey || '')}`);
     if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); }).catch(() => {});
   }
   const cell = { background: C.bg, borderRadius: 12, padding: '12px 13px' };
@@ -647,6 +648,16 @@ export default function StatHubClient() {
       setTimeout(tick, 220);
     }
   }, []);
+  // Opening a player from any board: your own name collapses back to your
+  // stats; a REGISTERED player navigates to their public /player/<name> page;
+  // a guest (no public URL) opens in place, as before.
+  const openPlayer = (k) => {
+    const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey);
+    if (mine) { setViewKey(null); setPview('ranking'); setTab('player'); return; }
+    const row = board && board.find((p) => p.userKey === k);
+    if (row && !row.isAnon && row.name) { window.location.href = `/player/${encodeURIComponent(row.name)}`; return; }
+    setViewKey(k); setPview('category'); setTab('player');
+  };
   const viewing = !!viewKey;
   const profile = viewing ? viewProfile : me;
   const found = profile && profile.found;
@@ -845,11 +856,11 @@ export default function StatHubClient() {
           })()}
         </div>
 
-        {tab === 'daily' && <DailyGamesView initialGame={dailyGame} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); setTab('player'); }} />}
-        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={(k) => { const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey); setViewKey(mine ? null : k); setPview(mine ? 'ranking' : 'category'); }} />}
-        {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}
+        {tab === 'daily' && <DailyGamesView initialGame={dailyGame} onSelectPlayer={openPlayer} />}
+        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={openPlayer} />}
+        {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={openPlayer} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
-        {tab === 'duels' && <DuelsPanel data={duels} setData={setDuels} ladder={duelLadder} loaded={duelsLoaded} onSelectPlayer={(k) => { setViewKey(k); setPview('category'); setTab('player'); }} />}      </div>
+        {tab === 'duels' && <DuelsPanel data={duels} setData={setDuels} ladder={duelLadder} loaded={duelsLoaded} onSelectPlayer={openPlayer} />}      </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
@@ -864,58 +875,28 @@ export default function StatHubClient() {
 
 // ─── small helpers ──────────────────────────────────────────────────────────
 // A compact metric for the profile header: label, value, and a "#rank" chip.
-function ChipMetric({ label, value, rank, cls }) {
-  return (
-    <div className={cls}>
-      <div className="lbl">{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 700 }}>{value}<RankChip rank={rank} /></div>
-    </div>
-  );
-}
+
 
 // Columns for the Category Detail table. `get(c, cr)` extracts the sort value
 // from a category row's stats record (cr); `chip` names the per-category rank
 // field on cr that renders as a #rank badge in that column.
-const CAT_COLS = [
-  { key: 'label', label: 'Category', align: 'left', get: (c) => (c.label || '').toLowerCase() },
-  { key: 'correct', label: 'Correct', align: 'right', get: (c, cr) => cr.correct, chip: 'correctRank' },
-  { key: 'played', label: 'Played', align: 'right', get: (c, cr) => (cr.played != null ? cr.played : cr.matches), chip: 'playedRank' },
-  { key: 'completed', label: 'Completed', align: 'right', get: (c, cr) => cr.completed, chip: 'completedRank' },
-  { key: 'accuracy', label: 'Accuracy', align: 'right', get: (c, cr) => cr.accuracy, chip: 'accuracyRank' },
-  { key: 'days', label: 'Days', align: 'right', get: (c, cr) => cr.daysPlayed || 0, chip: 'daysRank' },
-  { key: 'xp', label: 'IQ', align: 'right', get: (c, cr) => cr.xp, chip: 'rank' },
-];
+
 
 // Share of a quiz pool a player has aced (completed / pool size). Used in the
 // Category table's Completed column, scoped per-category (overall row uses the
 // whole catalog, each category row uses that category's quiz count).
-function completedPct(n, d) {
-  if (!d || n == null) return '';
-  if (n > 0 && n / d < 0.005) return '<1%';
-  return `${Math.round((n / d) * 100)}%`;
-}
+
 
 // ─── Player tab ─────────────────────────────────────────────────────────────
-function Metric({ label, value, sub, rank, total, avg }) {
-  return (
-    <div className="metric">
-      <div className="lbl metric-lbl">
-        <span style={{ whiteSpace: 'nowrap' }}>{label}</span><RankChip rank={rank} total={total} />
-      </div>
-      <div className="v">{value}</div>
-      {avg != null ? <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2 }}>avg {avg}</div> : null}
-      {sub ? <div style={{ fontSize: 10.5, color: C.muted, marginTop: 2 }}>{sub}</div> : null}
-    </div>
-  );
-}
+
 
 function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById, pview, setPview, viewKey, onSelectPlayer }) {
   const found = me && me.found;
   const viewing = !!viewKey;
 
   const toggle = (
-    <div style={{ display: 'flex', gap: 8, width: '100%', flexWrap: 'wrap' }}>
-      {[['ranking', 'Ranking', Trophy], ['category', 'Category', ListChecks], ['rating', 'IQ & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
+    <div style={{ display: 'flex', gap: 8, flex: 1, flexWrap: 'wrap' }}>
+      {[['ranking', 'Ranking', Trophy], ['trophies', 'Trophies', Award], ['category', 'Category', ListChecks], ['rating', 'IQ & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
         <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
       ))}
     </div>
@@ -925,8 +906,11 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
         {toggle}
+        {!viewing && myName ? <Link href={`/player/${encodeURIComponent(myName)}`} style={{ flex: 'none', fontSize: 12.5, fontWeight: 800, color: C.accent, textDecoration: 'none' }}>Public profile →</Link> : null}
       </div>
-      {pview === 'rating' ? (
+      {pview === 'trophies' ? (
+        <TrophyCase trophies={found ? me.trophies : null} viewing={viewing} />
+      ) : pview === 'rating' ? (
         <XpPanel me={me} titleById={titleById} viewing={viewing} />
       ) : pview === 'activity' ? (
         <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
@@ -1102,282 +1086,12 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
 }
 
 // ─── Category view: cards by default, the classic table behind a toggle ─────
-function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
-  const found = me && me.found;
-  const [mode, setMode] = useState('table');
-  const a = found ? me.activity : { correct: 0, answered: 0, played: 0, completed: 0, accuracy: 0, daysPlayed: 0 };
-  const ranks = (found && me.ranks) || {};
-  const base = (found && me.base) || {};
-  const totalPlayers = (found && me.totalPlayers) || 0;
-  const byCat = (found && me.byCategory) || {};
-  const catRows = (scope === 'all' ? cats : cats.filter((c) => c.key === scope));
 
-  // Column sort for the table mode. The Overall row stays pinned on top.
-  const [catSort, setCatSort] = useState({ col: 'xp', dir: 'desc' });
-  const sortedCatRows = useMemo(() => {
-    if (!catSort.col) return catRows;
-    const col = CAT_COLS.find((cc) => cc.key === catSort.col) || CAT_COLS[0];
-    const arr = [...catRows];
-    arr.sort((A, B) => {
-      const crA = byCat[A.key], crB = byCat[B.key];
-      if (col.key !== 'label') {
-        if (!crA && !crB) return A.label.localeCompare(B.label);
-        if (!crA) return 1;
-        if (!crB) return -1;
-      }
-      const av = col.get(A, crA || {});
-      const bv = col.get(B, crB || {});
-      let cmp = typeof av === 'string' ? av.localeCompare(bv) : ((av || 0) - (bv || 0));
-      if (catSort.dir === 'desc') cmp = -cmp;
-      return cmp;
-    });
-    return arr;
-  }, [catRows, catSort, byCat]);
-  const clickCatSort = (col) => setCatSort((st) => (st.col === col.key
-    ? { col: col.key, dir: st.dir === 'desc' ? 'asc' : 'desc' }
-    : { col: col.key, dir: col.key === 'label' ? 'asc' : 'desc' }));
-
-  // Card-mode ordering: played categories by IQ Points desc, unplayed after.
-  const playedCats = catRows.filter((c) => byCat[c.key] && byCat[c.key].matches > 0)
-    .sort((x, y) => (byCat[y.key].xp || 0) - (byCat[x.key].xp || 0));
-  const unplayedCats = catRows.filter((c) => !byCat[c.key] || !(byCat[c.key].matches > 0));
-  // Crown = best IQ Points RANK (the standing, not the raw number); ties break to
-  // the higher IQ Points.
-  let crownKey = null;
-  for (const c of playedCats) {
-    const cr = byCat[c.key];
-    if (!crownKey) { crownKey = c.key; continue; }
-    const b = byCat[crownKey];
-    if ((cr.rank || 9e9) < (b.rank || 9e9) || ((cr.rank || 9e9) === (b.rank || 9e9) && (cr.xp || 0) > (b.xp || 0))) crownKey = c.key;
-  }
-  const maxR = playedCats.length ? Math.max(...playedCats.map((c) => byCat[c.key].xp || 0)) : 0;
-  const barPct = (r) => Math.round(Math.max(12, Math.min(100, ((r || 0) / Math.max(1, maxR)) * 100)));
-
-  if (!found) return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>Play a few quizzes and the category breakdown shows up here.</div>;
-
-  const modeBtn = (v, lbl) => (
-    <button onClick={() => setMode(v)} className={`pvbtn${mode === v ? ' on' : ''}`} style={mode === v ? undefined : undefined}>{lbl}</button>
-  );
-
-  return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, marginBottom: 10, background: '#eef0f2', borderRadius: 8, padding: 3, width: 'fit-content', marginLeft: 'auto' }}>
-        {modeBtn('table', 'Table')}
-        {modeBtn('cards', 'Cards')}
-      </div>
-      {mode === 'cards' ? (
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 10 }}>
-            {playedCats.map((c) => {
-              const cr = byCat[c.key];
-              const crowned = c.key === crownKey && playedCats.length > 1;
-              const first = (cr.rank || 0) === 1;
-              return (
-                <div key={c.key} className="card" style={{ padding: '13px 14px', position: 'relative', ...(crowned ? { border: '1.5px solid #f0d9a8', background: '#fffdf5' } : {}) }}>
-                  {crowned ? <span style={{ position: 'absolute', top: 10, right: 12, color: '#a16207', display: 'flex' }} title={viewing ? 'Best category' : 'Your best category'}><Crown size={17} /></span> : null}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                    <span className="dot" style={{ background: c.c, borderRadius: '50%', width: 9, height: 9 }} />
-                    <span style={{ fontSize: 13, fontWeight: 800 }}>{c.label}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 21, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{(cr.xp || 0).toLocaleString()}</span>
-                    {cr.rank ? <span style={{ fontSize: 10.5, fontWeight: 800, background: first ? '#fbf2dc' : C.accsoft, color: first ? '#a97b12' : C.accent, borderRadius: 999, padding: '2px 8px' }}>#{cr.rank}{cr.catTotal ? ` of ${cr.catTotal.toLocaleString()}` : ''}</span> : null}
-                  </div>
-                  <div style={{ height: 6, borderRadius: 999, background: '#eef0f2', overflow: 'hidden', marginTop: 8 }}><div style={{ width: `${barPct(cr.xp || 0)}%`, height: '100%', background: c.c, borderRadius: 999 }} /></div>
-                  <div style={{ fontSize: 11, color: C.muted, fontWeight: 600, marginTop: 7 }}>
-                    {cr.accuracy}% accuracy · {cr.completed} completed{crowned && first ? (viewing ? ' · crown category' : ' · your crown to defend') : ''}
-                  </div>
-                </div>
-              );
-            })}
-            {unplayedCats.map((c) => (
-              <div key={c.key} style={{ border: `1.5px dashed ${C.line}`, borderRadius: 12, padding: '13px 14px', minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#b4b2a9', flex: 'none' }} />
-                  <span style={{ fontSize: 13, fontWeight: 800, color: C.muted }}>{c.label}</span>
-                </div>
-                <div style={{ fontSize: 12, color: C.soft, fontWeight: 600, marginTop: 8 }}>Unplayed. One quiz puts {viewing ? 'this player' : 'you'} on this board.</div>
-                <Link href="/quizzes" style={{ display: 'inline-block', marginTop: 8, fontSize: 11.5, fontWeight: 800, color: C.accent, textDecoration: 'none' }}>Browse {c.label} quizzes →</Link>
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 10 }}>Each #rank chip is the standing among players active in that category. The bar compares IQ Points across {viewing ? 'this player' : 'your'}{viewing ? "'s" : ''} categories.</div>
-        </div>
-      ) : (
-      <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ overflow: 'auto' }}>
-          <table>
-            <thead><tr>
-              {CAT_COLS.map((col) => (
-                <th key={col.key} onClick={() => clickCatSort(col)} style={{ textAlign: col.align, whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none', color: catSort.col === col.key ? C.accent : undefined }}>
-                  {col.label}{catSort.col === col.key ? (catSort.dir === 'desc' ? ' ↓' : ' ↑') : ''}
-                </th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {scope === 'all' ? (
-                <tr style={{ background: '#f3f7fe' }}>
-                  <td style={{ fontWeight: 800, whiteSpace: 'nowrap' }}>Overall</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.correct.toLocaleString()}</b><RankChip rank={ranks.correct} />{base.correct != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.correct.toLocaleString()}</div> : null}</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.played.toLocaleString()}</b><RankChip rank={ranks.played} />{base.played != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.played.toLocaleString()}</div> : null}</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.completed.toLocaleString()}</b>{totalQuizzes ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(a.completed, totalQuizzes)})</span> : null}<RankChip rank={ranks.completed} />{base.completed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.completed.toLocaleString()}</div> : null}</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.accuracy}%</b><RankChip rank={ranks.accuracy} />{base.accuracy != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.accuracy}%</div> : null}</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><b>{a.daysPlayed || 0}</b><RankChip rank={ranks.daysPlayed} />{base.daysPlayed != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.daysPlayed.toLocaleString()}</div> : null}</td>
-                  <td className="score" style={{ textAlign: 'right', color: C.accent, whiteSpace: 'nowrap' }}><b>{(me.xp || 0).toLocaleString()}</b><RankChip rank={ranks.xp} total={totalPlayers} />{base.xp != null ? <div style={{ fontSize: 9.5, color: C.muted }}>avg {base.xp.toLocaleString()}</div> : null}</td>
-                </tr>
-              ) : null}
-              {sortedCatRows.map((c) => {
-                const cr = byCat[c.key];
-                const muted = !cr;
-                return (
-                  <tr key={c.key}>
-                    <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><span className="dot" style={{ background: c.c, display: 'inline-block', marginRight: 8, verticalAlign: 'middle' }} />{c.label}</td>
-                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? cr.correct.toLocaleString() : '—'}{cr && cr.correctRank ? <RankChip rank={cr.correctRank} /> : null}</td>
-                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.played != null ? cr.played : cr.matches) : '—'}{cr && cr.playedRank ? <RankChip rank={cr.playedRank} /> : null}</td>
-                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? <>{cr.completed}{c.count ? <span style={{ fontSize: 10, color: C.soft, marginLeft: 4 }}>({completedPct(cr.completed, c.count)})</span> : null}</> : '—'}{cr && cr.completedRank ? <RankChip rank={cr.completedRank} /> : null}</td>
-                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? `${cr.accuracy}%` : '—'}{cr && cr.accuracyRank ? <RankChip rank={cr.accuracyRank} /> : null}</td>
-                    <td style={{ textAlign: 'right', color: muted ? C.soft : C.ink, whiteSpace: 'nowrap' }}>{cr ? (cr.daysPlayed || 0) : '—'}{cr && cr.daysRank ? <RankChip rank={cr.daysRank} /> : null}</td>
-                    <td className="score" style={{ textAlign: 'right', color: muted ? C.soft : C.accent, whiteSpace: 'nowrap' }}>{cr ? cr.xp.toLocaleString() : '—'}{cr && cr.rank ? <RankChip rank={cr.rank} total={cr.catTotal} /> : null}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          <div style={{ fontSize: 10.5, color: C.soft, marginTop: 8 }}>The Overall row ranks you against all {totalPlayers.toLocaleString()} players on every metric (avg = player-base average) and stays pinned on top. Each #rank chip in a category row is your standing among the players active in that category. Tap any column header to sort.</div>
-        </div>
-      </div>
-      )}
-    </div>
-  );
-}
 
 // Activity view: play-streak stats + a 12-week heatmap, milestone highlights
 // (perfects, personal bests, big IQ Points hauls), then the full game log. All of
 // it derives client-side from `recent`, which carries the player's FULL history.
-function ActivityFeed({ recent, titleById, viewing }) {
-  const who = viewing ? 'This player' : 'You';
-  if (!recent || !recent.length) return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>No games on record yet. Play a quiz and it shows up here.</div>;
-  const DAY = 86400000;
-  const keyOf = (t) => new Date(t).toISOString().slice(0, 10);
-  const counts = new Map();
-  for (const m of recent) { const k = m.createdAt ? String(m.createdAt).slice(0, 10) : null; if (k) counts.set(k, (counts.get(k) || 0) + 1); }
-  // Current streak: consecutive UTC days ending today (or yesterday, so an
-  // unplayed today doesn't zero a live streak).
-  let curStreak = 0;
-  { let t = Date.now(); if (!counts.has(keyOf(t))) t -= DAY; while (counts.has(keyOf(t))) { curStreak += 1; t -= DAY; } }
-  let bestStreak = 0;
-  { const keys = [...counts.keys()].sort(); let run = 0, prev = null;
-    for (const k of keys) { const t = Date.parse(k); run = prev != null && t - prev === DAY ? run + 1 : 1; prev = t; if (run > bestStreak) bestStreak = run; } }
-  const daysPlayed = counts.size;
-  // Heatmap cells: the last 84 days, oldest first, filled column-major so each
-  // column is a week and the newest week sits on the right.
-  const HM = ['#eef0f2', '#b5d4f4', '#85b7eb', '#0e1d40'];
-  const cells = [];
-  { const start = Date.now() - 83 * DAY;
-    for (let i = 0; i < 84; i++) { const n = counts.get(keyOf(start + i * DAY)) || 0; cells.push(n === 0 ? 0 : n === 1 ? 1 : n <= 3 ? 2 : 3); } }
-  // Milestones, oldest-to-newest so "personal best" compares against real history.
-  const hist = recent.slice().reverse();
-  const bestByQuiz = new Map();
-  const events = [];
-  const tOf = (id) => (titleById && titleById[id]) || dailyLabel(id) || id;
-  for (const m of hist) {
-    const prevB = bestByQuiz.get(m.quizId);
-    if (m.scorePct === 100 && (prevB == null || prevB < 100)) {
-      events.push({ kind: 'perfect', quizId: m.quizId, when: m.createdAt, chip: '100%' });
-    } else if (prevB != null && m.scorePct > prevB) {
-      events.push({ kind: 'pb', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}%, up from ${prevB}%`, chip: `+${m.scorePct - prevB}%` });
-    }
-    if ((m.xp || 0) >= 75) events.push({ kind: 'surge', quizId: m.quizId, when: m.createdAt, sub: `${m.scorePct}% on a heavyweight quiz`, chip: `+${m.xp} IQ` });
-    if (prevB == null || m.scorePct > prevB) bestByQuiz.set(m.quizId, m.scorePct);
-  }
-  const mile = events.slice(-8).reverse();
-  const fmtWhen = (iso) => (iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—');
-  const MK = {
-    perfect: { bg: '#fbf2dc', fg: '#a97b12', Icon: Star, label: (q) => `Perfect score on ${q}` },
-    pb: { bg: '#e6f7f0', fg: '#0b7a55', Icon: Trophy, label: (q) => `New personal best on ${q}` },
-    surge: { bg: C.accsoft, fg: C.accent, Icon: ArrowUpRight, label: (q) => `Big IQ haul on ${q}` },
-  };
-  const statLbl = { fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase' };
-  return (
-    <div>
-      <div className="card" style={{ padding: '14px 16px', marginBottom: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-          <span style={{ flex: 'none' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              {curStreak >= 2 ? <span className="flameon" style={{ display: 'inline-flex', color: '#f59008' }}><Flame size={19} /></span> : null}
-              <span style={{ fontSize: 23, fontWeight: 800 }}>{curStreak}</span>
-            </span>
-            <span style={statLbl}>Day streak</span>
-          </span>
-          <span style={{ flex: 'none' }}>
-            <span style={{ display: 'block', fontSize: 23, fontWeight: 800 }}>{bestStreak}</span>
-            <span style={statLbl}>Best streak</span>
-          </span>
-          <span style={{ flex: 'none' }}>
-            <span style={{ display: 'block', fontSize: 23, fontWeight: 800 }}>{daysPlayed}</span>
-            <span style={statLbl}>Days played</span>
-          </span>
-          <span style={{ flex: 1, minWidth: 200 }}>
-            <span style={{ display: 'grid', gridTemplateRows: 'repeat(7, 10px)', gridAutoFlow: 'column', gridAutoColumns: '10px', gap: 3, justifyContent: 'end' }}>
-              {cells.map((lv, i) => <span key={i} style={{ width: 10, height: 10, borderRadius: 3, background: HM[lv] }} />)}
-            </span>
-            <span style={{ display: 'block', fontSize: 10, color: C.soft, fontWeight: 700, textAlign: 'right', marginTop: 5, letterSpacing: '.04em' }}>LAST 12 WEEKS · DARKER = MORE PLAYED</span>
-          </span>
-        </div>
-      </div>
-      {mile.length > 0 && (
-        <div className="card" style={{ padding: '6px 14px', marginBottom: 10 }}>
-          <div style={{ padding: '8px 0 2px', fontSize: 13, fontWeight: 800 }}>Milestones</div>
-          {mile.map((ev, i) => {
-            const mk = MK[ev.kind];
-            const Ic = mk.Icon;
-            return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: i < mile.length - 1 ? `1px solid ${C.line}` : 'none' }}>
-                <span style={{ flex: 'none', width: 30, height: 30, borderRadius: 9, background: mk.bg, color: mk.fg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Ic size={15} /></span>
-                <span style={{ flex: 1, minWidth: 0 }}>
-                  <Link href={`/quiz/${ev.quizId}`} style={{ display: 'block', fontSize: 13, fontWeight: 700, color: C.ink, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mk.label(tOf(ev.quizId))}</Link>
-                  <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 600 }}>{fmtWhen(ev.when)}{ev.sub ? ` · ${ev.sub}` : ''}</span>
-                </span>
-                <span style={{ flex: 'none', fontSize: 11, fontWeight: 800, background: mk.bg, color: mk.fg, borderRadius: 999, padding: '2px 8px' }}>{ev.chip}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-      <div className="card" style={{ padding: '4px 14px' }}>
-        <div style={{ padding: '10px 0 4px', fontSize: 13, fontWeight: 800 }}>Full Game Log</div>
-        <div style={{ overflow: 'auto', maxHeight: 600 }}>
-          <table>
-            <thead><tr>
-              <th>Quiz</th>
-              <th style={{ textAlign: 'right' }}>When</th>
-              <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
-              <th style={{ textAlign: 'right' }}>IQ</th>
-              <th style={{ textAlign: 'right' }}>Rank &Delta;</th>
-              <th style={{ textAlign: 'right' }}>Cat. Rank &Delta;</th>
-            </tr></thead>
-            <tbody>
-              {recent.map((m, i) => {
-                const title = (titleById && titleById[m.quizId]) || dailyLabel(m.quizId) || m.quizId;
-                const when = m.createdAt ? new Date(m.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
-                return (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}><Link href={`/quiz/${m.quizId}`} style={{ color: C.ink, textDecoration: 'none' }}>{title}</Link></td>
-                    <td style={{ textAlign: 'right', color: C.muted, whiteSpace: 'nowrap' }}>{when}</td>
-                    <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
-                    <td className="score" style={{ textAlign: 'right', color: (m.xp || 0) > 0 ? C.accent : C.muted, fontWeight: 700 }}>{`+${m.xp || 0}`}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: m.rankDelta > 0 ? C.accent : m.rankDelta < 0 ? C.danger : C.muted }}>{m.rankDelta == null ? '—' : m.rankDelta === 0 ? '±0' : m.rankDelta > 0 ? `+${m.rankDelta}` : m.rankDelta}</td>
-                    <td style={{ textAlign: 'right', fontWeight: 700, color: m.catRankDelta > 0 ? C.accent : m.catRankDelta < 0 ? C.danger : C.muted }}>{m.catRankDelta == null ? '—' : m.catRankDelta === 0 ? '±0' : m.catRankDelta > 0 ? `+${m.catRankDelta}` : m.catRankDelta}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 // Full ranking BODY (no card chrome; the card, title, and toggle live in
 // PlayerPanel). Podium + chase card on top, then every player registered +
@@ -1839,176 +1553,4 @@ function ChallengesPanel({ me }) {
 // IQ & Level view: the level, progress to the next level, and the cumulative
 // IQ Points trend chart lead; the formula explainer collapses behind a "How this
 // works" toggle. IQ Points are additive: they never go down and never decay.
-function XpPanel({ me, titleById, viewing }) {
-  const found = me && me.found;
-  const recent = (found && me.recent) || [];
-  const prog = (found && me.progress) || { level: 1, xp: 0, levelFloor: 0, levelNext: 25, intoLevel: 0, stepSize: 25, toNext: 25, matches: 0, xp7d: null };
-  const [how, setHow] = useState(false);
-  const xp = found ? (me.xp || 0) : 0;
-  const level = found ? (me.level || 1) : 1;
 
-  // Cumulative IQ Points series from the full game history (oldest first).
-  const hist = recent.slice().reverse();
-  const series = [0];
-  { let cum = 0; for (const m of hist) { cum += (m.xp || 0); series.push(cum); } }
-  const weekCut = Date.now() - 7 * 86400000;
-  const weekGain = Math.round(hist.reduce((acc, m) => acc + ((m.createdAt && Date.parse(m.createdAt) >= weekCut) ? (m.xp || 0) : 0), 0));
-
-  // Chart: the full IQ Points history sampled to ~70 points and drawn at the
-  // container's real pixel width as a smoothed curve over light gridlines.
-  const chartRef = useRef(null);
-  const [cw, setCw] = useState(0);
-  const hasChart = series.length >= 4;
-  useEffect(() => {
-    const upd = () => { const el = chartRef.current; if (el) setCw(el.clientWidth || 600); };
-    upd();
-    window.addEventListener('resize', upd);
-    return () => window.removeEventListener('resize', upd);
-  }, [hasChart, found]);
-  const nextLevelAt = prog.levelNext;
-  const bandPct = prog.stepSize > 0 ? Math.round(Math.max(4, Math.min(100, (prog.intoLevel / prog.stepSize) * 100))) : 100;
-  const tierLabel = found && me.tier ? me.tier : 'Bronze Tier';
-  const tierBg = found && me.tierBg ? me.tierBg : '#eceef1';
-  const tierFg = found && me.tierFg ? me.tierFg : C.muted;
-
-  const explainerCards = (
-    <div className="rgrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-      <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>How IQ Points Work</div>
-        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-          Every quiz you finish ADDS IQ Points: your correct answers, multiplied by the quiz{"'"}s difficulty. Easy quizzes pay 1×, the hardest pay 2×. A perfect 100% game earns a 25% bonus, and replaying a quiz you{"'"}ve already taken pays 25% of the usual IQ Points (first attempts pay full).
-        </p>
-        <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.6, margin: '0 0 10px' }}>
-          <b style={{ color: C.ink }}>IQ Points only go up.</b> There is no way to lose them and they never decay — every game moves you forward.
-        </p>
-        <div className="formula">
-          IQ Points = correct × (Dq / 1000)<br />
-          × 1.25 if perfect · × 0.25 on replays
-        </div>
-        <div style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.8, marginTop: 10 }}>
-          Dq = quiz difficulty (1,000 easiest – 2,000 hardest) · the step from level L to L+1 costs 25·L IQ Points
-        </div>
-      </div>
-      <div className="card" style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{viewing ? 'Numbers' : 'Your Numbers'}</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <div className="hrow" style={{ borderTop: 'none' }}><span style={{ flex: 1 }}>Level</span><span style={{ fontWeight: 700 }}>{level}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>Games Counted</span><span style={{ fontWeight: 700 }}>{prog.matches}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>IQ Points This Week</span><span className="score" style={{ color: weekGain > 0 ? C.accent : C.muted }}>{weekGain > 0 ? `+${weekGain.toLocaleString()}` : '0'}</span></div>
-          <div className="hrow"><span style={{ flex: 1 }}>Next Level At</span><span style={{ fontWeight: 700 }}>{nextLevelAt.toLocaleString()} IQ</span></div>
-          <div className="hrow" style={{ borderTop: `2px solid ${C.ink}` }}><span style={{ flex: 1, fontWeight: 700 }}>Total IQ Points</span><span style={{ fontWeight: 800, color: C.accent }}>{xp.toLocaleString()}</span></div>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div>
-      <div className="card" style={{ padding: '14px 16px', marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 30, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>Level {level}</span>
-          <span style={{ fontSize: 15, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{xp.toLocaleString()} IQ</span>
-          {prog.matches > 0 ? (
-            <span style={{ fontSize: 11, fontWeight: 800, background: weekGain > 0 ? '#e6f7f0' : '#eef0f2', color: weekGain > 0 ? '#0b7a55' : C.muted, borderRadius: 999, padding: '3px 9px' }}>
-              {weekGain > 0 ? `▲ +${weekGain.toLocaleString()} IQ this week` : 'No IQ gained this week'}
-            </span>
-          ) : null}
-          <span style={{ fontSize: 11, fontWeight: 800, background: tierBg, color: tierFg, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{tierLabel}</span>
-          <span style={{ flex: 1 }} />
-          {prog.matches > 0 ? <span style={{ fontSize: 11, color: C.soft, fontWeight: 800, letterSpacing: '.04em' }}>LEVEL {level + 1} AT {nextLevelAt.toLocaleString()} IQ</span> : null}
-        </div>
-        {hasChart ? (
-          <div ref={chartRef} style={{ marginTop: 10 }}>
-            {cw > 0 ? (() => {
-              const W = cw, H = 150, T = 14, B = 8, Lp = 6, Rp = 6;
-              let pts = series;
-              if (pts.length > 70) { pts = []; for (let i = 0; i < 70; i++) pts.push(series[Math.round((i * (series.length - 1)) / 69)]); }
-              let lo = Math.min(...pts), hi = Math.max(...pts);
-              if (nextLevelAt > hi && nextLevelAt - hi <= Math.max(35, prog.stepSize)) hi = nextLevelAt + Math.max(6, Math.round(prog.stepSize * 0.15));
-              if (hi - lo < 40) { const mid = (hi + lo) / 2; lo = mid - 20; hi = mid + 20; }
-              const vpad = (hi - lo) * 0.06;
-              lo -= vpad; hi += vpad;
-              const X = (i) => Lp + (pts.length > 1 ? (i / (pts.length - 1)) * (W - Lp - Rp) : 0);
-              const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
-              const P = pts.map((v, i) => [Math.round(X(i) * 10) / 10, Math.round(Y(v) * 10) / 10]);
-              let d = `M${P[0][0]},${P[0][1]}`;
-              for (let i = 0; i < P.length - 1; i++) {
-                const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
-                d += `C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0]},${p2[1]}`;
-              }
-              const area = `${d} L${P[P.length - 1][0]},${H - B} L${P[0][0]},${H - B} Z`;
-              const ticks = [lo + (hi - lo) * 0.18, lo + (hi - lo) * 0.5, lo + (hi - lo) * 0.82].map((v) => Math.round(v / 5) * 5);
-              const goalY = nextLevelAt >= lo && nextLevelAt <= hi ? Y(nextLevelAt) : null;
-              return (
-                <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true" style={{ display: 'block' }}>
-                  {ticks.map((v, i) => (
-                    <g key={i}>
-                      <line x1={Lp} y1={Y(v)} x2={W - Rp} y2={Y(v)} stroke={C.line} strokeWidth="1" />
-                      <text x={W - Rp - 2} y={Y(v) - 4} fontSize="10" fontWeight="700" fill={C.soft} fontFamily={FONT} textAnchor="end">{v.toLocaleString()}</text>
-                    </g>
-                  ))}
-                  <path d={area} fill={C.accsoft} opacity="0.6" />
-                  <path d={d} fill="none" stroke={C.accent} strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
-                  {goalY != null ? (
-                    <g>
-                      <line x1={Lp} y1={goalY} x2={W - Rp} y2={goalY} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
-                      <text x={Lp + 2} y={Math.max(11, goalY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>Level {level + 1} at {nextLevelAt.toLocaleString()} IQ</text>
-                    </g>
-                  ) : null}
-                  <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke="#fff" strokeWidth="1.5" />
-                </svg>
-              );
-            })() : <div style={{ height: 150 }} />}
-          </div>
-        ) : (
-          <div style={{ fontSize: 13, color: C.soft, padding: '14px 0 6px' }}>{viewing ? 'A few more finished quizzes and the IQ Points trend chart appears here.' : 'Finish a few quizzes and your IQ Points trend chart appears here.'}</div>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 11, fontWeight: 800, color: tierFg, letterSpacing: '.04em', textTransform: 'uppercase', flex: 'none' }}>{tierLabel.replace(' Tier', '')}</span>
-          <span style={{ flex: 1, minWidth: 120, height: 8, borderRadius: 999, background: '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${bandPct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
-          <span style={{ fontSize: 11, fontWeight: 800, color: C.soft, letterSpacing: '.04em', flex: 'none' }}>{`${prog.toNext.toLocaleString()} IQ TO LEVEL ${level + 1}`}</span>
-        </div>
-      </div>
-
-      <button onClick={() => setHow((v) => !v)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', color: C.accent, fontFamily: FONT, fontSize: 12.5, fontWeight: 800, cursor: 'pointer', padding: '2px 0', marginBottom: 12 }}>
-        <ChevronDown size={15} style={{ transform: how ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} /> How your IQ Points work
-      </button>
-      {how ? explainerCards : null}
-
-      <div className="card" style={{ padding: '4px 6px' }}>
-        <div style={{ padding: '12px 12px 4px', fontSize: 14, fontWeight: 700 }}>Recent IQ Points</div>
-        <div style={{ overflow: 'auto' }}>
-          <table>
-            <thead><tr>
-              <th>Quiz</th>
-              <th style={{ textAlign: 'right' }}>Difficulty</th>
-              <th style={{ textAlign: 'right' }}>{viewing ? 'User %' : 'Your %'}</th>
-              <th style={{ textAlign: 'right' }}>Notes</th>
-              <th style={{ textAlign: 'right' }}>IQ</th>
-            </tr></thead>
-            <tbody>
-              {recent.length === 0 && (
-                <tr><td colSpan={5} style={{ color: C.soft }}>No games yet. Finish a quiz to start earning IQ Points.</td></tr>
-              )}
-              {recent.slice(0, 40).map((m, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: 600, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    <Link href={`/quiz/${m.quizId}`} className="qlink">{titleById[m.quizId] || dailyLabel(m.quizId) || cleanTitle(m.quizId)}</Link>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>{(m.dq || 0).toLocaleString()}</td>
-                  <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    {m.perfect ? <span style={{ fontSize: 10, fontWeight: 800, background: '#fbf2dc', color: '#a97b12', borderRadius: 999, padding: '2px 7px' }}>PERFECT</span> : null}
-                    {m.attempt > 1 ? <span style={{ fontSize: 10, fontWeight: 800, background: '#eef0f2', color: C.muted, borderRadius: 999, padding: '2px 7px', marginLeft: m.perfect ? 4 : 0 }}>REPLAY</span> : null}
-                    {!m.perfect && !(m.attempt > 1) ? <span style={{ color: C.soft }}>—</span> : null}
-                  </td>
-                  <td className="score" style={{ textAlign: 'right', color: (m.xp || 0) > 0 ? C.accent : C.muted }}>{`+${m.xp || 0}`}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}

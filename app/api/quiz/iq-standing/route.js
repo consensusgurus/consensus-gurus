@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { computeXp, rankPlayers } from '@/lib/quiz-xp';
+import { computeTrophies, earnedTrophyIds } from '@/lib/quiz-trophies';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -73,6 +74,10 @@ export async function GET(request) {
       me: p.key === myKey,
     }));
 
+    // Earned trophy ids (duels excluded) so the daily end card can pop the
+    // unlock toast the moment a game crosses a threshold.
+    const trophyIds = earnedTrophyIds(computeTrophies(data || [], players), myKey);
+
     const recent = Array.isArray(me.recent) ? me.recent : [];
     const today = etDate(Date.now());
     const row = quizId
@@ -96,6 +101,7 @@ export async function GET(request) {
       gained: row ? Math.round(row.xp) : null,
       gainedFor: row ? row.quizId : null,
       todayGained,
+      trophies: trophyIds,
       window: windowRows,
     });
   } catch (e) {
