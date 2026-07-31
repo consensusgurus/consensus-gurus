@@ -37,7 +37,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
-import { FREE, FND, RANKS, suitOf, rankOf, RANK_LABEL, fromData, replay, isWon, destinations, apply, movableCards, autoFinish } from './rules';
+import { FREE, FND, suitOf, rankOf, RANK_LABEL, fromData, replay, isWon, destinations, apply, movableCards, autoFinish } from './rules';
 
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
@@ -203,6 +203,11 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   const STORE_KEY = `sot_taire_${PUZZLE.num}`;
   const START = useMemo(() => fromData(PUZZLE.cols), [PUZZLE]);
   const CELLS = PUZZLE.cells;
+  // The short weekday deal runs ace through eight in four columns; the full
+  // deal runs ace through ten in five. Everything below reads off the puzzle.
+  const RANKS = PUZZLE.ranks || 10;
+  const DECK = RANKS * 2;
+  const COLS = PUZZLE.cols.length;
 
   const [g, setG] = useState(() => freshState());
   const gRef = useRef(g);
@@ -392,7 +397,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
     // The endgame is forced once everything left can go straight home, so play
     // it out rather than making anyone click twenty times. Each of those cards
     // still counts as a move, which is exactly how par counts them too.
-    const tail = autoFinish(after);
+    const tail = autoFinish(after, RANKS);
     const g2 = { ...cur };
     if (!g2.t0) g2.t0 = Date.now();
     if (tail) {
@@ -494,7 +499,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
 
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Twenty cards, two suits, ace through ten, all face up. Send every card <b>home</b> to its pile at the top right, ace first, then two, and so on.</p>
+      <p style={{ margin: '0 0 9px' }}>{DECK === 20 ? 'Twenty cards, two suits, ace through ten' : 'Sixteen cards, two suits, ace through eight'}, all face up. Send every card <b>home</b> to its pile at the top right, ace first, then two, and so on.</p>
       <p style={{ margin: '0 0 9px' }}><b>Tap a card</b> to pick it up, then tap where it goes. Only the <b>bottom card</b> of a column can move, one card at a time, never a stack. It can go onto a card one rank higher of the other colour, onto an empty column, into a <b>free cell</b>, or home.</p>
       <p style={{ margin: '0 0 9px' }}>You have <b>{CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}</b> today. A cell parks a single card for as long as you like.</p>
       <p style={{ margin: '0 0 9px' }}>Every card moved is <b>one move</b>, sending one home included. <b>Par is {par}</b> on this deal, and par is the proven minimum, so nothing beats it. There is <b>no undo</b>, only a restart that redeals the same board and zeroes your moves, though the clock keeps running.</p>
@@ -518,7 +523,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           .ta-card:active{transform:translateY(1px);}
           .ta-felt.shake{animation:tashake .34s ease;}
           @keyframes tashake{0%,100%{transform:translateX(0);}22%{transform:translateX(-6px);}55%{transform:translateX(6px);}80%{transform:translateX(-3px);}}
-          .ta-cols{display:grid;grid-template-columns:repeat(5,${CARD_W}px);gap:14px;justify-content:center;}
+          .ta-cols{display:grid;gap:14px;justify-content:center;}
           @media(max-width:430px){.ta-cols{gap:7px;}}
         `}</style>
 
@@ -539,7 +544,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Taire is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Twenty cards, all face up, {CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}. Send them all home. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
+                <p style={{ margin: '0 0 6px' }}>{DECK} cards, all face up, {CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}. Send them all home. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -597,7 +602,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
               </div>
             </div>
 
-            <div className="ta-cols">
+            <div className="ta-cols" style={{ gridTemplateColumns: `repeat(${COLS}, ${CARD_W}px)` }}>
               {state.cols.map((col, j) => {
                 const live = sel != null && dests.includes(j);
                 return (
@@ -777,10 +782,10 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Taire</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Taire is a free daily solitaire from Source of Truths. Twenty cards, two suits, ace through ten, dealt face up into five columns with a free cell or two beside them. Nothing is hidden and nothing is shuffled mid-game, so there is no luck in it: the deal you get is the deal everybody else gets today, and it is always winnable.
+          Taire is a free daily solitaire from Source of Truths. Two suits dealt face up into columns of four with a free cell or two beside them: sixteen cards early in the week, twenty from Thursday on. Nothing is hidden and nothing is shuffled mid-game, so there is no luck in it: the deal you get is the deal everybody else gets today, and it is always winnable.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every deal is machine generated and then solved exactly, so the par you are scored against is the true minimum number of moves rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. That makes par a ceiling rather than a target. Nobody beats it, and the whole game is how close you get. Deals climb through the week, and the Sunday Edition takes away a free cell, which is a far bigger difference than it sounds.
+          Every deal is machine generated and then solved exactly, so the par you are scored against is the true minimum number of moves rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. That makes par a ceiling rather than a target. Nobody beats it, and the whole game is how close you get. Deals climb through the week on a different dial each rung: Monday to Wednesday are the short sixteen-card deals, Thursday to Saturday run the full twenty, and the Sunday Edition takes a free cell away, which is a far bigger difference than it sounds.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/park" style={{ color: COLORS.ink, fontWeight: 800 }}>Park</a>, our daily sliding-block jam, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.

@@ -1,4 +1,5 @@
-// Taire rules. Two suits, ace through ten, dealt face up into five columns.
+// Taire rules. Two suits dealt face up into columns of four: ace through eight
+// in four columns on the short weekday deals, ace through ten in five otherwise.
 // Card code = suit*16 + rank, so the black suit is 1..10 and the red one 17..26.
 //
 // One move is one card. You may move the bottom card of a column, or a card out
@@ -13,7 +14,6 @@
 
 export const FREE = 100;
 export const FND = 200;
-export const RANKS = 10;
 export const suitOf = (c) => c >> 4;
 export const rankOf = (c) => c & 15;
 export const RANK_LABEL = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
@@ -22,7 +22,8 @@ export function fromData(cols) {
   return { cols: cols.map((c) => c.slice()), free: [], fnd: [0, 0] };
 }
 export const cloneState = (s) => ({ cols: s.cols.map((c) => c.slice()), free: s.free.slice(), fnd: s.fnd.slice() });
-export const isWon = (s) => s.fnd[0] === RANKS && s.fnd[1] === RANKS;
+// ranks is the deal's top rank: 8 on the short weekday deals, 10 otherwise.
+export const isWon = (s, ranks) => s.fnd[0] === ranks && s.fnd[1] === ranks;
 export const canStack = (card, onto) => rankOf(onto) === rankOf(card) + 1 && suitOf(onto) !== suitOf(card);
 
 // Where a card currently sits: the bottom of a column, or a free cell, or gone.
@@ -84,11 +85,11 @@ export function replay(start, moves, cells) {
 // returns that finishing sequence when it exists, so the client can play it out
 // and COUNT each foundation move, which keeps the total honest against par.
 // Par already includes one foundation move per card, so this never undercounts.
-export function autoFinish(s) {
+export function autoFinish(s, ranks) {
   let cur = cloneState(s);
   const seq = [];
   for (;;) {
-    if (isWon(cur)) return seq;
+    if (isWon(cur, ranks)) return seq;
     let moved = false;
     const heads = [];
     for (const col of cur.cols) if (col.length) heads.push(col[col.length - 1]);

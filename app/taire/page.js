@@ -4,15 +4,17 @@ import { PUZZLES } from './puzzles';
 
 // Taire launched 2026-07-31 as the 38th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/taire is the canonical,
-// evergreen URL). Twenty cards, two suits, everything face up, scored against a
-// par that is the proven minimum. Weekdays give two free cells and run a par of
-// 23 to 34; the Sunday Edition gives one. Deals are gated by Eastern date here,
-// so tomorrow's board never reaches the browser.
+// evergreen URL). Two suits, everything face up, scored against a par that is
+// the proven minimum. The week climbs on a different dial each rung: Monday to
+// Wednesday are the short sixteen-card deals (par 18 to 24), Thursday to
+// Saturday run the full twenty (par 28 to 34), and the Sunday Edition keeps
+// twenty cards but allows a single free cell (par 34 to 48). Deals are gated by
+// Eastern date here, so tomorrow's board never reaches the browser.
 
 export const metadata = {
   title: 'Taire — Free Daily Solitaire Puzzle | Source of Truths',
   description:
-    'A free daily solitaire puzzle. Twenty cards, two suits, all face up, and a free cell or two beside them. No hidden cards and no luck, so every deal is winnable and everybody plays the same one. You are scored against par, the proven minimum number of moves. No app, no signup, and a new deal every day.',
+    'A free daily solitaire puzzle. Two suits dealt face up with a free cell or two beside them, sixteen cards early in the week and twenty from Thursday on. No hidden cards and no luck, so every deal is winnable and everybody plays the same one. You are scored against par, the proven minimum number of moves. No app, no signup, and a new deal every day.',
   alternates: { canonical: '/taire' },
   openGraph: {
     title: 'Taire — A Daily Solitaire Puzzle',
@@ -31,7 +33,7 @@ const gameJsonLd = {
   alternateName: 'Taire — Daily Solitaire Puzzle',
   url: 'https://sourceoftruths.com/taire',
   description:
-    'A free daily solitaire puzzle. Twenty cards in two suits, ace through ten, are dealt face up into five columns beside one or two free cells, and every card must be sent home to its foundation. Nothing is hidden and nothing is shuffled mid-game, so the deal carries no luck and is always winnable. Every deal is machine generated and solved exactly, so par is the true minimum number of moves rather than an estimate, confirmed by a second independent solver. Solving at par scores ten and every two moves over costs a point. Weekday deals give two free cells and run a par of 23 to 34, and the Sunday Edition gives only one.',
+    'A free daily solitaire puzzle. Two suits are dealt face up into columns of four beside one or two free cells, and every card must be sent home to its foundation. Nothing is hidden and nothing is shuffled mid-game, so the deal carries no luck and is always winnable. Every deal is machine generated and solved exactly, so par is the true minimum number of moves rather than an estimate, confirmed by a second independent solver. Solving at par scores ten and every two moves over costs a point. The week climbs on a different dial each rung: Monday to Wednesday are short sixteen-card deals with a par of 18 to 24, Thursday to Saturday run the full twenty cards at a par of 28 to 34, and the Sunday Edition keeps twenty cards but allows a single free cell.',
   genre: ['Solitaire', 'Card puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
@@ -64,7 +66,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Taire launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily solitaire. Twenty cards, nothing hidden, and a par nobody can beat. Come back when the first deal drops.
+          The daily solitaire. Two suits, nothing hidden, and a par nobody can beat. Come back when the first deal drops.
         </p>
         <a href="/daily" style={{ color: '#1d6b4f', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
