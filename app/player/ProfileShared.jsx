@@ -26,6 +26,11 @@ export const C = {
 };
 export const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
+// Medal palette for the #1/#2/#3 rank chips (gold, silver, bronze). RankChip
+// moved here with its palette; the Stat Hub keeps its own copy for its podium.
+const MEDAL_INK = ['#8a5300', '#5b6472', '#8a4f24'];
+const MEDAL_BG = ['#fbf2dc', '#eef0f2', '#f6e9df'];
+
 function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); }
 
 // Initials avatar (own copy; the Stat Hub's Duel Arena keeps its own).
