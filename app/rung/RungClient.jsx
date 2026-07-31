@@ -191,6 +191,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
   const inputRef = useRef(null);
+  const shakeRef = useRef(null);
 
   const playing = g.status === 'playing';
   const preStart = playing && !g.t0;
@@ -228,6 +229,20 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   }, []);
 
   useEffect(() => { gRef.current = g; }, [g]);
+  // Replay the shake animation WITHOUT remounting the subtree (a key change here used to
+  // rebuild the input element, so a rejected climb silently dropped keyboard focus and the
+  // player had to re-click the box before they could backspace). Also pull focus back to the
+  // input when the attempt came from the Climb button.
+  useEffect(() => {
+    if (!shake) return;
+    const el = shakeRef.current;
+    if (el) {
+      el.classList.remove('rg-shake');
+      void el.offsetWidth;
+      el.classList.add('rg-shake');
+    }
+    try { inputRef.current?.focus(); } catch (e) {}
+  }, [shake]);
   useEffect(() => {
     if (!armReveal) return undefined;
     const t = setTimeout(() => setArmReveal(false), 3500);
@@ -542,7 +557,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
           </div>
 
-          <div className={shake ? 'rg-shake' : ''} key={shake} style={{ maxWidth: 300, margin: '0 auto' }}>
+          <div ref={shakeRef} style={{ maxWidth: 300, margin: '0 auto' }}>
             <div className="rg-ladder">
               {ladder.map((w, i) => (
                 <Word key={`${w}-${i}`} w={w} prevWord={i > 0 ? ladder[i - 1] : null} dim={i < ladder.length - 1 && ladder.length > 6} />
