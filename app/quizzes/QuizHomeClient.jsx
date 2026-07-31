@@ -505,8 +505,8 @@ export default function QuizHomeClient() {
     const qs = new URLSearchParams();
     try { const anon = localStorage.getItem('sot_quiz_anon'); if (anon) qs.set('anonId', anon); const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (id && id.email) qs.set('email', id.email); } catch (e) {}
     fetch('/api/quiz/referrals' + (qs.toString() ? `?${qs.toString()}` : '')).then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d) setRefData(d); }).catch(() => {});
-    fetch('/api/quiz/xp?sort=xp30d').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXp30(d.players.filter((p) => (p.xp30d || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp30d }))); }).catch(() => {});
-    fetch('/api/quiz/xp').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXpAll(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 5).map((p) => ({ name: p.name, value: p.xp }))); }).catch(() => {});
+    fetch('/api/quiz/xp?sort=xp30d').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXp30(d.players.filter((p) => (p.xp30d || 0) > 0).slice(0, 10).map((p) => ({ name: p.name, value: p.xp30d }))); }).catch(() => {});
+    fetch('/api/quiz/xp').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXpAll(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 10).map((p) => ({ name: p.name, value: p.xp }))); }).catch(() => {});
     return () => { alive = false; };
   }, []);
   useEffect(() => { const iv = setInterval(() => setXpFlip((v) => v + 1), 8000); return () => clearInterval(iv); }, []);
@@ -1979,21 +1979,21 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb.daily .dhx-lb-band{background:#fdf3dc;}
             .qzh .dhx-lb.xp .dhx-lb-band{background:#e9f0ff;}
             .qzh .dhx-lb-body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:space-between;padding:9px 15px 12px;}
-            .qzh .dhx-lb-tag{display:flex;width:100%;align-items:center;gap:5px;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px;}
+            .qzh .dhx-lb-tag{display:flex;width:100%;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;}
             .qzh .dhx-lb-tag svg{flex:none;}
             .qzh .dhx-lb.comm .dhx-lb-tag{color:#5b21b6;}
             .qzh .dhx-lb.daily .dhx-lb-tag{color:#7c4a06;}
             .qzh .dhx-lb.xp .dhx-lb-tag{color:#1c46a8;}
             .qzh .dhx-lb-hero{display:flex;align-items:flex-end;gap:8px;min-width:0;}
-            .qzh .dhx-lb-name{display:block;flex:1;min-width:0;font-weight:800;line-height:1.18;letter-spacing:-.5px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-name{display:block;flex:1;min-width:0;font-weight:800;line-height:1.3;letter-spacing:-.5px;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb.comm .dhx-lb-name{color:#5b21b6;}
             .qzh .dhx-lb.daily .dhx-lb-name{color:#7c4a06;}
             .qzh .dhx-lb.xp .dhx-lb-name{color:#1c46a8;}
             .qzh .dhx-lb-name:hover{text-decoration:underline;}
             .qzh .dhx-lb-stat{flex:none;text-align:right;padding-bottom:3px;}
-            .qzh .dhx-lb-stat b{display:block;font-size:19px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lb-stat b{display:block;font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-stat b em{font-style:normal;font-size:12px;opacity:.7;}
-            .qzh .dhx-lb-stat i{display:block;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:600;letter-spacing:.07em;margin-top:3px;white-space:nowrap;}
+            .qzh .dhx-lb-stat i{display:block;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.07em;margin-top:3px;white-space:nowrap;}
             .qzh .dhx-lb.comm .dhx-lb-stat b{color:#7c3aed;}
             .qzh .dhx-lb.comm .dhx-lb-stat i{color:#6d28d9;}
             .qzh .dhx-lb.daily .dhx-lb-stat b{color:#a16207;}
@@ -2001,7 +2001,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb.xp .dhx-lb-stat b{color:#2563eb;}
             .qzh .dhx-lb.xp .dhx-lb-stat i{color:#1c46a8;}
             .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 13px;}
-            .qzh .dhx-lb-gi{display:flex;align-items:center;gap:6px;font-size:11.5px;min-width:0;padding:4px 0;text-decoration:none;border-bottom:1px solid #eef1f6;}
+            .qzh .dhx-lb-gi{display:flex;align-items:center;gap:6px;font-size:11.5px;min-width:0;padding:3px 0;text-decoration:none;border-bottom:1px solid #eef1f6;}
             .qzh .dhx-lb-gi:nth-last-child(-n+2){border-bottom:none;}
             .qzh .dhx-lb-gi .rk{width:14px;height:14px;border-radius:4px;flex:none;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;}
             .qzh .dhx-lb.comm .dhx-lb-gi .rk{background:#ece5fb;color:#5b21b6;}
@@ -2080,6 +2080,11 @@ export default function QuizHomeClient() {
               .qzh .dhx-lpr{flex:none !important;}
               .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;}
             }
+            @media(max-width:760px){
+              /* rails stack full width on phones: the leaderboards stay a top 5 */
+              .qzh .dhx-lb-gi:nth-child(n+5){display:none !important;}
+              .qzh .dhx-lb-gi{padding:5px 0 !important;}
+            }
           `}</style>
           <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>
             <div className="dhx-lone">
@@ -2092,7 +2097,7 @@ export default function QuizHomeClient() {
               return (
                 <div className="dhx-lb comm">
                   <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1 }} /> TOP COMMUNITY MEMBER</span>
+                    <span className="dhx-lb-tag"><Crown size={13} style={{ verticalAlign: -1 }} /> TOP COMMUNITY MEMBER</span>
                     <div className="dhx-lb-hero">
                       {nm
                         ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
@@ -2103,7 +2108,7 @@ export default function QuizHomeClient() {
                   <div className="dhx-lb-body">
                     {top.length > 1 ? (
                       <div className="dhx-lb-grid">
-                        {top.slice(1, 5).map((r, i) => (
+                        {top.slice(1, 10).map((r, i) => (
                           <Link key={i} href={`/player/${encodeURIComponent(r.username || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">{num(r.credits)}</span></Link>
                         ))}
                       </div>
@@ -2118,7 +2123,7 @@ export default function QuizHomeClient() {
             })()}
             {/* 2. Daily Puzzle Leaderboard */}
             {dailyBoard && Array.isArray(dailyBoard.overall) && dailyBoard.overall.length ? (() => {
-              const ov = dailyBoard.overall.slice(0, 5);
+              const ov = dailyBoard.overall.slice(0, 10);
               const mk = dailyBoard.me ? dailyBoard.me.userKey : null;
               const gc = dailyBoard.gameCount || 30;
               const one = ov[0];
@@ -2126,7 +2131,7 @@ export default function QuizHomeClient() {
               return (
                 <div className="dhx-lb daily">
                   <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag"><Crown size={11} style={{ verticalAlign: -1 }} /> DAILY PUZZLE LEADERBOARD</span>
+                    <span className="dhx-lb-tag"><Crown size={13} style={{ verticalAlign: -1 }} /> DAILY PUZZLE LEADERBOARD</span>
                     <div className="dhx-lb-hero">
                       {nm
                         ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
@@ -2136,7 +2141,7 @@ export default function QuizHomeClient() {
                   </div>
                   <div className="dhx-lb-body">
                     <div className="dhx-lb-grid">
-                      {ov.slice(1, 5).map((r) => (
+                      {ov.slice(1, 10).map((r) => (
                         <Link key={r.userKey} href={`/player/${encodeURIComponent(r.username || '')}`} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></Link>
                       ))}
                     </div>
@@ -2155,7 +2160,7 @@ export default function QuizHomeClient() {
               return (
                 <div className="dhx-lb xp">
                   <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag"><Star size={11} style={{ verticalAlign: -1 }} fill="currentColor" /> TOP PLAYER: {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
+                    <span className="dhx-lb-tag"><Star size={13} style={{ verticalAlign: -1 }} fill="currentColor" /> TOP PLAYER: {is30 ? 'RECENT' : 'ALL TIME'}<span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
                     <div className="dhx-lb-hero">
                       {nm
                         ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
@@ -2165,7 +2170,7 @@ export default function QuizHomeClient() {
                   </div>
                   <div className="dhx-lb-body">
                     <div className="dhx-lb-grid">
-                      {top.slice(1, 5).map((r, i) => (
+                      {top.slice(1, 10).map((r, i) => (
                         <Link key={i} href={`/player/${encodeURIComponent(r.name || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b></Link>
                       ))}
                     </div>
