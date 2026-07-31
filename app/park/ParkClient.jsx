@@ -482,6 +482,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
       <Grain />
       <div className="pk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
+          @media(max-width:460px){.pk-board-outer{padding-right:44px;}}
           @media(max-width:560px){.pk-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .pk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .pk-btn:hover{background:${COLORS.paper};}
@@ -533,7 +534,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
           </div>
 
-          <div style={{ maxWidth: 430, margin: '0 auto', position: 'relative' }}>
+          <div className="pk-board-outer" style={{ maxWidth: 430, margin: '0 auto', position: 'relative' }}>
             <div key={shake} className={`pk-lot${shake ? ' shake' : ''}`}>
               {/* the exit gap, cut through the right wall on the escape row */}
               <div style={{ position: 'absolute', right: -10, top: `${EXIT_ROW * cellPct}%`, width: 10, height: `${cellPct}%`, background: LOT }} />
