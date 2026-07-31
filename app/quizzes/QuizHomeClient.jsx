@@ -1991,7 +1991,6 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb.xp .dhx-lb-name{color:#1c46a8;}
             .qzh .dhx-lb-name:hover{text-decoration:underline;}
             .qzh .dhx-lb-stat{flex:none;text-align:right;padding-bottom:3px;}
-            .qzh .dhx-lb.xp .dhx-lb-stat i{min-width:13ch;}
             .qzh .dhx-lb-stat b{display:block;font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-stat b em{font-style:normal;font-size:12px;opacity:.7;}
             .qzh .dhx-lb-stat i{display:block;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.07em;margin-top:3px;white-space:nowrap;}
@@ -2166,7 +2165,7 @@ export default function QuizHomeClient() {
                       {nm
                         ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
                         : <span className="dhx-lb-name" style={{ fontSize: 30 }}>&mdash;</span>}
-                      <span className="dhx-lb-stat"><b>{one ? num(one.value) : '0'}</b><i>IQ &middot; {is30 ? '30D' : 'ALL TIME'}</i></span>
+                      <span className="dhx-lb-stat"><b>{one ? num(one.value) : '0'}</b><i>IQ &middot; {is30 ? '30D' : 'ALL'}</i></span>
                     </div>
                   </div>
                   <div className="dhx-lb-body">
