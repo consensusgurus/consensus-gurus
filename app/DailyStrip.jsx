@@ -735,12 +735,21 @@ export default function DailyStrip({ board = null }) {
           .dh-msc,.dh-mstrk,.dh-mlead{font-size:10px;}
           .dh-tcorner{top:6px;left:5px;gap:3px;}
           .dh-tplays{font-size:9px;}
-          /* Eight tiles, then the toggle. Two rows at four across, three at
-             three across, either way a board you can take in without scrolling. */
+          /* Eight tiles, then the toggle: exactly two rows at four across. The
+             430px block below bumps it to nine, because eight across three
+             columns leaves the bottom-right cell empty (owner, 2026-07-31). */
           .dh-board.mcut > .dh-tile:nth-child(n+9){display:none;}
           .dh-mall{display:flex;}
         }
-        @media(max-width:430px){.dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}.dh-tnm{font-size:13px;}.dh-tcat{font-size:8px;}}
+        @media(max-width:430px){
+          .dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}
+          .dh-tnm{font-size:13px;}
+          .dh-tcat{font-size:8px;}
+          /* Three across, so the cut is NINE: three full rows with no hole in
+             the corner. Same specificity as the rule above, later in source, so
+             it simply re-shows the ninth tile. */
+          .dh-board.mcut > .dh-tile:nth-child(9){display:flex;}
+        }
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
         /* Small screens: the expanded panel is IN FLOW (see DailyTilePanel), so
            the grid hides beneath it and the wrapper takes the panel's own
