@@ -468,7 +468,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
 
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Get the <b>red block</b> out through the gap in the right-hand wall. <b>Tap a block</b> to pick it up, then <b>tap the square you want it to reach</b>, and it slides there if the lane is clear.</p>
+      <p style={{ margin: '0 0 9px' }}>Get the <b>red block</b> to the <b>exit</b>, the gap in the right-hand wall. <b>Tap a block</b> to pick it up, then <b>tap the square you want it to reach</b>, and it slides there if the lane is clear.</p>
       <p style={{ margin: '0 0 9px' }}>Every block is stuck on one axis. A block lying across slides left and right only, a block standing up slides only up and down. Nothing turns, nothing jumps.</p>
       <p style={{ margin: '0 0 9px' }}>Sliding one block any distance counts as <b>one move</b>. <b>Par is {par}</b> on this board, the true minimum, found by search rather than by hand. There is <b>no undo</b>, only a restart that puts the board back and zeroes your moves, though the clock keeps running.</p>
       <p style={{ margin: 0 }}>Par scores <b>10</b>, and every two moves over costs a point down to a floor of one, so finishing always beats walking away. One free <b>hint</b> names the block to move next. <b>Sundays</b> are a much longer jam.</p>
@@ -482,7 +482,6 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
       <Grain />
       <div className="pk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
-          @media(max-width:460px){.pk-board-outer{padding-right:44px;}}
           @media(max-width:560px){.pk-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .pk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .pk-btn:hover{background:${COLORS.paper};}
@@ -512,7 +511,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Park is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Slide the blocks and get the red one out of the gap on the right. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
+                <p style={{ margin: '0 0 6px' }}>Slide the blocks and get the red one to the exit on the right. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -534,11 +533,10 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
           </div>
 
-          <div className="pk-board-outer" style={{ maxWidth: 430, margin: '0 auto', position: 'relative' }}>
+          <div style={{ maxWidth: 430, margin: '0 auto', position: 'relative' }}>
             <div key={shake} className={`pk-lot${shake ? ' shake' : ''}`}>
               {/* the exit gap, cut through the right wall on the escape row */}
               <div style={{ position: 'absolute', right: -10, top: `${EXIT_ROW * cellPct}%`, width: 10, height: `${cellPct}%`, background: LOT }} />
-              <div aria-hidden="true" style={{ position: 'absolute', right: -34, top: `${EXIT_ROW * cellPct + cellPct / 2}%`, transform: 'translateY(-50%)', color: RED_BLOCK, fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>OUT</div>
               {/* lot markings */}
               {Array.from({ length: N - 1 }).map((_, i) => (
                 <React.Fragment key={i}>
