@@ -544,7 +544,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Taire is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>{DECK} cards, all face up, {CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}. Send them all home. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
+                <p style={{ margin: '0 0 6px' }}>{DECK === 20 ? 'Twenty' : 'Sixteen'} cards, all face up, {CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}. Send them all home. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
