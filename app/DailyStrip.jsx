@@ -541,7 +541,7 @@ export default function DailyStrip({ board = null }) {
     const face = (
       <>
         <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
-        <span className="dh-tdot" style={{ background: isDone ? '#4ade80' : (ip ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
+        <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (ip ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
         {sun || pl != null ? (
           <span className="dh-tcorner">
             {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
@@ -696,23 +696,25 @@ export default function DailyStrip({ board = null }) {
         .dh-tile:hover{transform:translateY(-2px);background:#f7f9fc;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
         .dh-tile.sel{border-color:#a16207;box-shadow:0 0 0 2px #e8b43a;}
         .dh-tile.inprog{background:#fffaeb;}
-        /* A finished tile is SOLID green (owner, 2026-07-31): the completed
-           games sink to the end of the board, so the block of green is the
-           day's progress read at a glance. It is also the only tile that opens
-           the panel, hence the CTA line where its icon and chip used to be. */
-        .dh-tile.done{background:#166534;border-color:#14532d;color:#ffffff;}
-        .dh-tile.done:hover{background:#14532d;}
-        .dh-tile.done .dh-tnm{color:#ffffff;}
-        .dh-tile.done .dh-msc{color:#86efac;}
-        .dh-tile.done .dh-mstrk{color:#fcd34d;}
-        .dh-tile.done .dh-mstrk.none{color:#9ec7ac;}
-        .dh-tile.done .dh-mlead{color:#d1fae5;}
-        .dh-tile.done .dh-mlead svg{color:#fcd34d;}
-        .dh-tile.done .dh-nolead{color:#9ec7ac;}
-        .dh-tile.done .dh-tplays{color:#a7f3d0;}
+        /* A finished tile reads green (owner, 2026-07-31): the completed games
+           sink to the end of the board, so the block of green is the day's
+           progress read at a glance. It is also the only tile that opens the
+           panel, hence the CTA line where its icon and chip used to be. The
+           green is a FAINT wash with dark-green ink, not a solid fill: a solid
+           #166534 tile shipped first and read far too heavy against the white
+           board (owner, 2026-07-31). Keep any future change on the pale side. */
+        .dh-tile.done{background:#dcfce7;border-color:#16a34a;color:#14532d;}
+        .dh-tile.done:hover{background:#cdf5dc;}
+        .dh-tile.done .dh-tnm{color:#14532d;}
+        .dh-tile.done .dh-msc{color:#15803d;}
+        .dh-tile.done .dh-mstrk{color:#8a5300;}
+        .dh-tile.done .dh-mstrk.none{color:#5d7a68;}
+        .dh-tile.done .dh-mlead{color:#2f4a3a;}
+        .dh-tile.done .dh-mlead svg{color:#a16207;}
+        .dh-tile.done .dh-nolead{color:#5d7a68;}
         /* Replaces the icon + category chip on a finished tile. Wraps to two
            lines on a narrow tile, which is exactly the room those two freed. */
-        .dh-tcta{margin:6px 2px 0;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;color:#a7f3d0;max-width:100%;}
+        .dh-tcta{margin:6px 2px 0;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;color:#15803d;max-width:100%;}
         /* The play target on an unfinished tile: a real link stretched over the
            whole face, so the tile is one click from the game and still supports
            middle-click / open in new tab. It sits ABOVE the tile's own spans
