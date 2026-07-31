@@ -463,7 +463,7 @@ export default function BidClient({ puzzles = [], forceNum = null }) {
       <div key={lot.name} className="bd-row">
         <div className="bd-rowhead">
           <span style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 800, color: COLORS.ink }}>{lot.name}</span>
-          <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.accent, fontWeight: 500, whiteSpace: 'nowrap' }}>{lot.value} pts</span>
+          <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.accent, fontWeight: 500, whiteSpace: 'nowrap' }}>worth {lot.value} pts</span>
         </div>
         <div className="bd-rowctl">
           <input className="bd-range" type="range" min={0} max={cap} step={1} value={g.bids[i]}
@@ -486,6 +486,8 @@ export default function BidClient({ puzzles = [], forceNum = null }) {
           .bd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .bd-btn:hover{background:${COLORS.paper};}
           .bd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .bd-lothead{display:flex;align-items:center;gap:12px;padding:0 2px 7px;font-family:${MONO};font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;color:${COLORS.faded};}
+          .bd-lotheadbid{margin-left:auto;width:74px;flex:0 0 auto;text-align:center;}
           .bd-row{border-top:1px solid rgba(28,30,36,0.14);padding:11px 2px 12px;}
           .bd-row:first-child{border-top:none;}
           .bd-rowhead{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;}
@@ -551,6 +553,10 @@ export default function BidClient({ puzzles = [], forceNum = null }) {
                 <span style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, fontWeight: 500 }}>of {BUDGET}</span>
               </div>
 
+              <div className="bd-lothead">
+                <span>Lot &middot; what it is worth</span>
+                <span className="bd-lotheadbid">Your bid</span>
+              </div>
               <div>{lotRows}</div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
