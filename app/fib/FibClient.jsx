@@ -176,11 +176,15 @@ function clueState(cl, vals, n) {
   const holds = cl[4] === '>' ? a > b : a < b;
   return holds ? 'ok' : 'broken';
 }
+// Vertical signs are the SAME ascii character turned a quarter turn, never the
+// U+2227/U+2228 wedges: those are missing from DM Mono (and from Manrope on the
+// share card), so they land on an arbitrary fallback font or render as tofu.
+// Rotating '>' a quarter turn clockwise swings its open end from left to up, so
+// it still points at the larger number, and '<' points down the same way.
 function clueGlyph(cl) {
-  const vertical = cl[0] !== cl[2];
-  if (!vertical) return cl[4] === '>' ? '>' : '<';
-  return cl[4] === '>' ? '∨' : '∧';
+  return cl[4] === '>' ? '>' : '<';
 }
+const isVertical = (cl) => cl[0] !== cl[2];
 // duplicates in a row or column, for free (unscored) feedback
 function dupSet(vals, n) {
   const bad = new Set();
@@ -639,7 +643,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           boxShadow: accused || isLiar ? `inset 0 0 0 1.5px ${COLORS.rust}` : undefined,
         }}
       >
-        <span style={{ fontFamily: MONO, fontSize: signFs, lineHeight: 1, fontWeight: st === 'broken' || accused ? 500 : 400, color: col }}>{clueGlyph(cl)}</span>
+        <span style={{ fontFamily: MONO, fontSize: signFs, lineHeight: 1, fontWeight: st === 'broken' || accused ? 500 : 400, color: col, display: 'inline-block', transform: isVertical(cl) ? 'rotate(90deg)' : undefined }}>{clueGlyph(cl)}</span>
       </div>
     );
   }
