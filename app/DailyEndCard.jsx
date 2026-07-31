@@ -55,7 +55,6 @@ import {
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
-import shareDayCard from './shareDayCard';
 
 const RUST = '#c0392b';
 
@@ -251,7 +250,6 @@ export default function DailyEndCard({
   const [iqResolved, setIqResolved] = useState(false); // iq-standing answered (or gave up retrying)
   const [openTile, setOpenTile] = useState(null);     // which rank tile is expanded: 'iq'|'today'|'alltime'|'combined'|null
   const [calOpen, setCalOpen] = useState(false);      // calendar slip expanded
-  const [dayBusy, setDayBusy] = useState(false);      // 'Share my day' card is rendering
   const [calMonth, setCalMonth] = useState(() => etTodayEC().slice(0, 7)); // 'YYYY-MM'
 
   // Win reveal delay: on a win, hold the popup back ~2s so the player sees the
@@ -765,17 +763,6 @@ export default function DailyEndCard({
     </div>
   );
 
-  // Share the whole day as one 1080x1080 card (brain meter filled by how much of
-  // the slate is cleared, the day's IQ gain, the standing tiles). Native share
-  // sheet where the browser takes files, download everywhere else. The credit
-  // pop-up follows so the player has their referral link to post with the image.
-  const shareDay = async () => {
-    if (dayBusy) return;
-    setDayBusy(true);
-    try { await shareDayCard(); } catch (e) { /* nothing to show: the button just re-enables */ }
-    setDayBusy(false);
-  };
-
   const inner = (
     <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
       {modal && (
@@ -816,11 +803,12 @@ export default function DailyEndCard({
         .dec-idbox .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         button.dec-idbox{cursor:pointer;color:${BLUE};background:#eff4fd;border-color:#cfe0fb;padding:8px 15px;}
         button.dec-idbox:hover{background:#e4eefc;}
+        /* Registered chip links to the public player profile; the chevron marks
+           it as clickable (owner 2026-07-31, replacing the Share-my-day slot). */
+        a.dec-idbox{text-decoration:none;cursor:pointer;transition:background .12s ease;}
+        a.dec-idbox:hover{background:#eef0f4;}
         .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
         .dec-share:hover{filter:brightness(1.12);}
-        .dec-day{font-family:${SANS};font-weight:800;font-size:12.5px;color:${BLUE};background:#eff4fd;border:1px solid #d7e3f8;border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
-        .dec-day:hover{background:#e4edfb;}
-        .dec-day[disabled]{opacity:.6;cursor:default;}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
@@ -1020,16 +1008,12 @@ export default function DailyEndCard({
           <button type="button" className="dec-share" onClick={onShare}>
             <Share2 size={14} strokeWidth={2.2} /> Share result{!/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
           </button>
-          {doneCount >= 3 ? (
-            <button type="button" className="dec-day" onClick={shareDay} disabled={dayBusy}>
-              <Brain size={14} strokeWidth={2.2} /> {dayBusy ? 'Building\u2026' : 'Share my day'}
-            </button>
-          ) : null}
           {hasEmail && username ? (
-            <span className="dec-idbox">
+            <a className="dec-idbox" href={`/player/${encodeURIComponent(username)}`} aria-label={`Open ${username}'s player profile`}>
               <span className="av" style={{ background: meta.accent }}>{String(username).slice(0, 1).toUpperCase()}</span>
               <span className="nm">{username}</span>
-            </span>
+              <ChevronRight size={14} strokeWidth={2.4} style={{ flexShrink: 0, opacity: 0.7 }} />
+            </a>
           ) : (
             <button type="button" className="dec-idbox guest" onClick={goRegister}>
               <UserPlus size={15} strokeWidth={2.2} /> Sign up
