@@ -190,6 +190,12 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-act.dgg-share{background:#fdf6e4;border-color:#f0e3bb;}
         .dgg-light .dgg-act.dgg-share .dgg-act-l{color:#5c4a06;}
         .dgg-light .dgg-act.dgg-share svg{color:#c58a12;}
+        /* The .dgg-again tint must be scoped to .dgg-light too: the unscoped
+           rule ties on specificity with .dgg-light .dgg-t and loses on order,
+           so the button rendered white. Same pattern as challenge/share. */
+        .dgg-light .dgg-act.dgg-again{background:#eef7f1;border-color:#cfe6d8;}
+        .dgg-light .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
+        .dgg-light .dgg-act.dgg-again svg{color:#16a34a;}
       `}</style>
       {replay ? (
         <div className="dgg-replay">
