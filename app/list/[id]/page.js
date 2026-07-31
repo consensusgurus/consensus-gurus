@@ -134,12 +134,14 @@ export async function generateMetadata({ params }) {
   const url = `/list/${encodeURIComponent(id)}`;
   const description = generateSeoDescription(list, consensusItems);
 
+  const seoTitle = list.seoTitle || list.title;
+
   return {
-    title: list.title,
+    title: seoTitle,
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: `${list.title} | Source of Truths`,
+      title: `${seoTitle} | Source of Truths`,
       description,
       url,
       type: 'article',
@@ -147,7 +149,7 @@ export async function generateMetadata({ params }) {
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${list.title} | Source of Truths`,
+      title: `${seoTitle} | Source of Truths`,
       description,
     },
   };
