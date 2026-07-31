@@ -449,17 +449,33 @@ export default function DailyStrip({ board = null }) {
       const vis = Math.max(1, Math.ceil(BOARD_WINDOW / cols));
       const tiles = bd.children;
       if (!tiles.length) return;
+      const totalRows = Math.ceil(tiles.length / cols);
       // Distance from one row to the next, gap included, for the shift.
-      const rowStep = tiles.length > cols
-        ? tiles[cols].offsetTop - tiles[0].offsetTop
-        : tiles[0].offsetHeight + GAP;
+      //
+      // Read FRACTIONALLY off the grid's own box, not from offsetTop: a tile is
+      // 127.09px tall on a 135.09px step, and offsetTop/offsetHeight round to
+      // whole pixels, so an integer step drifted a tenth of a pixel per shifted
+      // row (owner, 2026-07-31). The parent's rect is immune to a child tile's
+      // :hover transform, which a per-tile rect is not.
+      const bdH = bd.getBoundingClientRect().height;
+      const rowStep = totalRows > 1 && bdH > 1
+        ? (bdH + GAP) / totalRows
+        : (tiles.length > cols
+          ? tiles[cols].offsetTop - tiles[0].offsetTop
+          : tiles[0].offsetHeight + GAP);
       if (!(rowStep > 1)) return;
       // The window height is taken from the BOTTOM OF THE LAST VISIBLE TILE
       // rather than from vis * rowStep. Row heights can settle a pixel or two
       // late (web fonts, tile art), and multiplying an early row step left the
       // last row clipped by the accumulated error.
+      //
+      // Plus two pixels of slack. The rounded measurement above came out under
+      // a pixel short of the true row bottom, which was enough to shave the
+      // last row's 1.5px bottom border and make the bottom row read as cut off.
+      // The slack can only expose part of the 8px gap below the row, never a
+      // tile.
       const last = tiles[Math.min(vis * cols, tiles.length) - 1];
-      const windowH = last.offsetTop + last.offsetHeight - tiles[0].offsetTop;
+      const windowH = last.offsetTop + last.offsetHeight - tiles[0].offsetTop + 2;
       if (!(windowH > 1)) return;
       const maxOffset = Math.max(0, Math.ceil(list.length / cols) - vis);
       setMetrics((cur) => (cur && cur.rowStep === rowStep && cur.windowH === windowH
