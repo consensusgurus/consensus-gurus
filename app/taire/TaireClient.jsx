@@ -51,6 +51,10 @@ const CARD_FACE = '#fdfcf9';
 const CARD_EDGE = 'rgba(20,22,28,0.30)';
 const RED_PIP = '#c0392b';
 const BLACK_PIP = '#1c1e24';
+// Cards carry their rank and suit in the TOP-LEFT corner, the way real cards
+// do, because that corner is the only part of a covered card you can see. The
+// fan reveals REVEAL px of each card beneath, which is exactly the index block.
+const CARD_W = 52, CARD_H = 74, REVEAL = 26;
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -161,22 +165,24 @@ function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vi
 const freshState = () => ({ v: 1, moves: [], restarts: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null });
 const scoreFor = (used, par) => Math.max(1, Math.min(10, 10 - Math.floor(Math.max(0, used - par) / 2)));
 
-function CardFace({ card, small, dim, outline, onClick, label }) {
+function CardFace({ card, covered, outline, onClick, label }) {
   const red = suitOf(card) === 1;
-  const w = small ? 38 : 44;
+  const pip = red ? '♥' : '♠';
   return (
     <div onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={-1} aria-label={label}
       className="ta-card"
       style={{
-        width: w, height: Math.round(w * 1.4), borderRadius: 6, background: CARD_FACE,
-        border: `1px solid ${CARD_EDGE}`, boxShadow: '0 1px 2px rgba(20,22,28,0.28)',
+        width: CARD_W, height: CARD_H, borderRadius: 7, background: CARD_FACE,
+        border: `1px solid ${CARD_EDGE}`,
+        boxShadow: covered ? 'inset 0 -7px 9px -7px rgba(20,22,28,0.42)' : '0 2px 5px rgba(20,22,28,0.34)',
         color: red ? RED_PIP : BLACK_PIP, fontFamily: SANS, fontWeight: 800,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
-        lineHeight: 1, cursor: onClick ? 'pointer' : 'default', opacity: dim ? 0.42 : 1,
+        position: 'relative', lineHeight: 1, cursor: onClick ? 'pointer' : 'default',
         outline: outline || 'none', outlineOffset: outline ? '1px' : 0, userSelect: 'none',
+        flexShrink: 0,
       }}>
-      <span style={{ fontSize: small ? 14 : 16 }}>{RANK_LABEL[rankOf(card)]}</span>
-      <span style={{ fontSize: small ? 12 : 14, marginTop: 1 }}>{red ? '♥' : '♠'}</span>
+      <span style={{ position: 'absolute', top: 5, left: 6, fontSize: 15, letterSpacing: '-0.04em' }}>{RANK_LABEL[rankOf(card)]}</span>
+      <span style={{ position: 'absolute', top: 21, left: 7, fontSize: 12 }}>{pip}</span>
+      {!covered && <span style={{ position: 'absolute', right: 7, bottom: 5, fontSize: 26, opacity: 0.92 }}>{pip}</span>}
     </div>
   );
 }
@@ -184,7 +190,7 @@ function Slot({ children, onClick, live, label }) {
   return (
     <div onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={-1} aria-label={label}
       style={{
-        width: 44, height: 62, borderRadius: 6, border: `1.5px dashed ${live ? '#fff' : 'rgba(255,255,255,0.34)'}`,
+        width: CARD_W, height: CARD_H, borderRadius: 7, border: `1.5px dashed ${live ? '#fff' : 'rgba(255,255,255,0.34)'}`,
         background: live ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: onClick ? 'pointer' : 'default',
@@ -512,8 +518,8 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           .ta-card:active{transform:translateY(1px);}
           .ta-felt.shake{animation:tashake .34s ease;}
           @keyframes tashake{0%,100%{transform:translateX(0);}22%{transform:translateX(-6px);}55%{transform:translateX(6px);}80%{transform:translateX(-3px);}}
-          .ta-cols{display:grid;grid-template-columns:repeat(5,44px);gap:10px;justify-content:center;}
-          @media(max-width:420px){.ta-cols{grid-template-columns:repeat(5,38px);gap:6px;}}
+          .ta-cols{display:grid;grid-template-columns:repeat(5,${CARD_W}px);gap:14px;justify-content:center;}
+          @media(max-width:430px){.ta-cols{gap:7px;}}
         `}</style>
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
@@ -555,6 +561,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
           </div>
 
+          <div style={{ maxWidth: 430, margin: '0 auto' }}>
           <div key={shake} className={`ta-felt${shake ? ' shake' : ''}`}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
               <div>
@@ -596,7 +603,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
                 return (
                   <div key={j} onClick={() => (col.length ? null : onDest(j))}
                     style={{
-                      minHeight: 96, borderRadius: 7, padding: 3,
+                      minHeight: CARD_H + REVEAL * 3 + 8, borderRadius: 7, padding: 3,
                       border: live ? '1.5px dashed #fff' : '1.5px dashed rgba(255,255,255,0.16)',
                       background: live ? 'rgba(255,255,255,0.16)' : 'transparent',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, cursor: live ? 'pointer' : 'default',
@@ -604,19 +611,20 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
                     {col.map((card, k) => {
                       const isBottom = k === col.length - 1;
                       return (
-                        <div key={card} style={{ marginTop: k === 0 ? 0 : -32 }}>
+                        <div key={card} style={{ marginTop: k === 0 ? 0 : -(CARD_H - REVEAL), zIndex: k }}>
                           <CardFace card={card} label={`${RANK_LABEL[rankOf(card)]} of ${suitOf(card) === 1 ? 'hearts' : 'spades'}`}
                             onClick={() => (isBottom ? onCard(card) : live ? onDest(j) : onCard(col[col.length - 1]))}
-                            dim={!isBottom && playing}
+                            covered={!isBottom}
                             outline={sel === card ? `3px solid ${COLORS.ink}` : hintCards && hintCards.includes(card) ? '3px solid #facc15' : null} />
                         </div>
                       );
                     })}
-                    {!col.length && <div style={{ height: 62, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: MONO }}>empty</div>}
+                    {!col.length && <div style={{ height: CARD_H, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: MONO }}>empty</div>}
                   </div>
                 );
               })}
             </div>
+          </div>
           </div>
 
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
