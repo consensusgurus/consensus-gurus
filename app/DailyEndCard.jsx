@@ -908,10 +908,14 @@ export default function DailyEndCard({
         .dec-iqhero-in{position:relative;display:flex;align-items:center;justify-content:center;gap:16px;}
         /* Brain meter: empty art as the base, the filled art clipped to the
            slate fraction and anchored to the bottom, so it fills upward. */
-        .dec-brain{position:relative;display:block;flex:0 0 auto;width:78px;height:70px;}
-        .dec-brain img{display:block;width:78px;height:70px;object-fit:contain;}
-        .dec-brain-base{opacity:.5;}
-        .dec-brain-fill{position:absolute;left:0;bottom:0;width:78px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
+        .dec-brain{position:relative;display:block;flex:0 0 auto;width:92px;height:83px;}
+        .dec-brain img{display:block;width:92px;height:83px;object-fit:contain;}
+        /* The empty art is drawn pale for the day card's WHITE background and
+           all but vanishes on this tinted panel, so push it to a legible grey.
+           Grey unfilled against blue/green filled is what makes it read as a
+           meter at a glance (verified on the live styles, 2026-07-31). */
+        .dec-brain-base{opacity:1;filter:contrast(1.5) brightness(.88);}
+        .dec-brain-fill{position:absolute;left:0;bottom:0;width:92px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
         .dec-iqhero-txt{display:flex;flex-direction:column;align-items:flex-start;min-width:0;}
         .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3d63a8;}
         .dec-iqhero.full .dec-iqhero-lbl{color:#0f6e56;}
@@ -1068,8 +1072,8 @@ export default function DailyEndCard({
           .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
           .dec-iqhero{padding:13px 12px 11px;}
           .dec-iqhero-in{gap:11px;}
-          .dec-brain,.dec-brain img,.dec-brain-fill{width:58px;}
-          .dec-brain,.dec-brain img{height:52px;}
+          .dec-brain,.dec-brain img,.dec-brain-fill{width:66px;}
+          .dec-brain,.dec-brain img{height:59px;}
           .dec-iqhero-gain{font-size:42px;}
           .dec-iqhero-slate{font-size:10.5px;}
           .dec-iqhero-sub{font-size:11.5px;gap:3px 12px;margin-top:8px;padding-top:7px;}
