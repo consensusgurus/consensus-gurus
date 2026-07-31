@@ -181,7 +181,7 @@ function heroFor(id, dept) {
 // Business News hub quizzes are normally kept out of the Newest tile/panel, but
 // individual ids can be allowlisted to headline there (owner decision). The Netflix
 // earnings quiz is allowlisted so its print-day quiz can be the Newest tile.
-const NEWEST_BN_ALLOW = new Set(['paypal-2q26-earnings-quiz', 'netflix-2q26-earnings-quiz', 'tesla-2q26-earnings-quiz', 'alphabet-2q26-earnings-quiz', 'intel-2q26-earnings-quiz']);
+const NEWEST_BN_ALLOW = new Set(['weekly-business-quiz-2026-07-31', 'paypal-2q26-earnings-quiz', 'netflix-2q26-earnings-quiz', 'tesla-2q26-earnings-quiz', 'alphabet-2q26-earnings-quiz', 'intel-2q26-earnings-quiz']);
 const bnHiddenFromNewest = (id) => isBusinessNewsHubQuiz(id) && !NEWEST_BN_ALLOW.has(id);
 
 // Per-quiz completion status for the CURRENT player, supplied once at the top of
