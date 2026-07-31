@@ -26,8 +26,9 @@
 //   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
 //      (the thinnest field, a podium is easiest there);
 //   6. "More of today's games" — the still-to-play games grouped by family;
-//   7. a bottom actions row — Leaderboards, Play a past <Game>, and a right-hand
-//      "Daily puzzle landing page" link.
+//   7. a bottom actions row — Leaderboards, Try again (replays TODAY's drop via
+//      the caller's onReplay; restored 2026-07-31 after the rework dropped it),
+//      Play a past <Game>, and a right-hand "Daily puzzle landing page" link.
 //
 // Each client passes only its result strings + handlers (unchanged API):
 //   <DailyEndCard modal self="tuck" completed
@@ -43,7 +44,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, Check, X,
+  Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, RefreshCw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
@@ -183,7 +184,12 @@ const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
  * @param headline       DEPRECATED, no longer rendered
  * @param subline        DEPRECATED, no longer rendered
  * @param onShare / shareLabel   share handler + label
- * @param onReplay      replay handler (unused by the new layout, kept for API compat)
+ * @param onReplay      replay handler; renders the "Try again" button in the foot.
+ *                       The board's FIRST completed attempt is what the daily
+ *                       leaderboard and the local streak keep (see the first-
+ *                       completion selection in /api/quiz/daily-game and the
+ *                       write-once recordStat in each client), so a replay is
+ *                       free practice and never overwrites the recorded run.
  * @param onClose       closes any celebration modal; run before scroll
  * @param boardId       leaderboard element id to scroll to (default "daily-leaderboard")
  * @param onLeaderboard optional override for the whole close+scroll behavior
@@ -579,6 +585,17 @@ export default function DailyEndCard({
     if (typeof document !== 'undefined') {
       const el = document.getElementById('daily-join') || document.getElementById(boardId);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // "Try again": close the card, hand the board back to the caller's resetGame,
+  // and return the reader to the top of the page so they land on the fresh
+  // board rather than halfway down the leaderboard.
+  const goReplay = () => {
+    if (onClose) onClose();
+    if (onReplay) onReplay();
+    if (typeof window !== 'undefined') {
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
     }
   };
 
@@ -1240,6 +1257,11 @@ export default function DailyEndCard({
         <button type="button" className="dec-btn" onClick={() => openPanel('today')}>
           <BarChart3 size={15} strokeWidth={2} /> Leaderboards
         </button>
+        {onReplay ? (
+          <button type="button" className="dec-btn" onClick={goReplay}>
+            <RefreshCw size={15} strokeWidth={2} /> Try again
+          </button>
+        ) : null}
         {pastHref ? (
           <a className="dec-btn ink" href={pastHref}>
             <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}

@@ -15,8 +15,10 @@
 //
 // Scoring: crack the case for max(1, TOTAL - 2×wrong accusations) out of TOTAL,
 // where TOTAL is 3 facts per suspect (12 on a weekday, 15 on a Sunday) — a
-// first-try accusation is a perfect 12. Ties on the daily board break by
-// fewest wrong accusations, then fastest time. Revealing ends the day at 0.
+// first-try accusation is a perfect 12. A wrong accusation is told only that it
+// is wrong, never how many marks are off, and you keep deducing. Ties on the
+// daily board break by fewest wrong accusations, then fastest time. Revealing
+// ends the day at 0.
 //
 // Same daily plumbing as Circa/Suds/Stet: banked cases gated by Eastern date
 // on the server (app/alibi/page.js), per-puzzle localStorage saves, /alibi?p=N
@@ -495,7 +497,9 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
     if (placed < TOTAL) { setVerdict({ soft: true, msg: `You've confirmed ${placed} of ${TOTAL} facts — keep deducing before you accuse.` }); return; }
     if (wrong > 0) {
       setG((cur) => ({ ...cur, wrong: cur.wrong + 1, t0: cur.t0 || Date.now() }));
-      setVerdict({ msg: `Not quite — ${wrong} of your ● marks ${wrong === 1 ? 'is' : 'are'} wrong.` });
+      // Deliberately vague: naming HOW MANY marks are wrong hands back a slice
+      // of the solution, so a wrong accusation only says that it is wrong.
+      setVerdict({ msg: "You're wrong. Try again. Each wrong accusation costs 2." });
       return;
     }
     const g2 = { ...g, status: 'done', tEnd: Date.now(), t0: g.t0 || Date.now() };
