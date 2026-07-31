@@ -545,7 +545,9 @@ export function TrophyCase({ trophies, viewing }) {
     return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>Play a few games and the trophy case fills in here.</div>;
   }
   const { list, earnedCount, total } = trophies;
-  const rarity = (t) => (t.pct > 0 && t.pct < 1 ? '<1' : Math.round(t.pct)) + '% of players';
+  // An EARNED trophy always has at least one holder, so a pct that rounds to
+  // zero (1 of thousands) reads '<1%', never '0%'.
+  const rarity = (t) => ((t.pct > 0 && t.pct < 1) || (t.earned && !t.pct) ? '<1' : Math.round(t.pct)) + '% of players';
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
