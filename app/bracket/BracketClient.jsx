@@ -56,6 +56,9 @@ function fmtValue(v, unit) {
   if (unit === 'm') return v.toLocaleString('en-US') + ' m';
   if (unit === 'usdm') return v >= 1000 ? '$' + (v / 1000).toFixed(2) + 'B' : '$' + v + 'M';
   if (unit === 'lat') return Math.abs(v).toFixed(1) + '° ' + (v >= 0 ? 'N' : 'S');
+  if (unit === 'km') return v.toLocaleString('en-US') + ' km';
+  if (unit === 'people') return v.toLocaleString('en-US');
+  if (unit === 'seats') return v.toLocaleString('en-US') + ' seats';
   return String(v);
 }
 
