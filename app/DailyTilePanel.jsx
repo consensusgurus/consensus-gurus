@@ -117,7 +117,6 @@ export default function DailyTilePanel({
     const vals = drops.slice(-TREND_MAX).map((d) => ({
       iso: d.dateISO, href: d.href, isToday: d.isToday,
       pts: (per[d.dateISO] != null ? Number(per[d.dateISO]) : null),
-      plays: (d.players != null ? Number(d.players) : null),
     }));
     const played = vals.filter((v) => v.pts != null);
     const max = played.length ? Math.max(...played.map((v) => v.pts)) : 0;
@@ -126,7 +125,7 @@ export default function DailyTilePanel({
   }, [drops, mine]);
   const avgPct = (trend.max > 0 && trend.avg != null) ? Math.min(97, (trend.avg / trend.max) * 100) : null;
   // Past ~12 columns a per-bar date label stops fitting, so the chart falls back
-  // to the two end dates and the player bubbles shrink.
+  // to the two end dates.
   const denseTrend = trend.vals.length > 12;
 
   const board = (allTime && Array.isArray(allTime.board)) ? allTime.board.slice(0, 3) : [];
@@ -286,21 +285,16 @@ export default function DailyTilePanel({
           <div className="dtp-empty">Loading your history…</div>
         ) : trend.count > 0 ? (
           <>
-            {/* The chart is three parallel rows sharing one column rule, so the
-                player bubble, the bar and the date always line up. The dashed
-                average line stays inside the bar row, whose height is the only
-                thing the bar percentages are measured against. */}
+            {/* The chart is two parallel rows sharing one column rule, so the
+                bar and its date always line up. The dashed average line stays
+                inside the bar row, whose height is the only thing the bar
+                percentages are measured against. The per-day player counts
+                that used to ride above the bars are gone (owner, 2026-07-31):
+                on a phone the pills were wider than their own column and piled
+                into an unreadable smear, and the chart is about YOUR scores. */}
             <div className="dtp-tkey">
               <span><i className="sw bar" />Your daily points</span>
               {trend.avg != null ? <span><i className="sw avg" />Your average, {fmtPts(trend.avg)}</span> : null}
-              <span><i className="sw bub" />Players that day</span>
-            </div>
-            <div className={'dtp-bubrow' + (denseTrend ? ' dense' : '')} aria-hidden="true">
-              {trend.vals.map((v) => (
-                <span key={'p' + v.iso} className="dtp-bubc">
-                  {v.plays ? <i className={'dtp-bub' + (v.isToday ? ' today' : '')}>{v.plays}</i> : null}
-                </span>
-              ))}
             </div>
             <div className="dtp-bars">
               {avgPct != null ? (
@@ -311,8 +305,7 @@ export default function DailyTilePanel({
               {trend.vals.map((v) => {
                 const h = v.pts != null && trend.max > 0 ? Math.max(5, (v.pts / trend.max) * 100) : 0;
                 const title = shortDate(v.iso)
-                  + (v.pts != null ? ' · you scored ' + fmtPts(v.pts) : ' · you did not play')
-                  + (v.plays ? ' · ' + v.plays + (v.plays === 1 ? ' player' : ' players') + ' that day' : '');
+                  + (v.pts != null ? ' · you scored ' + fmtPts(v.pts) : ' · you did not play');
                 return (
                   <a key={v.iso} href={v.href} className="dtp-barw" title={title} aria-label={title}>
                     {v.pts != null
@@ -434,18 +427,9 @@ export default function DailyTilePanel({
         .dtp-tkey .sw{flex:none;display:inline-block;}
         .dtp-tkey .sw.bar{width:7px;height:11px;border-radius:2px;background:var(--gc);opacity:.85;}
         .dtp-tkey .sw.avg{width:14px;height:0;border-top:1px dashed #8a9bb8;}
-        .dtp-tkey .sw.bub{width:9px;height:9px;border-radius:999px;background:#f2f5fa;border:1px solid #c3ccda;}
-        /* the count bubbles ride in their own row above the bars, so a tall bar
-           never collides with its number and the plot just gets shorter */
         /* every row reserves the same right gutter (--agut) so the columns stay in
            lockstep and the average label has clear space to sit in */
         .dtp-trend{--agut:44px;}
-        .dtp-bubrow{flex:none;display:flex;gap:3px;margin-bottom:3px;min-height:15px;padding-right:var(--agut);}
-        .dtp-bubc{flex:1 1 0;min-width:0;max-width:48px;display:flex;align-items:flex-end;justify-content:center;}
-        .dtp-bub{font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;line-height:1;color:#46506a;
-                 background:#f2f5fa;border:1px solid #dde3ec;border-radius:999px;padding:2px 5px;white-space:nowrap;}
-        .dtp-bub.today{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:#8a5300;}
-        .dtp-bubrow.dense .dtp-bub{font-size:8px;padding:1px 3px;}
         .dtp-bars{position:relative;flex:1 1 auto;min-height:48px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #dde3ec;padding-bottom:1px;padding-right:var(--agut);}
         .dtp-avg{position:absolute;left:0;right:var(--agut);height:0;border-top:1px dashed #c3ccda;pointer-events:none;}
         .dtp-avg i{position:absolute;left:100%;bottom:-6px;margin-left:5px;font-style:normal;white-space:nowrap;
@@ -469,7 +453,13 @@ export default function DailyTilePanel({
              it, and the page scrolls normally with no nested scroller. */
           .dtp{position:static;overflow:visible;height:auto;border-radius:11px;animation:none;}
           .dtp-trend{min-height:0;}
-          .dtp-bars{min-height:74px;}
+          /* An explicit HEIGHT, not min-height (owner, 2026-07-31: "the graphs
+             look completely broken on mobile"). In flow the panel is auto
+             height, so .dtp-bars had no definite height, so every bar's
+             percentage height resolved against nothing and collapsed to the
+             3px min: the chart rendered as a row of identical nubs. A real
+             height makes the percentages resolve again. */
+          .dtp-bars{height:118px;min-height:0;}
           .dtp-grid{grid-template-columns:1fr 1fr;gap:16px;}
           .dtp-col:nth-child(3){grid-column:1/-1;}
         }
