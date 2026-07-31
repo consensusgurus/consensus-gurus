@@ -787,7 +787,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
-          <DailyGamesGrid
+          <DailyGamesGrid replay={!playing && result ? resetGame : null}
             self="outrank"
             maxWidth={640}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}

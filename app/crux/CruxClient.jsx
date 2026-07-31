@@ -1194,7 +1194,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         )}
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
         <div style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
-          <DailyGamesGrid
+          <DailyGamesGrid replay={!playing ? resetGame : null}
           self="crux"
           maxWidth={640}
           challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}

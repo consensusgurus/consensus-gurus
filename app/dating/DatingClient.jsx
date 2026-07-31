@@ -801,7 +801,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
-          <DailyGamesGrid
+          <DailyGamesGrid replay={!playing ? resetGame : null}
             self="dating"
             maxWidth={620}
             light

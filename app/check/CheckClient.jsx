@@ -683,7 +683,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
-          <DailyGamesGrid self="check" maxWidth={620}
+          <DailyGamesGrid replay={!playing ? resetGame : null} self="check" maxWidth={620}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
             share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light
             boardSlot={<DailyBoardPanel self="check" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}

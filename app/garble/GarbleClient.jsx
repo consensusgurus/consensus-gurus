@@ -611,7 +611,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         {/* daily-page bottom group: challenge + share + other puzzles + archive, divider below */}
-        {!focusMode && (<DailyGamesGrid
+        {!focusMode && (<DailyGamesGrid replay={ended ? resetGame : null}
           self="garble"
           maxWidth={640}
           challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}

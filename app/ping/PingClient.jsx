@@ -779,7 +779,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
-          <DailyGamesGrid
+          <DailyGamesGrid replay={!playing ? resetGame : null}
             self="ping"
             maxWidth={620}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}

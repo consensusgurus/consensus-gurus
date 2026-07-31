@@ -771,7 +771,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
-          <DailyGamesGrid
+          <DailyGamesGrid replay={!playing ? resetGame : null}
             self="alibi"
             maxWidth={640}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}

@@ -1,7 +1,18 @@
 'use client';
 
 // The "keep playing / share" group shown on each daily-game page, directly under
-// the puzzle and above the leaderboard. Two parts:
+// the puzzle and above the leaderboard. Three parts:
+//   0. a "Play Today's Puzzle Again" button pinned to the TOP of the block, i.e.
+//      the bottom of the play space, shown only once the board is finished
+//      (owner, 2026-07-31). Before this the ONLY replay control was the "Try
+//      again" button inside the DailyEndCard modal, so a player who dismissed
+//      that card, or returned to a finished board from a hub "Play again" link,
+//      had no way to replay the day's puzzle. The caller passes its own
+//      resetGame as `replay`, already gated on its finished state, so an absent
+//      or null prop simply drops the button. A replay is practice: the first
+//      completed attempt is what the daily leaderboard and the local streak
+//      keep (write-once recordStat in each client), so it never overwrites the
+//      recorded run;
 //   1. an actions row (Challenge a Friend + Share This Puzzle) — a larger 2-up
 //      block on its own (only when the page passes challengeHref/share); and
 //   2. the games grid — the OTHER dailies (plus one evergreen popular quiz to
@@ -14,7 +25,7 @@
 // registry here adds it to every other game's page.
 
 import React, { useState, useEffect } from 'react';
-import { Swords, Share2, Check } from 'lucide-react';
+import { Swords, Share2, Check, RotateCcw } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
 
@@ -76,7 +87,7 @@ const CATEGORIES = [
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'mate', 'four', 'park', 'check', 'taire', 'fib'] },
 ];
 
-export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null, light = false }) {
+export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null, light = false, replay = null }) {
   // "(for credit)" is appended only for a registered viewer: their share link
   // carries their referral code, so the share genuinely earns them credit. A
   // signed-out visitor sees the plain label rather than a promise we can't keep.
@@ -116,6 +127,16 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
   }, []);
   const completed = donePerGame ? new Set(Object.keys(donePerGame).filter((k) => !(donePerGame[k] && donePerGame[k].abandoned))) : new Set();
 
+  // Replay: hand the board back to the caller's resetGame, then return the
+  // reader to the top of the page so they land on the fresh board rather than
+  // halfway down the leaderboard. Mirrors goReplay in DailyEndCard.
+  const goReplay = () => {
+    if (typeof replay === 'function') replay();
+    if (typeof window !== 'undefined') {
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+    }
+  };
+
   const actionCount = (challengeHref ? 1 : 0) + (share ? 1 : 0);
 
   return (
@@ -144,6 +165,11 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act svg{flex:0 0 auto;}
         .dgg-act.dgg-challenge svg{color:#5b8bff;}
         .dgg-act.dgg-share svg{color:#f8b84a;}
+        .dgg-replay{margin-bottom:12px;}
+        .dgg-act.dgg-again{min-height:64px;background:#eef7f1;border-color:#cfe6d8;}
+        .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
+        .dgg-act.dgg-again svg{color:#16a34a;}
+        .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:#3f6b4e;}
 
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
            bottom section matches the end-of-game card. Game icons are kept. */
@@ -165,6 +191,17 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-act.dgg-share .dgg-act-l{color:#5c4a06;}
         .dgg-light .dgg-act.dgg-share svg{color:#c58a12;}
       `}</style>
+      {replay ? (
+        <div className="dgg-replay">
+          <button type="button" onClick={goReplay} className="dgg-t dgg-act dgg-again" aria-label="Play today's puzzle again">
+            <RotateCcw size={20} strokeWidth={2.5} />
+            <span className="dgg-act-l">
+              Play Today&apos;s Puzzle Again
+              <span className="dgg-act-s">Practice run. Your recorded result and streak stand.</span>
+            </span>
+          </button>
+        </div>
+      ) : null}
       {self ? (
         <div style={{ marginBottom: 12 }}>
           <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />

@@ -328,6 +328,19 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
     } catch (e) {}
   }
 
+  // "Play again" (the button under the board, and the end card's Try again):
+  // wipe the saved board and run today's gauntlet again as practice. The first
+  // completed attempt is what the daily leaderboard and the local streak keep
+  // (recordStat is write-once per puzzle number), so a replay never overwrites
+  // the recorded run.
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    setG(freshState());
+    setQStart(null);
+    setLock(false);
+    setEndClosed(false);
+  }
+
   function commit(next) { gRef.current = next; setG(next); }
   function startGame() {
     const cur = gRef.current;
@@ -592,7 +605,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
-          <DailyGamesGrid self="streak" maxWidth={620}
+          <DailyGamesGrid replay={!playing ? resetGame : null} self="streak" maxWidth={620}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
             share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light
             boardSlot={<DailyBoardPanel self="streak" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
@@ -635,6 +648,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
             ? <>40/40 &middot; a perfect run &middot; {elapsed}</>
             : <>{depth}/{TOTAL_Q} &middot; {g.timedOut ? 'the clock got you' : 'one wrong answer'} &middot; {elapsed}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
           onClose={() => setEndClosed(true)} />
       )}
 

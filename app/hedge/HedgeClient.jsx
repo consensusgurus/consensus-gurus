@@ -756,7 +756,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
-          <DailyGamesGrid
+          <DailyGamesGrid replay={!playing ? resetGame : null}
             self="hedge"
             maxWidth={620}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
