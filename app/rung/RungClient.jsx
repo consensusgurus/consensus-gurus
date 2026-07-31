@@ -192,6 +192,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   const viewedRef = useRef(false);
   const inputRef = useRef(null);
   const shakeRef = useRef(null);
+  const ladderRef = useRef(null);
 
   const playing = g.status === 'playing';
   const preStart = playing && !g.t0;
@@ -243,6 +244,21 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
     }
     try { inputRef.current?.focus(); } catch (e) {}
   }, [shake]);
+  // The ladder is a capped scroll box, so once the climb runs past the visible area a new
+  // rung lands below the fold and the player had to scroll by hand to follow their own
+  // guesses. Pin the box to the newest word whenever the ladder grows (twice, so the
+  // second pass catches the row after layout settles).
+  useEffect(() => {
+    const el = ladderRef.current;
+    if (!el) return undefined;
+    const go = () => {
+      try { el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); }
+      catch (e) { el.scrollTop = el.scrollHeight; }
+    };
+    go();
+    const id = setTimeout(go, 70);
+    return () => clearTimeout(id);
+  }, [ladder.length]);
   useEffect(() => {
     if (!armReveal) return undefined;
     const t = setTimeout(() => setArmReveal(false), 3500);
@@ -558,7 +574,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div ref={shakeRef} style={{ maxWidth: 300, margin: '0 auto' }}>
-            <div className="rg-ladder">
+            <div className="rg-ladder" ref={ladderRef}>
               {ladder.map((w, i) => (
                 <Word key={`${w}-${i}`} w={w} prevWord={i > 0 ? ladder[i - 1] : null} dim={i < ladder.length - 1 && ladder.length > 6} />
               ))}
