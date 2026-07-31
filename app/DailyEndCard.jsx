@@ -14,8 +14,8 @@
 //      this game paid (the card's headline number), with the day's running
 //      total, the player's total IQ, and their global IQ rank on one sub-line;
 //      it expands to their slot in the IQ ranking. Below it, three rank tiles —
-//      "Today's Puzzle" (today's drop of this game), "All Time" (this game's
-//      cumulative points across every drop), and "Today's Puzzles" (the combined
+//      "Today" (today's drop of this game), "All Time" (this game's
+//      cumulative points across every drop), and "All Games" (the combined
 //      board) — big centered numerals with the field size spelled out, each
 //      expanding in place to that board's top 10. The internal view keys stay
 //      'today' / 'alltime' / 'combined' (owner redesign 2026-07-31).
@@ -1047,16 +1047,16 @@ export default function DailyEndCard({
         <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
       ) : null}
       <div className="dec-tiles" style={ranksLoading ? { display: 'none' } : undefined}>
-        {renderTile('today', "Today's Puzzle", gameTodayRank, gameTodayField, false, provisional)}
+        {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
         {renderTile('alltime', 'All Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
-        {renderTile('combined', "Today's Puzzles", combinedRank, combinedField, false, provisional)}
+        {renderTile('combined', 'All Games', combinedRank, combinedField, false, provisional)}
       </div>
       {openTile ? (() => {
         const rows = tileBoard(openTile);
         const ti = openTile === 'iq' ? 'Global IQ Points ranking'
           : openTile === 'today' ? `${selfName} · today's puzzle`
           : openTile === 'alltime' ? `${selfName} · all time`
-          : "Today’s Puzzles · combined";
+          : "All of today’s games · combined";
         return (
           <div className="dec-expand">
             <div className="dec-expand-hd">
