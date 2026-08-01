@@ -722,14 +722,14 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
              player does. Rails show which half is proven: rails top+bottom pin
              the tile into its horizontal band (right row), rails left+right pin
              it into the vertical one (right column), both = the exact square. */
-          .tl-placed.mk-row{background:#f5f7fc;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 4px 0 ${COLORS.ember}, inset 0 -4px 0 ${COLORS.ember};}
-          .tl-placed.mk-col{background:#f5f7fc;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 4px 0 0 ${COLORS.ember}, inset -4px 0 0 ${COLORS.ember};}
+          .tl-placed.mk-row{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-top:4px solid ${COLORS.ember};border-bottom:4px solid ${COLORS.ember};}
+          .tl-placed.mk-col{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-left:4px solid ${COLORS.ember};border-right:4px solid ${COLORS.ember};}
           .tl-placed.mk-both{background:#eef1f8;border:2px solid ${COLORS.ember};box-shadow:0 2.5px 0 rgba(14,29,64,0.6), inset 0 -3px 0 rgba(14,29,64,0.09);}
           .tl-placed.mk-both::after{content:'\\2713';position:absolute;top:1px;right:4px;font-family:${SANS};font-size:10px;font-weight:800;line-height:1;color:${COLORS.ember};}
           /* legend swatches under the board reuse the same language at 22px */
           .tl-key{width:22px;height:22px;border-radius:5px;border:1.5px solid rgba(28,30,36,0.55);background:#fff;flex:none;box-sizing:border-box;position:relative;}
-          .tl-key.mk-row{background:#f5f7fc;box-shadow:inset 0 3px 0 ${COLORS.ember}, inset 0 -3px 0 ${COLORS.ember};}
-          .tl-key.mk-col{background:#f5f7fc;box-shadow:inset 3px 0 0 ${COLORS.ember}, inset -3px 0 0 ${COLORS.ember};}
+          .tl-key.mk-row{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-top:3px solid ${COLORS.ember};border-bottom:3px solid ${COLORS.ember};}
+          .tl-key.mk-col{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.ember};border-right:3px solid ${COLORS.ember};}
           .tl-key.mk-both{background:#eef1f8;border:2px solid ${COLORS.ember};}
           .tl-key.mk-both::after{content:'\\2713';position:absolute;top:0;right:2px;font-family:${SANS};font-size:9px;font-weight:800;line-height:1.1;color:${COLORS.ember};}
           .tl-legend{border-top:1px solid rgba(28,30,36,0.14);margin-top:14px;padding-top:11px;}
