@@ -6,17 +6,18 @@
 // Outrank, Axiom, Hearsay). One component, used by all daily clients.
 //
 // Layout, top to bottom (owner retention rework 2026-08-01):
-//   1. header — the finish mark + "Completed <Game>!" (loss: "Not quite there
-//      today"), the score node and the answer. Nothing else: the identity chip
-//      and the share button both moved down;
-//   2. IQ hero + rank tiles — the hero now sits IMMEDIATELY under the title, so
-//      the points earned are the first thing a finisher reads. A full-width
-//      banner leads with the IQ gain this game paid (the card's headline
-//      number); on its right the player's identity chip (profile link, or the
-//      sign-up CTA for a guest) sits directly ABOVE the day's running total,
-//      their total IQ and their global IQ rank, so those figures are visibly
-//      theirs. The panel expands to their slot in the IQ ranking. Below it,
-//      three rank tiles —
+//   1. header — one line: the finish mark + "Completed <Game>!" (loss:
+//      "Incomplete Today.") + the score node on the left, and the player's
+//      identity chip (profile link, or the sign-up CTA for a guest) hard right,
+//      padded clear of the modal's close button. Then the answer. The share
+//      button is NOT here; it moved below the tiles;
+//   2. IQ hero + rank tiles — the hero sits IMMEDIATELY under the title, so the
+//      points earned are the first thing a finisher reads, and carries deliberate
+//      visual weight (2px border, tinted gradient, soft shadow) so it outranks
+//      the share bar below. It leads with the IQ gain this game paid (the card's
+//      headline number), with the day's running total, the player's total IQ and
+//      their global IQ rank beside it, and expands to their slot in the IQ
+//      ranking. Below it, three rank tiles —
 //      "Today" (today's drop of this game), "All Time" (this game's
 //      cumulative points across every drop), and "All Games" (the combined
 //      board) — big centered numerals with the field size spelled out, each
@@ -712,7 +713,11 @@ export default function DailyEndCard({
     </a>
   ) : (
     <button type="button" className="dec-idbox guest" onClick={goRegister}>
-      <UserPlus size={15} strokeWidth={2.2} /> Sign up to keep your rank
+      <UserPlus size={15} strokeWidth={2.2} />
+      {/* The long label only fits beside the gain on desktop; the phone shows
+          the short one (CSS-swapped, so the row never takes its own line). */}
+      <span className="lg">Sign up to keep your rank</span>
+      <span className="sm">Sign up</span>
     </button>
   );
 
@@ -930,9 +935,14 @@ export default function DailyEndCard({
         .dec-head{margin-bottom:12px;}
         .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
-        .dec-titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-bottom:5px;}
+        /* Title line: the result on the left, the player chip hard right. The
+           right padding keeps the chip clear of the modal's close button. */
+        .dec-toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-right:38px;margin-bottom:5px;}
+        .dec-topid{display:flex;min-width:0;flex:0 1 auto;}
+        .dec-titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0;}
         .dec-title{font-size:25px;font-weight:800;letter-spacing:-.02em;color:${INK};}
         .dec-detail{font-size:13px;font-weight:600;color:${SLATE};}
+        .dec-detailm{display:none;font-size:12px;font-weight:600;color:${SLATE};margin:-1px 0 0;}
         .dec-sub{display:flex;align-items:center;gap:7px;font-size:13px;color:${SLATE};flex-wrap:wrap;}
         .dec-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
         .dec-sub b{font-weight:800;color:${INK};}
@@ -943,6 +953,8 @@ export default function DailyEndCard({
         .dec-idbox{display:inline-flex;align-items:center;gap:8px;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:#f4f6fa;border:1px solid ${BORD};border-radius:999px;padding:5px 13px 5px 5px;max-width:100%;}
         .dec-idbox .av{width:23px;height:23px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
         .dec-idbox .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* Guest CTA: the long label on desktop, the short one on a phone. */
+        .dec-idbox .sm{display:none;}
         button.dec-idbox{cursor:pointer;color:${BLUE};background:#eff4fd;border-color:#cfe0fb;padding:8px 15px;}
         button.dec-idbox:hover{background:#e4eefc;}
         /* Registered chip links to the public player profile; the chevron marks
@@ -999,10 +1011,13 @@ export default function DailyEndCard({
            progress through today's slate and turns green once the slate is done,
            the gain counts up from zero, and the panel pulses as it lands. Expands
            to the player's slot in the IQ ranking exactly like a tile. */
-        .dec-iqhero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;border:1px solid #cfe0f7;background:linear-gradient(180deg,#f4f8ff 0%,#eaf2fe 100%);border-radius:16px;padding:15px 16px 13px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
-        .dec-iqhero.full{border-color:#cdeeda;background:linear-gradient(180deg,#f2fcf6 0%,#e6f7ee 100%);}
-        .dec-iqhero:hover{border-color:#9dbdea;}
-        .dec-iqhero.full:hover{border-color:#9fd3ba;}
+        /* Weight (owner 2026-08-01): the hero has to out-shout the black share
+           bar below it, so it carries a 2px border, deeper tint and a soft
+           coloured shadow rather than sitting as a pale panel. */
+        .dec-iqhero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;border:2px solid #b3cef4;background:linear-gradient(180deg,#eef5ff 0%,#dfebfd 100%);box-shadow:0 3px 14px rgba(37,99,235,.10);border-radius:17px;padding:18px 18px 15px;margin-bottom:11px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
+        .dec-iqhero.full{border-color:#a7ddc3;background:linear-gradient(180deg,#eefbf3 0%,#dcf3e7 100%);box-shadow:0 3px 14px rgba(21,128,61,.10);}
+        .dec-iqhero:hover{border-color:#8fb5e8;}
+        .dec-iqhero.full:hover{border-color:#7ec9a8;}
         .dec-iqhero.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};}
         .dec-iqhero.full.open{border-color:#15803d;box-shadow:0 0 0 1px #15803d;}
         /* Light rays behind the numeral, revealed by the landing pulse. */
@@ -1016,44 +1031,37 @@ export default function DailyEndCard({
         .dec-iqhero-hit{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;border:none;background:transparent;cursor:pointer;}
         .dec-iqhero-in{position:relative;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:flex-start;gap:18px;}
         .dec-iqhero-in a,.dec-iqhero-in button{pointer-events:auto;}
-        .dec-iqhero-right{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0;}
-        .dec-iqhero-id{display:flex;justify-content:center;max-width:100%;}
-        .dec-iqhero-id .dec-idbox{background:rgba(255,255,255,.72);border-color:#cfe0f7;}
-        .dec-iqhero.full .dec-iqhero-id .dec-idbox{border-color:#cdeeda;}
-        .dec-iqhero-id a.dec-idbox:hover{background:#fff;}
-        .dec-iqhero-id button.dec-idbox{background:${BLUE};border-color:${BLUE};color:#fff;padding:7px 14px;}
-        .dec-iqhero-id button.dec-idbox:hover{background:#1d4ed8;}
         /* Brain meter: empty art as the base, the filled art clipped to the
            slate fraction and anchored to the bottom, so it fills upward. */
-        .dec-brain{position:relative;display:block;flex:0 0 auto;width:92px;height:83px;}
-        .dec-brain img{display:block;width:92px;height:83px;object-fit:contain;}
+        .dec-brain{position:relative;display:block;flex:0 0 auto;width:104px;height:94px;}
+        .dec-brain img{display:block;width:104px;height:94px;object-fit:contain;}
         /* The empty art is drawn pale for the day card's WHITE background and
            all but vanishes on this tinted panel, so push it to a legible grey.
            Grey unfilled against blue/green filled is what makes it read as a
            meter at a glance (verified on the live styles, 2026-07-31). */
         .dec-brain-base{opacity:1;filter:contrast(1.5) brightness(.88);}
-        .dec-brain-fill{position:absolute;left:0;bottom:0;width:92px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
+        .dec-brain-fill{position:absolute;left:0;bottom:0;width:104px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
         .dec-iqhero-lead{display:flex;align-items:center;gap:16px;flex:0 0 auto;min-width:0;}
         .dec-iqhero-txt{display:flex;flex-direction:column;align-items:flex-start;min-width:0;}
         /* Desktop: gain anchors the left, a hairline, then the three figures. */
         .dec-iqhero-rule{flex:0 0 auto;width:1px;align-self:stretch;margin:2px 0;background:rgba(61,99,168,.20);}
         .dec-iqhero.full .dec-iqhero-rule{background:rgba(15,110,86,.20);}
-        .dec-iqhero-stats{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;min-width:0;}
+        .dec-iqhero-stats{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;min-width:0;}
         .dec-iqhero-stats:empty{display:none;}
         .dec-iqhero-stats .st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;}
-        .dec-iqhero-stats .k{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#5d7cae;white-space:nowrap;}
+        .dec-iqhero-stats .k{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#4f72a8;white-space:nowrap;}
         .dec-iqhero.full .dec-iqhero-stats .k{color:#3d6b58;}
-        .dec-iqhero-stats .v{font-size:27px;font-weight:800;letter-spacing:-.02em;line-height:1.05;color:#1d4ed8;font-variant-numeric:tabular-nums;}
+        .dec-iqhero-stats .v{font-size:31px;font-weight:800;letter-spacing:-.025em;line-height:1.05;color:#1d4ed8;font-variant-numeric:tabular-nums;}
         .dec-iqhero.full .dec-iqhero-stats .v{color:#0f6e56;}
         .dec-iqhero-stats .m{font-size:11px;font-weight:700;color:#4d6a97;}
         .dec-iqhero.full .dec-iqhero-stats .m{color:#3d6b58;}
         .dec-iqhero-stats .prov{font-weight:700;color:${FADED};}
-        .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3d63a8;}
+        .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#2f57a0;}
         .dec-iqhero.full .dec-iqhero-lbl{color:#0f6e56;}
-        .dec-iqhero-gain{display:block;font-size:58px;font-weight:800;letter-spacing:-.03em;line-height:1;color:${BLUE};margin-top:1px;font-variant-numeric:tabular-nums;}
+        .dec-iqhero-gain{display:block;font-size:68px;font-weight:800;letter-spacing:-.04em;line-height:1;color:${BLUE};margin-top:2px;font-variant-numeric:tabular-nums;}
         .dec-iqhero.full .dec-iqhero-gain{color:#15803d;}
         .dec-iqhero-gain .dash{color:#c2c8d2;}
-        .dec-iqhero-slate{display:block;font-size:11.5px;font-weight:700;color:#4d6a97;margin-top:3px;}
+        .dec-iqhero-slate{display:block;font-size:12px;font-weight:700;color:#41618f;margin-top:4px;}
         .dec-iqhero.full .dec-iqhero-slate{color:#3d6b58;}
         /* MOBILE ONLY: the footnote row is the phone presentation of the three
            figures that .dec-iqhero-stats shows on desktop. Hidden here and
@@ -1141,28 +1149,38 @@ export default function DailyEndCard({
            the game's own icon in its brand accent, then family + one-liner, then
            a full sentence describing the game. No live figures, by owner ruling:
            the job of these cards is to sell the next game, not report numbers. */
-        .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:11px;min-width:0;}
-        .dec-nx-top{display:flex;align-items:center;gap:12px;min-width:0;}
-        .dec-ring{position:relative;width:56px;height:56px;flex-shrink:0;}
-        .dec-ring svg{display:block;}
+        /* Up next is the card that should pull the finisher into another game,
+           so it carries the same 2px/shadow weight as the IQ hero and a taller,
+           shadowed primary button (owner 2026-08-01). The Easiest card stays a
+           step quieter on purpose: it is the secondary offer. */
+        .dec-nx{border:2px solid #bcd6fb;background:linear-gradient(180deg,#f2f7ff 0%,#e6effd 100%);box-shadow:0 3px 14px rgba(37,99,235,.10);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
+        .dec-nx-top{display:flex;align-items:center;gap:13px;min-width:0;}
+        .dec-ring{position:relative;width:60px;height:60px;flex-shrink:0;}
+        .dec-ring svg{display:block;width:100%;height:100%;}
+        /* Hard cap on the glyph: lucide draws to the full 24px box and the wide
+           icons (Car, Table2, Calculator) touched the ring stroke at size 24,
+           so the SVG is pinned to 21px whatever the component asks for. */
         .dec-ring .ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-        .dec-eye{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
-        .dec-nx-name{font-size:20px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;}
+        .dec-ring .ic svg{width:21px;height:21px;}
+        .dec-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+        .dec-nx-name{font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
         .dec-nx-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:${SLATE};margin-top:3px;min-width:0;}
         .dec-nx-fam,.dec-ez-fam{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         /* The description line carries the card's height, so it grows and the two
            cards stay level however long the copy is. */
-        .dec-blurb{flex:1 1 auto;font-size:12.5px;line-height:1.45;color:${SLATE};background:rgba(255,255,255,.66);border-radius:10px;padding:9px 11px;}
+        .dec-blurb{flex:1 1 auto;font-size:13px;line-height:1.45;color:${SLATE};background:rgba(255,255,255,.72);border-radius:10px;padding:10px 12px;}
         .dec-blurb.ez{color:#7a6114;background:rgba(255,255,255,.62);}
         .dec-nx-btns{display:flex;gap:7px;}
-        .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:13px;border-radius:10px;padding:10px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;border:1px solid ${BORD};background:#fff;color:${SLATE};}
-        .dec-nx-btns .b.primary{background:${BLUE};border-color:${BLUE};color:#fff;}
+        .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:14.5px;border-radius:11px;padding:13px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid #ccd8ea;background:#fff;color:${SLATE};}
+        .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:#fff;box-shadow:0 3px 10px rgba(37,99,235,.30);}
+        .dec-nx-btns .b.primary:hover{background:#1d4ed8;filter:none;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
         .dec-nx-auto{font-family:${MONO};font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#5d7cae;text-align:center;margin-top:-4px;}
 
         .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:11px;min-width:0;}
         .dec-ez-top{display:flex;align-items:center;gap:12px;min-width:0;}
         .dec-ez-ico{position:relative;width:56px;height:56px;border-radius:14px;background:#fff;border:1px solid #f0e3bb;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-ez-ico > svg{width:22px;height:22px;}
         .dec-ez-ico .tr{position:absolute;right:-5px;bottom:-5px;width:21px;height:21px;border-radius:50%;background:${GOLD};color:#5c4a06;display:flex;align-items:center;justify-content:center;border:2px solid #fdf6e4;}
         .dec-ez-name{font-size:20px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;}
         .dec-ez-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#8a6d1c;margin-top:3px;min-width:0;}
@@ -1200,8 +1218,28 @@ export default function DailyEndCard({
 
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
-          .dec-titlerow{padding-right:40px;}
-          .dec-title{font-size:22px;}
+          /* Title + chip share the top line on a phone. The chip does NOT
+             shrink to fit (it collapsed to "G.." when it did): it holds a
+             fixed slot, long usernames ellipsis inside it, and the score is
+             what wraps to the second line. */
+          /* Phone: the title NEVER breaks to make room for the chip. The row
+             wraps as a whole, so mark + title hold line one and the chip sits
+             beside them whenever it fits (it does at normal phone widths),
+             dropping to a right-aligned second line only on a very narrow
+             screen or a very long game name. The score always takes its own
+             line. */
+          .dec-toprow{gap:6px 8px;padding-right:28px;align-items:flex-start;flex-wrap:wrap;}
+          .dec-titlerow{gap:4px 8px;flex:1 0 auto;max-width:100%;}
+          .dec-check{width:25px;height:25px;}
+          .dec-title{font-size:18px;}
+          .dec-detail{display:none;}
+          .dec-detailm{display:block;}
+          .dec-topid{flex:0 0 auto;margin-left:auto;}
+          .dec-topid .dec-idbox{font-size:11.5px;padding:4px 9px 4px 4px;gap:6px;max-width:112px;}
+          .dec-topid .dec-idbox .av{width:19px;height:19px;font-size:10px;}
+          .dec-topid button.dec-idbox{padding:6px 11px;}
+          .dec-idbox .lg{display:none;}
+          .dec-idbox .sm{display:inline;}
           .dec-sharebar{gap:11px;padding:11px 12px;}
           .dec-sharebar .t{font-size:13px;}
           .dec-sharebar .s{font-size:11px;}
@@ -1214,32 +1252,32 @@ export default function DailyEndCard({
           .dec-tile-of{font-size:10.5px;}
           .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
           .dec-iqhero{padding:13px 12px 11px;}
-          /* Mobile keeps the hero exactly as it was: centred brain + gain, and
-             the three figures as the footnote row under a hairline. The
-             desktop-only left-anchored layout is switched off here. */
-          .dec-iqhero-in{gap:11px 13px;justify-content:center;flex-wrap:wrap;}
+          /* Phone: hero is the centred brain + gain, with the three figures as
+             the footnote row under a hairline (the identity chip lives on the
+             title line, so nothing here takes a line of its own). */
+          .dec-iqhero-in{gap:11px;justify-content:center;}
           .dec-iqhero-lead{gap:11px;}
           .dec-iqhero-rule,.dec-iqhero-stats{display:none;}
-          /* The identity chip stays on the phone (it is the profile / sign-up
-             entry point); only the desktop figures column collapses, and the
-             footnote row below carries those numbers instead. */
-          .dec-iqhero-right{flex:0 0 auto;width:auto;}
           .dec-iqhero-sub{display:flex;}
           /* The archive tile rides the same tighter tile metrics as its
              neighbours, with a smaller ring. */
           .dec-tile-ring{height:42px;}
           .dec-arcring,.dec-arcring svg{width:42px;height:42px;}
           .dec-arcring .num{font-size:9.5px;}
-          .dec-brain,.dec-brain img,.dec-brain-fill{width:66px;}
-          .dec-brain,.dec-brain img{height:59px;}
-          .dec-iqhero-gain{font-size:42px;}
+          .dec-brain,.dec-brain img,.dec-brain-fill{width:72px;}
+          .dec-brain,.dec-brain img{height:65px;}
+          .dec-iqhero-gain{font-size:50px;}
+          .dec-iqhero-lbl{font-size:10.5px;}
           .dec-iqhero-slate{font-size:10.5px;}
           .dec-iqhero-sub{font-size:11.5px;gap:3px 12px;margin-top:8px;padding-top:7px;}
           .dec-iqhero-rays{width:300px;height:300px;margin:-150px 0 0 -150px;}
           .dec-duo{grid-template-columns:1fr;}
-          .dec-nx-name,.dec-ez-name{font-size:18px;}
-          .dec-blurb{font-size:12px;padding:8px 10px;}
-          .dec-ring,.dec-ring svg,.dec-ez-ico{width:50px;height:50px;}
+          .dec-nx-name{font-size:21px;}
+          .dec-ez-name{font-size:19px;}
+          .dec-blurb{font-size:12.5px;padding:9px 11px;}
+          .dec-ring,.dec-ring svg{width:54px;height:54px;}
+          .dec-ez-ico{width:50px;height:50px;}
+          .dec-nx-btns .b{font-size:14px;padding:12px 10px;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
           .dec-rows.one{grid-template-columns:1fr;}
@@ -1254,13 +1292,23 @@ export default function DailyEndCard({
 
       {/* ---- 1. header ---- */}
       <div className="dec-head">
-        <div className="dec-titlerow">
-          <span className={`dec-check${won ? '' : ' loss'}`}>
-            {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
-          </span>
-          <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Not quite there today</>}</span>
-          {score ? <span className="dec-detail">{score}</span> : null}
+        {/* Title on the left, the player's chip on the right of the SAME line
+            (owner 2026-08-01), clear of the modal's close button. */}
+        <div className="dec-toprow">
+          <div className="dec-titlerow">
+            <span className={`dec-check${won ? '' : ' loss'}`}>
+              {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
+            </span>
+            <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Incomplete Today.</>}</span>
+            {score ? <span className="dec-detail">{score}</span> : null}
+          </div>
+          <span className="dec-topid">{idChip}</span>
         </div>
+        {/* Phone copy of the score: on a phone it sits on its own line under the
+            title, because leaving it inside the title row inflated that row's
+            intrinsic width and pushed the chip off the line. Exactly one of the
+            two is displayed at any width. */}
+        {score ? <div className="dec-detailm">{score}</div> : null}
         {answer ? (
           <div className="dec-answer">
             <span className="dec-answer-lbl">Answer</span>
@@ -1318,22 +1366,16 @@ export default function DailyEndCard({
               two are swapped by display:none, so only one is ever in the a11y
               tree. */}
           <span className="dec-iqhero-rule" aria-hidden="true" />
-          <span className="dec-iqhero-right">
-            {/* Who these figures belong to sits directly above them (owner
-                2026-08-01): a link to the player's profile once they have a
-                username, or the sign-up CTA while they don't. */}
-            <span className="dec-iqhero-id">{idChip}</span>
-            <span className="dec-iqhero-stats">
-              {showIqToday ? <span className="st"><span className="k">Today</span><span className="v">+{iq.todayGained.toLocaleString()}</span></span> : null}
-              {iq && typeof iq.xp === 'number' ? <span className="st"><span className="k">Total</span><span className="v">{iq.xp.toLocaleString()}</span></span> : null}
-              {iq && iq.rank ? (
-                <span className="st">
-                  <span className="k">IQ rank</span>
-                  <span className="v">#{iq.rank.toLocaleString()}</span>
-                  <span className="m">of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span>
-                </span>
-              ) : null}
-            </span>
+          <span className="dec-iqhero-stats">
+            {showIqToday ? <span className="st"><span className="k">Today</span><span className="v">+{iq.todayGained.toLocaleString()}</span></span> : null}
+            {iq && typeof iq.xp === 'number' ? <span className="st"><span className="k">Total</span><span className="v">{iq.xp.toLocaleString()}</span></span> : null}
+            {iq && iq.rank ? (
+              <span className="st">
+                <span className="k">IQ rank</span>
+                <span className="v">#{iq.rank.toLocaleString()}</span>
+                <span className="m">of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span>
+              </span>
+            ) : null}
           </span>
         </span>
         <span className="dec-iqhero-sub">
