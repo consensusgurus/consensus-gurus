@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { computeXpCached } from '@/lib/quiz-derived-cache';
+import { computeXpCached, dailyStandingCached } from '@/lib/quiz-derived-cache';
 
 // Midnight "today" in US Eastern (handles EST/EDT) as a UTC epoch ms. Same
 // helper as /api/quiz/today and /api/quiz/totals, so all three roll over
@@ -121,45 +121,21 @@ export async function GET(request) {
       const { players } = computeXpCached(data || [], { recentN: 400 });
       const me = players.get(myKey);
       if (me) {
-        // THIS was the route's cost, not the computeXp pass above. The previous
-        // version called toLocaleDateString with a timeZone once per recent
-        // entry per player, and the rankChange block below runs gainedToday over
-        // the WHOLE field: ~2,600 players times up to 400 entries is on the order
-        // of a million Intl formats, and Intl date formatting is microseconds
-        // each, not nanoseconds. Measured 4,960ms median WARM on the live route,
-        // unchanged by memoizing computeXp because the Intl calls were the work.
-        //
-        // Resolve the Eastern day boundary once, then compare timestamps. Same
-        // answer, no formatting in the loop.
+        // Today's gain and the two field-wide rankings (now, and on the IQ
+        // everyone held before today) are the same for every player against the
+        // same rows, so they are memoized per row set + ET day. Ranking the field
+        // twice this way counts OTHER players passing you, which a sum of your
+        // own per-play rankDelta would miss; only the lookup below is personal.
         const dayStart = startOfEasternTodayUTC();
-        const gainedToday = (p) => {
-          let sum = 0;
-          for (const r of (p.recent || [])) {
-            if (!r.createdAt) continue;
-            const ts = Date.parse(r.createdAt);
-            if (ts >= dayStart) sum += Number(r.xp) || 0;
-          }
-          return sum;
-        };
-        todayXp = Math.round(gainedToday(me));
+        const { gained, posNow, posThen } = dailyStandingCached(data || [], players, { dayStartMs: dayStart, recentN: 400 });
 
-        // Global IQ rank movement across today (ET). Ranks the whole field twice:
-        // as it stands now, and on the IQ everyone held BEFORE today's games.
-        // Doing it this way counts other players passing you, which a sum of your
-        // own per-play rankDelta would miss. Two sorts over the field is cheap
-        // next to the computeXp pass already done above.
-        const all = [...players.values()];
-        const before = new Map(all.map((p) => [p.key, p.xp - gainedToday(p)]));
-        // Key as the final tiebreak so both orderings are deterministic and a tie
-        // can never register as phantom movement.
-        const posBy = (val) => {
-          const sorted = all.slice().sort((a, b) => val(b) - val(a) || (a.key < b.key ? -1 : 1));
-          return sorted.findIndex((p) => p.key === myKey) + 1;
-        };
+        const mineToday = gained.get(myKey) || 0;
+        todayXp = Math.round(mineToday);
+
         // A player whose first ever game is today had no standing to move from.
-        if (before.get(myKey) > 0) {
-          const now = posBy((p) => p.xp);
-          const then = posBy((p) => before.get(p.key) || 0);
+        if ((me.xp || 0) - mineToday > 0) {
+          const now = posNow.get(myKey) || 0;
+          const then = posThen.get(myKey) || 0;
           if (now > 0 && then > 0) rankChange = then - now; // positive = climbed
         }
       }
