@@ -1995,6 +1995,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb-stat b{display:block;font-size:20px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-stat b em{font-style:normal;font-size:12px;opacity:.7;}
             .qzh .dhx-lb-stat i{display:block;font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:600;letter-spacing:.07em;margin-top:3px;white-space:nowrap;}
+            .qzh .dhx-lb-stat i.wrap{white-space:normal;line-height:1.45;}
             .qzh .dhx-lb.comm .dhx-lb-stat b{color:#7c3aed;}
             .qzh .dhx-lb.comm .dhx-lb-stat i{color:#6d28d9;}
             .qzh .dhx-lb.daily .dhx-lb-stat b{color:#a16207;}
@@ -2103,7 +2104,7 @@ export default function QuizHomeClient() {
                       {nm
                         ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
                         : <span className="dhx-lb-name" style={{ fontSize: 30 }}>&mdash;</span>}
-                      <span className="dhx-lb-stat"><b>{one ? num(one.credits) : '0'}</b><i>BROUGHT IN &middot; 90D</i></span>
+                      <span className="dhx-lb-stat"><b>{one ? num(one.credits) : '0'}</b><i className="wrap">NEW PLAYERS<br />BROUGHT IN &middot; 90D</i></span>
                     </div>
                   </div>
                   <div className="dhx-lb-body">
