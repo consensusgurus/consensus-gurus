@@ -23,7 +23,7 @@
 // /api/quiz/daily-game, cached per game by the parent.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2 } from 'lucide-react';
+import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2, Users } from 'lucide-react';
 import { notifyShareCredit } from './ShareCreditPop';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 
@@ -31,6 +31,19 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const TREND_MAX = 24; // most recent drops charted, so the row stays readable
+
+// The Crowd Psychology games (owner, 2026-08-01). For these three the panel's
+// bottom section leads with TODAY'S CROWD ANSWERS rather than the viewer's score
+// history, because the crowd tally IS the game's artifact: the answer key is
+// whatever the day's players said, and it moves all day. The history chart is
+// still there, one click away, and stays the only view for every other game.
+//
+// SPOILER GATE (owner rule, 2026-08-01): the crowd view is offered ONLY to a
+// player who has already locked in today's puzzle. Someone who has not played
+// sees no crowd tab at all and lands on the chart, and /api/quiz/crowd-today
+// independently refuses to return any tally to them, so the answers cannot be
+// reached from here either by clicking or by calling the route.
+const CROWD_GAMES = new Set(['outwit', 'outrank', 'feud']);
 function shortDate(iso) {
   const p = String(iso || '').split('-');
   return p.length === 3 ? MONTH_SHORT[Number(p[1]) - 1] + ' ' + Number(p[2]) : '';
@@ -58,6 +71,43 @@ export default function DailyTilePanel({
 
   const [calMonth, setCalMonth] = useState(() => todayISO.slice(0, 7));
   useEffect(() => { setCalMonth(todayISO.slice(0, 7)); }, [game.key, todayISO]);
+
+  // Today's crowd answers, for the three crowd games only, and only once the
+  // viewer has finished today's puzzle. `isDone` gates the REQUEST (so a
+  // non-player's browser never even asks) and the route gates the ANSWER by
+  // account, which is what covers the case where this browser looks unplayed
+  // but the account played elsewhere. crowd === null means still loading.
+  const isCrowdGame = CROWD_GAMES.has(game.key);
+  const [crowd, setCrowd] = useState(null);
+  const [crowdFailed, setCrowdFailed] = useState(false);
+  useEffect(() => {
+    setCrowd(null); setCrowdFailed(false);
+    if (!isCrowdGame || !isDone) return;
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    if (!anonId && !email) { setCrowdFailed(true); return; }
+    const qs = new URLSearchParams({ game: game.key });
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    let alive = true;
+    fetch('/api/quiz/crowd-today?' + qs.toString())
+      .then((r) => r.json())
+      .then((d) => { if (!alive) return; if (d && d.ok) setCrowd(d); else setCrowdFailed(true); })
+      .catch(() => { if (alive) setCrowdFailed(true); });
+    return () => { alive = false; };
+  }, [game.key, isCrowdGame, isDone]);
+
+  // The crowd tab exists only when there is (or may still be) crowd data to
+  // show. `view` stays null until the reader picks a side, so the default is
+  // crowd wherever it is available and the chart everywhere else, but an
+  // explicit click is never overridden by data landing late.
+  const crowdGroups = (crowd && crowd.played && Array.isArray(crowd.groups)) ? crowd.groups : [];
+  const crowdReady = crowdGroups.length > 0;
+  const crowdPending = isCrowdGame && isDone && !crowd && !crowdFailed;
+  const crowdOffered = crowdReady || crowdPending;
+  const [view, setView] = useState(null);
+  const showCrowd = crowdOffered && view !== 'trend';
 
   // On a small screen the panel is IN FLOW and the grid is hidden beneath it,
   // so a tile tapped low in a long grid can leave the page scrolled past where
@@ -272,16 +322,62 @@ export default function DailyTilePanel({
         </section>
       </div>
 
-      {/* Day-by-day history: fills the space the compact columns leave behind. */}
+      {/* The bottom strip: today's crowd answers on the three crowd games (the
+          default there), the day-by-day history everywhere else. Both fill the
+          space the compact columns above leave behind. */}
       <section className="dtp-trend">
         <div className="dtp-lab">
-          <TrendingUp size={12} strokeWidth={2.4} />
-          {trend.count > 0 ? `Your last ${trend.vals.length} days` : 'Your history'}
-          {trend.count > 0 ? (
-            <span className="dtp-tsum">all-time best {fmtPts(mine.bestPoints)} &middot; avg {fmtPts(mine.avgPoints)}</span>
+          {showCrowd ? <Users size={12} strokeWidth={2.4} /> : <TrendingUp size={12} strokeWidth={2.4} />}
+          {showCrowd
+            ? 'Today’s crowd answers'
+            : (trend.count > 0 ? `Your last ${trend.vals.length} days` : 'Your history')}
+          {showCrowd
+            ? (crowdReady && crowd.headline ? <span className="dtp-tsum">{crowd.headline}{crowd.field ? ' · ' + crowd.field.toLocaleString() + ' played' : ''}</span> : null)
+            : (trend.count > 0 ? <span className="dtp-tsum">all-time best {fmtPts(mine.bestPoints)} &middot; avg {fmtPts(mine.avgPoints)}</span> : null)}
+          {/* Only a player who has finished today's puzzle ever sees this
+              toggle: with no crowd data there is nothing to switch to. */}
+          {crowdOffered ? (
+            <span className="dtp-tabs" role="group" aria-label="Bottom panel view">
+              <button type="button" className={showCrowd ? 'on' : ''} aria-pressed={showCrowd} onClick={() => setView('crowd')}>Crowd</button>
+              <button type="button" className={showCrowd ? '' : 'on'} aria-pressed={!showCrowd} onClick={() => setView('trend')}>Your history</button>
+            </span>
           ) : null}
         </div>
-        {loading ? (
+        {showCrowd ? (
+          crowdReady ? (
+            <div className="dtp-cwrap">
+              <div className="dtp-cg">
+                {crowdGroups.map((g, gi) => (
+                  <div className="dtp-ccard" key={'g' + gi}>
+                    <div className="dtp-cq">
+                      <span>{g.q}</span>
+                      {g.note ? <b>{g.note}</b> : null}
+                    </div>
+                    {(g.rows || []).length ? (
+                      <div className="dtp-crows">
+                        {g.rows.map((r, ri) => (
+                          <div className={'dtp-crow' + (r.you ? ' you' : '')} key={'r' + ri}>
+                            <i className="bar" style={{ width: Math.max(3, Math.min(100, r.pct || 0)) + '%' }} aria-hidden="true" />
+                            <span className="nm">{r.label}</span>
+                            {r.sub ? <span className="sub">{r.sub}</span> : null}
+                            {r.tag && !r.sub ? <span className="tg">{r.tag}</span> : null}
+                            <span className="pc">{r.pct}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {g.text ? <div className="dtp-ctext">{g.text}</div> : null}
+                  </div>
+                ))}
+              </div>
+              {crowd.houseActive ? (
+                <div className="dtp-cfoot">Early crowd: the day&rsquo;s pool is still seeded, so these shares will move as players arrive.</div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="dtp-empty">Loading today&rsquo;s crowd&hellip;</div>
+          )
+        ) : loading ? (
           <div className="dtp-empty">Loading your history…</div>
         ) : trend.count > 0 ? (
           <>
@@ -444,6 +540,36 @@ export default function DailyTilePanel({
         .dtp-bar.today{background:#e8b43a;opacity:1;}
         .dtp-bar.miss{height:5px;background:#f7f8fa;border-radius:2px;}
         .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;padding-right:var(--agut);font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#262b35;}
+        /* crowd answers (outwit / outrank / feud) — the default bottom view for
+           those three, with the history chart one click away via .dtp-tabs */
+        .dtp-tabs{margin-left:auto;display:inline-flex;gap:2px;background:#f0f3f8;border:1px solid #dde3ec;border-radius:8px;padding:2px;flex:none;}
+        .dtp-tabs button{font-family:'Manrope',system-ui,sans-serif;font-size:10.5px;font-weight:800;letter-spacing:0;text-transform:none;
+                         border:none;background:transparent;color:#46506a;border-radius:6px;padding:3px 9px;cursor:pointer;transition:background .12s,color .12s;}
+        /* When the summary line is present it owns the free space, so the two
+           of them ride right together instead of splitting the gap. */
+        .dtp-tsum + .dtp-tabs{margin-left:8px;}
+        .dtp-tabs button:hover{color:#1c1e24;}
+        .dtp-tabs button.on{background:#fff;color:#1c1e24;box-shadow:0 1px 2px rgba(28,30,36,.12);}
+        .dtp-cwrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:6px;overflow:auto;}
+        /* One card per prompt. Feud and Outwit run five, so they sit side by
+           side; Outrank has a single slate and its card simply spans the row. */
+        .dtp-cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:8px;align-items:start;}
+        .dtp-ccard{min-width:0;background:#fff;border:1.5px solid #c3ccda;border-radius:9px;padding:8px 9px;}
+        .dtp-cq{display:flex;align-items:flex-start;gap:6px;font-size:11.5px;font-weight:800;line-height:1.3;color:#1c1e24;margin-bottom:6px;}
+        .dtp-cq span{flex:1 1 auto;min-width:0;}
+        .dtp-cq b{flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;color:#5b6577;white-space:nowrap;padding-top:1px;}
+        .dtp-crows{display:flex;flex-direction:column;gap:3px;}
+        .dtp-crow{position:relative;display:flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;background:#f7f9fc;overflow:hidden;font-size:11px;}
+        .dtp-crow .bar{position:absolute;left:0;top:0;bottom:0;background:var(--gc);opacity:.17;border-radius:5px;}
+        .dtp-crow.you{background:#fdf4dd;}
+        .dtp-crow.you .bar{background:#e8b43a;opacity:.34;}
+        .dtp-crow .nm{position:relative;flex:1 1 auto;min-width:0;font-weight:700;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dtp-crow.you .nm{color:#8a5300;}
+        .dtp-crow .sub,.dtp-crow .tg{position:relative;flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:#5b6577;white-space:nowrap;}
+        .dtp-crow.you .sub,.dtp-crow.you .tg{color:#8a5300;}
+        .dtp-crow .pc{position:relative;flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;color:#262b35;font-variant-numeric:tabular-nums;}
+        .dtp-ctext{font-size:10.5px;font-weight:600;line-height:1.45;color:#46506a;margin-top:6px;}
+        .dtp-cfoot{flex:none;font-size:10.5px;font-weight:600;color:#5b6577;}
         @media(max-width:980px){
           /* IN FLOW below 980px. As an absolutely positioned overlay with its
              own scrollbar, the panel swallowed the touch gesture: the page
@@ -460,6 +586,9 @@ export default function DailyTilePanel({
              3px min: the chart rendered as a row of identical nubs. A real
              height makes the percentages resolve again. */
           .dtp-bars{height:118px;min-height:0;}
+          /* In flow the panel is auto height, so the crowd list grows instead
+             of becoming a nested scroller the page can't scroll past. */
+          .dtp-cwrap{overflow:visible;min-height:0;}
           .dtp-grid{grid-template-columns:1fr 1fr;gap:16px;}
           .dtp-col:nth-child(3){grid-column:1/-1;}
         }
