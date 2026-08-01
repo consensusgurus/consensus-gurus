@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
-import { computeXp, rankPlayers } from '@/lib/quiz-xp';
+import { rankPlayers } from '@/lib/quiz-xp';
+import { computeXpCached } from '@/lib/quiz-derived-cache';
 import { DEPT_NAV } from '@/lib/quiz-departments';
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,7 @@ export async function GET() {
       console.error('quiz xp-categories error', error);
       return NextResponse.json({ boards: {} });
     }
-    const { players } = computeXp(data || []);
+    const { players } = computeXpCached(data || []);
     const boards = {};
     for (const d of DEPT_NAV) {
       const ranked = rankPlayers(players, d.id);

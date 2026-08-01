@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
-import { computeXp } from '@/lib/quiz-xp';
+import { computeXpCached } from '@/lib/quiz-derived-cache';
 import { buildProfile } from '@/lib/quiz-profile';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 
@@ -49,7 +49,7 @@ export async function GET(request) {
   let profile = null;
   try {
     const { data, error } = await loadQuizResults(supabaseAdmin);
-    if (!error) { const { players } = computeXp(data || []); profile = buildProfile(players, key || null); }
+    if (!error) { const { players } = computeXpCached(data || []); profile = buildProfile(players, key || null); }
   } catch (e) { profile = null; }
 
   if (!profile || !profile.found) return textImage('No stats to share yet', fonts, sans);

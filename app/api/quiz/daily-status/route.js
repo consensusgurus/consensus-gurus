@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { computeXp } from '@/lib/quiz-xp';
+import { computeXpCached } from '@/lib/quiz-derived-cache';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -96,7 +96,11 @@ export async function GET(request) {
     let todayXp = null;
     let rankChange = null;
     try {
-      const { players } = computeXp(data || [], { recentN: 400 });
+      // computeXpCached, not computeXp: this derivation is identical for every route
+      // and every player against the same rows, and it walks all ~34,700 of them.
+      // Going through the shared memo means the first caller after a row lands pays
+      // and the rest get a map lookup.
+      const { players } = computeXpCached(data || [], { recentN: 400 });
       const me = players.get(myKey);
       if (me) {
         const etDay = (ts) => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
-import { computeXp, displayHandle } from '@/lib/quiz-xp';
+import { displayHandle } from '@/lib/quiz-xp';
+import { computeXpCached } from '@/lib/quiz-derived-cache';
 import { buildProfile } from '@/lib/quiz-profile';
 import { computeTrophies, buildTrophyList } from '@/lib/quiz-trophies';
 
@@ -40,7 +41,7 @@ export async function GET(request) {
     const { data, error } = await loadQuizResults(supabaseAdmin);
     if (error) { console.error('quiz player error', error); return NextResponse.json({ found: false }); }
     // recentN large so a viewed player's Activity log shows their FULL history.
-    const { players } = computeXp(data || [], { recentN: 100000, rankFor: key });
+    const { players } = computeXpCached(data || [], { recentN: 100000, rankFor: key });
 
     let myKey = key;
     if (!myKey && uname) {

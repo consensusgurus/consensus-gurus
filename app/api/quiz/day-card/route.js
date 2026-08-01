@@ -2,7 +2,8 @@ import { ImageResponse } from 'next/og';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { computeXp, rankPlayers } from '@/lib/quiz-xp';
+import { rankPlayers } from '@/lib/quiz-xp';
+import { computeXpCached } from '@/lib/quiz-derived-cache';
 import { dailyGameName } from '@/lib/daily-games';
 
 export const runtime = 'nodejs';
@@ -127,7 +128,7 @@ export async function GET(request) {
     if (myKey) {
       const { data, error } = await loadQuizResults(supabaseAdmin);
       if (!error) {
-        const { players } = computeXp(data || [], { recentN: 200 });
+        const { players } = computeXpCached(data || [], { recentN: 200 });
         const me = players.get(myKey);
         if (me) {
           const day = etToday();

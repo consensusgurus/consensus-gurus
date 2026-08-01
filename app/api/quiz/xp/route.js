@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
-import { computeXp, rankPlayers } from '@/lib/quiz-xp';
+import { rankPlayers } from '@/lib/quiz-xp';
+import { computeXpCached } from '@/lib/quiz-derived-cache';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -34,7 +35,7 @@ export async function GET(request) {
       console.error('quiz xp error', error);
       return NextResponse.json({ scope, total: 0, players: [] });
     }
-    const { players } = computeXp(data || []);
+    const { players } = computeXpCached(data || []);
     let ranked = rankPlayers(players, scope);
     // Recent-window board. Ties fall back to all-time XP so the order is stable
     // for the (many) players sitting at 0 for the window.
