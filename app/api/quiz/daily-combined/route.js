@@ -6,53 +6,13 @@ import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
+import { GAME_PUZZLES, etTodayServer, suffixOfDate, gamesForSuffix } from '@/lib/daily-slate';
 
-// Each game's puzzle list is server-only (answers never ship to the client). We
-// read nothing but `live` and `quizId` off it, exactly like app/daily/page.js,
-// so the combined board always scores whatever puzzle is CURRENTLY live in each
-// game (gap days included), never a naively date-reconstructed id.
-import { PUZZLES as P_crux } from '@/app/crux/puzzles';
-import { PUZZLES as P_emcee } from '@/app/emcee/puzzles';
-import { PUZZLES as P_garble } from '@/app/garble/puzzles';
-import { PUZZLES as P_links } from '@/app/links/puzzles';
-import { PUZZLES as P_span } from '@/app/span/puzzles';
-import { PUZZLES as P_dating } from '@/app/dating/puzzles';
-import { PUZZLES as P_tally } from '@/app/tally/puzzles';
-import { PUZZLES as P_suds } from '@/app/suds/puzzles';
-import { PUZZLES as P_circa } from '@/app/circa/puzzles';
-import { PUZZLES as P_extra } from '@/app/extra/puzzles';
-import { PUZZLES as P_carve } from '@/app/carve/puzzles';
-import { PUZZLES as P_stet } from '@/app/stet/puzzles';
-import { PUZZLES as P_outwit } from '@/app/outwit/puzzles';
-import { PUZZLES as P_tuck } from '@/app/tuck/puzzles';
-import { PUZZLES as P_alibi } from '@/app/alibi/puzzles';
-import { PUZZLES as P_cipher } from '@/app/cipher/puzzles';
-import { PUZZLES as P_ping } from '@/app/ping/puzzles';
-import { PUZZLES as P_warmer } from '@/app/warmer/puzzles';
-import { PUZZLES as P_jester } from '@/app/jester/puzzles';
-import { PUZZLES as P_sworn } from '@/app/sworn/puzzles';
-import { PUZZLES as P_outrank } from '@/app/outrank/puzzles';
-import { PUZZLES as P_shards } from '@/app/shards/puzzles';
-import { PUZZLES as P_axiom } from '@/app/axiom/puzzles';
-import { PUZZLES as P_hearsay } from '@/app/hearsay/puzzles';
-import { PUZZLES as P_venn } from '@/app/venn/puzzles';
-import { PUZZLES as P_stands } from '@/app/stands/puzzles';
-import { PUZZLES as P_bracket } from '@/app/bracket/puzzles';
-import { PUZZLES as P_lode } from '@/app/lode/puzzles';
-import { PUZZLES as P_etch } from '@/app/etch/puzzles';
-import { PUZZLES as P_hedge } from '@/app/hedge/puzzles';
-import { PUZZLES as P_listed } from '@/app/listed/puzzles';
-import { PUZZLES as P_mate } from '@/app/mate/puzzles';
-import { PUZZLES as P_four } from '@/app/four/puzzles';
-import { PUZZLES as P_park } from '@/app/parker/puzzles';
-import { PUZZLES as P_check } from '@/app/check/puzzles';
-import { PUZZLES as P_rung } from '@/app/rung/puzzles';
-import { PUZZLES as P_crunch } from '@/app/crunch/puzzles';
-import { PUZZLES as P_taire } from '@/app/taire/puzzles';
-import { PUZZLES as P_fib } from '@/app/fib/puzzles';
-import { PUZZLES as P_streak } from '@/app/streak/puzzles';
-import { PUZZLES as P_feud } from '@/app/feud/puzzles';
-
+// The day's slate (which puzzle each game published on a date) lives in
+// lib/daily-slate.js, shared with /api/quiz/daily-me. This route used to carry
+// its own copy of all 41 puzzle imports and the date helpers; they were
+// identical, and one of them drifting silently would have put the two boards on
+// different puzzles.
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 // Per-player payload (the `me` block folds in the viewer's identity), so it is
@@ -62,37 +22,6 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-reval
 // The finish flow passes ?fresh=1 to force an authoritative read; that response
 // must never be edge-cached or it could hand back a pre-insert snapshot.
 const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' };
-
-const GAME_PUZZLES = {
-  crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
-  tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
-  tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer,
-  jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak, feud: P_feud,
-};
-
-function etTodayServer() {
-  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
-  catch (e) { return new Date().toISOString().slice(0, 10); }
-}
-
-// Daily quizIds end in a `-M-D-YY` date suffix (e.g. crux-7-6-26 -> "7-6-26").
-// The combined board is scoped to ONE day: every game that published a puzzle on
-// that date, and only those. Older days therefore have fewer games (down to one),
-// which is exactly what an archived-puzzle leaderboard should reflect.
-function suffixOfDate(dateStr) {
-  const [Y, M, D] = dateStr.split('-').map(Number); // dateStr = 'YYYY-MM-DD'
-  return `${M}-${D}-${Y % 100}`;
-}
-
-// The game's puzzle object for a given date suffix, or null if it published none
-// that day (game didn't exist yet, or a gap). Never expose a future day's board.
-function puzzleForSuffix(puzzles, key, suffix, today) {
-  const cand = `${key}-${suffix}`;
-  const p = (puzzles || []).find((x) => x && x.quizId === cand);
-  if (!p) return null;
-  if (p.live && p.live > today) return null;
-  return p;
-}
 
 const DISPLAY = 10; // overall rows returned (viewer's own row is always appended via `me`)
 const BOARD = 10;   // per-game rows returned per tab
@@ -277,14 +206,7 @@ export async function GET(request) {
   // The games that ran on that date (skip any that didn't publish that day). Each
   // game gets a play href for THAT date: today's slate links to the live game
   // (streak-counting), an archived day links to that exact puzzle via ?p=<num>.
-  const isToday = suffix === suffixOfDate(today);
-  const games = [];
-  for (const key of DAILY_KEYS) {
-    const p = puzzleForSuffix(GAME_PUZZLES[key], key, suffix, today);
-    if (!p) continue;
-    const href = isToday ? `/${key}` : `/${key}?p=${p.num}`;
-    games.push({ key, quizId: p.quizId, num: p.num, rev: p.rev || null, href });
-  }
+  const games = gamesForSuffix(DAILY_KEYS, suffix, today);
   const wanted = new Set(games.map((g) => g.quizId));
   // Best-N and the ceiling scale to how many games existed that day (1..10).
   const gameCount = games.length;
@@ -338,21 +260,21 @@ export async function GET(request) {
     let outwitLive = null;
     const outwitGame = games.find((g) => g.key === 'outwit');
     if (outwitGame) {
-      const op = (P_outwit || []).find((x) => x && x.quizId === outwitGame.quizId);
+      const op = (GAME_PUZZLES.outwit || []).find((x) => x && x.quizId === outwitGame.quizId);
       if (op) outwitLive = await scoreOutwitLive(op);
     }
     // Same override for Outrank (also adaptive; see lib/outrank-score).
     let outrankLive = null;
     const outrankGame = games.find((g) => g.key === 'outrank');
     if (outrankGame) {
-      const op = (P_outrank || []).find((x) => x && x.quizId === outrankGame.quizId);
+      const op = (GAME_PUZZLES.outrank || []).find((x) => x && x.quizId === outrankGame.quizId);
       if (op) outrankLive = await scoreOutrankLive(op);
     }
     // Same override for Feud (live crowd-survey key; see lib/feud-score).
     let feudLive = null;
     const feudGame = games.find((g) => g.key === 'feud');
     if (feudGame) {
-      const fp = (P_feud || []).find((x) => x && x.quizId === feudGame.quizId);
+      const fp = (GAME_PUZZLES.feud || []).find((x) => x && x.quizId === feudGame.quizId);
       if (fp) feudLive = await scoreFeudLive(fp);
     }
 

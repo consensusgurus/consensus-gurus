@@ -23,7 +23,7 @@
 //   2. the games grid — the OTHER dailies (plus one evergreen popular quiz to
 //      keep the count even), 2-wide on phones and 3-wide on desktop.
 // Games the viewer has already finished today get a faint green wash + a check
-// badge (from /api/quiz/daily-combined, same source as the end card).
+// badge (from /api/quiz/daily-me, same source as the end card).
 //
 // Same tile look as the /quizzes hub games row, but self-contained (its own
 // styles) since the game pages don't load the hub CSS. Adding a game to the
@@ -126,9 +126,13 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
     if (anonId) qs.set('anonId', anonId);
     if (email) qs.set('email', email);
     let alive = true;
-    fetch('/api/quiz/daily-combined?' + qs.toString())
+    // daily-me, not daily-combined: this grid only wants the completion set,
+    // and asking without a `game` param means the endpoint skips the board
+    // build and the adaptive re-score entirely and just counts rows. It was the
+    // last caller keeping the combined board on a daily puzzle page.
+    fetch('/api/quiz/daily-me?' + qs.toString())
       .then((r) => r.json())
-      .then((d) => { if (alive && d && d.me && d.me.perGame) setDonePerGame(d.me.perGame); })
+      .then((d) => { if (alive && d && d.perGame) setDonePerGame(d.perGame); })
       .catch(() => {});
     return () => { alive = false; };
   }, []);
