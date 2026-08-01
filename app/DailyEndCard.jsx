@@ -349,8 +349,13 @@ export default function DailyEndCard({
     // here routinely predates our own row landing, which renders the player at the
     // bottom (as if they scored zero) until the write propagates. Re-fetch, cache-
     // busted, until our standing reflects the game we just finished (or we run out
-    // of tries), so the end-card placement is never stale. delays are ms after
-    // mount and cover the write commit + the 5s snapshot TTL.
+    // of tries), so the end-card placement is never stale. delays are CUMULATIVE ms
+    // after mount and cover the write commit + the 5s snapshot TTL, so each retry
+    // must be scheduled with the GAP `delays[i] - delays[i - 1]`, exactly as the
+    // iq-standing effect below does. Passing delays[i] straight to setTimeout
+    // treated the cumulative targets as gaps and stretched the real ladder to
+    // 0 / 1.5s / 5s / 11s / 21s, so a player whose first read lost the race to
+    // their own write waited up to 21 seconds to see their ranking.
     const delays = [0, 1500, 3500, 6000, 10000];
     let i = 0;
     let notified = false;
@@ -385,14 +390,14 @@ export default function DailyEndCard({
           if (reflectsSelf && !notified) { notified = true; notifyBoard(); setTimeout(notifyBoard, 600); }
           if (reflectsSelf || i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;
-          timer = setTimeout(run, delays[i]);
+          timer = setTimeout(run, delays[i] - delays[i - 1]);
         })
         .catch(() => {
           if (!alive) return;
           setCombinedResolved(true); // don't leave the loading skeletons up on a failed read
           if (i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;
-          timer = setTimeout(run, delays[i]);
+          timer = setTimeout(run, delays[i] - delays[i - 1]);
         });
     };
     timer = setTimeout(run, delays[0]);
