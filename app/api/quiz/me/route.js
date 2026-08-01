@@ -41,10 +41,18 @@ export async function GET(request) {
     // FULL play history (every game, exact timestamps), not just the last
     // handful, and rankFor so each of those entries carries its rank movement.
     // Light mode drops both, which is what makes its memo entry shareable.
+    // ⚠️ recentN 1, NOT 0. computeXp finalizes with `p.recent.slice(-recentN)`,
+    // and slice(-0) is slice(0), i.e. the WHOLE array: asking for zero recent
+    // entries returns every one of them. Shipped that way for one deploy and a
+    // light profile still carried 710 entries / 20KB. Ask for the smallest real
+    // slice and drop it below.
     const { players } = light
-      ? computeXpCached(data || [], { recentN: 0 })
+      ? computeXpCached(data || [], { recentN: 1 })
       : computeXpCached(data || [], { recentN: 100000, rankFor: myKey });
     const profile = buildProfile(players, myKey, { signed, username });
+    // buildProfile copies `recent` into a fresh array, so emptying it here can
+    // never reach back into the shared memo entry.
+    if (light) profile.recent = [];
     if (!light && profile.found) {
       const res = computeTrophiesCached(data || [], players);
       profile.trophies = buildTrophyList(res, myKey, { includeDuels: false });
