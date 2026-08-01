@@ -228,7 +228,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
               <span className="dgg-act-s">
                 {copied
                   ? 'Paste it anywhere. Everyone who plays from it is credited to you on our community leaderboard. I\u2019m a one person startup! Please help us grow!'
-                  : 'One tap copies your result and your own link. Everyone who plays from it is credited to you on our community leaderboard. I\u2019m a one person startup! Please help us grow!'}
+                  : 'Click to share your result with your own link. Everyone who plays from it is credited to you on our community leaderboard. I\u2019m a one person startup! Please help us grow!'}
               </span>
             </span>
           </button>
