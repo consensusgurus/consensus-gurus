@@ -744,7 +744,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {/* result */}
         {!playing && (
           <>
-            <div style={{ maxWidth: 472, margin: '12px 0 12px' }}>
+            <div style={{ maxWidth: 472, margin: '12px auto' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
