@@ -6,7 +6,7 @@ import { PUZZLES as P_OUTRANK } from '@/app/outrank/puzzles';
 import { PUZZLES as P_FEUD } from '@/app/feud/puzzles';
 import { scoreOutwitField, HOUSE_CUTOFF as OUTWIT_CUTOFF } from '@/lib/outwit-score';
 import { scoreOutrankField, HOUSE_CUTOFF as OUTRANK_CUTOFF } from '@/lib/outrank-score';
-import { scoreFeudField, cleanBallot, HOUSE_CUTOFF as FEUD_CUTOFF } from '@/lib/feud-score';
+import { scoreFeudField, HOUSE_CUTOFF as FEUD_CUTOFF } from '@/lib/feud-score';
 
 // GET /api/quiz/crowd-today?game=outwit|outrank|feud&anonId=..&email=..
 //
@@ -132,7 +132,14 @@ function fmtNum(x) {
 // ── FEUD: five prompts, each a live tally of what players typed ──────────────
 function feudGroups(puzzle, pool, mine) {
   const field = scoreFeudField(puzzle, pool, { houseCutoff: FEUD_CUTOFF });
-  const clean = cleanBallot(mine.answers, puzzle);
+  // The stored ballot was already cleaned by /api/feud on the way in, so it is
+  // fed straight to the scorer. (Re-running cleanBallot here is not just
+  // redundant, it is the read path's only trap: lib/feud-score re-exports
+  // normAnswer without importing it, so cleanBallot throws outside the Next
+  // bundle. Fixed in that file, and this stays independent of it either way.)
+  const clean = Array.isArray(mine.answers) && mine.answers.length === puzzle.prompts.length
+    ? mine.answers.map((a) => (Array.isArray(a) ? a : []))
+    : null;
   if (!clean) return null;
   const detail = field.detailFor(clean);
   const groups = puzzle.prompts.map((pr, p) => {
