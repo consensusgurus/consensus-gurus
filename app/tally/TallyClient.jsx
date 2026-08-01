@@ -835,6 +835,22 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                   <button key={j} className={`tl-rtile${used[j] ? ' used' : (j === sel ? ' sel' : '')}`} onClick={() => selectTile(j)} aria-label={`tile ${d}`}>{d}</button>
                 ))}
               </div>
+
+              {/* tool toggle sits with the tiles it governs, directly under the
+                  rack and above the notes key that explains the marks */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 15 }}>
+                <button className={`tl-tool${mode === 'place' ? ' on' : ''}`} onClick={() => setMode('place')} aria-pressed={mode === 'place'} title="Place and lift tiles">
+                  Place
+                </button>
+                <button className={`tl-tool${mode === 'sure' ? ' on' : ''}`} onClick={() => setMode('sure')} aria-pressed={mode === 'sure'} title="Tap a placed tile to cycle its certainty note — free, never scored">
+                  &#10003; Mark
+                </button>
+                <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, flex: '1 1 210px' }}>
+                  {mode === 'sure'
+                    ? 'Tap a placed tile to cycle: right row, right column, certain, clear.'
+                    : sel >= 0 && !used[sel] ? `Placing ${BANK[sel]} — tap a square` : 'Tap a tile, then a square. Hold a placed tile to mark it certain.'}
+                </span>
+              </div>
             </>
           )}
 
@@ -855,8 +871,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
 
-        {/* controls */}
-        {started && (
+        {/* controls — the tool toggle moved up into the ledger with the rack, so
+            this row is only Hint / Reveal and should not render empty */}
+        {started && ((!identity && !g.hintUsed) || (identity && g.moves > 0)) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             {!identity && !g.hintUsed && (
               <button className="tl-btn" onClick={useHint} title="Fill one correct square (one hint per puzzle)"
@@ -864,17 +881,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                 <Lightbulb size={14} /> Hint
               </button>
             )}
-            <button className={`tl-tool${mode === 'place' ? ' on' : ''}`} onClick={() => setMode('place')} aria-pressed={mode === 'place'} title="Place and lift tiles">
-              Place
-            </button>
-            <button className={`tl-tool${mode === 'sure' ? ' on' : ''}`} onClick={() => setMode('sure')} aria-pressed={mode === 'sure'} title="Tap a placed tile to cycle its certainty note — free, never scored">
-              &#10003; Mark
-            </button>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-              {mode === 'sure'
-                ? 'Tap a placed tile to cycle: right row, right column, certain, clear.'
-                : sel >= 0 && !used[sel] ? `Placing ${BANK[sel]} — tap a square` : 'Tap a tile, then a square. Hold a placed tile to mark it certain.'}
-            </span>
             {identity && g.moves > 0 && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
