@@ -178,7 +178,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:#3f6b4e;}
         /* Share sub-line: its own tone (the base color is tuned for the green
            replay button) and a readable measure on wide screens. */
-        .dgg-act.dgg-share .dgg-act-s{color:#7c6512;max-width:430px;margin-left:auto;margin-right:auto;font-size:11px;line-height:1.4;}
+        .dgg-act.dgg-share .dgg-act-s{color:#7c6512;max-width:520px;margin-left:auto;margin-right:auto;font-size:11px;line-height:1.4;}
 
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
            bottom section matches the end-of-game card. Game icons are kept. */
@@ -227,8 +227,8 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
               {copied ? share.label : 'Share Your Result, Get the Credit'}
               <span className="dgg-act-s">
                 {copied
-                  ? 'Paste it anywhere. Every player who opens it is credited to you.'
-                  : 'One tap copies your result and your own link. Everyone who plays from it is credited to you, and every share helps the daily grow.'}
+                  ? 'Paste it anywhere. Everyone who plays from it is credited to you on our community leaderboard. I\u2019m a one person startup! Please help us grow!'
+                  : 'One tap copies your result and your own link. Everyone who plays from it is credited to you on our community leaderboard. I\u2019m a one person startup! Please help us grow!'}
               </span>
             </span>
           </button>
