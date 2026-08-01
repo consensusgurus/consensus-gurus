@@ -827,7 +827,15 @@ export default function QuizHomeClient() {
     // derivation into a shared memo lookup. It was the slowest call on the
     // homepage by a distance (1,645ms measured).
     params.set('light', '1');
-    fetch(`/api/quiz/me?${params.toString()}`).then((r) => r.json()).then((d) => {
+    const key = params.toString();
+    // The inline script in app/page.js started this request during HTML parse,
+    // ~800ms before this effect could run. Adopt it when it asked the same
+    // question; otherwise fetch normally (identity changed since parse, or the
+    // script did not run).
+    const pre = (typeof window !== 'undefined' && window.__sotMe && window.__sotMe.key === key)
+      ? window.__sotMe.promise
+      : null;
+    (pre || fetch(`/api/quiz/me?${key}`).then((r) => r.json())).then((d) => {
       if (d) setMe(d);
     }).catch(() => {});
   }, []);
