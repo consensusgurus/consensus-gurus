@@ -49,6 +49,9 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const PAPER = '#fbf9f4';
 const HELP_KEY = 'sot_tally_help_seen';
 const STATS_KEY = 'sot_tally_stats';
+// remembered marking tool across days: 'place' (tap to place/lift) | 'sure'
+// (tap a placed tile to flag it certain). Long-press marks certain in either.
+const TOOL_KEY = 'sot_tally_tool';
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -149,10 +152,20 @@ function mergeServerStats(s, recent, puzzles) {
   return s2;
 }
 
+// A saved game from before the certain-marker shipped has no `sure` array (and
+// an archive replay can switch board size), so normalise on every read.
+function normSure(arr, size) {
+  const out = Array(size * size).fill(0);
+  if (Array.isArray(arr)) for (let i = 0; i < out.length && i < arr.length; i++) out[i] = arr[i] ? 1 : 0;
+  return out;
+}
+
 function freshState(size) {
   return {
     v: 1,
     cells: Array(size * size).fill(0), // placed digit per grid cell (0 = empty/blocked/given)
+    sure: Array(size * size).fill(0),  // player's "I'm certain" flag per cell — a free note,
+                                       // never scored, never touches moves
     moves: 0,                          // total placements (lifting is free; extra placements = errors)
     hintUsed: false,
     status: 'playing',                 // playing | won | revealed
@@ -180,6 +193,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
 
   const [g, setG] = useState(() => freshState(N));
   const [sel, setSel] = useState(-1);        // selected rack tile index (into BANK), -1 = none
+  const [mode, setMode] = useState('place'); // 'place' | 'sure' — remembered across days
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
@@ -202,8 +216,11 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
+  // long-press bookkeeping: `fired` swallows the click that follows the press
+  const longRef = useRef({ t: null, fired: false });
 
   const cells = g.cells;
+  const sure = useMemo(() => normSure(g.sure, N), [g.sure, N]);
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
@@ -235,8 +252,10 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1 && Array.isArray(saved.cells) && saved.cells.length === N * N) setG({ ...freshState(N), ...saved });
+        if (saved && saved.v === 1 && Array.isArray(saved.cells) && saved.cells.length === N * N) setG({ ...freshState(N), ...saved, sure: normSure(saved.sure, N) });
       }
+      const t = localStorage.getItem(TOOL_KEY);
+      if (t === 'place' || t === 'sure') setMode(t);
       // The start tile shows in place of the board until the player begins (t0
       // set on Start). First-timers see the full rules on the tile; a returning
       // player gets the compact start card with a "Show instructions" toggle.
@@ -257,6 +276,13 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles, N]);
+  // remember the player's tool across days
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(TOOL_KEY, mode); } catch (e) {}
+  }, [mode, hydrated]);
+  // a long-press timer must never outlive the board
+  useEffect(() => () => { if (longRef.current.t) clearTimeout(longRef.current.t); }, []);
 
   useEffect(() => {
     if (g.status === 'playing') return;
@@ -405,10 +431,75 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     setG(g2);
   }
 
+  // ── certain marks ────────────────────────────────────────────────────────
+  // A note, not a move: flagging a tile costs nothing and is never scored. A
+  // flagged tile is also locked, so a stray tap can't knock out work you've
+  // already proved.
+  function toggleSure(i) {
+    if (!playing || !cells[i]) return;
+    const next = sure.slice();
+    next[i] = next[i] ? 0 : 1;
+    setG((cur) => ({ ...cur, sure: next }));
+    try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(8); } catch (e) {}
+  }
+
+  // Tapping a row/column target flags (or clears) every placed tile in that
+  // line at once — the fast way to lock a line you've just balanced.
+  function toggleLineSure(idx, isRow) {
+    if (!playing) return;
+    const hit = [];
+    for (let j = 0; j < N; j++) {
+      const r = isRow ? idx : j, c = isRow ? j : idx;
+      if (BLOCK[r][c] || GIVEN[r][c]) continue;
+      const i = r * N + c;
+      if (cells[i]) hit.push(i);
+    }
+    if (!hit.length) { say('Nothing placed in that line yet'); return; }
+    const allSure = hit.every((i) => sure[i]);
+    const next = sure.slice();
+    hit.forEach((i) => { next[i] = allSure ? 0 : 1; });
+    setG((cur) => ({ ...cur, sure: next }));
+    say(allSure
+      ? `${isRow ? 'Row' : 'Column'} unlocked`
+      : `${isRow ? 'Row' : 'Column'} locked — ${hit.length} tile${hit.length === 1 ? '' : 's'} marked certain`);
+  }
+
+  // long-press (and right-click) always marks certain, whatever the tool
+  function pressStart(e, r, c) {
+    // right-click has its own handler — don't also arm the hold timer, or the
+    // two would fire and cancel each other out
+    if (e && e.button === 2) return;
+    if (!playing || BLOCK[r][c] || GIVEN[r][c] || !cells[r * N + c]) return;
+    longRef.current.fired = false;
+    if (longRef.current.t) clearTimeout(longRef.current.t);
+    longRef.current.t = setTimeout(() => {
+      longRef.current.t = null;
+      longRef.current.fired = true;
+      toggleSure(r * N + c);
+    }, 420);
+  }
+  function pressEnd() {
+    if (longRef.current.t) { clearTimeout(longRef.current.t); longRef.current.t = null; }
+  }
+
   function cellClick(r, c) {
+    // swallow the click that follows a long-press
+    if (longRef.current.fired) { longRef.current.fired = false; return; }
     if (!playing || BLOCK[r][c] || GIVEN[r][c]) return;
     const i = r * N + c;
+    if (mode === 'sure') {
+      if (!cells[i]) { say('Place a tile first — an empty square can’t be certain'); return; }
+      toggleSure(i);
+      return;
+    }
     if (cells[i]) {
+      // a certain tile is locked: the first tap unlocks, a second one lifts
+      if (sure[i]) {
+        const ns = sure.slice(); ns[i] = 0;
+        setG((cur) => ({ ...cur, sure: ns }));
+        say('Unlocked — tap again to lift it');
+        return;
+      }
       // lift the placed tile back to the rack (free — no move charged)
       const next = cells.slice(); next[i] = 0;
       commit(next, false);
@@ -447,7 +538,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       const d = PUZZLE.sol[r][c];
       if (freeAvail[d] > 0) {
         const next = cells.slice(); next[i] = d;
-        const g2 = { ...g, cells: next, moves: g.moves + 1, hintUsed: true };
+        // a hint is correct by construction, so it lands pre-marked certain
+        const ns = sure.slice(); ns[i] = 1;
+        const g2 = { ...g, cells: next, sure: ns, moves: g.moves + 1, hintUsed: true };
         if (!g2.t0) g2.t0 = Date.now();
         if (isSolved(next)) {
           g2.status = 'won'; g2.tEnd = Date.now();
@@ -467,7 +560,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   function revealEnd() {
     const next = Array(N * N).fill(0);
     for (const [r, c] of FREE) next[r * N + c] = PUZZLE.sol[r][c];
-    const g2 = { ...g, cells: next, status: 'revealed', tEnd: Date.now() };
+    const g2 = { ...g, cells: next, sure: Array(N * N).fill(0), status: 'revealed', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0);
     setSel(-1);
@@ -516,15 +609,36 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const TARGETW = 46;
   const gridTemplate = `repeat(${N}, minmax(0, 1fr)) ${TARGETW}px`;
 
+  // is every placed tile in this line already flagged certain?
+  function lineSure(idx, isRow) {
+    let any = false;
+    for (let j = 0; j < N; j++) {
+      const r = isRow ? idx : j, c = isRow ? j : idx;
+      if (BLOCK[r][c] || GIVEN[r][c]) continue;
+      const i = r * N + c;
+      if (!cells[i]) continue;
+      any = true;
+      if (!sure[i]) return false;
+    }
+    return any;
+  }
+
   function targetChip(i, isRow, key) {
     const st = lineState(i, isRow);
-    const bg = st.ok ? COLORS.green : '#fff';
-    const bd = st.ok ? COLORS.green : st.full ? 'rgba(180,83,9,0.75)' : 'rgba(28,30,36,0.4)';
+    const locked = lineSure(i, isRow);
+    const bg = st.ok ? COLORS.green : locked ? '#eef1f8' : '#fff';
+    const bd = st.ok ? COLORS.green : locked ? COLORS.ember : st.full ? 'rgba(180,83,9,0.75)' : 'rgba(28,30,36,0.4)';
     const tc = st.ok ? '#fff' : st.full ? COLORS.amber : COLORS.ink;
+    const label = isRow ? 'row' : 'column';
     return (
-      <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 13, border: `1.5px solid ${bd}`, background: bg, fontFamily: MONO, lineHeight: 1.02, padding: '2px 0', minHeight: 34 }}>
-        <span style={{ fontSize: 15, fontWeight: 500, color: tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
-        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : '#262b35' }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
+      <div key={key} className={`tl-tgt${playing ? ' live' : ''}`} role={playing ? 'button' : undefined} tabIndex={playing ? 0 : undefined}
+        onClick={playing ? () => toggleLineSure(i, isRow) : undefined}
+        onKeyDown={playing ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleLineSure(i, isRow); } } : undefined}
+        title={playing ? `${locked ? 'Unmark' : 'Mark'} this ${label} certain` : undefined}
+        aria-label={playing ? `${isRow ? 'Row' : 'Column'} ${i + 1} target ${isRow ? ROWT[i] : COLT[i]} — ${locked ? 'unmark' : 'mark'} certain` : undefined}
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 13, border: `${locked && !st.ok ? 2 : 1.5}px solid ${bd}`, background: bg, fontFamily: MONO, lineHeight: 1.02, padding: '2px 0', minHeight: 34, boxSizing: 'border-box' }}>
+        <span style={{ fontSize: 15, fontWeight: 500, color: st.ok ? '#fff' : locked ? COLORS.ember : tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
+        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : locked ? COLORS.ember : '#262b35' }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
       </div>
     );
   }
@@ -535,6 +649,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Fill every open square so each <b>row and column adds up to the target</b> at its end.</p>
       <p style={{ margin: '0 0 9px' }}>You may only use the <b>tiles on your rack</b>, and you must use <b>every one</b>. Digits repeat &mdash; the rack tells you how many of each you have. That supply is the trick: when the sums leave two ways to fill a line, the tiles left leave one.</p>
       <p style={{ margin: '0 0 9px' }}>Tap a tile, then a square. Tap a placed tile to <b>lift it back</b> &mdash; lifting is free. Dotted squares are yours; a square with a corner dot is a printed given; dark squares are out of play.</p>
+      <p style={{ margin: '0 0 9px' }}>Worked out a square for sure? <b>Mark it certain</b> &mdash; hold it, right-click it, or switch to the Certain tool and tap. It turns navy and <b>locks</b>, so a stray tap can&rsquo;t knock it out; tap once to unlock. Tap a <b>row or column target</b> to mark that whole line at once. Marking is a note only: it never costs a move and never counts against your score.</p>
       <p style={{ margin: 0 }}>A clean solve uses the <b>fewest possible</b> placements for a perfect 10 &mdash; every extra placement costs a point. Ties break on fewest errors, then fastest time. One free <b>hint</b> fills a correct square.</p>
     </div>
   );
@@ -553,14 +668,24 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           @keyframes tlstamp{from{opacity:0;transform:scale(.94);}}
           @media(max-width:520px){.tl-htp-f{display:none;}.tl-htp-s{display:inline;}}
           @media(max-width:560px){.tl-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.tl-ttl h1{font-size:21px;letter-spacing:0.02em;}.tl-ttl .tl-ttl-dt{font-size:15px;}.tl-ttl-dot{display:none;}}
-          .tl-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:21px;font-weight:500;color:${COLORS.ink};box-sizing:border-box;}
+          .tl-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:21px;font-weight:500;color:${COLORS.ink};box-sizing:border-box;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
           .tl-blocked{background:${COLORS.ink};}
           .tl-given{background:#eef0f3;border:1.5px solid rgba(28,30,36,0.25);position:relative;}
           .tl-given::after{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:rgba(28,30,36,0.3);}
           .tl-empty{background:#fff;border:1.5px dashed rgba(28,30,36,0.4);cursor:pointer;}
           .tl-empty.hot{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.16);}
-          .tl-placed{background:#fff;border:1.5px solid rgba(28,30,36,0.55);cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
+          .tl-placed{background:#fff;border:1.5px solid rgba(28,30,36,0.55);cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);position:relative;}
           .tl-placed:active{transform:translateY(1px);}
+          /* a tile the player has flagged certain: navy, locked, corner check.
+             deliberately NOT the green used for a balanced line — green means the
+             board agrees, navy means the player does. */
+          .tl-placed.sure{background:#eef1f8;border:2px solid ${COLORS.ember};box-shadow:0 2.5px 0 rgba(14,29,64,0.6), inset 0 -3px 0 rgba(14,29,64,0.09);}
+          .tl-placed.sure::after{content:'\\2713';position:absolute;top:1px;right:4px;font-family:${SANS};font-size:10px;font-weight:800;line-height:1;color:${COLORS.ember};}
+          .tl-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.faded};border-radius:7px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+          .tl-tool.on{border:1.5px solid ${COLORS.ember};background:#eef1f8;color:${COLORS.ember};}
+          .tl-tgt{cursor:default;}
+          .tl-tgt.live{cursor:pointer;}
+          .tl-tgt.live:hover{box-shadow:0 0 0 2px rgba(14,29,64,0.18);}
           .tl-rtile{width:42px;height:42px;border-radius:8px;border:1.5px solid rgba(28,30,36,0.55);background:#fff;font-family:${MONO};font-size:20px;font-weight:500;color:${COLORS.ink};cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
           .tl-rtile:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.5);}
           .tl-rtile.sel{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.2), 0 2.5px 0 rgba(28,30,36,0.5);}
@@ -626,8 +751,18 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                     const i = r * N + c;
                     if (BLOCK[r][c]) return <div key={i} className="tl-cell tl-blocked" />;
                     if (GIVEN[r][c]) return <div key={i} className="tl-cell tl-given">{GIVEN[r][c]}</div>;
-                    if (cells[i]) return <div key={i} className="tl-cell tl-placed" onClick={() => cellClick(r, c)}>{cells[i]}</div>;
-                    return <div key={i} className={`tl-cell tl-empty${sel >= 0 && !used[sel] ? ' hot' : ''}`} onClick={() => cellClick(r, c)} />;
+                    if (cells[i]) return (
+                      <div key={i} className={`tl-cell tl-placed${playing && sure[i] ? ' sure' : ''}`}
+                        onClick={() => cellClick(r, c)}
+                        onPointerDown={(e) => pressStart(e, r, c)}
+                        onPointerUp={pressEnd}
+                        onPointerLeave={pressEnd}
+                        onPointerCancel={pressEnd}
+                        onContextMenu={(e) => { e.preventDefault(); pressEnd(); toggleSure(i); }}
+                        title={playing ? (sure[i] ? 'Certain — tap to unlock, hold to unmark' : 'Hold or right-click to mark certain') : undefined}
+                      >{cells[i]}</div>
+                    );
+                    return <div key={i} className={`tl-cell tl-empty${sel >= 0 && !used[sel] && mode === 'place' ? ' hot' : ''}`} onClick={() => cellClick(r, c)} />;
                   })}
                   {targetChip(r, true, `rt${r}`)}
                 </React.Fragment>
@@ -660,8 +795,16 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                 <Lightbulb size={14} /> Hint
               </button>
             )}
+            <button className={`tl-tool${mode === 'place' ? ' on' : ''}`} onClick={() => setMode('place')} aria-pressed={mode === 'place'} title="Place and lift tiles">
+              Place
+            </button>
+            <button className={`tl-tool${mode === 'sure' ? ' on' : ''}`} onClick={() => setMode('sure')} aria-pressed={mode === 'sure'} title="Tap a placed tile to mark it certain — free, never scored">
+              &#10003; Certain
+            </button>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-              {sel >= 0 && !used[sel] ? `Placing ${BANK[sel]} — tap a square` : 'Tap a tile, then a square. Tap a placed tile to lift it.'}
+              {mode === 'sure'
+                ? 'Tap a placed tile to mark it certain. Tap a row or column target to lock the whole line.'
+                : sel >= 0 && !used[sel] ? `Placing ${BANK[sel]} — tap a square` : 'Tap a tile, then a square. Hold a placed tile to mark it certain.'}
             </span>
             {identity && g.moves > 0 && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
