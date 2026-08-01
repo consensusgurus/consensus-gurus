@@ -20,8 +20,9 @@
 //      ranking. Below it, three rank tiles —
 //      "Today" (today's drop of this game), "All Time" (this game's
 //      cumulative points across every drop), and "All Games" (the combined
-//      board) — big centered numerals with the field size spelled out, each
-//      expanding in place to that board's top 10. The internal view keys stay
+//      board) — big centered numerals with the field size spelled out, a
+//      colored cap across the top and a gold/silver/bronze tint on a top-3
+//      finish, each expanding in place to that board's top 10. The internal view keys stay
 //      'today' / 'alltime' / 'combined' (owner redesign 2026-07-31).
 //   3. guest-only claim banner (unregistered players only) — sits directly
 //      under the rank tiles, loudly (pulsing ring + sweeping sheen + blinking
@@ -820,12 +821,14 @@ export default function DailyEndCard({
   const canPrev = calMonth > monthYMs.earliest;
   const canNext = calMonth < monthYMs.latest;
 
-  // Render one rank tile (plain helper, not a nested component). `prov` badges the
-  // rank as provisional (a guest's would-be standing).
+  // Render one rank tile (plain helper, not a nested component). `prov` (a guest's
+  // unclaimed standing) is accepted for compatibility but no longer rendered: the
+  // old " prov." badge read as a modifier on the field size and duplicated the
+  // guest claim banner below (owner 2026-08-01).
   const renderTile = (id, label, rank, field, dash, prov) => (
     <button
       type="button"
-      className={`dec-tile${openTile === id ? ' open' : ''}`}
+      className={`dec-tile${openTile === id ? ' open' : ''}${(!dash && rank && rank <= 3) ? ` medal m${rank}` : ''}`}
       key={id}
       aria-label={`Expand ${label} leaderboard`}
       aria-expanded={openTile === id}
@@ -835,7 +838,7 @@ export default function DailyEndCard({
       {dash ? (
         <div className="dec-tile-rk"><span className="dash">—</span></div>
       ) : rank ? (
-        <div className="dec-tile-rk">#{rank}{prov ? <span className="prov"> prov.</span> : null}</div>
+        <div className="dec-tile-rk">#{rank}</div>
       ) : (
         <div className="dec-tile-rk"><span className="dash">·</span></div>
       )}
@@ -993,27 +996,42 @@ export default function DailyEndCard({
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
         .dec-tiles-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @media(prefers-reduced-motion:reduce){.dec-tiles-loading::after{animation:none;}}
-        .dec-tile-cal{position:absolute;top:9px;right:8px;color:${SLATE};}
+        .dec-tile-cal{position:absolute;top:11px;right:8px;color:${SLATE};}
         /* Tiles carry the same confidence as the hero (owner 2026-08-01): a 2px
            border, white ground, soft shadow and a bigger numeral, so the row
            does not read as a pale afterthought under the navy panel. */
-        .dec-tile{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:2px solid #dde3ee;background:#fff;border-radius:14px;padding:13px 10px 12px;min-width:0;box-shadow:0 2px 10px rgba(20,30,60,.05);transition:background .12s ease,border-color .12s ease,box-shadow .12s ease;}
-        .dec-tile:hover{border-color:#b9c6dd;box-shadow:0 3px 14px rgba(20,30,60,.09);}
-        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
-        .dec-tile-lbl{font-family:${SANS};font-size:13px;font-weight:800;color:${INK};padding:0 20px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:32px;}
+        .dec-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:2px solid #cfdcf4;background:linear-gradient(180deg,#fff,#eff5ff);border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:0 3px 13px rgba(20,30,60,.08);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
+        /* A colored cap across the top of every tile: the row reads as three
+           deliberate cards rather than three pale boxes (owner 2026-08-01). */
+        .dec-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
+        .dec-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(37,99,235,.16);transform:translateY(-1px);}
+        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
+        /* Podium tint: a top-3 finish is the whole point of the row, so it is
+           colored gold / silver / bronze rather than left generic blue. */
+        .dec-tile.m1{border-color:#e3ba57;background:linear-gradient(180deg,#fffdf5,#fdf3d9);box-shadow:0 3px 14px rgba(190,145,25,.20);}
+        .dec-tile.m1::before{background:linear-gradient(90deg,#d9a327,#f2d489);}
+        .dec-tile.m1 .dec-tile-lbl{color:#96700d;}
+        .dec-tile.m1 .dec-tile-rk{color:#8a6407;}
+        .dec-tile.m2{border-color:#c3cad6;background:linear-gradient(180deg,#fff,#f1f3f7);box-shadow:0 3px 13px rgba(40,50,70,.13);}
+        .dec-tile.m2::before{background:linear-gradient(90deg,#98a2b3,#d6dbe4);}
+        .dec-tile.m2 .dec-tile-lbl{color:#5d6779;}
+        .dec-tile.m2 .dec-tile-rk{color:#414b5e;}
+        .dec-tile.m3{border-color:#dcb695;background:linear-gradient(180deg,#fffbf7,#fbeee2);box-shadow:0 3px 13px rgba(150,95,45,.16);}
+        .dec-tile.m3::before{background:linear-gradient(90deg,#b8703c,#e2b189);}
+        .dec-tile.m3 .dec-tile-lbl{color:#8c5527;}
+        .dec-tile.m3 .dec-tile-rk{color:#7d4a1f;}
+        .dec-tile-lbl{font-family:${SANS};font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${BLUE};padding:0 18px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:28px;}
         /* Big centered numeral, with the field size spelled out on its own
            line below (owner 2026-07-31: larger ranks, easier-to-read text). */
-        .dec-tile-rk{font-size:38px;font-weight:800;letter-spacing:-.03em;color:${INK};line-height:1.05;margin-top:3px;display:block;}
-        .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
-        .dec-tile-of .prov{font-weight:700;color:${FADED};}
+        .dec-tile-rk{font-size:43px;font-weight:800;letter-spacing:-.035em;color:${NAVY};line-height:1.02;margin-top:2px;display:block;}
         .dec-tile-rk .dash{color:#c2c8d2;}
-        .dec-tile-of{font-size:12.5px;font-weight:600;color:${SLATE};display:block;margin-top:3px;}
-        .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
+        .dec-tile-of{font-size:12px;font-weight:700;color:${SLATE};display:block;margin-top:4px;}
+        .dec-tile-mx{position:absolute;top:9px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
         .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:${BLUE};}
         /* Archive tile: same shell as a rank tile, a completion ring where the
            rank numeral sits. No chevron, because it opens the calendar below
            rather than a leaderboard. */
-        .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
+        .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
         /* Ring sized around its widest label, "100%", measured rather than
            guessed: at 12px it renders 40px wide, and a 50px ring with a 5px
            stroke leaves 41px of clear middle, so it fit by one pixel and read as
@@ -1077,7 +1095,6 @@ export default function DailyEndCard({
         .dec-iqhero.full .dec-iqhero-stats .v{color:#d6f7e4;}
         .dec-iqhero-stats .m{font-size:11px;font-weight:700;color:#9dc0ef;}
         .dec-iqhero.full .dec-iqhero-stats .m{color:#95d9b7;}
-        .dec-iqhero-stats .prov{font-weight:700;color:#7f9fce;}
         .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8ab2ee;}
         .dec-iqhero.full .dec-iqhero-lbl{color:#82d3aa;}
         .dec-iqhero-gain{display:block;font-size:68px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#cfe3ff;margin-top:2px;font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(147,197,253,.35);}
@@ -1095,7 +1112,6 @@ export default function DailyEndCard({
         .dec-iqhero.full .dec-iqhero-sub{border-top-color:rgba(134,239,172,.22);color:#95d9b7;}
         .dec-iqhero-sub b{font-weight:800;color:#dbeafe;}
         .dec-iqhero.full .dec-iqhero-sub b{color:#d6f7e4;}
-        .dec-iqhero-sub .prov{font-weight:700;color:#7f9fce;}
         .dec-iqhero-sub:empty{display:none;}
         .dec-iqhero-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#8ab2ee;pointer-events:none;}
         .dec-iqhero.full .dec-iqhero-mx{color:#82d3aa;}
@@ -1273,12 +1289,12 @@ export default function DailyEndCard({
           .dec-claim .cta{font-size:10.5px;padding:6px 10px;letter-spacing:.02em;}
           /* Mobile: the three rank tiles stay side by side, tighter. */
           .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
-          .dec-tile{padding:10px 6px 9px;border-radius:12px;}
-          .dec-tile-lbl{font-size:11px;padding:0 13px;min-height:27px;}
-          .dec-tile-rk{font-size:27px;}
-          .dec-tile-rk .prov{font-size:9px;}
+          .dec-tile{padding:12px 6px 9px;border-radius:12px;}
+          .dec-tile::before{height:3px;}
+          .dec-tile-lbl{font-size:9.5px;letter-spacing:.05em;padding:0 11px;min-height:24px;}
+          .dec-tile-rk{font-size:30px;}
           .dec-tile-of{font-size:11px;}
-          .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
+          .dec-tile-mx{top:7px;right:5px;width:17px;height:17px;border-radius:5px;}
           .dec-iqhero{padding:13px 12px 11px;}
           /* Phone: hero is the centred brain + gain, with the three figures as
              the footnote row under a hairline (the identity chip lives on the
@@ -1399,7 +1415,7 @@ export default function DailyEndCard({
               <span className="st">
                 <span className="k">IQ rank</span>
                 <span className="v">#{iq.rank.toLocaleString()}</span>
-                <span className="m">of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span>
+                <span className="m">of {(iq.total || 0).toLocaleString()}</span>
               </span>
             ) : null}
           </span>
@@ -1407,7 +1423,7 @@ export default function DailyEndCard({
         <span className="dec-iqhero-sub">
           {showIqToday ? <span><b>+{iq.todayGained.toLocaleString()}</b> today</span> : null}
           {iq && typeof iq.xp === 'number' ? <span><b>{iq.xp.toLocaleString()}</b> total</span> : null}
-          {iq && iq.rank ? <span>IQ rank <b>#{iq.rank.toLocaleString()}</b> of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span> : null}
+          {iq && iq.rank ? <span>IQ rank <b>#{iq.rank.toLocaleString()}</b> of {(iq.total || 0).toLocaleString()}</span> : null}
           {iq && iq.firstPlay ? <span>Your first IQ Points are banking</span> : null}
         </span>
         <span className="dec-iqhero-mx">
@@ -1463,8 +1479,8 @@ export default function DailyEndCard({
           <span className="tx">
             <span className="t">
               {iq && typeof iq.xp === 'number' && iq.xp > 0
-                ? <>Your {iq.xp.toLocaleString()} IQ Points are unclaimed</>
-                : <>Your IQ Points and ranks are unclaimed</>}
+                ? <>Your ranking and {iq.xp.toLocaleString()} IQ Points are unclaimed</>
+                : <>Your ranking and IQ Points are unclaimed</>}
             </span>
             <span className="s">Pick a username to keep them and hold your place on these boards.</span>
           </span>
