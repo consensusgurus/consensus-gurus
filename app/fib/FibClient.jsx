@@ -687,7 +687,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Fib is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Every row and column holds 1 to {n} once, and the signs point at the larger number. One sign is lying. Solve the grid, then accuse it. {n}&times;{n} today.</p>
+                <p style={{ margin: '0 0 6px' }}>Every row and column holds 1 to {n} once, and the open end of each sign points at the larger number. One sign is lying. Solve the grid, then accuse it. {n}&times;{n} today.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>

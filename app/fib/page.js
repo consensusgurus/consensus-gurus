@@ -11,7 +11,7 @@ import { PUZZLES } from './puzzles';
 export const metadata = {
   title: 'Fib — Free Daily Logic Puzzle With One Lying Clue | Source of Truths',
   description:
-    'A free daily logic grid where every row and column holds 1 to 5 once, inequality signs point at the larger number, and exactly one of those signs is lying. Solve the grid, then accuse the clue that lied. One provable answer, no guessing, and a bigger 6x6 Edition on Sundays.',
+    'A free daily logic grid where every row and column holds 1 to 5 once, the open end of each inequality sign points at the larger number, and exactly one of those signs is lying. Solve the grid, then accuse the clue that lied. One provable answer, no guessing, and a bigger 6x6 Edition on Sundays.',
   alternates: { canonical: '/fib' },
   openGraph: {
     title: 'Fib — One Clue Is Lying',
@@ -24,7 +24,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Fib — One Clue Is Lying',
-    description: 'Every sign points at the larger number. One of them is lying. Solve the grid, then name the liar.',
+    description: 'The open end of every sign points at the larger number. One of them is lying. Solve the grid, then name the liar.',
   },
 };
 
