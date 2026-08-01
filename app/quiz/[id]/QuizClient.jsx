@@ -1650,18 +1650,13 @@ export default function QuizClient({ quizId }) {
           return (
             <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
               <ScrollToTopOnMount />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
-                <div>
-                  <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: (isTopScore || win) ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
-                  <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 22, color: COLORS.faded }}> / {total}</span></div>
-                  <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{resultLine}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
-                </div>
-                {placement != null && (
-                  <div style={{ textAlign: 'right', flex: 'none' }}>
-                    <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 800, color: COLORS.faded, marginBottom: 2 }}>You placed</div>
-                    <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 46, lineHeight: 1, color: COLORS.ember }}>#{placement}</div>
-                  </div>
-                )}
+              {/* Centred game stats. The "You placed #N" block opposite them was
+                  removed 2026-07-31 (owner); the This Quiz tile on the IQ card
+                  below carries the same rank, so `placement` still feeds that. */}
+              <div style={{ textAlign: 'center', marginBottom: 18 }}>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: (isTopScore || win) ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 22, color: COLORS.faded }}> / {total}</span></div>
+                <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{resultLine}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
               </div>
               {React.cloneElement(eloPanel, { placement })}
               <RegisterRankLine rank={regRank} onRegister={openRegister} />

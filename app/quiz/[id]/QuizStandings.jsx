@@ -22,7 +22,10 @@ import { quizDept, DEPT_LABEL } from '@/lib/quiz-departments';
 // (owner ruling 2026-07-31), turning green once the goal is met. The daily card
 // fills the same art with progress through that day's puzzle slate; a quiz has no
 // slate, so the day's IQ is the equivalent "how much have you done today" signal,
-// and it means the meter reads the same on both cards for the same player.
+// and it means the meter reads the same on both cards for the same player. The
+// meter is SILENT: it carried a "113 of 250 IQ today" caption for a day, which the
+// owner cut on 2026-07-31 as noise next to the headline gain. The art still tells
+// the story, so keep the fill and leave the number off.
 //
 // Props keep their historical names (eloAfter/eloBefore are the /api/quiz/me
 // profiles after/before the game) so the board callers did not have to change
@@ -296,8 +299,6 @@ export default function QuizStandings({
         .qiq-gain{display:block;font-size:58px;font-weight:800;letter-spacing:-.03em;line-height:1;color:${C.blue};margin-top:1px;font-variant-numeric:tabular-nums;}
         .qiq-hero.full .qiq-gain{color:#15803d;}
         .qiq-gain .dash{color:#c2c8d2;}
-        .qiq-goal{display:block;font-size:11.5px;font-weight:700;color:#4d6a97;margin-top:3px;}
-        .qiq-hero.full .qiq-goal{color:#3d6b58;}
         .qiq-sub{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(61,99,168,.16);font-size:12.5px;color:#4d6a97;}
         .qiq-hero.full .qiq-sub{border-top-color:rgba(15,110,86,.16);color:#3d6b58;}
         .qiq-sub b{font-weight:800;color:#1d4ed8;}
@@ -375,9 +376,6 @@ export default function QuizStandings({
             ) : (
               <span className="qiq-gain"><span className="dash">{iqResolved ? '—' : '·'}</span></span>
             )}
-            <span className="qiq-goal">
-              {todayGained.toLocaleString()} of {IQ_GOAL} IQ today{goalFull ? ' · goal met' : ''}
-            </span>
           </span>
         </span>
         <span className="qiq-sub">

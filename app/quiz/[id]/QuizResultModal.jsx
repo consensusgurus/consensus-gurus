@@ -64,18 +64,14 @@ export default function QuizResultModal({
   return (
     <div style={{ maxWidth: 640, margin: '16px auto 0' }}>
       <ScrollToTopOnMount />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
-        <div>
-          {eyebrow ? <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>{eyebrow}</div> : null}
-          <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{score}<span style={{ fontSize: 22, color: C.faded }}> / {total}</span></div>
-          {(headline || subline) ? <p style={{ fontFamily: FONT, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{headline}{headline && subline ? ' · ' : ''}{subline}</p> : null}
-        </div>
-        {placement != null ? (
-          <div style={{ textAlign: 'right', flex: 'none' }}>
-            <div style={{ fontFamily: FONT, fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 800, color: C.faded, marginBottom: 2 }}>You placed</div>
-            <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 46, lineHeight: 1, color: C.ember }}>#{placement}</div>
-          </div>
-        ) : null}
+      {/* Game stats, centred. The "You placed #N" block that used to sit opposite
+          them was removed 2026-07-31 (owner): the same figure is now the This Quiz
+          rank tile on the IQ card directly below, so showing it twice was noise.
+          `placement` is still computed and passed down to feed that tile. */}
+      <div style={{ textAlign: 'center', marginBottom: 18 }}>
+        {eyebrow ? <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>{eyebrow}</div> : null}
+        <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{score}<span style={{ fontSize: 22, color: C.faded }}> / {total}</span></div>
+        {(headline || subline) ? <p style={{ fontFamily: FONT, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{headline}{headline && subline ? ' · ' : ''}{subline}</p> : null}
       </div>
 
       <RegisterRankLine rank={regRank} onRegister={onRegister} />
