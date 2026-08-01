@@ -1011,18 +1011,19 @@ export default function DailyEndCard({
            progress through today's slate and turns green once the slate is done,
            the gain counts up from zero, and the panel pulses as it lands. Expands
            to the player's slot in the IQ ranking exactly like a tile. */
-        /* Weight (owner 2026-08-01): the hero has to out-shout the black share
-           bar below it, so it carries a 2px border, deeper tint and a soft
-           coloured shadow rather than sitting as a pale panel. */
-        .dec-iqhero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;border:2px solid #b3cef4;background:linear-gradient(180deg,#eef5ff 0%,#dfebfd 100%);box-shadow:0 3px 14px rgba(37,99,235,.10);border-radius:17px;padding:18px 18px 15px;margin-bottom:11px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
-        .dec-iqhero.full{border-color:#a7ddc3;background:linear-gradient(180deg,#eefbf3 0%,#dcf3e7 100%);box-shadow:0 3px 14px rgba(21,128,61,.10);}
-        .dec-iqhero:hover{border-color:#8fb5e8;}
-        .dec-iqhero.full:hover{border-color:#7ec9a8;}
-        .dec-iqhero.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};}
-        .dec-iqhero.full.open{border-color:#15803d;box-shadow:0 0 0 1px #15803d;}
+        /* Weight (owner 2026-08-01): a pale panel lost the page to the black
+           share bar, so the hero is now a FILLED dark navy block with light
+           blue type (dark green once the slate is complete). It is the darkest,
+           largest element on the card by design. */
+        .dec-iqhero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;border:1px solid #1c4796;background:linear-gradient(180deg,#123170 0%,#0b2151 100%);box-shadow:0 6px 20px rgba(9,26,64,.26);border-radius:17px;padding:18px 18px 15px;margin-bottom:11px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
+        .dec-iqhero.full{border-color:#125c3e;background:linear-gradient(180deg,#0d3f2b 0%,#07301f 100%);box-shadow:0 6px 20px rgba(6,45,28,.26);}
+        .dec-iqhero:hover{border-color:#2f6ad0;}
+        .dec-iqhero.full:hover{border-color:#1a8055;}
+        .dec-iqhero.open{border-color:#93c5fd;box-shadow:0 0 0 1px #93c5fd;}
+        .dec-iqhero.full.open{border-color:#86efac;box-shadow:0 0 0 1px #86efac;}
         /* Light rays behind the numeral, revealed by the landing pulse. */
-        .dec-iqhero-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(37,99,235,.16) 0%,rgba(37,99,235,0) 62%);}
-        .dec-iqhero.full .dec-iqhero-rays{background:radial-gradient(circle,rgba(21,128,61,.17) 0%,rgba(21,128,61,0) 62%);}
+        .dec-iqhero-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(147,197,253,.30) 0%,rgba(147,197,253,0) 62%);}
+        .dec-iqhero.full .dec-iqhero-rays{background:radial-gradient(circle,rgba(134,239,172,.28) 0%,rgba(134,239,172,0) 62%);}
         .dec-iqhero.landed .dec-iqhero-rays{animation:dec-iqrays 1.1s ease-out 1;}
         .dec-iqhero.landed{animation:dec-iqpop .5s cubic-bezier(.34,1.56,.64,1) 1;}
         /* Transparent expand layer under the content: the panel toggles the IQ
@@ -1035,50 +1036,51 @@ export default function DailyEndCard({
            slate fraction and anchored to the bottom, so it fills upward. */
         .dec-brain{position:relative;display:block;flex:0 0 auto;width:104px;height:94px;}
         .dec-brain img{display:block;width:104px;height:94px;object-fit:contain;}
-        /* The empty art is drawn pale for the day card's WHITE background and
-           all but vanishes on this tinted panel, so push it to a legible grey.
-           Grey unfilled against blue/green filled is what makes it read as a
-           meter at a glance (verified on the live styles, 2026-07-31). */
-        .dec-brain-base{opacity:1;filter:contrast(1.5) brightness(.88);}
+        /* The art is drawn for the day card's WHITE background. On the dark
+           panel the empty state is inverted to a dim pale outline and the
+           filled art is brightened, so unfilled-vs-filled still reads as a
+           meter (owner dark hero, 2026-08-01). */
+        .dec-brain-base{opacity:.20;filter:grayscale(1) brightness(3.6);}
+        .dec-brain-fill img{filter:brightness(1.75) saturate(1.25);}
         .dec-brain-fill{position:absolute;left:0;bottom:0;width:104px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
         .dec-iqhero-lead{display:flex;align-items:center;gap:16px;flex:0 0 auto;min-width:0;}
         .dec-iqhero-txt{display:flex;flex-direction:column;align-items:flex-start;min-width:0;}
         /* Desktop: gain anchors the left, a hairline, then the three figures. */
-        .dec-iqhero-rule{flex:0 0 auto;width:1px;align-self:stretch;margin:2px 0;background:rgba(61,99,168,.20);}
-        .dec-iqhero.full .dec-iqhero-rule{background:rgba(15,110,86,.20);}
+        .dec-iqhero-rule{flex:0 0 auto;width:1px;align-self:stretch;margin:2px 0;background:rgba(147,197,253,.28);}
+        .dec-iqhero.full .dec-iqhero-rule{background:rgba(134,239,172,.26);}
         .dec-iqhero-stats{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;min-width:0;}
         .dec-iqhero-stats:empty{display:none;}
         .dec-iqhero-stats .st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;}
-        .dec-iqhero-stats .k{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#4f72a8;white-space:nowrap;}
-        .dec-iqhero.full .dec-iqhero-stats .k{color:#3d6b58;}
-        .dec-iqhero-stats .v{font-size:31px;font-weight:800;letter-spacing:-.025em;line-height:1.05;color:#1d4ed8;font-variant-numeric:tabular-nums;}
-        .dec-iqhero.full .dec-iqhero-stats .v{color:#0f6e56;}
-        .dec-iqhero-stats .m{font-size:11px;font-weight:700;color:#4d6a97;}
-        .dec-iqhero.full .dec-iqhero-stats .m{color:#3d6b58;}
-        .dec-iqhero-stats .prov{font-weight:700;color:${FADED};}
-        .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#2f57a0;}
-        .dec-iqhero.full .dec-iqhero-lbl{color:#0f6e56;}
-        .dec-iqhero-gain{display:block;font-size:68px;font-weight:800;letter-spacing:-.04em;line-height:1;color:${BLUE};margin-top:2px;font-variant-numeric:tabular-nums;}
-        .dec-iqhero.full .dec-iqhero-gain{color:#15803d;}
-        .dec-iqhero-gain .dash{color:#c2c8d2;}
-        .dec-iqhero-slate{display:block;font-size:12px;font-weight:700;color:#41618f;margin-top:4px;}
-        .dec-iqhero.full .dec-iqhero-slate{color:#3d6b58;}
+        .dec-iqhero-stats .k{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#8ab2ee;white-space:nowrap;}
+        .dec-iqhero.full .dec-iqhero-stats .k{color:#82d3aa;}
+        .dec-iqhero-stats .v{font-size:31px;font-weight:800;letter-spacing:-.025em;line-height:1.05;color:#dbeafe;font-variant-numeric:tabular-nums;}
+        .dec-iqhero.full .dec-iqhero-stats .v{color:#d6f7e4;}
+        .dec-iqhero-stats .m{font-size:11px;font-weight:700;color:#9dc0ef;}
+        .dec-iqhero.full .dec-iqhero-stats .m{color:#95d9b7;}
+        .dec-iqhero-stats .prov{font-weight:700;color:#7f9fce;}
+        .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8ab2ee;}
+        .dec-iqhero.full .dec-iqhero-lbl{color:#82d3aa;}
+        .dec-iqhero-gain{display:block;font-size:68px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#cfe3ff;margin-top:2px;font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(147,197,253,.35);}
+        .dec-iqhero.full .dec-iqhero-gain{color:#cdf5df;text-shadow:0 2px 18px rgba(134,239,172,.32);}
+        .dec-iqhero-gain .dash{color:#5f81b8;}
+        .dec-iqhero-slate{display:block;font-size:12px;font-weight:700;color:#9dc0ef;margin-top:4px;}
+        .dec-iqhero.full .dec-iqhero-slate{color:#95d9b7;}
         /* MOBILE ONLY: the footnote row is the phone presentation of the three
            figures that .dec-iqhero-stats shows on desktop. Hidden here and
            switched back on in the max-width:640px block, so exactly one of the
            two is ever rendered (and only one is in the a11y tree). Setting this
            on the source rule matters: an earlier display:none loses to this
            declaration. */
-        .dec-iqhero-sub{position:relative;display:none;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(61,99,168,.16);font-size:12.5px;color:#4d6a97;}
-        .dec-iqhero.full .dec-iqhero-sub{border-top-color:rgba(15,110,86,.16);color:#3d6b58;}
-        .dec-iqhero-sub b{font-weight:800;color:#1d4ed8;}
-        .dec-iqhero.full .dec-iqhero-sub b{color:#0f6e56;}
-        .dec-iqhero-sub .prov{font-weight:700;color:${FADED};}
+        .dec-iqhero-sub{position:relative;display:none;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(147,197,253,.22);font-size:12.5px;color:#9dc0ef;}
+        .dec-iqhero.full .dec-iqhero-sub{border-top-color:rgba(134,239,172,.22);color:#95d9b7;}
+        .dec-iqhero-sub b{font-weight:800;color:#dbeafe;}
+        .dec-iqhero.full .dec-iqhero-sub b{color:#d6f7e4;}
+        .dec-iqhero-sub .prov{font-weight:700;color:#7f9fce;}
         .dec-iqhero-sub:empty{display:none;}
-        .dec-iqhero-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#3d63a8;pointer-events:none;}
-        .dec-iqhero.full .dec-iqhero-mx{color:#0f6e56;}
-        .dec-iqhero.open .dec-iqhero-mx,.dec-iqhero:hover .dec-iqhero-mx{color:${BLUE};}
-        .dec-iqhero.full.open .dec-iqhero-mx,.dec-iqhero.full:hover .dec-iqhero-mx{color:#15803d;}
+        .dec-iqhero-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#8ab2ee;pointer-events:none;}
+        .dec-iqhero.full .dec-iqhero-mx{color:#82d3aa;}
+        .dec-iqhero.open .dec-iqhero-mx,.dec-iqhero:hover .dec-iqhero-mx{color:#dbeafe;}
+        .dec-iqhero.full.open .dec-iqhero-mx,.dec-iqhero.full:hover .dec-iqhero-mx{color:#d6f7e4;}
         @keyframes dec-iqpop{0%{transform:scale(1);}38%{transform:scale(1.028);}100%{transform:scale(1);}}
         @keyframes dec-iqrays{0%{opacity:0;transform:scale(.6);}30%{opacity:1;}100%{opacity:0;transform:scale(1.25);}}
         @media(prefers-reduced-motion:reduce){
