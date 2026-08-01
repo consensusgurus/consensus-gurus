@@ -4,6 +4,24 @@ import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { computeXpCached } from '@/lib/quiz-derived-cache';
 
+// Midnight "today" in US Eastern (handles EST/EDT) as a UTC epoch ms. Same
+// helper as /api/quiz/today and /api/quiz/totals, so all three roll over
+// together. Computed ONCE per request, which is the whole point: see the note
+// on gainedToday below.
+function startOfEasternTodayUTC() {
+  const tz = 'America/New_York';
+  const now = new Date();
+  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  for (const offH of [4, 5]) {
+    const guess = Date.parse(`${ymd}T00:00:00.000Z`) + offH * 3600 * 1000;
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false })
+      .formatToParts(new Date(guess))
+      .reduce((a, x) => { a[x.type] = x.value; return a; }, {});
+    if (`${p.year}-${p.month}-${p.day}` === ymd && p.hour === '00') return guess;
+  }
+  return Date.parse(`${ymd}T04:00:00.000Z`);
+}
+
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 // Per-player, small payload, safe to cache briefly at the edge (the query string
@@ -103,11 +121,26 @@ export async function GET(request) {
       const { players } = computeXpCached(data || [], { recentN: 400 });
       const me = players.get(myKey);
       if (me) {
-        const etDay = (ts) => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-        const today = etDay(Date.now());
-        const gainedToday = (p) => (p.recent || [])
-          .filter((r) => r.createdAt && etDay(r.createdAt) === today)
-          .reduce((acc, r) => acc + (Number(r.xp) || 0), 0);
+        // THIS was the route's cost, not the computeXp pass above. The previous
+        // version called toLocaleDateString with a timeZone once per recent
+        // entry per player, and the rankChange block below runs gainedToday over
+        // the WHOLE field: ~2,600 players times up to 400 entries is on the order
+        // of a million Intl formats, and Intl date formatting is microseconds
+        // each, not nanoseconds. Measured 4,960ms median WARM on the live route,
+        // unchanged by memoizing computeXp because the Intl calls were the work.
+        //
+        // Resolve the Eastern day boundary once, then compare timestamps. Same
+        // answer, no formatting in the loop.
+        const dayStart = startOfEasternTodayUTC();
+        const gainedToday = (p) => {
+          let sum = 0;
+          for (const r of (p.recent || [])) {
+            if (!r.createdAt) continue;
+            const ts = Date.parse(r.createdAt);
+            if (ts >= dayStart) sum += Number(r.xp) || 0;
+          }
+          return sum;
+        };
         todayXp = Math.round(gainedToday(me));
 
         // Global IQ rank movement across today (ET). Ranks the whole field twice:
