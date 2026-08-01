@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
+import { loadDailyResultsCached } from '@/lib/daily-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
@@ -295,13 +295,21 @@ export async function GET(request) {
 
   const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
-    const { data, error } = await loadQuizResultsCached(supabaseAdmin, { force: fresh });
+    // Read ONLY this day's quizIds (indexed by quiz_results_quiz, migration 20)
+    // rather than the whole table. This route never looks at a row outside
+    // `wanted`, so the rows are identical to what the full-table read produced
+    // after its filter, but a cold lambda now fetches ~780 rows in one request
+    // instead of paging all 33,800. That cold path was measured at 8.5s and
+    // 11.7s on live instances, and it sits directly on the end-of-game wait.
+    const { data, error } = await loadDailyResultsCached(supabaseAdmin, [...wanted], { force: fresh });
     if (error) {
       console.error('daily-combined error', error);
       return NextResponse.json(empty);
     }
 
-    // Bucket the (up to 10) relevant quizIds' rows in one pass over the cache.
+    // Bucket the day's quizIds' rows in one pass. The loader is already scoped
+    // to `wanted`, so the guard below is now belt-and-braces rather than a real
+    // filter, and is kept so the pass stays correct if the loader ever widens.
     const rowsByQuiz = new Map();
     for (const r of (data || [])) {
       if (!r || !wanted.has(r.quiz_id)) continue;
