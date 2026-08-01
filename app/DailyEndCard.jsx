@@ -55,6 +55,7 @@ import {
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
+import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
 
 const RUST = '#c0392b';
 
@@ -361,28 +362,29 @@ export default function DailyEndCard({
     // leaderboard to reload fresh so it shows us at once. Fire twice (now + a
     // beat later) to cover the board mounting a tick after this fetch resolves.
     const notifyBoard = () => {
+      // Drop the shared answer first: the panel and the grid refetch on this
+      // event, and they must not be handed the pre-finish payload.
+      invalidateDailyMe();
       try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('sot:daily-updated', { detail: { game: self } })); } catch (e) {}
     };
     const run = () => {
-      const qs = new URLSearchParams();
-      if (anonId) qs.set('anonId', anonId);
-      if (email) qs.set('email', email);
-      // REQUIRED: daily-me scores ONE game in full (board + live re-score if it
-      // is adaptive) and only counts the rest, so it needs to know which. Without
-      // `game` it returns game:null and the Today tile renders an empty board
-      // even though the puzzle has a full field.
-      if (self) qs.set('game', self);
-      if (quizId) qs.set('quizId', quizId);
-      qs.set('fresh', '1'); // force an authoritative, cache-bypassed read (server no-stores it)
-      if (i > 0) qs.set('_', String(Date.now())); // distinct key -> also bust the edge cache on retries
+      // `game` is REQUIRED: daily-me scores ONE game in full (board + live
+      // re-score if it is adaptive) and only counts the rest, so it needs to know
+      // which. Without it the endpoint returns game:null and the Today tile
+      // renders an empty board even though the puzzle has a full field.
+      //
       // /api/quiz/daily-me, NOT daily-combined: scoreGame() reads one game's
       // rows, so the rank this card shows is local to the puzzle just played.
       // daily-combined scores all ~40 games, re-scores the three adaptive ones
       // live, computes every player's best-N total and builds 40 boards, and the
       // card used one rank out of it. Measured on the same day's data: 527ms and
       // 7KB here against 1,671ms and 95KB there.
-      fetch('/api/quiz/daily-me?' + qs.toString())
-        .then((r) => r.json())
+      //
+      // fresh on EVERY attempt: this is checking for our own just-written row, so
+      // a cached answer is exactly the wrong thing. The result still seeds the
+      // shared entry, which is what lets the on-page panel and grid ride along on
+      // this request instead of making their own.
+      fetchDailyMe(dailyMeQuery({ anonId, email, game: self, quizId }), { fresh: true })
         .then((d) => {
           if (!alive || !d) return;
           setCombinedResolved(true); // the completion set is now as complete as it will get

@@ -33,6 +33,7 @@ import React, { useState, useEffect } from 'react';
 import { Share2, Check, RotateCcw } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
+import { fetchDailyMe, dailyMeQuery } from './dailyMeClient';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
@@ -122,16 +123,17 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
     let anonId = null, email = null;
     try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
     try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
-    const qs = new URLSearchParams();
-    if (anonId) qs.set('anonId', anonId);
-    if (email) qs.set('email', email);
     let alive = true;
-    // daily-me, not daily-combined: this grid only wants the completion set,
-    // and asking without a `game` param means the endpoint skips the board
-    // build and the adaptive re-score entirely and just counts rows. It was the
-    // last caller keeping the combined board on a daily puzzle page.
-    fetch('/api/quiz/daily-me?' + qs.toString())
-      .then((r) => r.json())
+    // daily-me, not daily-combined: this grid only wants the completion set. It
+    // was the last caller keeping the combined board on a daily puzzle page.
+    //
+    // Deliberately NO `game`: without it the endpoint skips the board build and
+    // the adaptive re-score and only counts rows, which is the cheapest form of
+    // this request and all the grid needs. That does mean it cannot share the
+    // card and panel's entry, since their query carries game + quizId. Sharing
+    // would make this the expensive variant instead, so a third cheap request
+    // beats a third heavy one.
+    fetchDailyMe(dailyMeQuery({ anonId, email }))
       .then((d) => { if (alive && d && d.perGame) setDonePerGame(d.perGame); })
       .catch(() => {});
     return () => { alive = false; };

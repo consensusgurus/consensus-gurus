@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from '../../dailyMeClient';
 
 // DailyBoardPanel — the on-page "<player> Stats" section, in the light page
 // theme, placed directly under the Challenge / Share actions on every daily-game
@@ -88,17 +89,13 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
     let anonId = null, email = null;
     try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
     try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
-    const qs = new URLSearchParams();
-    if (anonId) qs.set('anonId', anonId);
-    if (email) qs.set('email', email);
-    if (quizId) qs.set('quizId', quizId);
-    if (self) qs.set('game', self);
+    // Same query the end card builds, so a page that has just shown the card
+    // joins the request it already made instead of issuing a second one.
+    const qs = dailyMeQuery({ anonId, email, game: self, quizId });
     let alive = true;
     const load = (fresh) => {
-      const p = new URLSearchParams(qs);
-      if (fresh) { p.set('fresh', '1'); p.set('_', String(Date.now())); }
-      fetch('/api/quiz/daily-me?' + p.toString(), { cache: 'no-store' })
-        .then((r) => r.json())
+      if (fresh) invalidateDailyMe();
+      fetchDailyMe(qs, { fresh })
         .then((d) => {
           if (!alive || !d) return;
           // Shape it like the payload this component already read: the game just
