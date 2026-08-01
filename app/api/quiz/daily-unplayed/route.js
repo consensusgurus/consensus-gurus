@@ -37,7 +37,7 @@ import { PUZZLES as P_hedge } from '@/app/hedge/puzzles';
 import { PUZZLES as P_listed } from '@/app/listed/puzzles';
 import { PUZZLES as P_mate } from '@/app/mate/puzzles';
 import { PUZZLES as P_four } from '@/app/four/puzzles';
-import { PUZZLES as P_park } from '@/app/unpark/puzzles';
+import { PUZZLES as P_park } from '@/app/parker/puzzles';
 import { PUZZLES as P_check } from '@/app/check/puzzles';
 import { PUZZLES as P_rung } from '@/app/rung/puzzles';
 import { PUZZLES as P_crunch } from '@/app/crunch/puzzles';

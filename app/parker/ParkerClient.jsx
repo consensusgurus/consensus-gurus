@@ -1,7 +1,8 @@
 'use client';
 
-// Unpark — the daily sliding-block jam. (Shipped as "Park" on 2026-07-30 and
-// renamed 2026-07-31: the game is the getting out, not the being parked.)
+// Parker — the daily sliding-block jam. (Shipped as "Park" on 2026-07-30,
+// briefly "Parker", and settled as "Parker" on 2026-07-31. Both older routes
+// 308 to /parker; see next.config.js.)
 //
 // Six by six, a dozen blocks, and the red one has to reach the gap in the right
 // wall. Every block is locked to one axis. Tap a block, tap where you want it,
@@ -20,7 +21,7 @@
 // the board back and resets the move count, but the clock keeps running.
 //
 // Same daily plumbing as Four/Mate/Etch: banked boards gated by Eastern date on
-// the server (app/unpark/page.js), per-puzzle localStorage saves, /unpark?p=N
+// the server (app/parker/page.js), per-puzzle localStorage saves, /parker?p=N
 // archive pinning, streaks + stats, and the shared /api/quiz/* board flow. The
 // registry key and every quiz id stay 'park-*' so the launch-month leaderboards
 // and streaks survive the rename; only the route and the reader-facing name moved.
@@ -47,7 +48,7 @@ import { N, EXIT_ROW, fromData, grid, moves as legalSlides, apply, solved, solve
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
   rust: '#c0392b', faded: '#262b35',
-  accent: '#7c5c2e',        // Unpark identity — weathered tarmac gold
+  accent: '#7c5c2e',        // Parker identity — weathered tarmac gold
   accentSoft: '#f6efe2', green: '#15803d',
 };
 const LOT = '#e7e2d8';        // the lot surface
@@ -168,7 +169,7 @@ function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vi
 
 const freshState = () => ({ v: 1, moves: [], restarts: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null });
 
-export default function UnparkClient({ puzzles = [], forceNum = null }) {
+export default function ParkerClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const STORE_KEY = `sot_park_${PUZZLE.num}`;
   const START = useMemo(() => fromData(PUZZLE.pieces), [PUZZLE]);
@@ -452,7 +453,7 @@ export default function UnparkClient({ puzzles = [], forceNum = null }) {
     setSel(null); setHintBlock(null); setEndClosed(false);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/unpark${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`sourceoftruths.com/parker${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
     const vs = used === perfect ? 'perfect'
       : used < par ? `${par - used} under par`
@@ -463,13 +464,13 @@ export default function UnparkClient({ puzzles = [], forceNum = null }) {
     const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = won
-      ? `Unpark #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves, ${vs} · ${elapsed}${hintBit}${streakBit}`
-      : `Unpark #${PUZZLE.num} · left it parked · par was ${par}`;
+      ? `Parker #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves, ${vs} · ${elapsed}${hintBit}${streakBit}`
+      : `Parker #${PUZZLE.num} · left it parked · par was ${par}`;
     return `${head}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {
     const text = playing
-      ? `Unpark #${PUZZLE.num} — the daily sliding-block jam from Source of Truths. You are in the red one, everybody has blocked you in, and there is one gap in the wall.\n${shareUrl()}`
+      ? `Parker #${PUZZLE.num} — the daily sliding-block jam from Source of Truths. You are in the red one, everybody has blocked you in, and there is one gap in the wall.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -512,17 +513,17 @@ export default function UnparkClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         <DailyMasthead
-          slug="unpark" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
+          slug="parker" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Par {par}</span>}
-          blocks={'UNPARK'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i < 2 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+          blocks={'PARKER'.split('').map((ch, i) => (
+            <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 5 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Unpark is ready'}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Parker is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Slide the blocks and get the red one to the exit on the right. Par is {par} moves and perfect is {perfect}, the fewest that exist. No undo, only a restart.</p>
@@ -656,13 +657,13 @@ export default function UnparkClient({ puzzles = [], forceNum = null }) {
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
-                  {countdown ? <>Next Unpark in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board drops at midnight Eastern.'}
-                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/unpark?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Unpark &rarr;</a></>)}
+                  {countdown ? <>Next Parker in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board drops at midnight Eastern.'}
+                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/parker?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Parker &rarr;</a></>)}
                 </>
               ) : (
                 <>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/unpark" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Unpark &rarr;</a>
+                  <a href="/parker" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Parker &rarr;</a>
                   {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
               )}
@@ -691,7 +692,7 @@ export default function UnparkClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Unpark to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Parker to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
@@ -744,9 +745,9 @@ export default function UnparkClient({ puzzles = [], forceNum = null }) {
       )}
 
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Unpark</h2>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Parker</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Unpark is a free daily sliding-block puzzle from Source of Truths. A jammed six by six lot, a dozen blocks that each slide on one axis only, and a red block that has to reach the gap in the wall. Tap a block, tap where you want it, and it goes if the lane is clear.
+          Parker is a free daily sliding-block puzzle from Source of Truths. A jammed six by six lot, a dozen blocks that each slide on one axis only, and a red block that has to reach the gap in the wall. Tap a block, tap where you want it, and it goes if the lane is clear.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board is machine generated and then solved exactly, so perfect really is the fewest moves that exist rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. Par sits a cushion above perfect: it is the number a clean solve lands on, and it is beatable. Boards climb through the week, from about a dozen moves on Monday to twenty by Saturday, and the Sunday Edition runs a good deal longer than any of them.

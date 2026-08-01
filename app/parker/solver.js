@@ -1,6 +1,6 @@
-// Sliding-block rules and the exact solver behind Unpark.
+// Sliding-block rules and the exact solver behind Parker.
 //
-// Shared by the browser client (app/unpark/UnparkClient.jsx) and the offline bank
+// Shared by the browser client (app/parker/ParkerClient.jsx) and the offline bank
 // generator, so the minimum a player is scored against is the one that was verified.
 //
 // BOARD. Six by six. Every block is locked to one axis: a horizontal block only

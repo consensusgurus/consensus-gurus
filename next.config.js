@@ -24,12 +24,20 @@ const nextConfig = {
         destination: '/crux',
         permanent: true,
       },
-      // Renamed 2026-07-31: Park relaunched as Unpark (same game, same board
+      // Renamed 2026-07-31: Park relaunched as Parker (same game, same board
       // numbering, same 'park-M-D-YY' quiz ids and leaderboards). Old links,
-      // including archive deep links like /park?p=2, 308 to the new home.
+      // including archive deep links like /park?p=2, 308 to the new home. Next
+      // carries the query string through, so ?p=N survives the hop.
       {
         source: '/park',
-        destination: '/unpark',
+        destination: '/parker',
+        permanent: true,
+      },
+      // /unpark was the name for about an hour on 2026-07-31 before it settled
+      // on Parker. It was live and IndexNow-pinged, so it gets its own 308.
+      {
+        source: '/unpark',
+        destination: '/parker',
         permanent: true,
       },
       // Renamed 2026-06-19: 'Inputs' rebranded to 'Experts and Aggregators'.

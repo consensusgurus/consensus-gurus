@@ -771,7 +771,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           Every ladder is machine generated and then solved exactly, so perfect really is the shortest route rather than somebody&rsquo;s guess, and it was confirmed by a second search written independently of the first. Par sits a cushion above perfect: it is what a clean climb comes in at, and it is beatable. On most boards there is only one shortest ladder, which is what makes matching perfect worth something. Weekday climbs run 10 to 12 rungs and Sundays a good deal further.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new ladder drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crunch" style={{ color: COLORS.ink, fontWeight: 800 }}>Crunch</a>, our daily numbers round, <a href="/unpark" style={{ color: COLORS.ink, fontWeight: 800 }}>Unpark</a>, our daily sliding-block jam, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new ladder drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crunch" style={{ color: COLORS.ink, fontWeight: 800 }}>Crunch</a>, our daily numbers round, <a href="/parker" style={{ color: COLORS.ink, fontWeight: 800 }}>Parker</a>, our daily sliding-block jam, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 

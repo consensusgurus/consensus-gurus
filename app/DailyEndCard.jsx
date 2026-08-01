@@ -164,7 +164,7 @@ export const DAILY_GAMES = [
   { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', href: '/listed' },
   { key: 'mate',   cat: 'logic',     name: 'Mate',   tag: 'White to play and mate',      href: '/mate' },
   { key: 'four',   cat: 'logic',     name: 'Four',   tag: 'One column wins',             href: '/four' },
-  { key: 'park',   cat: 'logic',     name: 'Unpark', tag: 'Get the red one out',         href: '/unpark' },
+  { key: 'park',   cat: 'logic',     name: 'Parker', tag: 'Get the red one out',         href: '/parker' },
   { key: 'check',  cat: 'logic',     name: 'Check',  tag: 'Give a piece, take them all', href: '/check' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    href: '/crunch' },

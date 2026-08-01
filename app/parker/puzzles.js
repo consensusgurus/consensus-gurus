@@ -1,5 +1,5 @@
-// Puzzle data for Unpark, the daily sliding-block jam. Imported ONLY by the
-// server page (app/unpark/page.js), which filters live<=today before handing the
+// Puzzle data for Parker, the daily sliding-block jam. Imported ONLY by the
+// server page (app/parker/page.js), which filters live<=today before handing the
 // bank to the client, so tomorrow's board never reaches a browser.
 //
 // NOTE the quizId prefix stays 'park-': the game shipped as Park on 2026-07-30

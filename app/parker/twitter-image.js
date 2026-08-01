@@ -1,2 +1,2 @@
-// The X/Twitter share card reuses the Unpark OG snapshot card exactly.
+// The X/Twitter share card reuses the Parker OG snapshot card exactly.
 export { default, runtime, alt, size, contentType } from './opengraph-image'

@@ -20,7 +20,7 @@
 // with a free take-back you could search the tree by hand. A restart redeals the
 // same board and zeroes the move count, but the clock keeps running.
 //
-// Same daily plumbing as Unpark/Four/Etch: banked deals gated by Eastern date on
+// Same daily plumbing as Parker/Four/Etch: banked deals gated by Eastern date on
 // the server (app/taire/page.js), per-puzzle localStorage saves, /taire?p=N
 // archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
 
@@ -800,7 +800,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           Every deal is machine generated and then solved exactly, so perfect really is the fewest moves that exist rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. Nobody beats perfect, and the whole game is how close you get. Par sits a cushion above it: it is what a clean line comes home in, and it is beatable. Deals climb through the week on a different dial each rung: Monday to Wednesday are the short sixteen-card deals, Thursday to Saturday run the full twenty, and the Sunday Edition takes a free cell away, which is a far bigger difference than it sounds.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/unpark" style={{ color: COLORS.ink, fontWeight: 800 }}>Unpark</a>, our daily sliding-block jam, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.
+          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/parker" style={{ color: COLORS.ink, fontWeight: 800 }}>Parker</a>, our daily sliding-block jam, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.
         </p>
       </section>
 
