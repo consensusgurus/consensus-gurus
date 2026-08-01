@@ -1975,6 +1975,7 @@ export default function QuizHomeClient() {
                content distributed so each has the same spacing and no dead gaps */
             .qzh .dhx-lb{padding:0;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;}
             .qzh .dhx-lb-band{padding:11px 15px 12px;background:#eef2f7;}
+            .qzh .dhx-lone > .dhx-lb:first-child .dhx-lb-band{border-top-left-radius:12.5px;border-top-right-radius:12.5px;}
             .qzh .dhx-lb.comm .dhx-lb-band{background:#f3edff;}
             .qzh .dhx-lb.daily .dhx-lb-band{background:#fdf3dc;}
             .qzh .dhx-lb.xp .dhx-lb-band{background:#e9f0ff;}
