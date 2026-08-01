@@ -10,7 +10,9 @@ import { DAILY_GAME_MAP } from '@/lib/daily-games';
 // sit four punchy tiles that double as the leaderboard selector —
 //   1. This Puzzle    — my rank of today's per-game field (key 'today')
 //   2. All Time       — my rank of the game's cumulative field (key 'alltime')
-//   3. Today's Puzzles — my rank of today's combined (best-N) board (key 'combined')
+//   3. (was Today's Puzzles, the combined best-N board: removed 2026-08-01. The
+//      combined standing lives on the /quizzes front page only, and fetching it
+//      here cost this page its slowest request.)
 //   4. <Game> Archive — % of this game's drops I've completed
 // The board area under the tiles is EXPANDED by default (owner, 2026-07-31: a
 // reader who opens a daily page should see the board without a second click) and
@@ -20,9 +22,12 @@ import { DAILY_GAME_MAP } from '@/lib/daily-games';
 // Combined view carries the "best N of M / max pts" caption). Archive opens this
 // game's drop calendar.
 //
-// Self-contained: fetches /api/quiz/daily-combined (me + combined + today's
-// per-game boards) and /api/quiz/daily-game (this game's all-time board + drop
-// calendar) — the same two endpoints the end card reads, so the two agree.
+// Self-contained: fetches /api/quiz/daily-me (my standing in THIS game + this
+// day's per-game counts) and /api/quiz/daily-game (this game's all-time board +
+// drop calendar) — the same two endpoints the end card reads, so the two agree.
+// It used to read /api/quiz/daily-combined, which scores all ~40 of the day's
+// games to answer a question about one; on a live page load that was the single
+// slowest request (measured 3,289ms / 2,271ms / 2,934ms).
 //
 // Props: `self` (game key), `quizId` (scopes the combined fetch), `maxWidth`.
 
@@ -50,9 +55,9 @@ function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec 
 
 export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, streak = null }) {
   const [ident, setIdent] = useState(null);        // { email, username } from localStorage
-  const [combined, setCombined] = useState(null);  // /api/quiz/daily-combined payload
+  const [combined, setCombined] = useState(null);  // /api/quiz/daily-me payload
   const [gameData, setGameData] = useState(null);  // /api/quiz/daily-game payload (allTime + drops)
-  const [sel, setSel] = useState('today');          // 'today' | 'alltime' | 'combined' | 'archive'
+  const [sel, setSel] = useState('today');          // 'today' | 'alltime' | 'archive'
   const [open, setOpen] = useState(true);           // is the board area expanded (open by default, owner 2026-07-31)
   const [calMonth, setCalMonth] = useState(() => etTodayEC().slice(0, 7)); // 'YYYY-MM'
 
@@ -67,7 +72,9 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   useEffect(() => {
     const onOpen = (e) => {
       const v = e && e.detail && e.detail.view;
-      const valid = ['today', 'alltime', 'combined', 'archive'];
+      // 'combined' is still accepted from older links/events; it falls back to
+      // this game's own board rather than dead-ending.
+      const valid = ['today', 'alltime', 'archive'];
       if (valid.includes(v)) { setSel(v); setOpen(true); }
       else setOpen(true);
     };
@@ -75,8 +82,8 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
     return () => { if (typeof window !== 'undefined') window.removeEventListener('sot:open-daily-board', onOpen); };
   }, []);
 
-  // Combined board (me + today's per-game boards). Reloads fresh when a game
-  // finishes on this page (the end card dispatches sot:daily-updated).
+  // My standing in this game + the day's per-game counts. Reloads fresh when a
+  // game finishes on this page (the end card dispatches sot:daily-updated).
   useEffect(() => {
     let anonId = null, email = null;
     try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
@@ -85,20 +92,32 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
     if (anonId) qs.set('anonId', anonId);
     if (email) qs.set('email', email);
     if (quizId) qs.set('quizId', quizId);
+    if (self) qs.set('game', self);
     let alive = true;
     const load = (fresh) => {
       const p = new URLSearchParams(qs);
       if (fresh) { p.set('fresh', '1'); p.set('_', String(Date.now())); }
-      fetch('/api/quiz/daily-combined?' + p.toString(), { cache: 'no-store' })
+      fetch('/api/quiz/daily-me?' + p.toString(), { cache: 'no-store' })
         .then((r) => r.json())
-        .then((d) => { if (alive && d) setCombined(d); })
+        .then((d) => {
+          if (!alive || !d) return;
+          // Shape it like the payload this component already read: the game just
+          // played carries its board, the rest carry counts only.
+          setCombined({
+            ...d,
+            me: d.me ? { ...d.me, perGame: d.perGame || {} } : null,
+            games: Array.isArray(d.games)
+              ? d.games.map((g) => (d.game && g.key === d.game.key ? { ...g, ...d.game } : g))
+              : [],
+          });
+        })
         .catch(() => {});
     };
     load(false);
     const onUpdated = () => { if (alive) load(true); };
     if (typeof window !== 'undefined') window.addEventListener('sot:daily-updated', onUpdated);
     return () => { alive = false; if (typeof window !== 'undefined') window.removeEventListener('sot:daily-updated', onUpdated); };
-  }, [quizId]);
+  }, [quizId, self]);
 
   // This game's all-time board + drop calendar.
   useEffect(() => {
@@ -128,9 +147,10 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
 
   // --- derived figures -------------------------------------------------------
   const me = combined && combined.me ? combined.me : null;
-  const guest = combined && combined.meProvisional ? combined.meProvisional : null;
+  // daily-me scores guests directly (scoreGame keys by anon_id), so there is no
+  // separate provisional payload to fold in any more.
+  const guest = null;
   const games = (combined && combined.games) || [];
-  const overallBoard = (combined && combined.overall) || [];
   const todayGame = games.find((g) => g.key === self) || null;
   const allTime = gameData && gameData.allTime ? gameData.allTime : null;
   const drops = (gameData && gameData.drops) || [];
@@ -142,8 +162,6 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
     || (guest && guest.perGame && guest.perGame[self] && guest.perGame[self].rank) || null;
   const gameTodayField = (todayGame ? (todayGame.plays ?? todayGame.field) : null)
     || (guest && guest.perGame && guest.perGame[self] && guest.perGame[self].field) || null;
-  const combinedRank = (me && me.rank) || (guest && guest.rank) || null;
-  const combinedField = (combined && (combined.uniquePlayers ?? combined.overallField) != null) ? (combined.uniquePlayers ?? combined.overallField) : null;
   const allTimeRank = allTime ? allTime.myRank : null;
   const allTimeField = allTime ? (allTime.plays ?? allTime.field) : null;
   const allTimeProv = !!(allTime && allTime.provisional);
@@ -155,8 +173,6 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   // --- board rows for the condensed views -----------------------------------
   const todayRows = (todayGame && Array.isArray(todayGame.board)) ? todayGame.board : [];
   const allTimeRows = (allTime && Array.isArray(allTime.board)) ? allTime.board : [];
-  const combinedRows = Array.isArray(overallBoard) ? overallBoard : [];
-  const maxTotal = (combined && combined.maxTotal) || 150;
 
   // --- calendar month cells --------------------------------------------------
   const dropByISO = useMemo(() => new Map((drops || []).map((d) => [d.dateISO, d])), [drops]);
@@ -330,7 +346,6 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
       <div className="dbp-tiles">
         {rankTile('today', 'This Puzzle', gameTodayRank, gameTodayField, false, provisional)}
         {rankTile('alltime', 'All Time', allTimeRank, allTimeField, !(allTime && allTime.myRank != null), allTimeProv)}
-        {rankTile('combined', "Today's Puzzles", combinedRank, combinedField, false, provisional)}
         {rankTile('archive', `${selfName} Archive`, null, null, false, false, (pct == null ? <span className="dash">&mdash;</span> : `${pct}%`))}
       </div>
 
@@ -371,13 +386,6 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
             <>
               <div className="dbp-board-ti">{selfName} &middot; all time &middot; top 10</div>
               {simpleBoard(allTimeRows, (r) => fmtPts(r.points), 'No all-time scores yet. Play a drop to get on the board.')}
-            </>
-          ) : null}
-
-          {sel === 'combined' ? (
-            <>
-              <div className="dbp-board-ti">Today&rsquo;s puzzles &middot; top 10{combined && combined.gameCount > 1 ? <> &middot; best {combined.bestN} of {combined.gameCount} &middot; {maxTotal} pts</> : null}</div>
-              {simpleBoard(combinedRows, (r) => <>{fmtNum(r.total)}<span className="u">/{maxTotal}</span></>, 'No combined scores yet. Play a game to get on the board.')}
             </>
           ) : null}
 

@@ -367,6 +367,12 @@ export default function DailyEndCard({
       const qs = new URLSearchParams();
       if (anonId) qs.set('anonId', anonId);
       if (email) qs.set('email', email);
+      // REQUIRED: daily-me scores ONE game in full (board + live re-score if it
+      // is adaptive) and only counts the rest, so it needs to know which. Without
+      // `game` it returns game:null and the Today tile renders an empty board
+      // even though the puzzle has a full field.
+      if (self) qs.set('game', self);
+      if (quizId) qs.set('quizId', quizId);
       qs.set('fresh', '1'); // force an authoritative, cache-bypassed read (server no-stores it)
       if (i > 0) qs.set('_', String(Date.now())); // distinct key -> also bust the edge cache on retries
       // /api/quiz/daily-me, NOT daily-combined: scoreGame() reads one game's
@@ -810,12 +816,12 @@ export default function DailyEndCard({
       <div className="dec-tile-lbl">Archive</div>
       <div className="dec-tile-ring">
         <span className="dec-arcring">
-          <svg width="44" height="44" viewBox="0 0 56 56" aria-hidden="true">
-            <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="6" />
+          <svg width="50" height="50" viewBox="0 0 56 56" aria-hidden="true">
+            <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="5" />
             {/* A 0% archive still shows a sliver so the ring reads as a meter
                 rather than an empty circle, matching the old progress bar. */}
             <circle
-              cx="28" cy="28" r="24" fill="none" stroke={BLUE} strokeWidth="6" strokeLinecap="round"
+              cx="28" cy="28" r="24" fill="none" stroke={BLUE} strokeWidth="5" strokeLinecap="round"
               transform="rotate(-90 28 28)"
               strokeDasharray={RING_C}
               strokeDashoffset={RING_C * (1 - Math.max(0.02, (archivePct || 0) / 100))}
@@ -825,6 +831,9 @@ export default function DailyEndCard({
         </span>
       </div>
       <div className="dec-tile-of">{totalDrops ? <>{playedCount} of {totalDrops} played</> : ' '}</div>
+      <span className="dec-tile-mx">
+        <ChevronDown size={15} strokeWidth={2.4} style={{ transform: calOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
+      </span>
     </button>
   );
 
@@ -927,10 +936,13 @@ export default function DailyEndCard({
            rank numeral sits. No chevron, because it opens the calendar below
            rather than a leaderboard. */
         .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
-        .dec-tile-ring{display:flex;align-items:center;justify-content:center;height:44px;margin-top:4px;}
-        .dec-arcring{position:relative;display:block;width:44px;height:44px;}
+        /* Ring sized around its widest label: "100%" at 13px did not clear a
+           44px ring's 6px stroke. 50px outer with a 5px stroke leaves ~40px of
+           clear middle for a 12px figure. */
+        .dec-tile-ring{display:flex;align-items:center;justify-content:center;height:50px;margin-top:4px;}
+        .dec-arcring{position:relative;display:block;width:50px;height:50px;}
         .dec-arcring svg{display:block;}
-        .dec-arcring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;letter-spacing:-.02em;color:${INK};font-variant-numeric:tabular-nums;}
+        .dec-arcring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:-.03em;color:${INK};font-variant-numeric:tabular-nums;}
 
         /* IQ hero: the gain is THE headline number of the card (owner redesign
            2026-07-31), a full-width banner above the rank tiles, led by the brain
@@ -1135,9 +1147,9 @@ export default function DailyEndCard({
           .dec-iqhero-sub{display:flex;}
           /* The archive tile rides the same tighter tile metrics as its
              neighbours, with a smaller ring. */
-          .dec-tile-ring{height:34px;}
-          .dec-arcring,.dec-arcring svg{width:34px;height:34px;}
-          .dec-arcring .num{font-size:10.5px;}
+          .dec-tile-ring{height:38px;}
+          .dec-arcring,.dec-arcring svg{width:38px;height:38px;}
+          .dec-arcring .num{font-size:9.5px;}
           .dec-brain,.dec-brain img,.dec-brain-fill{width:66px;}
           .dec-brain,.dec-brain img{height:59px;}
           .dec-iqhero-gain{font-size:42px;}
