@@ -2,7 +2,7 @@
 
 // Feud — the daily crowd-survey game. The answer key is everyone playing.
 //
-// Five everyday prompts a day, up to three free-text answers each, typed
+// Five everyday prompts a day, three free-text answers each, typed
 // BLIND: no board is shown until you lock in. Every answer you give is also a
 // vote — the answer key IS the live tally of what today's players say, so it
 // is adaptive exactly like Outwit and Outrank: recomputed on every request,
@@ -577,7 +577,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>The answer key is <b>live</b>: it is whatever today&rsquo;s players say, and it keeps moving all day. There is nothing to know &mdash; just read the room.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Five prompts, up to three answers each, typed blind.</b> Go for what the CROWD will say, not what you&rsquo;d say. Lock in and every answer becomes a vote in the tally you&rsquo;re scored on.</p>
+      <p style={{ margin: '0 0 9px' }}><b>Five prompts, three answers each, typed blind.</b> Go for what the CROWD will say, not what you&rsquo;d say. <b>Fill all three</b> — every answer pays its own share of the crowd, and a guess nobody else makes simply pays nothing. Lock in and every answer becomes a vote in the tally you&rsquo;re scored on.</p>
       <p style={{ margin: 0 }}>An answer pays the <b>percent of the crowd</b> that said the same thing (an answer nobody else gives pays zero). You&rsquo;re always graded on the crowd minus your own votes. <b>{winBar(TOTAL)}+ of {TOTAL}</b> means you matched the crowd &mdash; for now: shares reshuffle until midnight Eastern.</p>
     </div>
   );
@@ -647,7 +647,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', marginLeft: 'auto' }}><span className="fd-livedot" /> live answer key</span>
             </div>
             <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, marginBottom: 12, lineHeight: 1.5 }}>
-              The board is hidden until you lock in. Answer what you think <b style={{ color: COLORS.ink }}>today&rsquo;s crowd</b> will say &mdash; your answers become votes the moment you submit.
+              The board is hidden until you lock in. Answer what you think <b style={{ color: COLORS.ink }}>today&rsquo;s crowd</b> will say &mdash; all three answers score, so fill every box. Your answers become votes the moment you submit.
             </div>
             {PROMPTS.map((pr, p) => {
               const row = g.entries[p] || [];
@@ -669,7 +669,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
                         autoComplete="off"
                         autoCorrect="off"
                         spellCheck={false}
-                        placeholder={j === 0 ? 'Most people will say...' : j === 1 ? 'Second guess (optional)' : 'Third guess (optional)'}
+                        placeholder={j === 0 ? 'Most people will say...' : j === 1 ? 'Second most common...' : 'Third most common...'}
                         value={val}
                         onChange={(e) => setEntry(p, j, e.target.value)}
                       />
@@ -689,7 +689,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
                 <Users size={17} className="fd-gold" /> {sending ? 'Facing the crowd…' : 'Face the crowd'}
               </button>
               <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
-                {readyToFace ? 'Every answer pays the share of the crowd that said it too.' : `Answer all ${P} prompts to lock in — ${P - answeredCount} to go.`}
+                {readyToFace ? 'All three answers pay — each one banks the share of the crowd that said it too.' : `Answer all ${P} prompts to lock in — ${P - answeredCount} to go.`}
               </div>
             </div>
           </div>
@@ -825,7 +825,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Feud</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Feud is a free daily crowd-survey game from Source of Truths with a live answer key. Every day brings five everyday prompts &mdash; name something people do when they can&rsquo;t sleep, name a food that&rsquo;s better as a leftover &mdash; and you type up to three answers per prompt, blind. There is no hidden answer list written by an editor: the key is the live tally of what today&rsquo;s players actually say. Your answers are votes, and the moment you lock in they join the crowd everyone else is scored against.
+          Feud is a free daily crowd-survey game from Source of Truths with a live answer key. Every day brings five everyday prompts &mdash; name something people do when they can&rsquo;t sleep, name a food that&rsquo;s better as a leftover &mdash; and you type three answers per prompt, blind. There is no hidden answer list written by an editor: the key is the live tally of what today&rsquo;s players actually say. Your answers are votes, and the moment you lock in they join the crowd everyone else is scored against.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Scoring is pure crowd-reading: each answer pays the percent of the crowd that said the same thing, so naming the consensus answer pays big and a clever answer nobody else gives pays nothing. You&rsquo;re always graded on the crowd minus your own votes, so you can never tip the tally you&rsquo;re scored on. And nothing is final &mdash; the shares reshuffle as new players lock in, so your score and your place on the live standings move all day until the key freezes at midnight Eastern. A pre-written house pool seeds the small hours, then retires once ten real players are in.
