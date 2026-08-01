@@ -3072,3 +3072,56 @@ section and ABOVE the browse row. Rules for anyone touching this area:
   a List or Quiz"). It is NOT wired to the complaints pipeline and needs no new route or table.
 - Responsive: at <=1024px the search takes its own line and the three buttons split it evenly; at
   <=560px the buttons go two-up with the CTA full width.
+
+---
+
+## Quiz data reads: the three caching layers (built 2026-08-01)
+
+Every hot quiz route answers a question about ONE player or ONE day, but the
+data all lives in `quiz_results` (33,800 rows and growing). Three layers sit
+between a route and that table. Know which one you are touching.
+
+**1. `lib/quiz-results-cache.js` — the whole table, per lambda.** Used by the
+routes that genuinely need every row (`me`, `player`, `xp`, `xp-categories`,
+`totals`, `recent`, `share-card`, `day-card`, `iq-standing`). A warm instance
+runs an exact-count HEAD plus a delta of rows newer than its newest, so steady
+state is near-zero egress. `{ force: true }` skips the burst TTL AND refuses to
+join a refresh that started before the call, which is what makes a just-finished
+player's own row visible.
+
+**2. `quiz_results_snapshot` (migration 44) — the whole table, shared.** The
+cold path. Layer 1 alone meant every route paged the table independently on a
+cold deploy: measured 16.2s / 12.7s / 12.5s / 12.5s / 11.3s across five routes
+at once, ~200,000 rows of concurrent egress for one page load. Paging strategy
+cannot fix work duplicated across processes (parallel OFFSET paging made it
+WORSE, 17.4s, because `.range()` is OFFSET pagination and Postgres walks and
+discards `offset` rows per page). So the row set is persisted as one gzipped
+JSON blob: 8.16MB of JSON becomes 0.38MB gzipped, 0.50MB base64, decoding in
+29ms. A cold instance reads that row and asks only for ids above it. Written by
+whichever request does a full load, refreshed at 30 minutes old or 2,000 rows
+behind, two newest rows kept. It caches ROWS, never a derived figure, so no
+scoring can drift. Every read and write is wrapped: if the table is missing the
+code falls back to a plain keyset load.
+
+**3. `lib/quiz-derived-cache.js` — the computed state, per lambda.** Layers 1
+and 2 stop the re-FETCHING; this stops the re-DERIVING. `computeXp` sorts and
+walks every row to build every player's IQ Points and `computeTrophies` walks
+them again for all 34 trophies, per request, to answer a question about one
+person. Memoized on a fingerprint of the row set (length + max id, so deletions
+invalidate) plus the options that change the output, with `Date.now()` bucketed
+to the minute so the clock-dependent 7/30-day windows do not make every key
+unique. **The returned `players` map is SHARED ACROSS REQUESTS: treat it as
+read-only.**
+
+**Day-scoped reads use `lib/daily-results-cache.js` instead**, the same
+count+delta design filtered to one day's quiz ids via the `quiz_results_quiz`
+index. `/api/quiz/daily-me` answers the end card's question (one game's rank,
+plus the day's completion set) and `/api/quiz/daily-combined` builds the full
+combined board; the day's slate is shared in `lib/daily-slate.js`.
+
+**Rule of thumb when adding a route:** if it needs one day, use
+`loadDailyResultsCached`. If it needs one player's standing in one game, call
+`/api/quiz/daily-me` rather than the combined board. Only reach for
+`loadQuizResultsCached` when the answer genuinely depends on every row, and if
+you then derive XP or trophies from it, go through `quiz-derived-cache` so the
+work is shared.
