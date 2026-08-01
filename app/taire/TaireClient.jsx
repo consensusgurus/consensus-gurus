@@ -7,17 +7,20 @@
 // nothing here is luck: the deal you get is the deal everybody gets, and it is
 // always winnable.
 //
-// You are scored against PAR, the exact minimum number of single-card moves,
-// computed by breadth-first search over the reachable state space and confirmed
-// by a second solver written independently against the same rules. Par is not a
-// target, it is a ceiling: no line beats it. Par scores ten and every two moves
-// over costs a point, floor of one, so finishing always beats walking away.
+// Two numbers, and they are not the same number (the 2026-07-31 rework: "par"
+// used to BE the exact minimum, and this file even said "par is not a target,
+// it is a ceiling", which is exactly the thing par is not). PERFECT is the exact
+// minimum number of single-card moves, computed by breadth-first search over the
+// reachable state space and confirmed by a second solver written independently
+// against the same rules. It is a ceiling: no line beats it, and it scores ten.
+// PAR sits a cushion above it, is a real target, and scores eight; see
+// lib/par.js. Floor of one, so finishing always beats walking away.
 //
-// There is no undo, only a full restart, which is what keeps par meaningful:
+// There is no undo, only a full restart, which is what keeps perfect meaningful:
 // with a free take-back you could search the tree by hand. A restart redeals the
 // same board and zeroes the move count, but the clock keeps running.
 //
-// Same daily plumbing as Park/Four/Etch: banked deals gated by Eastern date on
+// Same daily plumbing as Unpark/Four/Etch: banked deals gated by Eastern date on
 // the server (app/taire/page.js), per-puzzle localStorage saves, /taire?p=N
 // archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
 
@@ -36,6 +39,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
+import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 import { FREE, FND, suitOf, rankOf, RANK_LABEL, fromData, replay, isWon, destinations, apply, movableCards, autoFinish } from './rules';
 
@@ -163,7 +167,6 @@ const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
 const freshState = () => ({ v: 1, moves: [], restarts: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null });
-const scoreFor = (used, par) => Math.max(1, Math.min(10, 10 - Math.floor(Math.max(0, used - par) / 2)));
 
 function CardFace({ card, covered, outline, onClick, label }) {
   const red = suitOf(card) === 1;
@@ -242,8 +245,12 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const used = g.moves.length;
-  const par = PUZZLE.par;
-  const finalScore = won ? scoreFor(used, par) : 0;
+  // PUZZLE.par is the banked exact minimum, i.e. PERFECT. The banked field keeps
+  // its old name so no archived deal has to be rewritten.
+  const perfect = PUZZLE.par;
+  const par = parFor(perfect);
+  const step = stepFor(perfect);
+  const finalScore = won ? scoreFor(used, perfect) : 0;
 
   const state = useMemo(() => replay(START, g.moves, CELLS) || START, [START, g.moves, CELLS]);
   const dests = useMemo(() => (sel != null && playing ? destinations(state, sel, CELLS) : []), [sel, state, playing, CELLS]);
@@ -367,7 +374,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   function postResult(g2, score) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.moves.length, won: g2.status === 'won' && g2.moves.length === par })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.moves.length, won: g2.status === 'won' && g2.moves.length === perfect })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
@@ -396,7 +403,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
     setSel(null); setHintCards(null);
     // The endgame is forced once everything left can go straight home, so play
     // it out rather than making anyone click twenty times. Each of those cards
-    // still counts as a move, which is exactly how par counts them too.
+    // still counts as a move, which is exactly how perfect counts them too.
     const tail = autoFinish(after, RANKS);
     const g2 = { ...cur };
     if (!g2.t0) g2.t0 = Date.now();
@@ -404,7 +411,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
       moves = moves.concat(tail);
       const done = { ...g2, moves, status: 'won', tEnd: Date.now() };
       vibrate(HAPT.win);
-      postResult(done, scoreFor(done.moves.length, par));
+      postResult(done, scoreFor(done.moves.length, perfect));
       commit(done);
       return;
     }
@@ -474,14 +481,17 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
 
   function shareUrl() { return withRef(`sourceoftruths.com/taire${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
-    const over = used - par;
-    const g5 = won ? Math.max(1, Math.round(scoreFor(used, par) / 2)) : 0;
+    const vs = used === perfect ? 'perfect'
+      : used < par ? `${par - used} under par`
+      : used === par ? 'level par'
+      : `${used - par} over par`;
+    const g5 = won ? Math.max(1, Math.round(scoreFor(used, perfect) / 2)) : 0;
     const squares = '\u{1F7E9}'.repeat(g5) + '⬜'.repeat(5 - g5);
     const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = won
-      ? `Taire #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves (par ${par}${over > 0 ? `, +${over}` : ', on the nose'}) · ${elapsed}${hintBit}${streakBit}`
-      : `Taire #${PUZZLE.num} · gave up · par ${par}`;
+      ? `Taire #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves, ${vs} · ${elapsed}${hintBit}${streakBit}`
+      : `Taire #${PUZZLE.num} · gave up · par was ${par}`;
     return `${head}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {
@@ -502,8 +512,8 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>{DECK === 20 ? 'Twenty cards, two suits, ace through ten' : 'Sixteen cards, two suits, ace through eight'}, all face up. Send every card <b>home</b> to its pile at the top right, ace first, then two, and so on.</p>
       <p style={{ margin: '0 0 9px' }}><b>Tap a card</b> to pick it up, then tap where it goes. Only the <b>bottom card</b> of a column can move, one card at a time, never a stack. It can go onto a card one rank higher of the other colour, onto an empty column, into a <b>free cell</b>, or home.</p>
       <p style={{ margin: '0 0 9px' }}>You have <b>{CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}</b> today. A cell parks a single card for as long as you like.</p>
-      <p style={{ margin: '0 0 9px' }}>Every card moved is <b>one move</b>, sending one home included. <b>Par is {par}</b> on this deal, and par is the proven minimum, so nothing beats it. There is <b>no undo</b>, only a restart that redeals the same board and zeroes your moves, though the clock keeps running.</p>
-      <p style={{ margin: 0 }}>Par scores <b>10</b>, and every two moves over costs a point down to a floor of one, so finishing always beats walking away. One free <b>hint</b> shows which cards can move at all. Every deal is winnable, and the <b>Sunday Edition</b> gives you a single free cell.</p>
+      <p style={{ margin: '0 0 9px' }}>Every card moved is <b>one move</b>, sending one home included. <b>Par is {par}</b> on this deal, the number a clean line comes home in. <b>Perfect is {perfect}</b>, the proven minimum, so nothing beats it. There is <b>no undo</b>, only a restart that redeals the same board and zeroes your moves, though the clock keeps running.</p>
+      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b> shows which cards can move at all. Every deal is winnable, and the <b>Sunday Edition</b> gives you a single free cell.</p>
     </div>
   );
 
@@ -544,7 +554,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Taire is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>{DECK === 20 ? 'Twenty' : 'Sixteen'} cards, all face up, {CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}. Send them all home. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
+                <p style={{ margin: '0 0 6px' }}>{DECK === 20 ? 'Twenty' : 'Sixteen'} cards, all face up, {CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}. Send them all home. Par is {par} moves and perfect is {perfect}, the proven minimum. No undo, only a restart.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -563,7 +573,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: used > par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b> &middot; perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{perfect}</b></span>
           </div>
 
           <div style={{ maxWidth: 430, margin: '0 auto' }}>
@@ -635,7 +645,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
               {!playing
-                ? (won ? `Home in ${used}. Par was ${par}.` : 'You left it on the table.')
+                ? (won ? (used === perfect ? `Home in ${used}. That is perfect.` : `Home in ${used}. Par was ${par}.`) : 'You left it on the table.')
                 : sel != null ? 'Now tap where it goes.' : movable.length ? 'Tap a card to pick it up.' : 'Nothing can move. Restart the board.'}
             </span>
             {g.restarts > 0 && playing && (
@@ -673,12 +683,14 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              Par was <span style={{ color: COLORS.accent }}>{par} moves</span>.
+              Par was <span style={{ color: COLORS.accent }}>{par} moves</span>, perfect was <span style={{ color: COLORS.ink }}>{perfect}</span>.
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>
               {won
-                ? used === par ? 'You matched the proven minimum, which is as good as this deal gets.'
-                  : `You got home in ${used}, ${used - par} over the minimum.`
+                ? used === perfect ? 'You matched the proven minimum, which is as good as this deal gets.'
+                  : used < par ? `You got home in ${used}, ${par - used} under par and ${used - perfect} off perfect.`
+                    : used === par ? `You got home in ${used}, level par, ${used - perfect} off perfect.`
+                      : `You got home in ${used}, ${used - par} over par.`
                 : 'The minimum was found by exhaustive search, so it is real, not an estimate. This deal was always winnable.'}
             </div>
             {PUZZLE.sunday && (
@@ -751,10 +763,10 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
 
       {!playing && !endClosed && (
         <DailyEndCard modal self="taire" won={won}
-          headline={won ? (used === par ? <>Par. Nothing wasted.</> : <>All home.</>) : <>You scored 0%</>}
+          headline={won ? (used === perfect ? <>Perfect. Nothing wasted.</> : used < par ? <>Under par.</> : <>All home.</>) : <>You scored 0%</>}
           subline={won
-            ? <>{finalScore}/10 &middot; {used} moves, par {used === par ? 'matched' : `${par}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-            : <>0/10 &middot; par on this deal was {par}</>}
+            ? <>{finalScore}/10 &middot; {used} moves &middot; par {par}, perfect {perfect} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>0/10 &middot; par here was {par}, perfect was {perfect}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame} onClose={() => setEndClosed(true)} />
       )}
@@ -785,10 +797,10 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           Taire is a free daily solitaire from Source of Truths. Two suits dealt face up into columns of four with a free cell or two beside them: sixteen cards early in the week, twenty from Thursday on. Nothing is hidden and nothing is shuffled mid-game, so there is no luck in it: the deal you get is the deal everybody else gets today, and it is always winnable.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every deal is machine generated and then solved exactly, so the par you are scored against is the true minimum number of moves rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. That makes par a ceiling rather than a target. Nobody beats it, and the whole game is how close you get. Deals climb through the week on a different dial each rung: Monday to Wednesday are the short sixteen-card deals, Thursday to Saturday run the full twenty, and the Sunday Edition takes a free cell away, which is a far bigger difference than it sounds.
+          Every deal is machine generated and then solved exactly, so perfect really is the fewest moves that exist rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. Nobody beats perfect, and the whole game is how close you get. Par sits a cushion above it: it is what a clean line comes home in, and it is beatable. Deals climb through the week on a different dial each rung: Monday to Wednesday are the short sixteen-card deals, Thursday to Saturday run the full twenty, and the Sunday Edition takes a free cell away, which is a far bigger difference than it sounds.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/park" style={{ color: COLORS.ink, fontWeight: 800 }}>Park</a>, our daily sliding-block jam, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.
+          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/unpark" style={{ color: COLORS.ink, fontWeight: 800 }}>Unpark</a>, our daily sliding-block jam, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.
         </p>
       </section>
 

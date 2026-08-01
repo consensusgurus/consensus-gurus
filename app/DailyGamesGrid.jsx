@@ -67,7 +67,7 @@ const GAMES = [
   { key: 'listed', href: '/listed', name: 'Listed', tag: 'Rank the list, top to bottom', img: '/games/btn-listed.png' },
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'White to play and mate', img: '/games/btn-mate.png' },
   { key: 'four', href: '/four', name: 'Four', tag: 'One column wins', img: '/games/btn-four.png' },
-  { key: 'park', href: '/park', name: 'Park', tag: 'Free the red block', img: '/games/btn-park.png' },
+  { key: 'park', href: '/unpark', name: 'Unpark', tag: 'Get the red one out', img: '/games/btn-park.png' },
   { key: 'check', href: '/check', name: 'Check', tag: 'Give a piece, take them all', img: '/games/btn-check.png' },
   { key: 'rung', href: '/rung', name: 'Rung', tag: 'One letter at a time', img: '/games/btn-rung.png' },
   { key: 'crunch', href: '/crunch', name: 'Crunch', tag: 'Six numbers, one target', img: '/games/btn-crunch.png' },

@@ -5,16 +5,19 @@
 // Change one letter at a time, and every rung has to be a word. Get from the
 // start word to the target in as few rungs as you can.
 //
-// You are scored against PAR, the exact shortest ladder, found by breadth-first
-// search over the shipped word list and confirmed by an independent
-// bidirectional search before the board ever shipped. Par scores 10 and every
-// two rungs over costs a point, floor of 1, so finishing always beats walking
-// away. Weekdays are 10 to 12 rungs and Sundays 15 or more.
+// Two numbers, and they are not the same number (the 2026-07-31 rework: "par"
+// used to BE the shortest ladder, which reads backwards, since par is what an
+// ordinary round lands on, not the best line that exists). PERFECT is the exact
+// shortest ladder, found by breadth-first search over the shipped word list and
+// confirmed by an independent bidirectional search before the board ever
+// shipped, and it scores 10. PAR sits a cushion above it and scores 8; see
+// lib/par.js. Floor of 1, so finishing always beats walking away. Weekday
+// perfect lines are 10 to 12 rungs and Sundays 15 or more.
 //
 // THE WORD LIST IS THE RULES. A rung must be one of the 1,846 common five-letter
-// words in VOCAB, and par was computed over exactly that list. Validating
-// against anything wider would let a player find a shorter ladder than par
-// through vocabulary the solver never saw, and par would stop meaning anything.
+// words in VOCAB, and perfect was computed over exactly that list. Validating
+// against anything wider would let a player find a shorter ladder than perfect
+// through vocabulary the solver never saw, and it would stop meaning anything.
 //
 // No undo, only a restart. You can always walk backwards by retyping an earlier
 // word, which costs a rung, and that is the honest price.
@@ -34,6 +37,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
+import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 import { VOCAB } from './puzzles';
 
@@ -153,7 +157,6 @@ const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
 const freshState = () => ({ v: 1, rungs: [], restarts: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null });
-const scoreFor = (used, par) => Math.max(1, Math.min(10, 10 - Math.floor(Math.max(0, used - par) / 2)));
 const differsByOne = (a, b) => {
   if (a.length !== b.length) return false;
   let d = 0;
@@ -200,8 +203,12 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const used = g.rungs.length;
-  const par = PUZZLE.par;
-  const finalScore = won ? scoreFor(used, par) : 0;
+  // PUZZLE.par is the banked exact shortest ladder, i.e. PERFECT. The banked
+  // field keeps its old name so no archived board has to be rewritten.
+  const perfect = PUZZLE.par;
+  const par = parFor(perfect);
+  const step = stepFor(perfect);
+  const finalScore = won ? scoreFor(used, perfect) : 0;
 
   const ladder = useMemo(() => [PUZZLE.start, ...g.rungs], [PUZZLE, g.rungs]);
   const current = ladder[ladder.length - 1];
@@ -371,7 +378,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   function postResult(g2, score) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.rungs.length, won: g2.status === 'won' && g2.rungs.length === par })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.rungs.length, won: g2.status === 'won' && g2.rungs.length === perfect })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
@@ -408,7 +415,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
     if (w === PUZZLE.target) {
       const done = { ...g2, status: 'won', tEnd: Date.now() };
       vibrate(HAPT.win);
-      postResult(done, scoreFor(done.rungs.length, par));
+      postResult(done, scoreFor(done.rungs.length, perfect));
       commit(done);
       return;
     }
@@ -468,14 +475,17 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
 
   function shareUrl() { return withRef(`sourceoftruths.com/rung${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
-    const over = used - par;
-    const g5 = won ? Math.max(1, Math.round(scoreFor(used, par) / 2)) : 0;
+    const vs = used === perfect ? 'perfect'
+      : used < par ? `${par - used} under par`
+      : used === par ? 'level par'
+      : `${used - par} over par`;
+    const g5 = won ? Math.max(1, Math.round(scoreFor(used, perfect) / 2)) : 0;
     const squares = '\u{1F7E6}'.repeat(g5) + '⬜'.repeat(5 - g5);
     const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = won
-      ? `Rung #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${PUZZLE.start} to ${PUZZLE.target} in ${used} (par ${par}${over > 0 ? `, +${over}` : ', on the nose'}) · ${elapsed}${hintBit}${streakBit}`
-      : `Rung #${PUZZLE.num} · gave up · par ${par}`;
+      ? `Rung #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${PUZZLE.start} to ${PUZZLE.target} in ${used}, ${vs} · ${elapsed}${hintBit}${streakBit}`
+      : `Rung #${PUZZLE.num} · gave up · par was ${par}`;
     return `${head}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {
@@ -494,9 +504,9 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Climb from <b>{PUZZLE.start.toUpperCase()}</b> to <b>{PUZZLE.target.toUpperCase()}</b>, <b>changing one letter at a time</b>. Every rung has to be a real word, and the letters stay where they are: no anagrams, no adding or dropping letters.</p>
-      <p style={{ margin: '0 0 9px' }}>A rung must be one of the <b>1,846 common five-letter words</b> in the game&rsquo;s list. Par was worked out over exactly that list, so if a word is not in it, it is not a rung here.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Par is {par}</b> on this ladder, the true shortest route, found by search rather than by hand. There is <b>no undo</b>, only a restart that puts you back at the start word and zeroes your rungs, though the clock keeps running. You can always climb backwards by retyping an earlier word, and that costs a rung like anything else.</p>
-      <p style={{ margin: 0 }}>Par scores <b>10</b>, and every two rungs over costs a point down to a floor of one. One free <b>hint</b> gives you the next word of a shortest ladder from wherever you are. <b>Sundays</b> are a much longer climb.</p>
+      <p style={{ margin: '0 0 9px' }}>A rung must be one of the <b>1,846 common five-letter words</b> in the game&rsquo;s list. Par and perfect were both worked out over exactly that list, so if a word is not in it, it is not a rung here.</p>
+      <p style={{ margin: '0 0 9px' }}><b>Par is {par}</b> on this ladder, the length a clean climb comes in at. <b>Perfect is {perfect}</b>, the shortest route that exists, found by search rather than by hand, and nobody gets under it. There is <b>no undo</b>, only a restart that puts you back at the start word and zeroes your rungs, though the clock keeps running. You can always climb backwards by retyping an earlier word, and that costs a rung like anything else.</p>
+      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} rungs over it costs a point, so par scores <b>8</b>, down to a floor of one. One free <b>hint</b> gives you the next word of a shortest ladder from wherever you are. <b>Sundays</b> are a much longer climb.</p>
     </div>
   );
 
@@ -551,7 +561,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Rung is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Climb from <b>{PUZZLE.start.toUpperCase()}</b> to <b>{PUZZLE.target.toUpperCase()}</b>, one letter at a time, every rung a word. Par is {par}, the proven shortest route. No undo, only a restart.</p>
+                <p style={{ margin: '0 0 6px' }}>Climb from <b>{PUZZLE.start.toUpperCase()}</b> to <b>{PUZZLE.target.toUpperCase()}</b>, one letter at a time, every rung a word. Par is {par} and perfect is {perfect}, the shortest route there is. No undo, only a restart.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -570,7 +580,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>rungs <b style={{ color: used > par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b> &middot; perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{perfect}</b></span>
           </div>
 
           <div ref={shakeRef} style={{ maxWidth: 300, margin: '0 auto' }}>
@@ -604,7 +614,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
               {!playing
-                ? (won ? `${used} rungs. Par was ${par}.` : 'You stepped off the ladder.')
+                ? (won ? (used === perfect ? `${used} rungs. That is perfect.` : `${used} rungs. Par was ${par}.`) : 'You stepped off the ladder.')
                 : `On ${current.toUpperCase()}. Change one letter.`}
             </span>
             {g.restarts > 0 && playing && (
@@ -640,12 +650,14 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              Par was <span style={{ color: COLORS.accent }}>{par} rungs</span>.
+              Par was <span style={{ color: COLORS.accent }}>{par} rungs</span>, perfect was <span style={{ color: COLORS.ink }}>{perfect}</span>.
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
-              {won && used === par
+              {won && used === perfect
                 ? 'You matched the shortest ladder there is, which on this board is not easy.'
-                : won ? `You got there in ${used}, ${used - par} over the shortest route.`
+                : won && used < par ? `You got there in ${used}, ${par - used} under par and ${used - perfect} off perfect.`
+                : won && used === par ? `You got there in ${used}, level par, ${used - perfect} off perfect.`
+                : won ? `You got there in ${used}, ${used - par} over par.`
                 : 'One shortest ladder:'}
               {PUZZLE.routes === 1 && ' There is exactly one shortest ladder between these two words.'}
             </div>
@@ -722,10 +734,10 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
 
       {!playing && !endClosed && (
         <DailyEndCard modal self="rung" won={won}
-          headline={won ? (used === par ? <>Par. The shortest there is.</> : <>You made it across.</>) : <>You scored 0%</>}
+          headline={won ? (used === perfect ? <>Perfect. The shortest there is.</> : used < par ? <>Under par.</> : <>You made it across.</>) : <>You scored 0%</>}
           subline={won
-            ? <>{finalScore}/10 &middot; {used} rungs, par {par} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-            : <>0/10 &middot; par on this ladder was {par}</>}
+            ? <>{finalScore}/10 &middot; {used} rungs &middot; par {par}, perfect {perfect} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>0/10 &middot; par here was {par}, perfect was {perfect}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame} onClose={() => setEndClosed(true)} />
       )}
@@ -756,10 +768,10 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           Rung is a free daily word ladder from Source of Truths. Two five-letter words, and a climb from one to the other changing a single letter at a time, with every rung a word in its own right. The puzzle is as old as Lewis Carroll and still one of the best things you can do with a dictionary.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every ladder is machine generated and then solved exactly, so the par you are scored against is the true shortest route rather than somebody&rsquo;s guess, and it was confirmed by a second search written independently of the first. On most boards there is only one shortest ladder, which is what makes matching par worth something. Weekday climbs run 10 to 12 rungs and Sundays a good deal further.
+          Every ladder is machine generated and then solved exactly, so perfect really is the shortest route rather than somebody&rsquo;s guess, and it was confirmed by a second search written independently of the first. Par sits a cushion above perfect: it is what a clean climb comes in at, and it is beatable. On most boards there is only one shortest ladder, which is what makes matching perfect worth something. Weekday climbs run 10 to 12 rungs and Sundays a good deal further.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new ladder drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crunch" style={{ color: COLORS.ink, fontWeight: 800 }}>Crunch</a>, our daily numbers round, <a href="/park" style={{ color: COLORS.ink, fontWeight: 800 }}>Park</a>, our daily sliding-block jam, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new ladder drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crunch" style={{ color: COLORS.ink, fontWeight: 800 }}>Crunch</a>, our daily numbers round, <a href="/unpark" style={{ color: COLORS.ink, fontWeight: 800 }}>Unpark</a>, our daily sliding-block jam, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 

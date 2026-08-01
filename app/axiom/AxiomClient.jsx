@@ -11,13 +11,14 @@
 // The reasoning the puzzle is really about: the gift reds already kill a rule or
 // two, most tiles are traps that every surviving rule agrees on (testing one
 // teaches nothing), and every board is built so that no single test can split
-// the field. Par is two. A tapper burns the budget; a thinker spends two.
+// the field. Perfect is two, par is three. A tapper burns the budget; a thinker
+// spends two.
 //
 // The client never receives the answer: the server page ships tiles, verdicts
 // and rule SPECS, and this component finds the one candidate that agrees with
 // every tile — the same uniqueness the generator proved (scripts/verify-axiom.mjs).
 //
-// Scoring: 12 points. Each test over par costs 2, each wrong rule costs 3, and
+// Scoring: 12 points. Each test over perfect costs 2, each wrong rule costs 3, and
 // the floor is 1 for anyone who names it at all. Revealing ends the day at 0.
 // Ties on the daily board break by fewest tests, then fastest time.
 //
@@ -40,6 +41,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
+import { parForTests } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 
 const COLORS = {
@@ -197,8 +199,11 @@ function getAnonId() {
 const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
 
 // ─── Solver: the answer is derived, never shipped ───────────────────────────
-// Exactly one candidate agrees with every tile on the board. Par is the fewest
-// tests that could isolate it from the rules the gift reds leave alive.
+// Exactly one candidate agrees with every tile on the board. PERFECT is the
+// fewest tests that could isolate it from the rules the gift reds leave alive.
+// (It was called "par" until 2026-07-31; par is now one test of slack above it,
+// per lib/par.js parForTests. Scoring is still anchored to perfect, so nothing
+// about the points moved, only the words.)
 function solveBoard(puzzle) {
   const tiles = puzzle.tiles;
   const fns = puzzle.rules.map(ruleFn);
@@ -209,21 +214,21 @@ function solveBoard(puzzle) {
     .filter((i) => i !== answer && givenReds.every((t) => !fns[i](t.w)));
   const testable = tiles.map((t, i) => i).filter((i) => !tiles[i].g);
   const killers = live.map((i) => new Set(testable.filter((ti) => (fns[i](tiles[ti].w) ? 1 : 0) !== tiles[ti].t)));
-  let par = 0;
+  let perfect = 0;
   if (killers.length) {
-    par = 3;
+    perfect = 3;
     let one = false;
     for (const ti of testable) if (killers.every((s) => s.has(ti))) { one = true; break; }
-    if (one) par = 1;
+    if (one) perfect = 1;
     else {
-      for (let a = 0; a < testable.length && par === 3; a++) {
+      for (let a = 0; a < testable.length && perfect === 3; a++) {
         for (let b = a + 1; b < testable.length; b++) {
-          if (killers.every((s) => s.has(testable[a]) || s.has(testable[b]))) { par = 2; break; }
+          if (killers.every((s) => s.has(testable[a]) || s.has(testable[b]))) { perfect = 2; break; }
         }
       }
     }
   }
-  return { answer, live, par };
+  return { answer, live, perfect };
 }
 
 // How many candidates besides the answer still fit everything the player can
@@ -301,7 +306,11 @@ function freshState() {
 export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const STORE_KEY = `sot_axiom_${PUZZLE.num}`;
-  const { answer: ANSWER, par: PAR } = useMemo(() => solveBoard(PUZZLE), [PUZZLE]);
+  const { answer: ANSWER, perfect: PERFECT } = useMemo(() => solveBoard(PUZZLE), [PUZZLE]);
+  // Axiom counts tests, not moves, and perfect is one to three out of a six test
+  // budget, so the scaled cushion the other games use would swallow the budget.
+  // One test of slack is the whole cushion here.
+  const PAR = parForTests(PERFECT, PUZZLE.budget);
 
   const [g, setG] = useState(() => freshState());
   const [verdict, setVerdict] = useState(null);
@@ -339,16 +348,16 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const testsUsed = g.tested.length;
   const testsLeft = Math.max(0, PUZZLE.budget - testsUsed);
-  const overPar = Math.max(0, testsUsed - PAR);
+  const overPerfect = Math.max(0, testsUsed - PERFECT);
   // Candidates OTHER than the answer that still agree with every tile the player
   // can see. While this is above zero the board has not been solved, it has been
   // narrowed, and naming now is a guess dressed up as an answer. Scoring it is
   // what stops a tapper from clicking a rule at zero tests and banking 12.
   const standing = countStanding(PUZZLE, ANSWER, g.tested);
   const unproven = g.status === 'done' ? (g.unproven || 0) : standing;
-  const liveScore = Math.max(1, TOTAL - 2 * overPar - WRONG_COST * g.wrongPicks.length - UNPROVEN_COST * unproven);
+  const liveScore = Math.max(1, TOTAL - 2 * overPerfect - WRONG_COST * g.wrongPicks.length - UNPROVEN_COST * unproven);
   const score = g.status === 'done' ? liveScore : 0;
-  const won = g.status === 'done' && testsUsed <= PAR && g.wrongPicks.length === 0 && unproven === 0;
+  const won = g.status === 'done' && testsUsed <= PERFECT && g.wrongPicks.length === 0 && unproven === 0;
   const namesLeft = Math.max(0, MAX_WRONG - g.wrongPicks.length);
 
   useEffect(() => {
@@ -541,7 +550,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       setG(g2);
       setVerdict(null);
       setEndClosed(false);
-      postResult(g2, Math.max(1, TOTAL - 2 * Math.max(0, g2.tested.length - PAR) - WRONG_COST * g2.wrongPicks.length - UNPROVEN_COST * up));
+      postResult(g2, Math.max(1, TOTAL - 2 * Math.max(0, g2.tested.length - PERFECT) - WRONG_COST * g2.wrongPicks.length - UNPROVEN_COST * up));
     } else {
       setG((cur) => ({ ...cur, wrongPicks: [...cur.wrongPicks, i], t0: cur.t0 || Date.now() }));
       const bad = PUZZLE.tiles.find((t, ti) => (t.g || g.tested.includes(ti)) && (ruleFn(PUZZLE.rules[i])(t.w) ? 1 : 0) !== t.t);
@@ -610,7 +619,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       </div>
 
       <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
-        12 points for naming it proved, at par ({PAR} tests). Each extra test costs 2, each wrong name costs {WRONG_COST}, and {MAX_WRONG} wrong names end the day. Vowels are A, E, I, O, U, never Y.
+        12 points for naming it proved at perfect ({PERFECT} test{PERFECT === 1 ? '' : 's'}). Par is {PAR}, one test of slack. Each test over perfect costs 2, each wrong name costs {WRONG_COST}, and {MAX_WRONG} wrong names end the day. Vowels are A, E, I, O, U, never Y.
       </p>
     </div>
   );
@@ -665,7 +674,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
         {!preStart && (
         <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
-          One rule is true of every green word and false of every red one. {PUZZLE.rules.length} candidates are on the table and <b style={{ fontStyle: 'normal' }}>exactly one fits the whole board</b>. Test a tile to flip it. You have {PUZZLE.budget}, par is {PAR}, and you only score the rules you have actually ruled out.
+          One rule is true of every green word and false of every red one. {PUZZLE.rules.length} candidates are on the table and <b style={{ fontStyle: 'normal' }}>exactly one fits the whole board</b>. Test a tile to flip it. You have {PUZZLE.budget}, par is {PAR} and perfect is {PERFECT}, and you only score the rules you have actually ruled out.
         </div>
         )}
 
@@ -673,9 +682,9 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {started && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>tests left <b style={{ color: testsLeft <= 1 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{testsLeft}</b> of {PUZZLE.budget}</span>
-          <span>par <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PAR}</b></span>
+          <span>par <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PAR}</b> &middot; perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PERFECT}</b></span>
           <span>rules still standing <b style={{ color: standing ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{standing + 1}</b>{standing > 0 ? ` · naming now costs ${UNPROVEN_COST * standing}` : ' · proved'}</span>
-          <span>on the board <b style={{ color: overPar || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
+          <span>on the board <b style={{ color: overPerfect || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
           {g.wrongPicks.length > 0 && <span>wrong names <b style={{ color: COLORS.rust, fontWeight: 500 }}>{g.wrongPicks.length}</b></span>}
         </div>
         )}
@@ -686,7 +695,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The board is covered'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>{PUZZLE.tiles.length} words, one hidden rule, {PUZZLE.rules.length} candidates. Three tiles open green, two open red, and you get {PUZZLE.budget} tests to settle it. Par is {PAR}.</p>
+                <p style={{ margin: '0 0 6px' }}>{PUZZLE.tiles.length} words, one hidden rule, {PUZZLE.rules.length} candidates. Three tiles open green, two open red, and you get {PUZZLE.budget} tests to settle it. Par is {PAR}, perfect is {PERFECT}.</p>
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
@@ -803,7 +812,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {g.status === 'done'
-                    ? (won ? <>Named at par on {testsUsed} test{testsUsed === 1 ? '' : 's'}.</> : <>Named it on {testsUsed} test{testsUsed === 1 ? '' : 's'}{g.wrongPicks.length ? ` and ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}.</>)
+                    ? (won ? <>Named at perfect on {testsUsed} test{testsUsed === 1 ? '' : 's'}.</> : <>Named it on {testsUsed} test{testsUsed === 1 ? '' : 's'}{g.wrongPicks.length ? ` and ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}.</>)
                     : <>The board beat you. The rule: <b>{answerLabel.toLowerCase()}</b>.</>}
                   {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
                 </span>
@@ -889,7 +898,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           self="axiom"
           won={won}
           headline={g.status === 'done' ? <>The rule is named</> : <>The board keeps its rule</>}
-          subline={<>Axiom #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {testsUsed} test{testsUsed === 1 ? '' : 's'} (par {PAR}) &middot; {elapsed}</>}
+          subline={<>Axiom #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {testsUsed} test{testsUsed === 1 ? '' : 's'} (par {PAR}, perfect {PERFECT}) &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
@@ -941,7 +950,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const pips = PUZZLE.tiles.map((t, i) => (g.tested.includes(i) ? (t.t ? '\u{1F7E9}' : '\u{1F7E5}') : '')).join('');
     const solvedBit = g.status === 'done'
-      ? `\u{1F9EA} Rule found on ${testsUsed} test${testsUsed === 1 ? '' : 's'} (par ${PAR})${g.wrongPicks.length ? ` · ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}`
+      ? `\u{1F9EA} Rule found on ${testsUsed} test${testsUsed === 1 ? '' : 's'} (par ${PAR}, perfect ${PERFECT})${g.wrongPicks.length ? ` · ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}`
       : g.status === 'lost' ? '\u{1F9EA} The board kept its rule' : '\u{1F9EA} Still testing…';
     const text = playing
       ? `Axiom #${PUZZLE.num} — the daily rule-induction puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`

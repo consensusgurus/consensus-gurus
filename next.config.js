@@ -24,6 +24,14 @@ const nextConfig = {
         destination: '/crux',
         permanent: true,
       },
+      // Renamed 2026-07-31: Park relaunched as Unpark (same game, same board
+      // numbering, same 'park-M-D-YY' quiz ids and leaderboards). Old links,
+      // including archive deep links like /park?p=2, 308 to the new home.
+      {
+        source: '/park',
+        destination: '/unpark',
+        permanent: true,
+      },
       // Renamed 2026-06-19: 'Inputs' rebranded to 'Experts and Aggregators'.
       // Old /sources and /inputs both 308 to the new path.
       {

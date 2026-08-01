@@ -1,6 +1,10 @@
-// Puzzle data for Park, the daily sliding-block jam. Imported ONLY by the server
-// page (app/park/page.js), which filters live<=today before handing the bank to
-// the client, so tomorrow's board never reaches a browser.
+// Puzzle data for Unpark, the daily sliding-block jam. Imported ONLY by the
+// server page (app/unpark/page.js), which filters live<=today before handing the
+// bank to the client, so tomorrow's board never reaches a browser.
+//
+// NOTE the quizId prefix stays 'park-': the game shipped as Park on 2026-07-30
+// and was renamed 2026-07-31, and the ids are the leaderboard keys, so they are
+// deliberately left alone. Only the route and the reader-facing name moved.
 //
 // Six by six. Each block is [len, horiz, fixed, pos]:
 //   len    2 or 3 squares long
@@ -12,7 +16,10 @@
 // through the gap in the right-hand wall on that row.
 //
 //   par    the EXACT minimum number of moves, where one move is one block
-//          sliding any distance. Not an estimate: found by breadth-first search
+//          sliding any distance. This is what the game now calls PERFECT; the
+//          field keeps its old name so no banked board has to be rewritten, and
+//          the softer target players are shown is derived from it in lib/par.js.
+//          Not an estimate: found by breadth-first search
 //          over the whole reachable state space, then confirmed by a second
 //          solver that works on grid strings rather than on this block list.
 //          The week climbs in three rungs: Monday to Wednesday run 11 to 14,

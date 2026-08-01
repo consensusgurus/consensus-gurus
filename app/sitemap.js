@@ -71,7 +71,7 @@ export default function sitemap() {
     { url: `${baseUrl}/listed`, lastModified: newestOfFormat('listed'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/mate`, lastModified: newestOfFormat('mate'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/four`, lastModified: newestOfFormat('four'), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${baseUrl}/park`, lastModified: newestOfFormat('park'), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/unpark`, lastModified: newestOfFormat('park'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/check`, lastModified: newestOfFormat('check'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/rung`, lastModified: newestOfFormat('rung'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/crunch`, lastModified: newestOfFormat('crunch'), changeFrequency: 'daily', priority: 0.9 },

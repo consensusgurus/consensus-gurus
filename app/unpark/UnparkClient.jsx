@@ -1,23 +1,29 @@
 'use client';
 
-// Park — the daily sliding-block jam.
+// Unpark — the daily sliding-block jam. (Shipped as "Park" on 2026-07-30 and
+// renamed 2026-07-31: the game is the getting out, not the being parked.)
 //
 // Six by six, a dozen blocks, and the red one has to reach the gap in the right
 // wall. Every block is locked to one axis. Tap a block, tap where you want it,
 // and it slides there if the lane is clear.
 //
-// You are scored against PAR, the exact minimum number of moves, computed by
-// breadth-first search and verified by a second independent solver before the
-// board ever shipped. Solving at par is a ten and every two moves over costs a
-// point, floor of one, so finishing always beats giving up.
+// Two numbers, and they are not the same number (this was the 2026-07-31 fix,
+// when "par" was the exact minimum, which reads backwards). PERFECT is the
+// banked exact minimum, computed by breadth-first search and verified by a
+// second independent solver before the board ever shipped, and it scores ten.
+// PAR sits a cushion above it, is what a clean-but-not-flawless solve lands on,
+// and scores eight. See lib/par.js for the arithmetic; the floor is one, so
+// finishing always beats giving up.
 //
-// There is no undo, only a full restart, which is what keeps par meaningful:
+// There is no undo, only a full restart, which is what keeps perfect meaningful:
 // with a free take-back you could search the whole tree by hand. A restart puts
 // the board back and resets the move count, but the clock keeps running.
 //
 // Same daily plumbing as Four/Mate/Etch: banked boards gated by Eastern date on
-// the server (app/park/page.js), per-puzzle localStorage saves, /park?p=N
-// archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
+// the server (app/unpark/page.js), per-puzzle localStorage saves, /unpark?p=N
+// archive pinning, streaks + stats, and the shared /api/quiz/* board flow. The
+// registry key and every quiz id stay 'park-*' so the launch-month leaderboards
+// and streaks survive the rename; only the route and the reader-facing name moved.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -34,13 +40,14 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
+import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 import { N, EXIT_ROW, fromData, grid, moves as legalSlides, apply, solved, solve } from './solver';
 
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
   rust: '#c0392b', faded: '#262b35',
-  accent: '#7c5c2e',        // Park identity — weathered tarmac gold
+  accent: '#7c5c2e',        // Unpark identity — weathered tarmac gold
   accentSoft: '#f6efe2', green: '#15803d',
 };
 const LOT = '#e7e2d8';        // the lot surface
@@ -160,9 +167,8 @@ const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
 const freshState = () => ({ v: 1, moves: [], restarts: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null });
-const scoreFor = (used, par) => Math.max(1, Math.min(10, 10 - Math.floor(Math.max(0, used - par) / 2)));
 
-export default function ParkClient({ puzzles = [], forceNum = null }) {
+export default function UnparkClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const STORE_KEY = `sot_park_${PUZZLE.num}`;
   const START = useMemo(() => fromData(PUZZLE.pieces), [PUZZLE]);
@@ -200,8 +206,13 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const used = g.moves.length;
-  const par = PUZZLE.par;
-  const finalScore = won ? scoreFor(used, par) : 0;
+  // PUZZLE.par is the banked exact minimum. It is the PERFECT line now; par is
+  // the cushioned target derived from it (lib/par.js). The banked field keeps
+  // its old name so no board in the archive has to be rewritten.
+  const perfect = PUZZLE.par;
+  const par = parFor(perfect);
+  const step = stepFor(perfect);
+  const finalScore = won ? scoreFor(used, perfect) : 0;
 
   const blocks = useMemo(() => {
     let ps = START;
@@ -341,7 +352,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
   function postResult(g2, score) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.moves.length, won: g2.status === 'won' && g2.moves.length === par })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.moves.length, won: g2.status === 'won' && g2.moves.length === perfect })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
@@ -373,7 +384,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
     if (solved(ps)) {
       const done = { ...g2, status: 'won', tEnd: Date.now() };
       vibrate(HAPT.win);
-      postResult(done, scoreFor(done.moves.length, par));
+      postResult(done, scoreFor(done.moves.length, perfect));
       commit(done);
       return;
     }
@@ -441,21 +452,24 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
     setSel(null); setHintBlock(null); setEndClosed(false);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/park${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`sourceoftruths.com/unpark${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
-    const over = used - par;
-    const g5 = won ? Math.max(1, Math.round(scoreFor(used, par) / 2)) : 0;
+    const vs = used === perfect ? 'perfect'
+      : used < par ? `${par - used} under par`
+      : used === par ? 'level par'
+      : `${used - par} over par`;
+    const g5 = won ? Math.max(1, Math.round(scoreFor(used, perfect) / 2)) : 0;
     const squares = '\u{1F7EB}'.repeat(g5) + '⬜'.repeat(5 - g5);
     const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = won
-      ? `Park #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves (par ${par}${over > 0 ? `, +${over}` : ', on the nose'}) · ${elapsed}${hintBit}${streakBit}`
-      : `Park #${PUZZLE.num} · gave up · par ${par}`;
+      ? `Unpark #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves, ${vs} · ${elapsed}${hintBit}${streakBit}`
+      : `Unpark #${PUZZLE.num} · left it parked · par was ${par}`;
     return `${head}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {
     const text = playing
-      ? `Park #${PUZZLE.num} — the daily sliding-block jam from Source of Truths. Par ${par}.\n${shareUrl()}`
+      ? `Unpark #${PUZZLE.num} — the daily sliding-block jam from Source of Truths. You are in the red one, everybody has blocked you in, and there is one gap in the wall.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -470,8 +484,8 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Get the <b>red block</b> to the <b>exit</b>, the gap in the right-hand wall. <b>Tap a block</b> to pick it up, then <b>tap the square you want it to reach</b>, and it slides there if the lane is clear.</p>
       <p style={{ margin: '0 0 9px' }}>Every block is stuck on one axis. A block lying across slides left and right only, a block standing up slides only up and down. Nothing turns, nothing jumps.</p>
-      <p style={{ margin: '0 0 9px' }}>Sliding one block any distance counts as <b>one move</b>. <b>Par is {par}</b> on this board, the true minimum, found by search rather than by hand. There is <b>no undo</b>, only a restart that puts the board back and zeroes your moves, though the clock keeps running.</p>
-      <p style={{ margin: 0 }}>Par scores <b>10</b>, and every two moves over costs a point down to a floor of one, so finishing always beats walking away. One free <b>hint</b> names the block to move next. <b>Sundays</b> are a much longer jam.</p>
+      <p style={{ margin: '0 0 9px' }}>Sliding one block any distance counts as <b>one move</b>. <b>Par is {par}</b> on this board, the number a clean solve lands on. <b>Perfect is {perfect}</b>, the fewest moves that exist here, found by exhaustive search rather than by hand, and nobody gets under it. There is <b>no undo</b>, only a restart that puts the board back and zeroes your moves, though the clock keeps running.</p>
+      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b> names the block to move next. <b>Sundays</b> are a much longer jam.</p>
     </div>
   );
 
@@ -498,20 +512,20 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         <DailyMasthead
-          slug="park" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
+          slug="unpark" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Par {par}</span>}
-          blocks={'PARK'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+          blocks={'UNPARK'.split('').map((ch, i) => (
+            <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i < 2 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Park is ready'}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Unpark is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Slide the blocks and get the red one to the exit on the right. Par is {par} moves, which is the proven minimum. No undo, only a restart.</p>
+                <p style={{ margin: '0 0 6px' }}>Slide the blocks and get the red one to the exit on the right. Par is {par} moves and perfect is {perfect}, the fewest that exist. No undo, only a restart.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -530,7 +544,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: used > par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b> &middot; perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{perfect}</b></span>
           </div>
 
           <div style={{ maxWidth: 430, margin: '0 auto', position: 'relative' }}>
@@ -583,7 +597,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
               {!playing
-                ? (won ? `Out in ${used}. Par was ${par}.` : 'You left it parked.')
+                ? (won ? (used === perfect ? `Out in ${used}. That is perfect.` : `Out in ${used}. Par was ${par}.`) : 'You left it parked.')
                 : sel != null ? 'Now tap where it goes.' : 'Tap a block to pick it up.'}
             </span>
             {g.restarts > 0 && playing && (
@@ -621,13 +635,15 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              Par was <span style={{ color: COLORS.accent }}>{par} moves</span>.
+              Par was <span style={{ color: COLORS.accent }}>{par} moves</span>, perfect was <span style={{ color: COLORS.ink }}>{perfect}</span>.
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>
               {won
-                ? used === par ? 'You matched the proven minimum, which is as good as this board gets.'
-                  : `You got out in ${used}, ${used - par} over the minimum.`
-                : 'The minimum was found by exhaustive search, so it is real, not an estimate.'}
+                ? used === perfect ? 'You matched perfect, which is as good as this board gets. Nobody got out faster.'
+                  : used < par ? `You got out in ${used}, ${par - used} under par and ${used - perfect} off perfect.`
+                    : used === par ? `You got out in ${used}, level par, ${used - perfect} off perfect.`
+                      : `You got out in ${used}, ${used - par} over par.`
+                : 'Perfect was found by exhaustive search, so it is real, not an estimate.'}
             </div>
             {PUZZLE.sunday && (
               <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition, a much longer jam.</div>
@@ -640,13 +656,13 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
-                  {countdown ? <>Next Park in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board drops at midnight Eastern.'}
-                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/park?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Park &rarr;</a></>)}
+                  {countdown ? <>Next Unpark in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board drops at midnight Eastern.'}
+                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/unpark?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Unpark &rarr;</a></>)}
                 </>
               ) : (
                 <>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/park" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Park &rarr;</a>
+                  <a href="/unpark" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Unpark &rarr;</a>
                   {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
               )}
@@ -675,7 +691,7 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Park to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Unpark to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
@@ -699,10 +715,10 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
 
       {!playing && !endClosed && (
         <DailyEndCard modal self="park" won={won}
-          headline={won ? (used === par ? <>Par. Nothing wasted.</> : <>You&rsquo;re out.</>) : <>You scored 0%</>}
+          headline={won ? (used === perfect ? <>Perfect. Nothing wasted.</> : used < par ? <>Under par.</> : <>You&rsquo;re out.</>) : <>You scored 0%</>}
           subline={won
-            ? <>{finalScore}/10 &middot; {used} moves, par {used === par ? 'matched' : `${par}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-            : <>0/10 &middot; par on this board was {par}</>}
+            ? <>{finalScore}/10 &middot; {used} moves &middot; par {par}, perfect {perfect} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : <>0/10 &middot; par here was {par}, perfect was {perfect}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame} onClose={() => setEndClosed(true)} />
       )}
@@ -728,12 +744,12 @@ export default function ParkClient({ puzzles = [], forceNum = null }) {
       )}
 
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Park</h2>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Unpark</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Park is a free daily sliding-block puzzle from Source of Truths. A jammed six by six lot, a dozen blocks that each slide on one axis only, and a red block that has to reach the gap in the wall. Tap a block, tap where you want it, and it goes if the lane is clear.
+          Unpark is a free daily sliding-block puzzle from Source of Truths. A jammed six by six lot, a dozen blocks that each slide on one axis only, and a red block that has to reach the gap in the wall. Tap a block, tap where you want it, and it goes if the lane is clear.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every board is machine generated and then solved exactly, so the par you are scored against is the true minimum rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. Boards climb through the week, from about a dozen moves on Monday to twenty by Saturday, and the Sunday Edition runs a good deal longer than any of them.
+          Every board is machine generated and then solved exactly, so perfect really is the fewest moves that exist rather than somebody&rsquo;s guess, and it was confirmed by a second solver written independently of the first. Par sits a cushion above perfect: it is the number a clean solve lands on, and it is beatable. Boards climb through the week, from about a dozen moves on Monday to twenty by Saturday, and the Sunday Edition runs a good deal longer than any of them.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new board drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, <a href="/four" style={{ color: COLORS.ink, fontWeight: 800 }}>Four</a>, our daily Connect Four position, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.

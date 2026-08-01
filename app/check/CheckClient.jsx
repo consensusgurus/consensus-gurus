@@ -759,7 +759,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
           The trick is always the same and always satisfying: captures are compulsory in checkers, so giving a piece away is how you decide what your opponent does next. Every board in the bank opens with a sacrifice, and every one was solved twice, by the engine that ships and by a second one written independently, to confirm the sweep exists, takes exactly the stated number of moves, and has exactly one first move that works.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new board drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/park" style={{ color: COLORS.ink, fontWeight: 800 }}>Park</a>, our daily sliding-block jam, <a href="/four" style={{ color: COLORS.ink, fontWeight: 800 }}>Four</a>, our daily Connect Four position, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.
+          A new board drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/unpark" style={{ color: COLORS.ink, fontWeight: 800 }}>Unpark</a>, our daily sliding-block jam, <a href="/four" style={{ color: COLORS.ink, fontWeight: 800 }}>Four</a>, our daily Connect Four position, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.
         </p>
       </section>
 

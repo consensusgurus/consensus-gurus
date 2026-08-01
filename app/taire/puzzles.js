@@ -10,19 +10,22 @@
 //          through eight, sixteen cards in four columns. 10 is ace through ten,
 //          twenty cards in five columns.
 //   cells  how many free cells the day allows.
-//   par    the EXACT minimum number of single-card moves needed to send every
+//   par    the EXACT minimum number of single-card moves, i.e. what the game
+//          now shows as PERFECT (the field keeps its old name so no banked deal
+//          has to be rewritten; the softer target players see is derived in
+//          lib/par.js). The fewest needed to send every
 //          card home, foundation moves included. Not an estimate: found by
 //          breadth-first search over the reachable state space, then confirmed
 //          by a second solver written independently of the first against the
-//          same rules. Every deal in this bank agreed. Par can never be beaten,
+//          same rules. Every deal in this bank agreed. Perfect can never be beaten,
 //          only matched, because it is the true floor.
 //   line   one optimal line, as [card, destination] pairs, where destination is
 //          a column index, 100 for a free cell and 200 for the foundation.
 //
 // The week climbs in three rungs, and each rung changes a different dial:
-//   Monday to Wednesday  16 cards, 2 cells, par 18 to 24. The short deal.
-//   Thursday to Saturday 20 cards, 2 cells, par 28 to 34. The full deal.
-//   Sunday Edition       20 cards, 1 cell,  par 34 to 48. One cell is brutal.
+//   Monday to Wednesday  16 cards, 2 cells, perfect 18 to 24. The short deal.
+//   Thursday to Saturday 20 cards, 2 cells, perfect 28 to 34. The full deal.
+//   Sunday Edition       20 cards, 1 cell,  perfect 34 to 48. One cell is brutal.
 export const PUZZLES = [
   {
     num: 1,
