@@ -857,7 +857,7 @@ export default function DailyEndCard({
       aria-expanded={calOpen}
       onClick={() => setCalOpen((v) => !v)}
     >
-      <div className="dec-tile-lbl">Archive</div>
+      <div className="dec-tile-lbl">{selfName} Archive</div>
       <div className="dec-tile-ring">
         <span className="dec-arcring">
           <svg width="54" height="54" viewBox="0 0 56 56" aria-hidden="true">
@@ -978,17 +978,20 @@ export default function DailyEndCard({
         .dec-tiles-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @media(prefers-reduced-motion:reduce){.dec-tiles-loading::after{animation:none;}}
         .dec-tile-cal{position:absolute;top:9px;right:8px;color:${SLATE};}
-        .dec-tile{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:13px 10px 11px;min-width:0;transition:background .12s ease,border-color .12s ease;}
-        .dec-tile:hover{background:#fff;border-color:#cfd6e2;}
+        /* Tiles carry the same confidence as the hero (owner 2026-08-01): a 2px
+           border, white ground, soft shadow and a bigger numeral, so the row
+           does not read as a pale afterthought under the navy panel. */
+        .dec-tile{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:2px solid #dde3ee;background:#fff;border-radius:14px;padding:13px 10px 12px;min-width:0;box-shadow:0 2px 10px rgba(20,30,60,.05);transition:background .12s ease,border-color .12s ease,box-shadow .12s ease;}
+        .dec-tile:hover{border-color:#b9c6dd;box-shadow:0 3px 14px rgba(20,30,60,.09);}
         .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
-        .dec-tile-lbl{font-family:${SANS};font-size:12.5px;font-weight:700;color:${SLATE};padding:0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dec-tile-lbl{font-family:${SANS};font-size:13px;font-weight:800;color:${INK};padding:0 20px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:32px;}
         /* Big centered numeral, with the field size spelled out on its own
            line below (owner 2026-07-31: larger ranks, easier-to-read text). */
-        .dec-tile-rk{font-size:34px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.1;margin-top:4px;display:block;}
+        .dec-tile-rk{font-size:38px;font-weight:800;letter-spacing:-.03em;color:${INK};line-height:1.05;margin-top:3px;display:block;}
         .dec-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
         .dec-tile-of .prov{font-weight:700;color:${FADED};}
         .dec-tile-rk .dash{color:#c2c8d2;}
-        .dec-tile-of{font-size:12px;color:${FADED};display:block;margin-top:3px;}
+        .dec-tile-of{font-size:12.5px;font-weight:600;color:${SLATE};display:block;margin-top:3px;}
         .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
         .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:${BLUE};}
         /* Archive tile: same shell as a rank tile, a completion ring where the
@@ -1000,8 +1003,9 @@ export default function DailyEndCard({
            stroke leaves 41px of clear middle, so it fit by one pixel and read as
            cramped. 54px outer, a 4.5px stroke and 11.5px text give 45px of clear
            middle for a 38px label, i.e. about 3px of air each side. */
-        .dec-tile-ring{display:flex;align-items:center;justify-content:center;height:54px;margin-top:4px;}
-        .dec-arcring{position:relative;display:block;width:54px;height:54px;}
+        .dec-tile-ring{display:flex;align-items:center;justify-content:center;height:58px;margin-top:3px;}
+        .dec-arcring{position:relative;display:block;width:58px;height:58px;}
+        .dec-arcring svg{width:58px;height:58px;}
         .dec-arcring svg{display:block;}
         .dec-arcring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;letter-spacing:-.04em;color:${INK};font-variant-numeric:tabular-nums;}
 
@@ -1179,15 +1183,17 @@ export default function DailyEndCard({
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
         .dec-nx-auto{font-family:${MONO};font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#5d7cae;text-align:center;margin-top:-4px;}
 
-        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:11px;min-width:0;}
-        .dec-ez-top{display:flex;align-items:center;gap:12px;min-width:0;}
-        .dec-ez-ico{position:relative;width:56px;height:56px;border-radius:14px;background:#fff;border:1px solid #f0e3bb;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        /* Same weight as Up next, in the gold key: 2px border, gradient fill,
+           shadow, 60px icon and a taller shadowed button (owner 2026-08-01). */
+        .dec-ez{border:2px solid #eed79c;background:linear-gradient(180deg,#fffaee 0%,#fdf2d9 100%);box-shadow:0 3px 14px rgba(184,138,20,.12);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
+        .dec-ez-top{display:flex;align-items:center;gap:13px;min-width:0;}
+        .dec-ez-ico{position:relative;width:60px;height:60px;border-radius:16px;background:#fff;border:1px solid #eed79c;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-ez-ico > svg{width:22px;height:22px;}
-        .dec-ez-ico .tr{position:absolute;right:-5px;bottom:-5px;width:21px;height:21px;border-radius:50%;background:${GOLD};color:#5c4a06;display:flex;align-items:center;justify-content:center;border:2px solid #fdf6e4;}
-        .dec-ez-name{font-size:20px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;}
+        .dec-ez-ico .tr{position:absolute;right:-5px;bottom:-5px;width:22px;height:22px;border-radius:50%;background:${GOLD};color:#5c4a06;display:flex;align-items:center;justify-content:center;border:2px solid #fdf6e4;}
+        .dec-ez-name{font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
         .dec-ez-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#8a6d1c;margin-top:3px;min-width:0;}
-        .dec-ez-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;box-sizing:border-box;text-align:center;font-family:${SANS};font-weight:800;font-size:13px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:11px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
-        .dec-ez-btn:hover{filter:brightness(1.04);}
+        .dec-ez-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;box-sizing:border-box;text-align:center;font-family:${SANS};font-weight:800;font-size:14.5px;color:#4d3d04;background:${GOLD};border:none;border-radius:11px;padding:13px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;box-shadow:0 3px 10px rgba(184,138,20,.30);}
+        .dec-ez-btn:hover{filter:brightness(1.05);}
 
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
@@ -1247,11 +1253,11 @@ export default function DailyEndCard({
           .dec-sharebar .s{font-size:11px;}
           /* Mobile: the three rank tiles stay side by side, tighter. */
           .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
-          .dec-tile{padding:10px 6px 9px;}
-          .dec-tile-lbl{font-size:10.5px;padding:0 14px;}
-          .dec-tile-rk{font-size:24px;}
+          .dec-tile{padding:10px 6px 9px;border-radius:12px;}
+          .dec-tile-lbl{font-size:11px;padding:0 13px;min-height:27px;}
+          .dec-tile-rk{font-size:27px;}
           .dec-tile-rk .prov{font-size:9px;}
-          .dec-tile-of{font-size:10.5px;}
+          .dec-tile-of{font-size:11px;}
           .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
           .dec-iqhero{padding:13px 12px 11px;}
           /* Phone: hero is the centred brain + gain, with the three figures as
@@ -1263,9 +1269,9 @@ export default function DailyEndCard({
           .dec-iqhero-sub{display:flex;}
           /* The archive tile rides the same tighter tile metrics as its
              neighbours, with a smaller ring. */
-          .dec-tile-ring{height:42px;}
-          .dec-arcring,.dec-arcring svg{width:42px;height:42px;}
-          .dec-arcring .num{font-size:9.5px;}
+          .dec-tile-ring{height:46px;}
+          .dec-arcring,.dec-arcring svg{width:46px;height:46px;}
+          .dec-arcring .num{font-size:10px;}
           .dec-brain,.dec-brain img,.dec-brain-fill{width:72px;}
           .dec-brain,.dec-brain img{height:65px;}
           .dec-iqhero-gain{font-size:50px;}
@@ -1274,12 +1280,10 @@ export default function DailyEndCard({
           .dec-iqhero-sub{font-size:11.5px;gap:3px 12px;margin-top:8px;padding-top:7px;}
           .dec-iqhero-rays{width:300px;height:300px;margin:-150px 0 0 -150px;}
           .dec-duo{grid-template-columns:1fr;}
-          .dec-nx-name{font-size:21px;}
-          .dec-ez-name{font-size:19px;}
+          .dec-nx-name,.dec-ez-name{font-size:21px;}
           .dec-blurb{font-size:12.5px;padding:9px 11px;}
-          .dec-ring,.dec-ring svg{width:54px;height:54px;}
-          .dec-ez-ico{width:50px;height:50px;}
-          .dec-nx-btns .b{font-size:14px;padding:12px 10px;}
+          .dec-ring,.dec-ring svg,.dec-ez-ico{width:54px;height:54px;}
+          .dec-nx-btns .b,.dec-ez-btn{font-size:14px;padding:12px 10px;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
           .dec-rows.one{grid-template-columns:1fr;}
@@ -1394,8 +1398,10 @@ export default function DailyEndCard({
         <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
       ) : null}
       <div className="dec-tiles" style={ranksLoading ? { display: 'none' } : undefined}>
-        {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
-        {renderTile('alltime', 'All Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
+        {/* Labels name the game (owner 2026-08-01): "Garble Today", not "Today",
+            so the tiles never read as site-wide boards. */}
+        {renderTile('today', `${selfName} Today`, gameTodayRank, gameTodayField, false, provisional)}
+        {renderTile('alltime', `${selfName} All Time`, allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
         {drops && drops.length ? renderArchiveTile() : null}
       </div>
       {calOpen && drops && drops.length ? calendarEl : null}
