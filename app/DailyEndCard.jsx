@@ -866,7 +866,7 @@ export default function DailyEndCard({
            it as clickable (owner 2026-07-31, replacing the Share-my-day slot). */
         a.dec-idbox{text-decoration:none;cursor:pointer;transition:background .12s ease;}
         a.dec-idbox:hover{background:#eef0f4;}
-        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;}
+        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-width:0;}
         .dec-share:hover{filter:brightness(1.12);}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
@@ -1060,8 +1060,8 @@ export default function DailyEndCard({
           .dec-card{padding:18px 16px 14px;}
           .dec-titlerow{padding-right:40px;}
           .dec-title{font-size:22px;}
-          .dec-idrow{gap:8px;}
-          .dec-idrow > *{flex:1;justify-content:center;}
+          .dec-idrow{gap:8px;flex-direction:column;align-items:stretch;}
+          .dec-idrow > *{width:100%;justify-content:center;}
           /* Mobile: the three rank tiles stay side by side, tighter. */
           .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
           .dec-tile{padding:10px 6px 9px;}
@@ -1109,7 +1109,7 @@ export default function DailyEndCard({
         {/* share (left) + identity (right) on one line; both fill width on mobile */}
         <div className="dec-idrow">
           <button type="button" className="dec-share" onClick={onShare}>
-            <Share2 size={14} strokeWidth={2.2} /> Share result{!/copied/i.test(shareLabel || '') ? ' (for credit)' : ''}
+            <Share2 size={14} strokeWidth={2.2} /> {/copied/i.test(shareLabel || '') ? shareLabel : 'Share your result, get the credit'}
           </button>
           {hasEmail && username ? (
             <a className="dec-idbox" href={`/player/${encodeURIComponent(username)}`} aria-label={`Open ${username}'s player profile`}>

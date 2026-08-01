@@ -19,22 +19,9 @@
 import { useEffect, useState } from 'react';
 import { X, Check, Copy } from 'lucide-react';
 import { myRefCode, withRef, ensureMyRefCode } from '@/lib/referrals';
-import { DAILY_KEYS } from '@/lib/daily-games';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 
 export const SHARE_CREDIT_EVENT = 'sot:share-credit';
-
-// Where "See leaderboard" should land. Opened from a daily game page, it goes
-// straight to that game's board in the Stat Hub (?tab=daily&game=<key>, which
-// DailyGamesView pre-selects); anywhere else it opens the daily board's default.
-function boardHrefFor(raw) {
-  let seg = '';
-  try { seg = (new URL(raw || '', window.location.origin).pathname.split('/')[1] || '').toLowerCase(); }
-  catch (e) { seg = ''; }
-  return DAILY_KEYS.includes(seg)
-    ? `/quizzes/hub?tab=daily&game=${encodeURIComponent(seg)}`
-    : '/quizzes/hub?tab=daily';
-}
 
 export function notifyShareCredit(resultText, url) {
   if (typeof window === 'undefined') return false;
@@ -65,7 +52,6 @@ export default function ShareCreditPop() {
   const [result, setResult] = useState('');
   const [copiedKey, setCopiedKey] = useState(null);
   const [srcUrl, setSrcUrl] = useState(''); // page the credit link should point at
-  const [boardHref, setBoardHref] = useState('/quizzes/hub?tab=daily');
 
   useEffect(() => {
     const onEvt = (e) => {
@@ -77,7 +63,6 @@ export default function ShareCreditPop() {
       let u = '';
       try { u = withRef(raw); } catch (err) { u = ''; }
       setSrcUrl(raw);
-      setBoardHref(boardHrefFor(raw));
       const rt = (e && e.detail && typeof e.detail.resultText === 'string') ? e.detail.resultText.trim() : '';
       const registered = !!myRefCode();
       setLink(u);
@@ -167,6 +152,7 @@ export default function ShareCreditPop() {
         <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.02em', marginBottom: 8, paddingRight: 28 }}>Your share link</div>
         <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.5, color: SLATE }}>
           This link is yours. Anyone who opens it and finishes a game or quiz credits <b style={{ color: INK }}>you</b> on the community leaderboard, once.
+          {' '}<b style={{ color: INK }}>I&rsquo;m a one person startup! Please help us grow!</b>
         </p>
 
         {result ? (
@@ -195,7 +181,6 @@ export default function ShareCreditPop() {
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
           <a href="/quizzes/community" onClick={() => setOpen(false)} style={{ fontSize: 13, fontWeight: 800, color: SLATE, textDecoration: 'none', padding: '9px 14px', borderRadius: 10, border: `1px solid ${BORD}`, background: '#fff', display: 'inline-flex', alignItems: 'center' }}>Community leaderboard</a>
-          <a href={boardHref} onClick={() => setOpen(false)} style={{ fontSize: 13, fontWeight: 800, color: BLUE, textDecoration: 'none', padding: '9px 14px', borderRadius: 10, border: '1px solid #cfe0fb', background: '#eff4fd', display: 'inline-flex', alignItems: 'center' }}>See leaderboard</a>
         </div>
       </div>
     </div>
