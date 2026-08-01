@@ -15,6 +15,14 @@
 // column, so it was reverted. Natural row heights and a square calendar read
 // cleaner, and the leftover navy at the bottom is simply quiet space.
 //
+// EQUAL CARD HEIGHTS (owner rule, 2026-08-01, and NOT a return to the above):
+// the three cards in that row always end on the same line. The height comes
+// from the archive card, whose calendar is padded to six week rows so it is
+// the tallest possible month rather than whatever month is on screen; the
+// record and leaderboard cards stretch to that line and spend the extra space
+// on their own rows. The bottom strip below the row is unaffected, so the
+// panel still ends in quiet space rather than stretching to the floor.
+//
 // What it shows: identity plus a one-sentence how-to-play (roster field `how` in
 // lib/daily-games.js), a large Play button and an equally obvious close, today's
 // record, the viewer's all-time record for the game, archive completion, streak
@@ -139,8 +147,12 @@ export default function DailyTilePanel({
   const cells = [];
   for (let k = 0; k < firstWeekday; k++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-  while (cells.length % 7) cells.push(null);
-  const weeks = Math.max(1, cells.length / 7);
+  // ALWAYS six week rows, even for a month that only needs four or five (owner,
+  // 2026-08-01). The calendar is the tallest of the three columns, so letting
+  // its height float by month made the whole row of cards change height as the
+  // reader paged through the archive. Padding to the tallest POSSIBLE month
+  // fixes the column, and the two columns to its left stretch to match it.
+  while (cells.length < 42) cells.push(null);
   const shiftMonth = (delta) => {
     let y = calY, m = calM + delta;
     while (m < 1) { m += 12; y -= 1; }
@@ -457,8 +469,17 @@ export default function DailyTilePanel({
         .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e8b43a;background:#e8b43a;color:#1c1e24;
                     font-weight:800;font-size:13px;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:background .12s,transform .12s;}
         .dtp-shrink:hover{background:#f0c358;border-color:#f0c358;transform:translateY(-1px);}
-        /* three columns take every remaining pixel */
-        .dtp-grid{flex:none;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:13px;align-items:start;}
+        /* THE THREE CARDS ARE ALWAYS THE SAME HEIGHT (owner rule, 2026-08-01).
+           The archive card sets that height, because its calendar is padded to
+           six week rows (the tallest possible month, see the cells builder), so
+           the row never changes height as the reader pages through months. The
+           record and leaderboard cards stretch to meet it and hand the extra
+           space to their own content: the stat rows spread, the leaderboard
+           rows spread, and each card's footer sits on the bottom edge.
+           (This is NOT the old "stretch everything to the panel floor" layout
+           that was reverted on 2026-07-29 for looking sparse. The cards match
+           the calendar and stop there; the leftover navy below is untouched.) */
+        .dtp-grid{flex:none;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:13px;align-items:stretch;}
         .dtp-col{min-width:0;display:flex;flex-direction:column;background:#fff;border:1.5px solid #c3ccda;border-radius:11px;padding:12px 13px;}
         .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;font-weight:500;margin-bottom:8px;flex:none;}
         .dtp-lab.sm{margin-top:10px;}
@@ -470,8 +491,9 @@ export default function DailyTilePanel({
         .dtp-stats>div{background:#f7f9fc;border:1px solid #dde3ec;border-radius:9px;padding:6px 9px;}
         .dtp-stats b{display:block;font-size:17px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
         .dtp-stats span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#262b35;margin-top:2px;display:block;}
-        /* the rows stretch to the bottom of the column instead of bunching at the top */
-        .dtp-rows{flex:none;display:flex;flex-direction:column;margin-top:8px;}
+        /* the rows take the height the calendar handed this column and spread
+           through it, rather than bunching under the stat tiles */
+        .dtp-rows{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between;margin-top:8px;}
         .dtp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #dde3ec;font-size:11.5px;}
         .dtp-row:last-child{border-bottom:none;}
         .dtp-row span{color:#262b35;font-weight:600;}
@@ -493,14 +515,15 @@ export default function DailyTilePanel({
         a.dtp-cell.open{background:#f7f8fa;border:1px solid #c8d0dc;color:#46506a;}
         a.dtp-cell.open:hover{border-color:var(--gc);color:#1c1e24;}
         a.dtp-cell.today{box-shadow:0 0 0 2px #e8b43a;}
-        .dtp-key{display:flex;flex-wrap:wrap;gap:5px 13px;margin-top:8px;font-size:10.5px;color:#262b35;font-weight:600;flex:none;}
+        .dtp-key{display:flex;flex-wrap:wrap;gap:5px 13px;margin-top:auto;padding-top:8px;font-size:10.5px;color:#262b35;font-weight:600;flex:none;}
         .dtp-key span{display:inline-flex;align-items:center;gap:5px;}
         .dtp-key .sw{width:10px;height:10px;border-radius:3px;flex:none;}
         .dtp-key .sw.played{background:rgba(34,197,94,0.35);border:1px solid rgba(34,197,94,0.55);}
         .dtp-key .sw.open{background:#f7f8fa;border:1px solid #c8d0dc;}
         .dtp-key .sw.today{background:transparent;border:2px solid #e8b43a;}
-        /* leaderboard rows share the leftover height the same way */
-        .dtp-lb{flex:none;display:flex;flex-direction:column;}
+        /* leaderboard rows share the leftover height the same way: the two
+           boards split it evenly and each spreads its own rows */
+        .dtp-lb{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between;}
         .dtp-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;border-bottom:1px solid #dde3ec;font-size:11.5px;color:#262b35;}
         .dtp-lrow:last-child{border-bottom:none;}
         .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#262b35;flex:none;display:flex;align-items:center;}
@@ -509,7 +532,7 @@ export default function DailyTilePanel({
         .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#1c1e24;flex:none;}
         .dtp-lrow.me{background:#fdf4dd;border-radius:6px;padding:3px 8px;border-bottom:none;margin:1px -8px;}
         .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#8a5300;}
-        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;font-size:10.5px;color:#262b35;font-weight:600;flex:none;}
+        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:9px;font-size:10.5px;color:#262b35;font-weight:600;flex:none;}
         .dtp-lfoot a{color:#8a5300;text-decoration:none;font-weight:700;}
         .dtp-lfoot a:hover{text-decoration:underline;}
         .dtp-empty{font-size:12px;color:#262b35;font-weight:600;padding:6px 0;}
