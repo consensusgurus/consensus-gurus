@@ -1,8 +1,9 @@
 'use client';
 import React, { useMemo } from 'react';
 import { RotateCcw, Swords } from 'lucide-react';
-import { QUIZZES } from '@/lib/quizzes';
+import { similarQuizzes } from '@/lib/quiz-similar';
 import SimilarQuizTiles from './SimilarQuizTiles';
+import QuizStandings from './QuizStandings';
 import UpNextCard from './UpNextCard';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import RegisterRankLine from './RegisterRankLine';
@@ -51,17 +52,12 @@ export default function QuizResultModal({
 }) {
   const duelHref = quiz && quiz.id ? `/duel/new?quiz=${encodeURIComponent(quiz.id)}` : null;
   const regRank = (!identity && onRegister && board) ? registerRank(board.leaderboard, score, lastElapsed) : null;
-  const similar = useMemo(() => {
-    if (!quiz) return [];
-    const stripped = quiz.id.replace(/-\d+$/, '');
-    const fam = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && x.id.replace(/-\d+$/, '') === stripped);
-    const cat = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated && quiz.category && x.category === quiz.category);
-    const rest = QUIZZES.filter((x) => x.id !== quiz.id && !x.hideFromRelated);
-    const seen = new Set();
-    const out = [];
-    for (const x of [...fam, ...cat, ...rest]) { if (!seen.has(x.id)) { seen.add(x.id); out.push(x); } }
-    return out.slice(0, 8);
-  }, [quiz]);
+  // One shared builder with the inline QuizClient end screen, so the rail is
+  // identical on every board AND obeys the Business-News exclusion (a dated news
+  // or company-earnings quiz is never a similar pick). This used to be a local
+  // copy that filtered on category alone, which filled the rail of every market
+  // news quiz with more market news quizzes.
+  const similar = useMemo(() => similarQuizzes(quiz, 8), [quiz]);
 
   if (!open) return null;
 
@@ -84,7 +80,18 @@ export default function QuizResultModal({
 
       <RegisterRankLine rank={regRank} onRegister={onRegister} />
 
-      {standings ? <div style={{ marginBottom: 12 }}>{standings}</div> : null}
+      {/* The shared IQ end card. Most boards build the node themselves (they have
+          the post-game profile); this injects the per-quiz figures only THIS
+          component knows, chiefly `placement`, rather than threading the same
+          computation through all twelve callers. The two boards that pass
+          standings={null} and never fetch a profile (GridFill, LogicGrid) get the
+          card rendered here instead, and it self-fetches what it needs, so every
+          quiz ends on the same card. */}
+      <div style={{ marginBottom: 12 }}>
+        {React.isValidElement(standings)
+          ? React.cloneElement(standings, { placement, quiz, board, identity, quizTotal: total })
+          : <QuizStandings quiz={quiz} board={board} identity={identity} placement={placement} quizTotal={total} />}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
         {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: '#e8b43a', color: '#1c1e24' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}

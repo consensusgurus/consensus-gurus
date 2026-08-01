@@ -1536,7 +1536,12 @@ export default function QuizClient({ quizId }) {
   // "Play next" pick shown by title on the Game Over overlay's Play Similar
   // button (recomputed when the round ends so a just-played quiz drops out).
   const nextMeta = useMemo(() => { try { return nextQuizMeta(quiz); } catch (e) { return null; } }, [quiz, ended]);
-  const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} hideCategory />;
+  // The shared IQ end card. `placement` is injected at the render site below,
+  // where this quiz's finishing rank is known; the boards that render through
+  // QuizResultModal get the same injection there. hideCategory was dropped in the
+  // 2026-07-31 redesign: the category rank is now one of the three rank tiles, and
+  // every quiz shows the same three.
+  const eloPanel = <QuizStandings eloAfter={eloAfter} eloBefore={eloBefore} eloDept={eloDept} eloDeptLabel={eloDeptLabel} quiz={quiz} board={board} identity={identity} quizTotal={total} />;
 
   // Mobile "app" play mode: once a game is in progress on a phone, collapse the non-essential chrome (blurb, leaderboard strip,
   // full-size title) so the answer board fills the screen. Desktop and the
@@ -1658,7 +1663,7 @@ export default function QuizClient({ quizId }) {
                   </div>
                 )}
               </div>
-              {eloPanel}
+              {React.cloneElement(eloPanel, { placement })}
               <RegisterRankLine rank={regRank} onRegister={openRegister} />
               {runActive && (
                 <button onClick={goNextStep} style={{ ...stackBtn, marginBottom: 9, background: COLORS.ember, color: '#fff', fontSize: 13 }}>
