@@ -816,12 +816,12 @@ export default function DailyEndCard({
       <div className="dec-tile-lbl">Archive</div>
       <div className="dec-tile-ring">
         <span className="dec-arcring">
-          <svg width="50" height="50" viewBox="0 0 56 56" aria-hidden="true">
-            <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="5" />
+          <svg width="54" height="54" viewBox="0 0 56 56" aria-hidden="true">
+            <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="4.5" />
             {/* A 0% archive still shows a sliver so the ring reads as a meter
                 rather than an empty circle, matching the old progress bar. */}
             <circle
-              cx="28" cy="28" r="24" fill="none" stroke={BLUE} strokeWidth="5" strokeLinecap="round"
+              cx="28" cy="28" r="24" fill="none" stroke={BLUE} strokeWidth="4.5" strokeLinecap="round"
               transform="rotate(-90 28 28)"
               strokeDasharray={RING_C}
               strokeDashoffset={RING_C * (1 - Math.max(0.02, (archivePct || 0) / 100))}
@@ -936,13 +936,15 @@ export default function DailyEndCard({
            rank numeral sits. No chevron, because it opens the calendar below
            rather than a leaderboard. */
         .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
-        /* Ring sized around its widest label: "100%" at 13px did not clear a
-           44px ring's 6px stroke. 50px outer with a 5px stroke leaves ~40px of
-           clear middle for a 12px figure. */
-        .dec-tile-ring{display:flex;align-items:center;justify-content:center;height:50px;margin-top:4px;}
-        .dec-arcring{position:relative;display:block;width:50px;height:50px;}
+        /* Ring sized around its widest label, "100%", measured rather than
+           guessed: at 12px it renders 40px wide, and a 50px ring with a 5px
+           stroke leaves 41px of clear middle, so it fit by one pixel and read as
+           cramped. 54px outer, a 4.5px stroke and 11.5px text give 45px of clear
+           middle for a 38px label, i.e. about 3px of air each side. */
+        .dec-tile-ring{display:flex;align-items:center;justify-content:center;height:54px;margin-top:4px;}
+        .dec-arcring{position:relative;display:block;width:54px;height:54px;}
         .dec-arcring svg{display:block;}
-        .dec-arcring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:-.03em;color:${INK};font-variant-numeric:tabular-nums;}
+        .dec-arcring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:800;letter-spacing:-.04em;color:${INK};font-variant-numeric:tabular-nums;}
 
         /* IQ hero: the gain is THE headline number of the card (owner redesign
            2026-07-31), a full-width banner above the rank tiles, led by the brain
@@ -1147,8 +1149,8 @@ export default function DailyEndCard({
           .dec-iqhero-sub{display:flex;}
           /* The archive tile rides the same tighter tile metrics as its
              neighbours, with a smaller ring. */
-          .dec-tile-ring{height:38px;}
-          .dec-arcring,.dec-arcring svg{width:38px;height:38px;}
+          .dec-tile-ring{height:42px;}
+          .dec-arcring,.dec-arcring svg{width:42px;height:42px;}
           .dec-arcring .num{font-size:9.5px;}
           .dec-brain,.dec-brain img,.dec-brain-fill{width:66px;}
           .dec-brain,.dec-brain img{height:59px;}
