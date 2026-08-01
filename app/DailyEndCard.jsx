@@ -950,9 +950,6 @@ export default function DailyEndCard({
         .dec-iqhero.landed .dec-iqhero-rays{animation:dec-iqrays 1.1s ease-out 1;}
         .dec-iqhero.landed{animation:dec-iqpop .5s cubic-bezier(.34,1.56,.64,1) 1;}
         .dec-iqhero-in{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:18px;}
-        /* The footnote row is the MOBILE presentation of the same three figures
-           (see .dec-iqhero-stats); desktop hides it. */
-        .dec-iqhero-sub{display:none;}
         /* Brain meter: empty art as the base, the filled art clipped to the
            slate fraction and anchored to the bottom, so it fills upward. */
         .dec-brain{position:relative;display:block;flex:0 0 auto;width:92px;height:83px;}
@@ -985,7 +982,13 @@ export default function DailyEndCard({
         .dec-iqhero-gain .dash{color:#c2c8d2;}
         .dec-iqhero-slate{display:block;font-size:11.5px;font-weight:700;color:#4d6a97;margin-top:3px;}
         .dec-iqhero.full .dec-iqhero-slate{color:#3d6b58;}
-        .dec-iqhero-sub{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(61,99,168,.16);font-size:12.5px;color:#4d6a97;}
+        /* MOBILE ONLY: the footnote row is the phone presentation of the three
+           figures that .dec-iqhero-stats shows on desktop. Hidden here and
+           switched back on in the max-width:640px block, so exactly one of the
+           two is ever rendered (and only one is in the a11y tree). Setting this
+           on the source rule matters: an earlier display:none loses to this
+           declaration. */
+        .dec-iqhero-sub{position:relative;display:none;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(61,99,168,.16);font-size:12.5px;color:#4d6a97;}
         .dec-iqhero.full .dec-iqhero-sub{border-top-color:rgba(15,110,86,.16);color:#3d6b58;}
         .dec-iqhero-sub b{font-weight:800;color:#1d4ed8;}
         .dec-iqhero.full .dec-iqhero-sub b{color:#0f6e56;}
