@@ -50,7 +50,7 @@ import {
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
-  Club, CalendarDays, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
+  Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
   Flame,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
@@ -275,14 +275,12 @@ export default function DailyEndCard({
   const [dailyMe, setDailyMe] = useState(null);
   const [dailyGuest, setDailyGuest] = useState(null); // provisional standing for an unregistered player
   const [boardGames, setBoardGames] = useState(null); // per-game field/plays/board for the day
-  const [overallBoard, setOverallBoard] = useState(null); // combined top-10
-  const [combinedField, setCombinedField] = useState(null); // full combined field (all players)
   const [allTime, setAllTime] = useState(null);       // { field, myRank, myPoints, board } for `self`
   const [allTimeResolved, setAllTimeResolved] = useState(false); // daily-game answered => all-time tile known
   const [drops, setDrops] = useState(null);           // this game's live drops (calendar)
   const [secs, setSecs] = useState(AUTO_SECONDS);
   const [autoCancel, setAutoCancel] = useState(false);
-  const [combinedResolved, setCombinedResolved] = useState(false); // daily-combined answered => completion set is known
+  const [combinedResolved, setCombinedResolved] = useState(false); // daily-me answered => completion set is known
   const [skelTimedOut, setSkelTimedOut] = useState(false);          // collapse loading skeletons if the fetch is very slow
   const [popularCats, setPopularCats] = useState(null);             // popular quiz per category, once every daily is done
   const [pastHref, setPastHref] = useState(null);     // most-recent unplayed PAST drop of this game
@@ -344,9 +342,9 @@ export default function DailyEndCard({
     let alive = true;
     let timer = null;
     // The result of the game just finished is POSTed to /api/quiz/result at the
-    // same moment this card mounts, and the combined board reads a cached
-    // snapshot (a ~5s in-process burst TTL plus an edge cache). So the FIRST read
-    // here routinely predates our own row landing, which renders the player at the
+    // same moment this card mounts, and the board reads a cached snapshot (a ~5s
+    // in-process burst TTL plus an edge cache). So the FIRST read here can still
+    // predate our own row landing, which renders the player at the
     // bottom (as if they scored zero) until the write propagates. Re-fetch, cache-
     // busted, until our standing reflects the game we just finished (or we run out
     // of tries), so the end-card placement is never stale. delays are CUMULATIVE ms
@@ -371,22 +369,29 @@ export default function DailyEndCard({
       if (email) qs.set('email', email);
       qs.set('fresh', '1'); // force an authoritative, cache-bypassed read (server no-stores it)
       if (i > 0) qs.set('_', String(Date.now())); // distinct key -> also bust the edge cache on retries
-      fetch('/api/quiz/daily-combined?' + qs.toString())
+      // /api/quiz/daily-me, NOT daily-combined: scoreGame() reads one game's
+      // rows, so the rank this card shows is local to the puzzle just played.
+      // daily-combined scores all ~40 games, re-scores the three adaptive ones
+      // live, computes every player's best-N total and builds 40 boards, and the
+      // card used one rank out of it. Measured on the same day's data: 527ms and
+      // 7KB here against 1,671ms and 95KB there.
+      fetch('/api/quiz/daily-me?' + qs.toString())
         .then((r) => r.json())
         .then((d) => {
           if (!alive || !d) return;
           setCombinedResolved(true); // the completion set is now as complete as it will get
-          if (d.me) setDailyMe({ ...d.me, maxTotal: d.maxTotal, gameCount: d.gameCount });
-          if (d.meProvisional) setDailyGuest(d.meProvisional);
-          if (Array.isArray(d.games)) setBoardGames(d.games);
-          if (Array.isArray(d.overall)) setOverallBoard(d.overall);
-          if (typeof d.overallField === 'number') setCombinedField(d.uniquePlayers ?? d.overallField);
+          // perGame covers guests too (scoreGame keys by anon_id), so there is no
+          // separate provisional path to merge any more.
+          if (d.perGame) setDailyMe({ userKey: d.me ? d.me.userKey : null, perGame: d.perGame, gameCount: d.gameCount });
+          // The day's per-game counts feed the easiest-board card; the game just
+          // played also carries its top-10 board for the Today tile.
+          if (Array.isArray(d.games)) {
+            setBoardGames(d.games.map((g) => (d.game && g.key === d.game.key ? { ...g, ...d.game } : g)));
+          }
           // Does our standing already include the game we just finished? If so
-          // (or we're a guest, or retries are exhausted), stop. Otherwise the
-          // write hasn't propagated yet, so try again.
-          const reflectsSelf = registered
-            ? (!self || (d.me && d.me.perGame && d.me.perGame[self]))
-            : !!(d.me && d.me.perGame && d.me.perGame[self]) || !!d.meProvisional;
+          // (or retries are exhausted), stop. Otherwise the write hasn't
+          // propagated yet, so try again.
+          const reflectsSelf = !self || !!(d.perGame && d.perGame[self]);
           if (reflectsSelf && !notified) { notified = true; notifyBoard(); setTimeout(notifyBoard, 600); }
           if (reflectsSelf || i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;
@@ -534,8 +539,6 @@ export default function DailyEndCard({
   const gameTodayField = (todayGame ? (todayGame.plays ?? todayGame.field) : null)
     || (dailyGuest && dailyGuest.perGame && dailyGuest.perGame[self] && dailyGuest.perGame[self].field)
     || null;
-  // Combined today: my combined-board rank of the registered field.
-  const combinedRank = (dailyMe && dailyMe.rank) || (dailyGuest && dailyGuest.rank) || null;
   // Provisional (guest) standings are marked so the tile can say so.
   const provisional = !dailyMe && !!dailyGuest;
 
@@ -588,7 +591,7 @@ export default function DailyEndCard({
   }
 
   // Completion-derived UI (Up next, Easiest leaderboard, the still-to-play grid)
-  // must wait for the daily-combined fetch: before it lands the only finished game
+  // must wait for the daily-me fetch: before it lands the only finished game
   // we know is `self`, so an ungated "up next" can point at a game already played
   // today (and the auto-advance would open it). Gate on combinedResolved, show a
   // skeleton meanwhile, and collapse the skeleton if the fetch is very slow.
@@ -728,10 +731,6 @@ export default function DailyEndCard({
       const rows = (todayGame && Array.isArray(todayGame.board)) ? todayGame.board : [];
       return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!(myKey && r.userKey === myKey) }));
     }
-    if (which === 'combined') {
-      const rows = Array.isArray(overallBoard) ? overallBoard : [];
-      return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.total), me: !!(myKey && r.userKey === myKey) }));
-    }
     if (which === 'alltime') {
       const rows = (allTime && Array.isArray(allTime.board)) ? allTime.board : [];
       return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!r.isMe }));
@@ -794,10 +793,42 @@ export default function DailyEndCard({
     </button>
   );
 
-  // The month calendar, shared by the desktop archive TILE (expands in place) and
-  // the mobile archive SLIP (expands below). Only one is ever active at a time,
-  // because the archive tile is hidden on mobile and the slip is hidden on
-  // desktop (so the other's toggle can never fire).
+  // The archive tile: third in the rank row, on desktop AND mobile, replacing
+  // the All Games (combined) tile which now lives only on the quizzes front
+  // page. It reads local data the card already has (this game's drops), so
+  // unlike the tile it replaced it costs no request and never shows a loading
+  // state. The ring fills to the share of drops played, percent inside.
+  const renderArchiveTile = () => (
+    <button
+      type="button"
+      className={`dec-tile dec-tile-arc${calOpen ? ' open' : ''}`}
+      key="archive"
+      aria-label="Open the archive calendar"
+      aria-expanded={calOpen}
+      onClick={() => setCalOpen((v) => !v)}
+    >
+      <div className="dec-tile-lbl">Archive</div>
+      <div className="dec-tile-ring">
+        <span className="dec-arcring">
+          <svg width="44" height="44" viewBox="0 0 56 56" aria-hidden="true">
+            <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="6" />
+            {/* A 0% archive still shows a sliver so the ring reads as a meter
+                rather than an empty circle, matching the old progress bar. */}
+            <circle
+              cx="28" cy="28" r="24" fill="none" stroke={BLUE} strokeWidth="6" strokeLinecap="round"
+              transform="rotate(-90 28 28)"
+              strokeDasharray={RING_C}
+              strokeDashoffset={RING_C * (1 - Math.max(0.02, (archivePct || 0) / 100))}
+            />
+          </svg>
+          <span className="num">{archivePct != null ? `${archivePct}%` : '—'}</span>
+        </span>
+      </div>
+      <div className="dec-tile-of">{totalDrops ? <>{playedCount} of {totalDrops} played</> : ' '}</div>
+    </button>
+  );
+
+  // The month calendar, opened by the archive tile above.
   const calendarEl = (
     <div className="dec-cal">
       <div className="dec-cal-hd">
@@ -892,6 +923,14 @@ export default function DailyEndCard({
         .dec-tile-of{font-size:12px;color:${FADED};display:block;margin-top:3px;}
         .dec-tile-mx{position:absolute;top:7px;right:6px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:${SLATE};pointer-events:none;}
         .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:${BLUE};}
+        /* Archive tile: same shell as a rank tile, a completion ring where the
+           rank numeral sits. No chevron, because it opens the calendar below
+           rather than a leaderboard. */
+        .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE};background:#fff;}
+        .dec-tile-ring{display:flex;align-items:center;justify-content:center;height:44px;margin-top:4px;}
+        .dec-arcring{position:relative;display:block;width:44px;height:44px;}
+        .dec-arcring svg{display:block;}
+        .dec-arcring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;letter-spacing:-.02em;color:${INK};font-variant-numeric:tabular-nums;}
 
         /* IQ hero: the gain is THE headline number of the card (owner redesign
            2026-07-31), a full-width banner above the rank tiles, led by the brain
@@ -910,7 +949,10 @@ export default function DailyEndCard({
         .dec-iqhero.full .dec-iqhero-rays{background:radial-gradient(circle,rgba(21,128,61,.17) 0%,rgba(21,128,61,0) 62%);}
         .dec-iqhero.landed .dec-iqhero-rays{animation:dec-iqrays 1.1s ease-out 1;}
         .dec-iqhero.landed{animation:dec-iqpop .5s cubic-bezier(.34,1.56,.64,1) 1;}
-        .dec-iqhero-in{position:relative;display:flex;align-items:center;justify-content:center;gap:16px;}
+        .dec-iqhero-in{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:18px;}
+        /* The footnote row is the MOBILE presentation of the same three figures
+           (see .dec-iqhero-stats); desktop hides it. */
+        .dec-iqhero-sub{display:none;}
         /* Brain meter: empty art as the base, the filled art clipped to the
            slate fraction and anchored to the bottom, so it fills upward. */
         .dec-brain{position:relative;display:block;flex:0 0 auto;width:92px;height:83px;}
@@ -921,7 +963,21 @@ export default function DailyEndCard({
            meter at a glance (verified on the live styles, 2026-07-31). */
         .dec-brain-base{opacity:1;filter:contrast(1.5) brightness(.88);}
         .dec-brain-fill{position:absolute;left:0;bottom:0;width:92px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
+        .dec-iqhero-lead{display:flex;align-items:center;gap:16px;flex:0 0 auto;min-width:0;}
         .dec-iqhero-txt{display:flex;flex-direction:column;align-items:flex-start;min-width:0;}
+        /* Desktop: gain anchors the left, a hairline, then the three figures. */
+        .dec-iqhero-rule{flex:0 0 auto;width:1px;align-self:stretch;margin:2px 0;background:rgba(61,99,168,.20);}
+        .dec-iqhero.full .dec-iqhero-rule{background:rgba(15,110,86,.20);}
+        .dec-iqhero-stats{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;min-width:0;}
+        .dec-iqhero-stats:empty{display:none;}
+        .dec-iqhero-stats .st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;}
+        .dec-iqhero-stats .k{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#5d7cae;white-space:nowrap;}
+        .dec-iqhero.full .dec-iqhero-stats .k{color:#3d6b58;}
+        .dec-iqhero-stats .v{font-size:27px;font-weight:800;letter-spacing:-.02em;line-height:1.05;color:#1d4ed8;font-variant-numeric:tabular-nums;}
+        .dec-iqhero.full .dec-iqhero-stats .v{color:#0f6e56;}
+        .dec-iqhero-stats .m{font-size:11px;font-weight:700;color:#4d6a97;}
+        .dec-iqhero.full .dec-iqhero-stats .m{color:#3d6b58;}
+        .dec-iqhero-stats .prov{font-weight:700;color:${FADED};}
         .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3d63a8;}
         .dec-iqhero.full .dec-iqhero-lbl{color:#0f6e56;}
         .dec-iqhero-gain{display:block;font-size:58px;font-weight:800;letter-spacing:-.03em;line-height:1;color:${BLUE};margin-top:1px;font-variant-numeric:tabular-nums;}
@@ -965,17 +1021,8 @@ export default function DailyEndCard({
         .dec-slip.neutral:hover{background:#eef0f4;}
         .dec-slip .clink{font:inherit;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
         .dec-slip .chev{margin-left:auto;display:inline-flex;color:${SLATE};}
-        .dec-slip-archive{display:flex;flex-direction:column;align-items:stretch;gap:7px;}
         .dec-slip-right{margin-left:auto;display:inline-flex;align-items:center;gap:9px;flex:none;}
-        .dec-slip-archive .chev{margin-left:0;}
         .dec-slip-pct{font-weight:800;color:${INK};white-space:nowrap;}
-        /* Archive bar: the label row, then a completion bar spanning the
-           button. The bar is aria-hidden because the row already states the same
-           value in words ("8/13 played · 62%"). */
-        .dec-arc-row{display:flex;align-items:center;gap:8px;width:100%;min-width:0;}
-        .dec-arc-lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dec-arc-track{display:block;width:100%;height:5px;border-radius:999px;background:#e2e6ee;overflow:hidden;}
-        .dec-arc-fill{display:block;height:100%;border-radius:999px;background:${BLUE};transition:width .3s ease;}
 
         .dec-cal{border:1px solid ${BORD};border-radius:12px;padding:12px 13px;margin:-2px 0 12px;background:#fff;}
         .dec-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
@@ -1076,7 +1123,18 @@ export default function DailyEndCard({
           .dec-tile-of{font-size:10.5px;}
           .dec-tile-mx{top:6px;right:5px;width:17px;height:17px;border-radius:5px;}
           .dec-iqhero{padding:13px 12px 11px;}
-          .dec-iqhero-in{gap:11px;}
+          /* Mobile keeps the hero exactly as it was: centred brain + gain, and
+             the three figures as the footnote row under a hairline. The
+             desktop-only left-anchored layout is switched off here. */
+          .dec-iqhero-in{gap:11px;justify-content:center;}
+          .dec-iqhero-lead{gap:11px;}
+          .dec-iqhero-rule,.dec-iqhero-stats{display:none;}
+          .dec-iqhero-sub{display:flex;}
+          /* The archive tile rides the same tighter tile metrics as its
+             neighbours, with a smaller ring. */
+          .dec-tile-ring{height:34px;}
+          .dec-arcring,.dec-arcring svg{width:34px;height:34px;}
+          .dec-arcring .num{font-size:10.5px;}
           .dec-brain,.dec-brain img,.dec-brain-fill{width:66px;}
           .dec-brain,.dec-brain img{height:59px;}
           .dec-iqhero-gain{font-size:42px;}
@@ -1147,6 +1205,7 @@ export default function DailyEndCard({
       >
         <span className="dec-iqhero-rays" aria-hidden="true" />
         <span className="dec-iqhero-in">
+          <span className="dec-iqhero-lead">
           <span className="dec-brain" aria-hidden="true">
             <img className="dec-brain-base" src={BRAIN_EMPTY} alt="" width={640} height={576} />
             <span className="dec-brain-fill" style={{ height: `${brainOn ? Math.round(slateFrac * 100) : 0}%` }}>
@@ -1163,6 +1222,24 @@ export default function DailyEndCard({
             <span className="dec-iqhero-slate">
               {doneCount} of {total} puzzles today{slateFull ? ' \u00b7 slate complete' : ''}
             </span>
+          </span>
+          </span>
+          {/* Desktop only: the three figures that were a 12.5px footnote row
+              become real numbers beside the gain. The mobile footnote below is
+              the SAME data in the layout that already worked on a phone, and the
+              two are swapped by display:none, so only one is ever in the a11y
+              tree. */}
+          <span className="dec-iqhero-rule" aria-hidden="true" />
+          <span className="dec-iqhero-stats">
+            {showIqToday ? <span className="st"><span className="k">Today</span><span className="v">+{iq.todayGained.toLocaleString()}</span></span> : null}
+            {iq && typeof iq.xp === 'number' ? <span className="st"><span className="k">Total</span><span className="v">{iq.xp.toLocaleString()}</span></span> : null}
+            {iq && iq.rank ? (
+              <span className="st">
+                <span className="k">IQ rank</span>
+                <span className="v">#{iq.rank.toLocaleString()}</span>
+                <span className="m">of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span>
+              </span>
+            ) : null}
           </span>
         </span>
         <span className="dec-iqhero-sub">
@@ -1181,14 +1258,14 @@ export default function DailyEndCard({
       <div className="dec-tiles" style={ranksLoading ? { display: 'none' } : undefined}>
         {renderTile('today', 'Today', gameTodayRank, gameTodayField, false, provisional)}
         {renderTile('alltime', 'All Time', allTime ? allTime.myRank : null, allTime ? (allTime.plays ?? allTime.field) : null, !(allTime && allTime.myRank != null), !!(allTime && allTime.provisional))}
-        {renderTile('combined', 'All Games', combinedRank, combinedField, false, provisional)}
+        {drops && drops.length ? renderArchiveTile() : null}
       </div>
+      {calOpen && drops && drops.length ? calendarEl : null}
       {openTile ? (() => {
         const rows = tileBoard(openTile);
         const ti = openTile === 'iq' ? 'Global IQ Points ranking'
           : openTile === 'today' ? `${selfName} · today's puzzle`
-          : openTile === 'alltime' ? `${selfName} · all time`
-          : "All of today’s games · combined";
+          : `${selfName} · all time`;
         return (
           <div className="dec-expand">
             <div className="dec-expand-hd">
@@ -1220,30 +1297,6 @@ export default function DailyEndCard({
             : <>Your IQ Points and ranks are unclaimed &middot; </>}
           <button type="button" className="clink" onClick={goRegister}>select a username to keep them</button>
         </div>
-      ) : null}
-
-      {/* ---- 4. archive bar (desktop and mobile alike) ---- */}
-      {drops && drops.length ? (
-        <>
-          <button type="button" className="dec-slip neutral dec-slip-archive" onClick={() => setCalOpen((v) => !v)} aria-expanded={calOpen}>
-            <span className="dec-arc-row">
-              <CalendarDays size={15} strokeWidth={2} style={{ flex: 'none' }} />
-              <span className="dec-arc-lbl">See the full {selfName} archive</span>
-              <span className="dec-slip-right">
-                {archivePct != null ? <span className="dec-slip-pct">{playedCount}/{totalDrops} &middot; {archivePct}%</span> : null}
-                <span className="chev">{calOpen ? <ChevronLeft size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} /> : <ChevronRight size={15} strokeWidth={2.4} style={{ transform: 'rotate(90deg)' }} />}</span>
-              </span>
-            </span>
-            {archivePct != null ? (
-              <span className="dec-arc-track" aria-hidden="true">
-                {/* A 0% archive still shows a sliver so the track reads as a
-                    progress bar rather than an empty rule. */}
-                <span className="dec-arc-fill" style={{ width: `${Math.max(2, archivePct)}%` }} />
-              </span>
-            ) : null}
-          </button>
-          {calOpen ? calendarEl : null}
-        </>
       ) : null}
 
       {/* ---- 5. up next + easiest leaderboard ---- */}
