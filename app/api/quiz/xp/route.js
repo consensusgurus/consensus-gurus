@@ -19,7 +19,9 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-reva
 // earned in the last 7 days (null = the player's first game is newer than the
 // cutoff, shown as NEW). sort=xp30d re-ranks by XP earned in the last 30
 // days instead of all-time (the Top SoT Player tile on /quizzes), and every
-// row carries xp30d either way.
+// row carries xp30d either way. sort=xpToday re-ranks by IQ Points earned so
+// far in the current EASTERN day (the "Today's Top IQ Gainers" face of the
+// Daily Puzzle Leaderboard); every row carries xpToday either way.
 const TOP_N = 12;
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -41,6 +43,13 @@ export async function GET(request) {
         .slice()
         .sort((a, b) => (b.xp30d || 0) - (a.xp30d || 0) || b.xp - a.xp || (a.name || '').localeCompare(b.name || ''));
     }
+    // Today's board. Same shape as the 30-day one: ties fall back to the wider
+    // windows so the many players sitting at 0 for today keep a stable order.
+    if (sort === 'xpToday') {
+      ranked = ranked
+        .slice()
+        .sort((a, b) => (b.xpToday || 0) - (a.xpToday || 0) || (b.xp30d || 0) - (a.xp30d || 0) || b.xp - a.xp || (a.name || '').localeCompare(b.name || ''));
+    }
     const out = ranked.slice(0, full ? 2000 : TOP_N).map((p, i) => ({
       rank: i + 1,
       name: p.name,
@@ -48,6 +57,7 @@ export async function GET(request) {
       userKey: p.key,
       xp: p.xp,
       xp30d: p.xp30d == null ? 0 : p.xp30d,
+      xpToday: p.xpToday == null ? 0 : p.xpToday,
       level: p.level,
       correct: p.correct,
       completed: p.completed,

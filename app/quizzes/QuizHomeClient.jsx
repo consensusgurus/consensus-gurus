@@ -498,6 +498,8 @@ export default function QuizHomeClient() {
   const [xp30, setXp30] = useState([]); // 30-day IQ Points [{ name, value }]
   const [xpAll, setXpAll] = useState([]); // all-time IQ Points [{ name, value }]
   const [xpFlip, setXpFlip] = useState(0); // Top SoT Player flips 30d (even) <-> all-time (odd), like the old tile
+  const [xpToday, setXpToday] = useState([]); // IQ Points earned so far today, Eastern day [{ name, value }]
+  const [dailyFlip, setDailyFlip] = useState(0); // Daily Puzzle board flips standings (even) <-> today's IQ gainers (odd)
   const [creditOpen, setCreditOpen] = useState(false); // "share a link to get credit" modal
   const [creditCopied, setCreditCopied] = useState(false);
   useEffect(() => {
@@ -507,9 +509,17 @@ export default function QuizHomeClient() {
     fetch('/api/quiz/referrals' + (qs.toString() ? `?${qs.toString()}` : '')).then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d) setRefData(d); }).catch(() => {});
     fetch('/api/quiz/xp?sort=xp30d').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXp30(d.players.filter((p) => (p.xp30d || 0) > 0).slice(0, 10).map((p) => ({ name: p.name, value: p.xp30d }))); }).catch(() => {});
     fetch('/api/quiz/xp').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXpAll(d.players.filter((p) => (p.xp || 0) > 0).slice(0, 10).map((p) => ({ name: p.name, value: p.xp }))); }).catch(() => {});
+    fetch('/api/quiz/xp?sort=xpToday').then((r) => (r.ok ? r.json() : null)).then((d) => { if (alive && d && Array.isArray(d.players)) setXpToday(d.players.filter((p) => (p.xpToday || 0) > 0).slice(0, 10).map((p) => ({ name: p.name, value: p.xpToday }))); }).catch(() => {});
     return () => { alive = false; };
   }, []);
   useEffect(() => { const iv = setInterval(() => setXpFlip((v) => v + 1), 8000); return () => clearInterval(iv); }, []);
+  // Same 8s cadence as the player board, offset by 4s so the two rail sections
+  // never turn over on the same beat.
+  useEffect(() => {
+    let iv = null;
+    const t = setTimeout(() => { setDailyFlip((v) => v + 1); iv = setInterval(() => setDailyFlip((v) => v + 1), 8000); }, 4000);
+    return () => { clearTimeout(t); if (iv) clearInterval(iv); };
+  }, []);
   const [mobileBoard, setMobileBoard] = useState(null); // mobile-only: null | 'lb' | 'live' (which board panel is shown)
   // Daily puzzles row: Crux is pinned top-right on mobile; the top-LEFT slot
   // cycles through the other dailies on each page load (localStorage counter,
@@ -2123,31 +2133,48 @@ export default function QuizHomeClient() {
                 </div>
               );
             })()}
-            {/* 2. Daily Puzzle Leaderboard */}
+            {/* 2. Daily Puzzle Leaderboard — flips to today's top IQ gainers */}
             {dailyBoard && Array.isArray(dailyBoard.overall) && dailyBoard.overall.length ? (() => {
               const ov = dailyBoard.overall.slice(0, 10);
               const mk = dailyBoard.me ? dailyBoard.me.userKey : null;
               const gc = dailyBoard.gameCount || 30;
-              const one = ov[0];
-              const nm = (one && one.username) || '';
+              const num = (n) => (n || 0).toLocaleString();
+              // The second face only exists once somebody has banked IQ today,
+              // so an empty early-morning board never flips to a blank panel.
+              const canFlip = xpToday.length > 0;
+              const iqFace = canFlip && dailyFlip % 2 === 1;
+              const one = iqFace ? xpToday[0] : ov[0];
+              const nm = (iqFace ? (one && one.name) : (one && one.username)) || '';
               return (
                 <div className="dhx-lb daily">
                   <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag"><Crown size={13} style={{ verticalAlign: -1 }} /> DAILY PUZZLE LEADERBOARD</span>
+                    <span className="dhx-lb-tag">
+                      {iqFace ? <Brain size={13} style={{ verticalAlign: -1 }} /> : <Crown size={13} style={{ verticalAlign: -1 }} />}
+                      {iqFace ? "TODAY'S TOP IQ GAINERS" : 'DAILY PUZZLE LEADERBOARD'}
+                      {canFlip ? <span className="dhx-lb-dots"><i className={iqFace ? '' : 'on'} /><i className={iqFace ? 'on' : ''} /></span> : null}
+                    </span>
                     <div className="dhx-lb-hero">
                       {nm
                         ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
                         : <span className="dhx-lb-name" style={{ fontSize: 30 }}>Player</span>}
-                      <span className="dhx-lb-stat"><b>{one ? one.gamesPlayed : 0}<em>/{gc}</em></b><i>PUZZLES TODAY</i></span>
+                      {iqFace
+                        ? <span className="dhx-lb-stat"><b>{one ? num(one.value) : '0'}</b><i>IQ &middot; TODAY</i></span>
+                        : <span className="dhx-lb-stat"><b>{one ? one.gamesPlayed : 0}<em>/{gc}</em></b><i>PUZZLES TODAY</i></span>}
                     </div>
                   </div>
                   <div className="dhx-lb-body">
                     <div className="dhx-lb-grid">
-                      {ov.slice(1, 10).map((r) => (
-                        <Link key={r.userKey} href={`/player/${encodeURIComponent(r.username || '')}`} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></Link>
-                      ))}
+                      {iqFace
+                        ? xpToday.slice(1, 10).map((r, i) => (
+                          <Link key={`iq${i}`} href={`/player/${encodeURIComponent(r.name || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b><span className="sc">{num(r.value)}</span></Link>
+                        ))
+                        : ov.slice(1, 10).map((r) => (
+                          <Link key={r.userKey} href={`/player/${encodeURIComponent(r.username || '')}`} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></Link>
+                        ))}
                     </div>
-                    <Link href="/quizzes/hub?tab=daily" className="dhx-lb-more">Full standings &amp; game boards &rarr;</Link>
+                    {iqFace
+                      ? <Link href="/quizzes/hub?tab=player" className="dhx-lb-more">Full IQ leaderboard &rarr;</Link>
+                      : <Link href="/quizzes/hub?tab=daily" className="dhx-lb-more">Full standings &amp; game boards &rarr;</Link>}
                   </div>
                 </div>
               );
