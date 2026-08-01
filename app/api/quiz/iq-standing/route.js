@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { computeXp, rankPlayers } from '@/lib/quiz-xp';
-import { computeTrophies, earnedTrophyIds } from '@/lib/quiz-trophies';
+import { rankPlayers } from '@/lib/quiz-xp';
+import { earnedTrophyIds } from '@/lib/quiz-trophies';
+import { computeXpCached, computeTrophiesCached } from '@/lib/quiz-derived-cache';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -55,7 +56,9 @@ export async function GET(request) {
     if (error) { console.error('iq-standing error', error); return NextResponse.json({ found: false }); }
     // recentN covers a full day's daily slate with room to spare, so "banked
     // today" is a complete sum rather than a truncated one.
-    const { players } = computeXp(data || [], { recentN: 200 });
+    // Memoized: this derivation is identical for every player finishing a game
+    // against the same rows, and it was the bulk of this route's 757ms.
+    const { players } = computeXpCached(data || [], { recentN: 200 });
     const me = players.get(myKey);
     // Brand-new player whose very first row has not surfaced yet: report a real
     // zeroed standing rather than found:false. found:false made the card drop
@@ -103,7 +106,7 @@ export async function GET(request) {
 
     // Earned trophy ids (duels excluded) so the daily end card can pop the
     // unlock toast the moment a game crosses a threshold.
-    const trophyIds = earnedTrophyIds(computeTrophies(data || [], players), myKey);
+    const trophyIds = earnedTrophyIds(computeTrophiesCached(data || [], players), myKey);
 
     const recent = Array.isArray(me.recent) ? me.recent : [];
     const today = etDate(Date.now());

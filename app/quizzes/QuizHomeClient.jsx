@@ -822,6 +822,11 @@ export default function QuizHomeClient() {
     const params = new URLSearchParams();
     if (anonId) params.set('anonId', anonId);
     if (email) params.set('email', email);
+    // light=1: the player bar reads ranks / activity / byCategory only, never
+    // `recent` or `trophies`, and skipping those turns this from a full-corpus
+    // derivation into a shared memo lookup. It was the slowest call on the
+    // homepage by a distance (1,645ms measured).
+    params.set('light', '1');
     fetch(`/api/quiz/me?${params.toString()}`).then((r) => r.json()).then((d) => {
       if (d) setMe(d);
     }).catch(() => {});
