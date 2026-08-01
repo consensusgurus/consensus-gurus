@@ -23,11 +23,14 @@
 //      board) — big centered numerals with the field size spelled out, each
 //      expanding in place to that board's top 10. The internal view keys stay
 //      'today' / 'alltime' / 'combined' (owner redesign 2026-07-31).
-//   3. share / challenge bar — a full-width bar under the tiles reading "Share
+//   3. guest-only claim banner (unregistered players only) — sits directly
+//      under the rank tiles, loudly (pulsing ring + sweeping sheen + blinking
+//      CTA) telling a guest their points and ranks are unclaimed. Moved above
+//      the share bar 2026-08-01 (owner);
+//   4. share / challenge bar — a full-width bar under the claim banner reading "Share
 //      Result or Challenge a Friend for Site Credit", which fires the caller's
 //      share handler and so opens the shared ShareCreditPop (ref-stamped link
 //      for a registered sharer, sign-up view for a guest);
-//   4. guest-only claim slip (ranks unclaimed until a username is chosen);
 //      the archive control is the third rank tile, expanding to a month
 //      calendar of this game's past drops;
 //   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
@@ -972,6 +975,19 @@ export default function DailyEndCard({
         .dec-sharebar .t{font-size:14px;font-weight:800;letter-spacing:-.01em;}
         .dec-sharebar .s{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.66);}
         .dec-sharebar .cv{flex-shrink:0;opacity:.6;}
+        /* Guest claim banner: the loudest element on the card by design. */
+        .dec-claim{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:${NAVY};background:linear-gradient(180deg,#f3f7ff,#e4edff);border:2px solid ${BLUE};border-radius:13px;padding:11px 13px;margin-bottom:10px;cursor:pointer;animation:dec-claimpulse 1.8s ease-in-out infinite;}
+        .dec-claim:hover{filter:brightness(1.03);}
+        .dec-claim .ic{width:32px;height:32px;border-radius:9px;background:${BLUE};color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;}
+        .dec-claim .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;position:relative;z-index:1;}
+        .dec-claim .t{font-size:13.5px;font-weight:800;letter-spacing:-.01em;}
+        .dec-claim .s{font-size:11.5px;font-weight:600;color:${SLATE};}
+        .dec-claim .cta{flex-shrink:0;position:relative;z-index:1;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#fff;background:${BLUE};border-radius:999px;padding:7px 13px;animation:dec-claimblink 1.8s ease-in-out infinite;}
+        .dec-claim::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.7) 50%,transparent 68%);transform:translateX(-100%);animation:dec-claimsweep 2.8s ease-in-out infinite;pointer-events:none;}
+        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.36);}55%{box-shadow:0 0 0 7px rgba(37,99,235,0);}}
+        @keyframes dec-claimblink{0%,100%{opacity:1;}50%{opacity:.52;}}
+        @keyframes dec-claimsweep{0%{transform:translateX(-100%);}55%,100%{transform:translateX(100%);}}
+        @media(prefers-reduced-motion:reduce){.dec-claim,.dec-claim .cta{animation:none;}.dec-claim::after{display:none;}}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
@@ -1251,6 +1267,10 @@ export default function DailyEndCard({
           .dec-sharebar{gap:11px;padding:11px 12px;}
           .dec-sharebar .t{font-size:13px;}
           .dec-sharebar .s{font-size:11px;}
+          .dec-claim{gap:10px;padding:10px 11px;}
+          .dec-claim .t{font-size:12.5px;}
+          .dec-claim .s{font-size:11px;}
+          .dec-claim .cta{font-size:10.5px;padding:6px 10px;letter-spacing:.02em;}
           /* Mobile: the three rank tiles stay side by side, tighter. */
           .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
           .dec-tile{padding:10px 6px 9px;border-radius:12px;}
@@ -1430,8 +1450,30 @@ export default function DailyEndCard({
           </div>
         );
       })() : null}
-      {/* ---- 3. share / challenge bar ---- */}
-      {/* Sits directly under the three rank tiles (owner 2026-08-01) as a
+      {/* ---- 3. guest claim banner ---- */}
+      {/* Sits DIRECTLY under the rank tiles (owner 2026-08-01), not below the
+          share bar: an unregistered player reads their ranks and immediately
+          learns those ranks are unclaimed. It is deliberately loud (pulsing
+          ring, sweeping sheen, blinking CTA pill) because claiming a name is
+          the single highest-value action a guest can take here. Motion is
+          dropped under prefers-reduced-motion. */}
+      {!hasEmail ? (
+        <button type="button" className="dec-claim" onClick={goRegister}>
+          <span className="ic"><Trophy size={17} strokeWidth={2.3} /></span>
+          <span className="tx">
+            <span className="t">
+              {iq && typeof iq.xp === 'number' && iq.xp > 0
+                ? <>Your {iq.xp.toLocaleString()} IQ Points are unclaimed</>
+                : <>Your IQ Points and ranks are unclaimed</>}
+            </span>
+            <span className="s">Pick a username to keep them and hold your place on these boards.</span>
+          </span>
+          <span className="cta">Claim name</span>
+        </button>
+      ) : null}
+
+      {/* ---- 4. share / challenge bar ---- */}
+      {/* Sits under the rank tiles (and the guest claim banner) as a
           full-width feature bar rather than a chip in the header. It calls the
           caller's own share handler, which is what opens the shared
           ShareCreditPop (result + ref-stamped link, or the sign-up view for a
@@ -1444,19 +1486,6 @@ export default function DailyEndCard({
         </span>
         <ChevronRight size={17} strokeWidth={2.4} className="cv" />
       </button>
-
-      {/* ---- 4. guest claim slip ---- */}
-      {/* An unregistered player sees their real IQ figures above (they are scored
-          against this browser's anon id), so the slip asks them to keep what they
-          can already see rather than to unlock it. */}
-      {!hasEmail ? (
-        <div className="dec-slip info">
-          {iq && typeof iq.xp === 'number' && iq.xp > 0
-            ? <>Your {iq.xp.toLocaleString()} IQ Points are unclaimed &middot; </>
-            : <>Your IQ Points and ranks are unclaimed &middot; </>}
-          <button type="button" className="clink" onClick={goRegister}>select a username to keep them</button>
-        </div>
-      ) : null}
 
       {/* ---- 5. up next + easiest leaderboard ---- */}
       {/* Both cards are completion-derived, so each shows a shimmer skeleton until
