@@ -600,6 +600,9 @@ export default function DailyTilePanel({
           .dtp-nm{font-size:19px;}
           .dtp-grid{grid-template-columns:1fr;gap:15px;}
           .dtp-col:nth-child(3){grid-column:auto;}
+          /* One prompt per row on a phone: two 168px columns would truncate the
+             answer labels, which are the whole point of the view. */
+          .dtp-cg{grid-template-columns:1fr;}
         }
       `}</style>
     </div>
