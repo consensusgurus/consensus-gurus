@@ -6,8 +6,8 @@
 // Outrank, Axiom, Hearsay). One component, used by all daily clients.
 //
 // Layout, top to bottom (owner retention rework 2026-08-01):
-//   1. header — one line: the finish mark + "Completed <Game>!" (loss:
-//      "Incomplete Today.") + the score node on the left, and the player's
+//   1. header — one line: the finish mark + "Completed!" (loss: "Incomplete.")
+//      + the score node on the left, and the player's
 //      identity chip (profile link, or the sign-up CTA for a guest) hard right,
 //      padded clear of the modal's close button. Then the answer. The share
 //      button is NOT here; it moved below the tiles;
@@ -1230,12 +1230,12 @@ export default function DailyEndCard({
              line. */
           .dec-toprow{gap:6px 8px;padding-right:28px;align-items:flex-start;flex-wrap:wrap;}
           .dec-titlerow{gap:4px 8px;flex:1 0 auto;max-width:100%;}
-          .dec-check{width:25px;height:25px;}
-          .dec-title{font-size:18px;}
+          .dec-check{width:26px;height:26px;}
+          .dec-title{font-size:20px;}
           .dec-detail{display:none;}
           .dec-detailm{display:block;}
           .dec-topid{flex:0 0 auto;margin-left:auto;}
-          .dec-topid .dec-idbox{font-size:11.5px;padding:4px 9px 4px 4px;gap:6px;max-width:112px;}
+          .dec-topid .dec-idbox{font-size:12px;padding:4px 10px 4px 4px;gap:6px;max-width:150px;}
           .dec-topid .dec-idbox .av{width:19px;height:19px;font-size:10px;}
           .dec-topid button.dec-idbox{padding:6px 11px;}
           .dec-idbox .lg{display:none;}
@@ -1299,7 +1299,7 @@ export default function DailyEndCard({
             <span className={`dec-check${won ? '' : ' loss'}`}>
               {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
             </span>
-            <span className="dec-title">{isCompleted ? <>Completed {selfName}!</> : <>Incomplete Today.</>}</span>
+            <span className="dec-title">{isCompleted ? <>Completed!</> : <>Incomplete.</>}</span>
             {score ? <span className="dec-detail">{score}</span> : null}
           </div>
           <span className="dec-topid">{idChip}</span>
