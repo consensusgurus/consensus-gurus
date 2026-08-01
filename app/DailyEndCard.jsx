@@ -5,28 +5,36 @@
 // Carve, Stet, Outwit, Tuck, Alibi, Cipher, Ping, Warmer, Jesters, Sworn,
 // Outrank, Axiom, Hearsay). One component, used by all daily clients.
 //
-// Layout, top to bottom (approved 2026-07 rework):
-//   1. header — the family chip + "Completed!" (loss: "Played") + a subline of
-//      "<Game> · <Family> · <score>", the answer, and a right-hand stack with the
-//      player's username (or a "Sign up" link for guests) and the "Share result
-//      (for credit)" button;
-//   2. IQ hero + rank tiles — a full-width green banner leads with the IQ gain
-//      this game paid (the card's headline number), with the day's running
-//      total, the player's total IQ, and their global IQ rank on one sub-line;
-//      it expands to their slot in the IQ ranking. Below it, three rank tiles —
+// Layout, top to bottom (owner retention rework 2026-08-01):
+//   1. header — the finish mark + "Completed <Game>!" (loss: "Not quite there
+//      today"), the score node and the answer. Nothing else: the identity chip
+//      and the share button both moved down;
+//   2. IQ hero + rank tiles — the hero now sits IMMEDIATELY under the title, so
+//      the points earned are the first thing a finisher reads. A full-width
+//      banner leads with the IQ gain this game paid (the card's headline
+//      number); on its right the player's identity chip (profile link, or the
+//      sign-up CTA for a guest) sits directly ABOVE the day's running total,
+//      their total IQ and their global IQ rank, so those figures are visibly
+//      theirs. The panel expands to their slot in the IQ ranking. Below it,
+//      three rank tiles —
 //      "Today" (today's drop of this game), "All Time" (this game's
 //      cumulative points across every drop), and "All Games" (the combined
 //      board) — big centered numerals with the field size spelled out, each
 //      expanding in place to that board's top 10. The internal view keys stay
 //      'today' / 'alltime' / 'combined' (owner redesign 2026-07-31).
-//   3. guest-only claim slip (ranks unclaimed until a username is chosen);
-//   4. archive bar — a full-width button under the tiles (desktop and mobile
-//      alike, owner 2026-07-30) showing "N/M played · P%" over a completion bar,
-//      expanding to a month calendar of this game's past drops. It replaced a
-//      desktop-only 5th "<Game> Archive" tile, which was a cramped duplicate of
-//      the same control;
+//   3. share / challenge bar — a full-width bar under the tiles reading "Share
+//      Result or Challenge a Friend for Site Credit", which fires the caller's
+//      share handler and so opens the shared ShareCreditPop (ref-stamped link
+//      for a registered sharer, sign-up view for a guest);
+//   4. guest-only claim slip (ranks unclaimed until a username is chosen);
+//      the archive control is the third rank tile, expanding to a month
+//      calendar of this game's past drops;
 //   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
-//      (the thinnest field, a podium is easiest there);
+//      (the thinnest field, a podium is easiest there). Both cards lead with the
+//      game's own icon in its brand accent, then its family, its one-liner and a
+//      full sentence describing the game (DAILY_GAMES `blurb`). Deliberately no
+//      play counts or field sizes: these cards sell the next game, not numbers
+//      (owner 2026-08-01);
 //   6. "More of today's games" — the still-to-play games grouped by family;
 //   7. a bottom actions row — Leaderboards, Try again (replays TODAY's drop via
 //      the caller's onReplay; restored 2026-07-31 after the rework dropped it),
@@ -140,47 +148,51 @@ const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'history', 'ge
 
 // ---- the daily slate (31 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
+// `tag` is the short one-liner used on the compact rows; `blurb` is the fuller
+// "what you actually do" sentence the Up next / Easiest cards show, so a player
+// who has never opened that game knows what they are walking into (owner
+// rework 2026-08-01: those two cards sell the game, not the numbers).
 export const DAILY_GAMES = [
-  { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      href: '/crux' },
-  { key: 'emcee',  cat: 'word',      name: 'Emcee',  tag: 'The daily mini crossword',  href: '/emcee' },
-  { key: 'shards', cat: 'word',      name: 'Shards', tag: 'Reassemble the crossword',   href: '/shards' },
-  { key: 'links',  cat: 'word',      name: 'Links',  tag: 'Four hidden threads',       href: '/links' },
-  { key: 'garble', cat: 'word',      name: 'Garble', tag: 'Untangle five words',       href: '/garble' },
-  { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Spot the error, fix the copy',        href: '/stet' },
-  { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Same letters, highest score wins',  href: '/tuck' },
-  { key: 'dating', cat: 'history',   name: 'Dating', tag: 'Put five moments in order', href: '/dating' },
-  { key: 'extra',  cat: 'history',   name: 'Extra',  tag: 'Name the redacted front page', href: '/extra' },
-  { key: 'span',   cat: 'geography', name: 'Span',   tag: 'Cross the map, border by border', href: '/span' },
-  { key: 'ping',   cat: 'geography', name: 'Ping',   tag: 'Find the secret city',        href: '/ping' },
-  { key: 'tally',  cat: 'numbers',   name: 'Tally',  tag: 'Balance every row and column', href: '/tally' },
-  { key: 'suds',   cat: 'numbers',   name: 'Suds',   tag: 'The daily 9x9 sudoku',      href: '/suds' },
-  { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   href: '/carve' },
-  { key: 'outwit', cat: 'crowd',     name: 'Outwit', tag: 'Beat the crowd',            href: '/outwit' },
-  { key: 'outrank', cat: 'crowd',    name: 'Outrank', tag: "Call the crowd's order",   href: '/outrank' },
-  { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     href: '/cipher' },
-  { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', href: '/alibi' },
-  { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             href: '/jester' },
-  { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             href: '/sworn' },
-  { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           href: '/warmer' },
-  { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', href: '/listed' },
-  { key: 'mate',   cat: 'logic',     name: 'Mate',   tag: 'White to play and mate',      href: '/mate' },
-  { key: 'four',   cat: 'logic',     name: 'Four',   tag: 'One column wins',             href: '/four' },
-  { key: 'park',   cat: 'logic',     name: 'Parker', tag: 'Get the red one out',         href: '/parker' },
-  { key: 'check',  cat: 'logic',     name: 'Check',  tag: 'Give a piece, take them all', href: '/check' },
-  { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       href: '/rung' },
-  { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    href: '/crunch' },
-  { key: 'taire',  cat: 'logic',     name: 'Taire',  tag: 'The daily solitaire',        href: '/taire' },
-  { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          href: '/fib' },
-  { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  href: '/streak' },
-  { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            href: '/feud' },
-  { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       href: '/axiom' },
-  { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", href: '/hearsay' },
-  { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          href: '/venn' },
-  { key: 'stands', cat: 'logic',     name: 'Stands', tag: 'Rebuild the results',       href: '/stands' },
-  { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Name every winner',        href: '/bracket' },
-  { key: 'lode',    cat: 'word',     name: 'Lode',    tag: 'Seven letters, rare words pay',     href: '/lode' },
-  { key: 'etch',    cat: 'logic',    name: 'Etch',    tag: 'A picture in the numbers',   href: '/etch' },
-  { key: 'hedge',   cat: 'numbers',  name: 'Hedge',   tag: 'Draw one closed loop',       href: '/hedge' },
+  { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      blurb: 'A full crossword grid with no clues at all. Solve it from the crossings alone.', href: '/crux' },
+  { key: 'emcee',  cat: 'word',      name: 'Emcee',  tag: 'The daily mini crossword',  blurb: 'A quick mini crossword with sharp clues, built to be finished in a couple of minutes.', href: '/emcee' },
+  { key: 'shards', cat: 'word',      name: 'Shards', tag: 'Reassemble the crossword',   blurb: 'A finished crossword cut into pieces. Slot every shard back where it belongs.', href: '/shards' },
+  { key: 'links',  cat: 'word',      name: 'Links',  tag: 'Four hidden threads',       blurb: 'Sixteen words hide four secret connections. Find all four groups before your mistakes run out.', href: '/links' },
+  { key: 'garble', cat: 'word',      name: 'Garble', tag: 'Untangle five words',       blurb: 'Five scrambled words against the clock. Unscramble each one before time runs out.', href: '/garble' },
+  { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Spot the error, fix the copy',        blurb: 'A short passage hides one slip of fact, spelling or grammar. Catch it, then correct it.', href: '/stet' },
+  { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Same letters, highest score wins',  blurb: 'Everyone gets the identical letters. Tuck them into the grid for the biggest score of the day.', href: '/tuck' },
+  { key: 'dating', cat: 'history',   name: 'Dating', tag: 'Put five moments in order', blurb: 'Five moments from history, no dates given. Put them on the timeline, earliest to latest.', href: '/dating' },
+  { key: 'extra',  cat: 'history',   name: 'Extra',  tag: 'Name the redacted front page', blurb: 'A real front page with the key words blacked out. Work out the story it broke.', href: '/extra' },
+  { key: 'span',   cat: 'geography', name: 'Span',   tag: 'Cross the map, border by border', blurb: 'Travel from one country to another over land, naming every border you cross on the way.', href: '/span' },
+  { key: 'ping',   cat: 'geography', name: 'Ping',   tag: 'Find the secret city',        blurb: 'Name any city and get the distance back. Triangulate your way to the hidden one.', href: '/ping' },
+  { key: 'tally',  cat: 'numbers',   name: 'Tally',  tag: 'Balance every row and column', blurb: 'Place the numbers so every row and column lands exactly on its target total.', href: '/tally' },
+  { key: 'suds',   cat: 'numbers',   name: 'Suds',   tag: 'The daily 9x9 sudoku',      blurb: 'A fresh, hand-checked 9x9 sudoku with one clean solving path from start to finish.', href: '/suds' },
+  { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   blurb: 'Slice the number grid into regions that every one of them adds up to the same total.', href: '/carve' },
+  { key: 'outwit', cat: 'crowd',     name: 'Outwit', tag: 'Beat the crowd',            blurb: 'Pick the answers today’s other players will not. The rarer your pick, the more it pays.', href: '/outwit' },
+  { key: 'outrank', cat: 'crowd',    name: 'Outrank', tag: "Call the crowd's order",   blurb: 'Predict how everyone else ranked the list today, not how you would rank it yourself.', href: '/outrank' },
+  { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     blurb: 'A sum written in letters instead of digits. Work out which digit each letter stands for.', href: '/cipher' },
+  { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', blurb: 'Statements, motives and one liar. Deduce who did it before your questions run out.', href: '/alibi' },
+  { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             blurb: 'Seat every jester at the table using only the clues about who sits beside whom.', href: '/jester' },
+  { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             blurb: 'Some witnesses always tell the truth and some never do. Work out which is which.', href: '/sworn' },
+  { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           blurb: 'Guess a word and get told how close in meaning it is. Close in on today’s secret word.', href: '/warmer' },
+  { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', blurb: 'Eight real things, one true order. Rank them by the figures behind them, best to worst.', href: '/listed' },
+  { key: 'mate',   cat: 'logic',     name: 'Mate',   tag: 'White to play and mate',      blurb: 'A real chess position with a forced mate hiding in it. Find the move that ends it.', href: '/mate' },
+  { key: 'four',   cat: 'logic',     name: 'Four',   tag: 'One column wins',             blurb: 'A Connect Four board where exactly one drop wins. Pick the column and play it out.', href: '/four' },
+  { key: 'park',   cat: 'logic',     name: 'Parker', tag: 'Get the red one out',         blurb: 'A jammed parking lot. Slide the other cars aside and drive the red one free in as few moves as you can.', href: '/parker' },
+  { key: 'check',  cat: 'logic',     name: 'Check',  tag: 'Give a piece, take them all', blurb: 'A checkers position where one sacrifice sets off a chain that clears the whole board.', href: '/check' },
+  { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
+  { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    blurb: 'Six numbers, four operations, one target. Hit it exactly or get as close as you can.', href: '/crunch' },
+  { key: 'taire',  cat: 'logic',     name: 'Taire',  tag: 'The daily solitaire',        blurb: 'A trimmed solitaire deal that always has a finish in it. Clear the board and beat par.', href: '/taire' },
+  { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          blurb: 'A logic grid where exactly one clue is false. Find the lie, then solve the rest.', href: '/fib' },
+  { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  blurb: 'Forty trivia questions, sudden death. One wrong answer ends the run for the day.', href: '/streak' },
+  { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            blurb: 'Name the answers real players gave most often. The most popular answers pay the most.', href: '/feud' },
+  { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       blurb: 'Test examples against a secret rule and name the rule before your guesses run out.', href: '/axiom' },
+  { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", blurb: 'Work out the answer purely from what each player admits they cannot yet tell.', href: '/hearsay' },
+  { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          blurb: 'Drop every item into the right slice of the overlapping circles, overlaps included.', href: '/venn' },
+  { key: 'stands', cat: 'logic',     name: 'Stands', tag: 'Rebuild the results',       blurb: 'Reconstruct a full league table from a handful of scattered results and clues.', href: '/stands' },
+  { key: 'bracket', cat: 'history',  name: 'Bracket', tag: 'Name every winner',        blurb: 'A real tournament bracket, empty. Fill in every winner round by round from memory.', href: '/bracket' },
+  { key: 'lode',    cat: 'word',     name: 'Lode',    tag: 'Seven letters, rare words pay',     blurb: 'Seven letters and unlimited words. The rarer the word you find, the bigger it scores.', href: '/lode' },
+  { key: 'etch',    cat: 'logic',    name: 'Etch',    tag: 'A picture in the numbers',   blurb: 'A nonogram: follow the row and column counts to uncover the picture hidden in the grid.', href: '/etch' },
+  { key: 'hedge',   cat: 'numbers',  name: 'Hedge',   tag: 'Draw one closed loop',       blurb: 'Draw a single unbroken loop that satisfies every number printed on the board.', href: '/hedge' },
 ];
 
 const AUTO_SECONDS = 30;
@@ -689,6 +701,31 @@ export default function DailyEndCard({
   const RING_C = 150.8; // 2*pi*24
   const ringOffset = autoRun ? (RING_C * (AUTO_SECONDS - secs)) / AUTO_SECONDS : 0;
 
+  // Identity chip, shown INSIDE the IQ hero directly above the three figures
+  // (owner 2026-08-01) so the ranks are visibly the viewer's own: a link to the
+  // public player profile once a username exists, otherwise the sign-up CTA.
+  const idChip = (hasEmail && username) ? (
+    <a className="dec-idbox" href={`/player/${encodeURIComponent(username)}`} aria-label={`Open ${username}'s player profile`}>
+      <span className="av" style={{ background: meta.accent }}>{String(username).slice(0, 1).toUpperCase()}</span>
+      <span className="nm">{username}</span>
+      <ChevronRight size={14} strokeWidth={2.4} style={{ flexShrink: 0, opacity: 0.7 }} />
+    </a>
+  ) : (
+    <button type="button" className="dec-idbox guest" onClick={goRegister}>
+      <UserPlus size={15} strokeWidth={2.2} /> Sign up to keep your rank
+    </button>
+  );
+
+  // The two suggestion cards lead with the game's own icon in its brand accent,
+  // then its family, its one-liner and the fuller blurb, so a player who has
+  // never opened that game knows what it is before tapping (owner 2026-08-01).
+  const nextMeta = nextTarget ? (GAME_META[nextTarget.key] || GAME_META.crux) : null;
+  const NextIcon = nextMeta ? (nextMeta.Fin || Puzzle) : Puzzle;
+  const nextCat = nextTarget ? (CAT_META[nextTarget.cat] || CAT_META.word) : null;
+  const grabMeta = grab ? (GAME_META[grab.key] || GAME_META.crux) : null;
+  const GrabIcon = grabMeta ? (grabMeta.Fin || Puzzle) : Puzzle;
+  const grabCat = grab ? (CAT_META[grab.cat] || CAT_META.word) : null;
+
   // Build the "more games" family blocks (still-to-play), then bin-pack them into
   // up to 3 columns (greedy: each family, largest first, into the shortest column)
   // so the grid fills evenly. The "Other quizzes" block was dropped from the popup.
@@ -891,7 +928,6 @@ export default function DailyEndCard({
         .dec-card::-webkit-scrollbar-thumb:hover{background:#aeb6c5;background-clip:padding-box;}
 
         .dec-head{margin-bottom:12px;}
-        .dec-idrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;}
         .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
         .dec-titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-bottom:5px;}
@@ -913,8 +949,17 @@ export default function DailyEndCard({
            it as clickable (owner 2026-07-31, replacing the Share-my-day slot). */
         a.dec-idbox{text-decoration:none;cursor:pointer;transition:background .12s ease;}
         a.dec-idbox:hover{background:#eef0f4;}
-        .dec-share{font-family:${SANS};font-weight:800;font-size:12.5px;color:#fff;background:${INK};border:1px solid ${INK};border-radius:10px;padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-width:0;}
-        .dec-share:hover{filter:brightness(1.12);}
+        /* Share / challenge bar: a full-width feature under the rank tiles
+           (owner 2026-08-01), sized to be the second thing a finisher reaches
+           for after their score. Opens the shared ShareCreditPop through the
+           caller's own share handler. */
+        .dec-sharebar{display:flex;align-items:center;gap:13px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:#fff;background:${INK};border:1px solid ${INK};border-radius:13px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:filter .12s ease;}
+        .dec-sharebar:hover{filter:brightness(1.16);}
+        .dec-sharebar .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-sharebar .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+        .dec-sharebar .t{font-size:14px;font-weight:800;letter-spacing:-.01em;}
+        .dec-sharebar .s{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.66);}
+        .dec-sharebar .cv{flex-shrink:0;opacity:.6;}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
         .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
@@ -954,7 +999,7 @@ export default function DailyEndCard({
            progress through today's slate and turns green once the slate is done,
            the gain counts up from zero, and the panel pulses as it lands. Expands
            to the player's slot in the IQ ranking exactly like a tile. */
-        .dec-iqhero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid #cfe0f7;background:linear-gradient(180deg,#f4f8ff 0%,#eaf2fe 100%);border-radius:16px;padding:15px 16px 13px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
+        .dec-iqhero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;border:1px solid #cfe0f7;background:linear-gradient(180deg,#f4f8ff 0%,#eaf2fe 100%);border-radius:16px;padding:15px 16px 13px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
         .dec-iqhero.full{border-color:#cdeeda;background:linear-gradient(180deg,#f2fcf6 0%,#e6f7ee 100%);}
         .dec-iqhero:hover{border-color:#9dbdea;}
         .dec-iqhero.full:hover{border-color:#9fd3ba;}
@@ -965,7 +1010,19 @@ export default function DailyEndCard({
         .dec-iqhero.full .dec-iqhero-rays{background:radial-gradient(circle,rgba(21,128,61,.17) 0%,rgba(21,128,61,0) 62%);}
         .dec-iqhero.landed .dec-iqhero-rays{animation:dec-iqrays 1.1s ease-out 1;}
         .dec-iqhero.landed{animation:dec-iqpop .5s cubic-bezier(.34,1.56,.64,1) 1;}
-        .dec-iqhero-in{position:relative;display:flex;align-items:center;justify-content:flex-start;gap:18px;}
+        /* Transparent expand layer under the content: the panel toggles the IQ
+           ranking, while the identity chip inside it stays independently
+           clickable (content is pointer-transparent except that chip). */
+        .dec-iqhero-hit{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;border:none;background:transparent;cursor:pointer;}
+        .dec-iqhero-in{position:relative;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:flex-start;gap:18px;}
+        .dec-iqhero-in a,.dec-iqhero-in button{pointer-events:auto;}
+        .dec-iqhero-right{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;gap:9px;min-width:0;}
+        .dec-iqhero-id{display:flex;justify-content:center;max-width:100%;}
+        .dec-iqhero-id .dec-idbox{background:rgba(255,255,255,.72);border-color:#cfe0f7;}
+        .dec-iqhero.full .dec-iqhero-id .dec-idbox{border-color:#cdeeda;}
+        .dec-iqhero-id a.dec-idbox:hover{background:#fff;}
+        .dec-iqhero-id button.dec-idbox{background:${BLUE};border-color:${BLUE};color:#fff;padding:7px 14px;}
+        .dec-iqhero-id button.dec-idbox:hover{background:#1d4ed8;}
         /* Brain meter: empty art as the base, the filled art clipped to the
            slate fraction and anchored to the bottom, so it fills upward. */
         .dec-brain{position:relative;display:block;flex:0 0 auto;width:92px;height:83px;}
@@ -981,7 +1038,7 @@ export default function DailyEndCard({
         /* Desktop: gain anchors the left, a hairline, then the three figures. */
         .dec-iqhero-rule{flex:0 0 auto;width:1px;align-self:stretch;margin:2px 0;background:rgba(61,99,168,.20);}
         .dec-iqhero.full .dec-iqhero-rule{background:rgba(15,110,86,.20);}
-        .dec-iqhero-stats{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;min-width:0;}
+        .dec-iqhero-stats{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;min-width:0;}
         .dec-iqhero-stats:empty{display:none;}
         .dec-iqhero-stats .st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;}
         .dec-iqhero-stats .k{font-family:${MONO};font-size:9.5px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#5d7cae;white-space:nowrap;}
@@ -1067,7 +1124,7 @@ export default function DailyEndCard({
         .dec-sk{position:relative;overflow:hidden;background:#dfe6f1;border-radius:6px;}
         .dec-sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @keyframes dec-shim{100%{transform:translateX(100%);}}
-        .dec-sk-ring{width:50px;height:50px;border-radius:50%;flex-shrink:0;}
+        .dec-sk-ring{width:56px;height:56px;border-radius:50%;flex-shrink:0;}
         .dec-sk-line{height:11px;}
         .dec-sk-btn{height:34px;border-radius:10px;}
         .dec-fadein{animation:dec-fadein .32s ease both;}
@@ -1080,23 +1137,37 @@ export default function DailyEndCard({
         .dec-row.dec-pop .nm{white-space:normal;}
         .dec-row.dec-pop .nm span.t{white-space:normal;overflow:visible;text-overflow:clip;}
         .dec-row.dec-pop .play{align-self:center;}
-        .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:11px;min-width:0;}
+        /* The two suggestion cards (owner rework 2026-08-01): each leads with
+           the game's own icon in its brand accent, then family + one-liner, then
+           a full sentence describing the game. No live figures, by owner ruling:
+           the job of these cards is to sell the next game, not report numbers. */
+        .dec-nx{border:1px solid #d7e3f8;background:#eff4fd;border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:11px;min-width:0;}
         .dec-nx-top{display:flex;align-items:center;gap:12px;min-width:0;}
-        .dec-ring{position:relative;width:50px;height:50px;flex-shrink:0;}
-        .dec-ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:${INK};}
+        .dec-ring{position:relative;width:56px;height:56px;flex-shrink:0;}
+        .dec-ring svg{display:block;}
+        .dec-ring .ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
         .dec-eye{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
-        .dec-nx-name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:${INK};}
-        .dec-nx-tag{font-size:12px;color:${SLATE};margin-top:1px;}
+        .dec-nx-name{font-size:20px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;}
+        .dec-nx-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:${SLATE};margin-top:3px;min-width:0;}
+        .dec-nx-fam,.dec-ez-fam{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* The description line carries the card's height, so it grows and the two
+           cards stay level however long the copy is. */
+        .dec-blurb{flex:1 1 auto;font-size:12.5px;line-height:1.45;color:${SLATE};background:rgba(255,255,255,.66);border-radius:10px;padding:9px 11px;}
+        .dec-blurb.ez{color:#7a6114;background:rgba(255,255,255,.62);}
         .dec-nx-btns{display:flex;gap:7px;}
-        .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:12.5px;border-radius:10px;padding:9px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;border:1px solid ${BORD};background:#fff;color:${SLATE};}
+        .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:13px;border-radius:10px;padding:10px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;border:1px solid ${BORD};background:#fff;color:${SLATE};}
         .dec-nx-btns .b.primary{background:${BLUE};border-color:${BLUE};color:#fff;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
+        .dec-nx-auto{font-family:${MONO};font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#5d7cae;text-align:center;margin-top:-4px;}
 
-        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;justify-content:space-between;gap:11px;min-width:0;}
-        .dec-ez-top{display:flex;align-items:center;gap:11px;min-width:0;}
-        .dec-ez-name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:7px;}
-        .dec-ez-tag{font-size:12px;color:#8a6d1c;margin-top:1px;}
-        .dec-ez-btn{display:block;width:100%;box-sizing:border-box;text-align:center;font-family:${SANS};font-weight:800;font-size:12.5px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:10px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+        .dec-ez{border:1px solid #f0e3bb;background:#fdf6e4;border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:11px;min-width:0;}
+        .dec-ez-top{display:flex;align-items:center;gap:12px;min-width:0;}
+        .dec-ez-ico{position:relative;width:56px;height:56px;border-radius:14px;background:#fff;border:1px solid #f0e3bb;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-ez-ico .tr{position:absolute;right:-5px;bottom:-5px;width:21px;height:21px;border-radius:50%;background:${GOLD};color:#5c4a06;display:flex;align-items:center;justify-content:center;border:2px solid #fdf6e4;}
+        .dec-ez-name{font-size:20px;font-weight:800;letter-spacing:-.02em;color:${INK};line-height:1.15;}
+        .dec-ez-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#8a6d1c;margin-top:3px;min-width:0;}
+        .dec-ez-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;box-sizing:border-box;text-align:center;font-family:${SANS};font-weight:800;font-size:13px;color:#5c4a06;background:${GOLD};border:none;border-radius:10px;padding:11px 15px;cursor:pointer;text-decoration:none;white-space:nowrap;}
+        .dec-ez-btn:hover{filter:brightness(1.04);}
 
         .dec-morehd{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 12px;}
         .dec-more-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};}
@@ -1131,8 +1202,9 @@ export default function DailyEndCard({
           .dec-card{padding:18px 16px 14px;}
           .dec-titlerow{padding-right:40px;}
           .dec-title{font-size:22px;}
-          .dec-idrow{gap:8px;flex-direction:column;align-items:stretch;}
-          .dec-idrow > *{width:100%;justify-content:center;}
+          .dec-sharebar{gap:11px;padding:11px 12px;}
+          .dec-sharebar .t{font-size:13px;}
+          .dec-sharebar .s{font-size:11px;}
           /* Mobile: the three rank tiles stay side by side, tighter. */
           .dec-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
           .dec-tile{padding:10px 6px 9px;}
@@ -1145,9 +1217,13 @@ export default function DailyEndCard({
           /* Mobile keeps the hero exactly as it was: centred brain + gain, and
              the three figures as the footnote row under a hairline. The
              desktop-only left-anchored layout is switched off here. */
-          .dec-iqhero-in{gap:11px;justify-content:center;}
+          .dec-iqhero-in{gap:11px 13px;justify-content:center;flex-wrap:wrap;}
           .dec-iqhero-lead{gap:11px;}
           .dec-iqhero-rule,.dec-iqhero-stats{display:none;}
+          /* The identity chip stays on the phone (it is the profile / sign-up
+             entry point); only the desktop figures column collapses, and the
+             footnote row below carries those numbers instead. */
+          .dec-iqhero-right{flex:0 0 auto;width:auto;}
           .dec-iqhero-sub{display:flex;}
           /* The archive tile rides the same tighter tile metrics as its
              neighbours, with a smaller ring. */
@@ -1161,6 +1237,9 @@ export default function DailyEndCard({
           .dec-iqhero-sub{font-size:11.5px;gap:3px 12px;margin-top:8px;padding-top:7px;}
           .dec-iqhero-rays{width:300px;height:300px;margin:-150px 0 0 -150px;}
           .dec-duo{grid-template-columns:1fr;}
+          .dec-nx-name,.dec-ez-name{font-size:18px;}
+          .dec-blurb{font-size:12px;padding:8px 10px;}
+          .dec-ring,.dec-ring svg,.dec-ez-ico{width:50px;height:50px;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
           .dec-rows.one{grid-template-columns:1fr;}
@@ -1188,23 +1267,6 @@ export default function DailyEndCard({
             <span className="dec-answer-word">{answer}</span>
           </div>
         ) : null}
-        {/* share (left) + identity (right) on one line; both fill width on mobile */}
-        <div className="dec-idrow">
-          <button type="button" className="dec-share" onClick={onShare}>
-            <Share2 size={14} strokeWidth={2.2} /> {/copied/i.test(shareLabel || '') ? shareLabel : 'Share your result, get the credit'}
-          </button>
-          {hasEmail && username ? (
-            <a className="dec-idbox" href={`/player/${encodeURIComponent(username)}`} aria-label={`Open ${username}'s player profile`}>
-              <span className="av" style={{ background: meta.accent }}>{String(username).slice(0, 1).toUpperCase()}</span>
-              <span className="nm">{username}</span>
-              <ChevronRight size={14} strokeWidth={2.4} style={{ flexShrink: 0, opacity: 0.7 }} />
-            </a>
-          ) : (
-            <button type="button" className="dec-idbox guest" onClick={goRegister}>
-              <UserPlus size={15} strokeWidth={2.2} /> Sign up
-            </button>
-          )}
-        </div>
       </div>
 
       {/* ---- 2. IQ hero + rank tiles ---- */}
@@ -1215,13 +1277,20 @@ export default function DailyEndCard({
           whole panel expands to the player's slot in the global IQ ranking.
           Renders immediately (it has its own fetch), showing a placeholder until
           the standing resolves. */}
-      <button
-        type="button"
+      <div
         className={`dec-iqhero${openTile === 'iq' ? ' open' : ''}${slateFull ? ' full' : ''}${iqLanded && iqGained ? ' landed' : ''}`}
-        aria-label="Expand your IQ Points ranking"
-        aria-expanded={openTile === 'iq'}
-        onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}
       >
+        {/* The whole panel is the expand control, but the identity chip inside it
+            is its own link, so the toggle is a transparent hit layer UNDER the
+            content rather than a <button> wrapping it (a button inside a button
+            is invalid and swallows the chip's click). */}
+        <button
+          type="button"
+          className="dec-iqhero-hit"
+          aria-label="Expand your IQ Points ranking"
+          aria-expanded={openTile === 'iq'}
+          onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}
+        />
         <span className="dec-iqhero-rays" aria-hidden="true" />
         <span className="dec-iqhero-in">
           <span className="dec-iqhero-lead">
@@ -1249,16 +1318,22 @@ export default function DailyEndCard({
               two are swapped by display:none, so only one is ever in the a11y
               tree. */}
           <span className="dec-iqhero-rule" aria-hidden="true" />
-          <span className="dec-iqhero-stats">
-            {showIqToday ? <span className="st"><span className="k">Today</span><span className="v">+{iq.todayGained.toLocaleString()}</span></span> : null}
-            {iq && typeof iq.xp === 'number' ? <span className="st"><span className="k">Total</span><span className="v">{iq.xp.toLocaleString()}</span></span> : null}
-            {iq && iq.rank ? (
-              <span className="st">
-                <span className="k">IQ rank</span>
-                <span className="v">#{iq.rank.toLocaleString()}</span>
-                <span className="m">of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span>
-              </span>
-            ) : null}
+          <span className="dec-iqhero-right">
+            {/* Who these figures belong to sits directly above them (owner
+                2026-08-01): a link to the player's profile once they have a
+                username, or the sign-up CTA while they don't. */}
+            <span className="dec-iqhero-id">{idChip}</span>
+            <span className="dec-iqhero-stats">
+              {showIqToday ? <span className="st"><span className="k">Today</span><span className="v">+{iq.todayGained.toLocaleString()}</span></span> : null}
+              {iq && typeof iq.xp === 'number' ? <span className="st"><span className="k">Total</span><span className="v">{iq.xp.toLocaleString()}</span></span> : null}
+              {iq && iq.rank ? (
+                <span className="st">
+                  <span className="k">IQ rank</span>
+                  <span className="v">#{iq.rank.toLocaleString()}</span>
+                  <span className="m">of {(iq.total || 0).toLocaleString()}{iq.provisional ? <span className="prov"> prov.</span> : null}</span>
+                </span>
+              ) : null}
+            </span>
           </span>
         </span>
         <span className="dec-iqhero-sub">
@@ -1270,7 +1345,7 @@ export default function DailyEndCard({
         <span className="dec-iqhero-mx">
           <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
         </span>
-      </button>
+      </div>
       {ranksLoading ? (
         <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
       ) : null}
@@ -1305,7 +1380,22 @@ export default function DailyEndCard({
           </div>
         );
       })() : null}
-      {/* ---- 3. guest claim slip ---- */}
+      {/* ---- 3. share / challenge bar ---- */}
+      {/* Sits directly under the three rank tiles (owner 2026-08-01) as a
+          full-width feature bar rather than a chip in the header. It calls the
+          caller's own share handler, which is what opens the shared
+          ShareCreditPop (result + ref-stamped link, or the sign-up view for a
+          guest), so a shared link and a challenge are the same action here. */}
+      <button type="button" className="dec-sharebar" onClick={onShare}>
+        <span className="ic"><Share2 size={17} strokeWidth={2.3} /></span>
+        <span className="tx">
+          <span className="t">{/copied/i.test(shareLabel || '') ? shareLabel : 'Share Result or Challenge a Friend for Site Credit'}</span>
+          <span className="s">Send your link. You get the credit when they play.</span>
+        </span>
+        <ChevronRight size={17} strokeWidth={2.4} className="cv" />
+      </button>
+
+      {/* ---- 4. guest claim slip ---- */}
       {/* An unregistered player sees their real IQ figures above (they are scored
           against this browser's anon id), so the slip asks them to keep what they
           can already see rather than to unlock it. */}
@@ -1334,54 +1424,75 @@ export default function DailyEndCard({
                   <div className="dec-sk dec-sk-line" style={{ width: '66%' }} />
                 </div>
               </div>
+              <div className="dec-sk" style={{ height: 54, borderRadius: 10 }} />
               <div className="dec-nx-btns"><div className="dec-sk dec-sk-btn" style={{ flex: 1 }} /></div>
             </div>
           ) : nextReal ? (
             <div className="dec-nx dec-fadein">
               <div className="dec-nx-top">
+                {/* The game's own icon sits inside the auto-advance ring, so the
+                    countdown reads as a timer around the game rather than a
+                    bare number beside it. */}
                 <div className="dec-ring">
-                  <svg width="50" height="50" viewBox="0 0 56 56" aria-hidden="true">
-                    <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="5" />
-                    <circle cx="28" cy="28" r="24" fill="none" stroke="#2563eb" strokeWidth="5" strokeLinecap="round"
-                      transform="rotate(-90 28 28)" strokeDasharray={RING_C} strokeDashoffset={ringOffset} />
+                  <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+                    <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="4" />
+                    {autoRun ? (
+                      <circle cx="28" cy="28" r="24" fill="none" stroke="#2563eb" strokeWidth="4" strokeLinecap="round"
+                        transform="rotate(-90 28 28)" strokeDasharray={RING_C} strokeDashoffset={ringOffset} />
+                    ) : null}
                   </svg>
-                  <span className="num">{autoRun ? secs : <ArrowRight size={17} strokeWidth={2.4} color="#2563eb" />}</span>
+                  <span className="ic" style={{ color: nextMeta.accent }}><NextIcon size={24} strokeWidth={2} /></span>
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="dec-eye" style={{ color: BLUE }}>Up next &middot; most similar unplayed</div>
                   <div className="dec-nx-name">{nextTarget.name}</div>
-                  <div className="dec-nx-tag">{nextTarget.tag}{autoRun ? <> &middot; {secs > 0 ? `opens in ${secs}s` : 'opening…'}</> : null}</div>
+                  <div className="dec-nx-fam">
+                    <span className="dec-dot" style={{ background: nextCat.color }} />
+                    {nextCat.name} &middot; {nextTarget.tag}
+                  </div>
                 </div>
               </div>
+              {nextTarget.blurb ? <div className="dec-blurb">{nextTarget.blurb}</div> : null}
               <div className="dec-nx-btns">
-                <a className="b primary" href={nextTarget.href}>Play now</a>
+                <a className="b primary" href={nextTarget.href}>Play {nextTarget.name} <ArrowRight size={14} strokeWidth={2.6} /></a>
                 {autoRun ? <button type="button" className="b" onClick={() => setAutoCancel(true)}>Not now</button> : null}
               </div>
+              {autoRun ? (
+                <div className="dec-nx-auto">{secs > 0 ? <>Opens automatically in {secs}s</> : <>Opening…</>}</div>
+              ) : null}
             </div>
           ) : null}
           {grabSkel ? (
             <div className="dec-ez" aria-hidden="true">
               <div className="dec-ez-top">
-                <div className="dec-sk" style={{ width: 22, height: 22, borderRadius: 6, flexShrink: 0 }} />
+                <div className="dec-sk" style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0 }} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="dec-sk dec-sk-line" style={{ width: '62%', marginBottom: 8 }} />
                   <div className="dec-sk dec-sk-line" style={{ width: '46%', height: 15, marginBottom: 7 }} />
                   <div className="dec-sk dec-sk-line" style={{ width: '72%' }} />
                 </div>
               </div>
+              <div className="dec-sk" style={{ height: 54, borderRadius: 10 }} />
               <div className="dec-sk dec-sk-btn" style={{ width: '100%' }} />
             </div>
           ) : grab ? (
             <div className="dec-ez dec-fadein">
               <div className="dec-ez-top">
-                <Trophy size={22} strokeWidth={2} color="#b7791f" style={{ flexShrink: 0 }} />
+                <div className="dec-ez-ico" style={{ color: grabMeta.accent }}>
+                  <GrabIcon size={24} strokeWidth={2} />
+                  <span className="tr" aria-hidden="true"><Trophy size={12} strokeWidth={2.6} /></span>
+                </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="dec-eye" style={{ color: '#b7791f' }}>Easiest leaderboard today</div>
-                  <div className="dec-ez-name"><span className="dec-dot" style={{ background: (CAT_META[grab.cat] || CAT_META.word).color }} />{grab.name}</div>
-                  <div className="dec-ez-tag">{grab.registered > 0 ? <>Only {grab.registered} player{grab.registered === 1 ? '' : 's'} so far</> : <>No one&rsquo;s on the board yet</>}</div>
+                  <div className="dec-ez-name">{grab.name}</div>
+                  <div className="dec-ez-fam">
+                    <span className="dec-dot" style={{ background: grabCat.color }} />
+                    {grabCat.name} &middot; {grab.tag}
+                  </div>
                 </div>
               </div>
-              <a className="dec-ez-btn" href={grab.href}>Play {grab.name}</a>
+              {grab.blurb ? <div className="dec-blurb ez">{grab.blurb}</div> : null}
+              <a className="dec-ez-btn" href={grab.href}>Play {grab.name} <ArrowRight size={14} strokeWidth={2.6} /></a>
             </div>
           ) : null}
         </div>
