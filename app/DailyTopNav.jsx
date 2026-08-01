@@ -7,8 +7,14 @@
 // the whole time without crowding the board — the "lighter page" nav that used
 // to disappear on `playing`.
 //
+// SIZING (owner rule, 2026-08-01): the strip must ALWAYS fit on ONE line, phones
+// included. The row is flex-nowrap, the two links never shrink, and the player
+// name ellipsis-truncates to absorb any overflow. Type steps down at <=560px and
+// again at <=400px so all three elements clear a 360px viewport. Do NOT
+// reintroduce flexWrap here — a wrapped strip shoves the masthead down the page.
+//
 // One component so all daily clients share the exact same strip and compact
-// behavior. Used by: links, span, dating, tally, suds, carve, circa, extra.
+// behavior. Used by every daily game client.
 
 import React from 'react';
 
@@ -16,20 +22,37 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const COLORS = { ink: '#1c1e24', faded: '#262b35', ember: '#0e1d40', paper: '#eceef1' };
 
 export default function DailyTopNav({ player, compact = false }) {
-  const fz = compact ? 10 : 11;
+  const fz = compact ? 9.5 : 10.5;
   const navStyle = {
     fontFamily: MONO, fontSize: fz, letterSpacing: '0.12em', textTransform: 'uppercase',
     color: COLORS.faded, textDecoration: 'none', borderBottom: '1px solid rgba(28,30,36,0.25)', paddingBottom: 1,
+    whiteSpace: 'nowrap', flexShrink: 0,
   };
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 12 : 18, marginBottom: compact ? 11 : 20, flexWrap: 'wrap' }}>
-      <a href="/" style={navStyle}>Puzzles &amp; Quizzes</a>
-      <a href="/lists" style={navStyle}>Top 10 Lists</a>
+    <div className="dtn-row"
+      style={{ display: 'flex', alignItems: 'center', gap: compact ? 11 : 15, marginBottom: compact ? 11 : 20, flexWrap: 'nowrap', minWidth: 0 }}>
+      <style>{'\
+        @media(max-width:560px){\
+          .dtn-row{gap:9px !important;}\
+          .dtn-row .dtn-lnk{font-size:9px !important;letter-spacing:0.09em !important;}\
+          .dtn-row .dtn-chip{font-size:9px !important;gap:5px !important;padding:3px 7px !important;}\
+          .dtn-row .dtn-nm{max-width:96px !important;}\
+        }\
+        @media(max-width:400px){\
+          .dtn-row{gap:7px !important;}\
+          .dtn-row .dtn-lnk{font-size:8.5px !important;letter-spacing:0.05em !important;}\
+          .dtn-row .dtn-chip{font-size:8.5px !important;gap:4px !important;padding:3px 6px !important;}\
+          .dtn-row .dtn-nm{max-width:66px !important;}\
+        }\
+      '}</style>
+      <a href="/" className="dtn-lnk" style={navStyle}>Puzzles &amp; Quizzes</a>
+      <a href="/lists" className="dtn-lnk" style={navStyle}>Top 10 Lists</a>
       {player && (
         <a href={player.key ? `/quizzes/hub?player=${encodeURIComponent(player.key)}` : '/quizzes/hub'} title="Your Stat Hub"
-          style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: compact ? 5 : 7, fontFamily: MONO, fontSize: fz, letterSpacing: '0.06em', color: COLORS.ink, background: COLORS.paper, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: compact ? '3px 8px' : '4px 10px', textDecoration: 'none' }}>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: compact ? 120 : 150, fontWeight: 500 }}>{player.name}</span>
-          {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500 }}>Rank #{player.rank}</span> : null}
+          className="dtn-chip"
+          style={{ marginLeft: 'auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: compact ? 5 : 6, fontFamily: MONO, fontSize: fz, letterSpacing: '0.06em', color: COLORS.ink, background: COLORS.paper, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 5, padding: compact ? '3px 7px' : '4px 9px', textDecoration: 'none' }}>
+          <span className="dtn-nm" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: compact ? 120 : 150, fontWeight: 500 }}>{player.name}</span>
+          {player.rank ? <span style={{ color: COLORS.ember, fontWeight: 500, whiteSpace: 'nowrap' }}>Rank #{player.rank}</span> : null}
         </a>
       )}
     </div>
