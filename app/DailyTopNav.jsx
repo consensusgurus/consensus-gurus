@@ -10,7 +10,7 @@
 // SIZING (owner rule, 2026-08-01): the strip must ALWAYS fit on ONE line, phones
 // included. The row is flex-nowrap, the two links never shrink, and the player
 // name ellipsis-truncates to absorb any overflow. Type steps down at <=560px and
-// again at <=400px so all three elements clear a 360px viewport. Do NOT
+// again at <=370px so all three elements clear a 360px viewport. Do NOT
 // reintroduce flexWrap here — a wrapped strip shoves the masthead down the page.
 //
 // One component so all daily clients share the exact same strip and compact
@@ -38,7 +38,7 @@ export default function DailyTopNav({ player, compact = false }) {
           .dtn-row .dtn-chip{font-size:9px !important;gap:5px !important;padding:3px 7px !important;}\
           .dtn-row .dtn-nm{max-width:96px !important;}\
         }\
-        @media(max-width:400px){\
+        @media(max-width:370px){\
           .dtn-row{gap:7px !important;}\
           .dtn-row .dtn-lnk{font-size:8.5px !important;letter-spacing:0.05em !important;}\
           .dtn-row .dtn-chip{font-size:8.5px !important;gap:4px !important;padding:3px 6px !important;}\
