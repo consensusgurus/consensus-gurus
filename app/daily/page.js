@@ -40,6 +40,7 @@ import { PUZZLES as TAIRE_FULL } from '../taire/puzzles';
 import { PUZZLES as FIB_FULL } from '../fib/puzzles';
 import { PUZZLES as STREAK_FULL } from '../streak/puzzles';
 import { PUZZLES as FEUD_FULL } from '../feud/puzzles';
+import { PUZZLES as SCRAB_FULL } from '../scrab/puzzles';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -75,6 +76,7 @@ const FIB = FIB_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, q
 const STREAK = STREAK_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 // Feud's bank carries the canonical buckets + house pools — same strip.
 const FEUD = FEUD_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const SCRAB = SCRAB_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
 // today's puzzle and its full back-catalog of past drops (live<=today only, so
@@ -159,6 +161,7 @@ const GAMES = [
   { key: 'fib', name: 'Fib', path: '/fib', tag: 'One clue is lying', accent: '#4c1d95', bg: '#f1edfb', border: 'rgba(76,29,149,0.35)', src: FIB },
   { key: 'streak', name: 'Streak', path: '/streak', tag: 'Forty questions, one life', accent: '#e11d48', bg: '#fdecef', border: 'rgba(225,29,72,0.35)', src: STREAK },
   { key: 'feud', name: 'Feud', path: '/feud', tag: 'Match the crowd', accent: '#9f1239', bg: '#fdf0f3', border: 'rgba(159,18,57,0.4)', src: FEUD },
+  { key: 'scrab', name: 'Scrab', path: '/scrab', tag: 'The bag is empty', accent: '#14532d', bg: '#e9f2ec', border: 'rgba(20,83,45,0.4)', src: SCRAB },
 ];
 
 const breadcrumbJsonLd = {

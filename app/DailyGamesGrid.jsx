@@ -85,6 +85,7 @@ const GAMES = [
   { key: 'fib', href: '/fib', name: 'Fib', tag: 'One clue is lying', img: '/games/btn-fib.png' },
   { key: 'streak', href: '/streak', name: 'Streak', tag: 'Forty questions, one life', img: '/games/btn-streak.png' },
   { key: 'feud', href: '/feud', name: 'Feud', tag: 'Match the crowd', img: '/games/btn-feud.png' },
+  { key: 'scrab', href: '/scrab', name: 'Scrab', tag: 'The bag is empty', img: '/games/btn-scrab.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -99,7 +100,8 @@ const CATEGORIES = [
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge', 'crunch'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['streak'] },
-  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'mate', 'four', 'park', 'check', 'taire', 'fib'] },
+  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'park', 'fib'] },
+  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'taire', 'scrab'] },
 ];
 
 // `challengeHref` is DEPRECATED and ignored (see the header note); it stays on

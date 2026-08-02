@@ -51,6 +51,7 @@ export const DAILY_GAMES = [
   { key: 'fib', href: '/fib', name: 'Fib', tag: 'one clue is lying', store: 'sot_fib_day', accent: '#4c1d95', bg: '#f1edfb', border: 'rgba(76,29,149,0.35)' },
   { key: 'streak', href: '/streak', name: 'Streak', tag: 'forty questions, one life', store: 'sot_streak_day', accent: '#e11d48', bg: '#fdecef', border: 'rgba(225,29,72,0.35)' },
   { key: 'feud', href: '/feud', name: 'Feud', tag: 'match the crowd', store: 'sot_feud_day', accent: '#9f1239', bg: '#fdf0f3', border: 'rgba(159,18,57,0.4)' },
+  { key: 'scrab', href: '/scrab', name: 'Scrab', tag: 'the bag is empty', store: 'sot_scrab_day', accent: '#14532d', bg: '#e9f2ec', border: 'rgba(20,83,45,0.4)' },
 ];
 
 function etToday() {

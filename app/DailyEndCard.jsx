@@ -87,7 +87,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['feud', 'streak', 'fib', 'crunch', 'park'], until: '2026-08-28' };
+const LAUNCH_PIN = { keys: ['scrab', 'feud', 'streak', 'fib', 'crunch'], until: '2026-09-01' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -147,6 +147,7 @@ export const GAME_META = {
   fib: { accent: '#4c1d95', badgeBg: '#4c1d95', badgeInk: '#fff', Fin: Scale },
   streak: { accent: '#e11d48', badgeBg: '#e11d48', badgeInk: '#fff', Fin: Flame },
   feud: { accent: '#9f1239', badgeBg: '#9f1239', badgeInk: '#fff', Fin: BarChart3 },
+  scrab: { accent: '#14532d', badgeBg: '#14532d', badgeInk: '#fff', Fin: Blocks },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -201,6 +202,7 @@ export const DAILY_GAMES = [
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          blurb: 'A logic grid where exactly one clue is false. Find the lie, then solve the rest.', href: '/fib' },
   { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  blurb: 'Forty trivia questions, sudden death. One wrong answer ends the run for the day.', href: '/streak' },
   { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            blurb: 'Name the answers real players gave most often. The most popular answers pay the most.', href: '/feud' },
+  { key: 'scrab',  cat: 'endgame',   name: 'Scrab',  tag: 'The bag is empty',           blurb: 'A Scrabble game at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/scrab' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       blurb: 'Test examples against a secret rule and name the rule before your guesses run out.', href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", blurb: 'Work out the answer purely from what each player admits they cannot yet tell.', href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          blurb: 'Drop every item into the right slice of the overlapping circles, overlaps included.', href: '/venn' },
