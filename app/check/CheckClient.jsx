@@ -560,7 +560,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
           .ck-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .ck-sq{position:relative;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;}
           .ck-pc{width:76%;height:76%;border-radius:50%;pointer-events:none;box-shadow:inset 0 -3px 5px rgba(0,0,0,0.34), inset 0 3px 4px rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;}
-          .ck-crown{width:38%;height:38%;border-radius:50%;border:2px solid rgba(255,255,255,0.72);}
+          .ck-crown{width:54%;height:54%;display:block;overflow:visible;fill:rgba(255,255,255,0.9);filter:drop-shadow(0 1px 1.5px rgba(0,0,0,0.45));}
           .ck-dot{position:absolute;width:26%;height:26%;border-radius:50%;background:rgba(255,255,255,0.62);pointer-events:none;}
           .ck-board.shake{animation:ckshake .34s ease;}
           @keyframes ckshake{0%,100%{transform:translateX(0);}22%{transform:translateX(-6px);}55%{transform:translateX(6px);}80%{transform:translateX(-3px);}}
@@ -627,7 +627,12 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
                     style={{ background: bg, cursor: dark && playing ? 'pointer' : 'default', boxShadow: hintSq === sq ? 'inset 0 0 0 3px #15803d' : canLift && sel == null ? 'inset 0 0 0 2px rgba(255,255,255,0.35)' : undefined }}>
                     {v !== 0 && (
                       <div className="ck-pc" style={{ background: isRed(v) ? `radial-gradient(circle at 34% 30%, ${RED_PC}, ${RED_PC_DK})` : `radial-gradient(circle at 34% 30%, ${BLK_PC}, ${BLK_PC_DK})` }}>
-                        {isKing(v) && <div className="ck-crown" />}
+                        {isKing(v) && (
+                          <svg className="ck-crown" viewBox="0 0 24 20" aria-hidden="true">
+                            <path d="M1.9 5.6 7 10.2 12 1.9 17 10.2 22.1 5.6 20.3 15.3 3.7 15.3 Z" />
+                            <rect x="3.5" y="16.6" width="17" height="2.6" rx="1.3" />
+                          </svg>
+                        )}
                       </div>
                     )}
                     {isTarget && <span className="ck-dot" />}
