@@ -509,8 +509,8 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-cell.sel{background:#dbeafe;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .gl-cell.kin{background:${COLORS.accentSoft};}
           .gl-cell.bad{background:#fdecea;box-shadow:inset 0 0 0 2px ${COLORS.rust};}
-          .gl-num{position:absolute;top:1px;left:2px;font-family:${MONO};font-size:8px;line-height:1;color:#8b93a3;font-weight:500;}
-          .gl-ltr{font-family:${SANS};font-weight:800;color:${COLORS.ink};line-height:1;}
+          .gl-num{position:absolute;top:1.5px;left:2.5px;font-family:${MONO};font-size:9px;line-height:1;color:#2f3644;font-weight:700;}
+          .gl-ltr{position:absolute;left:0;right:0;bottom:0;top:38%;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;color:${COLORS.ink};line-height:1;}
           .gl-ltr.given{color:${COLORS.accent};}
           .gl-key{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}
           .gl-keycap{border:1.5px solid rgba(28,30,36,0.28);border-radius:6px;background:#fff;padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${COLORS.ink};}
@@ -525,12 +525,12 @@ export default function GlyphClient({ puzzles, forceNum }) {
             .gl-key{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
             .gl-chips{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
             .gl-card{padding:11px 7px 13px;}
-            .gl-num{font-size:6.5px;top:0.5px;left:1px;}
+            .gl-num{font-size:7px;top:1px;left:1.5px;}
             .gl-keycap{font-size:15px;padding:6px 0 5px;}
             .gl-chip{font-size:9px;padding:3px 0;}
             .gl-chip b{font-size:14px;}
           }
-          @media(max-width:400px){.gl-num{font-size:6px;}}
+          @media(max-width:400px){.gl-num{font-size:6.5px;top:0.5px;left:1px;}}
         `}</style>
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
