@@ -4,7 +4,7 @@ import { PUZZLES } from './puzzles';
 
 // Babel launched 2026-08-02 as one of the daily puzzles: linked from the daily
 // strip, the footer, the /daily archive, and the sitemap (/babel is the
-// canonical, evergreen URL). One Scrabble endgame a day: the bag is empty, you
+// canonical, evergreen URL). One word tile endgame a day: the bag is empty, you
 // hold five tiles and your opponent holds the rest, and the last few plays
 // decide the spread.
 

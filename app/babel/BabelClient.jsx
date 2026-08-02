@@ -1,6 +1,6 @@
 'use client';
 
-// Babel — the daily Scrabble-style endgame.
+// Babel — the daily word tile endgame.
 //
 // The bag is empty. You hold five tiles (six on Sunday), your opponent holds
 // the rest, and the whole game is the last few plays. Because nothing is left
@@ -63,7 +63,7 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_babel_help_seen';
 const STATS_KEY = 'sot_babel_stats';
 
-// Premium square palette, in the order a Scrabble player expects to read them.
+// Premium square palette, in the order a tile player expects to read them.
 const PREM = {
   T: { bg: '#e2725b', fg: '#ffffff', label: '3W' },
   D: { bg: '#f0b5ac', fg: '#7a2e20', label: '2W' },
@@ -556,7 +556,7 @@ export default function BabelClient({ puzzles, forceNum }) {
     const sp = state.my - state.foeScore + state.adj;
     // Spread can go negative on a bad line; the board stores a non-negative
     // score, and `guessesUsed` carries the tiles you were left holding, which
-    // is the figure a Scrabble player actually wants to see.
+    // is the figure a tile player actually wants to see.
     const sc = Math.max(0, sp);
     const stuck = state.rack.length;
     const el = state.t0 ? Math.max(1, Math.round(((state.tEnd || Date.now()) - state.t0) / 1000)) : 1;
@@ -610,7 +610,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         Tap a tile, then tap a square, or just click a square and type. <b>Par is {signed(PAR)}</b>: the spread our solver gets from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
       </p>
       <p style={{ margin: 0, color: COLORS.faded }}>
-        The bag is 65 tiles in standard letter proportions, Q included, with no blanks. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
+        The bag is 65 tiles: every letter, weighted toward the common ones, Q included and no blanks. It is smaller than a full-size set because the board is 11 by 11, and it is printed beside the board, so nothing about it is hidden. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
       </p>
     </div>
   );
@@ -932,7 +932,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           You are scored on spread: your points from here minus your opponent&rsquo;s. Going out first is the prize, because their leftover tiles come off their score and land on yours. That makes the real question a familiar one to any endgame player: race, or block the lane they need and make them sit on a tile they cannot play. Every position ships with a par computed by the same solver that plays the defence, so par is always reachable and never a guess.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The bag is 65 tiles in standard letter proportions, Q included, and no blanks. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.
+          The bag is 65 tiles, weighted toward the common letters, with the Q in and no blanks. It is smaller than a full-size set because the board is 11 by 11, and it is printed on the page rather than left for you to remember. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.
         </p>
       </section>
 
