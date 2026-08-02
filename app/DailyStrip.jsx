@@ -225,16 +225,16 @@ export default function DailyStrip({ board = null }) {
   // morning -- when every count is still 0 -- falls back to yesterday rather
   // than to noise.
   const dailyOrder = useDailyOrder();
-  // The viewer's OWN order, layered on top of the global one (owner, 2026-08-02).
-  // favorites are games they pinned; mostPlayed is derived from their own
-  // results so a regular gets their board without pinning anything. Both are
-  // empty for a guest, which makes sortByMyGames a no-op and leaves the global
-  // order untouched. See app/useMyGames.js.
-  const { favorites, orderFavorites, mostPlayed, canPin, max: favMax, toggleFavorite } = useMyGames();
+  // The viewer's pinned games, promoted above the global order (owner,
+  // 2026-08-02). Pins are the ONLY personalization: the sort is (1) your stars,
+  // (2) total plays on the day. An earlier version also promoted each player's
+  // most-played games; the owner cut it, so do not reintroduce a derived tier
+  // without asking. Empty for a guest, which makes sortByMyGames a no-op and
+  // leaves the global order untouched. See app/useMyGames.js.
+  const { favorites, orderFavorites, canPin, max: favMax, toggleFavorite } = useMyGames();
   // The star is offered only when it can actually WRITE: registered AND the
-  // quiz_users.favorites column exists (canPin is false until migration 45 is
-  // applied). Otherwise the board still personalizes off mostPlayed, it just
-  // shows no control.
+  // quiz_users.favorites column exists. Otherwise the board simply keeps the
+  // global order and shows no control.
   const myGamesOn = canPin;
   const favSet = new Set(favorites);
   const favFull = favorites.length >= (favMax || 12);
@@ -246,7 +246,7 @@ export default function DailyStrip({ board = null }) {
       out = [...base].sort((a, b) => (playsOf(b.key) || 0) - (playsOf(a.key) || 0)
         || rank.get(a.key) - rank.get(b.key));
     }
-    return sortByMyGames(out, orderFavorites, mostPlayed);
+    return sortByMyGames(out, orderFavorites);
   })();
 
   // first paint: same-device breadcrumbs
@@ -641,7 +641,15 @@ export default function DailyStrip({ board = null }) {
           <button
             type="button"
             className={`dh-tfav${fav ? ' on' : ''}`}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(g.key); }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // A tap leaves the button focused, and on a phone the browser
+              // keeps painting it until you tap something else, which read as a
+              // faint block stuck behind the star after un-starring.
+              if (e.currentTarget && e.currentTarget.blur) e.currentTarget.blur();
+              toggleFavorite(g.key);
+            }}
             disabled={!fav && favFull}
             aria-pressed={fav}
             aria-label={fav ? `Unpin ${g.name} from your games` : `Pin ${g.name} to the top of your board`}
@@ -777,11 +785,17 @@ export default function DailyStrip({ board = null }) {
            is a quiet outline that fills gold on hover, so it reads as an
            affordance without competing with the game art. .ind is the static
            span a finished tile shows, which has no hit area of its own. */
-        .dh-tfav{position:absolute;top:4px;right:19px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:5px;background:transparent;color:#798393;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,transform .12s;}
-        .dh-tfav:hover{color:#a16207;background:#fdf4dc;transform:scale(1.12);}
+        .dh-tfav{position:absolute;top:4px;right:19px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:5px;background:transparent;color:#798393;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .12s,background .12s,transform .12s;}
+        /* Hover is gated on a real pointer. A TAP applies :hover on a phone and
+           the browser keeps it painted until you tap somewhere else, so
+           star-then-unstar left a faint gold block sitting behind the star
+           (owner, 2026-08-02). Same reason the tap highlight is cleared above. */
+        @media(hover:hover){
+          .dh-tfav:hover{color:#a16207;background:#fdf4dc;transform:scale(1.12);}
+          .dh-tfav:disabled:hover{color:#798393;background:transparent;transform:none;}
+        }
         .dh-tfav.on{color:#a16207;}
         .dh-tfav:disabled{cursor:default;opacity:.35;}
-        .dh-tfav:disabled:hover{color:#798393;background:transparent;transform:none;}
         .dh-tfav.ind{pointer-events:none;color:#a16207;}
         .dh-tile.done .dh-tfav.ind{color:#15803d;}
         .dh-tfav:focus-visible{outline:2px solid #2563eb;outline-offset:1px;}

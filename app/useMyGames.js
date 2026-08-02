@@ -1,25 +1,18 @@
 'use client';
 
-// The signed-in player's own daily-game order (owner request, 2026-08-02).
+// The games the signed-in player pinned (owner request, 2026-08-02).
 //
-// The homepage tile board shows all 43 dailies in GLOBAL order (most played
-// today, yesterday's popularity as the tiebreak). A regular who plays four of
-// them had to hunt for those four every morning. This hook supplies the two
-// signals that fix that, both from one /api/quiz/favorites call:
+// The homepage tile board shows all 43 dailies ordered by total plays TODAY,
+// so a regular had to hunt for the handful they play. Pinning promotes a game
+// to the front of that board and nothing else changes.
 //
-//   favorites  - games the player explicitly PINNED (registered only, stored on
-//                quiz_users so the set follows the account across devices).
-//   mostPlayed - games they actually play, derived from their own results. No
-//                setup, so it works for the regular who never pins anything.
+// PINS ARE THE ONLY SIGNAL (owner ruling, 2026-08-02). The first version also
+// promoted each player's most-played games automatically; the owner cut it, so
+// the order is exactly: (1) your stars, (2) total plays on the day. Do not
+// reintroduce a derived tier without asking.
 //
-// DESIGN: the derived order is the DEFAULT and the pin is the OVERRIDE (owner
-// ruling). A player who never touches a star still gets their board; a player
-// who wants Crux first every morning regardless of how often they finish it
-// pins it. sortByMyGames layers both on top of whatever order the caller
-// already computed, so the global ordering rules stay in one place.
-//
-// A guest gets { registered:false } and two empty arrays, which makes
-// sortByMyGames a no-op and leaves the board exactly as it shipped.
+// A guest gets { canPin:false } and an empty list, which makes sortByMyGames a
+// no-op and leaves the board exactly as it shipped.
 //
 // SSR: returns the empty state on first render (server and first client render
 // agree), then fills in from an effect, the same shape as useDailyOrder. So a
@@ -32,10 +25,11 @@ import { dailyMeIdentity } from './dailyMeClient';
 // `favorites` is the live pin state (what the stars show). `orderFavorites` is
 // the snapshot the BOARD sorts by, and it deliberately does NOT move when a pin
 // is toggled: re-sorting on the click would teleport the tile out from under
-// the pointer, so a new pin takes effect on the next load. `canPin` is false
-// until migration 45 lands, which hides the control rather than offering a
-// button that cannot write.
-const EMPTY = { registered: false, canPin: false, favorites: [], orderFavorites: [], mostPlayed: [], max: 12, loaded: false };
+// the pointer (and out from under the finger on a phone), so a new pin takes
+// effect on the next load. `canPin` is false when the quiz_users.favorites
+// column is missing, which hides the control rather than offering a button that
+// cannot write.
+const EMPTY = { registered: false, canPin: false, favorites: [], orderFavorites: [], max: 12, loaded: false };
 
 // One fetch and one truth per page, shared by every component that asks. The
 // board and the expanded tile panel both need this, and a pin toggled in the
@@ -72,7 +66,6 @@ function load() {
         canPin: !!(d && d.canPin),
         favorites: favs,
         orderFavorites: favs,
-        mostPlayed: Array.isArray(d && d.mostPlayed) ? d.mostPlayed.map((m) => (m && m.key) || m).filter(Boolean) : [],
         max: (d && d.max) || 12,
         loaded: true,
       });
@@ -138,32 +131,33 @@ export default function useMyGames() {
   return { ...state, toggleFavorite };
 }
 
-// Layer the player's own order on top of an already-sorted list. Three tiers:
-// pinned favorites, then their most-played, then everything else in the order
-// the caller handed us (global popularity). Stable within each tier, and a
-// complete no-op for a guest or a player with neither signal.
+// Promote the player's pinned games to the front of an already-sorted list.
+// Everything else keeps the order the caller handed us, which is the board's
+// global total-plays-today order. Two tiers only: pinned, then not (owner
+// ruling, 2026-08-02, replacing an earlier three-tier version that also
+// promoted the player's most-played games).
 //
-// Note the tiers are applied to the WHOLE list; the caller's own grouping (the
-// board splits unfinished from finished after this) still wins over it, which
-// is intentional: a finished favorite should not outrank an unplayed game.
-export function sortByMyGames(list, favorites, mostPlayed, keyOf) {
+// Stable within each tier, and a complete no-op for a guest or a player with no
+// pins: the input array is returned BY REFERENCE, so a signed-out board is
+// untouched.
+//
+// The tiers apply to the WHOLE list; the caller's own grouping (the board splits
+// unfinished from finished after this) still wins over them, which is
+// intentional: a finished pin should not outrank a game you have not played yet.
+export function sortByMyGames(list, favorites, keyOf) {
   const kf = keyOf || ((x) => x.key);
   const favs = Array.isArray(favorites) ? favorites : [];
-  const mps = Array.isArray(mostPlayed) ? mostPlayed : [];
-  if (!Array.isArray(list) || (!favs.length && !mps.length)) return list;
+  if (!Array.isArray(list) || !favs.length) return list;
   const favSet = new Set(favs);
-  const mpRank = new Map(mps.map((k, i) => [k, i]));
   const idx = new Map(list.map((g, i) => [kf(g), i]));
-  const tier = (k) => (favSet.has(k) ? 0 : (mpRank.has(k) ? 1 : 2));
   return [...list].sort((a, b) => {
     const ka = kf(a);
     const kb = kf(b);
-    const ta = tier(ka);
-    const tb = tier(kb);
+    // Within the pinned tier the caller's order (plays today) decides, so pins
+    // are a promotion rather than a hand-ranked list the player has to maintain.
+    const ta = favSet.has(ka) ? 0 : 1;
+    const tb = favSet.has(kb) ? 0 : 1;
     if (ta !== tb) return ta - tb;
-    // Within the pinned tier the caller's order (popularity) decides, so the
-    // pins are a promotion, not a hand-ranked list the player has to maintain.
-    if (ta === 1) return mpRank.get(ka) - mpRank.get(kb);
     return idx.get(ka) - idx.get(kb);
   });
 }

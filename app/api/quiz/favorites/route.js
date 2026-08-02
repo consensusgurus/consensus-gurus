@@ -1,33 +1,31 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { loadQuizResultsCached, isMissingColumn } from '@/lib/quiz-results-cache';
+import { isMissingColumn } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { DAILY_KEYS, DAILY_DATED_RE } from '@/lib/daily-games';
+import { DAILY_KEYS } from '@/lib/daily-games';
 
-// /api/quiz/favorites -- the player's own daily-game order (owner, 2026-08-02).
+// /api/quiz/favorites -- the games a player pinned (owner, 2026-08-02).
 //
-// Two answers in one payload, because the homepage board needs both on first
-// paint and they resolve from the same identity lookup:
+// The homepage tile board orders all 43 dailies by total plays TODAY. With that
+// many games a regular had to hunt for the handful they play, so a registered
+// player can PIN games and those sort to the front. Everything else keeps the
+// global play-count order.
 //
-//   favorites  - games the player PINNED, in pin order. Explicit, registered
-//                players only, stored in quiz_users.favorites (migration 45).
-//   mostPlayed - games the player actually plays, derived, no writes and no
-//                setup. This is what makes the feature work for the regular who
-//                never touches the pin control.
+// Pins are the ONLY personalization (owner ruling, 2026-08-02). An earlier
+// version also promoted each player's most-played games, derived from their own
+// results; the owner cut it, so the sort is now exactly: (1) your stars,
+// (2) total plays on the day. That also took the full quiz_results scan off the
+// homepage critical path, so this route is now two small indexed lookups.
 //
-// DailyStrip sorts favorites first, then mostPlayed, then the global order, so
-// a signed-out visitor (registered:false, both arrays empty) sees exactly the
-// board that shipped before this route existed.
-//
-// REGISTERED ONLY is an owner ruling, not an implementation limit: the set has
-// to follow the account across devices, so it hangs off quiz_users, and a guest
-// has no row there. An anonymous browser keeps the global order.
+// REGISTERED ONLY, because the set has to follow the account across devices and
+// a guest has no quiz_users row. A guest gets an empty list and the untouched
+// global board.
 //
 // MIGRATION SAFETY: every read and write of the `favorites` column tolerates a
-// missing column (42703 / PGRST204) and degrades to "no favorites", the same
-// pattern lib/quiz-identity.js uses for anon_id. So this deploys safely BEFORE
-// migration 45 is applied to prod, which matters because a migration has been
-// left unapplied before (39_outrank_picks).
+// missing column (42703 / PGRST204) and reports canPin:false, so the UI hides
+// the control rather than offering a button that cannot write. Migration 45 is
+// applied to prod (2026-08-02), but the guard stays: this is exactly the trap
+// 39_outrank_picks sat in.
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -35,16 +33,7 @@ export const fetchCache = 'force-no-store';
 // A board of 43 tiles stops being personalized somewhere around a dozen pins,
 // so the cap is a usability guard, not a storage one.
 const FAV_MAX = 12;
-// Recency window for mostPlayed. Long enough to survive a week off, short
-// enough that the order tracks what the player likes NOW rather than the game
-// they binged last winter.
-const RECENT_DAYS = 90;
-// How many games mostPlayed promotes. Past this the global order is a better
-// signal than a player's long tail of one-off tries.
-const MOST_PLAYED_N = 8;
-
 const KEY_SET = new Set(DAILY_KEYS);
-const CANON = new Map(DAILY_KEYS.map((k, i) => [k, i]));
 
 function identOf(searchParams) {
   return {
@@ -87,41 +76,7 @@ async function readFavorites(userId) {
   }
 }
 
-// The player's OWN daily plays, counted per game.
-//
-// A row is theirs when it carries their user_id (every play since they
-// registered, on any device, plus everything attributeAnonGames back-filled) or
-// this browser's anon_id (plays from before they registered, on this device).
-// That covers the same ground as resolveAnonSet without its extra round trips,
-// which matters on a route the homepage calls on every load.
-//
-// Falls back to all-time when the recent window is empty, so a player returning
-// after a long break still gets their own order on the first morning back
-// rather than a cold global board.
-function mostPlayedFor(rows, { userId, anonId }) {
-  const cutoff = Date.now() - RECENT_DAYS * 86400000;
-  const recent = new Map();
-  const all = new Map();
-  for (const r of rows) {
-    if (!r) continue;
-    const mine = (userId && r.user_id === userId) || (anonId && r.anon_id === anonId);
-    if (!mine) continue;
-    const m = DAILY_DATED_RE.exec(r.quiz_id || '');
-    if (!m) continue;
-    const key = m[1];
-    all.set(key, (all.get(key) || 0) + 1);
-    const t = r.created_at ? Date.parse(r.created_at) : NaN;
-    if (!Number.isNaN(t) && t >= cutoff) recent.set(key, (recent.get(key) || 0) + 1);
-  }
-  const src = recent.size ? recent : all;
-  return [...src.entries()]
-    .sort((a, b) => (b[1] - a[1])
-      || ((CANON.has(a[0]) ? CANON.get(a[0]) : 99) - (CANON.has(b[0]) ? CANON.get(b[0]) : 99)))
-    .slice(0, MOST_PLAYED_N)
-    .map(([key, plays]) => ({ key, plays }));
-}
-
-const EMPTY = { registered: false, canPin: false, favorites: [], mostPlayed: [], max: FAV_MAX };
+const EMPTY = { registered: false, canPin: false, favorites: [], max: FAV_MAX };
 
 // GET /api/quiz/favorites?anonId=&email=
 export async function GET(request) {
@@ -132,22 +87,11 @@ export async function GET(request) {
     const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
     if (!ident || !ident.id) return NextResponse.json(EMPTY);
     const { favorites, available } = await readFavorites(ident.id);
-    let mostPlayed = [];
-    try {
-      const { data, error } = await loadQuizResultsCached(supabaseAdmin);
-      if (!error && Array.isArray(data)) {
-        mostPlayed = mostPlayedFor(data, { userId: ident.id, anonId });
-      }
-    } catch (e) {
-      // A cold results cache must never cost the player their pins.
-      console.error('favorites mostPlayed error', e);
-    }
     return NextResponse.json({
       registered: true,
       canPin: available,
       username: ident.username || null,
       favorites,
-      mostPlayed,
       max: FAV_MAX,
     });
   } catch (e) {
