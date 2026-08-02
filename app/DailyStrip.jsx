@@ -827,16 +827,18 @@ export default function DailyStrip({ board = null }) {
         /* Top-left corner row: today's play count. It sits opposite
            .dh-tdot and clears the centred game name on a 123px tile. */
         .dh-tcorner{position:absolute;top:7px;left:6px;display:flex;align-items:center;gap:4px;max-width:calc(100% - 22px);pointer-events:none;}
-        .dh-tplays{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;line-height:1;color:#4d5872;font-variant-numeric:tabular-nums;flex:none;}
+        /* The player glyph STACKS UNDER the number rather than sitting beside it
+           (owner, 2026-08-02). Side by side it cost ~34px of the tile's top
+           edge, which ran under the longest centred names on a six-across
+           board, so a @container (max-width:117px) rule hid the glyph and the
+           number was left unlabelled on every desktop tile (content box 105px).
+           Stacked, the badge is only as wide as the number itself, 12px, so the
+           glyph is free: measured on the live board it clears the longest name
+           (Outrank) by 14px and the category chip below it by 5px vertically.
+           column-reverse keeps the DOM order glyph-then-number, so the number
+           still reads first to a screen reader while rendering on top. */
+        .dh-tplays{display:inline-flex;flex-direction:column-reverse;align-items:center;gap:1px;font-size:9.5px;font-weight:800;line-height:1;color:#4d5872;font-variant-numeric:tabular-nums;flex:none;}
         .dh-tplays svg{flex:none;opacity:.85;}
-        /* The glyph only earns its place when the tile is wide enough to clear
-           the centred game name (measured 2026-07-31: a 117px tile leaves the
-           longest names, Outrank / Hearsay / Bracket, nothing to spare). Keyed
-           to the TILE's own width via a container query rather than to the
-           viewport, so it stays correct at every column count and survives any
-           future change to the grid breakpoints. Below that the number goes it
-           alone, which reads fine and never runs under the title. */
-        @container (max-width:117px){.dh-tplays svg{display:none;}}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
         .dh-lbpanel{background:#ffffff;border:1.5px solid #c3ccda;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
