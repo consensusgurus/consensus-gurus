@@ -105,7 +105,7 @@ export const QUESTIONS = [
   { id: 'd03q09', cat: 'Geography', tier: 2, q: 'Mount Everest sits on the border of Nepal and which other country?', choices: ['Pakistan', 'China', 'Bhutan', 'India'], correct: 1 },
   { id: 'd03q10', cat: 'Science', tier: 2, q: 'What force pulls objects toward the center of the Earth?', choices: ['Inertia', 'Friction', 'Magnetism', 'Gravity'], correct: 3 },
   { id: 'd03q11', cat: 'History', tier: 2, q: 'Julius Caesar was a leader of which ancient empire?', choices: ['The Roman Empire', 'The Egyptian Empire', 'The Greek Empire', 'The Persian Empire'], correct: 0 },
-  { id: 'd03q12', cat: 'Sports', tier: 2, q: 'The Olympics are held every how many years?', choices: ['Three', 'Two', 'Four', 'Five'], correct: 2 },
+  { id: 'd03q12', cat: 'Sports', tier: 2, q: 'The Summer Olympics are held every how many years?', choices: ['Three', 'Two', 'Four', 'Five'], correct: 2 },
   { id: 'd03q13', cat: 'Movies & TV', tier: 2, q: 'Which superhero is known as the Caped Crusader?', choices: ['Spider-Man', 'Superman', 'Batman', 'Captain America'], correct: 2 },
   { id: 'd03q14', cat: 'Music', tier: 2, q: 'Which pop star released the albums 1989 and Folklore?', choices: ['Billie Eilish', 'Taylor Swift', 'Ariana Grande', 'Adele'], correct: 1 },
   { id: 'd03q15', cat: 'Words & Books', tier: 2, q: 'In fairy tales, who leaves a glass slipper at the ball?', choices: ['Cinderella', 'Sleeping Beauty', 'Snow White', 'Rapunzel'], correct: 0 },
