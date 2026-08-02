@@ -558,15 +558,10 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
     const allSolved = PUZZLE.slots.every((s) => g2.solved[s.id]);
     if (!allSolved && g2.left <= 0) {
-      if (g2.order.length === 0) {
-        g2.status = 'lost';
-        g2.filedRight = 0;
-        g2.tEnd = Date.now();
-        setEndAnim(true);
-        postResult(g2, 0);
-      } else {
-        say('Out of guesses — place your solved words, then lock it in');
-      }
+      setTyped('');
+      setPick(null);
+      setG(concludeOutOfGuesses(g2));
+      return;
     }
     setTyped('');
     if (g2.solved[sel] && g2.status === 'playing') {
@@ -634,9 +629,26 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     setG({ ...g, assigned: assigned2 });
     setPick(null);
   }
+  // Out of guesses ends the puzzle, full stop (owner call, 2026-08-01). The old
+  // behaviour left the player in limbo at zero: the keyboard is hidden at zero
+  // guesses and the submit button only appears once every solved word happens
+  // to be filed, so a player holding an unfiled word saw a dead screen with no
+  // input and no button and reported it as a freeze. Now the board reveals
+  // itself and the end card pops immediately, scoring whatever was solved plus
+  // whatever was already filed.
+  function concludeOutOfGuesses(gIn) {
+    const solvedSlots = PUZZLE.slots.filter((s) => gIn.solved[s.id]);
+    const right = solvedSlots.filter((s) => gIn.assigned[s.word] !== undefined
+      && PUZZLE.categories[gIn.assigned[s.word]].words.includes(s.word)).length;
+    const g2 = { ...gIn, filedRight: right, status: 'lost', tEnd: Date.now() };
+    setEndAnim(true);
+    postResult(g2, solvedSlots.length + right);
+    return g2;
+  }
+
   // ONE lock-in, and it concludes the puzzle. Score is out of 16: a point per
-  // word solved plus a point per word correctly categorized. Available at a
-  // full solve, or once the guess budget is spent (place what you solved).
+  // word solved plus a point per word correctly categorized. Reached by solving
+  // every word; running the budget out ends the puzzle on its own instead.
   // No lock-in, no score — abandoned puzzles never post.
   function lockIn() {
     if (!playing) return;
@@ -653,6 +665,16 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     setG(g2);
     if (score === PUZZLE.slots.length * 2) setJustWon(true);
   }
+
+  // Safety net: any state that arrives at zero guesses still 'playing' ends on
+  // sight. Covers saves written under the old post-budget filing rule, which
+  // would otherwise resume straight back into the dead screen.
+  useEffect(() => {
+    if (g.status !== 'playing' || !g.t0 || g.left > 0) return;
+    if (PUZZLE.slots.every((s) => g.solved[s.id])) return;
+    setPick(null);
+    setG(concludeOutOfGuesses(g));
+  }, [g.status, g.left, g.t0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The one free hint: reveal the next empty letter of the selected slot.
   // No guess cost, no score penalty — the share text carries a 💡 instead.
