@@ -1816,6 +1816,42 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
     eater: {
       lab
 
+## Daily-game hints: FIRST PLAY ONLY (owner rule, 2026-08-01)
+
+The one free hint on a daily game is offered ONLY on a player's very first ever play of
+that game, and never again: not on a later day, not on a replay of that same first board.
+**Play history is the only test.** Signed in or anonymous makes no difference (this replaced
+the old `!identity` gate, which handed a hint to every unregistered player forever, and it
+closed the eight games that had no gate at all).
+
+- **Shared helper: `lib/hint-gate.js`** (`hintAllowed(game, stats)`, `spendHint(game)`).
+  Eligibility = the game's local stats record holds ZERO plays (`stats.rec` empty) AND the
+  persisted flag `sot_hint_spent_<game>` is unset. The stats record is the same per-puzzle
+  `rec` map each daily client already keeps, and `mergeServerStats` back-fills it from server
+  history, so a signed-in player who returns on a NEW DEVICE has the hint revoked once the
+  merge lands. The spent flag is written the moment the hint is actually used, so reloading
+  or resetting the first board cannot hand out a second one.
+- **Wiring in a daily client (identical in all 24, copy it verbatim for a new game):**
+  import from `@/lib/hint-gate`; declare `const [hintOk, setHintOk] = useState(false);` right
+  after the `stats` state; `useEffect(() => { if (stats) setHintOk(hintAllowed('<key>', stats)); }, [stats]);`
+  and `useEffect(() => { if (g.hintUsed) spendHint('<key>'); }, [g.hintUsed]);`; guard the
+  handler with `if (!hintOk) return;` as its first line; and gate the button JSX on
+  `hintOk && !g.hintUsed`. `<key>` is the registry key from `lib/daily-games.js` (Parker is
+  `park`).
+- **PAID hints are OUT of scope.** Shards (three hints costing 10/15/20 points) and Stands
+  (2-point nudges) keep their hints for everyone, because the point cost already prices them
+  in and gating them would change the scoring design rather than remove an assist. Only the
+  free hint is first-play-only.
+- **Copy must match the behavior.** Rules prose reads "One free <b>hint</b>, on your first
+  ever play, ..." and button titles read "(one hint, first play only)". A new game that ships
+  a free hint carries the same wording.
+- **A brand-new daily game grants its own first-play hint** to everyone, since eligibility is
+  per game, not per site.
+
+Applied 2026-08-01 across all 24 free-hint games: carve, check, circa, crunch, crux, dating,
+emcee, etch, extra, fib, four, hedge, jester, listed, mate, parker, ping, rung, span, suds,
+sworn, taire, tally, warmer.
+
 ## Chrome tab hygiene (universal rule, owner-requested 2026-06-05)
 
 Close every Chrome MCP tab as soon as it is no longer needed: reuse ONE tab per session (navigate in
