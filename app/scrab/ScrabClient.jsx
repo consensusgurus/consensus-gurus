@@ -600,7 +600,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
         You are scored on <b>spread</b>: your points from here minus theirs. Go out first and their leftover tiles come off their score and onto yours, which is usually worth more than any single play. Get stuck holding tiles and it happens to you.
       </p>
       <p style={{ margin: '0 0 8px' }}>
-        Tap a tile, then tap a square, or just click a square and type. <b>Par is {signed(PAR)}</b>, and it is the exact best this position can be forced to give against the defence you are facing. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
+        Tap a tile, then tap a square, or just click a square and type. <b>Par is {signed(PAR)}</b>: the spread our solver gets from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
       </p>
       <p style={{ margin: 0, color: COLORS.faded }}>
         Your words are checked against the full Tuck dictionary. Your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
