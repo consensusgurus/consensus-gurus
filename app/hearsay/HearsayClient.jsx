@@ -720,6 +720,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           modal
           self="hearsay"
           won={won}
+          completed={g.status === 'done'}
           headline={g.status === 'done' ? <>Named from what they didn&rsquo;t know</> : <>The room kept its secret</>}
           subline={<>Hearsay #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.wrong.length} wrong name{g.wrong.length === 1 ? '' : 's'} &middot; {elapsed}</>}
           onShare={copyShare}

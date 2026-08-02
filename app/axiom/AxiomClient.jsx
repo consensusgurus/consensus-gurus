@@ -918,6 +918,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           modal
           self="axiom"
           won={won}
+          completed={g.status === 'done'}
           headline={g.status === 'done' ? <>The rule is named</> : <>The board keeps its rule</>}
           subline={<>Axiom #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {testsUsed} test{testsUsed === 1 ? '' : 's'} (perfect {PERFECT}) &middot; {elapsed}</>}
           onShare={copyShare}

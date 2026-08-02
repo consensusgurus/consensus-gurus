@@ -838,6 +838,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           modal
           self="alibi"
           won={won}
+          completed={g.status === 'done'}
           headline={g.status === 'done' ? <>Case closed</> : <>The case went cold</>}
           subline={<>Alibi #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.wrong} wrong accusation{g.wrong === 1 ? '' : 's'} &middot; {elapsed}</>}
           onShare={copyShare}

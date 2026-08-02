@@ -6,7 +6,10 @@
 // Outrank, Axiom, Hearsay). One component, used by all daily clients.
 //
 // Layout, top to bottom (owner retention rework 2026-08-01):
-//   1. header — one line: the finish mark + "Completed!" (loss: "Incomplete.")
+//   1. header — one line: the finish mark + the finish state ("Completed!",
+//      or "Not perfect." for a puzzle finished short of the win, "Defeated."
+//      for an End Game loss, "Incomplete." when the player never reached the
+//      end)
 //      + the score node on the left, and the player's
 //      identity chip (profile link, or the sign-up CTA for a guest) hard right,
 //      padded clear of the modal's close button. Then the answer. The share
@@ -60,7 +63,10 @@
 //     score={<>{finalScore} pts &middot; par {PAR}</>}
 //     onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
 //     onReplay={resetGame} onClose={() => setJustWon(false)} />
-// `completed` (default = `won`) drives the "Completed!"/"Played" title; pass a
+// `completed` (default = `won`) says the player REACHED THE END of the puzzle,
+// which turns a non-win from "Incomplete." into "Not perfect."; pass it on every
+// game whose `won` really means perfect-or-par. `defeat` forces "Defeated." and
+// defaults on for the End Game titles. Pass a
 // clean `score` node ONLY for variable-score games (Tuck/Outrank/Outwit) so every
 // other game just reads its title with score/time/accuracy left to the board.
 // `headline`/`subline` are deprecated and no longer rendered (kept for compat).
@@ -82,6 +88,14 @@ import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 
 const RUST = '#c0392b';
+const AMBER = '#b45309';
+
+// End Game titles where a loss is a defeat against a live opponent, not a
+// puzzle the player walked away from, so the card reads "Defeated." rather than
+// "Incomplete." (owner, 2026-08-02). Babel sits in the End Game family too but
+// is scored against par, so falling short there is "Not perfect." like any
+// other par game, and it is deliberately NOT in this set.
+const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire']);
 
 // LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily puzzles lead the
 // "still to play" list for their first FOUR days so players actually meet
@@ -269,7 +283,11 @@ function useCountUp(target, ms = 1000) {
 
 /**
  * @param self          game key, e.g. "garble"
- * @param completed      bool; true => "Completed!" title (default = won)
+ * @param completed      bool; the player reached the end of the puzzle (default =
+ *                       won). With won=false this reads "Not perfect." rather
+ *                       than "Incomplete."
+ * @param defeat         bool; the loss was to an opponent => "Defeated." (default:
+ *                       on for the End Game titles four/mate/check/taire)
  * @param score          node; a clean score shown at top for variable-score games only
  * @param headline       DEPRECATED, no longer rendered
  * @param subline        DEPRECATED, no longer rendered
@@ -288,6 +306,7 @@ export default function DailyEndCard({
   self,
   won = true,
   completed = null,
+  defeat = null,
   modal = false,
   headline = 'You scored 100%',
   subline = null,
@@ -505,8 +524,21 @@ export default function DailyEndCard({
   const selfCat = selfGame ? selfGame.cat : 'word';
   const selfName = selfGame ? selfGame.name : (self || 'today’s game');
   const selfCatMeta = CAT_META[selfCat] || CAT_META.word;
-  const headColor = won ? meta.accent : RUST;
+  // The finish state, four ways (owner, 2026-08-02). `won` alone used to drive
+  // both the mark and the title, so every game whose `won` really means PERFECT
+  // (Bracket's 15/15, Cipher's clean run, Venn's no-reject sheet) told a player
+  // who had filled in the entire puzzle that it was "Incomplete." A caller
+  // passes `completed` when the player REACHED THE END whatever they scored,
+  // which splits that one loss state into two honest ones:
+  //   won                        -> "Completed!"   green check
+  //   finished, short of the win -> "Not perfect."  amber check
+  //   lost to an opponent        -> "Defeated."     rust flag
+  //   never reached the end      -> "Incomplete."   rust flag
   const isCompleted = (completed == null ? won : completed);
+  const defeated = !won && (defeat == null ? DEFEAT_GAMES.has(self) : !!defeat);
+  const finish = won ? 'won' : (defeated ? 'defeat' : (isCompleted ? 'near' : 'loss'));
+  const finishTitle = { won: 'Completed!', near: 'Not perfect.', defeat: 'Defeated.', loss: 'Incomplete.' }[finish];
+  const headColor = finish === 'won' ? meta.accent : (finish === 'near' ? AMBER : RUST);
 
   // The player's IQ Points standing: what this game paid, what they have banked
   // today, and their window of the global IQ ranking. Same write-propagation race
@@ -983,6 +1015,7 @@ export default function DailyEndCard({
         .dec-head{margin-bottom:12px;}
         .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
+        .dec-check.near{background:#fdf2e2;color:${AMBER};}
         /* Title line: the result on the left, the player chip hard right. The
            right padding keeps the chip clear of the modal's close button. */
         .dec-toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-right:38px;margin-bottom:5px;}
@@ -1410,10 +1443,15 @@ export default function DailyEndCard({
             (owner 2026-08-01), clear of the modal's close button. */}
         <div className="dec-toprow">
           <div className="dec-titlerow">
-            <span className={`dec-check${won ? '' : ' loss'}`}>
-              {won ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
+            {/* Mark, tint and title all read from the SAME finish state. They
+                used to disagree: the title branched on `completed` while the
+                mark branched on `won`, so the games that pass `completed`
+                (Feud, Outwit, Outrank, Lode, Babel) drew a rust loss flag right
+                next to the word "Completed!". */}
+            <span className={`dec-check${finish === 'won' ? '' : (finish === 'near' ? ' near' : ' loss')}`}>
+              {isCompleted ? <CheckCircle2 size={19} strokeWidth={2.4} /> : <Flag size={17} strokeWidth={2.4} />}
             </span>
-            <span className="dec-title">{isCompleted ? <>Completed!</> : <>Incomplete.</>}</span>
+            <span className="dec-title">{finishTitle}</span>
             {score ? <span className="dec-detail">{score}</span> : null}
           </div>
           <span className="dec-topid">{idChip}</span>

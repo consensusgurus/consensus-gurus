@@ -519,7 +519,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {!playing && !endClosed && (
-        <DailyEndCard modal self="bracket" won={won}
+        <DailyEndCard modal self="bracket" won={won} completed
           headline={won ? <>A perfect bracket</> : <>The field is settled</>}
           subline={<>Bracket #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {elapsed}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'} onReplay={resetGame} onClose={() => setEndClosed(true)} />

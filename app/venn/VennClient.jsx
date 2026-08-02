@@ -549,7 +549,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {!playing && !endClosed && (
-        <DailyEndCard modal self="venn" won={won}
+        <DailyEndCard modal self="venn" won={won} completed={g.status === 'done'}
           headline={g.status === 'done' ? <>Every word filed</> : <>The sheet came back</>}
           subline={<>Venn #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.rejected} rejected sheet{g.rejected === 1 ? '' : 's'} &middot; {elapsed}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'} onReplay={resetGame} onClose={() => setEndClosed(true)} />

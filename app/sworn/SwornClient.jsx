@@ -726,6 +726,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           modal
           self="sworn"
           won={won}
+          completed={g.status === 'done'}
           headline={g.status === 'done' ? <>The thief is named</> : <>The inquest collapsed</>}
           subline={<>Sworn #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.wrong} wrong accusation{g.wrong === 1 ? '' : 's'} &middot; {elapsed}</>}
           onShare={copyShare}

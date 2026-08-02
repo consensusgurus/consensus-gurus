@@ -774,6 +774,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           modal
           self="cipher"
           won={won}
+          completed={g.status === 'done'}
           headline={g.status === 'done' ? <>You cracked the cipher</> : <>The cipher held</>}
           subline={<>Cipher #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.fails} failed check{g.fails === 1 ? '' : 's'} &middot; {elapsed}</>}
           onShare={copyShare}
