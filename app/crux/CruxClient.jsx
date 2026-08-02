@@ -273,6 +273,7 @@ function freshState(puzzle) {
     solved: {},          // slotId -> true
     slotGuesses: {},     // slotId -> guesses spent on that slot
     present: {},         // slotId -> "ABC" letters known in word
+    presentN: {},        // slotId -> { L: known minimum count of L in the word }
     absent: {},          // slotId -> "XYZ" letters known absent
     lastGuess: {},       // slotId -> { word, marks[] }
     assigned: {},        // WORD -> category index (correct filings only)
@@ -517,7 +518,16 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
         if (!elsewhere) abs.add(L);
       }
     });
+    // how many of each letter this guess proved are in the word (green + yellow).
+    // Kept as a per-letter COUNT so a letter stops being advertised once every
+    // known copy of it is locked in place (see presentUnplaced below).
+    const need = {};
+    marks.forEach((m, i) => { if (m !== 'x') need[guess[i]] = (need[guess[i]] || 0) + 1; });
+    const pn = { ...((g.presentN || {})[sel] || {}) };
+    Object.keys(need).forEach((L) => { if (need[L] > (pn[L] || 0)) pn[L] = need[L]; });
+
     g2.present = { ...g.present, [sel]: [...pres].join('') };
+    g2.presentN = { ...(g.presentN || {}), [sel]: pn };
     g2.absent = { ...g.absent, [sel]: [...abs].join('') };
     g2.lastGuess = { ...g.lastGuess, [sel]: { word: guess, marks } };
 
@@ -803,6 +813,23 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   if (slot && !g.solved[sel]) editable.forEach((cl, i) => { if (typed[i]) typedAt[`${cl.r},${cl.c}`] = typed[i]; });
 
   const selCellKeys = new Set(cells.map((cl) => `${cl.r},${cl.c}`));
+
+  // Letters known to be in this word that are NOT yet locked in place. A letter
+  // drops off once every known copy of it sits on a green cell, so a placed
+  // letter never reads as "there is another one of these somewhere". Counts
+  // matter: a word with two Ns and one N placed still advertises the second.
+  const presentUnplaced = (() => {
+    if (!slot) return '';
+    const known = {};
+    for (const ch of (g.present[sel] || '')) known[ch] = Math.max(known[ch] || 0, 1);
+    const pn = (g.presentN || {})[sel] || {};
+    for (const L of Object.keys(pn)) known[L] = Math.max(known[L] || 0, pn[L]);
+    const placed = {};
+    cells.forEach((cl) => { if (g.greens[`${cl.r},${cl.c}`]) placed[cl.ch] = (placed[cl.ch] || 0) + 1; });
+    let out = '';
+    for (const L of Object.keys(known)) out += L.repeat(Math.max(0, known[L] - (placed[L] || 0)));
+    return out;
+  })();
 
   // keyboard letter states for the selected slot
   const keyState = {};
@@ -1104,7 +1131,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                 return <span key={i} style={{ width: 26, height: 26, borderRadius: 5, background: mc.bg, color: mc.fg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>{ch}</span>;
               })}
               <span style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 700, marginLeft: 6 }}>
-                {(g.present[sel] || '') ? <>in word: <b style={{ color: '#8a6d1a' }}>{(g.present[sel] || '').split('').join(' ')}</b></> : null}
+                {presentUnplaced ? <>in word: <b style={{ color: '#8a6d1a' }}>{presentUnplaced.split('').join(' ')}</b></> : null}
               </span>
             </div>
           )}
