@@ -1,7 +1,7 @@
-// Verifier for the Scrab bank. Run after ANY edit to app/scrab/puzzles.js or
-// lib/scrab-engine.js:
+// Verifier for the Babel bank. Run after ANY edit to app/babel/puzzles.js or
+// lib/babel-engine.js:
 //
-//   node scripts/verify-scrab.mjs [--from 2026-08-02]
+//   node scripts/verify-babel.mjs [--from 2026-08-02]
 //
 // Four checks per banked day, and the fourth is the one that matters:
 //
@@ -21,15 +21,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {
   BAG, buildLexicon, rowsToBoard, generateMoves, applyMove, solveLine, rackSum,
-} from '../lib/scrab-engine.js';
-import { PUZZLES } from '../app/scrab/puzzles.js';
+} from '../lib/babel-engine.js';
+import { PUZZLES } from '../app/babel/puzzles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const FROM = (args.indexOf('--from') >= 0 ? args[args.indexOf('--from') + 1] : null);
 
-const lex = buildLexicon(fs.readFileSync(path.join(ROOT, 'public/scrab-common.txt'), 'utf8').split('\n'));
+const lex = buildLexicon(fs.readFileSync(path.join(ROOT, 'public/babel-common.txt'), 'utf8').split('\n'));
 
 function deriveFoe(rows, rack) {
   const left = { ...BAG };

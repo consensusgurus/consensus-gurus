@@ -44,7 +44,7 @@ const CATEGORIES = [
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['streak'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'park', 'fib'] },
-  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'taire', 'scrab'] },
+  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'taire', 'babel'] },
   // Retired games keep their full archives playable here, at the bottom of the
   // page, but no longer run new daily puzzles (owner ruling 2026-07-20).
   { key: 'retired', label: 'Retired', keys: ['circa'] },
@@ -52,7 +52,7 @@ const CATEGORIES = [
 // Each game's accent, lightened for legibility on the dark leaderboard card
 // (mirrors ACCENTS_NAVY in DailyCombinedLeaderboard).
 const NAVY_ACCENT = {
-  scrab: '#6ee7b7',
+  babel: '#6ee7b7',
   crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0',
   tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',

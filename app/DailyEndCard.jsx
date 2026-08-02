@@ -87,7 +87,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['scrab', 'feud', 'streak', 'fib', 'crunch'], until: '2026-09-01' };
+const LAUNCH_PIN = { keys: ['babel', 'feud', 'streak', 'fib', 'crunch'], until: '2026-09-01' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -147,7 +147,7 @@ export const GAME_META = {
   fib: { accent: '#4c1d95', badgeBg: '#4c1d95', badgeInk: '#fff', Fin: Scale },
   streak: { accent: '#e11d48', badgeBg: '#e11d48', badgeInk: '#fff', Fin: Flame },
   feud: { accent: '#9f1239', badgeBg: '#9f1239', badgeInk: '#fff', Fin: BarChart3 },
-  scrab: { accent: '#14532d', badgeBg: '#14532d', badgeInk: '#fff', Fin: Blocks },
+  babel: { accent: '#14532d', badgeBg: '#14532d', badgeInk: '#fff', Fin: Blocks },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -192,17 +192,17 @@ export const DAILY_GAMES = [
   { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             blurb: 'Some witnesses always tell the truth and some never do. Work out which is which.', href: '/sworn' },
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           blurb: 'Guess a word and get told how close in meaning it is. Close in on today’s secret word.', href: '/warmer' },
   { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', blurb: 'Eight real things, one true order. Rank them by the figures behind them, best to worst.', href: '/listed' },
-  { key: 'mate',   cat: 'logic',     name: 'Mate',   tag: 'White to play and mate',      blurb: 'A real chess position with a forced mate hiding in it. Find the move that ends it.', href: '/mate' },
-  { key: 'four',   cat: 'logic',     name: 'Four',   tag: 'One column wins',             blurb: 'A Connect Four board where exactly one drop wins. Pick the column and play it out.', href: '/four' },
+  { key: 'mate',   cat: 'endgame',     name: 'Mate',   tag: 'White to play and mate',      blurb: 'A real chess position with a forced mate hiding in it. Find the move that ends it.', href: '/mate' },
+  { key: 'four',   cat: 'endgame',     name: 'Four',   tag: 'One column wins',             blurb: 'A Connect Four board where exactly one drop wins. Pick the column and play it out.', href: '/four' },
   { key: 'park',   cat: 'logic',     name: 'Parker', tag: 'Get the red one out',         blurb: 'A jammed parking lot. Slide the other cars aside and drive the red one free in as few moves as you can.', href: '/parker' },
-  { key: 'check',  cat: 'logic',     name: 'Check',  tag: 'Give a piece, take them all', blurb: 'A checkers position where one sacrifice sets off a chain that clears the whole board.', href: '/check' },
+  { key: 'check',  cat: 'endgame',     name: 'Check',  tag: 'Give a piece, take them all', blurb: 'A checkers position where one sacrifice sets off a chain that clears the whole board.', href: '/check' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    blurb: 'Six numbers, four operations, one target. Hit it exactly or get as close as you can.', href: '/crunch' },
-  { key: 'taire',  cat: 'logic',     name: 'Taire',  tag: 'The daily solitaire',        blurb: 'A trimmed solitaire deal that always has a finish in it. Clear the board and beat par.', href: '/taire' },
+  { key: 'taire',  cat: 'endgame',     name: 'Taire',  tag: 'The daily solitaire',        blurb: 'A trimmed solitaire deal that always has a finish in it. Clear the board and beat par.', href: '/taire' },
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          blurb: 'A logic grid where exactly one clue is false. Find the lie, then solve the rest.', href: '/fib' },
   { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  blurb: 'Forty trivia questions, sudden death. One wrong answer ends the run for the day.', href: '/streak' },
   { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            blurb: 'Name the answers real players gave most often. The most popular answers pay the most.', href: '/feud' },
-  { key: 'scrab',  cat: 'endgame',   name: 'Scrab',  tag: 'The bag is empty',           blurb: 'A Scrabble game at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/scrab' },
+  { key: 'babel',  cat: 'endgame',   name: 'Babel',  tag: 'The bag is empty',           blurb: 'A Babelble game at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       blurb: 'Test examples against a secret rule and name the rule before your guesses run out.', href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", blurb: 'Work out the answer purely from what each player admits they cannot yet tell.', href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          blurb: 'Drop every item into the right slice of the overlapping circles, overlaps included.', href: '/venn' },

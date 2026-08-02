@@ -1,31 +1,33 @@
 'use client';
 
-// Scrab — the daily Scrabble endgame.
+// Babel — the daily Scrabble-style endgame.
 //
 // The bag is empty. You hold five tiles (six on Sunday), your opponent holds
 // the rest, and the whole game is the last few plays. Because nothing is left
 // to draw, their rack is not a secret: it is the bag minus the board minus your
-// own rack, and the tile tracker does that subtraction for you. Knowing what
-// they hold is the easy half. Working out what they can DO with it, and whether
-// to race them out or block the lane they need, is the puzzle.
+// own rack. There is deliberately NO tracker doing that subtraction for you —
+// the launch version had one, and handing over the answer made the deduction
+// ornamental. The bag is printed beside the board and the arithmetic is yours.
+// Working out what they can DO with those tiles, and whether to race them out
+// or block the lane they need, is the rest of it.
 //
 // Your score is SPREAD: your points from here minus theirs, including the
 // end-of-game rack adjustment (go out and their leftovers come off their score
-// and onto yours). Par is the exact value of the position under the same search
-// the opponent defends with — see lib/scrab-engine.js — so par is always
-// reachable, and a line the engine never considered simply beats it.
+// and onto yours). Par is the spread our solver ACHIEVES from your seat against
+// the very defence the browser plays (solveLine in lib/babel-engine.js), so it
+// is reachable by construction rather than a ceiling nobody can hit.
 //
 // Two dictionaries, deliberately. The opponent plays from a common-word list so
 // it never answers with SLAGGY, while YOUR words are checked against the full
 // 115k list Tuck already uses. The asymmetry runs in the player's favour.
 //
 // Same daily plumbing as Tuck/Suds/Stet: banked positions gated by Eastern date
-// on the server (app/scrab/page.js), per-puzzle localStorage saves, /scrab?p=N
+// on the server (app/babel/page.js), per-puzzle localStorage saves, /babel?p=N
 // archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { X, Smartphone, RotateCcw, CheckCircle2, SkipForward, Eye } from 'lucide-react';
+import { X, Smartphone, RotateCcw, CheckCircle2, SkipForward } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -40,8 +42,8 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import {
   SIZE, PREMIUM, PTS, BAG, buildLexicon, rowsToBoard, boardToRows,
-  applyMove, validatePlacement, bestReply, rackSum,
-} from '@/lib/scrab-engine';
+  applyMove, validatePlacement, bestReply, rackSum, BAG_SIZE,
+} from '@/lib/babel-engine';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -50,7 +52,7 @@ const COLORS = {
   ember: '#0e1d40',
   rust: '#c0392b',
   faded: '#262b35',
-  accent: '#14532d',        // Scrab identity — board-felt green
+  accent: '#14532d',        // Babel identity — board-felt green
   accentSoft: '#e3efe6',
   green: '#15803d',
   tile: '#f7edda',
@@ -58,8 +60,8 @@ const COLORS = {
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const HELP_KEY = 'sot_scrab_help_seen';
-const STATS_KEY = 'sot_scrab_stats';
+const HELP_KEY = 'sot_babel_help_seen';
+const STATS_KEY = 'sot_babel_stats';
 
 // Premium square palette, in the order a Scrabble player expects to read them.
 const PREM = {
@@ -122,6 +124,12 @@ const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], lead
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 
+// The bag, printed once for reference. Sorted by letter value descending so
+// the tiles a player actually tracks (Q, Z, X, J) sit at the front.
+const BAG_ROWS = Object.keys(BAG)
+  .sort((a, b) => (PTS[b] - PTS[a]) || a.localeCompare(b))
+  .map((L) => [L, BAG[L]]);
+
 // ─── personal stats + streak (localStorage), the Tuck/Circa pattern ────────
 function getStats() {
   try {
@@ -167,11 +175,11 @@ function deriveStats(stats, todayNum) {
   return { played, won, cur, max };
 }
 
-export default function ScrabClient({ puzzles, forceNum }) {
+export default function BabelClient({ puzzles, forceNum }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const PAR = PUZZLE.par;
   const START_RACK = PUZZLE.rack;
-  const STORE_KEY = `sot_scrab_${PUZZLE.num}`;
+  const STORE_KEY = `sot_babel_${PUZZLE.num}`;
 
   const freshState = () => ({
     v: 1,
@@ -198,7 +206,6 @@ export default function ScrabClient({ puzzles, forceNum }) {
   const [engineLex, setEngineLex] = useState(null);
   const [dict, setDict] = useState(null);
   const [dictErr, setDictErr] = useState(false);
-  const [tracker, setTracker] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [stats, setStats] = useState(null);
   const [board, setBoardData] = useState(EMPTY_BOARD);
@@ -230,7 +237,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
   // against the full list as a plain Set, which is far cheaper than a second trie.
   useEffect(() => {
     let alive = true;
-    fetch('/scrab-common.txt')
+    fetch('/babel-common.txt')
       .then((r) => { if (!r.ok) throw new Error('lex'); return r.text(); })
       .then((t) => { if (alive) setEngineLex(buildLexicon(t.split('\n'))); })
       .catch(() => { if (alive) setDictErr(true); });
@@ -279,8 +286,8 @@ export default function ScrabClient({ puzzles, forceNum }) {
     try {
       if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
         const done = g.status !== 'playing';
-        if (done || g.t0) localStorage.setItem('sot_scrab_day', JSON.stringify({ d: etToday(), done }));
-        else localStorage.removeItem('sot_scrab_day');
+        if (done || g.t0) localStorage.setItem('sot_babel_day', JSON.stringify({ d: etToday(), done }));
+        else localStorage.removeItem('sot_babel_day');
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
@@ -534,7 +541,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
   }, [thinking, engineLex]);
 
   // ─── results ─────────────────────────────────────────────────────────────
-  const REC_KEY = `sot_scrab_rec_${PUZZLE.num}`;
+  const REC_KEY = `sot_babel_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     if (g.status !== 'playing' || !g.t0) return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
@@ -576,10 +583,10 @@ export default function ScrabClient({ puzzles, forceNum }) {
 
   function copyShare() {
     const line = g.status === 'playing'
-      ? `Scrab ${PUZZLE.dateLabel} — mid-endgame.`
-      : `Scrab ${PUZZLE.dateLabel}\nSpread ${signed(spread)} vs par ${signed(PAR)}${won ? ' ✓' : ''}\n${g.over === 'you-out' ? 'Went out first.' : g.over === 'foe-out' ? 'Caught holding tiles.' : 'Board closed out.'}`;
+      ? `Babel ${PUZZLE.dateLabel} — mid-endgame.`
+      : `Babel ${PUZZLE.dateLabel}\nSpread ${signed(spread)} vs par ${signed(PAR)}${won ? ' ✓' : ''}\n${g.over === 'you-out' ? 'Went out first.' : g.over === 'foe-out' ? 'Caught holding tiles.' : 'Board closed out.'}`;
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
-    const text = `${line}${streakBit}\nsourceoftruths.com/scrab`;
+    const text = `${line}${streakBit}\nsourceoftruths.com/babel`;
     try {
       navigator.clipboard.writeText(text);
       setCopied(true);
@@ -594,7 +601,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
         A Scrabble game, picked up at the very end. <b>The bag is empty</b>, so there is nothing left to draw: you hold {START_RACK.length} tiles, your opponent holds the rest, and these are the last plays of the game.
       </p>
       <p style={{ margin: '0 0 8px' }}>
-        <b>Their rack is not a secret.</b> It is the bag minus everything on the board minus your own tiles, and the <b>tile tracker</b> does that subtraction for you. Knowing what they hold is the easy half. Working out what they can do with it is the puzzle.
+        <b>Their rack is not a secret, but nobody will hand it to you.</b> It is the bag minus everything on the board minus your own tiles. The bag is printed beside the board, the board is in front of you, and the subtraction is yours to do. Working out what they can then DO with those tiles is the rest of it.
       </p>
       <p style={{ margin: '0 0 8px' }}>
         You are scored on <b>spread</b>: your points from here minus theirs. Go out first and their leftover tiles come off their score and onto yours, which is usually worth more than any single play. Get stuck holding tiles and it happens to you.
@@ -603,7 +610,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
         Tap a tile, then tap a square, or just click a square and type. <b>Par is {signed(PAR)}</b>: the spread our solver gets from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
       </p>
       <p style={{ margin: 0, color: COLORS.faded }}>
-        Your words are checked against the full Tuck dictionary. Your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
+        The bag is 65 tiles in near-Scrabble proportion, Q included, with no blanks. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
       </p>
     </div>
   );
@@ -619,21 +626,26 @@ export default function ScrabClient({ puzzles, forceNum }) {
           .sc-btn.primary:hover{background:#0f3d21;}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
           .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:#0d3b20;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
-          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(11px,3vw,17px);color:${COLORS.ink};cursor:pointer;user-select:none;background:#e9efe9;}
+          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${COLORS.ink};cursor:pointer;user-select:none;background:#dfe7e0;}
           .sc-cell .pl{font-family:${MONO};font-size:clamp(6px,1.7vw,9px);font-weight:500;letter-spacing:-0.02em;opacity:0.95;}
-          .sc-cell.tile{background:${COLORS.tile};box-shadow:inset 0 -2px 0 rgba(120,80,20,0.22);color:${COLORS.ink};}
-          .sc-cell.fresh{background:#cfe8d6;box-shadow:inset 0 -2px 0 rgba(20,83,45,0.35);}
-          .sc-cell.foeplay{background:#f2d9c8;box-shadow:inset 0 -2px 0 rgba(124,45,18,0.3);}
+          /* Laid tiles have to read at a glance against the premium colours and
+             the green ground. The launch version used a pale cream on a pale
+             board and the letters washed out, so the tile is warmer, the letter
+             is near-black at full weight, and every tile carries a hard edge. */
+          .sc-cell.tile{background:#f0dfba;border:1px solid rgba(86,58,16,0.55);color:#12141a;text-shadow:0 1px 0 rgba(255,255,255,0.5);box-shadow:inset 0 -3px 0 rgba(120,80,20,0.3);}
+          .sc-cell.fresh{background:#b9e0c6;border-color:rgba(13,59,32,0.6);box-shadow:inset 0 -3px 0 rgba(20,83,45,0.45);}
+          .sc-cell.foeplay{background:#f3cdb2;border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
           .sc-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
-          .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.65;}
+          .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}
           .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:${COLORS.accent};}
           .sc-rack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 6px;}
           .sc-tile{position:relative;width:42px;height:46px;background:${COLORS.tile};border:1.5px solid rgba(120,80,20,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${COLORS.ink};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
           .sc-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;opacity:0.7;}
           .sc-tile.used{opacity:0.25;box-shadow:none;}
           .sc-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:2px;}
-          .sc-trk{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
-          .sc-trk span{font-family:${MONO};font-size:11.5px;font-weight:500;background:#fff;border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 6px;}
+          .sc-bag{display:flex;flex-wrap:wrap;gap:3px;}
+          .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:#fff;border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 5px;color:${COLORS.faded};}
+          .sc-bag span b{color:${COLORS.ink};font-weight:800;margin-right:2px;}
           .sc-log{font-family:${MONO};font-size:11.5px;font-weight:500;line-height:1.75;}
         `}</style>
 
@@ -642,7 +654,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
         <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         <DailyMasthead
-          slug="scrab"
+          slug="babel"
           num={PUZZLE.num}
           dateLabel={PUZZLE.dateLabel}
           accent={COLORS.accent}
@@ -650,14 +662,14 @@ export default function ScrabClient({ puzzles, forceNum }) {
           helpTop={10}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; six tiles</span>}
-          blocks={'SCRAB'.split('').map((ch, i) => (
+          blocks={'BABEL'.split('').map((ch, i) => (
             <div key={i} style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 460, margin: '0 auto 4px' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Scrab is ready'}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Babel is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>The bag is empty and there are {START_RACK.length} tiles on your rack. Par is <b>{signed(PAR)}</b>. The board waits until you begin.</p>
@@ -688,7 +700,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
 
         <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', alignItems: 'flex-start' }}>
           <div style={{ flex: '1 1 320px', minWidth: 290, maxWidth: 460 }}>
-            <div className="sc-grid" role="grid" aria-label="Scrab board">
+            <div className="sc-grid" role="grid" aria-label="Babel board">
               {Array.from({ length: SIZE * SIZE }, (_, i) => {
                 const r = Math.floor(i / SIZE), c = i % SIZE;
                 const p = pendingAt.get(`${r},${c}`);
@@ -755,28 +767,22 @@ export default function ScrabClient({ puzzles, forceNum }) {
             )}
           </div>
 
-          {/* tracker + move log */}
+          {/* the bag + move log. There is deliberately NO tracker: the bag is
+              printed here, the board is in front of you, and the subtraction is
+              the puzzle. Handing over their rack was the launch version's
+              mistake, and it made the deduction ornamental. */}
           <div style={{ flex: '1 1 190px', minWidth: 180 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 6 }}>Tile tracker</div>
-            <button type="button" className="sc-btn" style={{ padding: '6px 11px', fontSize: 12 }} onClick={() => setTracker((v) => !v)}>
-              <Eye size={13} /> {tracker ? 'Hide their rack' : `Show what's left (${foeRack.length})`}
-            </button>
-            {tracker ? (
-              <>
-                <div className="sc-trk">
-                  {foeRack.length ? foeRack.slice().sort().map((L, i) => (
-                    <span key={i}>{L}<b style={{ opacity: 0.55, marginLeft: 3 }}>{PTS[L]}</b></span>
-                  )) : <span>none</span>}
-                </div>
-                <div style={{ fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 6, lineHeight: 1.5 }}>
-                  The bag, minus the board, minus your rack. Worth {rackSum(foeRack)} to you if you go out first.
-                </div>
-              </>
-            ) : (
-              <div style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, marginTop: 6, lineHeight: 1.55 }}>
-                Nothing is left to draw, so their {foeRack.length} tiles are exactly the ones unaccounted for. Work it out yourself, or open the tracker.
-              </div>
-            )}
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 6 }}>
+              The bag &middot; {BAG_SIZE} tiles
+            </div>
+            <div className="sc-bag">
+              {BAG_ROWS.map(([L, n]) => (
+                <span key={L}><b>{L}</b>{n}</span>
+              ))}
+            </div>
+            <div style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, marginTop: 7, lineHeight: 1.55 }}>
+              No blanks. Nothing left to draw, so their <b style={{ color: COLORS.ink }}>{foeRack.length} tiles</b> are whatever this bag has left once you subtract the board and your own rack.
+            </div>
 
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '16px 0 6px' }}>Moves</div>
             <div className="sc-log">
@@ -816,14 +822,14 @@ export default function ScrabClient({ puzzles, forceNum }) {
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}
-                      <a href={`/scrab?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s position &rarr;</a>
+                      <a href={`/babel?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s position &rarr;</a>
                     </>
                   )}
                 </>
               ) : (
                 <>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/scrab" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Scrab &rarr;</a>
+                  <a href="/babel" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Babel &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
@@ -840,12 +846,12 @@ export default function ScrabClient({ puzzles, forceNum }) {
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           <DailyGamesGrid replay={!playing ? resetGame : null}
-            self="scrab"
+            self="babel"
             maxWidth={640}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
             share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }}
             light
-            boardSlot={<DailyBoardPanel self="scrab" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />}
+            boardSlot={<DailyBoardPanel self="babel" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
           {mobileUi && !standalone && (
@@ -857,7 +863,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Scrab to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Babel to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
@@ -884,7 +890,7 @@ export default function ScrabClient({ puzzles, forceNum }) {
       {!playing && !endClosed && (
         <DailyEndCard
           modal
-          self="scrab"
+          self="babel"
           won={won}
           completed
           score={<>{signed(spread)} spread &middot; par {signed(PAR)}</>}
@@ -918,15 +924,15 @@ export default function ScrabClient({ puzzles, forceNum }) {
       )}
 
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Scrab</h2>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Babel</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Scrab is a free daily word puzzle from Source of Truths: a Scrabble game picked up at the very end. The bag is empty, you hold five tiles and your opponent holds the rest, and the last few plays decide everything. Because nothing is left to draw, their rack is not a mystery. It is the bag minus the board minus your own tiles, which is exactly the arithmetic tournament players do on a tracking sheet, and the built-in tracker will do it for you.
+          Babel is a free daily word puzzle from Source of Truths: a Scrabble game picked up at the very end. The bag is empty, you hold five tiles and your opponent holds the rest, and the last few plays decide everything. Because nothing is left to draw, their rack is not a mystery. It is the bag minus the board minus your own tiles, which is exactly the arithmetic tournament players do on a tracking sheet. Babel prints the bag and leaves the subtraction to you.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           You are scored on spread: your points from here minus your opponent&rsquo;s. Going out first is the prize, because their leftover tiles come off their score and land on yours. That makes the real question a familiar one to any endgame player: race, or block the lane they need and make them sit on a tile they cannot play. Every position ships with a par computed by the same solver that plays the defence, so par is always reachable and never a guess.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.
+          The bag is 65 tiles in near-Scrabble proportion, Q included, and no blanks. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.
         </p>
       </section>
 

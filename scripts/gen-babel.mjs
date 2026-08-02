@@ -1,4 +1,4 @@
-// Bank generator for Scrab.
+// Bank generator for Babel.
 //
 // A hand-built endgame always looks hand-built, so every position here is the
 // tail of a real game: the engine deals a 64-tile bag, plays itself down to an
@@ -6,11 +6,11 @@
 // both racks are at the day's target size. Whatever the board looks like at
 // that moment IS the puzzle — tight, plausible, and nobody's darling.
 //
-// Par is then the exact value of that endgame under lib/scrab-engine's search,
+// Par is then the exact value of that endgame under lib/babel-engine's search,
 // which is the same search the client defends with, so the number is a promise
 // rather than an estimate.
 //
-//   node scripts/gen-scrab.mjs --from 2026-08-02 --days 30 --startnum 1
+//   node scripts/gen-babel.mjs --from 2026-08-02 --days 30 --startnum 1
 
 import fs from 'fs';
 import path from 'path';
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 import {
   BAG, buildLexicon, emptyBoard, generateMoves, applyMove,
   solveLine, boardToRows, rackSum,
-} from '../lib/scrab-engine.js';
+} from '../lib/babel-engine.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -29,7 +29,7 @@ const arg = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] :
 const FROM = arg('--from', '2026-08-02');
 const DAYS = Number(arg('--days', '30'));
 const STARTNUM = Number(arg('--startnum', '1'));
-const OUT = arg('--out', path.join(ROOT, 'app/scrab/puzzles.js'));
+const OUT = arg('--out', path.join(ROOT, 'app/babel/puzzles.js'));
 // Solving a Sunday takes ten seconds and the sandbox reaps long jobs, so the
 // run is resumable: --budget stops cleanly after N seconds and writes what it
 // finished, and the next call picks up with --from/--startnum. Writing a .json
@@ -69,16 +69,16 @@ function parts(iso) {
 // ─── lexicons ──────────────────────────────────────────────────────────────
 // TWO word lists, on purpose.
 //
-//   scrab-common.txt  every 2- and 3-letter word plus the 4-8s that clear the
+//   babel-common.txt  every 2- and 3-letter word plus the 4-8s that clear the
 //                     Lode frequency floor. The engine builds boards and plays
 //                     its defence from THIS list, so the position a player
 //                     opens is real English and the opponent never answers with
 //                     SLAGGY or FAIX.
 //   tuck-dict.txt     the full 115k list, used only to validate what the PLAYER
-//                     lays down. Anything Tuck accepts, Scrab accepts, so the
+//                     lays down. Anything Tuck accepts, Babel accepts, so the
 //                     asymmetry runs entirely in the player's favour: they may
 //                     reach for vocabulary the engine will never use.
-const lex = buildLexicon(fs.readFileSync(path.join(ROOT, 'public/scrab-common.txt'), 'utf8').split('\n'));
+const lex = buildLexicon(fs.readFileSync(path.join(ROOT, 'public/babel-common.txt'), 'utf8').split('\n'));
 console.log(`engine lexicon: ${lex.nodes} nodes`);
 
 // ─── one self-played game, stopped at the endgame ──────────────────────────
@@ -206,6 +206,11 @@ function assess(pos, target) {
     // shed more tiles than intended on the last shaping move, and a Sunday that
     // quietly dealt four tiles would make the Sunday Edition badge a lie.
     if (seat.me.length !== target) continue;
+    // The Q is left wherever the self-play put it (owner ruling): on the board
+    // about three games in four, as in the real game, otherwise on either
+    // rack. Holding it yourself is a real endgame problem, and deducing that
+    // THEY hold it, then working out whether QI is still open to them, is the
+    // best read the game offers. Neither case is filtered out.
     const moves = generateMoves(pos.board, seat.me, lex);
     if (moves.length < 15) continue;         // too few options to be a choice
     const greedy = greedyLine({ board: pos.board, me: seat.me, opp: seat.opp });
@@ -245,7 +250,7 @@ for (let i = 0; i < DAYS; i++) {
   let found = null;
   for (let attempt = 0; attempt < 400 && !found; attempt++) {
     tries++;
-    const seed = hashSeed(`scrab|${iso}|${attempt}`);
+    const seed = hashSeed(`babel|${iso}|${attempt}`);
     const pos = buildPosition(seed, target);
     if (!pos) continue;
     const a = assess(pos, target);
@@ -258,7 +263,7 @@ for (let i = 0; i < DAYS; i++) {
   const num = STARTNUM + i;
   out.push({
     num,
-    quizId: `scrab-${p.m}-${p.dd}-${String(p.y).slice(2)}`,
+    quizId: `babel-${p.m}-${p.dd}-${String(p.y).slice(2)}`,
     live: iso,
     dateLabel: `${MONTHS[p.m - 1]} ${p.dd}, ${p.y}`,
     sunday,
@@ -279,20 +284,20 @@ if (AS_JSON) {
   process.exit(0);
 }
 
-const header = `// Puzzle data for Scrab, the daily Scrabble endgame. Imported ONLY by the
-// server page (app/scrab/page.js), which filters live<=today AND strips \`foe\`
+const header = `// Puzzle data for Babel, the daily Scrabble endgame. Imported ONLY by the
+// server page (app/babel/page.js), which filters live<=today AND strips \`foe\`
 // before handing anything to the browser — the opponent's rack is the thing you
 // are meant to deduce, so it must never ship early.
 //
-// Each day is the tail of a real self-played game (scripts/gen-scrab.mjs): the
+// Each day is the tail of a real self-played game (scripts/gen-babel.mjs): the
 // bag is empty, both racks are frozen at five tiles (six in the Sunday
 // Edition), and \`par\` is the exact value of the endgame under the shared
-// search in lib/scrab-engine.js — the same search the client defends with, so
+// search in lib/babel-engine.js — the same search the client defends with, so
 // par is always reachable. \`greedy\` is what always grabbing the biggest number
 // gets you, and every banked day pays at least 4 more than that for playing the
 // endgame properly.
 //
-// Validate with scripts/verify-scrab.mjs after ANY edit; it recomputes par and
+// Validate with scripts/verify-babel.mjs after ANY edit; it recomputes par and
 // greedy from the stored board and fails on drift.
 export const PUZZLES = [
 `;
