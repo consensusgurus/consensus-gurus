@@ -24,6 +24,13 @@
 //      colored cap across the top and a gold/silver/bronze tint on a top-3
 //      finish, each expanding in place to that board's top 10. The internal view keys stay
 //      'today' / 'alltime' / 'combined' (owner redesign 2026-07-31).
+//      The TODAY expansion is a full results table — rank / player / score /
+//      time / misses / points — not a single value column, because a player's
+//      first question on seeing their rank is why the people above them beat
+//      them, and score-and-time is the answer (owner, 2026-08-01). It matches
+//      the on-page DailyBoardPanel's today board column for column, and where
+//      the six columns do not fit it scrolls sideways inside its own box
+//      rather than dropping the middle columns.
 //   3. guest-only claim banner (unregistered players only) — sits directly
 //      under the rank tiles, loudly (pulsing ring + sweeping sheen + blinking
 //      CTA) telling a guest their points and ranks are unclaimed. Moved above
@@ -795,7 +802,12 @@ export default function DailyEndCard({
     }
     if (which === 'today') {
       const rows = (todayGame && Array.isArray(todayGame.board)) ? todayGame.board : [];
-      return rows.map((r) => ({ rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!(myKey && r.userKey === myKey) }));
+      // Today's rows keep their score / time / misses so the expansion can render
+      // the full results table; `val` stays for any single-column consumer.
+      return rows.map((r) => ({
+        rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!(myKey && r.userKey === myKey),
+        score: r.score, total: r.total, timeElapsed: r.timeElapsed, guessesUsed: r.guessesUsed, points: r.points,
+      }));
     }
     if (which === 'alltime') {
       const rows = (allTime && Array.isArray(allTime.board)) ? allTime.board : [];
@@ -804,6 +816,12 @@ export default function DailyEndCard({
     return [];
   }
   const fmtPts = (x) => (x == null ? '' : `${Math.round(Number(x) * 10) / 10} pts`);
+  const fmtNum = (x) => (x == null ? '' : String(Math.round(Number(x) * 10) / 10));
+  const fmtTime = (sec) => {
+    if (sec == null) return '\u2014';
+    const m = Math.floor(sec / 60), ss = sec % 60;
+    return `${m}:${String(ss).padStart(2, '0')}`;
+  };
 
   // --- archive completion (this game's drops played) ------------------------
   const playedCount = (drops || []).filter((d) => d.played).length;
@@ -1147,6 +1165,27 @@ export default function DailyEndCard({
         .dec-lbrow.me .nm{font-weight:800;}
         .dec-lbrow .vl{font-family:${MONO};font-size:11.5px;color:${SLATE};flex-shrink:0;}
         .dec-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
+        /* Today's expansion is a results TABLE (owner, 2026-08-01): the same
+           rank / player / score / time / misses / points columns the on-page
+           DailyBoardPanel shows, so a player can see WHY they placed where they
+           did. Keep the two grids in sync. On a phone the six columns do not
+           fit; rather than hiding Time and Miss (which are the explanation) the
+           table scrolls sideways inside its own box, header row and score rows
+           together in one scroller so they never desync. */
+        .dec-lbscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:0 -3px;padding:0 3px;scrollbar-width:thin;}
+        .dec-lbscroll-in{min-width:388px;}
+        .dec-g{display:grid;grid-template-columns:28px minmax(72px,1fr) 52px 52px 44px 46px;gap:8px;align-items:center;}
+        .dec-gh{padding:0 7px 6px;}
+        .dec-gh .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
+        .dec-grow{padding:5px 7px;border-radius:7px;}
+        .dec-grow.me{background:#eff4fd;}
+        .dec-g .rk{font-family:${MONO};font-size:11px;color:${FADED};}
+        .dec-g .nm{font-weight:700;color:${INK};font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dec-grow.me .nm{font-weight:800;}
+        .dec-g .num{font-family:${MONO};font-size:11px;color:${SLATE};text-align:right;font-variant-numeric:tabular-nums;}
+        .dec-g .pts{font-weight:800;color:${INK};text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;}
+        .dec-lbswipe{display:none;font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};padding:5px 2px 0;}
+        @media(max-width:520px){.dec-lbswipe{display:block;}}
 
         .dec-slip{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:9px 13px;border-radius:11px;margin-bottom:10px;width:100%;text-align:left;}
         .dec-slip.info{background:#eff4fd;border:1px solid #d7e3f8;color:${SLATE};}
@@ -1468,13 +1507,41 @@ export default function DailyEndCard({
                 <button type="button" className="dec-expand-full" onClick={() => openPanel(openTile)}>Full leaderboard <ArrowRight size={12} strokeWidth={2.4} /></button>
               )}
             </div>
-            {rows.length ? rows.map((r, idx) => (
+            {!rows.length ? (
+              <div className="dec-lbempty">{openTile === 'iq' ? 'Your IQ ranking appears once this game is counted.' : 'No board yet. Be the first to post a score.'}</div>
+            ) : openTile === 'today' ? (
+              <>
+                <div className="dec-lbscroll">
+                  <div className="dec-lbscroll-in">
+                    <div className="dec-g dec-gh">
+                      <span className="h">#</span>
+                      <span className="h">Player</span>
+                      <span className="h" style={{ textAlign: 'right' }}>Score</span>
+                      <span className="h" style={{ textAlign: 'right' }}>Time</span>
+                      <span className="h" style={{ textAlign: 'right' }}>Miss</span>
+                      <span className="h" style={{ textAlign: 'right' }}>Pts</span>
+                    </div>
+                    {rows.map((r, idx) => (
+                      <div className={`dec-g dec-grow${r.me ? ' me' : ''}`} key={idx}>
+                        <span className="rk">#{r.rank}</span>
+                        <span className="nm">{r.name || '—'}</span>
+                        <span className="num">{r.score == null ? '—' : <>{r.score}/{r.total}</>}</span>
+                        <span className="num">{fmtTime(r.timeElapsed)}</span>
+                        <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span>
+                        <span className="pts">{fmtNum(r.points)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="dec-lbswipe">Swipe for time, misses and points →</div>
+              </>
+            ) : rows.map((r, idx) => (
               <div className={`dec-lbrow${r.me ? ' me' : ''}`} key={idx}>
                 <span className="rk">#{r.rank}</span>
                 <span className="nm">{r.name || '—'}</span>
                 <span className="vl">{r.val}</span>
               </div>
-            )) : <div className="dec-lbempty">{openTile === 'iq' ? 'Your IQ ranking appears once this game is counted.' : 'No board yet. Be the first to post a score.'}</div>}
+            ))}
           </div>
         );
       })() : null}

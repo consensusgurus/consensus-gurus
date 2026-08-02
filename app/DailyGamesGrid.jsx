@@ -1,8 +1,14 @@
 'use client';
 
 // The "keep playing / share" group shown on each daily-game page, directly under
-// the puzzle and above the leaderboard. Three parts:
-//   0. a "Play Today's Puzzle Again" button pinned to the TOP of the block, i.e.
+// the puzzle and above the leaderboard. Four parts, in this order (owner
+// consistency pass, 2026-08-01: the page block below the board now mirrors the
+// end-of-game card, so a player reads the same controls in the same styling
+// whether they are looking at the card or the page):
+//   0. the "Report an issue" link, FIRST, tucked directly under the finished
+//      board where a player who has just spotted a bad clue looks for it. It
+//      used to sit between the replay and share buttons, which buried it;
+//   1. a "Play Today's Puzzle Again" button, i.e. at
 //      the bottom of the play space, shown only once the board is finished
 //      (owner, 2026-07-31). Before this the ONLY replay control was the "Try
 //      again" button inside the DailyEndCard modal, so a player who dismissed
@@ -13,14 +19,17 @@
 //      completed attempt is what the daily leaderboard and the local streak
 //      keep (write-once recordStat in each client), so it never overwrites the
 //      recorded run;
-//   1. a full-width Share-for-credit button, which copies the player's own
+//   2. a full-width Share-for-credit button, which copies the player's own
 //      referral link and carries its own one-line explanation of WHY sharing
 //      matters (owner, 2026-07-31). The old 2-up row paired it with a
 //      "Challenge a Friend" duel link; that button was removed and the share
 //      button took the whole width, so the `challengeHref` prop is now ignored
 //      (kept on the signature only so the ~43 game pages that still pass it do
-//      not need touching); and
-//   2. the games grid — the OTHER dailies (plus one evergreen popular quiz to
+//      not need touching). Its styling is the end card's black `.dec-sharebar`
+//      (ink bar, icon chip, title + sub-line, chevron) rather than the old
+//      cream/amber tile, so the same action looks the same in both places
+//      (owner, 2026-08-01); and
+//   3. the games grid — the OTHER dailies (plus one evergreen popular quiz to
 //      keep the count even), 2-wide on phones and 3-wide on desktop.
 // Games the viewer has already finished today get a faint green wash + a check
 // badge (from /api/quiz/daily-me, same source as the end card).
@@ -30,7 +39,7 @@
 // registry here adds it to every other game's page.
 
 import React, { useState, useEffect } from 'react';
-import { Share2, Check, RotateCcw } from 'lucide-react';
+import { Share2, Check, RotateCcw, ChevronRight } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
 import { fetchDailyMe, dailyMeQuery } from './dailyMeClient';
@@ -155,7 +164,6 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
   return (
     <div className={light ? 'dgg-light' : undefined} style={{ maxWidth, margin: '18px auto 0' }}>
       <style>{`
-        .dgg-actions{display:grid;gap:10px;margin-bottom:14px;}
         .dgg-grp{margin-bottom:14px;}
         .dgg-glabel{display:flex;align-items:center;gap:10px;margin:0 2px 8px;}
         .dgg-glabel .k{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0e1d40;white-space:nowrap;}
@@ -176,15 +184,30 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act{min-height:76px;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;width:100%;}
         .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#1c1e24;line-height:1.15;text-align:center;}
         .dgg-act svg{flex:0 0 auto;}
-        .dgg-act.dgg-share svg{color:#f8b84a;}
         .dgg-replay{margin-bottom:12px;}
         .dgg-act.dgg-again{min-height:64px;background:#eef7f1;border-color:#cfe6d8;}
         .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
         .dgg-act.dgg-again svg{color:#16a34a;}
         .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:#3f6b4e;}
-        /* Share sub-line: its own tone (the base color is tuned for the green
-           replay button) and a readable measure on wide screens. */
-        .dgg-act.dgg-share .dgg-act-s{color:#7c6512;max-width:520px;margin-left:auto;margin-right:auto;font-size:11px;line-height:1.4;}
+
+        /* Share bar — a byte-for-byte match of the end card's .dec-sharebar
+           (owner, 2026-08-01). The page and the card fire the SAME share
+           handler and open the same ShareCreditPop, so showing one as a black
+           feature bar and the other as a cream tile made a single action look
+           like two. The ink treatment is the one that stays. */
+        .dgg-sharebar{display:flex;align-items:center;gap:13px;width:100%;box-sizing:border-box;text-align:left;font-family:inherit;color:#fff;background:#1c1e24;border:1px solid #1c1e24;border-radius:13px;padding:12px 14px;margin-bottom:12px;cursor:pointer;transition:filter .12s ease;}
+        .dgg-sharebar:hover{filter:brightness(1.16);}
+        .dgg-sharebar .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dgg-sharebar .ic svg{color:#fff;}
+        .dgg-sharebar .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+        .dgg-sharebar .t{font-size:14px;font-weight:800;letter-spacing:-.01em;}
+        .dgg-sharebar .s{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.66);}
+        .dgg-sharebar .cv{flex-shrink:0;opacity:.6;}
+        @media(max-width:640px){
+          .dgg-sharebar{gap:11px;padding:11px 12px;}
+          .dgg-sharebar .t{font-size:13px;}
+          .dgg-sharebar .s{font-size:11px;}
+        }
 
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
            bottom section matches the end-of-game card. Game icons are kept. */
@@ -199,9 +222,6 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-done .dgg-art{opacity:.6;}
         .dgg-light .dgg-done .dgg-nm{color:#15803d;}
         .dgg-light .dgg-check{border-color:#1c1e24;}
-        .dgg-light .dgg-act.dgg-share{background:#fdf6e4;border-color:#f0e3bb;}
-        .dgg-light .dgg-act.dgg-share .dgg-act-l{color:#5c4a06;}
-        .dgg-light .dgg-act.dgg-share svg{color:#c58a12;}
         /* The .dgg-again tint must be scoped to .dgg-light too: the unscoped
            rule ties on specificity with .dgg-light .dgg-t and loses on order,
            so the button rendered white. Same pattern as share. */
@@ -209,6 +229,14 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-light .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
         .dgg-light .dgg-act.dgg-again svg{color:#16a34a;}
       `}</style>
+      {/* Report an issue leads the block (owner, 2026-08-01): it belongs
+          directly under the board a player has just finished, not buried
+          between the replay and share buttons. */}
+      {self ? (
+        <div style={{ marginBottom: 12 }}>
+          <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />
+        </div>
+      ) : null}
       {replay ? (
         <div className="dgg-replay">
           <button type="button" onClick={goReplay} className="dgg-t dgg-act dgg-again" aria-label="Play today's puzzle again">
@@ -220,25 +248,17 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           </button>
         </div>
       ) : null}
-      {self ? (
-        <div style={{ marginBottom: 12 }}>
-          <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />
-        </div>
-      ) : null}
+      {/* Same markup and copy as the end card's share bar, so the one action
+          reads identically in both surfaces. */}
       {share ? (
-        <div className="dgg-actions" style={{ gridTemplateColumns: '1fr' }}>
-          <button type="button" onClick={share.onClick} className="dgg-t dgg-act dgg-share" aria-label="Share your result and get credit">
-            <Share2 size={20} strokeWidth={2.5} />
-            <span className="dgg-act-l">
-              {copied ? share.label : 'Share Your Result, Get the Credit'}
-              <span className="dgg-act-s">
-                {copied
-                  ? 'Paste it anywhere. Everyone who plays from it is credited to you on our community leaderboard. I\u2019m a one person startup! Please help us grow!'
-                  : 'Click to share your result with your own link. Everyone who plays from it is credited to you on our community leaderboard. I\u2019m a one person startup! Please help us grow!'}
-              </span>
-            </span>
-          </button>
-        </div>
+        <button type="button" onClick={share.onClick} className="dgg-sharebar" aria-label="Share your result and get credit">
+          <span className="ic"><Share2 size={17} strokeWidth={2.3} /></span>
+          <span className="tx">
+            <span className="t">{copied ? share.label : 'Share result or challenge a friend for site credit'}</span>
+            <span className="s">Send your link. You get the credit when they play.</span>
+          </span>
+          <ChevronRight size={17} strokeWidth={2.4} className="cv" />
+        </button>
       ) : null}
       {/* The daily-leaderboard panel sits directly under the Share action,
           above the games grid (owner layout, 2026-07-23). */}

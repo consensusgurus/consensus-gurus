@@ -8,7 +8,13 @@ import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from '../../dailyMeClie
 // theme, placed directly under the Challenge / Share actions on every daily-game
 // page. It mirrors the end-of-game card. Header shows the player's name (or a
 // sign-up prompt for guests, who still see their hypothetical standings). Below
-// sit four punchy tiles that double as the leaderboard selector —
+// sit three punchy tiles that double as the leaderboard selector. Their styling
+// is deliberately the END CARD's tile treatment (DailyEndCard `.dec-tile`:
+// 2px border, white-to-blue gradient, a colored cap across the top, a big
+// centered numeral with the field size spelled out, and a gold/silver/bronze
+// tint on a top-3 finish), and the board rows below match `.dec-expand`, so the
+// popup a player just dismissed and the panel they scroll to are the same
+// element in the same skin (owner consistency pass, 2026-08-01) —
 //   1. This Puzzle    — my rank of today's per-game field (key 'today')
 //   2. All Time       — my rank of the game's cumulative field (key 'alltime')
 //   3. (was Today's Puzzles, the combined best-N board: removed 2026-08-01. The
@@ -38,6 +44,7 @@ const INK = '#1c1e24';
 const SLATE = '#46506a';
 const FADED = '#262b35';
 const BORD = '#e7eaf1';
+const NAVY = '#0e1d40';
 const BLUE = '#2563eb';
 
 const GAME_NAMES = Object.fromEntries(Object.values(DAILY_GAME_MAP).map((g) => [g.key, g.name]));
@@ -209,20 +216,21 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   // (the archive tile shows a percentage).
   const rankTile = (id, label, rank, field, dash, prov, big) => {
     const on = sel === id;
+    // Podium tint on a genuine top-3 finish, same rule as the end card. `big`
+    // (the archive percentage) never medals: it is not a rank.
+    const medal = (big == null && !dash && rank && rank <= 3) ? ` medal m${rank}` : '';
     return (
       <button type="button" key={id} onClick={() => clickTile(id)} aria-expanded={on && open}
-        className={`dbp-tile${on ? ' on' : ''}`}
-        style={on ? { borderColor: accent, boxShadow: `0 0 0 1px ${accent}` } : undefined}>
-        <span className="dbp-accent" style={{ background: on ? accent : '#e2e6ee' }} />
-        <div className="dbp-tile-lbl" style={on ? { color: accent } : undefined}>{label}</div>
+        className={`dbp-tile${on ? ' on' : ''}${medal}`}>
+        <div className="dbp-tile-lbl">{label}</div>
         <div className="dbp-tile-rk">
           {big != null ? big
             : dash ? <span className="dash">&mdash;</span>
             : rank ? <>#{rank}{prov ? <span className="prov"> prov.</span> : null}</>
             : <span className="dash">&middot;</span>}
         </div>
-        <div className="dbp-tile-of">{field ? <>of {field}</> : (dash ? 'registered only' : ' ')}</div>
-        <ChevronDown className="dbp-tile-cx" size={14} strokeWidth={2.6} style={{ transform: on && open ? 'rotate(180deg)' : 'none' }} />
+        <div className="dbp-tile-of">{field ? <>of {Number(field).toLocaleString()} player{Number(field) === 1 ? '' : 's'}</> : (dash ? 'registered only' : ' ')}</div>
+        <ChevronDown className="dbp-tile-cx" size={15} strokeWidth={2.4} style={{ transform: on && open ? 'rotate(180deg)' : 'none' }} />
       </button>
     );
   };
@@ -256,19 +264,37 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-streak b{font-weight:800;color:${INK};}
         .dbp-streak .best{color:${FADED};}
 
-        .dbp-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
-        .dbp-tile{position:relative;overflow:hidden;text-align:left;border:1px solid ${BORD};background:#f7f8fa;border-radius:12px;padding:12px 12px 11px;min-width:0;cursor:pointer;font-family:${SANS};display:block;transition:background .12s ease,border-color .12s ease;}
-        .dbp-tile:hover{background:#fff;border-color:#cfd6e2;}
-        .dbp-tile.on{background:#fff;}
-        .dbp-accent{position:absolute;left:0;top:0;bottom:0;width:3px;}
-        .dbp-tile-lbl{font-family:${MONO};font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:${SLATE};padding-right:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        /* Rank number and "of N" share ONE baseline-aligned line (of N to the
-           right of the number) to reclaim vertical space and fill the tile width. */
-        .dbp-tile-rk{font-size:27px;font-weight:900;letter-spacing:-.03em;color:${INK};line-height:1.05;margin-top:4px;font-variant-numeric:tabular-nums;display:inline-block;vertical-align:baseline;}
-        .dbp-tile-rk .prov{font-size:11px;font-weight:700;color:${FADED};}
+        /* Tiles mirror DailyEndCard .dec-tile exactly (owner, 2026-08-01): the
+           card and this panel show the same three standings, so they now wear
+           the same skin. Keep the two in sync when either changes. */
+        .dbp-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+        .dbp-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:${SANS};cursor:pointer;border:2px solid #cfdcf4;background:linear-gradient(180deg,#fff,#eff5ff);border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:0 3px 13px rgba(20,30,60,.08);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
+        /* The colored cap across the top: three deliberate cards, not three
+           pale boxes. */
+        .dbp-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
+        .dbp-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(37,99,235,.16);transform:translateY(-1px);}
+        .dbp-tile.on{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
+        /* Podium tint: a top-3 finish is the point of the row, so it is colored
+           gold / silver / bronze rather than left generic blue. */
+        .dbp-tile.m1{border-color:#e3ba57;background:linear-gradient(180deg,#fffdf5,#fdf3d9);box-shadow:0 3px 14px rgba(190,145,25,.20);}
+        .dbp-tile.m1::before{background:linear-gradient(90deg,#d9a327,#f2d489);}
+        .dbp-tile.m1 .dbp-tile-lbl{color:#96700d;}
+        .dbp-tile.m1 .dbp-tile-rk{color:#8a6407;}
+        .dbp-tile.m2{border-color:#c3cad6;background:linear-gradient(180deg,#fff,#f1f3f7);box-shadow:0 3px 13px rgba(40,50,70,.13);}
+        .dbp-tile.m2::before{background:linear-gradient(90deg,#98a2b3,#d6dbe4);}
+        .dbp-tile.m2 .dbp-tile-lbl{color:#5d6779;}
+        .dbp-tile.m2 .dbp-tile-rk{color:#414b5e;}
+        .dbp-tile.m3{border-color:#dcb695;background:linear-gradient(180deg,#fffbf7,#fbeee2);box-shadow:0 3px 13px rgba(150,95,45,.16);}
+        .dbp-tile.m3::before{background:linear-gradient(90deg,#b8703c,#e2b189);}
+        .dbp-tile.m3 .dbp-tile-lbl{color:#8c5527;}
+        .dbp-tile.m3 .dbp-tile-rk{color:#7d4a1f;}
+        .dbp-tile-lbl{font-family:${SANS};font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${BLUE};padding:0 18px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:28px;}
+        .dbp-tile-rk{font-size:43px;font-weight:800;letter-spacing:-.035em;color:${NAVY};line-height:1.02;margin-top:2px;display:block;font-variant-numeric:tabular-nums;}
+        .dbp-tile-rk .prov{font-size:12px;font-weight:700;color:${FADED};}
         .dbp-tile-rk .dash{color:#c2c8d2;}
-        .dbp-tile-of{font-size:11px;color:${FADED};display:inline-block;vertical-align:baseline;margin-left:6px;}
-        .dbp-tile-cx{position:absolute;top:11px;right:9px;color:${SLATE};transition:transform .15s ease;pointer-events:none;}
+        .dbp-tile-of{font-size:12px;font-weight:700;color:${SLATE};display:block;margin-top:4px;}
+        .dbp-tile-cx{position:absolute;top:9px;right:6px;color:${SLATE};transition:transform .15s ease;pointer-events:none;}
+        .dbp-tile.on .dbp-tile-cx,.dbp-tile:hover .dbp-tile-cx{color:${BLUE};}
 
         .dbp-board{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 10px;margin-top:11px;background:#fff;}
         .dbp-board.plain{padding:0;border:none;}
@@ -283,8 +309,15 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-lbrow .vl .u{color:#262b35;}
         .dbp-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
 
-        /* Today board: richer per-attempt detail (score / time / mistakes / pts) */
-        .dbp-g{display:grid;grid-template-columns:30px 1fr 52px 54px 46px 46px;gap:8px;align-items:center;}
+        /* Today board: richer per-attempt detail (score / time / mistakes / pts).
+           On a narrow phone the six columns no longer FIT, and the old fix hid
+           Time and Miss, which removed exactly the numbers that explain why a
+           player finished where they did. They now stay and the table scrolls
+           sideways inside its own box instead (owner, 2026-08-01). The header
+           row and the score rows share one scroller so they never desync. */
+        .dbp-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px;scrollbar-width:thin;}
+        .dbp-scroll-in{min-width:392px;}
+        .dbp-g{display:grid;grid-template-columns:30px minmax(74px,1fr) 52px 54px 46px 46px;gap:8px;align-items:center;}
         .dbp-gh{padding:0 8px 7px;}
         .dbp-gh .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
         .dbp-grow{padding:7px 8px;border-radius:8px;}
@@ -294,9 +327,10 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-g .nm .you{color:${BLUE};font-weight:800;}
         .dbp-g .num{font-family:${MONO};font-size:11.5px;color:${SLATE};text-align:right;font-variant-numeric:tabular-nums;}
         .dbp-g .pts{font-weight:800;color:${INK};text-align:right;font-variant-numeric:tabular-nums;font-size:13px;}
+        /* A hint that there is more to the right, shown only where it scrolls. */
+        .dbp-swipe{display:none;font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};padding:6px 2px 0;}
         @media(max-width:520px){
-          .dbp-g{grid-template-columns:26px 1fr 46px 44px;}
-          .dbp-ctime,.dbp-cmiss{display:none;}
+          .dbp-swipe{display:block;}
         }
 
         .dbp-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
@@ -321,11 +355,16 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-full{width:100%;margin-top:11px;padding:9px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:transparent;border:1.5px solid #cddffb;display:inline-flex;align-items:center;justify-content:center;gap:5px;}
         .dbp-full:hover{background:#f5f8ff;}
 
-        @media(max-width:480px){
-          .dbp-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
-          .dbp-tile{padding:11px 11px 10px;}
-          .dbp-tile-lbl{font-size:9px;letter-spacing:.04em;padding-right:16px;}
-          .dbp-tile-rk{font-size:24px;}
+        /* Phone: the three tiles stay side by side, tighter — same as the end
+           card's max-width:640px block. */
+        @media(max-width:640px){
+          .dbp-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+          .dbp-tile{padding:12px 6px 9px;border-radius:12px;}
+          .dbp-tile::before{height:3px;}
+          .dbp-tile-lbl{font-size:9.5px;letter-spacing:.05em;padding:0 11px;min-height:24px;}
+          .dbp-tile-rk{font-size:30px;}
+          .dbp-tile-of{font-size:11px;}
+          .dbp-tile-cx{top:7px;right:5px;}
           .dbp-hd .t{font-size:15px;}
         }
       `}</style>
@@ -353,27 +392,32 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
               <div className="dbp-board-ti">{selfName} &middot; this puzzle &middot; top 10</div>
               {todayRows.length ? (
                 <>
-                  <div className="dbp-g dbp-gh">
-                    <span className="h">#</span>
-                    <span className="h">Player</span>
-                    <span className="h" style={{ textAlign: 'right' }}>Score</span>
-                    <span className="h dbp-ctime" style={{ textAlign: 'right' }}>Time</span>
-                    <span className="h dbp-cmiss" style={{ textAlign: 'right' }}>Miss</span>
-                    <span className="h" style={{ textAlign: 'right' }}>Pts</span>
-                  </div>
-                  {todayRows.slice(0, 10).map((r, i) => {
-                    const mine = !!(myKey && r.userKey === myKey);
-                    return (
-                      <div className={`dbp-g dbp-grow${mine ? ' me' : ''}`} key={r.userKey || i}>
-                        <span className="rk">#{r.rank}</span>
-                        <span className="nm">{r.username || '—'}{mine ? <span className="you"> (you)</span> : null}</span>
-                        <span className="num">{r.score}/{r.total}</span>
-                        <span className="num dbp-ctime">{fmtTime(r.timeElapsed)}</span>
-                        <span className="num dbp-cmiss">{r.guessesUsed == null ? '—' : r.guessesUsed}</span>
-                        <span className="pts">{fmtNum(r.points)}</span>
+                  <div className="dbp-scroll">
+                    <div className="dbp-scroll-in">
+                      <div className="dbp-g dbp-gh">
+                        <span className="h">#</span>
+                        <span className="h">Player</span>
+                        <span className="h" style={{ textAlign: 'right' }}>Score</span>
+                        <span className="h" style={{ textAlign: 'right' }}>Time</span>
+                        <span className="h" style={{ textAlign: 'right' }}>Miss</span>
+                        <span className="h" style={{ textAlign: 'right' }}>Pts</span>
                       </div>
-                    );
-                  })}
+                      {todayRows.slice(0, 10).map((r, i) => {
+                        const mine = !!(myKey && r.userKey === myKey);
+                        return (
+                          <div className={`dbp-g dbp-grow${mine ? ' me' : ''}`} key={r.userKey || i}>
+                            <span className="rk">#{r.rank}</span>
+                            <span className="nm">{r.username || '—'}{mine ? <span className="you"> (you)</span> : null}</span>
+                            <span className="num">{r.score}/{r.total}</span>
+                            <span className="num">{fmtTime(r.timeElapsed)}</span>
+                            <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span>
+                            <span className="pts">{fmtNum(r.points)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="dbp-swipe">Swipe for time, misses and points →</div>
                 </>
               ) : <div className="dbp-lbempty">No board yet. Be the first to post a score.</div>}
             </>
