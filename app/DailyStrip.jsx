@@ -553,7 +553,7 @@ export default function DailyStrip({ board = null }) {
     const row = isDone ? myRow(g.key) : null;
     const sl = row ? todayScoreLine(row) : null;
     const fav = favSet.has(g.key);
-    const cls = `dh-tile${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}${dim ? ' dim' : ''}${myGamesOn || fav ? ' pinnable' : ''}`;
+    const cls = `dh-tile${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}${dim ? ' dim' : ''}${myGamesOn || fav ? ' pinnable' : ''}${fav ? ' pinned' : ''}`;
     const face = (
       <>
         <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
@@ -779,13 +779,15 @@ export default function DailyStrip({ board = null }) {
            name now sits dead centre and simply ellipsizes 16px earlier. */
         .dh-tstats{position:absolute;right:3px;bottom:4px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #d5dce6;border-radius:5px;background:#ffffff;color:#6b7686;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,border-color .12s;}
         .dh-tstats:hover{color:#0e1d40;background:#eef1f6;border-color:#0e1d40;}
-        /* Pin control / pinned indicator. Sits just LEFT of .dh-tdot (the
-           done/in-progress status dot at right:9px) rather than in the corner
-           itself, so the two never overlap on an in-progress tile. Unpinned it
-           is a quiet outline that fills gold on hover, so it reads as an
+        /* Pin control / pinned indicator. BOTTOM-LEFT, mirroring the stats
+           glyph at bottom-right (owner, 2026-08-02). It sat top-right at first,
+           which forced the centred game name to pad right and knocked it off
+           centre; the bottom corners are the tile's control row and .dh-mlead
+           already reserves 16px on both sides for exactly this. Unpinned it is
+           a quiet outline that fills gold on hover, so it reads as an
            affordance without competing with the game art. .ind is the static
            span a finished tile shows, which has no hit area of its own. */
-        .dh-tfav{position:absolute;top:4px;right:19px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:5px;background:transparent;color:#798393;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .12s,background .12s,transform .12s;}
+        .dh-tfav{position:absolute;left:3px;bottom:4px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:5px;background:transparent;color:#798393;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .12s,background .12s,transform .12s;}
         /* Hover is gated on a real pointer. A TAP applies :hover on a phone and
            the browser keeps it painted until you tap somewhere else, so
            star-then-unstar left a faint gold block sitting behind the star
@@ -799,12 +801,12 @@ export default function DailyStrip({ board = null }) {
         .dh-tfav.ind{pointer-events:none;color:#a16207;}
         .dh-tile.done .dh-tfav.ind{color:#15803d;}
         .dh-tfav:focus-visible{outline:2px solid #2563eb;outline-offset:1px;}
-        /* The star shares the top edge with the centred game name, which is
-           nowrap and unpadded, so on a six-across tile the longest names
-           (Outrank / Hearsay / Bracket) would run under it. Scoped to
-           .pinnable, i.e. only the viewers who actually see a star, so a
-           signed-out board renders exactly as it did before. */
-        .dh-tile.pinnable .dh-tnm{padding-right:20px;}
+        /* A FINISHED tile has no stats glyph, so .dh-mlead there is unpadded and
+           a long leader name would run under the star. Pad it only when a star
+           is actually drawn (.pinned), so an unpinned tile keeps its leader
+           line perfectly centred. Unfinished tiles already carry symmetric
+           16px via the .dh-mlead rule below. */
+        .dh-tile.done.pinned .dh-mlead{padding-left:16px;}
         .dh-tile:not(.done) .dh-mlead{padding:0 16px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
