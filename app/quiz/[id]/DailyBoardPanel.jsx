@@ -308,6 +308,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-lbrow .vl{font-family:${MONO};font-size:12px;color:${SLATE};flex-shrink:0;}
         .dbp-lbrow .vl .u{color:#262b35;}
         .dbp-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
+        .dbp-note{font-size:11px;color:${FADED};line-height:1.45;margin:9px 2px 1px;}
 
         /* Today board: richer per-attempt detail (score / time / mistakes / pts).
            On a narrow phone the six columns no longer FIT, and the old fix hid
@@ -459,6 +460,10 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
                 </div>
               </>
             ) : <div className="dbp-lbempty">No archive of {selfName} games yet.</div>
+          ) : null}
+
+          {((sel === 'today' && todayRows.length) || (sel === 'alltime' && allTimeRows.length)) ? (
+            <p className="dbp-note">Points reflect results from unregistered users.</p>
           ) : null}
         </div>
       ) : null}
