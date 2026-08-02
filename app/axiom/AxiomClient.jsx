@@ -613,14 +613,14 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {legendChip('EFFORT', 'yes')}{legendChip('FALSE', 'no')}{legendChip('TRAIL', 'grey')}
       </div>
       <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginBottom: 12 }}>
-        Green: the rule is true of that word. Red: it is not. Grey: untested.
+        Green: the rule is true of that word. Red: it is not. Grey: already one or the other, but you have not uncovered it.
       </div>
 
       <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
         <li style={{ marginBottom: 5 }}>{PUZZLE.rules.length} candidate rules sit under the board. <b>Exactly one</b> fits every tile.</li>
         <li style={{ marginBottom: 5 }}>Tapping a tile crosses it out as a free note. To <b>spend a test</b> and flip its colour, switch to <b>Test</b> or hold the tile. You get <b>{PUZZLE.budget}</b>.</li>
-        <li style={{ marginBottom: 5 }}>Cross out each rule as the colours kill it.</li>
-        <li>Hit <b>Name the rule</b> and pick the one still standing.</li>
+        <li style={{ marginBottom: 5 }}>Cross out each rule as the colours kill it. This is a free note for your own benefit and never changes your score.</li>
+        <li>Hit the <b>Name it</b> button and pick the one still standing.</li>
       </ol>
 
       <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
@@ -628,12 +628,10 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       </div>
 
       <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.rust}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45, marginTop: 8 }}>
-        <b>Scoring: you score what you prove.</b>
+        <b>Naming the rule is a bet, and the button shows the odds.</b> It always reads what you would bank right now, so nothing is deducted after the fact. That number starts low and climbs as the words you uncover narrow the field. Name it early and you are guessing; wait until the evidence leaves one rule alive and it reads the full {TOTAL}.
         <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
-          <li>{TOTAL} points to start.</li>
-          <li><b>&minus;{UNPROVEN_COST} for every rule you have not ruled out</b> when you name the answer, so a lucky pick banks very little. The counter above the board shows the cost before you commit.</li>
-          <li>&minus;{WRONG_COST} for a wrong name. {MAX_WRONG} wrong names end the day.</li>
-          <li>&minus;2 for each test past {PERFECT}, the fewest that can settle this board.</li>
+          <li><b>What raises it:</b> uncovering words that rule other candidates out. Only revealed words count. Crossing rules off by hand is a free note and does nothing either way.</li>
+          <li><b>What lowers it:</b> {UNPROVEN_COST} for each candidate the board cannot yet rule out, {WRONG_COST} for a wrong name ({MAX_WRONG} ends the day), and 2 for each test past {PERFECT}, the fewest that can settle this board.</li>
         </ul>
       </div>
 
@@ -694,7 +692,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           <div style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 5 }}>Find the one rule that fits every word on the board.</div>
-          <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
+          <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. All {PUZZLE.tiles.length} words are already one or the other; grey just means you have not uncovered it yet. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
           <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate still standing when you name the answer costs you {UNPROVEN_COST} points, so cross them off before you commit.</div>
         </div>
         )}
@@ -717,7 +715,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 7px' }}>{PUZZLE.tiles.length} words below, and {PUZZLE.rules.length} candidate rules. <b>Exactly one of those rules fits every word on the board, and your job is to work out which.</b></p>
-                <p style={{ margin: '0 0 7px' }}>Three words start <b style={{ color: COLORS.green }}>green</b>, meaning the hidden rule is true of them, and two start <b style={{ color: COLORS.redInk }}>red</b>, meaning it is false. Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it.</p>
+                <p style={{ margin: '0 0 7px' }}>Three words start <b style={{ color: COLORS.green }}>green</b>, meaning the hidden rule is true of them, and two start <b style={{ color: COLORS.redInk }}>red</b>, meaning it is false. Every other word is already green or red too, you just cannot see which yet. Spend a test to uncover one. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it.</p>
                 <p style={{ margin: 0 }}>You score only the rules you actually rule out, so eliminate before you name.</p>
               </div>
             )}
@@ -784,7 +782,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '18px 0 8px' }}>
               <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded }}>The candidates</div>
-              {playing && <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded }}>{g.naming ? 'Pick the one that fits every tile' : 'Tap to cross one out'}</div>}
+              {playing && <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded }}>{g.naming ? 'Pick the one that fits every tile' : 'Tap to cross one out, free'}</div>}
             </div>
             {PUZZLE.rules.map((r, i) => {
               const dead = !playing && i !== ANSWER;
@@ -818,7 +816,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
               onClick={() => { if (namesLeft <= 0) { say('No names left today.'); return; } setG((cur) => ({ ...cur, naming: !cur.naming })); }}
               style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' } : { background: COLORS.accentSoft, borderColor: 'rgba(15,118,110,0.5)', color: COLORS.accentDeep }}
             >
-              <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : 'Name the rule'}{g.wrongPicks.length ? ` (${namesLeft} left)` : ''}
+              <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : `Name it for ${liveScore} of ${TOTAL}`}{g.wrongPicks.length ? ` (${namesLeft} left)` : ''}
             </button>
             {(g.struck.length > 0 || (g.marks || []).length > 0) && <button type="button" className="ax-btn" onClick={clearNotes}><Eraser size={14} /> Clear notes</button>}
             {(testsLeft === 0 || g.wrongPicks.length >= MAX_WRONG) && (
