@@ -1171,19 +1171,23 @@ export default function DailyEndCard({
            did. Keep the two grids in sync. On a phone the six columns do not
            fit; rather than hiding Time and Miss (which are the explanation) the
            table scrolls sideways inside its own box, header row and score rows
-           together in one scroller so they never desync. */
+           together in one scroller so they never desync.
+           NOTE the dec-lbg* namespace: the obvious .dec-g / .dec-gh names
+           collide with the EXISTING .dec-gh family-header pill further down
+           (display:flex), which won on source order and flattened this header
+           row on the first deploy. */
         .dec-lbscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:0 -3px;padding:0 3px;scrollbar-width:thin;}
         .dec-lbscroll-in{min-width:388px;}
-        .dec-g{display:grid;grid-template-columns:28px minmax(72px,1fr) 52px 52px 44px 46px;gap:8px;align-items:center;}
-        .dec-gh{padding:0 7px 6px;}
-        .dec-gh .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
-        .dec-grow{padding:5px 7px;border-radius:7px;}
-        .dec-grow.me{background:#eff4fd;}
-        .dec-g .rk{font-family:${MONO};font-size:11px;color:${FADED};}
-        .dec-g .nm{font-weight:700;color:${INK};font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dec-grow.me .nm{font-weight:800;}
-        .dec-g .num{font-family:${MONO};font-size:11px;color:${SLATE};text-align:right;font-variant-numeric:tabular-nums;}
-        .dec-g .pts{font-weight:800;color:${INK};text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;}
+        .dec-lbg{display:grid;grid-template-columns:28px minmax(72px,1fr) 52px 52px 44px 46px;gap:8px;align-items:center;}
+        .dec-lbghead{padding:0 7px 6px;}
+        .dec-lbghead .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
+        .dec-lbgrow{padding:5px 7px;border-radius:7px;}
+        .dec-lbgrow.me{background:#eff4fd;}
+        .dec-lbg .rk{font-family:${MONO};font-size:11px;color:${FADED};}
+        .dec-lbg .nm{font-weight:700;color:${INK};font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dec-lbgrow.me .nm{font-weight:800;}
+        .dec-lbg .num{font-family:${MONO};font-size:11px;color:${SLATE};text-align:right;font-variant-numeric:tabular-nums;}
+        .dec-lbg .pts{font-weight:800;color:${INK};text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;}
         .dec-lbswipe{display:none;font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};padding:5px 2px 0;}
         @media(max-width:520px){.dec-lbswipe{display:block;}}
 
@@ -1513,7 +1517,7 @@ export default function DailyEndCard({
               <>
                 <div className="dec-lbscroll">
                   <div className="dec-lbscroll-in">
-                    <div className="dec-g dec-gh">
+                    <div className="dec-lbg dec-lbghead">
                       <span className="h">#</span>
                       <span className="h">Player</span>
                       <span className="h" style={{ textAlign: 'right' }}>Score</span>
@@ -1522,7 +1526,7 @@ export default function DailyEndCard({
                       <span className="h" style={{ textAlign: 'right' }}>Pts</span>
                     </div>
                     {rows.map((r, idx) => (
-                      <div className={`dec-g dec-grow${r.me ? ' me' : ''}`} key={idx}>
+                      <div className={`dec-lbg dec-lbgrow${r.me ? ' me' : ''}`} key={idx}>
                         <span className="rk">#{r.rank}</span>
                         <span className="nm">{r.name || '—'}</span>
                         <span className="num">{r.score == null ? '—' : <>{r.score}/{r.total}</>}</span>
