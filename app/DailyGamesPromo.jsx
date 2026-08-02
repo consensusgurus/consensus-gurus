@@ -7,10 +7,8 @@
 // registry here adds it to every other game's end screen.
 
 import React, { useState, useEffect } from 'react';
-import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '@/lib/sunday-editions';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
-const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 
 export const DAILY_GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'a clueless crossword', store: 'sot_crux_day', accent: '#2563eb', bg: '#eef4ff', border: 'rgba(37,99,235,0.35)' },
@@ -62,10 +60,6 @@ function etToday() {
 
 export default function DailyGamesPromo({ self, refresh }) {
   const [open, setOpen] = useState([]);
-  // Sunday chip: set after mount so the server render and the first client
-  // render match (this component ships no puzzle data).
-  const [sunday, setSunday] = useState(false);
-  useEffect(() => { setSunday(isSundayET()); }, []);
   // Games the signed-in player already finished TODAY on ANY device (from the
   // server), so a game done on their phone drops off this list here too. Null
   // until the fetch resolves; localStorage still gates the first paint.
@@ -116,10 +110,7 @@ export default function DailyGamesPromo({ self, refresh }) {
         {open.map((g) => (
           <a key={g.key} href={g.href}
             style={{ display: 'block', padding: '9px 13px', borderRadius: 10, background: g.bg, border: `1.5px solid ${g.border}`, textDecoration: 'none', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#1c1e24' }}>
-            <b style={{ color: g.accent }}>{g.name}</b>
-            {sunday && hasSundayEdition(g.key) ? (
-              <span style={{ marginLeft: 6, fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: '#04121f', background: '#f8b84a', borderRadius: 3, padding: '1px 4px' }}>{SUNDAY_SHORT}</span>
-            ) : null} &mdash; {g.tag} &rarr;
+            <b style={{ color: g.accent }}>{g.name}</b> &mdash; {g.tag} &rarr;
           </a>
         ))}
       </div>

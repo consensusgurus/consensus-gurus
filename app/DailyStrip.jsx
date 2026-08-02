@@ -43,7 +43,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, Users, X, BarChart3 } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
-import { hasSundayEdition, isSundayET, SUNDAY_SHORT } from '../lib/sunday-editions';
 import DailyTilePanel from './DailyTilePanel';
 
 const GAMES = [
@@ -185,11 +184,6 @@ export default function DailyStrip({ board = null }) {
   const [lbOpen, setLbOpen] = useState(false); // overall daily leaderboard toggle
 
   const [hist, setHist] = useState(null); // recent daily champions, from /api/quiz/daily-history
-  // Sunday chip: Sundays (ET) only, and only on games that run a real Sunday
-  // Edition. Set after mount so SSR and the first client render agree.
-  const [isSunday, setIsSunday] = useState(false);
-  useEffect(() => { setIsSunday(isSundayET()); }, []);
-  const allSundayEditions = isSunday && GAMES.every(g => hasSundayEdition(g.key));
   // "resets in Xh Ym" countdown to ET midnight; set after mount (SSR-safe).
   const [resetLbl, setResetLbl] = useState('');
   useEffect(() => {
@@ -533,7 +527,6 @@ export default function DailyStrip({ board = null }) {
     const ip = !isDone && inprog.has(g.key);
     const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
     const pl = playsOf(g.key);
-    const sun = isSunday && !allSundayEditions && hasSundayEdition(g.key);
     const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
     const row = isDone ? myRow(g.key) : null;
     const sl = row ? todayScoreLine(row) : null;
@@ -542,14 +535,11 @@ export default function DailyStrip({ board = null }) {
       <>
         <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
         <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (ip ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
-        {sun || pl != null ? (
+        {pl != null ? (
           <span className="dh-tcorner">
-            {sun ? <span className="dh-tsun" aria-hidden="true">{SUNDAY_SHORT}</span> : null}
-            {pl != null ? (
-              <span className="dh-tplays" title={`${pl.toLocaleString()} ${pl === 1 ? 'play' : 'plays'} today`}>
-                <Users size={9} strokeWidth={2.6} aria-hidden="true" />{fmtPlays(pl)}
-              </span>
-            ) : null}
+            <span className="dh-tplays" title={`${pl.toLocaleString()} ${pl === 1 ? 'play' : 'plays'} today`}>
+              <Users size={9} strokeWidth={2.6} aria-hidden="true" />{fmtPlays(pl)}
+            </span>
           </span>
         ) : null}
         <span className="dh-tnm">{g.name}</span>
@@ -722,8 +712,8 @@ export default function DailyStrip({ board = null }) {
         .dh-tfill{position:absolute;inset:0;z-index:2;border-radius:10px;text-decoration:none;}
         .dh-tile:focus-within{outline:2px solid #2563eb;outline-offset:1px;}
         /* Stats + archive, for a game you have not finished. Bottom-right
-           rather than top-right: the top corners already carry the play count,
-           the Sunday chip and the status dot, and a button up there would run
+           rather than top-right: the top corners already carry the play count
+           and the status dot, and a button up there would run
            under the centred game name on a six-across tile. .dh-mlead pads
            EQUALLY on both sides (owner, 2026-07-31): a right-only pad cleared
            the button but pushed the leader name visibly off centre, so the
@@ -747,11 +737,9 @@ export default function DailyStrip({ board = null }) {
         .dh-mlead svg{flex:none;color:#a16207;}
         .dh-mlead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
-        /* Top-left corner row: the Sunday chip and today's play count share it,
-           so a Sunday tile reads "SUN  12" rather than stacking the two. It sits
-           opposite .dh-tdot and clears the centred game name on a 123px tile. */
+        /* Top-left corner row: today's play count. It sits opposite
+           .dh-tdot and clears the centred game name on a 123px tile. */
         .dh-tcorner{position:absolute;top:7px;left:6px;display:flex;align-items:center;gap:4px;max-width:calc(100% - 22px);pointer-events:none;}
-        .dh-tsun{font-family:'DM Mono',ui-monospace,monospace;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#2b1d00;background:#e8b43a;border-radius:3px;padding:0 3px;line-height:1.5;flex:none;}
         .dh-tplays{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;line-height:1;color:#4d5872;font-variant-numeric:tabular-nums;flex:none;}
         .dh-tplays svg{flex:none;opacity:.85;}
         /* The glyph only earns its place when the tile is wide enough to clear
@@ -882,8 +870,8 @@ export default function DailyStrip({ board = null }) {
           .dh-bup .dh-play{margin-left:auto;flex:0 0 auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
           /* The wider button leaves the eyebrow 95px; at 9px/.09em it needs 119
              and, since .dh-bue is overflow:visible, it spilled under the button
-             rather than truncating. 7.5px/.02em needs 89. Ellipsis is a safety net
-             for the longer Sunday Edition variant of this label. */
+             rather than truncating. 7.5px/.02em needs 89. Ellipsis is a safety
+             net if a longer label is ever used here. */
           .dh-bue{font-size:7.5px;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;}
         }
         /* Under 375px the third cap cell squeezes the labels ("IQ RANK CHANGE"
@@ -933,10 +921,7 @@ export default function DailyStrip({ board = null }) {
             <>
               <img src={easiest.game.img} alt="" aria-hidden="true" />
               <div className="dh-bupt">
-                <div className="dh-bue">
-                  Easiest leaderboard
-                  {isSunday && !allSundayEditions && hasSundayEdition(easiest.game.key) ? ` · ${SUNDAY_SHORT}` : ''}
-                </div>
+                <div className="dh-bue">Easiest leaderboard</div>
                 <div className="dh-bun">{easiest.game.name}</div>
                 <div className="dh-busub">
                   {easiest.players != null
