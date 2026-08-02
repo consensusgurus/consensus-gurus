@@ -3,6 +3,7 @@
 import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 import VisitorBeacon from './VisitorBeacon';
+import ResultQueue from './ResultQueue';
 import ShareCreditPop from './ShareCreditPop';
 import TrophyPop from './TrophyPop';
 import { getAllSources } from '@/lib/sources';
@@ -98,6 +99,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <VisitorBeacon />
+        <ResultQueue />
         <ShareCreditPop />
         <TrophyPop />
         <Analytics />

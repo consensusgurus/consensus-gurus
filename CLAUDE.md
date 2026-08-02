@@ -3161,3 +3161,56 @@ combined board; the day's slate is shared in `lib/daily-slate.js`.
 `loadQuizResultsCached` when the answer genuinely depends on every row, and if
 you then derive XP or trophies from it, go through `quiz-derived-cache` so the
 work is shared.
+
+---
+
+## Results post DURABLY: the ResultQueue retry (added 2026-08-02)
+
+A finished game used to be recorded by exactly one fire-and-forget
+`fetch('/api/quiz/result', { keepalive: true })` from the board, with no retry
+and no record of a failure. If that request never landed (a second offline, the
+tab closed mid-fetch, a 5xx), the play was lost from `quiz_results` FOREVER,
+while the board's own localStorage save still showed the finished board. The
+player then opens the puzzle and sees it completed, but `/daily`'s archive, the
+leaderboard, and their IQ total all say they never played it. That is the bug a
+player reported for Crux July 9 (every other Crux day 7/6 to 8/2 recorded, that
+one missing entirely, board still solved on their device).
+
+`app/ResultQueue.jsx`, mounted once in `app/layout.js`, wraps `window.fetch` and
+watches ONLY POSTs to `/api/quiz/result`. A request that rejects or returns 5xx
+is stashed in `localStorage.sot_result_queue` and retried on the next page load
+and on the browser's `online` event. Rules that matter:
+
+- **No duplicate rows.** Before re-posting, the queue asks `GET /api/quiz/result
+  ?quizId=&anonId=&email=` (which matches `user_id` OR `anon_id`) whether this
+  identity already has a stored attempt; if so the queue entry is dropped. That
+  covers the case where the row landed but the response was lost.
+- **Abandon rows are never queued** (`abandoned: true` is skipped). They post on
+  pagehide via sendBeacon, and replaying one later could file an "abandoned" row
+  for a game the player went on to finish.
+- **4xx is not retried** (the server rejected that payload; a retry cannot fix
+  it); entries expire after 7 days or 8 attempts, and the queue holds 25 items,
+  one per quizId (newest finish wins).
+- Because it patches fetch centrally, **every board gets this for free** - do
+  NOT add per-board retry logic, and keep posting results with a plain
+  `fetch('/api/quiz/result', ...)` carrying a JSON string body, which is what the
+  wrapper recognises.
+
+Known remaining gap, worth fixing if it ever surfaces: `/api/quiz/daily-status`
+resolves the player to `u:<id>` when an email resolves and then ignores rows
+carrying only this browser's `anon_id`, so a play made as a guest and never
+claimed stays invisible in the archive. `GET /api/quiz/result` already matches
+either key and is the model to follow.
+
+## Feedback forms prefill a signed-in player's reply address (2026-08-02)
+
+Every "Report an issue" / "Comments? Critique?" form asks for an optional name
+and email, and most reports arrived with neither, so a good report could not be
+answered. All of them now prefill from the identity the client already stores
+(`sot_quiz_identity`), read through `lib/saved-identity.js` (`savedIdentity()`,
+SSR-safe, returns empty strings off-window). Wired into `app/ReportIssue.jsx`,
+the list pages (`DetailClient`, `ListOverview`), `QuizHomeClient`, and all
+twelve quiz boards that carry a critique modal. The fields stay editable and
+still optional (a guest sees empty fields exactly as before), and the prefill
+uses `setX((v) => v || who.x)` so it never overwrites something already typed.
+Any NEW form that collects reader feedback should do the same.

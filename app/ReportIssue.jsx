@@ -10,8 +10,9 @@
 // light surfaces, so one light theme covers both. Pass `self` (the game key),
 // the display `name`, and an `accent` for the send button.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Flag, Check } from 'lucide-react';
+import { savedIdentity } from '@/lib/saved-identity';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -33,6 +34,14 @@ export default function ReportIssue({ self, name, accent = '#0e1d40', align = 'c
   const [msg, setMsg] = useState('');
   const [nm, setNm] = useState('');
   const [email, setEmail] = useState('');
+  // A signed-in player's name + email prefill the reply fields, so a report
+  // always comes back with somewhere to answer it. Still editable, still
+  // optional: a guest sees empty fields exactly as before.
+  useEffect(() => {
+    const who = savedIdentity();
+    if (who.username) setNm((v) => v || who.username);
+    if (who.email) setEmail((v) => v || who.email);
+  }, []);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 

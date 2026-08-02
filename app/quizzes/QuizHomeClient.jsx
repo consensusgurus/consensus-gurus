@@ -30,6 +30,7 @@ import { isBusinessNewsHubQuiz } from '@/lib/business-news-hub';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import { withRef } from '@/lib/referrals';
+import { savedIdentity } from '@/lib/saved-identity';
 
 // Brand mark (gradient ids suffixed per render so multiple instances stay unique).
 let __logoSeq = 0;
@@ -399,6 +400,14 @@ function FeedbackModal({ mode, onClose }) {
   const [msg, setMsg] = useState('');
   const [nm, setNm] = useState('');
   const [em, setEm] = useState('');
+  // A signed-in player's name + email prefill the reply fields, so a report
+  // always comes back with somewhere to answer it. Still editable, still
+  // optional: a guest sees empty fields exactly as before.
+  useEffect(() => {
+    const who = savedIdentity();
+    if (who.username) setNm((v) => v || who.username);
+    if (who.email) setEm((v) => v || who.email);
+  }, []);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState('');

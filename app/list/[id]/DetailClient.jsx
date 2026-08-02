@@ -31,6 +31,7 @@ import { SourcesPanel, MethodologyPanel } from './MethodPanels';
 import ActivityFeed from './ActivityFeed';
 import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
 import { Tile as HomeTile, BrowseTile } from '../../HomeClient';
+import { savedIdentity } from '@/lib/saved-identity';
 
 // ── LIST-PAGE RIBBON V2 (June 2026 redesign) ────────────────────────────────
 // Flip to false to restore the previous outlined tab chips exactly. V2 renders
@@ -192,6 +193,14 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
   const [complainMsg, setComplainMsg] = useState('');
   const [complainName, setComplainName] = useState('');
   const [complainEmail, setComplainEmail] = useState('');
+  // A signed-in player's name + email prefill the reply fields, so a report
+  // always comes back with somewhere to answer it. Still editable, still
+  // optional: a guest sees empty fields exactly as before.
+  useEffect(() => {
+    const who = savedIdentity();
+    if (who.username) setComplainName((v) => v || who.username);
+    if (who.email) setComplainEmail((v) => v || who.email);
+  }, []);
   const [complainSent, setComplainSent] = useState(false);
   const [complainBusy, setComplainBusy] = useState(false);
 

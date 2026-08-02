@@ -31,6 +31,7 @@ import ScrollToTopOnMount from './ScrollToTopOnMount';
 import { ArrowRight, Play } from 'lucide-react';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '@/app/ShareCreditPop';
+import { savedIdentity } from '@/lib/saved-identity';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const StreetMapBoard = dynamic(() => import('./StreetMapBoard'), { ssr: false, loading: () => null });
@@ -611,6 +612,14 @@ export default function QuizClient({ quizId }) {
   const [qMsg, setQMsg] = useState('');
   const [qName, setQName] = useState('');
   const [qEmail, setQEmail] = useState('');
+  // A signed-in player's name + email prefill the reply fields, so a report
+  // always comes back with somewhere to answer it. Still editable, still
+  // optional: a guest sees empty fields exactly as before.
+  useEffect(() => {
+    const who = savedIdentity();
+    if (who.username) setQName((v) => v || who.username);
+    if (who.email) setQEmail((v) => v || who.email);
+  }, []);
   const [qSent, setQSent] = useState(false);
   const [qBusy, setQBusy] = useState(false);
 

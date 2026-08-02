@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink, Play, Clock } from 'lucide-react';
 import { COLORS } from '@/lib/data';
@@ -8,6 +8,7 @@ import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
 import Count from '@/app/Count';
+import { savedIdentity } from '@/lib/saved-identity';
 
 // Splits a "Name (Locality)" item into { displayName, locality }.
 function parseItem(fullName) {
@@ -922,6 +923,14 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
   const [complainMsg, setComplainMsg] = useState('');
   const [complainName, setComplainName] = useState('');
   const [complainEmail, setComplainEmail] = useState('');
+  // A signed-in player's name + email prefill the reply fields, so a report
+  // always comes back with somewhere to answer it. Still editable, still
+  // optional: a guest sees empty fields exactly as before.
+  useEffect(() => {
+    const who = savedIdentity();
+    if (who.username) setComplainName((v) => v || who.username);
+    if (who.email) setComplainEmail((v) => v || who.email);
+  }, []);
   const [complainSent, setComplainSent] = useState(false);
   const [complainBusy, setComplainBusy] = useState(false);
 
