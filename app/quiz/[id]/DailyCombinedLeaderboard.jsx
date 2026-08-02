@@ -284,7 +284,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
       {scopeToggle}
       {gameView}
       <p style={{ fontSize: 11, color: th.note, marginTop: 12, lineHeight: 1.5 }}>
-        Each game is worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field. {totalLine}
+        Each game is worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field. {totalLine} Points reflect results from unregistered users.
       </p>
       {compact ? linkBtn('Show less', () => { setExpanded(false); setTab(todayKey || 'overall'); }) : null}
     </div>

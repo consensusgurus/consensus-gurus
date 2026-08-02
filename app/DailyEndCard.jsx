@@ -1189,6 +1189,7 @@ export default function DailyEndCard({
         .dec-lbg .num{font-family:${MONO};font-size:11px;color:${SLATE};text-align:right;font-variant-numeric:tabular-nums;}
         .dec-lbg .pts{font-weight:800;color:${INK};text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px;}
         .dec-lbswipe{display:none;font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};padding:5px 2px 0;}
+        .dec-note{font-size:11px;color:${FADED};line-height:1.45;margin:9px 2px 1px;}
         @media(max-width:520px){.dec-lbswipe{display:block;}}
 
         .dec-slip{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:9px 13px;border-radius:11px;margin-bottom:10px;width:100%;text-align:left;}
@@ -1546,6 +1547,9 @@ export default function DailyEndCard({
                 <span className="vl">{r.val}</span>
               </div>
             ))}
+            {rows.length > 0 && openTile !== 'iq' ? (
+              <p className="dec-note">Points reflect results from unregistered users.</p>
+            ) : null}
           </div>
         );
       })() : null}
