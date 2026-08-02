@@ -519,7 +519,18 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-chip{border:1.5px solid rgba(28,30,36,0.22);border-radius:6px;background:#fff;padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${COLORS.faded};cursor:pointer;}
           .gl-chip.on{border-color:${COLORS.accent};background:#dbeafe;}
           .gl-chip b{display:block;font-family:${SANS};font-size:13px;color:${COLORS.ink};}
-          @media(max-width:560px){.gl-key{grid-template-columns:repeat(7,minmax(0,1fr));}}
+          .gl-card{padding:13px 15px 15px;}
+          .gl-chips{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}
+          @media(max-width:560px){
+            .gl-key{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+            .gl-chips{grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+            .gl-card{padding:11px 7px 13px;}
+            .gl-num{font-size:6.5px;top:0.5px;left:1px;}
+            .gl-keycap{font-size:15px;padding:6px 0 5px;}
+            .gl-chip{font-size:9px;padding:3px 0;}
+            .gl-chip b{font-size:14px;}
+          }
+          @media(max-width:400px){.gl-num{font-size:6px;}}
         `}</style>
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
@@ -561,7 +572,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
           )}
 
           {!preStart && (
-            <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            <div className="gl-card" style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b>/{MAX_CHECKS}</span>
                 <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
@@ -569,7 +580,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
               </div>
 
               <div style={{ maxWidth: boardMax, margin: '0 auto' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${W}, minmax(0, 1fr))`, aspectRatio: `${W} / ${H}` }}>
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${W}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${H}, minmax(0, 1fr))`, aspectRatio: `${W} / ${H}` }}>
                   {CELLS.map((n, i) => {
                     if (!n) return <div key={i} className="gl-cell blk" />;
                     const L = revealed ? KEY[n - 1] : assign[n];
@@ -579,7 +590,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
                     return (
                       <div key={i} className={cls} onClick={() => { if (!playing) return; if (!g.t0) startGame(); setSel(n); }}>
                         <span className="gl-num">{n}</span>
-                        {L ? <span className="gl-ltr given" style={{ fontSize: `min(3.4vw, ${W > 15 ? 20 : 22}px)`, color: GIVEN[n] ? COLORS.accent : COLORS.ink }}>{L}</span> : null}
+                        {L ? <span className="gl-ltr given" style={{ fontSize: `min(${(88 / W).toFixed(1)}vw, ${W > 15 ? 21 : 23}px)`, color: GIVEN[n] ? '#0f766e' : COLORS.ink }}>{L}</span> : null}
                       </div>
                     );
                   })}
@@ -606,7 +617,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
                     })}
                   </div>
 
-                  <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(13, minmax(0,1fr))', gap: 3 }}>
+                  <div className="gl-chips" style={{ marginTop: 10 }}>
                     {ALPHA.map((_, k) => {
                       const n = k + 1;
                       const on = sel === n;
