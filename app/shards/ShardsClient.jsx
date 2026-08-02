@@ -191,7 +191,6 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const [drag, setDrag] = useState(null);         // { id, grab:{dr,dc}, x, y, from }
   const [hoverCell, setHoverCell] = useState(null); // {r,c} preview anchor during drag
   const [wrongHint, setWrongHint] = useState(null); // shard id flagged wrong by hint 1
-  const lastTapRef = useRef({ id: null, t: 0 }); // double-tap detector for commit
   const [homeHint, setHomeHint] = useState(null);  // shard id whose true home is outlined (hint 3)
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
@@ -617,8 +616,8 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [SHARDS, N]);
 
-  // Commit the wet piece. Double-tap (or double-click) it on the board, or use
-  // the Lock in button, which is the discoverable path since a double-tap is
+  // Commit the wet piece: tap it a second time on the board, or press the Lock
+  // in button, which is the discoverable path since a bare tap gesture is
   // invisible until someone tells you about it.
   function commitWet() {
     setG((cur) => {
@@ -633,24 +632,18 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   // tap on a board cell: place the armed shard (handle lands on the cell)
   function onCellTap(r, c) {
     if (!playing) return;
-    // A second tap on the wet piece within the double-tap window locks it in.
-    // Checked before the armed branch so the commit always wins the gesture.
+    // A tap on the wet piece is only ever select-or-commit: the first tap
+    // selects it, a second tap on it locks it in. There is deliberately no
+    // timing window. A double-tap deadline is hostile on a phone, and since a
+    // tap on the wet piece has no other meaning, it does not need one. Checked
+    // before the armed branch so this always wins the gesture, and so the
+    // select tap can never shove the piece sideways.
     const here = occ.get(r * 100 + c);
     if (here && here.id === g.wet && !g.locked.includes(here.id)) {
-      const now = Date.now(), lt = lastTapRef.current;
-      if (lt.id === here.id && now - lt.t < 450) {
-        lastTapRef.current = { id: null, t: 0 };
-        commitWet();
-        return;
-      }
-      lastTapRef.current = { id: here.id, t: now };
-      // A tap on the wet piece itself is only ever arm-or-commit. Letting it
-      // fall through to the armed-move branch made the first half of a
-      // double-tap shove the piece sideways before the second tap landed.
+      if (armed === here.id) { commitWet(); return; }
       setArmed(here.id);
       return;
     }
-    lastTapRef.current = { id: null, t: 0 };
     if (armed != null) {
       const s = SHARDS[armed];
       const ar = r - s.handle.dr, ac = c - s.handle.dc;
@@ -801,7 +794,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const statusLine = (() => {
     if (!dict && !dictErr) return { msg: 'Loading the dictionary...', cls: 'muted' };
     if (dictErr) return { msg: 'Could not load the dictionary - refresh to try again.', cls: 'bad' };
-    if (g.wet != null) return { msg: 'Nudge it as much as you like for free. Double-tap it to lock it in, and only then does it count.', cls: 'muted' };
+    if (g.wet != null) return { msg: 'Nudge it as much as you like for free. Tap it again to lock it in, and only then does it count.', cls: 'muted' };
     if (placedCount === 0) return { msg: 'Drag a shard onto the grid, or tap a shard then tap a square.', cls: 'muted' };
     if (placedCount < SHARDS.length) return { msg: `${placedCount} of ${SHARDS.length} shards placed. A tick marks each finished word.`, cls: 'muted' };
     if (!allValid) return { msg: 'All placed, but some runs are not words yet. Rearrange the pieces.', cls: 'bad' };
@@ -814,7 +807,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>The grid arrives solved, then shattered into <b>lettered pieces</b>. Reassemble them so every across and down run of two or more letters is a real word. No clues, the letters are the clues.</p>
-      <p style={{ margin: '0 0 9px' }}>Pieces are rigid: no turning, no flipping. <b>Drag</b> a piece onto the grid, or <b>tap a piece then tap a square</b>. The piece you just placed is <b>wet</b>: shift it around as much as you like for nothing. It earns no ticks and counts toward nothing until you <b>double-tap it to lock it in</b>. There is an <b>Undo</b> and a free <b>Clear</b>. The board finishes itself the moment every piece is locked in and every word checks out.</p>
+      <p style={{ margin: '0 0 9px' }}>Pieces are rigid: no turning, no flipping. <b>Drag</b> a piece onto the grid, or <b>tap a piece then tap a square</b>. The piece you just placed is <b>wet</b>: shift it around as much as you like for nothing. It earns no ticks and counts toward nothing until you <b>tap it again to lock it in</b>. There is an <b>Undo</b> and a free <b>Clear</b>. The board finishes itself the moment every piece is locked in and every word checks out.</p>
       <p style={{ margin: '0 0 9px' }}>There is exactly <b>one</b> correct reassembly. Start at <b>{START}</b>. Adjusting a wet piece is free. Moving one you have already locked in costs a miss of 5 and makes it wet again, so you can fine-tune the correction. Three hints, in order, cost {HINTS[0]}, {HINTS[1]} and {HINTS[2]}. Score never drops below {FLOOR}.</p>
       <p style={{ margin: 0 }}>A tick appears on each finished valid word. Ties on the leaderboard break by fewest misses, then fastest clock.</p>
     </div>
