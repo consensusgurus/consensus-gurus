@@ -2,12 +2,26 @@
 // component, which filters to live<=today before passing puzzles to
 // the client — so future puzzles (and their answers) never ship to the
 // browser bundle.
-// AUTHORING RULE (owner ruling 2026-07-15): every puzzle must carry AT LEAST
-// TWO cross-category collisions — words that plausibly read as another
-// category on the same board — ideally more, while keeping exactly ONE valid
-// filing. Pin every trap by elimination: a trap word's fake home must already
-// be full of its own true members (homophone teases are free extras — they
-// can never validate semantically).
+// AUTHORING RULE (owner ruling 2026-07-15; floors made explicit and made
+// machine-checkable 2026-08-02): every puzzle must carry cross-category
+// collisions, words that plausibly read as another category ON THE SAME BOARD,
+// while keeping exactly ONE valid filing of the words into the categories.
+//
+// The floors are hard, not targets: at least TWO collisions on a weekday, at
+// least THREE on a Sunday Edition. More is better. A bank generator that emits
+// the floor every single day is not compliant in spirit and will read as flat.
+//
+// Pin every trap by elimination: a trap word's fake home must already be full
+// of its own true members, so nothing can escape into it. An OFF-BOARD reading
+// (SAGE the herb on a board with no herb category) is a free extra and does
+// NOT count toward the floor, because it can never validate semantically.
+//
+// Declare every qualifying collision in the machine-readable `collisions`
+// field: one { word, reads } entry per fake reading. scripts/verify-daily-banks.mjs
+// enforces the floor, confirms the declared word and category really exist on
+// the board and are not the same category, and flags a collision pool that has
+// gone repetitive. Boards that went live before 2026-08-03 are frozen history
+// and are grandfathered out of the check.
 export const PUZZLES = [
   {
     num: 1,
@@ -804,6 +818,10 @@ export const PUZZLES = [
     guesses: 18,
     rows: 10,
     cols: 8,
+    collisions: [
+      { word: 'CAP', reads: 'Headwear' },
+      { word: 'NECK', reads: 'Guitar parts' },
+    ],
     categories: [
       { name: 'Headwear', words: ['BEANIE', 'VISOR'] },
       { name: 'Bottle parts', words: ['NECK', 'CAP'] },
@@ -826,24 +844,31 @@ export const PUZZLES = [
     quizId: 'crux-8-4-26',
     live: '2026-08-04',
     dateLabel: 'August 4, 2026',
+    // Two collisions, both pinned: PEACH reads Trees (MAPLE and SYCAMORE fill that group, and
+    // neither is a fruit) and SALMON reads a shade of pink (CORAL and MAGENTA fill it, and
+    // neither is a fish). PEACH leans pink as a free extra.
     guesses: 18,
-    rows: 11,
+    rows: 9,
     cols: 9,
+    collisions: [
+      { word: 'PEACH', reads: 'Trees' },
+      { word: 'SALMON', reads: 'Shades of pink' },
+    ],
     categories: [
-      { name: 'Fruits', words: ['MELON', 'PEACH'] },
-      { name: 'Trees', words: ['MAPLE', 'BIRCH'] },
-      { name: 'Metals', words: ['COPPER', 'SILVER'] },
-      { name: 'Flowers', words: ['TULIP', 'DAISY'] },
+      { name: 'Fruits', words: ['APRICOT', 'PEACH'] },
+      { name: 'Trees', words: ['MAPLE', 'SYCAMORE'] },
+      { name: 'Fish', words: ['SALMON', 'TROUT'] },
+      { name: 'Shades of pink', words: ['CORAL', 'MAGENTA'] },
     ],
     slots: [
-      { id: '7A', word: 'COPPER', row: 6, col: 0, dir: 'A' },
-      { id: '3D', word: 'TULIP', row: 2, col: 2, dir: 'D' },
-      { id: '6A', word: 'DAISY', row: 5, col: 0, dir: 'A' },
-      { id: '5A', word: 'MELON', row: 4, col: 0, dir: 'A' },
-      { id: '2D', word: 'SILVER', row: 1, col: 5, dir: 'D' },
-      { id: '4A', word: 'BIRCH', row: 2, col: 4, dir: 'A' },
-      { id: '1D', word: 'MAPLE', row: 0, col: 1, dir: 'D' },
-      { id: '8D', word: 'PEACH', row: 6, col: 3, dir: 'D' },
+      { id: '1D', word: 'SYCAMORE', row: 0, col: 0, dir: 'D' },
+      { id: '2D', word: 'SALMON', row: 0, col: 4, dir: 'D' },
+      { id: '3D', word: 'TROUT', row: 1, col: 2, dir: 'D' },
+      { id: '4A', word: 'CORAL', row: 2, col: 0, dir: 'A' },
+      { id: '5D', word: 'APRICOT', row: 2, col: 6, dir: 'D' },
+      { id: '6D', word: 'PEACH', row: 2, col: 8, dir: 'D' },
+      { id: '7A', word: 'MAPLE', row: 3, col: 4, dir: 'A' },
+      { id: '8A', word: 'MAGENTA', row: 8, col: 1, dir: 'A' },
     ],
   },
   {
@@ -851,24 +876,31 @@ export const PUZZLES = [
     quizId: 'crux-8-5-26',
     live: '2026-08-05',
     dateLabel: 'August 5, 2026',
+    // Two collisions, both pinned: DIAMOND reads Gemstones (gems are full with OPAL and GARNET,
+    // neither of which is a baseball thing) and BASS reads Instruments (CELLO and OBOE fill
+    // that group, and neither is a fish). PERCH's birdcage reading is off-board, a free extra.
     guesses: 18,
-    rows: 11,
-    cols: 7,
+    rows: 8,
+    cols: 10,
+    collisions: [
+      { word: 'DIAMOND', reads: 'Gemstones' },
+      { word: 'BASS', reads: 'Instruments' },
+    ],
     categories: [
-      { name: 'Weather', words: ['STORM', 'CLOUD'] },
-      { name: 'Kitchen tools', words: ['WHISK', 'LADLE'] },
-      { name: 'Big cats', words: ['TIGER', 'LEOPARD'] },
-      { name: 'Gems', words: ['PEARL', 'TOPAZ'] },
+      { name: 'Gemstones', words: ['OPAL', 'GARNET'] },
+      { name: 'Baseball', words: ['DIAMOND', 'BULLPEN'] },
+      { name: 'Fish', words: ['PERCH', 'BASS'] },
+      { name: 'Instruments', words: ['CELLO', 'OBOE'] },
     ],
     slots: [
-      { id: '6A', word: 'TIGER', row: 5, col: 0, dir: 'A' },
-      { id: '5D', word: 'PEARL', row: 4, col: 3, dir: 'D' },
-      { id: '4A', word: 'TOPAZ', row: 4, col: 1, dir: 'A' },
-      { id: '3D', word: 'STORM', row: 4, col: 0, dir: 'D' },
-      { id: '1D', word: 'LEOPARD', row: 0, col: 4, dir: 'D' },
-      { id: '7A', word: 'LADLE', row: 6, col: 2, dir: 'A' },
-      { id: '8A', word: 'WHISK', row: 10, col: 0, dir: 'A' },
-      { id: '2A', word: 'CLOUD', row: 2, col: 2, dir: 'A' },
+      { id: '1A', word: 'OPAL', row: 0, col: 2, dir: 'A' },
+      { id: '1D', word: 'OBOE', row: 0, col: 2, dir: 'D' },
+      { id: '2D', word: 'GARNET', row: 1, col: 7, dir: 'D' },
+      { id: '3A', word: 'BASS', row: 2, col: 6, dir: 'A' },
+      { id: '4A', word: 'PERCH', row: 3, col: 1, dir: 'A' },
+      { id: '5D', word: 'CELLO', row: 3, col: 4, dir: 'D' },
+      { id: '6A', word: 'BULLPEN', row: 5, col: 2, dir: 'A' },
+      { id: '7A', word: 'DIAMOND', row: 7, col: 0, dir: 'A' },
     ],
   },
   {
@@ -876,24 +908,32 @@ export const PUZZLES = [
     quizId: 'crux-8-6-26',
     live: '2026-08-06',
     dateLabel: 'August 6, 2026',
+    // Three collisions, chained: DRIP reads Plumbing (SPIGOT and VALVE fill it), MOCHA reads a
+    // shade of brown (UMBER and CHESTNUT fill it), and VALVE itself reads Heart parts (AORTA
+    // and VENTRICLE fill that). Both coffee words are traps.
     guesses: 18,
-    rows: 11,
+    rows: 10,
     cols: 9,
+    collisions: [
+      { word: 'DRIP', reads: 'Plumbing' },
+      { word: 'MOCHA', reads: 'Shades of brown' },
+      { word: 'VALVE', reads: 'Heart parts' },
+    ],
     categories: [
-      { name: 'Birds', words: ['RAVEN', 'FINCH'] },
-      { name: 'Dances', words: ['TANGO', 'WALTZ'] },
-      { name: 'Planets', words: ['VENUS', 'MARS'] },
-      { name: 'Tools', words: ['HAMMER', 'PLIERS'] },
+      { name: 'Plumbing', words: ['SPIGOT', 'VALVE'] },
+      { name: 'Coffee drinks', words: ['DRIP', 'MOCHA'] },
+      { name: 'Shades of brown', words: ['UMBER', 'CHESTNUT'] },
+      { name: 'Heart parts', words: ['AORTA', 'VENTRICLE'] },
     ],
     slots: [
-      { id: '8A', word: 'VENUS', row: 8, col: 2, dir: 'A' },
-      { id: '3D', word: 'HAMMER', row: 4, col: 3, dir: 'D' },
-      { id: '2D', word: 'PLIERS', row: 3, col: 6, dir: 'D' },
-      { id: '7A', word: 'RAVEN', row: 8, col: 0, dir: 'A' },
-      { id: '6D', word: 'MARS', row: 7, col: 1, dir: 'D' },
-      { id: '4A', word: 'WALTZ', row: 4, col: 4, dir: 'A' },
-      { id: '5D', word: 'TANGO', row: 4, col: 7, dir: 'D' },
-      { id: '1D', word: 'FINCH', row: 0, col: 3, dir: 'D' },
+      { id: '1A', word: 'CHESTNUT', row: 0, col: 0, dir: 'A' },
+      { id: '2D', word: 'SPIGOT', row: 0, col: 3, dir: 'D' },
+      { id: '3A', word: 'DRIP', row: 2, col: 1, dir: 'A' },
+      { id: '4D', word: 'UMBER', row: 2, col: 8, dir: 'D' },
+      { id: '5D', word: 'MOCHA', row: 3, col: 6, dir: 'D' },
+      { id: '6A', word: 'VENTRICLE', row: 5, col: 0, dir: 'A' },
+      { id: '6D', word: 'VALVE', row: 5, col: 0, dir: 'D' },
+      { id: '7A', word: 'AORTA', row: 7, col: 2, dir: 'A' },
     ],
   },
   {
@@ -901,24 +941,31 @@ export const PUZZLES = [
     quizId: 'crux-8-7-26',
     live: '2026-08-07',
     dateLabel: 'August 7, 2026',
+    // Both chess pieces are traps: ROOK reads Birds (HERON and KESTREL fill that group) and
+    // KNIGHT reads Noble titles (BARON and SQUIRE fill that one). PORTER's hotel-staff reading
+    // is off-board.
     guesses: 18,
-    rows: 12,
-    cols: 9,
+    rows: 10,
+    cols: 8,
+    collisions: [
+      { word: 'ROOK', reads: 'Birds' },
+      { word: 'KNIGHT', reads: 'Noble titles' },
+    ],
     categories: [
-      { name: 'Colors', words: ['MAROON', 'INDIGO'] },
-      { name: 'Instruments', words: ['BANJO', 'FLUTE'] },
-      { name: 'Rooms', words: ['PANTRY', 'STUDIO'] },
-      { name: 'Vegetables', words: ['CARROT', 'CELERY'] },
+      { name: 'Chess pieces', words: ['ROOK', 'KNIGHT'] },
+      { name: 'Birds', words: ['HERON', 'KESTREL'] },
+      { name: 'Noble titles', words: ['BARON', 'SQUIRE'] },
+      { name: 'Dark beers', words: ['STOUT', 'PORTER'] },
     ],
     slots: [
-      { id: '5A', word: 'PANTRY', row: 4, col: 3, dir: 'A' },
-      { id: '4D', word: 'CARROT', row: 3, col: 4, dir: 'D' },
-      { id: '1D', word: 'CELERY', row: 0, col: 7, dir: 'D' },
-      { id: '7A', word: 'MAROON', row: 7, col: 0, dir: 'A' },
-      { id: '8A', word: 'STUDIO', row: 8, col: 3, dir: 'A' },
-      { id: '2D', word: 'FLUTE', row: 1, col: 6, dir: 'D' },
-      { id: '3D', word: 'BANJO', row: 2, col: 5, dir: 'D' },
-      { id: '6D', word: 'INDIGO', row: 6, col: 6, dir: 'D' },
+      { id: '1A', word: 'ROOK', row: 0, col: 1, dir: 'A' },
+      { id: '2D', word: 'KNIGHT', row: 0, col: 4, dir: 'D' },
+      { id: '3A', word: 'SQUIRE', row: 2, col: 1, dir: 'A' },
+      { id: '4D', word: 'HERON', row: 4, col: 6, dir: 'D' },
+      { id: '5A', word: 'KESTREL', row: 5, col: 1, dir: 'A' },
+      { id: '6D', word: 'STOUT', row: 5, col: 3, dir: 'D' },
+      { id: '7A', word: 'BARON', row: 7, col: 0, dir: 'A' },
+      { id: '8A', word: 'PORTER', row: 9, col: 0, dir: 'A' },
     ],
   },
   {
@@ -926,24 +973,32 @@ export const PUZZLES = [
     quizId: 'crux-8-8-26',
     live: '2026-08-08',
     dateLabel: 'August 8, 2026',
+    // A three-link chain, each pinned by a full category: STRIKE reads Labor disputes, PICKET
+    // reads Fence parts, POST reads Mail things. SPARE's spare-tire reading and RAIL's bird are
+    // off-board extras.
     guesses: 18,
-    rows: 11,
-    cols: 12,
+    rows: 8,
+    cols: 10,
+    collisions: [
+      { word: 'STRIKE', reads: 'Labor disputes' },
+      { word: 'PICKET', reads: 'Fence parts' },
+      { word: 'POST', reads: 'Mail things' },
+    ],
     categories: [
-      { name: 'Sports', words: ['TENNIS', 'HOCKEY'] },
-      { name: 'Boats', words: ['CANOE', 'YACHT'] },
-      { name: 'Spices', words: ['GINGER', 'PEPPER'] },
-      { name: 'Furniture', words: ['COUCH', 'TABLE'] },
+      { name: 'Bowling', words: ['SPARE', 'STRIKE'] },
+      { name: 'Labor disputes', words: ['PICKET', 'WALKOUT'] },
+      { name: 'Fence parts', words: ['RAIL', 'POST'] },
+      { name: 'Mail things', words: ['STAMP', 'ENVELOPE'] },
     ],
     slots: [
-      { id: '7A', word: 'GINGER', row: 8, col: 3, dir: 'A' },
-      { id: '8A', word: 'COUCH', row: 10, col: 3, dir: 'A' },
-      { id: '5D', word: 'TABLE', row: 4, col: 7, dir: 'D' },
-      { id: '4D', word: 'TENNIS', row: 4, col: 4, dir: 'D' },
-      { id: '6A', word: 'PEPPER', row: 5, col: 0, dir: 'A' },
-      { id: '1D', word: 'YACHT', row: 0, col: 7, dir: 'D' },
-      { id: '3A', word: 'CANOE', row: 2, col: 7, dir: 'A' },
-      { id: '2D', word: 'HOCKEY', row: 1, col: 10, dir: 'D' },
+      { id: '1D', word: 'STAMP', row: 0, col: 0, dir: 'D' },
+      { id: '2D', word: 'ENVELOPE', row: 0, col: 9, dir: 'D' },
+      { id: '3D', word: 'WALKOUT', row: 1, col: 3, dir: 'D' },
+      { id: '4D', word: 'POST', row: 1, col: 5, dir: 'D' },
+      { id: '5D', word: 'RAIL', row: 2, col: 7, dir: 'D' },
+      { id: '6A', word: 'SPARE', row: 3, col: 5, dir: 'A' },
+      { id: '7A', word: 'PICKET', row: 4, col: 0, dir: 'A' },
+      { id: '8A', word: 'STRIKE', row: 7, col: 2, dir: 'A' },
     ],
   },
   {
@@ -952,28 +1007,36 @@ export const PUZZLES = [
     live: '2026-08-09',
     dateLabel: 'August 9, 2026',
     sunday: true,
+    // Sunday, so three collisions minimum: RIVER reads Waterways, BLIND reads Window
+    // treatments, SHUTTER reads Camera parts. Each fake home is already full of words that can
+    // be nothing else. FLUSH's plumbing reading is off-board.
     guesses: 27,
-    rows: 11,
+    rows: 13,
     cols: 13,
+    collisions: [
+      { word: 'RIVER', reads: 'Waterways' },
+      { word: 'BLIND', reads: 'Window treatments' },
+      { word: 'SHUTTER', reads: 'Camera parts' },
+    ],
     categories: [
-      { name: 'Fruits', words: ['BANANA', 'ORANGE', 'CHERRY'] },
-      { name: 'Instruments', words: ['GUITAR', 'VIOLIN', 'TRUMPET'] },
-      { name: 'Animals', words: ['RABBIT', 'MONKEY', 'TURTLE'] },
-      { name: 'Metals', words: ['COPPER', 'NICKEL', 'BRONZE'] },
+      { name: 'Poker', words: ['FLUSH', 'RIVER', 'BLIND'] },
+      { name: 'Waterways', words: ['CREEK', 'ESTUARY', 'TRIBUTARY'] },
+      { name: 'Window treatments', words: ['SHUTTER', 'DRAPE', 'VALANCE'] },
+      { name: 'Camera parts', words: ['LENS', 'TRIPOD', 'ZOOM'] },
     ],
     slots: [
-      { id: '9A', word: 'VIOLIN', row: 6, col: 2, dir: 'A' },
-      { id: '6D', word: 'MONKEY', row: 4, col: 7, dir: 'D' },
-      { id: '7D', word: 'COPPER', row: 5, col: 4, dir: 'D' },
-      { id: '8A', word: 'BRONZE', row: 5, col: 5, dir: 'A' },
-      { id: '11A', word: 'TRUMPET', row: 7, col: 0, dir: 'A' },
-      { id: '4D', word: 'RABBIT', row: 2, col: 0, dir: 'D' },
-      { id: '5A', word: 'BANANA', row: 4, col: 0, dir: 'A' },
-      { id: '12A', word: 'TURTLE', row: 10, col: 2, dir: 'A' },
-      { id: '1D', word: 'GUITAR', row: 0, col: 1, dir: 'D' },
-      { id: '2D', word: 'ORANGE', row: 0, col: 10, dir: 'D' },
-      { id: '10A', word: 'NICKEL', row: 6, col: 7, dir: 'A' },
-      { id: '3A', word: 'CHERRY', row: 1, col: 6, dir: 'A' },
+      { id: '1A', word: 'TRIBUTARY', row: 0, col: 0, dir: 'A' },
+      { id: '2D', word: 'BLIND', row: 0, col: 3, dir: 'D' },
+      { id: '3D', word: 'FLUSH', row: 2, col: 1, dir: 'D' },
+      { id: '4A', word: 'LENS', row: 3, col: 1, dir: 'A' },
+      { id: '5D', word: 'CREEK', row: 5, col: 6, dir: 'D' },
+      { id: '6A', word: 'SHUTTER', row: 6, col: 0, dir: 'A' },
+      { id: '7D', word: 'TRIPOD', row: 6, col: 3, dir: 'D' },
+      { id: '8D', word: 'VALANCE', row: 6, col: 10, dir: 'D' },
+      { id: '9A', word: 'ESTUARY', row: 7, col: 6, dir: 'A' },
+      { id: '10A', word: 'DRAPE', row: 9, col: 8, dir: 'A' },
+      { id: '11A', word: 'ZOOM', row: 10, col: 2, dir: 'A' },
+      { id: '12A', word: 'RIVER', row: 12, col: 7, dir: 'A' },
     ],
   },
   {
@@ -981,24 +1044,32 @@ export const PUZZLES = [
     quizId: 'crux-8-10-26',
     live: '2026-08-10',
     dateLabel: 'August 10, 2026',
+    // IRON is a double trap, reading both Laundry room and Metals, and each of those is full of
+    // its own true members. BIRDIE reads Badminton (SHUTTLE and SMASH fill it). Both golf words
+    // are traps.
     guesses: 18,
     rows: 10,
-    cols: 11,
+    cols: 9,
+    collisions: [
+      { word: 'IRON', reads: 'Laundry room' },
+      { word: 'IRON', reads: 'Metals' },
+      { word: 'BIRDIE', reads: 'Badminton' },
+    ],
     categories: [
-      { name: 'Beverages', words: ['COFFEE', 'COCOA'] },
-      { name: 'Tools', words: ['WRENCH', 'CHISEL'] },
-      { name: 'Reptiles', words: ['COBRA', 'GECKO'] },
-      { name: 'Shapes', words: ['CIRCLE', 'SQUARE'] },
+      { name: 'Golf', words: ['BIRDIE', 'IRON'] },
+      { name: 'Laundry room', words: ['STARCH', 'DRYER'] },
+      { name: 'Metals', words: ['ZINC', 'NICKEL'] },
+      { name: 'Badminton', words: ['SHUTTLE', 'SMASH'] },
     ],
     slots: [
-      { id: '5A', word: 'COBRA', row: 4, col: 5, dir: 'A' },
-      { id: '5D', word: 'CIRCLE', row: 4, col: 5, dir: 'D' },
-      { id: '3D', word: 'SQUARE', row: 0, col: 8, dir: 'D' },
-      { id: '7A', word: 'COFFEE', row: 9, col: 0, dir: 'A' },
-      { id: '6D', word: 'GECKO', row: 5, col: 1, dir: 'D' },
-      { id: '2A', word: 'CHISEL', row: 0, col: 5, dir: 'A' },
-      { id: '1A', word: 'WRENCH', row: 0, col: 1, dir: 'A' },
-      { id: '4D', word: 'COCOA', row: 3, col: 6, dir: 'D' },
+      { id: '1D', word: 'ZINC', row: 0, col: 5, dir: 'D' },
+      { id: '2A', word: 'IRON', row: 1, col: 5, dir: 'A' },
+      { id: '3D', word: 'NICKEL', row: 1, col: 8, dir: 'D' },
+      { id: '4A', word: 'STARCH', row: 3, col: 1, dir: 'A' },
+      { id: '5D', word: 'SMASH', row: 5, col: 0, dir: 'D' },
+      { id: '6A', word: 'BIRDIE', row: 5, col: 3, dir: 'A' },
+      { id: '7D', word: 'DRYER', row: 5, col: 6, dir: 'D' },
+      { id: '8A', word: 'SHUTTLE', row: 8, col: 0, dir: 'A' },
     ],
   },
   {
@@ -1006,25 +1077,28 @@ export const PUZZLES = [
     quizId: 'crux-8-11-26',
     live: '2026-08-11',
     dateLabel: 'August 11, 2026',
-    // collisions: GINGER reads Colours; CHERRY reads Colours
     guesses: 18,
-    rows: 12,
-    cols: 12,
+    rows: 9,
+    cols: 9,
+    collisions: [
+      { word: 'GINGER', reads: 'Colors' },
+      { word: 'CHERRY', reads: 'Colors' },
+    ],
     categories: [
       { name: "Spices", words: ['GINGER', 'ANISE'] },
       { name: "Fruit", words: ['MELON', 'CHERRY'] },
-      { name: "Rooms", words: ['CELLAR', 'PARLOUR'] },
-      { name: "Colours", words: ['INDIGO', 'MAROON'] },
+      { name: "Rooms", words: ['CELLAR', 'PARLOR'] },
+      { name: "Colors", words: ['INDIGO', 'MAROON'] },
     ],
     slots: [
-      { id: '7A', word: 'CELLAR', row: 7, col: 5, dir: 'A' },
-      { id: '3D', word: 'ANISE', row: 3, col: 6, dir: 'D' },
-      { id: '5A', word: 'INDIGO', row: 5, col: 3, dir: 'A' },
-      { id: '4D', word: 'GINGER', row: 4, col: 3, dir: 'D' },
-      { id: '8A', word: 'CHERRY', row: 9, col: 0, dir: 'A' },
-      { id: '6D', word: 'MAROON', row: 6, col: 9, dir: 'D' },
-      { id: '2A', word: 'PARLOUR', row: 3, col: 5, dir: 'A' },
-      { id: '1D', word: 'MELON', row: 0, col: 9, dir: 'D' },
+      { id: '1D', word: 'MELON', row: 0, col: 2, dir: 'D' },
+      { id: '2D', word: 'MAROON', row: 1, col: 4, dir: 'D' },
+      { id: '3A', word: 'CELLAR', row: 2, col: 0, dir: 'A' },
+      { id: '3D', word: 'CHERRY', row: 2, col: 0, dir: 'D' },
+      { id: '4D', word: 'PARLOR', row: 2, col: 8, dir: 'D' },
+      { id: '5D', word: 'ANISE', row: 4, col: 6, dir: 'D' },
+      { id: '6A', word: 'INDIGO', row: 6, col: 3, dir: 'A' },
+      { id: '7A', word: 'GINGER', row: 8, col: 2, dir: 'A' },
     ],
   },
   {
@@ -1032,15 +1106,18 @@ export const PUZZLES = [
     quizId: 'crux-8-12-26',
     live: '2026-08-12',
     dateLabel: 'August 12, 2026',
-    // collisions: SILVER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 11,
     cols: 11,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Mammals", words: ['MARTEN', 'BADGER'] },
       { name: "Metals", words: ['SILVER', 'BRONZE'] },
       { name: "Body parts", words: ['SHIN', 'ELBOW'] },
-      { name: "Colours", words: ['CRIMSON', 'SCARLET'] },
+      { name: "Colors", words: ['CRIMSON', 'SCARLET'] },
     ],
     slots: [
       { id: '6A', word: 'MARTEN', row: 6, col: 0, dir: 'A' },
@@ -1058,13 +1135,16 @@ export const PUZZLES = [
     quizId: 'crux-8-13-26',
     live: '2026-08-13',
     dateLabel: 'August 13, 2026',
-    // collisions: SILVER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 12,
     cols: 10,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Sauces", words: ['GRAVY', 'HARISSA'] },
-      { name: "Colours", words: ['SCARLET', 'AZURE'] },
+      { name: "Colors", words: ['SCARLET', 'AZURE'] },
       { name: "Metals", words: ['SILVER', 'BRONZE'] },
       { name: "Tea types", words: ['MATCHA', 'ASSAM'] },
     ],
@@ -1084,10 +1164,13 @@ export const PUZZLES = [
     quizId: 'crux-8-14-26',
     live: '2026-08-14',
     dateLabel: 'August 14, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 10,
     cols: 11,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Shades of green", words: ['MINT', 'OLIVE'] },
       { name: "Bank things", words: ['TELLER', 'VAULT'] },
@@ -1110,14 +1193,17 @@ export const PUZZLES = [
     quizId: 'crux-8-15-26',
     live: '2026-08-15',
     dateLabel: 'August 15, 2026',
-    // collisions: AMBER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 10,
     cols: 13,
+    collisions: [
+      { word: 'AMBER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Gemstones", words: ['TOPAZ', 'AMBER'] },
       { name: "Horses", words: ['PONY', 'STALLION'] },
-      { name: "Colours", words: ['INDIGO', 'SCARLET'] },
+      { name: "Colors", words: ['INDIGO', 'SCARLET'] },
       { name: "Metals", words: ['PEWTER', 'BRONZE'] },
     ],
     slots: [
@@ -1137,29 +1223,36 @@ export const PUZZLES = [
     live: '2026-08-16',
     dateLabel: 'August 16, 2026',
     sunday: true,
-    // collisions: SILVER reads Colours; BRONZE reads Colours
+    // Sunday. ACE reads Playing cards, JACK reads Garage tools (a car jack), SET reads
+    // Volleyball. All three pinned by elimination. SPIKE and BLOCK lean hardware as free
+    // extras.
     guesses: 27,
-    rows: 12,
-    cols: 13,
+    rows: 11,
+    cols: 11,
+    collisions: [
+      { word: 'ACE', reads: 'Playing cards' },
+      { word: 'JACK', reads: 'Garage tools' },
+      { word: 'SET', reads: 'Volleyball' },
+    ],
     categories: [
-      { name: "Colours", words: ['AZURE', 'MAROON', 'SCARLET'] },
-      { name: "Flowers", words: ['IRIS', 'PEONY', 'LUPIN'] },
-      { name: "Mammals", words: ['MARTEN', 'WEASEL', 'OTTER'] },
-      { name: "Metals", words: ['SILVER', 'PEWTER', 'BRONZE'] },
+      { name: 'Tennis', words: ['LOVE', 'ACE', 'SET'] },
+      { name: 'Playing cards', words: ['JACK', 'JOKER', 'SHUFFLE'] },
+      { name: 'Garage tools', words: ['CLAMP', 'VISE', 'WRENCH'] },
+      { name: 'Volleyball', words: ['SPIKE', 'BUMP', 'BLOCK'] },
     ],
     slots: [
-      { id: '9A', word: 'MARTEN', row: 7, col: 7, dir: 'A' },
-      { id: '5D', word: 'PEWTER', row: 3, col: 11, dir: 'D' },
-      { id: '7A', word: 'SCARLET', row: 4, col: 6, dir: 'A' },
-      { id: '8D', word: 'BRONZE', row: 6, col: 9, dir: 'D' },
-      { id: '12A', word: 'SILVER', row: 11, col: 5, dir: 'A' },
-      { id: '3D', word: 'WEASEL', row: 1, col: 6, dir: 'D' },
-      { id: '4A', word: 'AZURE', row: 2, col: 2, dir: 'A' },
-      { id: '2D', word: 'MAROON', row: 1, col: 2, dir: 'D' },
-      { id: '1D', word: 'OTTER', row: 0, col: 9, dir: 'D' },
-      { id: '11D', word: 'IRIS', row: 8, col: 5, dir: 'D' },
-      { id: '6A', word: 'PEONY', row: 4, col: 0, dir: 'A' },
-      { id: '10A', word: 'LUPIN', row: 8, col: 2, dir: 'A' },
+      { id: '1D', word: 'VISE', row: 0, col: 3, dir: 'D' },
+      { id: '2D', word: 'BLOCK', row: 1, col: 8, dir: 'D' },
+      { id: '3D', word: 'JOKER', row: 2, col: 1, dir: 'D' },
+      { id: '4A', word: 'SHUFFLE', row: 2, col: 3, dir: 'A' },
+      { id: '5A', word: 'LOVE', row: 3, col: 0, dir: 'A' },
+      { id: '6A', word: 'JACK', row: 4, col: 6, dir: 'A' },
+      { id: '7A', word: 'WRENCH', row: 6, col: 0, dir: 'A' },
+      { id: '8D', word: 'CLAMP', row: 6, col: 4, dir: 'D' },
+      { id: '9A', word: 'SPIKE', row: 7, col: 6, dir: 'A' },
+      { id: '9D', word: 'SET', row: 7, col: 6, dir: 'D' },
+      { id: '10A', word: 'ACE', row: 8, col: 4, dir: 'A' },
+      { id: '11A', word: 'BUMP', row: 10, col: 1, dir: 'A' },
     ],
   },
   {
@@ -1167,15 +1260,18 @@ export const PUZZLES = [
     quizId: 'crux-8-17-26',
     live: '2026-08-17',
     dateLabel: 'August 17, 2026',
-    // collisions: BRONZE reads Colours; SILVER reads Colours
     guesses: 18,
     rows: 12,
     cols: 9,
+    collisions: [
+      { word: 'BRONZE', reads: 'Colors' },
+      { word: 'SILVER', reads: 'Colors' },
+    ],
     categories: [
       { name: "Tree parts", words: ['BARK', 'CANOPY'] },
       { name: "Metals", words: ['BRONZE', 'SILVER'] },
       { name: "Fabrics", words: ['TWEED', 'SATIN'] },
-      { name: "Colours", words: ['AZURE', 'SCARLET'] },
+      { name: "Colors", words: ['AZURE', 'SCARLET'] },
     ],
     slots: [
       { id: '6A', word: 'BRONZE', row: 8, col: 0, dir: 'A' },
@@ -1193,13 +1289,16 @@ export const PUZZLES = [
     quizId: 'crux-8-18-26',
     live: '2026-08-18',
     dateLabel: 'August 18, 2026',
-    // collisions: BRONZE reads Colours; CHERRY reads Colours
     guesses: 18,
     rows: 12,
     cols: 12,
+    collisions: [
+      { word: 'BRONZE', reads: 'Colors' },
+      { word: 'CHERRY', reads: 'Colors' },
+    ],
     categories: [
       { name: "Metals", words: ['BRONZE', 'NICKEL'] },
-      { name: "Colours", words: ['MAROON', 'SCARLET'] },
+      { name: "Colors", words: ['MAROON', 'SCARLET'] },
       { name: "Roof parts", words: ['SOFFIT', 'RIDGE'] },
       { name: "Fruit", words: ['CHERRY', 'LEMON'] },
     ],
@@ -1219,12 +1318,15 @@ export const PUZZLES = [
     quizId: 'crux-8-19-26',
     live: '2026-08-19',
     dateLabel: 'August 19, 2026',
-    // collisions: SILVER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 10,
     cols: 13,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
-      { name: "Colours", words: ['MAROON', 'CRIMSON'] },
+      { name: "Colors", words: ['MAROON', 'CRIMSON'] },
       { name: "Roof parts", words: ['SOFFIT', 'RIDGE'] },
       { name: "Mammals", words: ['WEASEL', 'MARTEN'] },
       { name: "Metals", words: ['SILVER', 'BRONZE'] },
@@ -1245,10 +1347,13 @@ export const PUZZLES = [
     quizId: 'crux-8-20-26',
     live: '2026-08-20',
     dateLabel: 'August 20, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 10,
     cols: 10,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Shades of green", words: ['MOSS', 'MINT'] },
       { name: "Herbs", words: ['SAGE', 'CHERVIL'] },
@@ -1271,15 +1376,18 @@ export const PUZZLES = [
     quizId: 'crux-8-21-26',
     live: '2026-08-21',
     dateLabel: 'August 21, 2026',
-    // collisions: SILVER reads Colours; COPPER reads Colours
     guesses: 18,
     rows: 11,
     cols: 13,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'COPPER', reads: 'Colors' },
+    ],
     categories: [
       { name: "Metals", words: ['SILVER', 'COPPER'] },
       { name: "Sailing terms", words: ['MAST', 'HALYARD'] },
       { name: "Mountains", words: ['EIGER', 'EVEREST'] },
-      { name: "Colours", words: ['AZURE', 'INDIGO'] },
+      { name: "Colors", words: ['AZURE', 'INDIGO'] },
     ],
     slots: [
       { id: '8A', word: 'COPPER', row: 10, col: 5, dir: 'A' },
@@ -1297,10 +1405,13 @@ export const PUZZLES = [
     quizId: 'crux-8-22-26',
     live: '2026-08-22',
     dateLabel: 'August 22, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 12,
     cols: 9,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Cloud types", words: ['STRATUS', 'NIMBUS'] },
       { name: "Kitchen items", words: ['WHISK', 'KETTLE'] },
@@ -1324,29 +1435,36 @@ export const PUZZLES = [
     live: '2026-08-23',
     dateLabel: 'August 23, 2026',
     sunday: true,
-    // collisions: OLIVE reads Colours; JADE reads Gemstones
+    // Sunday. NEEDLE is a double trap, reading both Doctor's office and Record player parts,
+    // and PLATTER reads Table settings. Three fake readings, every fake home full. STYLUS leans
+    // pen off-board.
     guesses: 27,
-    rows: 12,
+    rows: 11,
     cols: 13,
+    collisions: [
+      { word: 'NEEDLE', reads: 'Doctor\'s office' },
+      { word: 'NEEDLE', reads: 'Record player parts' },
+      { word: 'PLATTER', reads: 'Table settings' },
+    ],
     categories: [
-      { name: "Colours", words: ['SCARLET', 'INDIGO', 'AZURE'] },
-      { name: "Gemstones", words: ['TOPAZ', 'JASPER', 'GARNET'] },
-      { name: "Shades of green", words: ['OLIVE', 'JADE', 'MINT'] },
-      { name: "Chess pieces", words: ['BISHOP', 'PAWN', 'ROOK'] },
+      { name: 'Sewing kit', words: ['NEEDLE', 'SPOOL', 'HEM'] },
+      { name: 'Doctor\'s office', words: ['SCALPEL', 'GAUZE', 'SPLINT'] },
+      { name: 'Record player parts', words: ['PLATTER', 'STYLUS', 'TONEARM'] },
+      { name: 'Table settings', words: ['TUREEN', 'CARAFE', 'COASTER'] },
     ],
     slots: [
-      { id: '4A', word: 'PAWN', row: 3, col: 4, dir: 'A' },
-      { id: '3D', word: 'JASPER', row: 2, col: 5, dir: 'D' },
-      { id: '7A', word: 'BISHOP', row: 5, col: 0, dir: 'A' },
-      { id: '5D', word: 'MINT', row: 4, col: 1, dir: 'D' },
-      { id: '9A', word: 'ROOK', row: 7, col: 5, dir: 'A' },
-      { id: '1D', word: 'GARNET', row: 0, col: 7, dir: 'D' },
-      { id: '8A', word: 'TOPAZ', row: 5, col: 7, dir: 'A' },
-      { id: '10D', word: 'OLIVE', row: 7, col: 7, dir: 'D' },
-      { id: '2A', word: 'AZURE', row: 1, col: 7, dir: 'A' },
-      { id: '6D', word: 'JADE', row: 4, col: 10, dir: 'D' },
-      { id: '12A', word: 'SCARLET', row: 11, col: 2, dir: 'A' },
-      { id: '11A', word: 'INDIGO', row: 9, col: 7, dir: 'A' },
+      { id: '1D', word: 'GAUZE', row: 0, col: 8, dir: 'D' },
+      { id: '2D', word: 'SPLINT', row: 1, col: 1, dir: 'D' },
+      { id: '3A', word: 'PLATTER', row: 1, col: 6, dir: 'A' },
+      { id: '4D', word: 'SCALPEL', row: 3, col: 3, dir: 'D' },
+      { id: '5D', word: 'TUREEN', row: 3, col: 12, dir: 'D' },
+      { id: '6A', word: 'COASTER', row: 4, col: 3, dir: 'A' },
+      { id: '7D', word: 'TONEARM', row: 4, col: 7, dir: 'D' },
+      { id: '8A', word: 'STYLUS', row: 6, col: 0, dir: 'A' },
+      { id: '8D', word: 'SPOOL', row: 6, col: 0, dir: 'D' },
+      { id: '9A', word: 'NEEDLE', row: 6, col: 7, dir: 'A' },
+      { id: '10A', word: 'HEM', row: 8, col: 2, dir: 'A' },
+      { id: '11A', word: 'CARAFE', row: 9, col: 5, dir: 'A' },
     ],
   },
   {
@@ -1354,10 +1472,13 @@ export const PUZZLES = [
     quizId: 'crux-8-24-26',
     live: '2026-08-24',
     dateLabel: 'August 24, 2026',
-    // collisions: DECK reads Sailing terms; BRIDGE reads Bridge parts
     guesses: 18,
     rows: 10,
     cols: 10,
+    collisions: [
+      { word: 'DECK', reads: 'Sailing terms' },
+      { word: 'BRIDGE', reads: 'Bridge parts' },
+    ],
     categories: [
       { name: "Sailing terms", words: ['BOOM', 'HALYARD'] },
       { name: "Pasta shapes", words: ['FARFALLE', 'RIGATONI'] },
@@ -1380,12 +1501,15 @@ export const PUZZLES = [
     quizId: 'crux-8-25-26',
     live: '2026-08-25',
     dateLabel: 'August 25, 2026',
-    // collisions: COPPER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 10,
     cols: 13,
+    collisions: [
+      { word: 'COPPER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
-      { name: "Colours", words: ['AZURE', 'MAROON'] },
+      { name: "Colors", words: ['AZURE', 'MAROON'] },
       { name: "Metals", words: ['COPPER', 'BRONZE'] },
       { name: "Instruments", words: ['OBOE', 'PIANO'] },
       { name: "Rooms", words: ['ATTIC', 'CELLAR'] },
@@ -1406,13 +1530,16 @@ export const PUZZLES = [
     quizId: 'crux-8-26-26',
     live: '2026-08-26',
     dateLabel: 'August 26, 2026',
-    // collisions: SILVER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 8,
     cols: 12,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Metals", words: ['SILVER', 'BRONZE'] },
-      { name: "Colours", words: ['SCARLET', 'CRIMSON'] },
+      { name: "Colors", words: ['SCARLET', 'CRIMSON'] },
       { name: "Cloud types", words: ['CIRRUS', 'NIMBUS'] },
       { name: "Clothing", words: ['ANORAK', 'BLAZER'] },
     ],
@@ -1432,13 +1559,16 @@ export const PUZZLES = [
     quizId: 'crux-8-27-26',
     live: '2026-08-27',
     dateLabel: 'August 27, 2026',
-    // collisions: COPPER reads Colours; SILVER reads Colours
     guesses: 18,
     rows: 12,
     cols: 11,
+    collisions: [
+      { word: 'COPPER', reads: 'Colors' },
+      { word: 'SILVER', reads: 'Colors' },
+    ],
     categories: [
       { name: "Trees", words: ['WILLOW', 'MAPLE'] },
-      { name: "Colours", words: ['MAROON', 'SCARLET'] },
+      { name: "Colors", words: ['MAROON', 'SCARLET'] },
       { name: "Metals", words: ['COPPER', 'SILVER'] },
       { name: "Mammals", words: ['MARTEN', 'STOAT'] },
     ],
@@ -1458,10 +1588,13 @@ export const PUZZLES = [
     quizId: 'crux-8-28-26',
     live: '2026-08-28',
     dateLabel: 'August 28, 2026',
-    // collisions: SAGE reads Shades of green; MINT reads Herbs
     guesses: 18,
     rows: 12,
     cols: 9,
+    collisions: [
+      { word: 'SAGE', reads: 'Shades of green' },
+      { word: 'MINT', reads: 'Herbs' },
+    ],
     categories: [
       { name: "Birds", words: ['RAVEN', 'FINCH'] },
       { name: "Herbs", words: ['SAGE', 'THYME'] },
@@ -1484,10 +1617,13 @@ export const PUZZLES = [
     quizId: 'crux-8-29-26',
     live: '2026-08-29',
     dateLabel: 'August 29, 2026',
-    // collisions: JADE reads Gemstones; SAGE reads Shades of green
     guesses: 18,
     rows: 8,
     cols: 10,
+    collisions: [
+      { word: 'JADE', reads: 'Gemstones' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Shades of green", words: ['MOSS', 'JADE'] },
       { name: "Gemstones", words: ['JASPER', 'AMBER'] },
@@ -1511,29 +1647,35 @@ export const PUZZLES = [
     live: '2026-08-30',
     dateLabel: 'August 30, 2026',
     sunday: true,
-    // collisions: OLIVE reads Colours; GINGER reads Colours
+    // Sunday. CURRENT reads Electrical terms, WAVE reads Salon services, FUSE reads Fireworks.
+    // Chained and pinned. ROCKET's arugula reading and TIDE-style brand teases are off-board.
     guesses: 27,
-    rows: 11,
+    rows: 13,
     cols: 12,
+    collisions: [
+      { word: 'CURRENT', reads: 'Electrical terms' },
+      { word: 'WAVE', reads: 'Salon services' },
+      { word: 'FUSE', reads: 'Fireworks' },
+    ],
     categories: [
-      { name: "Shades of green", words: ['MINT', 'OLIVE', 'FOREST'] },
-      { name: "Horses", words: ['FOAL', 'PONY', 'STALLION'] },
-      { name: "Colours", words: ['MAROON', 'SCARLET', 'AZURE'] },
-      { name: "Spices", words: ['CLOVE', 'GINGER', 'ANISE'] },
+      { name: 'Ocean', words: ['WAVE', 'CURRENT', 'UNDERTOW'] },
+      { name: 'Electrical terms', words: ['FUSE', 'CIRCUIT', 'AMPERE'] },
+      { name: 'Salon services', words: ['PERM', 'HIGHLIGHTS', 'BLOWOUT'] },
+      { name: 'Fireworks', words: ['WICK', 'SPARKLER', 'ROCKET'] },
     ],
     slots: [
-      { id: '11A', word: 'AZURE', row: 8, col: 3, dir: 'A' },
-      { id: '8D', word: 'FOREST', row: 5, col: 7, dir: 'D' },
-      { id: '10A', word: 'CLOVE', row: 6, col: 5, dir: 'A' },
-      { id: '9D', word: 'FOAL', row: 6, col: 3, dir: 'D' },
-      { id: '5D', word: 'GINGER', row: 2, col: 9, dir: 'D' },
-      { id: '12A', word: 'MINT', row: 10, col: 4, dir: 'A' },
-      { id: '6A', word: 'STALLION', row: 3, col: 4, dir: 'A' },
-      { id: '2D', word: 'ANISE', row: 0, col: 4, dir: 'D' },
-      { id: '1A', word: 'SCARLET', row: 0, col: 2, dir: 'A' },
-      { id: '4D', word: 'PONY', row: 1, col: 11, dir: 'D' },
-      { id: '7A', word: 'OLIVE', row: 4, col: 0, dir: 'A' },
-      { id: '3D', word: 'MAROON', row: 1, col: 0, dir: 'D' },
+      { id: '1D', word: 'AMPERE', row: 0, col: 10, dir: 'D' },
+      { id: '2D', word: 'SPARKLER', row: 1, col: 5, dir: 'D' },
+      { id: '3A', word: 'PERM', row: 1, col: 7, dir: 'A' },
+      { id: '4A', word: 'WAVE', row: 3, col: 7, dir: 'A' },
+      { id: '5D', word: 'CIRCUIT', row: 5, col: 1, dir: 'D' },
+      { id: '6D', word: 'WICK', row: 5, col: 3, dir: 'D' },
+      { id: '7A', word: 'FUSE', row: 5, col: 7, dir: 'A' },
+      { id: '8D', word: 'UNDERTOW', row: 5, col: 8, dir: 'D' },
+      { id: '9D', word: 'CURRENT', row: 6, col: 11, dir: 'D' },
+      { id: '10A', word: 'ROCKET', row: 7, col: 1, dir: 'A' },
+      { id: '11A', word: 'HIGHLIGHTS', row: 10, col: 0, dir: 'A' },
+      { id: '12A', word: 'BLOWOUT', row: 12, col: 5, dir: 'A' },
     ],
   },
   {
@@ -1541,10 +1683,13 @@ export const PUZZLES = [
     quizId: 'crux-8-31-26',
     live: '2026-08-31',
     dateLabel: 'August 31, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 10,
     cols: 11,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Fruit", words: ['PEACH', 'CHERRY'] },
       { name: "Shades of green", words: ['MINT', 'MOSS'] },
@@ -1567,10 +1712,13 @@ export const PUZZLES = [
     quizId: 'crux-9-1-26',
     live: '2026-09-01',
     dateLabel: 'September 1, 2026',
-    // collisions: BRANCH reads Tree parts; BISHOP reads Church roles
     guesses: 18,
     rows: 10,
     cols: 13,
+    collisions: [
+      { word: 'BRANCH', reads: 'Tree parts' },
+      { word: 'BISHOP', reads: 'Church roles' },
+    ],
     categories: [
       { name: "Bank things", words: ['BRANCH', 'TELLER'] },
       { name: "Chess pieces", words: ['BISHOP', 'KNIGHT'] },
@@ -1593,10 +1741,13 @@ export const PUZZLES = [
     quizId: 'crux-9-2-26',
     live: '2026-09-02',
     dateLabel: 'September 2, 2026',
-    // collisions: SAGE reads Shades of green; MINT reads Herbs
     guesses: 18,
     rows: 8,
     cols: 11,
+    collisions: [
+      { word: 'SAGE', reads: 'Shades of green' },
+      { word: 'MINT', reads: 'Herbs' },
+    ],
     categories: [
       { name: "Castle parts", words: ['KEEP', 'BAILEY'] },
       { name: "Herbs", words: ['SAGE', 'OREGANO'] },
@@ -1619,14 +1770,17 @@ export const PUZZLES = [
     quizId: 'crux-9-3-26',
     live: '2026-09-03',
     dateLabel: 'September 3, 2026',
-    // collisions: COPPER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 12,
     cols: 12,
+    collisions: [
+      { word: 'COPPER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Metals", words: ['COPPER', 'BRONZE'] },
       { name: "Tools", words: ['MALLET', 'CHISEL'] },
-      { name: "Colours", words: ['CRIMSON', 'INDIGO'] },
+      { name: "Colors", words: ['CRIMSON', 'INDIGO'] },
       { name: "Instruments", words: ['OBOE', 'PIANO'] },
     ],
     slots: [
@@ -1645,12 +1799,15 @@ export const PUZZLES = [
     quizId: 'crux-9-4-26',
     live: '2026-09-04',
     dateLabel: 'September 4, 2026',
-    // collisions: SILVER reads Colours; SALMON reads Colours
     guesses: 18,
     rows: 12,
     cols: 12,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'SALMON', reads: 'Colors' },
+    ],
     categories: [
-      { name: "Colours", words: ['AZURE', 'SCARLET'] },
+      { name: "Colors", words: ['AZURE', 'SCARLET'] },
       { name: "Chess pieces", words: ['PAWN', 'QUEEN'] },
       { name: "Metals", words: ['NICKEL', 'SILVER'] },
       { name: "Fish", words: ['SALMON', 'TROUT'] },
@@ -1671,12 +1828,15 @@ export const PUZZLES = [
     quizId: 'crux-9-5-26',
     live: '2026-09-05',
     dateLabel: 'September 5, 2026',
-    // collisions: COPPER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 12,
     cols: 11,
+    collisions: [
+      { word: 'COPPER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
-      { name: "Colours", words: ['SCARLET', 'MAROON'] },
+      { name: "Colors", words: ['SCARLET', 'MAROON'] },
       { name: "Gym apparatus", words: ['BARS', 'RINGS'] },
       { name: "Rock types", words: ['BASALT', 'MARBLE'] },
       { name: "Metals", words: ['COPPER', 'BRONZE'] },
@@ -1698,29 +1858,35 @@ export const PUZZLES = [
     live: '2026-09-06',
     dateLabel: 'September 6, 2026',
     sunday: true,
-    // collisions: BRONZE reads Colours; COPPER reads Colours
+    // Sunday. WINDS reads Weather, BRASS reads Alloys (and military brass, off-board), FRONT
+    // reads Military words. Each fake home is full of words that can only live there.
     guesses: 27,
-    rows: 12,
-    cols: 12,
+    rows: 11,
+    cols: 13,
+    collisions: [
+      { word: 'WINDS', reads: 'Weather' },
+      { word: 'BRASS', reads: 'Alloys' },
+      { word: 'FRONT', reads: 'Military words' },
+    ],
     categories: [
-      { name: "Sailing terms", words: ['TILLER', 'BOOM', 'MAST'] },
-      { name: "Big cats", words: ['CARACAL', 'OCELOT', 'JAGUAR'] },
-      { name: "Metals", words: ['BRONZE', 'PEWTER', 'COPPER'] },
-      { name: "Colours", words: ['MAROON', 'AZURE', 'INDIGO'] },
+      { name: 'Orchestra sections', words: ['BRASS', 'STRINGS', 'WINDS'] },
+      { name: 'Weather', words: ['SQUALL', 'DRIZZLE', 'FRONT'] },
+      { name: 'Alloys', words: ['BRONZE', 'PEWTER', 'STERLING'] },
+      { name: 'Military words', words: ['PLATOON', 'RECON', 'BARRACKS'] },
     ],
     slots: [
-      { id: '11A', word: 'OCELOT', row: 9, col: 1, dir: 'A' },
-      { id: '8D', word: 'MAST', row: 6, col: 6, dir: 'D' },
-      { id: '6D', word: 'PEWTER', row: 5, col: 3, dir: 'D' },
-      { id: '10A', word: 'CARACAL', row: 7, col: 5, dir: 'A' },
-      { id: '5A', word: 'COPPER', row: 5, col: 0, dir: 'A' },
-      { id: '3D', word: 'MAROON', row: 2, col: 1, dir: 'D' },
-      { id: '1D', word: 'BRONZE', row: 0, col: 4, dir: 'D' },
-      { id: '4A', word: 'INDIGO', row: 3, col: 3, dir: 'A' },
-      { id: '9D', word: 'JAGUAR', row: 6, col: 8, dir: 'D' },
-      { id: '7D', word: 'TILLER', row: 5, col: 11, dir: 'D' },
-      { id: '12A', word: 'AZURE', row: 11, col: 5, dir: 'A' },
-      { id: '2D', word: 'BOOM', row: 1, col: 8, dir: 'D' },
+      { id: '1D', word: 'STERLING', row: 0, col: 1, dir: 'D' },
+      { id: '2D', word: 'FRONT', row: 0, col: 3, dir: 'D' },
+      { id: '3A', word: 'PEWTER', row: 0, col: 5, dir: 'A' },
+      { id: '4D', word: 'RECON', row: 0, col: 10, dir: 'D' },
+      { id: '5A', word: 'BARRACKS', row: 2, col: 5, dir: 'A' },
+      { id: '5D', word: 'BRONZE', row: 2, col: 5, dir: 'D' },
+      { id: '6A', word: 'PLATOON', row: 4, col: 0, dir: 'A' },
+      { id: '7A', word: 'WINDS', row: 4, col: 8, dir: 'A' },
+      { id: '8D', word: 'DRIZZLE', row: 4, col: 11, dir: 'D' },
+      { id: '9D', word: 'BRASS', row: 6, col: 7, dir: 'D' },
+      { id: '10A', word: 'SQUALL', row: 9, col: 7, dir: 'A' },
+      { id: '11A', word: 'STRINGS', row: 10, col: 1, dir: 'A' },
     ],
   },
   {
@@ -1728,14 +1894,17 @@ export const PUZZLES = [
     quizId: 'crux-9-7-26',
     live: '2026-09-07',
     dateLabel: 'September 7, 2026',
-    // collisions: BRONZE reads Colours; SILVER reads Colours
     guesses: 18,
     rows: 12,
     cols: 9,
+    collisions: [
+      { word: 'BRONZE', reads: 'Colors' },
+      { word: 'SILVER', reads: 'Colors' },
+    ],
     categories: [
       { name: "Weather", words: ['SLEET', 'HAIL'] },
       { name: "Kitchen items", words: ['LADLE', 'KETTLE'] },
-      { name: "Colours", words: ['CRIMSON', 'SCARLET'] },
+      { name: "Colors", words: ['CRIMSON', 'SCARLET'] },
       { name: "Metals", words: ['BRONZE', 'SILVER'] },
     ],
     slots: [
@@ -1754,12 +1923,15 @@ export const PUZZLES = [
     quizId: 'crux-9-8-26',
     live: '2026-09-08',
     dateLabel: 'September 8, 2026',
-    // collisions: BRONZE reads Colours; COPPER reads Colours
     guesses: 18,
     rows: 10,
     cols: 12,
+    collisions: [
+      { word: 'BRONZE', reads: 'Colors' },
+      { word: 'COPPER', reads: 'Colors' },
+    ],
     categories: [
-      { name: "Colours", words: ['AZURE', 'MAROON'] },
+      { name: "Colors", words: ['AZURE', 'MAROON'] },
       { name: "Metals", words: ['BRONZE', 'COPPER'] },
       { name: "Castle parts", words: ['MOAT', 'BAILEY'] },
       { name: "Church roles", words: ['VICAR', 'DEACON'] },
@@ -1780,13 +1952,16 @@ export const PUZZLES = [
     quizId: 'crux-9-9-26',
     live: '2026-09-09',
     dateLabel: 'September 9, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 12,
     cols: 8,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Shades of green", words: ['MINT', 'MOSS'] },
-      { name: "Colours", words: ['MAROON', 'CRIMSON'] },
+      { name: "Colors", words: ['MAROON', 'CRIMSON'] },
       { name: "Pasta shapes", words: ['FUSILLI', 'RIGATONI'] },
       { name: "Herbs", words: ['SAGE', 'THYME'] },
     ],
@@ -1806,10 +1981,13 @@ export const PUZZLES = [
     quizId: 'crux-9-10-26',
     live: '2026-09-10',
     dateLabel: 'September 10, 2026',
-    // collisions: VAULT reads Gym apparatus; POMMEL reads Sword parts
     guesses: 18,
     rows: 10,
     cols: 12,
+    collisions: [
+      { word: 'VAULT', reads: 'Gym apparatus' },
+      { word: 'POMMEL', reads: 'Sword parts' },
+    ],
     categories: [
       { name: "Kitchen items", words: ['SIEVE', 'GRATER'] },
       { name: "Bank things", words: ['LEDGER', 'VAULT'] },
@@ -1832,12 +2010,15 @@ export const PUZZLES = [
     quizId: 'crux-9-11-26',
     live: '2026-09-11',
     dateLabel: 'September 11, 2026',
-    // collisions: SILVER reads Colours; COPPER reads Colours
     guesses: 18,
     rows: 8,
     cols: 13,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'COPPER', reads: 'Colors' },
+    ],
     categories: [
-      { name: "Colours", words: ['SCARLET', 'INDIGO'] },
+      { name: "Colors", words: ['SCARLET', 'INDIGO'] },
       { name: "Shapes", words: ['CIRCLE', 'PRISM'] },
       { name: "Metals", words: ['SILVER', 'COPPER'] },
       { name: "Rivers", words: ['TIBER', 'VOLGA'] },
@@ -1858,13 +2039,16 @@ export const PUZZLES = [
     quizId: 'crux-9-12-26',
     live: '2026-09-12',
     dateLabel: 'September 12, 2026',
-    // collisions: BRONZE reads Colours; CHERRY reads Colours
     guesses: 18,
     rows: 10,
     cols: 13,
+    collisions: [
+      { word: 'BRONZE', reads: 'Colors' },
+      { word: 'CHERRY', reads: 'Colors' },
+    ],
     categories: [
       { name: "Metals", words: ['NICKEL', 'BRONZE'] },
-      { name: "Colours", words: ['CRIMSON', 'AZURE'] },
+      { name: "Colors", words: ['CRIMSON', 'AZURE'] },
       { name: "Fruit", words: ['CHERRY', 'PEACH'] },
       { name: "Big cats", words: ['CARACAL', 'OCELOT'] },
     ],
@@ -1885,29 +2069,35 @@ export const PUZZLES = [
     live: '2026-09-13',
     dateLabel: 'September 13, 2026',
     sunday: true,
-    // collisions: AMBER reads Colours; GINGER reads Colours
+    // Sunday. All three billiards words are traps: CUE reads Theater, RACK reads Gym gear,
+    // BREAK reads School day. WINGS leans poultry off-board.
     guesses: 27,
     rows: 12,
-    cols: 13,
+    cols: 12,
+    collisions: [
+      { word: 'CUE', reads: 'Theater' },
+      { word: 'RACK', reads: 'Gym gear' },
+      { word: 'BREAK', reads: 'School day' },
+    ],
     categories: [
-      { name: "Colours", words: ['AZURE', 'CRIMSON', 'SCARLET'] },
-      { name: "Gemstones", words: ['AMBER', 'TOPAZ', 'JASPER'] },
-      { name: "Gym apparatus", words: ['VAULT', 'BEAM', 'POMMEL'] },
-      { name: "Spices", words: ['GINGER', 'PEPPER', 'CLOVE'] },
+      { name: 'Billiards', words: ['CUE', 'RACK', 'BREAK'] },
+      { name: 'Theater', words: ['PROMPT', 'WINGS', 'MATINEE'] },
+      { name: 'Gym gear', words: ['DUMBBELL', 'BARBELL', 'MAT'] },
+      { name: 'School day', words: ['RECESS', 'DETENTION', 'ASSEMBLY'] },
     ],
     slots: [
-      { id: '6A', word: 'VAULT', row: 4, col: 1, dir: 'A' },
-      { id: '5D', word: 'JASPER', row: 3, col: 2, dir: 'D' },
-      { id: '10A', word: 'CRIMSON', row: 8, col: 1, dir: 'A' },
-      { id: '9D', word: 'POMMEL', row: 6, col: 4, dir: 'D' },
-      { id: '11A', word: 'GINGER', row: 10, col: 0, dir: 'A' },
-      { id: '9A', word: 'PEPPER', row: 6, col: 4, dir: 'A' },
-      { id: '4D', word: 'AMBER', row: 2, col: 9, dir: 'D' },
-      { id: '3A', word: 'TOPAZ', row: 2, col: 6, dir: 'A' },
-      { id: '7A', word: 'BEAM', row: 4, col: 9, dir: 'A' },
-      { id: '8D', word: 'AZURE', row: 4, col: 11, dir: 'D' },
-      { id: '2D', word: 'CLOVE', row: 0, col: 7, dir: 'D' },
-      { id: '1A', word: 'SCARLET', row: 0, col: 6, dir: 'A' },
+      { id: '1A', word: 'RACK', row: 0, col: 5, dir: 'A' },
+      { id: '2D', word: 'CUE', row: 0, col: 7, dir: 'D' },
+      { id: '3D', word: 'PROMPT', row: 1, col: 4, dir: 'D' },
+      { id: '4A', word: 'RECESS', row: 2, col: 4, dir: 'A' },
+      { id: '5A', word: 'DUMBBELL', row: 4, col: 2, dir: 'A' },
+      { id: '6D', word: 'BARBELL', row: 4, col: 6, dir: 'D' },
+      { id: '7D', word: 'MATINEE', row: 4, col: 11, dir: 'D' },
+      { id: '8A', word: 'MAT', row: 6, col: 2, dir: 'A' },
+      { id: '9D', word: 'BREAK', row: 7, col: 0, dir: 'D' },
+      { id: '10D', word: 'WINGS', row: 7, col: 9, dir: 'D' },
+      { id: '11A', word: 'DETENTION', row: 8, col: 3, dir: 'A' },
+      { id: '12A', word: 'ASSEMBLY', row: 10, col: 0, dir: 'A' },
     ],
   },
   {
@@ -1915,10 +2105,13 @@ export const PUZZLES = [
     quizId: 'crux-9-14-26',
     live: '2026-09-14',
     dateLabel: 'September 14, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 8,
     cols: 13,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Shades of green", words: ['FOREST', 'MINT'] },
       { name: "Planets", words: ['NEPTUNE', 'MARS'] },
@@ -1941,10 +2134,13 @@ export const PUZZLES = [
     quizId: 'crux-9-15-26',
     live: '2026-09-15',
     dateLabel: 'September 15, 2026',
-    // collisions: SAGE reads Shades of green; FOREST reads Trees
     guesses: 18,
     rows: 11,
     cols: 13,
+    collisions: [
+      { word: 'SAGE', reads: 'Shades of green' },
+      { word: 'FOREST', reads: 'Trees' },
+    ],
     categories: [
       { name: "Herbs", words: ['SAGE', 'CHERVIL'] },
       { name: "Shades of green", words: ['OLIVE', 'FOREST'] },
@@ -1967,14 +2163,17 @@ export const PUZZLES = [
     quizId: 'crux-9-16-26',
     live: '2026-09-16',
     dateLabel: 'September 16, 2026',
-    // collisions: SILVER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 11,
     cols: 12,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Sailing terms", words: ['HALYARD', 'BOOM'] },
       { name: "Mountains", words: ['ETNA', 'DENALI'] },
-      { name: "Colours", words: ['SCARLET', 'AZURE'] },
+      { name: "Colors", words: ['SCARLET', 'AZURE'] },
       { name: "Metals", words: ['SILVER', 'BRONZE'] },
     ],
     slots: [
@@ -1993,10 +2192,13 @@ export const PUZZLES = [
     quizId: 'crux-9-17-26',
     live: '2026-09-17',
     dateLabel: 'September 17, 2026',
-    // collisions: BRIDGE reads Bridge parts; DECK reads Sailing terms
     guesses: 18,
     rows: 9,
     cols: 12,
+    collisions: [
+      { word: 'BRIDGE', reads: 'Bridge parts' },
+      { word: 'DECK', reads: 'Sailing terms' },
+    ],
     categories: [
       { name: "Card games", words: ['POKER', 'BRIDGE'] },
       { name: "Bridge parts", words: ['DECK', 'PIER'] },
@@ -2019,15 +2221,18 @@ export const PUZZLES = [
     quizId: 'crux-9-18-26',
     live: '2026-09-18',
     dateLabel: 'September 18, 2026',
-    // collisions: COPPER reads Colours; GINGER reads Colours
     guesses: 18,
     rows: 12,
     cols: 13,
+    collisions: [
+      { word: 'COPPER', reads: 'Colors' },
+      { word: 'GINGER', reads: 'Colors' },
+    ],
     categories: [
       { name: "Cloud types", words: ['STRATUS', 'NIMBUS'] },
       { name: "Metals", words: ['PEWTER', 'COPPER'] },
       { name: "Spices", words: ['ANISE', 'GINGER'] },
-      { name: "Colours", words: ['AZURE', 'CRIMSON'] },
+      { name: "Colors", words: ['AZURE', 'CRIMSON'] },
     ],
     slots: [
       { id: '5A', word: 'GINGER', row: 5, col: 2, dir: 'A' },
@@ -2045,15 +2250,18 @@ export const PUZZLES = [
     quizId: 'crux-9-19-26',
     live: '2026-09-19',
     dateLabel: 'September 19, 2026',
-    // collisions: COPPER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 12,
     cols: 13,
+    collisions: [
+      { word: 'COPPER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Herbs", words: ['THYME', 'OREGANO'] },
       { name: "Metals", words: ['COPPER', 'BRONZE'] },
       { name: "Mountains", words: ['OLYMPUS', 'DENALI'] },
-      { name: "Colours", words: ['MAROON', 'INDIGO'] },
+      { name: "Colors", words: ['MAROON', 'INDIGO'] },
     ],
     slots: [
       { id: '3A', word: 'THYME', row: 2, col: 0, dir: 'A' },
@@ -2072,29 +2280,35 @@ export const PUZZLES = [
     live: '2026-09-20',
     dateLabel: 'September 20, 2026',
     sunday: true,
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
+    // Sunday. BOOM reads Film set gear, SLATE reads Roofing, GUTTER also reads Roofing. Roofing
+    // is full with SHINGLE, SOFFIT and FLASHING, so nothing escapes into it.
     guesses: 27,
-    rows: 12,
-    cols: 13,
+    rows: 13,
+    cols: 12,
+    collisions: [
+      { word: 'BOOM', reads: 'Film set gear' },
+      { word: 'SLATE', reads: 'Roofing' },
+      { word: 'GUTTER', reads: 'Roofing' },
+    ],
     categories: [
-      { name: "Shades of green", words: ['OLIVE', 'MOSS', 'MINT'] },
-      { name: "Deserts", words: ['GOBI', 'ATACAMA', 'MOJAVE'] },
-      { name: "Big cats", words: ['CARACAL', 'OCELOT', 'LYNX'] },
-      { name: "Herbs", words: ['BASIL', 'SAGE', 'THYME'] },
+      { name: 'Sailing', words: ['BOOM', 'RIGGING', 'RUDDER'] },
+      { name: 'Film set gear', words: ['CLAPPER', 'DOLLY', 'SLATE'] },
+      { name: 'Roofing', words: ['SHINGLE', 'SOFFIT', 'FLASHING'] },
+      { name: 'Bowling alley', words: ['GUTTER', 'LANE', 'PINSETTER'] },
     ],
     slots: [
-      { id: '4A', word: 'ATACAMA', row: 3, col: 2, dir: 'A' },
-      { id: '3D', word: 'SAGE', row: 2, col: 6, dir: 'D' },
-      { id: '5A', word: 'OCELOT', row: 5, col: 4, dir: 'A' },
-      { id: '1D', word: 'MINT', row: 0, col: 3, dir: 'D' },
-      { id: '6D', word: 'CARACAL', row: 5, col: 5, dir: 'D' },
-      { id: '7D', word: 'LYNX', row: 5, col: 7, dir: 'D' },
-      { id: '11A', word: 'OLIVE', row: 11, col: 4, dir: 'A' },
-      { id: '8D', word: 'THYME', row: 5, col: 9, dir: 'D' },
-      { id: '10A', word: 'MOSS', row: 8, col: 9, dir: 'A' },
-      { id: '1A', word: 'MOJAVE', row: 0, col: 3, dir: 'A' },
-      { id: '9D', word: 'BASIL', row: 6, col: 11, dir: 'D' },
-      { id: '2A', word: 'GOBI', row: 1, col: 0, dir: 'A' },
+      { id: '1D', word: 'BOOM', row: 0, col: 2, dir: 'D' },
+      { id: '2D', word: 'FLASHING', row: 0, col: 4, dir: 'D' },
+      { id: '3A', word: 'DOLLY', row: 1, col: 1, dir: 'A' },
+      { id: '4D', word: 'PINSETTER', row: 2, col: 0, dir: 'D' },
+      { id: '5D', word: 'GUTTER', row: 2, col: 10, dir: 'D' },
+      { id: '6A', word: 'SLATE', row: 4, col: 7, dir: 'A' },
+      { id: '6D', word: 'SHINGLE', row: 4, col: 7, dir: 'D' },
+      { id: '7A', word: 'SOFFIT', row: 5, col: 0, dir: 'A' },
+      { id: '8A', word: 'RIGGING', row: 7, col: 2, dir: 'A' },
+      { id: '9D', word: 'LANE', row: 9, col: 4, dir: 'D' },
+      { id: '10A', word: 'CLAPPER', row: 10, col: 2, dir: 'A' },
+      { id: '11A', word: 'RUDDER', row: 12, col: 0, dir: 'A' },
     ],
   },
   {
@@ -2102,15 +2316,18 @@ export const PUZZLES = [
     quizId: 'crux-9-21-26',
     live: '2026-09-21',
     dateLabel: 'September 21, 2026',
-    // collisions: AMBER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 12,
     cols: 13,
+    collisions: [
+      { word: 'AMBER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Gemstones", words: ['AMBER', 'JASPER'] },
       { name: "Dances", words: ['TANGO', 'MAMBO'] },
       { name: "Metals", words: ['BRONZE', 'NICKEL'] },
-      { name: "Colours", words: ['CRIMSON', 'AZURE'] },
+      { name: "Colors", words: ['CRIMSON', 'AZURE'] },
     ],
     slots: [
       { id: '4A', word: 'TANGO', row: 3, col: 2, dir: 'A' },
@@ -2128,10 +2345,13 @@ export const PUZZLES = [
     quizId: 'crux-9-22-26',
     live: '2026-09-22',
     dateLabel: 'September 22, 2026',
-    // collisions: SAGE reads Shades of green; MINT reads Herbs
     guesses: 18,
     rows: 12,
     cols: 9,
+    collisions: [
+      { word: 'SAGE', reads: 'Shades of green' },
+      { word: 'MINT', reads: 'Herbs' },
+    ],
     categories: [
       { name: "Herbs", words: ['SAGE', 'BASIL'] },
       { name: "Mountains", words: ['DENALI', 'OLYMPUS'] },
@@ -2154,10 +2374,13 @@ export const PUZZLES = [
     quizId: 'crux-9-23-26',
     live: '2026-09-23',
     dateLabel: 'September 23, 2026',
-    // collisions: BEAM reads Roof parts; VAULT reads Gym apparatus
     guesses: 18,
     rows: 7,
     cols: 13,
+    collisions: [
+      { word: 'BEAM', reads: 'Roof parts' },
+      { word: 'VAULT', reads: 'Gym apparatus' },
+    ],
     categories: [
       { name: "Gym apparatus", words: ['POMMEL', 'BEAM'] },
       { name: "Roof parts", words: ['RAFTER', 'SOFFIT'] },
@@ -2180,10 +2403,13 @@ export const PUZZLES = [
     quizId: 'crux-9-24-26',
     live: '2026-09-24',
     dateLabel: 'September 24, 2026',
-    // collisions: SAGE reads Shades of green; MINT reads Herbs
     guesses: 18,
     rows: 12,
     cols: 9,
+    collisions: [
+      { word: 'SAGE', reads: 'Shades of green' },
+      { word: 'MINT', reads: 'Herbs' },
+    ],
     categories: [
       { name: "Planets", words: ['URANUS', 'SATURN'] },
       { name: "Tea types", words: ['MATCHA', 'ROOIBOS'] },
@@ -2206,10 +2432,13 @@ export const PUZZLES = [
     quizId: 'crux-9-25-26',
     live: '2026-09-25',
     dateLabel: 'September 25, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 12,
     cols: 13,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Sword parts", words: ['BLADE', 'POMMEL'] },
       { name: "Shades of green", words: ['MINT', 'MOSS'] },
@@ -2232,15 +2461,18 @@ export const PUZZLES = [
     quizId: 'crux-9-26-26',
     live: '2026-09-26',
     dateLabel: 'September 26, 2026',
-    // collisions: SILVER reads Colours; BRONZE reads Colours
     guesses: 18,
     rows: 12,
     cols: 13,
+    collisions: [
+      { word: 'SILVER', reads: 'Colors' },
+      { word: 'BRONZE', reads: 'Colors' },
+    ],
     categories: [
       { name: "Reptiles", words: ['GECKO', 'VIPER'] },
       { name: "Pasta shapes", words: ['FARFALLE', 'PENNE'] },
       { name: "Metals", words: ['SILVER', 'BRONZE'] },
-      { name: "Colours", words: ['AZURE', 'INDIGO'] },
+      { name: "Colors", words: ['AZURE', 'INDIGO'] },
     ],
     slots: [
       { id: '8A', word: 'GECKO', row: 10, col: 0, dir: 'A' },
@@ -2259,29 +2491,35 @@ export const PUZZLES = [
     live: '2026-09-27',
     dateLabel: 'September 27, 2026',
     sunday: true,
-    // collisions: FOREST reads Trees; SAGE reads Shades of green
+    // Sunday. A three-link chain: RING reads Boxing, CANVAS reads Art supplies, CHARCOAL reads
+    // Barbecue. Each fake home is already full. PALETTE's color reading is off-board.
     guesses: 27,
-    rows: 11,
-    cols: 13,
+    rows: 13,
+    cols: 10,
+    collisions: [
+      { word: 'RING', reads: 'Boxing' },
+      { word: 'CANVAS', reads: 'Art supplies' },
+      { word: 'CHARCOAL', reads: 'Barbecue' },
+    ],
     categories: [
-      { name: "Shades of green", words: ['OLIVE', 'FOREST', 'MOSS'] },
-      { name: "Herbs", words: ['OREGANO', 'SAGE', 'CHERVIL'] },
-      { name: "Insects", words: ['LOCUST', 'CICADA', 'MANTIS'] },
-      { name: "Trees", words: ['CEDAR', 'BIRCH', 'MAPLE'] },
+      { name: 'Circus', words: ['RING', 'CLOWN', 'TRAPEZE'] },
+      { name: 'Boxing', words: ['CANVAS', 'ROPES', 'CORNER'] },
+      { name: 'Art supplies', words: ['EASEL', 'PALETTE', 'CHARCOAL'] },
+      { name: 'Barbecue', words: ['RIBS', 'SKEWER', 'TONGS'] },
     ],
     slots: [
-      { id: '4A', word: 'FOREST', row: 3, col: 4, dir: 'A' },
-      { id: '5D', word: 'OLIVE', row: 3, col: 5, dir: 'D' },
-      { id: '9A', word: 'OREGANO', row: 7, col: 3, dir: 'A' },
-      { id: '6A', word: 'CHERVIL', row: 5, col: 0, dir: 'A' },
-      { id: '1D', word: 'SAGE', row: 0, col: 7, dir: 'D' },
-      { id: '2D', word: 'BIRCH', row: 1, col: 1, dir: 'D' },
-      { id: '3A', word: 'CICADA', row: 1, col: 4, dir: 'A' },
-      { id: '7D', word: 'MANTIS', row: 5, col: 8, dir: 'D' },
-      { id: '6D', word: 'CEDAR', row: 5, col: 0, dir: 'D' },
-      { id: '7A', word: 'MAPLE', row: 5, col: 8, dir: 'A' },
-      { id: '8D', word: 'LOCUST', row: 5, col: 11, dir: 'D' },
-      { id: '10A', word: 'MOSS', row: 10, col: 6, dir: 'A' },
+      { id: '1A', word: 'PALETTE', row: 0, col: 1, dir: 'A' },
+      { id: '2D', word: 'TONGS', row: 0, col: 5, dir: 'D' },
+      { id: '3A', word: 'RING', row: 2, col: 3, dir: 'A' },
+      { id: '4D', word: 'TRAPEZE', row: 3, col: 2, dir: 'D' },
+      { id: '5A', word: 'RIBS', row: 4, col: 2, dir: 'A' },
+      { id: '6D', word: 'CANVAS', row: 5, col: 9, dir: 'D' },
+      { id: '7D', word: 'ROPES', row: 6, col: 7, dir: 'D' },
+      { id: '8D', word: 'EASEL', row: 7, col: 0, dir: 'D' },
+      { id: '9A', word: 'CLOWN', row: 7, col: 5, dir: 'A' },
+      { id: '9D', word: 'CORNER', row: 7, col: 5, dir: 'D' },
+      { id: '10A', word: 'SKEWER', row: 9, col: 0, dir: 'A' },
+      { id: '11A', word: 'CHARCOAL', row: 12, col: 2, dir: 'A' },
     ],
   },
   {
@@ -2289,10 +2527,13 @@ export const PUZZLES = [
     quizId: 'crux-9-28-26',
     live: '2026-09-28',
     dateLabel: 'September 28, 2026',
-    // collisions: MINT reads Herbs; SAGE reads Shades of green
     guesses: 18,
     rows: 12,
     cols: 9,
+    collisions: [
+      { word: 'MINT', reads: 'Herbs' },
+      { word: 'SAGE', reads: 'Shades of green' },
+    ],
     categories: [
       { name: "Dances", words: ['WALTZ', 'MAMBO'] },
       { name: "Shades of green", words: ['JADE', 'MINT'] },
@@ -2315,15 +2556,18 @@ export const PUZZLES = [
     quizId: 'crux-9-29-26',
     live: '2026-09-29',
     dateLabel: 'September 29, 2026',
-    // collisions: BRONZE reads Colours; SILVER reads Colours
     guesses: 18,
     rows: 9,
     cols: 10,
+    collisions: [
+      { word: 'BRONZE', reads: 'Colors' },
+      { word: 'SILVER', reads: 'Colors' },
+    ],
     categories: [
       { name: "Instruments", words: ['VIOLIN', 'OBOE'] },
       { name: "Gym apparatus", words: ['VAULT', 'BEAM'] },
       { name: "Metals", words: ['BRONZE', 'SILVER'] },
-      { name: "Colours", words: ['INDIGO', 'AZURE'] },
+      { name: "Colors", words: ['INDIGO', 'AZURE'] },
     ],
     slots: [
       { id: '3A', word: 'VIOLIN', row: 3, col: 0, dir: 'A' },

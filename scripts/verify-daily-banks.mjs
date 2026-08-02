@@ -24,7 +24,18 @@
 //            audits stay manual per §7a — this is the mechanical layer).
 //   crux   — every category word is placed in exactly one slot; slot geometry
 //            fits the board; crossing letters agree; non-dictionary words
-//            reported.
+//            reported. PLUS the collision floor (owner rule, see the header of
+//            app/crux/puzzles.js): every board live on or after 2026-08-03
+//            declares a `collisions` array, each entry naming a word on the
+//            board and a DIFFERENT category on the same board that it also
+//            plausibly reads as; at least 2 entries on a weekday and at least 3
+//            on a Sunday. Earlier boards are frozen history and grandfathered.
+//            Collision-pool variety is also checked, so a bulk bank generator
+//            cannot ship the same two traps every day: from 2026-09-30 a repeat
+//            of the same word/category pair more than twice is a hard fail, and
+//            repeats before that date are reported as a review note. Boards
+//            from that date also must admit exactly ONE filing of the words
+//            into the slots under the length and crossing constraints.
 //   span   — par equals the true BFS shortest hop count on borders.js, with
 //            Sunday via/avoid constraints applied exactly as the rules state.
 //   dating — exactly 5 events in strictly ascending true order, distinct.
@@ -374,6 +385,14 @@ if (RUN('links')) {
 // ─── CRUX ───────────────────────────────────────────────────────────────────
 if (RUN('crux')) {
   const { PUZZLES } = await import('../app/crux/puzzles.js');
+  // Boards before this date are frozen history: they were authored before the
+  // floor was machine-checkable, and rewriting a played board is not allowed.
+  const CRUX_FLOOR_FROM = '2026-08-03';
+  // Variety is enforced on anything banked after the current bank's last day,
+  // so the next "bank crux to N days" job cannot recycle two traps forever.
+  const CRUX_VARIETY_FROM = '2026-09-30';
+  const cruxPool = new Map();
+  const cruxFresh = new Map();
   for (const p of PUZZLES) {
     const errs = [], review = [];
     const catWords = p.categories.flatMap((c) => c.words);
@@ -395,7 +414,74 @@ if (RUN('crux')) {
       }
       if (!dict.has(s.word.toLowerCase())) review.push(s.word);
     }
+    // ── exactly one geometric filing ───────────────────────────────────────
+    // A solver who has deduced the words must be able to place them one way
+    // only; two filings means the board is ambiguous, not hard.
+    if (p.live >= CRUX_FLOOR_FROM) {
+      const n = p.slots.length;
+      const pos = p.slots.map((s) => [...s.word].map((_, i) => (s.dir === 'A' ? `${s.row},${s.col + i}` : `${s.row + i},${s.col}`)));
+      const words = p.slots.map((s) => s.word);
+      const cross = {};
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) for (const c of pos[i]) if (pos[j].includes(c)) {
+        (cross[i] = cross[i] || []).push([pos[i].indexOf(c), j, pos[j].indexOf(c)]);
+        (cross[j] = cross[j] || []).push([pos[j].indexOf(c), i, pos[i].indexOf(c)]);
+      }
+      const cand = pos.map((pp) => words.map((w, wi) => [w, wi]).filter(([w]) => w.length === pp.length).map(([, wi]) => wi));
+      const order = [...Array(n).keys()].sort((a, b) => cand[a].length - cand[b].length);
+      const asg = Array(n).fill(-1), used = Array(n).fill(false);
+      let count = 0;
+      (function rec(k) {
+        if (count >= 2) return;
+        if (k === n) { count++; return; }
+        const s2 = order[k];
+        for (const wi of cand[s2]) {
+          if (used[wi]) continue;
+          const w = words[wi];
+          let good = true;
+          for (const [ci, o, cj] of (cross[s2] || [])) if (asg[o] >= 0 && w[ci] !== words[asg[o]][cj]) { good = false; break; }
+          if (!good) continue;
+          asg[s2] = wi; used[wi] = true; rec(k + 1); asg[s2] = -1; used[wi] = false;
+          if (count >= 2) return;
+        }
+      })(0);
+      if (count !== 1) errs.push(`${count >= 2 ? 'more than one' : 'no'} way to file the words into the slots`);
+    }
+    // ── collision floor ────────────────────────────────────────────────────
+    // The rule the bank quietly broke once: a board whose only traps read as
+    // categories that are not ON the board is flat, and half its score (the
+    // filing half) is then free. See the header of app/crux/puzzles.js.
+    if (p.live >= CRUX_FLOOR_FROM) {
+      const floor = p.sunday ? 3 : 2;
+      const cs = Array.isArray(p.collisions) ? p.collisions : null;
+      if (!cs) errs.push('no collisions declared');
+      else {
+        const names = p.categories.map((c) => c.name);
+        const seen = new Set();
+        for (const c of cs) {
+          const home = p.categories.find((cat) => cat.words.includes(c.word));
+          if (!home) errs.push(`collision word ${c.word} is not on the board`);
+          else if (!names.includes(c.reads)) errs.push(`${c.word} reads "${c.reads}", which is not a category here`);
+          else if (home.name === c.reads) errs.push(`${c.word} reads its own category`);
+          const k = `${c.word}|${c.reads}`;
+          if (seen.has(k)) errs.push(`duplicate collision ${k}`);
+          seen.add(k);
+          cruxPool.set(k, (cruxPool.get(k) || 0) + 1);
+          if (p.live >= CRUX_VARIETY_FROM) cruxFresh.set(k, (cruxFresh.get(k) || 0) + 1);
+        }
+        if (cs.length < floor) errs.push(`${cs.length} collision${cs.length === 1 ? '' : 's'}, floor is ${floor}${p.sunday ? ' on a Sunday' : ''}`);
+      }
+    }
     errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `slots+crossings OK${review.length ? ` — REVIEW non-dict: ${review.join(',')}` : ''}`);
+  }
+  // ── collision-pool variety ────────────────────────────────────────────────
+  const stale = [...cruxPool.entries()].filter(([, n]) => n > 2).sort((a, b) => b[1] - a[1]);
+  const staleFresh = [...cruxFresh.entries()].filter(([, n]) => n > 2);
+  if (staleFresh.length) {
+    fail('crux pool', `same collision reused more than twice on boards live from ${CRUX_VARIETY_FROM}: ${staleFresh.map(([k, n]) => `${k} x${n}`).join(', ')}`);
+  } else if (stale.length) {
+    note('crux pool', `grandfathered repetition in the Aug 11 to Sep 29 generated batch: ${stale.slice(0, 6).map(([k, n]) => `${k} x${n}`).join(', ')}${stale.length > 6 ? `, +${stale.length - 6} more` : ''}`);
+  } else {
+    ok('crux pool', 'collision pool is varied');
   }
 }
 

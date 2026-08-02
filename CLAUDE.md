@@ -3069,6 +3069,42 @@ across all 20 games on 2026-07-20.
 5. Update the game's own how-to-play copy and its `page.js` metadata description, which
    both describe the weekly cadence to players and to search engines.
 
+### Extending a puzzle bank in bulk (the "bank to N days" job)
+
+Every mass bank extension so far has quietly degraded the game it extended, because a
+generator optimizes for whatever is machine-checkable and ignores everything that is not.
+Crux is the worked example: commit `0ea717a` banked 50 boards at once, met the letter of
+the two-collision rule on every one of them, and shipped six weeks of boards whose traps
+were the same two words over and over (BRONZE reads Colors, 18 times). The structural
+verifier passed the whole time. Rules for every bulk extension:
+
+1. **Read the game's own authoring rules first**, in the header comment of its
+   `puzzles.js` and in its client, and list which of them a script can actually check.
+   Everything on that list must be enforced in `scripts/verify-daily-banks.mjs` or
+   `scripts/verify-<game>.mjs` BEFORE the bank ships, not after.
+2. **A floor is not a target.** If a rule says "at least N", a bank where every single
+   board carries exactly N is a failure, not a pass. Vary it, and vary it upward on
+   Sundays, which run bigger and harder by design.
+3. **Check pool variety, not just per-board legality.** Count how often each answer,
+   trap, start word, theme or category repeats across the whole bank and put a ceiling on
+   it. Rung opens with `suite` or `shock` on 39% of its banked days and Listed runs
+   History over Geography 2:1 despite promising an alternating rotation; both pass every
+   per-puzzle check they have.
+4. **US spellings.** A generator drawing on an off-the-shelf word list imports British
+   forms. Crux shipped a `Colours` category on 25 boards and a `PARLOUR`.
+5. **A rule retrofit sweeps the WHOLE bank, to its last day.** The Crux collision rule
+   landed 2026-07-15 and the retrofit stopped at Jul 31, which is exactly how a flat
+   Sunday reached players on Aug 2. When an authoring rule changes, fix every future
+   board in that same pass and state in the commit message how far the sweep got.
+6. **Grandfather the past, never rewrite it.** Boards already live are frozen history:
+   scope both the retrofit and the new verifier check to `live >= today` and say so in
+   the checker (Crux uses `CRUX_FLOOR_FROM`, outrank grandfathers frozen ties).
+7. **A game with no verifier gets one before its next bank extension.** As of 2026-08-02
+   twelve games have banks and no checker at all (etch, hedge, listed, mate, four,
+   parker, check, rung, taire, fib, crunch, glyph), which is why Crunch storing a
+   `solutions` count above its own documented cap of 400 on 26 of 62 boards, and the Rung
+   start-word collapse, both went unnoticed.
+
 ### Adding a BRAND NEW daily game
 
 Decide up front whether it runs a Sunday Edition. If yes, do all five steps above in the
