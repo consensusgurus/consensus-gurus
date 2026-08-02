@@ -38,6 +38,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -235,6 +236,12 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('fib', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('fib'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -473,6 +480,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
 
   // one free hint: fill a correct square that is still empty or wrong
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     let idx = -1;
@@ -570,7 +578,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Every row and every column holds <b>1 to {n}</b>, once each. The <b>printed digits are true</b>. Between some neighbouring squares sits a sign whose open end points at the <b>larger</b> number.</p>
       <p style={{ margin: '0 0 9px' }}>Exactly <b>one sign is lying</b>. So a contradiction is never proof you slipped up, it might be the fib, and that is the whole puzzle. Fill the grid, then <b>tap the sign you are accusing</b> and hit Submit.</p>
       <p style={{ margin: '0 0 9px' }}>A sign <b style={{ color: '#9aa2b1' }}>greys out</b> once your grid satisfies it and turns <b style={{ color: COLORS.amber }}>amber</b> once your grid breaks it, which is only what you could read off the board yourself. Finish with exactly one amber sign and that is your liar. A repeated digit in a line shows <b style={{ color: COLORS.rust }}>red</b>, free of charge.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a square then a number, or type. <b>Notes</b> (press N) pencils small candidates. <b>Undo</b> is Ctrl+Z, and one free <b>hint</b> fills a correct square.</p>
+      <p style={{ margin: '0 0 9px' }}>Tap a square then a number, or type. <b>Notes</b> (press N) pencils small candidates. <b>Undo</b> is Ctrl+Z, and one free <b>hint</b>, on your first ever play, fills a correct square.</p>
       <p style={{ margin: 0 }}>Exactly one grid and one lying sign fit the board, so the answer is provable, never a guess. A clean solve scores a perfect <b>10</b>, every two wrong submissions cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 6&times;6 Edition.</p>
     </div>
   );
@@ -731,8 +739,8 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
                 <button className="fb-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
                   <RotateCcw size={14} /> Undo
                 </button>
-                {!identity && !g.hintUsed && (
-                  <button className="fb-tool" onClick={useHint} title="Fill one correct square (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(76,29,149,0.45)', color: COLORS.accent }}>
+                {hintOk && !g.hintUsed && (
+                  <button className="fb-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(76,29,149,0.45)', color: COLORS.accent }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}

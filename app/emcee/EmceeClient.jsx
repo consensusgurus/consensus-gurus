@@ -33,6 +33,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -208,6 +209,12 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('emcee', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('emcee'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -490,6 +497,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
   // one free hint: reveal the current square (or the word's first empty one)
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     let idx = letters[cur] === '' ? cur : -1;
     if (idx < 0) idx = curWord.cells.find((c) => letters[c] === '') ?? -1;
@@ -603,7 +611,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Emcee is a <b>mini crossword</b>: fill every square using the numbered <b>Across</b> and <b>Down</b> clues. Tap a square to select its word, tap it again to flip direction, and type. On a keyboard, <b>space</b> flips direction and <b>tab</b> jumps to the next clue.</p>
       <p style={{ margin: '0 0 9px' }}>The grid <b>checks itself</b> the moment the last square is filled. A perfect fill wins on the spot; a wrong one marks the misses <b style={{ color: COLORS.rust }}>red</b> and counts a <b>check</b> against you.</p>
-      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals a letter.</p>
+      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b>, on your first ever play, reveals a letter.</p>
       <p style={{ margin: 0 }}>Finish the grid for a full score. On the daily board, ties break on <b>fewest checks</b>, then <b>fastest time</b> &mdash; so a clean, quick solve is the crown. Sundays go bigger: a 7&times;7 grid.</p>
     </div>
   );
@@ -740,8 +748,8 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              {!identity && !g.hintUsed && (
-                <button className="mc-tool" onClick={useHint} title="Reveal one letter (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(192,38,211,0.5)', color: '#86198f' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="mc-tool" onClick={useHint} title="Reveal one letter (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(192,38,211,0.5)', color: '#86198f' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

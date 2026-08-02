@@ -32,6 +32,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -224,6 +225,12 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('tally', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('tally'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -568,6 +575,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   // one free hint: place a correct tile in an empty cell whose value is still
   // free on the rack (safe even if the player has misplaced others)
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     const freeAvail = {};
     BANK.forEach((d, j) => { if (!used[j]) freeAvail[d] = (freeAvail[d] || 0) + 1; });
@@ -691,7 +699,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Tap a tile, then a square. Tap a placed tile to <b>lift it back</b> &mdash; lifting is free. Dotted squares are yours; a square with a corner dot is a printed given; dark squares are out of play.</p>
       <p style={{ margin: '0 0 9px' }}>Certainty arrives in halves, so the <b>notes</b> do too. Often the rack proves a digit belongs somewhere in a <b>row</b> before you can say which square: mark it <b>right row</b> and it keeps a navy rail top and bottom, still free to slide. <b>Right column</b> rails the sides. A tile carrying <b>both</b> is <b>certain</b> and locks, since two proven lines meet at one square; tap once to unlock.</p>
       <p style={{ margin: '0 0 9px' }}>Hold a tile (or right-click) to mark it certain outright, or use the <b>&#10003; Mark</b> tool and tap to cycle. Tapping a <b>row or column target</b> notes that half on every tile in the line. Notes are free: they never cost a move and never count against your score. The full key sits under the board.</p>
-      <p style={{ margin: 0 }}>A clean solve uses the <b>fewest possible</b> placements for a perfect 10 &mdash; every extra placement costs a point. Ties break on fewest errors, then fastest time. One free <b>hint</b> fills a correct square.</p>
+      <p style={{ margin: 0 }}>A clean solve uses the <b>fewest possible</b> placements for a perfect 10 &mdash; every extra placement costs a point. Ties break on fewest errors, then fastest time. One free <b>hint</b>, on your first ever play, fills a correct square.</p>
     </div>
   );
 
@@ -873,10 +881,10 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
 
         {/* controls — the tool toggle moved up into the ledger with the rack, so
             this row is only Hint / Reveal and should not render empty */}
-        {started && ((!identity && !g.hintUsed) || (identity && g.moves > 0)) && (
+        {started && ((hintOk && !g.hintUsed) || (identity && g.moves > 0)) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            {!identity && !g.hintUsed && (
-              <button className="tl-btn" onClick={useHint} title="Fill one correct square (one hint per puzzle)"
+            {hintOk && !g.hintUsed && (
+              <button className="tl-btn" onClick={useHint} title="Fill one correct square (one hint, first play only)"
                 style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                 <Lightbulb size={14} /> Hint
               </button>

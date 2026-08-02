@@ -42,6 +42,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 import { FREE, FND, suitOf, rankOf, RANK_LABEL, fromData, replay, isWon, destinations, apply, movableCards, autoFinish } from './rules';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
@@ -227,6 +228,12 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('taire', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('taire'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -453,6 +460,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   }
 
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const g2 = { ...cur, hintUsed: true };
@@ -513,7 +521,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}><b>Tap a card</b> to pick it up, then tap where it goes. Only the <b>bottom card</b> of a column can move, one card at a time, never a stack. It can go onto a card one rank higher of the other colour, onto an empty column, into a <b>free cell</b>, or home.</p>
       <p style={{ margin: '0 0 9px' }}>You have <b>{CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}</b> today. A cell parks a single card for as long as you like.</p>
       <p style={{ margin: '0 0 9px' }}>Every card moved is <b>one move</b>, sending one home included. <b>Par is {par}</b> on this deal, the number a clean line comes home in. <b>Perfect is {perfect}</b>, the proven minimum, so nothing beats it. There is <b>no undo</b>, only a restart that redeals the same board and zeroes your moves, though the clock keeps running.</p>
-      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b> shows which cards can move at all. Every deal is winnable, and the <b>Sunday Edition</b> gives you a single free cell.</p>
+      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b>, on your first ever play, shows which cards can move at all. Every deal is winnable, and the <b>Sunday Edition</b> gives you a single free cell.</p>
     </div>
   );
 
@@ -658,8 +666,8 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
               <button className="ta-tool" onClick={restart} disabled={!used} title="Redeal the same board and zero the move count" style={{ opacity: used ? 1 : 0.4, cursor: used ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Restart deal
               </button>
-              {!g.hintUsed && (
-                <button className="ta-tool" onClick={useHint} title="Light up every card that can move (one hint per deal)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,107,79,0.5)', color: '#155e45' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="ta-tool" onClick={useHint} title="Light up every card that can move (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,107,79,0.5)', color: '#155e45' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

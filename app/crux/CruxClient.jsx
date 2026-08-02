@@ -32,6 +32,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -326,6 +327,12 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('crux', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('crux'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null); // { name, rank } for the top-strip chip
   const [anim, setAnim] = useState(null);        // { id, flip: {key->i}, pulse: {key->true} } for the last guess
   const [endAnim, setEndAnim] = useState(false); // category cascade, only on the live end transition
@@ -640,6 +647,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   // The one free hint: reveal the next empty letter of the selected slot.
   // No guess cost, no score penalty — the share text carries a 💡 instead.
   function revealHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed || !slot || g.solved[sel]) return;
     const target = cells.find((cl) => !g.greens[`${cl.r},${cl.c}`]);
     if (!target) return;
@@ -910,7 +918,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
       <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
       <p style={{ margin: '0 0 9px' }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the puzzle. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
-      <p style={{ margin: 0 }}>Stuck? One free <b>hint</b> per puzzle reveals a letter.</p>
+      <p style={{ margin: 0 }}>Stuck? One free <b>hint</b>, on your first ever play, per puzzle reveals a letter.</p>
     </div>
   );
 
@@ -1078,8 +1086,8 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
                 {slotLabel(sel)} <span style={{ color: COLORS.faded, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
               </div>
               <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
-              {!identity && !g.hintUsed && (
-                <button className="cl-key" onClick={revealHint} title="Reveal one letter in this word (one hint per puzzle)"
+              {hintOk && !g.hintUsed && (
+                <button className="cl-key" onClick={revealHint} title="Reveal one letter in this word (one hint, first play only)"
                   style={{ marginLeft: 'auto', background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#8a6d1a' }}>
                   <Lightbulb size={14} /> Hint
                 </button>

@@ -44,6 +44,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 import { N, EXIT_ROW, fromData, grid, moves as legalSlides, apply, solved, solve } from './solver';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
@@ -189,6 +190,12 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('park', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('park'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -425,6 +432,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   }
 
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const r = solve(blocks);
@@ -486,7 +494,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Get the <b>red block</b> to the <b>exit</b>, the gap in the right-hand wall. <b>Tap a block</b> to pick it up, then <b>tap the square you want it to reach</b>, and it slides there if the lane is clear.</p>
       <p style={{ margin: '0 0 9px' }}>Every block is stuck on one axis. A block lying across slides left and right only, a block standing up slides only up and down. Nothing turns, nothing jumps.</p>
       <p style={{ margin: '0 0 9px' }}>Sliding one block any distance counts as <b>one move</b>. <b>Par is {par}</b> on this board, the number a clean solve lands on. <b>Perfect is {perfect}</b>, the fewest moves that exist here, found by exhaustive search rather than by hand, and nobody gets under it. There is <b>no undo</b>, only a restart that puts the board back and zeroes your moves, though the clock keeps running.</p>
-      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b> names the block to move next. <b>Sundays</b> are a much longer jam.</p>
+      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b>, on your first ever play, names the block to move next. <b>Sundays</b> are a much longer jam.</p>
     </div>
   );
 
@@ -611,8 +619,8 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
               <button className="pk-tool" onClick={restart} disabled={!used} title="Put every block back and zero the move count" style={{ opacity: used ? 1 : 0.4, cursor: used ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Restart board
               </button>
-              {!g.hintUsed && (
-                <button className="pk-tool" onClick={useHint} title="Name the block that moves next (one hint per board)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,92,46,0.5)', color: '#6a4f27' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="pk-tool" onClick={useHint} title="Name the block that moves next (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,92,46,0.5)', color: '#6a4f27' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

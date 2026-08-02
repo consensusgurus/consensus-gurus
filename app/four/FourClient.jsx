@@ -38,6 +38,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   deserialize, play, legalMoves, winsAt, winningCells, scoreMoves, engineMove,
   idOrder, movesToWin, COLS, ROWS, SIZE,
@@ -213,6 +214,12 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('four', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('four'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -474,6 +481,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   }
 
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const g2 = { ...cur, hintUsed: true };
@@ -560,7 +568,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>You are <b>red</b> and you drop first. The position is already won for you: there is a forced <b>win in {PUZZLE.winIn}</b> of your moves. <b>Tap a column</b> to drop a disc.</p>
       <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> column wins. Every other drop throws it away, and here is the sting: a wrong drop is <b>not taken back</b>. The engine plays on and it is perfect, so once the win is gone it never comes back and you are playing for a draw.</p>
-      <p style={{ margin: '0 0 9px' }}>The engine always answers with its most stubborn defence, and the same one for everybody, so the game you play is the game everyone else plays. One free <b>hint</b> greys out two columns that do not win.</p>
+      <p style={{ margin: '0 0 9px' }}>The engine always answers with its most stubborn defence, and the same one for everybody, so the game you play is the game everyone else plays. One free <b>hint</b>, on your first ever play, greys out two columns that do not win.</p>
       <p style={{ margin: 0 }}>The win scores <b>10</b>, a draw <b>4</b>, a loss <b>1</b>, and giving up nothing. Ties break on fewest wrong drops, then fastest time. Weekdays are a win in four, and <b>Sundays</b> step up to a win in five.</p>
     </div>
   );
@@ -719,9 +727,9 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
             </span>
           </div>
 
-          {playing && !g.hintUsed && (
+          {playing && hintOk && !g.hintUsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              <button className="fr-tool" onClick={useHint} title="Grey out two losing columns (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(30,58,138,0.45)', color: '#1b3268' }}>
+              <button className="fr-tool" onClick={useHint} title="Grey out two losing columns (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(30,58,138,0.45)', color: '#1b3268' }}>
                 <Lightbulb size={14} /> Hint
               </button>
             </div>

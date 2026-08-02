@@ -39,6 +39,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -233,6 +234,12 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('dating', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('dating'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -554,6 +561,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
   // One free hint: reveal the year of the most misplaced unlocked event.
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     let best = null, bestDist = -1;
     for (let slot = 0; slot < N; slot++) {
@@ -635,7 +643,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}><b>Five moments from history, shuffled.</b> Arrange them from earliest (top) to latest (bottom) &mdash; {mobileUi ? 'tap the arrows to move a card' : 'drag a card where it belongs, or use the arrows'}.</p>
       <p style={{ margin: '0 0 9px' }}><b>You get {MAX_CHECKS} checks.</b> Each check locks every event you&apos;ve placed correctly and reveals its year. Date the whole board on your first check for a perfect 10 &mdash; each extra check costs a point, and each event you never place costs two.</p>
-      <p style={{ margin: 0 }}>One free <b>hint</b> reveals the year of your most misplaced event. New moments every day at midnight Eastern.</p>
+      <p style={{ margin: 0 }}>One free <b>hint</b>, on your first ever play, reveals the year of your most misplaced event. New moments every day at midnight Eastern.</p>
     </div>
   );
 
@@ -749,8 +757,8 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               <button className="dt-btn" onClick={checkOrder} style={{ background: COLORS.plum, color: '#fff', borderColor: COLORS.plum }}>
                 <Check size={15} strokeWidth={3} /> Check my order ({checksLeft} left)
               </button>
-              {!identity && !g.hintUsed && (
-                <button className="dt-btn" onClick={useHint} title="Reveal the year of your most misplaced event (one hint per puzzle)"
+              {hintOk && !g.hintUsed && (
+                <button className="dt-btn" onClick={useHint} title="Reveal the year of your most misplaced event (one hint, first play only)"
                   style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint
                 </button>

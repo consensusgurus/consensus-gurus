@@ -34,6 +34,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -201,6 +202,12 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('hedge', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('hedge'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -462,6 +469,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
   function endPress() { clearTimeout(pressTimer.current); }
 
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     let kind = null, idx = -1;
@@ -556,7 +564,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Draw <b>one single closed loop</b> along the grid lines. A number tells you exactly how many of that cell&rsquo;s four sides are part of the loop, so a <b>3</b> has three sides used and a <b>0</b> has none. Cells with no number are unconstrained.</p>
       <p style={{ margin: '0 0 9px' }}>The loop never branches and never crosses itself, so every corner it reaches has exactly two lines running out of it. That, plus the numbers, is enough to pin down a single answer.</p>
-      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>&times;</b> / <b>Line</b> buttons. It starts on <b>&times;</b> (a free note that no line goes there, never scored), the mark you use most, and remembers your choice next time. Switch to <b>Line</b> to draw the loop, or just <b>hold</b> a segment (right-click on a computer) to draw a line in either mode. Tap again to lift a line or clear a &times;. A number dims when its sides are all accounted for. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b> draws a correct segment.</p>
+      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>&times;</b> / <b>Line</b> buttons. It starts on <b>&times;</b> (a free note that no line goes there, never scored), the mark you use most, and remembers your choice next time. Switch to <b>Line</b> to draw the loop, or just <b>hold</b> a segment (right-click on a computer) to draw a line in either mode. Tap again to lift a line or clear a &times;. A number dims when its sides are all accounted for. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b>, on your first ever play, draws a correct segment.</p>
       <p style={{ margin: 0 }}>A line that isn&rsquo;t part of the loop turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error. A clean solve with <b>no errors</b> scores a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 10&times;10 Edition.</p>
     </div>
   );
@@ -688,8 +696,8 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
               <button className="hg-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Undo
               </button>
-              {!identity && !g.hintUsed && (
-                <button className="hg-tool" onClick={useHint} title="Draw one correct segment (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(8,145,178,0.5)', color: '#07647c' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="hg-tool" onClick={useHint} title="Draw one correct segment (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(8,145,178,0.5)', color: '#07647c' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

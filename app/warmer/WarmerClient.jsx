@@ -34,6 +34,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -145,6 +146,12 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('warmer', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('warmer'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -299,6 +306,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   }
 
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     const tried = new Set(guesses.map((x) => x.w));
     let pick = null;
@@ -367,7 +375,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>There is one secret word each day. Guess any word and Warmer tells you how <b>close in meaning</b> it is &mdash; not the spelling, the <i>meaning</i>. Guess <b>ocean</b> when the word is <b>sea</b> and you&rsquo;re scorching; guess <b>pencil</b> and you&rsquo;re freezing.</p>
       <p style={{ margin: '0 0 9px' }}>Every guess is placed on the cold-to-hot bar and given a <b>rank</b> &mdash; #1 is the answer, and a lower number means closer. Use each guess to steer toward the hot end.</p>
-      <p style={{ margin: '0 0 9px' }}>Guesses are <b>unlimited</b>. The leaderboard ranks solvers by <b>fewest guesses</b> (ties by fastest time); if you <b>give up</b>, you&rsquo;re still ranked by the closest word you reached. One free <b>hint</b> reveals a warm word.</p>
+      <p style={{ margin: '0 0 9px' }}>Guesses are <b>unlimited</b>. The leaderboard ranks solvers by <b>fewest guesses</b> (ties by fastest time); if you <b>give up</b>, you&rsquo;re still ranked by the closest word you reached. One free <b>hint</b>, on your first ever play, reveals a warm word.</p>
       <p style={{ margin: 0 }}>A new word drops every day at midnight Eastern.</p>
     </div>
   );
@@ -464,8 +472,8 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                   <span>time <b>{elapsed}</b></span>
                 </div>
                 <div className="wm-actions">
-                  {!identity && !g.hintUsed && (
-                    <button onClick={useHint} className="wm-chip" title="Reveal one warm word (one hint per puzzle)" style={{ background: COLORS.accentSoft, border: '1.5px solid rgba(220,38,38,0.45)', color: '#9a1c1c' }}>
+                  {hintOk && !g.hintUsed && (
+                    <button onClick={useHint} className="wm-chip" title="Reveal one warm word (one hint, first play only)" style={{ background: COLORS.accentSoft, border: '1.5px solid rgba(220,38,38,0.45)', color: '#9a1c1c' }}>
                       <Lightbulb size={13} /> Hint
                     </button>
                   )}

@@ -38,6 +38,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -242,6 +243,12 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('listed', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('listed'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -576,6 +583,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   // One free hint: reveal the figure of the unlocked item sitting furthest from
   // where it belongs.
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     let best = null, bestDist = -1;
     for (let slot = 0; slot < N; slot++) {
@@ -647,7 +655,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ flex: '0 0 auto', width: 15, height: 15, borderRadius: 4, background: '#d3d7de' }} /> two or more places away</span>
       </div>
       <p style={{ margin: '0 0 9px' }}>Rank the whole board on your first submit for a perfect 10. Each extra submit costs a point, and each item you never lock costs one more.</p>
-      <p style={{ margin: 0 }}>One free <b>hint</b> reveals the figure of whichever item sits furthest from home. Every board is <b>history</b> or <b>geography</b>, and every ranking is a published number, never an opinion. New list every day at midnight Eastern.</p>
+      <p style={{ margin: 0 }}>One free <b>hint</b>, on your first ever play, reveals the figure of whichever item sits furthest from home. Every board is <b>history</b> or <b>geography</b>, and every ranking is a published number, never an opinion. New list every day at midnight Eastern.</p>
     </div>
   );
 
@@ -784,8 +792,8 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               <button className="ls-btn" onClick={submitOrder} style={{ background: COLORS.brand, color: '#fff', borderColor: COLORS.brand }}>
                 <Check size={15} strokeWidth={3} /> Submit my ranking ({checksLeft} left)
               </button>
-              {!identity && !g.hintUsed && (
-                <button className="ls-btn" onClick={useHint} title="Reveal the figure of the item furthest from home (one hint per puzzle)"
+              {hintOk && !g.hintUsed && (
+                <button className="ls-btn" onClick={useHint} title="Reveal the figure of the item furthest from home (one hint, first play only)"
                   style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint
                 </button>

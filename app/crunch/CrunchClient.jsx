@@ -37,6 +37,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { solve, applyOp, scoreFor } from './solver';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
@@ -198,6 +199,12 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('crunch', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('crunch'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -430,6 +437,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
   }
 
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const g2 = { ...cur, hintUsed: true };
@@ -502,7 +510,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Make the <b>target</b> out of the six numbers. <b>Tap a number</b>, <b>tap an operation</b>, then <b>tap a second number</b>. The answer replaces both and becomes a number you can use again.</p>
       <p style={{ margin: '0 0 9px' }}>Every value has to be a <b>positive whole number</b>, so 3 minus 7 is out and 7 divided by 2 is out. You do not have to use all six. On this board an exact answer needs <b>{need} of the six</b>.</p>
       <p style={{ margin: '0 0 9px' }}><b>Undo</b> and <b>start over</b> cost nothing. You are not scored on how many steps you take, you are scored on the closest value you ever make, so there is nothing to gain by hoarding take-backs.</p>
-      <p style={{ margin: 0 }}>Spot on scores <b>10</b>, within five scores <b>7</b>, within ten scores <b>5</b>, anything else scores <b>1</b>. Only walking away scores nothing. One free <b>hint</b> names a step that still works. <b>Sundays</b> are a harder set.</p>
+      <p style={{ margin: 0 }}>Spot on scores <b>10</b>, within five scores <b>7</b>, within ten scores <b>5</b>, anything else scores <b>1</b>. Only walking away scores nothing. One free <b>hint</b>, on your first ever play, names a step that still works. <b>Sundays</b> are a harder set.</p>
     </div>
   );
 
@@ -637,8 +645,8 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
               <button className="cr-tool" onClick={startOver} disabled={!used} title="Clear every step and go back to the six you were dealt" style={{ opacity: used ? 1 : 0.4, cursor: used ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Start over
               </button>
-              {!g.hintUsed && (
-                <button className="cr-tool" onClick={useHint} title="Name a step that still reaches the target (one hint per board)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(180,83,9,0.5)', color: '#8a4008' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="cr-tool" onClick={useHint} title="Name a step that still reaches the target (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(180,83,9,0.5)', color: '#8a4008' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

@@ -16,7 +16,7 @@
 // Scoring: name the thief for max(1, 12 - 2×wrong accusations) out of 12 — a
 // first-try accusation is a perfect 12. Ties on the daily board break by
 // fewest wrong accusations, then fastest time. Revealing ends the day at 0.
-// One free hint (verifies one witness) — unregistered players only.
+// One free hint (verifies one witness) — first play only.
 //
 // Same daily plumbing as Alibi/Circa/Suds: banked cases gated by Eastern date
 // on the server (app/sworn/page.js), per-puzzle localStorage saves, /sworn?p=N
@@ -38,6 +38,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -217,6 +218,12 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('sworn', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('sworn'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -409,9 +416,10 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
     }
   }
 
-  // one free hint: verify one witness (unregistered players only). Picks a
+  // one free hint: verify one witness (first play only). Picks a
   // non-thief so the accusation itself is never handed over.
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed || !SOLUTION) return;
     setG((cur) => {
       let x = -1;
@@ -594,8 +602,8 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '10px 0 6px' }}>
             <button type="button" className="sw-btn" onClick={clearMarks}><Eraser size={14} /> Clear marks</button>
-            {!identity && !g.hintUsed && (
-              <button type="button" className="sw-btn" onClick={useHint} title="Verify one witness (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(190,24,93,0.5)', color: COLORS.accentDeep }}>
+            {hintOk && !g.hintUsed && (
+              <button type="button" className="sw-btn" onClick={useHint} title="Verify one witness (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(190,24,93,0.5)', color: COLORS.accentDeep }}>
                 <Lightbulb size={14} /> Hint: verify a witness
               </button>
             )}

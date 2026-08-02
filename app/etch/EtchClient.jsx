@@ -33,6 +33,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -199,6 +200,12 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('etch', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('etch'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -469,6 +476,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
 
   // one free hint: fill a correct square that is still empty
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     let idx = -1;
@@ -558,7 +566,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>The numbers beside each <b>row</b> and above each <b>column</b> are the lengths of the filled runs in that line, in order, with at least one blank between them. A row clued <b>4 2</b> has four filled squares, then a gap, then two.</p>
       <p style={{ margin: '0 0 9px' }}>Pick what a tap places with the <b>Fill</b> / <b>Mark</b> buttons. It starts on <b>Mark</b> (press M), where a tap pencils a free × on a square you have ruled out, never scored, which is the safe way to work since a wrong fill costs an error. Switch to <b>Fill</b> (press F) to fill squares and <b>drag</b> to fill a run, or just <b>right-click</b> a square to fill it directly. Your choice is remembered next time, and a clue dims once its line matches.</p>
-      <p style={{ margin: '0 0 9px' }}>Every board has exactly one solution and can be reached by pure logic, so you never have to guess. Filling a square that isn&rsquo;t part of the picture turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error, clear it to carry on. <b>Undo</b> (or Ctrl+Z) takes back your last stroke, and one free <b>hint</b> fills a correct square.</p>
+      <p style={{ margin: '0 0 9px' }}>Every board has exactly one solution and can be reached by pure logic, so you never have to guess. Filling a square that isn&rsquo;t part of the picture turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error, clear it to carry on. <b>Undo</b> (or Ctrl+Z) takes back your last stroke, and one free <b>hint</b>, on your first ever play, fills a correct square.</p>
       <p style={{ margin: 0 }}>A clean solve with <b>no errors</b> scores a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 15&times;15 Edition.</p>
     </div>
   );
@@ -695,8 +703,8 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
               <button className="et-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Undo
               </button>
-              {!identity && !g.hintUsed && (
-                <button className="et-tool" onClick={useHint} title="Fill one correct square (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(77,124,15,0.5)', color: '#3f6a0a' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="et-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(77,124,15,0.5)', color: '#3f6a0a' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

@@ -33,6 +33,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   SIZE, deserialize, legalMoves, clearIn, blackReply, countPieces,
   playable, isRed, isKing,
@@ -192,6 +193,12 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('check', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('check'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -449,6 +456,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
   }
 
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const redLeft = Math.max(0, BUDGET - Math.ceil(cur.moves.length / 2));
@@ -512,7 +520,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>You are <b>red</b>, moving up the board. Capture <b>every black piece</b> within <b>{BUDGET} of your moves</b>. Tap one of your pieces and its legal squares light up, then tap one to play it.</p>
       <p style={{ margin: '0 0 9px' }}>Standard checkers: men step one square diagonally forward, kings go both ways, and reaching the far row crowns you and ends the turn. <b>Captures are compulsory</b>, and a jump must be carried on for as long as the same piece can keep jumping. That rule is the whole puzzle: the winning move is nearly always a <b>sacrifice</b> that forces black to jump into a sweep.</p>
       <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> first move clears the board in time. A wrong one is <b>not taken back</b>: black answers, your budget still runs down, and you finish the board knowing the sweep has gone.</p>
-      <p style={{ margin: 0 }}>Clearing the board scores <b>10</b>. Falling short scores by how many pieces you took. One free <b>hint</b> names the piece to move. <b>Sundays</b> give you four moves instead of three, and need them.</p>
+      <p style={{ margin: 0 }}>Clearing the board scores <b>10</b>. Falling short scores by how many pieces you took. One free <b>hint</b>, on your first ever play, names the piece to move. <b>Sundays</b> give you four moves instead of three, and need them.</p>
     </div>
   );
 
@@ -623,9 +631,9 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
             </span>
           </div>
 
-          {playing && !g.hintUsed && (
+          {playing && hintOk && !g.hintUsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              <button className="ck-tool" onClick={useHint} title="Name the piece that moves (one hint per board)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(22,110,90,0.5)', color: '#12543f' }}>
+              <button className="ck-tool" onClick={useHint} title="Name the piece that moves (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(22,110,90,0.5)', color: '#12543f' }}>
                 <Lightbulb size={14} /> Hint
               </button>
             </div>

@@ -34,6 +34,7 @@ import { CITIES, findCity, suggestCities, haversineMiles, continentOf, normCity 
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -221,6 +222,12 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('ping', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('ping'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -452,9 +459,10 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     if (q.length) say('No match. Pick a city from the list.');
   }
 
-  // one free hint: reveal the continent (unregistered players only)
+  // one free hint: reveal the continent (first play only)
   const continent = continentOf(TARGET);
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     const g2 = { ...g, hintUsed: true };
     if (!g2.t0) g2.t0 = Date.now();
@@ -564,7 +572,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>There&rsquo;s one secret city a day and <b>no clues</b>. <b>Guess any world city</b> to begin.</p>
       <p style={{ margin: '0 0 9px' }}>Every guess pings back one number: the <b>distance in {unitWord(unit)}</b> to the secret city. No direction, just the distance. Watch it shrink to close in, from <b style={{ color: '#475569' }}>cold</b> ({fmtDistIn(2500, unit)}+) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within {fmtDistIn(200, unit)}).</p>
       <p style={{ margin: '0 0 9px' }}>Prefer kilometers? Flip the <b>mi / km</b> switch above the guess box any time. It only changes what you read, never your score.</p>
-      <p style={{ margin: '0 0 9px' }}>There&rsquo;s <b>no guess limit</b>. Keep going until you land on the city, and your <b>score is how few guesses it took</b>. Stuck? <b>Give up</b> any time and you&rsquo;re still scored on how close your best guess got, ranked against everyone who played. One free <b>hint</b> reveals the continent.</p>
+      <p style={{ margin: '0 0 9px' }}>There&rsquo;s <b>no guess limit</b>. Keep going until you land on the city, and your <b>score is how few guesses it took</b>. Stuck? <b>Give up</b> any time and you&rsquo;re still scored on how close your best guess got, ranked against everyone who played. One free <b>hint</b>, on your first ever play, reveals the continent.</p>
       <p style={{ margin: 0 }}>Ties on the daily board break on fewest guesses, then fastest time. Sundays hide a trickier city.</p>
     </div>
   );
@@ -710,8 +718,8 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           {/* tools */}
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
-              {!identity && !g.hintUsed && (
-                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(2,132,199,0.5)', color: COLORS.accentDeep }}>
+              {hintOk && !g.hintUsed && (
+                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(2,132,199,0.5)', color: COLORS.accentDeep }}>
                   <Lightbulb size={14} /> Hint: the continent
                 </button>
               )}
@@ -876,7 +884,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           Ping is a free daily geography puzzle from Source of Truths &mdash; the daily city hunt. Each day there&rsquo;s one secret city somewhere in the world and not a single clue to start. Name any well-known city and Ping answers with one number: the great-circle distance to the target, in miles or kilometers, whichever you prefer.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          From there it&rsquo;s pure triangulation: watch the distance fall and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end &mdash; the goal is to do it in as few guesses as you can. Give up any time and you&rsquo;re still scored on how close you got. One free hint reveals the continent.
+          From there it&rsquo;s pure triangulation: watch the distance fall and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end &mdash; the goal is to do it in as few guesses as you can. Give up any time and you&rsquo;re still scored on how close you got. One free hint, on your first ever play, reveals the continent.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography puzzle, <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, the daily crowd-ranking puzzle, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.

@@ -40,6 +40,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 import { VOCAB } from './puzzles';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
@@ -182,6 +183,12 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('rung', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('rung'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -434,6 +441,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   // One free hint: the next word of a shortest ladder from where you actually
   // are, not from the start, so it stays useful however far you have wandered.
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const from = [PUZZLE.start, ...cur.rungs].slice(-1)[0];
@@ -506,7 +514,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Climb from <b>{PUZZLE.start.toUpperCase()}</b> to <b>{PUZZLE.target.toUpperCase()}</b>, <b>changing one letter at a time</b>. Every rung has to be a real word, and the letters stay where they are: no anagrams, no adding or dropping letters.</p>
       <p style={{ margin: '0 0 9px' }}>A rung must be one of the <b>1,846 common five-letter words</b> in the game&rsquo;s list. Par and perfect were both worked out over exactly that list, so if a word is not in it, it is not a rung here.</p>
       <p style={{ margin: '0 0 9px' }}><b>Par is {par}</b> on this ladder, the length a clean climb comes in at. <b>Perfect is {perfect}</b>, the shortest route that exists, found by search rather than by hand, and nobody gets under it. There is <b>no undo</b>, only a restart that puts you back at the start word and zeroes your rungs, though the clock keeps running. You can always climb backwards by retyping an earlier word, and that costs a rung like anything else.</p>
-      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} rungs over it costs a point, so par scores <b>8</b>, down to a floor of one. One free <b>hint</b> gives you the next word of a shortest ladder from wherever you are. <b>Sundays</b> are a much longer climb.</p>
+      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} rungs over it costs a point, so par scores <b>8</b>, down to a floor of one. One free <b>hint</b>, on your first ever play, gives you the next word of a shortest ladder from wherever you are. <b>Sundays</b> are a much longer climb.</p>
     </div>
   );
 
@@ -627,8 +635,8 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
               <button className="rg-tool" onClick={restart} disabled={!used} title="Back to the start word, and zero the rung count" style={{ opacity: used ? 1 : 0.4, cursor: used ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Restart
               </button>
-              {!g.hintUsed && (
-                <button className="rg-tool" onClick={useHint} title="The next word of a shortest ladder from here (one hint per board)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(21,94,117,0.5)', color: '#124b5e' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="rg-tool" onClick={useHint} title="The next word of a shortest ladder from here (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(21,94,117,0.5)', color: '#124b5e' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

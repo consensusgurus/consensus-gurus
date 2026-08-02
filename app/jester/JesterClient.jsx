@@ -41,6 +41,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -235,6 +236,12 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('jester', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('jester'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [revealArmed, setRevealArmed] = useState(false);
@@ -538,8 +545,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     });
   }
 
-  // one free hint: seat one correct jester (unregistered players only)
+  // one free hint: seat one correct jester (first play only)
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed || !SOLUTION) return;
     setG((cur) => {
       // prefer a row whose correct cell is not already seated
@@ -730,8 +738,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', margin: '12px 0 6px' }}>
             <button type="button" className="je-btn" onClick={clearBoard}><Eraser size={14} /> Clear board</button>
             <button type="button" className="je-btn" onClick={undo} disabled={!canUndo} aria-label="Undo last move" style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf', cursor: 'default' }}><Undo2 size={14} /> Undo</button>
-            {!identity && !g.hintUsed && (
-              <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: COLORS.accentDeep }}>
+            {hintOk && !g.hintUsed && (
+              <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: COLORS.accentDeep }}>
                 <Lightbulb size={14} /> Hint: seat one jester
               </button>
             )}

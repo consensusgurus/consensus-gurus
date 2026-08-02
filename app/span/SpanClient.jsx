@@ -44,6 +44,7 @@ import { MAP } from './map-geo';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -323,6 +324,12 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('span', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('span'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -542,6 +549,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   // country first when it's still owed, and never doubles back through the
   // chain (blocked set) unless the chain has boxed the player in.
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     const target = VIA && !viaDone ? VIA : PUZZLE.end;
     const blocked = new Set(chain.filter((c) => c !== head));
@@ -696,7 +704,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
       {isSundayEd && sundayRule && (
         <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.par}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.par}-hop shortest path already does.</>}</p>
       )}
-      <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b> walks you one step down a shortest road.</p>
+      <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b>, on your first ever play, walks you one step down a shortest road.</p>
     </div>
   );
 
@@ -822,8 +830,8 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                   <Undo2 size={14} /> Undo last step
                 </button>
               )}
-              {!identity && !g.hintUsed && (
-                <button className="sp-btn" onClick={useHint} title="Take one step down a shortest road (one hint per puzzle)"
+              {hintOk && !g.hintUsed && (
+                <button className="sp-btn" onClick={useHint} title="Take one step down a shortest road (one hint, first play only)"
                   style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint
                 </button>

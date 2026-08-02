@@ -32,6 +32,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -193,6 +194,12 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('circa', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('circa'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -409,6 +416,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   // one free hint: reveal the century
   const centuryLabel = `the ${Math.floor(YEAR / 100) * 100}s`;
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     const g2 = { ...g, hintUsed: true };
     if (!g2.t0) g2.t0 = Date.now();
@@ -602,8 +610,8 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           {/* tools */}
           {playing && !idle && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
-              {!identity && !g.hintUsed && (
-                <button className="cc-tool" onClick={useHint} title="Reveal the century (one hint per day)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(14,116,144,0.5)', color: '#155e70' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="cc-tool" onClick={useHint} title="Reveal the century (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(14,116,144,0.5)', color: '#155e70' }}>
                   <Lightbulb size={14} /> Hint: the century
                 </button>
               )}
@@ -744,7 +752,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}>One historical moment a day. <b>Guess the year</b> it happened &mdash; any year from {YR_MIN} to today &mdash; in six tries. The moment stays covered until you press <b>Start</b>.</p>
               <p style={{ margin: '0 0 9px' }}>Every miss tells you two things: whether the real year is <b>earlier or later</b> than your guess, and how close you are &mdash; from <b style={{ color: '#475569' }}>cold</b> (200+ years off) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within 10).</p>
-              <p style={{ margin: '0 0 9px' }}>Land <b>within {SNAP} years</b> and you&rsquo;ve placed it &mdash; that&rsquo;s circa, and it counts. Hitting the <b>exact year</b> is a dead-on finish. One free <b>hint</b> reveals the century.</p>
+              <p style={{ margin: '0 0 9px' }}>Land <b>within {SNAP} years</b> and you&rsquo;ve placed it &mdash; that&rsquo;s circa, and it counts. Hitting the <b>exact year</b> is a dead-on finish. One free <b>hint</b>, on your first ever play, reveals the century.</p>
               <p style={{ margin: 0 }}>A dead-on first guess scores a perfect 10; every extra guess costs a point (a circa finish costs one more). Ties break on fewest guesses, then fastest time. Sundays bring a trickier moment.</p>
             </div>
             <button className="cc-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>

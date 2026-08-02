@@ -31,6 +31,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -206,6 +207,12 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('suds', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('suds'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -528,6 +535,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   // one free hint: fill a correct digit into the selected empty cell, else the
   // first empty cell in reading order
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     let idx = (sel >= 0 && !givenFlat[sel] && cells[sel] !== solFlat[sel]) ? sel : -1;
     if (idx < 0) idx = FREE.find((i) => cells[i] !== solFlat[i]);
@@ -664,7 +672,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Fill every empty square so that each <b>row</b>, each <b>column</b>, and each <b>3×3 box</b> contains the digits <b>1–9</b> with no repeats. Every board has exactly one solution.</p>
       <p style={{ margin: '0 0 9px' }}>Two ways to place a number: tap a square then tap a number, or pick a number first and tap every square it goes in. Wrong entries are not flagged, so it is on you to spot them, just like paper sudoku. On desktop you can also use the arrow keys and number keys.</p>
-      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b> fills a correct number.</p>
+      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b>, on your first ever play, fills a correct number.</p>
       <p style={{ margin: 0 }}>Solve the whole grid and you score a perfect 10. The faster you finish, the higher you place on the daily leaderboard. Sundays are a harder Edition with fewer clues.</p>
     </div>
   );
@@ -801,8 +809,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
                 <button className="sd-tool" onClick={() => eraseCell(sel)} title="Erase selected cell (Backspace)">
                   <Eraser size={14} /> Erase
                 </button>
-                {!identity && !g.hintUsed && (
-                  <button className="sd-tool" onClick={useHint} title="Fill one correct square (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(234,88,12,0.5)', color: '#9a3d0c' }}>
+                {hintOk && !g.hintUsed && (
+                  <button className="sd-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(234,88,12,0.5)', color: '#9a3d0c' }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}

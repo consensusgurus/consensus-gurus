@@ -33,6 +33,7 @@ import { resolveHidden } from './resolve-hidden';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -188,6 +189,12 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('extra', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('extra'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -380,6 +387,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
   // one free hint: reveal the dateline
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     const g2 = { ...g, hintUsed: true };
     if (!g2.t0) g2.t0 = Date.now();
@@ -476,7 +484,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>A historic front page, with the giveaway words <b>blacked out</b>. Type what story it is &mdash; the event, in your own words (&ldquo;the moon landing&rdquo;, &ldquo;Nixon resigns&rdquo;).</p>
       <p style={{ margin: '0 0 9px' }}>A wrong guess, or a press of <b>Tear a word free</b>, rips the censor strip off one more word. You get <b>six tears</b> &mdash; a wrong guess with nothing left to tear ends the puzzle.</p>
-      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b> reveals the dateline: the paper&rsquo;s date and place.</p>
+      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b>, on your first ever play, reveals the dateline: the paper&rsquo;s date and place.</p>
       <p style={{ margin: 0 }}>Naming the story with <b>zero tears</b> is a cold read &mdash; a perfect 10. Every tear costs a point. Ties break on fewest tears, then fastest time. Sundays run a trickier story.</p>
     </div>
   );
@@ -592,8 +600,8 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                 <button className="ex-tool" onClick={tearOne} disabled={tears >= MAX_TEARS} title="Reveal one more word (costs a tear)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(185,28,28,0.5)', color: '#8f1d1d' }}>
                   <Scissors size={14} /> Tear a word free
                 </button>
-                {!identity && !g.hintUsed && (
-                  <button className="ex-tool" onClick={useHint} title="Reveal the dateline (one hint per day, free)">
+                {hintOk && !g.hintUsed && (
+                  <button className="ex-tool" onClick={useHint} title="Reveal the dateline (one hint, first play only)">
                     <Lightbulb size={14} /> Hint: the dateline
                   </button>
                 )}

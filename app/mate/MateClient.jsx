@@ -39,6 +39,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   parseFen, applyMove, legalTargetsFrom, parseUci, uci,
   squareName, colorOf, inCheck, toSan, rowOf, fileOf,
@@ -258,6 +259,12 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('mate', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('mate'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -529,6 +536,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   // One free hint: names the piece to move, never the square, so the player
   // still has to find the move.
   function useHint() {
+    if (!hintOk) return;
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const n = nodeAfter(PUZZLE.solution, cur.moves);
@@ -620,7 +628,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>You are <b>White</b>, and you move first. There is a forced <b>checkmate in {PUZZLE.mateIn}</b> moves on the board. <b>Tap one of your pieces</b>, and the squares it can legally reach light up. <b>Tap one</b> to play the move.</p>
       <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> first move forces mate. Every other move on the board, however forcing it looks, lets Black wriggle out, so the puzzle is finding the key rather than trying things. A move that is not the winning one is <b>refused</b>, the board stays put, and it costs you an error.</p>
-      <p style={{ margin: '0 0 9px' }}>Play the whole line, not just the key. After your move Black answers with its best defence, and you have to <b>finish the job</b>{PUZZLE.mateIn > 2 ? ', twice over on a Sunday' : ''}. One free <b>hint</b> tells you which piece moves, never where it goes.</p>
+      <p style={{ margin: '0 0 9px' }}>Play the whole line, not just the key. After your move Black answers with its best defence, and you have to <b>finish the job</b>{PUZZLE.mateIn > 2 ? ', twice over on a Sunday' : ''}. One free <b>hint</b>, on your first ever play, tells you which piece moves, never where it goes.</p>
       <p style={{ margin: 0 }}>A <b>clean solve scores 10</b>, and every miss costs two, down to a floor of one. Ties break on fewest misses, then fastest time. Weekdays are mate in two, and <b>Sundays</b> step up to mate in three.</p>
     </div>
   );
@@ -761,8 +769,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
               <button className="mt-tool" onClick={takeBack} disabled={!moves.length} title="Step back to the start of the line" style={{ opacity: moves.length ? 1 : 0.4, cursor: moves.length ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Take back
               </button>
-              {!g.hintUsed && (
-                <button className="mt-tool" onClick={useHint} title="Name the piece that moves (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(107,68,35,0.5)', color: '#5c3a1e' }}>
+              {hintOk && !g.hintUsed && (
+                <button className="mt-tool" onClick={useHint} title="Name the piece that moves (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(107,68,35,0.5)', color: '#5c3a1e' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

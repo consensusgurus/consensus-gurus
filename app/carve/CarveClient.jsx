@@ -32,6 +32,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { hintAllowed, spendHint } from '@/lib/hint-gate';
 
 const COLORS = {
   cream: '#f7f8fa',
@@ -215,6 +216,12 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
+  // re-read whenever stats change, so the server-history merge can revoke it
+  // for a returning player on a new device.
+  const [hintOk, setHintOk] = useState(false);
+  useEffect(() => { if (stats) setHintOk(hintAllowed('carve', stats)); }, [stats]);
+  useEffect(() => { if (g.hintUsed) spendHint('carve'); }, [g.hintUsed]);
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -483,6 +490,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
 
   // one free hint: paint one correct square of the selected (else first) open region
   function useHint() {
+    if (!hintOk) return;
     if (!playing || g.hintUsed) return;
     let reg = !locked.includes(cur) ? cur : [...Array(R).keys()].find((k) => !locked.includes(k));
     if (reg == null) return;
@@ -603,7 +611,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Carve the grid into <b>{R} connected blocks</b> that each add up to <b>{TARGET}</b>. Every block grows out from its <b>ringed anchor square</b>, and there is exactly one way to carve the board.</p>
       <p style={{ margin: '0 0 9px' }}>Pick a color below the board (or tap its anchor), then tap squares that <b>touch that block</b> to paint them in. Tap a painted square to un-carve it. The running total on each color chip shows how close its block is.</p>
-      <p style={{ margin: '0 0 9px' }}>The moment a block hits {TARGET} it is checked: a true block <b>locks in</b>, a wrong one shakes <b style={{ color: COLORS.rust }}>red</b>, clears back to its anchor, and counts as an <b>error</b>. One free <b>hint</b> paints a correct square.</p>
+      <p style={{ margin: '0 0 9px' }}>The moment a block hits {TARGET} it is checked: a true block <b>locks in</b>, a wrong one shakes <b style={{ color: COLORS.rust }}>red</b>, clears back to its anchor, and counts as an <b>error</b>. One free <b>hint</b>, on your first ever play, paints a correct square.</p>
       <p style={{ margin: 0 }}>Carve every block with <b>no errors</b> for a perfect 10 &mdash; every error costs a point. Ties break on fewest errors, then fastest time. Sundays go bigger: a 7&times;7 board in nine blocks.</p>
     </div>
   );
@@ -723,8 +731,8 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                 })}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-                {!identity && !g.hintUsed && (
-                  <button className="cv-tool" onClick={useHint} title="Paint one correct square (one hint per puzzle)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: '#5b21b6' }}>
+                {hintOk && !g.hintUsed && (
+                  <button className="cv-tool" onClick={useHint} title="Paint one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: '#5b21b6' }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}
