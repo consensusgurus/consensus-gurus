@@ -590,7 +590,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
                     return (
                       <div key={i} className={cls} onClick={() => { if (!playing) return; if (!g.t0) startGame(); setSel(n); }}>
                         <span className="gl-num">{n}</span>
-                        {L ? <span className="gl-ltr given" style={{ fontSize: `min(${(88 / W).toFixed(1)}vw, ${W > 15 ? 21 : 23}px)`, color: GIVEN[n] ? '#0f766e' : COLORS.ink }}>{L}</span> : null}
+                        {L ? <span className="gl-ltr given" style={{ fontSize: `min(${(52 / W).toFixed(1)}vw, ${W > 15 ? 21 : 23}px)`, color: GIVEN[n] ? '#0f766e' : COLORS.ink }}>{L}</span> : null}
                       </div>
                     );
                   })}
