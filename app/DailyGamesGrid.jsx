@@ -73,6 +73,7 @@ const GAMES = [
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'Name every winner', img: '/games/btn-bracket.png' },
   { key: 'lode', href: '/lode', name: 'Lode', tag: 'Seven letters, rare words pay', img: '/games/btn-lode.png' },
   { key: 'etch', href: '/etch', name: 'Etch', tag: 'A picture in the numbers', img: '/games/btn-etch.png' },
+  { key: 'glyph', href: '/glyph', name: 'Glyph', tag: 'A crossword with no clues', img: '/games/btn-glyph.png' },
   { key: 'hedge', href: '/hedge', name: 'Hedge', tag: 'Draw one closed loop', img: '/games/btn-hedge.png' },
   { key: 'listed', href: '/listed', name: 'Listed', tag: 'Rank the list, top to bottom', img: '/games/btn-listed.png' },
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'White to play and mate', img: '/games/btn-mate.png' },
@@ -94,7 +95,7 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 // Within each group the order is popularity (yesterday's plays), same as
 // everywhere else.
 const CATEGORIES = [
-  { key: 'word', label: 'Word', keys: ['crux', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer'] },
+  { key: 'word', label: 'Word', keys: ['crux', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph'] },
   { key: 'history', label: 'History', keys: ['dating', 'extra', 'bracket', 'listed'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge', 'crunch'] },

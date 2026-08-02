@@ -28,6 +28,7 @@ import { PUZZLES as STANDS_FULL } from '../stands/puzzles';
 import { PUZZLES as BRACKET_FULL } from '../bracket/puzzles';
 import { PUZZLES as LODE_FULL } from '../lode/puzzles';
 import { PUZZLES as ETCH_FULL } from '../etch/puzzles';
+import { PUZZLES as GLYPH_FULL } from '../glyph/puzzles';
 import { PUZZLES as HEDGE_FULL } from '../hedge/puzzles';
 import { PUZZLES as LISTED_FULL } from '../listed/puzzles';
 import { PUZZLES as MATE_FULL } from '../mate/puzzles';
@@ -63,6 +64,7 @@ const STANDS = STANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 const BRACKET = BRACKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const LODE = LODE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const ETCH = ETCH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const GLYPH = GLYPH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HEDGE = HEDGE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const LISTED = LISTED_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const MATE = MATE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -149,6 +151,7 @@ const GAMES = [
   { key: 'bracket', name: 'Bracket', path: '/bracket', tag: 'Name every winner', accent: '#c2410c', bg: '#ffedd5', border: 'rgba(194,65,12,0.35)', src: BRACKET },
   { key: 'lode', name: 'Lode', path: '/lode', tag: 'Seven letters, rare words pay', accent: '#a16207', bg: '#fef7e0', border: 'rgba(161,98,7,0.35)', src: LODE },
   { key: 'etch', name: 'Etch', path: '/etch', tag: 'A picture in the numbers', accent: '#4d7c0f', bg: '#f3f8e8', border: 'rgba(77,124,15,0.35)', src: ETCH },
+  { key: 'glyph', name: 'Glyph', path: '/glyph', tag: 'A crossword with no clues', accent: '#334155', bg: '#eef2f7', border: 'rgba(51,65,85,0.35)', src: GLYPH },
   { key: 'hedge', name: 'Hedge', path: '/hedge', tag: 'Draw one closed loop', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)', src: HEDGE },
   { key: 'listed', name: 'Listed', path: '/listed', tag: 'Rank the list, top to bottom', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)', src: LISTED },
   { key: 'mate', name: 'Mate', path: '/mate', tag: 'White to play and mate', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)', src: MATE },

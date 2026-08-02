@@ -39,6 +39,7 @@ export const DAILY_GAMES = [
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'name every winner', store: 'sot_bracket_day', accent: '#c2410c', bg: '#fdece3', border: 'rgba(196,65,12,0.35)' },
   { key: 'lode', href: '/lode', name: 'Lode', tag: 'seven letters, rare words pay', store: 'sot_lode_day', accent: '#a16207', bg: '#fef7e0', border: 'rgba(161,98,7,0.35)' },
   { key: 'etch', href: '/etch', name: 'Etch', tag: 'a picture hidden in the numbers', store: 'sot_etch_day', accent: '#4d7c0f', bg: '#f3f8e8', border: 'rgba(77,124,15,0.35)' },
+  { key: 'glyph', href: '/glyph', name: 'Glyph', tag: 'a crossword with no clues at all', store: 'sot_glyph_day', accent: '#334155', bg: '#eef2f7', border: 'rgba(51,65,85,0.35)' },
   { key: 'hedge', href: '/hedge', name: 'Hedge', tag: 'draw one closed loop', store: 'sot_hedge_day', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)' },
   { key: 'listed', href: '/listed', name: 'Listed', tag: 'rank the list, top to bottom', store: 'sot_listed_day', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)' },
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'white to play and mate', store: 'sot_mate_day', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)' },

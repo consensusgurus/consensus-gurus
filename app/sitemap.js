@@ -26,7 +26,7 @@ export default function sitemap() {
   // catalog entries are thin client-side hops to those pages, so the game
   // URLs go in the sitemap (stamped with the newest live puzzle's date) and
   // the stubs stay out — they also canonicalize to the game pages.
-  const WORD_GAME_FORMATS = new Set(['crux', 'emcee', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'circa', 'extra', 'carve', 'stet', 'outwit', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester', 'sworn', 'outrank', 'shards', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'hedge', 'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib', 'streak', 'feud', 'babel']);
+  const WORD_GAME_FORMATS = new Set(['crux', 'emcee', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'circa', 'extra', 'carve', 'stet', 'outwit', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester', 'sworn', 'outrank', 'shards', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'hedge', 'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib', 'streak', 'feud', 'babel', 'glyph']);
   const newestOfFormat = (format) => {
     const times = visibleQuizzes
       .filter((quiz) => quiz.format === format)
@@ -67,6 +67,7 @@ export default function sitemap() {
     { url: `${baseUrl}/bracket`, lastModified: newestOfFormat('bracket'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/lode`, lastModified: newestOfFormat('lode'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/etch`, lastModified: newestOfFormat('etch'), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/glyph`, lastModified: newestOfFormat('glyph'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/hedge`, lastModified: newestOfFormat('hedge'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/listed`, lastModified: newestOfFormat('listed'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/mate`, lastModified: newestOfFormat('mate'), changeFrequency: 'daily', priority: 0.9 },

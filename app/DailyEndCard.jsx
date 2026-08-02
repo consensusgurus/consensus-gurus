@@ -87,7 +87,7 @@ const RUST = '#c0392b';
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['babel', 'feud', 'streak', 'fib', 'crunch'], until: '2026-09-01' };
+const LAUNCH_PIN = { keys: ['glyph', 'babel', 'feud', 'streak', 'fib'], until: '2026-09-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -135,6 +135,7 @@ export const GAME_META = {
   bracket: { accent: '#c2410c', badgeBg: '#c2410c', badgeInk: '#fff', Fin: TrophyFin },
   lode: { accent: '#a16207', badgeBg: '#a16207', badgeInk: '#fff', Fin: TrophyFin },
   etch: { accent: '#4d7c0f', badgeBg: '#4d7c0f', badgeInk: '#fff', Fin: ImageIcon },
+  glyph: { accent: '#334155', badgeBg: '#334155', badgeInk: '#fff', Fin: KeyRound },
   hedge: { accent: '#0891b2', badgeBg: '#0891b2', badgeInk: '#fff', Fin: Route },
   listed: { accent: '#86198f', badgeBg: '#86198f', badgeInk: '#fff', Fin: BarChart3 },
   mate: { accent: '#6b4423', badgeBg: '#6b4423', badgeInk: '#fff', Fin: Crown },
@@ -211,6 +212,7 @@ export const DAILY_GAMES = [
   { key: 'lode',    cat: 'word',     name: 'Lode',    tag: 'Seven letters, rare words pay',     blurb: 'Seven letters and unlimited words. The rarer the word you find, the bigger it scores.', href: '/lode' },
   { key: 'etch',    cat: 'logic',    name: 'Etch',    tag: 'A picture in the numbers',   blurb: 'A nonogram: follow the row and column counts to uncover the picture hidden in the grid.', href: '/etch' },
   { key: 'hedge',   cat: 'numbers',  name: 'Hedge',   tag: 'Draw one closed loop',       blurb: 'Draw a single unbroken loop that satisfies every number printed on the board.', href: '/hedge' },
+  { key: 'glyph',   cat: 'word',     name: 'Glyph',   tag: 'A crossword with no clues',  blurb: 'A codeword: every letter is a number, and two given letters are all you get to crack the alphabet.', href: '/glyph' },
 ];
 
 const AUTO_SECONDS = 30;
