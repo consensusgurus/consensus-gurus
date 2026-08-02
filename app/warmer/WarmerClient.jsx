@@ -205,6 +205,20 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
   useEffect(() => { if (!armGiveUp) return undefined; const t = setTimeout(() => setArmGiveUp(false), 3500); return () => clearTimeout(t); }, [armGiveUp]);
 
+  // Live game clock. `elapsed` below is derived from the current time, and it
+  // used to read Date.now() during render, so the displayed clock only advanced
+  // when something else happened to re-render the board. This ticks a state
+  // value while the game is actually running, so the readout moves on its own.
+  // Display only: the elapsed time recorded on the result is still computed
+  // from a real Date.now() delta at the moment the game ends.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (g.status !== 'playing' || !g.t0 || g.tEnd) return undefined;
+    setNowTick(Date.now());
+    const iv = setInterval(() => setNowTick(Date.now()), 500);
+    return () => clearInterval(iv);
+  }, [g.status, g.t0, g.tEnd]);
+
   useEffect(() => {
     if (g.status === 'playing') return;
     const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
@@ -231,7 +245,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
   function say(msg) { setToast(msg); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 2200); }
 
-  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const myStats = deriveStats(stats, todayNum);
 
   const rankOf = useCallback((word) => { const vi = VOCAB_INDEX[word]; if (vi == null) return null; const pos = rankByVocab[vi]; return pos < 0 ? null : pos + 1; }, [rankByVocab]);

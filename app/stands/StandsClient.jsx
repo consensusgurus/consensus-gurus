@@ -239,6 +239,20 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
 
+  // Live game clock. `elapsed` below is derived from the current time, and it
+  // used to read Date.now() during render, so the displayed clock only advanced
+  // when something else happened to re-render the board. This ticks a state
+  // value while the game is actually running, so the readout moves on its own.
+  // Display only: the elapsed time recorded on the result is still computed
+  // from a real Date.now() delta at the moment the game ends.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (g.status !== 'playing' || !g.t0 || g.tEnd) return undefined;
+    setNowTick(Date.now());
+    const iv = setInterval(() => setNowTick(Date.now()), 500);
+    return () => clearInterval(iv);
+  }, [g.status, g.t0, g.tEnd]);
+
   useEffect(() => {
     if (g.status === 'playing') return;
     const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
@@ -264,7 +278,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
 
   function say(msg) { setToast(msg); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 2400); }
 
-  const elapsed = g.t0 ? fmtTime((g.tEnd || Date.now()) - g.t0) : '0:00';
+  const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
