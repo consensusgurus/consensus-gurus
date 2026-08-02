@@ -692,8 +692,10 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         />
 
         {!preStart && (
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
-          One rule is true of every green word and false of every red one. {PUZZLE.rules.length} candidates are on the table and <b style={{ fontStyle: 'normal' }}>exactly one fits the whole board</b>. Test a tile to flip it. You have {PUZZLE.budget} tests and {PERFECT} can settle it, and you only score the rules you have actually ruled out.
+        <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
+          <div style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 5 }}>Find the one rule that fits every word on the board.</div>
+          <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
+          <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate still standing when you name the answer costs you {UNPROVEN_COST} points, so cross them off before you commit.</div>
         </div>
         )}
 
@@ -701,9 +703,9 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {started && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>tests left <b style={{ color: testsLeft <= 1 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{testsLeft}</b> of {PUZZLE.budget}</span>
-          <span>perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PERFECT}</b></span>
-          <span>unproven rules <b style={{ color: standing ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{standing}</b>{standing > 0 ? ` · naming now costs ${UNPROVEN_COST * standing}` : ' · proved'}</span>
-          <span>on the board <b style={{ color: overPerfect || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
+          <span>perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PERFECT}</b> test{PERFECT === 1 ? '' : 's'}</span>
+          <span>still unproven <b style={{ color: standing ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{standing}</b> rule{standing === 1 ? '' : 's'}{standing > 0 ? '' : ' · proved'}</span>
+          <span>name it now &rarr; <b style={{ color: overPerfect || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
           {g.wrongPicks.length > 0 && <span>wrong names <b style={{ color: COLORS.rust, fontWeight: 500 }}>{g.wrongPicks.length}</b></span>}
         </div>
         )}
@@ -714,7 +716,9 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The board is covered'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>{PUZZLE.tiles.length} words, one hidden rule, {PUZZLE.rules.length} candidates. Three tiles open green, two open red, and you get {PUZZLE.budget} tests to settle it. {PERFECT} test{PERFECT === 1 ? '' : 's'} is perfect.</p>
+                <p style={{ margin: '0 0 7px' }}>{PUZZLE.tiles.length} words below, and {PUZZLE.rules.length} candidate rules. <b>Exactly one of those rules fits every word on the board, and your job is to work out which.</b></p>
+                <p style={{ margin: '0 0 7px' }}>Three words start <b style={{ color: COLORS.green }}>green</b>, meaning the hidden rule is true of them, and two start <b style={{ color: COLORS.redInk }}>red</b>, meaning it is false. Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it.</p>
+                <p style={{ margin: 0 }}>You score only the rules you actually rule out, so eliminate before you name.</p>
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
