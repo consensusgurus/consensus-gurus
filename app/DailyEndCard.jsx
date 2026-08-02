@@ -416,7 +416,14 @@ export default function DailyEndCard({
           // Does our standing already include the game we just finished? If so
           // (or retries are exhausted), stop. Otherwise the write hasn't
           // propagated yet, so try again.
-          const reflectsSelf = !self || !!(d.perGame && d.perGame[self]);
+          // An ABANDONED entry is not the finish we are waiting for. scoreGame
+          // already prefers a completed row over an abandon, so perGame[self]
+          // reports abandoned only while our own finished row is still missing;
+          // counting it as landed stopped this ladder on the first read and left
+          // the rank tiles showing the pre-finish standing (owner-reported
+          // 2026-08-01, alongside the same bug in /api/quiz/iq-standing).
+          const mineToday = d.perGame ? d.perGame[self] : null;
+          const reflectsSelf = !self || !!(mineToday && !mineToday.abandoned);
           if (reflectsSelf && !notified) { notified = true; notifyBoard(); setTimeout(notifyBoard, 600); }
           if (reflectsSelf || i >= delays.length - 1) { standingReadyRef.current = true; return; }
           i += 1;

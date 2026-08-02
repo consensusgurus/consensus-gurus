@@ -110,11 +110,21 @@ export async function GET(request) {
 
     const recent = Array.isArray(me.recent) ? me.recent : [];
     const today = etDate(Date.now());
+    // ONLY a COMPLETED row can be the game just finished. The abandon-flush
+    // writes a real row (score 0) when a player leaves a game in progress, and
+    // `recent` is newest-first, so before the finish landed this find returned
+    // that abandon and reported gained: 0. The card renders a 0 as "+0" and only
+    // retries while gained is null, so it stopped on the very first read and
+    // showed a zero gain plus a pre-finish ranking until the page was reloaded
+    // (owner-reported 2026-08-01: Parker, finished after two abandons). Skipping
+    // abandoned rows leaves gained null in exactly that window, which is what
+    // keeps the client's retry ladder running until the real row is visible.
+    const played = (r) => !r.abandoned;
     const row = quizId
-      ? recent.find((r) => r.quizId === quizId)
+      ? recent.find((r) => r.quizId === quizId && played(r))
       : (game
-        ? recent.find((r) => r.quizId && r.quizId.startsWith(game + '-') && etDate(r.createdAt) === today)
-        : recent[0]);
+        ? recent.find((r) => r.quizId && r.quizId.startsWith(game + '-') && etDate(r.createdAt) === today && played(r))
+        : recent.find(played));
     const todayGained = Math.round(recent
       .filter((r) => r.createdAt && etDate(r.createdAt) === today)
       .reduce((s, r) => s + (Number(r.xp) || 0), 0));
