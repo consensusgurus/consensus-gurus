@@ -42,32 +42,58 @@ export default function DailyMasthead({
   const noRef = useRef(null);
   const dateRef = useRef(null);
   const urlRef = useRef(null);
+  const sundayRef = useRef(null);
+  const tierRef = useRef(1);
   const [tier, setTier] = useState(1);
 
   useEffect(() => {
     const wrap = wrapRef.current;
-    if (!wrap || typeof ResizeObserver === 'undefined') return;
+    if (!wrap || typeof ResizeObserver === 'undefined') return undefined;
     const GAP = 14, COLGAP = 10;
+    // Widening back to a roomier tier needs this much MORE room than the bare
+    // fit. Without it the tier can ping-pong: a tier change alters the
+    // masthead's height, which can add or remove the page's vertical
+    // scrollbar, which changes clientWidth by ~15px, which flips the tier
+    // back, forever. The page visibly shook. The margin is wider than any
+    // scrollbar, so a scrollbar alone can never drive a flip.
+    const HYST = 24;
     const measure = () => {
       const cW = wrap.clientWidth - 28; // reserve the help-button gutter (paddingRight)
       const bW = blocksRef.current ? blocksRef.current.offsetWidth : 0;
       const noW = noRef.current ? noRef.current.offsetWidth : 0;
       const dtW = dateRef.current ? dateRef.current.offsetWidth : 0;
       const urlW = urlRef.current ? urlRef.current.offsetWidth : 0;
+      // The Sunday Edition chip sits on the No. row in every tier. It used to
+      // be left out of this arithmetic entirely, so on Sunday editions the
+      // measured row was ~150px narrower than the one actually rendered: the
+      // masthead picked a tier that could not fit, wrapped, and oscillated.
+      const suW = sundayRef.current ? sundayRef.current.offsetWidth + COLGAP : 0;
       if (!cW || !bW) return;
-      const boxW = Math.max(noW + COLGAP + dtW, urlW);   // Tier 1: two-row meta box beside blocks
-      const dateUrlW = dtW + COLGAP + urlW;              // Tier 2: date + URL on one row
+      const noSuW = noW + suW;                              // No. # + Sunday chip
+      const boxW = Math.max(noSuW + COLGAP + dtW, urlW);    // Tier 1: two-row meta box beside blocks
+      const dateUrlW = dtW + COLGAP + urlW;                 // Tier 2: date + URL on one row
+      const cur = tierRef.current;
+      const room = (target) => (target < cur ? cW - HYST : cW); // only widening pays the margin
       let t;
-      if (bW + GAP + boxW <= cW) t = 1;
-      else if (dateUrlW <= cW && bW + GAP + noW <= cW) t = 2;
+      if (bW + GAP + boxW <= room(1)) t = 1;
+      else if (dateUrlW <= cW && bW + GAP + noSuW <= room(2)) t = 2;
       else t = 3;
-      setTier((prev) => (prev === t ? prev : t));
+      if (t === cur) return;
+      tierRef.current = t;
+      setTier(t);
     };
     measure();
-    const ro = new ResizeObserver(measure);
+    // Coalesce to one measurement per frame so a resize that lands mid-layout
+    // cannot re-enter (this is also what silences the ResizeObserver
+    // "undelivered notifications" loop warning).
+    let raf = 0;
+    const ro = new ResizeObserver(() => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => { raf = 0; measure(); });
+    });
     ro.observe(wrap);
-    return () => ro.disconnect();
-  }, [num, dateLabel, slug, accent]);
+    return () => { if (raf) cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [num, dateLabel, slug, accent, !!sunday]);
 
   const noEl = (
     <h1 ref={noRef} style={{ margin: 0, fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.05em', fontWeight: 500, color: INK, whiteSpace: 'nowrap' }}>No. {num}</h1>
@@ -78,6 +104,11 @@ export default function DailyMasthead({
   const urlEl = (
     <span ref={urlRef} style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.02em', color: accent, whiteSpace: 'nowrap' }}>sourceoftruths.com/{slug}</span>
   );
+  // Wrapped so its width is measurable; inline-flex keeps the chip on the same
+  // baseline it sat on when it was rendered bare.
+  const sundayEl = sunday ? (
+    <span ref={sundayRef} style={{ display: 'inline-flex', alignItems: 'center' }}>{sunday}</span>
+  ) : null;
 
   return (
     <div ref={wrapRef} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
@@ -85,12 +116,12 @@ export default function DailyMasthead({
 
       {tier === 2 ? (
         <>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>{noEl}{sunday}</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>{noEl}{sundayEl}</div>
           <div style={{ flexBasis: '100%', display: 'flex', alignItems: 'baseline', columnGap: 10, rowGap: 3, flexWrap: 'wrap' }}>{dateEl}{urlEl}</div>
         </>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', rowGap: 3 }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', columnGap: 10, rowGap: 3, flexWrap: 'wrap' }}>{noEl}{sunday}{dateEl}</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', columnGap: 10, rowGap: 3, flexWrap: 'wrap' }}>{noEl}{sundayEl}{dateEl}</div>
           {urlEl}
         </div>
       )}
