@@ -9,12 +9,12 @@ import { PUZZLES } from './puzzles';
 // decide the spread.
 
 export const metadata = {
-  title: 'Babel — Daily Scrabble Endgame Puzzle: The Bag Is Empty | Source of Truths',
+  title: 'Babel — Daily Word Tile Endgame Puzzle: The Bag Is Empty | Source of Truths',
   description:
     'A free daily word puzzle for endgame players. The bag is empty, so your opponent’s rack is not a secret: it is the bag minus the board minus your own tiles. Race them out or block the lane they need, and beat the solver’s par on spread.',
   alternates: { canonical: '/babel' },
   openGraph: {
-    title: 'Babel — The Daily Scrabble Endgame',
+    title: 'Babel — The Daily Word Tile Endgame',
     description:
       'Five tiles, no bag, and one exchange left. Their rack is knowable, so the only question is whether to race or block. From Source of Truths.',
     url: '/babel',
@@ -23,7 +23,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Babel — The Daily Scrabble Endgame',
+    title: 'Babel — The Daily Word Tile Endgame',
     description: 'The bag is empty and their rack is knowable. Go out first, or make them sit on a tile they cannot play.',
   },
 };
@@ -32,10 +32,10 @@ const gameJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Game',
   name: 'Babel',
-  alternateName: 'Babel — Daily Scrabble Endgame Puzzle',
+  alternateName: 'Babel — Daily Word Tile Endgame Puzzle',
   url: 'https://sourceoftruths.com/babel',
   description:
-    'A free daily word puzzle: a Scrabble game picked up at the very end. The bag is empty, the player holds five tiles (six in the Sunday Edition) and the opponent holds the rest, so the opponent’s rack can be deduced exactly from the bag, the board and your own rack. Scoring is by spread, and every position ships with a par achieved by the same solver that plays the defence.',
+    'A free daily word puzzle: a word tile game picked up at the very end. The bag is empty, the player holds five tiles (six in the Sunday Edition) and the opponent holds the rest, so the opponent’s rack can be deduced exactly from the bag, the board and your own rack. Scoring is by spread, and every position ships with a par achieved by the same solver that plays the defence.',
   genre: ['Word puzzle', 'Puzzle', 'Strategy puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
@@ -77,7 +77,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Babel launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily Scrabble endgame. Empty bag, five tiles, and one exchange left to win.
+          The daily word tile endgame. Empty bag, five tiles, and one exchange left to win.
         </p>
         <a href="/daily" style={{ color: '#14532d', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>

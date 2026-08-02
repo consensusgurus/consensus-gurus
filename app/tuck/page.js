@@ -42,7 +42,7 @@ const gameJsonLd = {
   alternateName: 'Tuck — Daily Tile-Tucking Word Puzzle',
   url: 'https://sourceoftruths.com/tuck',
   description:
-    'A free daily word puzzle: everyone gets the same 14 Scrabble-weighted letters and builds their own interlocking crossword on a 9×9 board. Every run of letters must be a dictionary word, intersections score in both words, and each day carries a solver-verified par to beat.',
+    'A free daily word puzzle: everyone gets the same 14 standard-weighted letters and builds their own interlocking crossword on a 9×9 board. Every run of letters must be a dictionary word, intersections score in both words, and each day carries a solver-verified par to beat.',
   genre: ['Word puzzle', 'Puzzle', 'Strategy puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

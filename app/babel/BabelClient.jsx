@@ -598,7 +598,7 @@ export default function BabelClient({ puzzles, forceNum }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 8px' }}>
-        A Scrabble game, picked up at the very end. <b>The bag is empty</b>, so there is nothing left to draw: you hold {START_RACK.length} tiles, your opponent holds the rest, and these are the last plays of the game.
+        A word tile game, picked up at the very end. <b>The bag is empty</b>, so there is nothing left to draw: you hold {START_RACK.length} tiles, your opponent holds the rest, and these are the last plays of the game.
       </p>
       <p style={{ margin: '0 0 8px' }}>
         <b>Their rack is not a secret, but nobody will hand it to you.</b> It is the bag minus everything on the board minus your own tiles. The bag is printed beside the board, the board is in front of you, and the subtraction is yours to do. Working out what they can then DO with those tiles is the rest of it.
@@ -610,7 +610,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         Tap a tile, then tap a square, or just click a square and type. <b>Par is {signed(PAR)}</b>: the spread our solver gets from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
       </p>
       <p style={{ margin: 0, color: COLORS.faded }}>
-        The bag is 65 tiles in near-Scrabble proportion, Q included, with no blanks. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
+        The bag is 65 tiles in standard letter proportions, Q included, with no blanks. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
       </p>
     </div>
   );
@@ -926,13 +926,13 @@ export default function BabelClient({ puzzles, forceNum }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Babel</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Babel is a free daily word puzzle from Source of Truths: a Scrabble game picked up at the very end. The bag is empty, you hold five tiles and your opponent holds the rest, and the last few plays decide everything. Because nothing is left to draw, their rack is not a mystery. It is the bag minus the board minus your own tiles, which is exactly the arithmetic tournament players do on a tracking sheet. Babel prints the bag and leaves the subtraction to you.
+          Babel is a free daily word puzzle from Source of Truths: a word tile game picked up at the very end. The bag is empty, you hold five tiles and your opponent holds the rest, and the last few plays decide everything. Because nothing is left to draw, their rack is not a mystery. It is the bag minus the board minus your own tiles, which is exactly the arithmetic tournament players do on a tracking sheet. Babel prints the bag and leaves the subtraction to you.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           You are scored on spread: your points from here minus your opponent&rsquo;s. Going out first is the prize, because their leftover tiles come off their score and land on yours. That makes the real question a familiar one to any endgame player: race, or block the lane they need and make them sit on a tile they cannot play. Every position ships with a par computed by the same solver that plays the defence, so par is always reachable and never a guess.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The bag is 65 tiles in near-Scrabble proportion, Q included, and no blanks. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.
+          The bag is 65 tiles in standard letter proportions, Q included, and no blanks. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.
         </p>
       </section>
 

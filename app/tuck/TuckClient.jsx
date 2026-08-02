@@ -624,7 +624,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>{RACK} letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
-      <p style={{ margin: '0 0 9px' }}>Score is Scrabble points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
+      <p style={{ margin: '0 0 9px' }}>Score is standard tile points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>par of {PAR}</b> was actually scored by our solver, so it can be beaten.</p>
       <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
       <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction. To pull tiles back, tap <b>Take back</b> then tap any placed tile, triple-tap a placed tile (select, flip, remove), or press Backspace on a selected square.</p>
     </div>
@@ -935,7 +935,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Tuck</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Tuck is a free daily word puzzle from Source of Truths &mdash; the tile-tucking puzzle. Every player in the world gets the same rack of 14 Scrabble-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the puzzle. Long words, tight crossings, and premium letters at intersections all push the number up.
+          Tuck is a free daily word puzzle from Source of Truths &mdash; the tile-tucking puzzle. Every player in the world gets the same rack of 14 standard-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the puzzle. Long words, tight crossings, and premium letters at intersections all push the number up.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a par our solver actually scored on that rack &mdash; beat it and the day counts as a win. Only your first submitted grid ranks on the daily leaderboard, so make it count.
