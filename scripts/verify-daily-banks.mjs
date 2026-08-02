@@ -538,61 +538,147 @@ if (RUN('outrank')) {
 
 
 // ─── SHARDS ───────────────────────────────────────────────────────────────────
-// Proves each daily jigsaw puzzle has EXACTLY ONE reassembly whose every across/
-// down run of 2+ letters is a dictionary word, and that the unique tiling equals
-// the intended solution encoded in the shard coordinates. Same dict the client
-// validates against (public/tuck-dict.txt). Structural checks: square grid,
-// shards tile the fillable cells exactly (no overlap, none on a block), each
-// shard 3-6 cells, 5-10 shards.
+// Two proofs per puzzle, because the game needs both to be true:
+//
+//   1. UNIQUENESS (correctness): exactly ONE reassembly of the shard set makes
+//      every across/down run of 2+ letters a dictionary word, and it is the
+//      solution encoded in the shard coordinates. The search prunes on the
+//      dictionary the moment a placement completes a run, and it carries a node
+//      cap: if the cap is hit the search was incomplete, so uniqueness is NOT
+//      proven and the puzzle FAILS rather than passing on an unfinished proof.
+//
+//   2. AMBIGUITY (difficulty, owner ruling 2026-08-01): the shard SHAPES must
+//      tile the outline in at least AMBIG_FLOOR different ways. A puzzle whose
+//      shapes fit only one way is solved by shape-fitting alone and the player
+//      never reads a letter, which is exactly why the launch bank played too
+//      easy. Puzzles that went live before AMBIG_FROM are grandfathered.
+//
+// Structural checks: square grid, shards tile the fillable cells exactly (no
+// overlap, none on a block), each shard 3-6 cells, 5-18 shards.
 if (RUN('shards')) {
   const { PUZZLES } = await import('../app/shards/puzzles.js');
-  const enumerate = (shards, fillCells, n, cap = 3, nodecap = 3000000) => {
-    const fset = new Set(fillCells.map(([r, c]) => r * 100 + c));
-    const isFill = (r, c) => fset.has(r * 100 + c);
+  const AMBIG_FROM = '2026-08-02';            // ladder start; earlier days are frozen history
+  const AMBIG_FLOOR = { 6: 8, 7: 12, 8: 12 }; // by grid size; must match TIERS in scripts/gen-shards/build_ladder.py
+  const NODECAP = 5_000_000;
+
+  // Cell indices and the across/down runs each cell belongs to.
+  const geometry = (fillCells, n) => {
     const order = [...fillCells].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    const key = (r, c) => r * 100 + c;
-    const cover = new Map(); const used = new Array(shards.length).fill(false);
-    const valid = new Set(); const shape = new Set(); let nodes = 0;
-    const firstUncovered = () => { for (const [r, c] of order) if (!cover.has(key(r, c))) return [r, c]; return null; };
-    const runsValid = () => {
-      const G = Array.from({ length: n }, () => Array(n).fill('#'));
-      for (const [k, v] of cover) { G[Math.floor(k / 100)][k % 100] = v[1].toLowerCase(); }
-      const chk = (w) => w.length < 2 || dict.has(w.toLowerCase());
-      for (let r = 0; r < n; r++) { let c = 0; while (c < n) { if (G[r][c] !== '#') { let w = ''; while (c < n && G[r][c] !== '#') { w += G[r][c]; c++; } if (!chk(w)) return null; } else c++; } }
-      for (let c = 0; c < n; c++) { let r = 0; while (r < n) { if (G[r][c] !== '#') { let w = ''; while (r < n && G[r][c] !== '#') { w += G[r][c]; r++; } if (!chk(w)) return null; } else r++; } }
-      return G.map((row) => row.join('')).join('/');
-    };
-    const rec = () => {
-      if (valid.size >= cap && shape.size >= cap) return;
-      if (++nodes > nodecap) return;
-      const tgt = firstUncovered();
-      if (!tgt) {
-        let sg = ''; for (const [r, c] of order) sg += cover.get(key(r, c))[2] + ',';
-        shape.add(sg);
-        const g = runsValid(); if (g) valid.add(g);
-        return;
+    const idx = new Map(); order.forEach(([r, c], i) => idx.set(r * 100 + c, i));
+    const runs = []; const cellRuns = order.map(() => []);
+    for (let r = 0; r < n; r++) { let c = 0; while (c < n) { if (idx.has(r * 100 + c)) { const s = c; const run = []; while (c < n && idx.has(r * 100 + c)) { run.push(idx.get(r * 100 + c)); c++; } if (c - s >= 2) runs.push(run); } else c++; } }
+    for (let c = 0; c < n; c++) { let r = 0; while (r < n) { if (idx.has(r * 100 + c)) { const s = r; const run = []; while (r < n && idx.has(r * 100 + c)) { run.push(idx.get(r * 100 + c)); r++; } if (r - s >= 2) runs.push(run); } else r++; } }
+    runs.forEach((run, ri) => run.forEach((ci) => cellRuns[ci].push(ri)));
+    return { order, idx, runs, cellRuns };
+  };
+
+  // Every legal position of one shard, as a BigInt-free bitmask pair.
+  const placementsOf = (shard, idx, n, ncells) => {
+    const out = [];
+    for (let br = 0; br < n; br++) for (let bc = 0; bc < n; bc++) {
+      const lo = []; let okp = true;
+      for (const [dr, dc, ch] of shard.offs) {
+        const k = (br + dr) * 100 + (bc + dc);
+        if (!idx.has(k)) { okp = false; break; }
+        lo.push([idx.get(k), ch]);
       }
-      const [tr, tc] = tgt;
-      for (let i = 0; i < shards.length; i++) {
-        if (used[i]) continue;
-        for (const [dr, dc] of shards[i].offs) {
-          const otr = tr - dr, otc = tc - dc; const placed = []; let okp = true;
-          for (const [odr, odc, och] of shards[i].offs) {
-            const rr = otr + odr, cc = otc + odc;
-            if (!isFill(rr, cc) || cover.has(key(rr, cc))) { okp = false; break; }
-            placed.push([rr, cc, och]);
+      if (okp) out.push(lo);
+    }
+    return out;
+  };
+
+  // Proof 1: unique word-valid reassembly, dictionary-pruned, node capped.
+  const proveUnique = (shards, fillCells, n, cap = 2) => {
+    const { order, idx, runs, cellRuns } = geometry(fillCells, n);
+    const ncells = order.length;
+    const byCell = shards.map(() => Array.from({ length: ncells }, () => []));
+    shards.forEach((sh, si) => {
+      for (const pl of placementsOf(sh, idx, n, ncells)) {
+        for (const [ci] of pl) byCell[si][ci].push(pl);
+      }
+    });
+    const runLen = runs.map((r) => r.length);
+    const filled = new Array(runs.length).fill(0);
+    const letters = new Array(ncells).fill(null);
+    const covered = new Array(ncells).fill(false);
+    const used = new Array(shards.length).fill(false);
+    const found = new Set();
+    let nodes = 0, capped = false, nCovered = 0;
+    const rec = () => {
+      if (found.size >= cap || capped) return;
+      if (++nodes > NODECAP) { capped = true; return; }
+      if (nCovered === ncells) { found.add(letters.join('')); return; }
+      let tgt = -1; for (let i = 0; i < ncells; i++) if (!covered[i]) { tgt = i; break; }
+      for (let si = 0; si < shards.length; si++) {
+        if (used[si]) continue;
+        for (const pl of byCell[si][tgt]) {
+          let clash = false;
+          for (const [ci] of pl) if (covered[ci]) { clash = true; break; }
+          if (clash) continue;
+          for (const [ci, ch] of pl) { covered[ci] = true; letters[ci] = ch; }
+          nCovered += pl.length;
+          let bad = false; const touched = [];
+          for (const [ci] of pl) {
+            for (const ri of cellRuns[ci]) {
+              filled[ri]++; touched.push(ri);
+              if (filled[ri] === runLen[ri]) {
+                let w = ''; for (const x of runs[ri]) w += letters[x];
+                if (!dict.has(w.toLowerCase())) bad = true;
+              }
+            }
+            if (bad) break;
           }
-          if (!okp) continue;
-          for (const [rr, cc, och] of placed) cover.set(key(rr, cc), [i, och, shards[i].sig]);
-          used[i] = true; rec(); used[i] = false;
-          for (const [rr, cc] of placed) cover.delete(key(rr, cc));
-          if (nodes > nodecap) return;
+          if (!bad) { used[si] = true; rec(); used[si] = false; }
+          for (const ri of touched) filled[ri]--;
+          for (const [ci] of pl) { covered[ci] = false; letters[ci] = null; }
+          nCovered -= pl.length;
+          if (found.size >= cap || capped) return;
         }
       }
     };
     rec();
-    return { valid, shape, nodes };
+    return { found, nodes, exhausted: !capped };
   };
+
+  // Proof 2: how many ways the SHAPES alone tile the outline, stopping at `floor`.
+  const countTilings = (shards, fillCells, n, floor) => {
+    const { order, idx } = geometry(fillCells, n);
+    const ncells = order.length;
+    const byCell = shards.map(() => Array.from({ length: ncells }, () => []));
+    shards.forEach((sh, si) => {
+      for (const pl of placementsOf(sh, idx, n, ncells)) {
+        for (const [ci] of pl) byCell[si][ci].push(pl.map(([c]) => c));
+      }
+    });
+    const covered = new Array(ncells).fill(false);
+    const owner = new Array(ncells).fill(-1);
+    const used = new Array(shards.length).fill(false);
+    const seen = new Set();
+    let nodes = 0, capped = false, nCovered = 0;
+    const rec = () => {
+      if (seen.size >= floor || capped) return;
+      if (++nodes > NODECAP) { capped = true; return; }
+      if (nCovered === ncells) { seen.add(owner.map((o) => shards[o].sig).join('/')); return; }
+      let tgt = -1; for (let i = 0; i < ncells; i++) if (!covered[i]) { tgt = i; break; }
+      for (let si = 0; si < shards.length; si++) {
+        if (used[si]) continue;
+        for (const pl of byCell[si][tgt]) {
+          let clash = false;
+          for (const ci of pl) if (covered[ci]) { clash = true; break; }
+          if (clash) continue;
+          for (const ci of pl) { covered[ci] = true; owner[ci] = si; }
+          nCovered += pl.length; used[si] = true;
+          rec();
+          used[si] = false; nCovered -= pl.length;
+          for (const ci of pl) covered[ci] = false;
+          if (seen.size >= floor || capped) return;
+        }
+      }
+    };
+    rec();
+    return { count: seen.size, exhausted: !capped };
+  };
+
   for (const p of PUZZLES) {
     const errs = []; const n = p.rows;
     if (p.rows !== p.cols) errs.push('non-square grid');
@@ -615,15 +701,25 @@ if (RUN('shards')) {
     const fillCells = [];
     for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (!blockset.has(r * 100 + c)) fillCells.push([r, c]);
     if (fillCells.length !== cov.size) errs.push(`shards cover ${cov.size} of ${fillCells.length} fillable cells`);
-    if (p.shards.length < 5 || p.shards.length > 10) errs.push(`${p.shards.length} shards (want 5-10)`);
+    if (p.shards.length < 5 || p.shards.length > 18) errs.push(`${p.shards.length} shards (want 5-18)`);
     if (!errs.length) {
-      const { valid, shape, nodes } = enumerate(shards, fillCells, n);
-      const G = Array.from({ length: n }, () => Array(n).fill('#'));
-      for (const [k, v] of intended) G[Math.floor(k / 100)][k % 100] = v;
-      const intendedStr = G.map((r) => r.join('')).join('/');
-      if (valid.size !== 1) errs.push(`NOT UNIQUE: ${valid.size} valid reassemblies`);
-      else if (!valid.has(intendedStr)) errs.push('unique reassembly does not match the intended solution');
-      else { ok(p.quizId, `${p.shards.length} shards, unique reassembly${shape.size >= 2 ? ` (trap: ${shape.size} geometric tilings)` : ''}`); continue; }
+      const { found, exhausted } = proveUnique(shards, fillCells, n);
+      const order = [...fillCells].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      const intendedStr = order.map(([r, c]) => intended.get(r * 100 + c).toUpperCase()).join('');
+      if (!exhausted) errs.push('uniqueness search hit the node cap, so uniqueness is NOT proven');
+      else if (found.size !== 1) errs.push(`NOT UNIQUE: ${found.size} valid reassemblies`);
+      else if (!found.has(intendedStr)) errs.push('unique reassembly does not match the intended solution');
+      else {
+        const floor = p.live >= AMBIG_FROM ? (AMBIG_FLOOR[n] || 0) : 0;
+        let note = '';
+        if (floor) {
+          const { count, exhausted: ex2 } = countTilings(shards, fillCells, n, floor);
+          if (count < floor && ex2) errs.push(`too easy: shapes tile only ${count} way(s), floor is ${floor} (shape-fitting would solve it without reading a letter)`);
+          else if (count < floor) errs.push(`ambiguity search hit the node cap at ${count} of ${floor}`);
+          else note = `, ${count}+ shape tilings`;
+        }
+        if (!errs.length) { ok(p.quizId, `${n}x${n}, ${p.shards.length} shards, unique reassembly${note}`); continue; }
+      }
     }
     fail(p.quizId, errs.join('; '));
   }

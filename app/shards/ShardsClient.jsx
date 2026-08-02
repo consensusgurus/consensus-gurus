@@ -13,10 +13,12 @@
 // freely; there is an Undo and a free Clear. The board auto-completes the
 // moment every shard is placed and every run is a valid word - no submit.
 //
-// Scoring (answer terms, like every daily): start at 100 (150 Sunday). Moving a
-// placed shard costs 5 (a "misplacement"). Three hints, in order, cost 10/15/20
-// (15/20/30 Sunday). Floor of 10 (15 Sunday). The dictionary is the shared
-// public/tuck-dict.txt, fetched once as a static asset.
+// Difficulty ladder (from 2026-08-02): Mon-Thu 6x6, Fri-Sat 7x7, Sunday 8x8.
+// Scoring (answer terms, like every daily) scales with the board and comes from
+// the puzzle entry, not from constants here: start 100/150/200, floor 10/15/20,
+// hints 10-15-20 / 15-20-30 / 20-30-40 for 6x6 / 7x7 / 8x8. Moving a placed shard
+// costs 5 (a "misplacement"). The dictionary is the shared public/tuck-dict.txt,
+// fetched once as a static asset.
 //
 // Same daily plumbing as Tuck/Emcee: banked puzzles gated by Eastern date on the
 // server (app/shards/page.js), per-puzzle localStorage saves, /shards?p=N archive
@@ -164,6 +166,14 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const HINTS = PUZZLE.hints || [10, 15, 20];
   const SHARDS = useMemo(() => deriveShards(PUZZLE), [PUZZLE]);
   const blockSet = useMemo(() => new Set((PUZZLE.blocks || []).map(([r, c]) => r * 100 + c)), [PUZZLE]);
+  // The one correct letter per cell, keyed r*100+c. Hint 1 checks placements
+  // against this rather than against each piece's own anchor, so interchangeable
+  // twin pieces are never wrongly flagged (see useHint).
+  const SOLUTION = useMemo(() => {
+    const m = {};
+    for (const sh of PUZZLE.shards || []) for (const [r, c, ch] of sh.cells) m[r * 100 + c] = ch;
+    return m;
+  }, [PUZZLE]);
   const fillCount = N * N - blockSet.size;
   // Tray order: a fixed, per-puzzle scramble so pieces aren't in solved order.
   const trayOrder = useMemo(() => {
@@ -609,7 +619,16 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     if (!playing) return;
     if (which !== g.hintsUsed + 1) return; // enforce order
     if (which === 1) {
-      const wrong = SHARDS.find((s) => { const p = g.placements[s.id]; return p && (p.r !== s.minR || p.c !== s.minC); });
+      // Judge a placement by the LETTERS it lays down, not by whether the piece
+      // sits on its own solved anchor. Cuts now deliberately repeat shard shapes,
+      // and two pieces that share a shape AND its letters are interchangeable: a
+      // swapped pair still spells the one correct grid, so flagging one of them
+      // as "wrong" would be a lie the player cannot act on.
+      const wrong = SHARDS.find((s) => {
+        const p = g.placements[s.id];
+        if (!p) return false;
+        return s.offs.some((o) => SOLUTION[(p.r + o.dr) * 100 + (p.c + o.dc)] !== o.ch);
+      });
       setG((cur) => ({ ...cur, hintsUsed: 1 }));
       if (wrong) { setWrongHint(wrong.id); setArmed(null); say('The flagged shard is not in its true home.'); }
       else say('Every placed shard is correct so far.');
@@ -621,6 +640,15 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       setG((cur) => {
         pushHistory(cur);
         const pl = cur.placements.slice();
+        // The hinted home may already be occupied by a wrongly-placed shard.
+        // Return those to the tray first: this lock bypasses canPlaceWith, so
+        // without the eviction two shards would end up stacked on the same cells.
+        const home = new Set(pick.offs.map((o) => (pick.minR + o.dr) * 100 + (pick.minC + o.dc)));
+        for (const s of SHARDS) {
+          const p = pl[s.id];
+          if (!p || s.id === pick.id) continue;
+          if (s.offs.some((o) => home.has((p.r + o.dr) * 100 + (p.c + o.dc)))) pl[s.id] = null;
+        }
         pl[pick.id] = { r: pick.minR, c: pick.minC };
         return { ...cur, placements: pl, hintsUsed: 2, locked: [...cur.locked, pick.id] };
       });
@@ -724,8 +752,13 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     </div>
   );
 
-  const CELL = N === 5 ? 62 : N === 6 ? 54 : 46;
-  const TRAYCELL = N === 5 ? 30 : N === 6 ? 28 : 26;
+  // Cell size shrinks as the grid grows so the board still clears a 360px phone
+  // without horizontal scroll. Budget: 360 viewport - 20 page padding = 340 usable,
+  // against N*CELL + 10 board padding + 4 border. 8x8 at 40px = 334 (41px overflows
+  // by 2). 7x7 at 46px = 336. The tray also needs more room at 8x8, 13-15 pieces.
+  const CELL = N === 5 ? 62 : N === 6 ? 54 : N === 7 ? 46 : 40;
+  const TRAYCELL = N === 5 ? 30 : N === 6 ? 28 : N === 7 ? 26 : 24;
+  const TRAYMAX = N >= 8 ? 640 : N === 7 ? 580 : 520;
 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
@@ -751,7 +784,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-cell.hoverbad{background:#f6dcda;}
           .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:${COLORS.accent};}
           .sh-tick{position:absolute;bottom:1px;right:2px;color:${COLORS.green};line-height:1;}
-          .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:520px;}
+          .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:${TRAYMAX}px;}
           .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:#fff;border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
           .sh-piece:active{cursor:grabbing;}
           .sh-piece.dragging{opacity:0.3;}
@@ -780,7 +813,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             blockGap={5}
             helpTop={10}
             onHelp={() => setShowHelp(true)}
-            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 7x7</span>}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {N}x{N}</span>}
             blocks={'SHARDS'.split('').map((ch, i) => (
                 <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 21, background: i % 2 === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.55)', transform: `rotate(${(i % 2 ? 1.5 : -1.5)}deg)` }}>{ch}</div>
               ))}
