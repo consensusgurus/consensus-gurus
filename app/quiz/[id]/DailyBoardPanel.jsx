@@ -71,6 +71,12 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
 
   const selfName = GAME_NAMES[self] || self;
   const accent = ACCENTS[self] || BLUE;
+  // The header for this game's `guessesUsed` column. Every game posts that one
+  // shared field but means a different thing by it (Parker = moves, Garble =
+  // misses, Axiom = tests), so the word comes from the registry. A null/absent
+  // label means the game always posts 0 there, and the column is dropped rather
+  // than filled with zeros (owner, 2026-08-01). Keep in sync with DailyEndCard.
+  const missLabel = (DAILY_GAME_MAP[self] || {}).miss || null;
 
   useEffect(() => { try { setIdent(JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null')); } catch (e) {} }, []);
 
@@ -317,8 +323,12 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
            sideways inside its own box instead (owner, 2026-08-01). The header
            row and the score rows share one scroller so they never desync. */
         .dbp-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px;scrollbar-width:thin;}
-        .dbp-scroll-in{min-width:392px;}
-        .dbp-g{display:grid;grid-template-columns:30px minmax(74px,1fr) 52px 54px 46px 46px;gap:8px;align-items:center;}
+        .dbp-scroll-in{min-width:406px;}
+        /* .nomiss = a game that posts no wrong-answer figure (Suds, Bracket,
+           Feud, Outrank, Outwit): five columns, no empty zero column. */
+        .dbp-scroll-in.nomiss{min-width:348px;}
+        .dbp-g{display:grid;grid-template-columns:30px minmax(74px,1fr) 52px 54px 58px 46px;gap:8px;align-items:center;}
+        .nomiss .dbp-g{grid-template-columns:30px minmax(74px,1fr) 52px 54px 46px;}
         .dbp-gh{padding:0 8px 7px;}
         .dbp-gh .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
         .dbp-grow{padding:7px 8px;border-radius:8px;}
@@ -394,13 +404,13 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
               {todayRows.length ? (
                 <>
                   <div className="dbp-scroll">
-                    <div className="dbp-scroll-in">
+                    <div className={`dbp-scroll-in${missLabel ? '' : ' nomiss'}`}>
                       <div className="dbp-g dbp-gh">
                         <span className="h">#</span>
                         <span className="h">Player</span>
                         <span className="h" style={{ textAlign: 'right' }}>Score</span>
                         <span className="h" style={{ textAlign: 'right' }}>Time</span>
-                        <span className="h" style={{ textAlign: 'right' }}>Miss</span>
+                        {missLabel ? <span className="h" style={{ textAlign: 'right' }}>{missLabel}</span> : null}
                         <span className="h" style={{ textAlign: 'right' }}>Pts</span>
                       </div>
                       {todayRows.slice(0, 10).map((r, i) => {
@@ -411,14 +421,14 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
                             <span className="nm">{r.username || '—'}{mine ? <span className="you"> (you)</span> : null}</span>
                             <span className="num">{r.score}/{r.total}</span>
                             <span className="num">{fmtTime(r.timeElapsed)}</span>
-                            <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span>
+                            {missLabel ? <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span> : null}
                             <span className="pts">{fmtNum(r.points)}</span>
                           </div>
                         );
                       })}
                     </div>
                   </div>
-                  <div className="dbp-swipe">Swipe for time, misses and points →</div>
+                  <div className="dbp-swipe">{missLabel ? <>Swipe for time, {missLabel.toLowerCase()} and points →</> : <>Swipe for time and points →</>}</div>
                 </>
               ) : <div className="dbp-lbempty">No board yet. Be the first to post a score.</div>}
             </>

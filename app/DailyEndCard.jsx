@@ -30,7 +30,10 @@
 //      them, and score-and-time is the answer (owner, 2026-08-01). It matches
 //      the on-page DailyBoardPanel's today board column for column, and where
 //      the six columns do not fit it scrolls sideways inside its own box
-//      rather than dropping the middle columns.
+//      rather than dropping the middle columns. The wrong-answer column is
+//      headed by the GAME'S OWN word (`miss` in lib/daily-games.js: Parker
+//      counts moves, Garble misses, Axiom tests), and is dropped entirely on
+//      the games that always post 0 there (owner, 2026-08-01).
 //   3. guest-only claim banner (unregistered players only) — sits directly
 //      under the rank tiles, loudly (pulsing ring + sweeping sheen + blinking
 //      CTA) telling a guest their points and ranks are unclaimed. Moved above
@@ -76,6 +79,7 @@ import {
 import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
+import { DAILY_GAME_MAP } from '@/lib/daily-games';
 
 const RUST = '#c0392b';
 
@@ -490,6 +494,10 @@ export default function DailyEndCard({
 
   const meta = GAME_META[self] || GAME_META.crux;
   const selfGame = DAILY_GAMES.find((g) => g.key === self) || null;
+  // Header for this game's `guessesUsed` column; null = it always posts 0, so
+  // the column is dropped. Read from the registry so the card and the on-page
+  // DailyBoardPanel can never disagree about the word.
+  const missLabel = (DAILY_GAME_MAP[self] || {}).miss || null;
   const selfCat = selfGame ? selfGame.cat : 'word';
   const selfName = selfGame ? selfGame.name : (self || 'today’s game');
   const selfCatMeta = CAT_META[selfCat] || CAT_META.word;
@@ -1177,8 +1185,12 @@ export default function DailyEndCard({
            (display:flex), which won on source order and flattened this header
            row on the first deploy. */
         .dec-lbscroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;margin:0 -3px;padding:0 3px;scrollbar-width:thin;}
-        .dec-lbscroll-in{min-width:388px;}
-        .dec-lbg{display:grid;grid-template-columns:28px minmax(72px,1fr) 52px 52px 44px 46px;gap:8px;align-items:center;}
+        .dec-lbscroll-in{min-width:402px;}
+        /* .nomiss = a game that posts no wrong-answer figure (Suds, Bracket,
+           Feud, Outrank, Outwit): five columns, no empty zero column. */
+        .dec-lbscroll-in.nomiss{min-width:344px;}
+        .dec-lbg{display:grid;grid-template-columns:28px minmax(72px,1fr) 52px 52px 58px 46px;gap:8px;align-items:center;}
+        .nomiss .dec-lbg{grid-template-columns:28px minmax(72px,1fr) 52px 52px 46px;}
         .dec-lbghead{padding:0 7px 6px;}
         .dec-lbghead .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
         .dec-lbgrow{padding:5px 7px;border-radius:7px;}
@@ -1517,13 +1529,13 @@ export default function DailyEndCard({
             ) : openTile === 'today' ? (
               <>
                 <div className="dec-lbscroll">
-                  <div className="dec-lbscroll-in">
+                  <div className={`dec-lbscroll-in${missLabel ? '' : ' nomiss'}`}>
                     <div className="dec-lbg dec-lbghead">
                       <span className="h">#</span>
                       <span className="h">Player</span>
                       <span className="h" style={{ textAlign: 'right' }}>Score</span>
                       <span className="h" style={{ textAlign: 'right' }}>Time</span>
-                      <span className="h" style={{ textAlign: 'right' }}>Miss</span>
+                      {missLabel ? <span className="h" style={{ textAlign: 'right' }}>{missLabel}</span> : null}
                       <span className="h" style={{ textAlign: 'right' }}>Pts</span>
                     </div>
                     {rows.map((r, idx) => (
@@ -1532,13 +1544,13 @@ export default function DailyEndCard({
                         <span className="nm">{r.name || '—'}</span>
                         <span className="num">{r.score == null ? '—' : <>{r.score}/{r.total}</>}</span>
                         <span className="num">{fmtTime(r.timeElapsed)}</span>
-                        <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span>
+                        {missLabel ? <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span> : null}
                         <span className="pts">{fmtNum(r.points)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="dec-lbswipe">Swipe for time, misses and points →</div>
+                <div className="dec-lbswipe">{missLabel ? <>Swipe for time, {missLabel.toLowerCase()} and points →</> : <>Swipe for time and points →</>}</div>
               </>
             ) : rows.map((r, idx) => (
               <div className={`dec-lbrow${r.me ? ' me' : ''}`} key={idx}>
