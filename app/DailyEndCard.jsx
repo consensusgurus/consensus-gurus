@@ -209,7 +209,12 @@ const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 // The IQ hero's brain art, shared with the downloadable day card
 // (/api/quiz/day-card) so the two read as the same object. 640x576 source.
-const BRAIN_EMPTY = '/day-card/brain-empty.png';
+// The unfilled state of the meter. Deliberately an OUTLINED brain (stroke +
+// interior detail lines, same silhouette as the filled art so the meter lines
+// up), not the solid silhouette faded down: at 20% opacity that art read as an
+// unrecognizable blob on the navy panel (owner 2026-08-01). brain-empty.png is
+// still used by the shareable day card.
+const BRAIN_EMPTY = '/day-card/brain-outline.png';
 const BRAIN_BLUE = '/day-card/brain-blue.png';
 const BRAIN_GREEN = '/day-card/brain-green.png';
 
@@ -1085,7 +1090,7 @@ export default function DailyEndCard({
            panel the empty state is inverted to a dim pale outline and the
            filled art is brightened, so unfilled-vs-filled still reads as a
            meter (owner dark hero, 2026-08-01). */
-        .dec-brain-base{opacity:.20;filter:grayscale(1) brightness(3.6);}
+        .dec-brain-base{opacity:1;}
         .dec-brain-fill img{filter:brightness(1.75) saturate(1.25);}
         .dec-brain-fill{position:absolute;left:0;bottom:0;width:104px;height:0;overflow:hidden;display:flex;align-items:flex-end;transition:height .9s cubic-bezier(.22,1,.36,1);}
         .dec-iqhero-lead{display:flex;align-items:center;gap:16px;flex:0 0 auto;min-width:0;}
@@ -1384,7 +1389,7 @@ export default function DailyEndCard({
         <button
           type="button"
           className="dec-iqhero-hit"
-          aria-label="Expand your IQ Points ranking"
+          aria-label="Expand your IQ points ranking"
           aria-expanded={openTile === 'iq'}
           onClick={() => setOpenTile((o) => (o === 'iq' ? null : 'iq'))}
         />
@@ -1398,7 +1403,7 @@ export default function DailyEndCard({
             </span>
           </span>
           <span className="dec-iqhero-txt">
-            <span className="dec-iqhero-lbl">IQ Points earned</span>
+            <span className="dec-iqhero-lbl">IQ points earned</span>
             {iqGained != null ? (
               <span className="dec-iqhero-gain">+{(iqCount == null ? iqGained : iqCount).toLocaleString()}</span>
             ) : (
@@ -1431,7 +1436,7 @@ export default function DailyEndCard({
           {showIqToday ? <span><b>+{iq.todayGained.toLocaleString()}</b> today</span> : null}
           {iq && typeof iq.xp === 'number' ? <span><b>{iq.xp.toLocaleString()}</b> total</span> : null}
           {iq && iq.rank ? <span>IQ rank <b>#{iq.rank.toLocaleString()}</b> of {(iq.total || 0).toLocaleString()}</span> : null}
-          {iq && iq.firstPlay ? <span>Your first IQ Points are banking</span> : null}
+          {iq && iq.firstPlay ? <span>Your first IQ points are banking</span> : null}
         </span>
         <span className="dec-iqhero-mx">
           <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
@@ -1450,7 +1455,7 @@ export default function DailyEndCard({
       {calOpen && drops && drops.length ? calendarEl : null}
       {openTile ? (() => {
         const rows = tileBoard(openTile);
-        const ti = openTile === 'iq' ? 'Global IQ Points ranking'
+        const ti = openTile === 'iq' ? 'Global IQ points ranking'
           : openTile === 'today' ? `${selfName} · today's puzzle`
           : `${selfName} · all time`;
         return (
@@ -1486,8 +1491,8 @@ export default function DailyEndCard({
           <span className="tx">
             <span className="t">
               {iq && typeof iq.xp === 'number' && iq.xp > 0
-                ? <>Your ranking and {iq.xp.toLocaleString()} IQ Points are unclaimed</>
-                : <>Your ranking and IQ Points are unclaimed</>}
+                ? <>Your ranking and {iq.xp.toLocaleString()} IQ points are unclaimed</>
+                : <>Your ranking and IQ points are unclaimed</>}
             </span>
             <span className="s">Pick a username to keep them and hold your place on these boards.</span>
           </span>
@@ -1504,7 +1509,7 @@ export default function DailyEndCard({
       <button type="button" className="dec-sharebar" onClick={onShare}>
         <span className="ic"><Share2 size={17} strokeWidth={2.3} /></span>
         <span className="tx">
-          <span className="t">{/copied/i.test(shareLabel || '') ? shareLabel : 'Share Result or Challenge a Friend for Site Credit'}</span>
+          <span className="t">{/copied/i.test(shareLabel || '') ? shareLabel : 'Share result or challenge a friend for site credit'}</span>
           <span className="s">Send your link. You get the credit when they play.</span>
         </span>
         <ChevronRight size={17} strokeWidth={2.4} className="cv" />
