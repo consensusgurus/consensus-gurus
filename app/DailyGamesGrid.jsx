@@ -294,11 +294,6 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           </div>
         </div>
       ))}
-      <div style={{ textAlign: 'center', marginTop: 4 }}>
-        <a href="/daily" style={{ fontFamily: "'DM Mono', ui-monospace, monospace", fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, color: '#5b8bff', textDecoration: 'none', borderBottom: '1px solid rgba(91,139,255,0.5)', paddingBottom: 1 }}>
-          All daily puzzles &amp; archive →
-        </a>
-      </div>
       {divider ? <div style={{ borderTop: '1px solid rgba(28,30,36,0.14)', marginTop: 22 }} /> : null}
     </div>
   );

@@ -31,7 +31,7 @@
 // /api/quiz/daily-game, cached per game by the parent.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2, Users } from 'lucide-react';
+import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2, Users, Star } from 'lucide-react';
 import { notifyShareCredit } from './ShareCreditPop';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 
@@ -66,7 +66,7 @@ function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.is
 export default function DailyTilePanel({
   game, accent, isDone = false, inProgress = false, streak = 0,
   todayRow = null, todayField = null, standings = [], meKey = null,
-  data = null, onClose,
+  data = null, canPin = false, pinned = false, onTogglePin = null, onClose,
 }) {
   const rootRef = useRef(null);
   const todayISO = etTodayISO();
@@ -215,6 +215,23 @@ export default function DailyTilePanel({
                 notifyShareCredit('', base + game.href);
               }}
             ><Share2 size={11} strokeWidth={2.6} />Share for credit</button>
+            {/* Pin this game to the top of the home board (owner, 2026-08-02).
+                This is the ONLY pin control for a FINISHED game: that tile is
+                itself a button, so it can only carry a static star, and the
+                panel it opens is where the toggle lives. Registered viewers
+                only, since the set is stored on the account. */}
+            {canPin && onTogglePin ? (
+              <button
+                type="button"
+                className={'dtp-pinchip' + (pinned ? ' on' : '')}
+                onClick={onTogglePin}
+                aria-pressed={pinned}
+                title={pinned ? 'Remove from your games' : 'Show this game first on your board'}
+              >
+                <Star size={11} strokeWidth={2.6} fill={pinned ? '#e8b43a' : 'none'} />
+                {pinned ? 'One of your games' : 'Pin to your games'}
+              </button>
+            ) : null}
           </div>
           <p className="dtp-how">{how}</p>
         </div>
@@ -461,6 +478,14 @@ export default function DailyTilePanel({
         .dtp-sharechip svg{transition:color .12s;}
         .dtp-sharechip:hover{background:#e8b43a;color:#1c1e24;}
         .dtp-sharechip:hover svg{color:#1c1e24;}
+        /* Pin chip. The panel is WHITE (.dtp above), so this takes the same ink
+           treatment as the share chip beside it rather than the navy-panel
+           palette the board's tiles use. Unpinned it is a grey outline, pinned
+           it fills gold, which matches the star on the tiles. This is the only
+           pin control a FINISHED game has, so it has to be plainly visible. */
+        .dtp-pinchip{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #c3ccda;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#4d5872;font-family:inherit;cursor:pointer;transition:background .12s,color .12s,border-color .12s;}
+        .dtp-pinchip:hover{background:rgba(232,180,58,0.16);border-color:rgba(232,180,58,0.55);color:#8a5300;}
+        .dtp-pinchip.on{background:#e8b43a;border-color:#e8b43a;color:#1c1e24;}
         .dtp-how{font-size:12.5px;line-height:1.4;color:#46506a;font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
         .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:15px;

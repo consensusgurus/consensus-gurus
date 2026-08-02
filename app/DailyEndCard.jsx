@@ -1358,8 +1358,6 @@ export default function DailyEndCard({
         .dec-btn:hover{background:#f7f8fa;}
         .dec-btn.ink{background:${INK};border-color:${INK};color:#fff;font-weight:800;}
         .dec-btn.ink:hover{filter:brightness(1.12);background:${INK};}
-        .dec-land-btn{display:block;width:100%;box-sizing:border-box;text-align:center;margin-top:12px;padding:11px 14px;border:1px solid ${BORD};border-radius:10px;background:#fff;font-family:${MONO};font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${NAVY};text-decoration:none;}
-        .dec-land-btn:hover{background:#f7f8fa;}
 
         @media(max-width:640px){
           .dec-card{padding:18px 16px 14px;}
@@ -1837,8 +1835,6 @@ export default function DailyEndCard({
           </a>
         ) : null}
       </div>
-
-      <a className="dec-land-btn" href="/daily">Daily puzzle landing page &rarr;</a>
 
       {self ? (
         <ReportIssue

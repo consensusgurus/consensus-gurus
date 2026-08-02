@@ -41,8 +41,9 @@
 // to the board everywhere it's used.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, Clock, ArrowRight, Users, X, BarChart3 } from 'lucide-react';
+import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, ArrowRight, Users, X, BarChart3, Star } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
+import useMyGames, { sortByMyGames } from './useMyGames';
 import DailyTilePanel from './DailyTilePanel';
 
 const GAMES = [
@@ -224,12 +225,28 @@ export default function DailyStrip({ board = null }) {
   // morning -- when every count is still 0 -- falls back to yesterday rather
   // than to noise.
   const dailyOrder = useDailyOrder();
+  // The viewer's OWN order, layered on top of the global one (owner, 2026-08-02).
+  // favorites are games they pinned; mostPlayed is derived from their own
+  // results so a regular gets their board without pinning anything. Both are
+  // empty for a guest, which makes sortByMyGames a no-op and leaves the global
+  // order untouched. See app/useMyGames.js.
+  const { favorites, orderFavorites, mostPlayed, canPin, max: favMax, toggleFavorite } = useMyGames();
+  // The star is offered only when it can actually WRITE: registered AND the
+  // quiz_users.favorites column exists (canPin is false until migration 45 is
+  // applied). Otherwise the board still personalizes off mostPlayed, it just
+  // shows no control.
+  const myGamesOn = canPin;
+  const favSet = new Set(favorites);
+  const favFull = favorites.length >= (favMax || 12);
   const games = (() => {
     const base = sortByDailyOrder(GAMES, dailyOrder);
-    if (!hasBoard) return base;
-    const rank = new Map(base.map((g, i) => [g.key, i]));
-    return [...base].sort((a, b) => (playsOf(b.key) || 0) - (playsOf(a.key) || 0)
-      || rank.get(a.key) - rank.get(b.key));
+    let out = base;
+    if (hasBoard) {
+      const rank = new Map(base.map((g, i) => [g.key, i]));
+      out = [...base].sort((a, b) => (playsOf(b.key) || 0) - (playsOf(a.key) || 0)
+        || rank.get(a.key) - rank.get(b.key));
+    }
+    return sortByMyGames(out, orderFavorites, mostPlayed);
   })();
 
   // first paint: same-device breadcrumbs
@@ -512,6 +529,9 @@ export default function DailyStrip({ board = null }) {
         standings={bg && Array.isArray(bg.board) ? bg.board : []}
         meKey={meKey}
         data={gameData[g.key] || null}
+        canPin={myGamesOn}
+        pinned={favSet.has(g.key)}
+        onTogglePin={() => toggleFavorite(g.key)}
         onClose={() => setSel(null)}
       />
     );
@@ -532,10 +552,19 @@ export default function DailyStrip({ board = null }) {
     const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
     const row = isDone ? myRow(g.key) : null;
     const sl = row ? todayScoreLine(row) : null;
-    const cls = `dh-tile${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}${dim ? ' dim' : ''}`;
+    const fav = favSet.has(g.key);
+    const cls = `dh-tile${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}${dim ? ' dim' : ''}${myGamesOn || fav ? ' pinnable' : ''}`;
     const face = (
       <>
         <span className="dh-acc" style={{ background: catCol(g.cat) }} aria-hidden="true" />
+        {/* A finished tile is itself a <button> (it opens the panel), so its
+            star is a static indicator, never a nested button. The pin control
+            for a finished game lives in that panel. */}
+        {isDone && fav ? (
+          <span className="dh-tfav ind" aria-hidden="true">
+            <Star size={10} strokeWidth={0} fill="currentColor" />
+          </span>
+        ) : null}
         <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (ip ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
         {pl != null ? (
           <span className="dh-tcorner">
@@ -579,7 +608,7 @@ export default function DailyStrip({ board = null }) {
           className={cls}
           onClick={() => pick(g.key)}
           aria-expanded={sel === g.key}
-          aria-label={`${g.name} — done today${sl ? `, ${sl}` : ''} — open stats and archive`}
+          aria-label={`${g.name} — done today${sl ? `, ${sl}` : ''}${fav ? ' — one of your games' : ''} — open stats and archive`}
         >
           {face}
         </button>
@@ -603,6 +632,28 @@ export default function DailyStrip({ board = null }) {
         >
           <BarChart3 size={11} strokeWidth={2.6} aria-hidden="true" />
         </button>
+        {/* Pin control. Registered viewers only: the set is stored on the
+            account so it follows them across devices, and a guest has no row
+            to store it on (owner ruling, 2026-08-02). It sits ABOVE the
+            stretched .dh-tfill link (z-index 3, same as the stats glyph) and
+            stops the click, so pinning never navigates into the game. */}
+        {myGamesOn ? (
+          <button
+            type="button"
+            className={`dh-tfav${fav ? ' on' : ''}`}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(g.key); }}
+            disabled={!fav && favFull}
+            aria-pressed={fav}
+            aria-label={fav ? `Unpin ${g.name} from your games` : `Pin ${g.name} to the top of your board`}
+            title={fav
+              ? 'One of your games. Unpin it here.'
+              : (favFull
+                ? `You have ${favMax} games pinned. Unpin one first.`
+                : 'Pin to your games. Your board reorders next visit.')}
+          >
+            <Star size={11} strokeWidth={2.4} fill={fav ? '#e8b43a' : 'none'} aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
     );
   });
@@ -655,8 +706,6 @@ export default function DailyStrip({ board = null }) {
            makes the very narrow cutoffs unreachable. IQ leads and never drops. */
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
-        .dh-ghostD{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #2a4166;background:transparent;color:#46506a;font-weight:700;font-size:12px;border-radius:9px;padding:9px 14px;text-decoration:none;cursor:pointer;transition:background .12s;}
-        .dh-ghostD:hover{background:#eef0f4;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
@@ -722,6 +771,26 @@ export default function DailyStrip({ board = null }) {
            name now sits dead centre and simply ellipsizes 16px earlier. */
         .dh-tstats{position:absolute;right:3px;bottom:4px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #d5dce6;border-radius:5px;background:#ffffff;color:#6b7686;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,border-color .12s;}
         .dh-tstats:hover{color:#0e1d40;background:#eef1f6;border-color:#0e1d40;}
+        /* Pin control / pinned indicator. Sits just LEFT of .dh-tdot (the
+           done/in-progress status dot at right:9px) rather than in the corner
+           itself, so the two never overlap on an in-progress tile. Unpinned it
+           is a quiet outline that fills gold on hover, so it reads as an
+           affordance without competing with the game art. .ind is the static
+           span a finished tile shows, which has no hit area of its own. */
+        .dh-tfav{position:absolute;top:4px;right:19px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:5px;background:transparent;color:#798393;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,transform .12s;}
+        .dh-tfav:hover{color:#a16207;background:#fdf4dc;transform:scale(1.12);}
+        .dh-tfav.on{color:#a16207;}
+        .dh-tfav:disabled{cursor:default;opacity:.35;}
+        .dh-tfav:disabled:hover{color:#798393;background:transparent;transform:none;}
+        .dh-tfav.ind{pointer-events:none;color:#a16207;}
+        .dh-tile.done .dh-tfav.ind{color:#15803d;}
+        .dh-tfav:focus-visible{outline:2px solid #2563eb;outline-offset:1px;}
+        /* The star shares the top edge with the centred game name, which is
+           nowrap and unpadded, so on a six-across tile the longest names
+           (Outrank / Hearsay / Bracket) would run under it. Scoped to
+           .pinnable, i.e. only the viewers who actually see a star, so a
+           signed-out board renders exactly as it did before. */
+        .dh-tile.pinnable .dh-tnm{padding-right:20px;}
         .dh-tile:not(.done) .dh-mlead{padding:0 16px;}
         .dh-acc{position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;opacity:.95;}
         .dh-tile.done .dh-acc{background:#22c55e !important;}
@@ -942,7 +1011,6 @@ export default function DailyStrip({ board = null }) {
                 <div className="dh-bue">Clean sweep</div>
                 <div className="dh-bun">All {GAMES.length} done</div>
               </div>
-              <a href="/daily" className="dh-ghostD"><Clock size={11} strokeWidth={2.4} />Archive</a>
             </>
           )}
         </div>
@@ -978,7 +1046,7 @@ export default function DailyStrip({ board = null }) {
                   <span className="dsd-tt">{fmtPts(board.me.total)}<s>/{maxTotal}</s></span>
                 </div>
               ) : null}
-              <a href="/daily" className="dsd-gt" style={{ marginTop: 11, color: '#8a5300' }}>Full standings &amp; game boards →</a>
+              <a href="/quizzes/hub?tab=daily" className="dsd-gt" style={{ marginTop: 11, color: '#8a5300' }}>Full standings &amp; game boards →</a>
               {uniquePlayers != null ? (
                 <div className="dsd-players" style={{ marginTop: 2 }}><b>{uniquePlayers.toLocaleString()}</b> {uniquePlayers === 1 ? 'player' : 'players'} today <s>· guests included</s></div>
               ) : null}

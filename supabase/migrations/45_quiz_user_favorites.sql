@@ -1,0 +1,24 @@
+-- 45_quiz_user_favorites.sql
+-- Per-player favorite daily games (owner request, 2026-08-02).
+--
+-- WHY: the homepage tile board (app/DailyStrip.jsx) orders all 43 dailies by
+-- GLOBAL popularity (most played today, yesterday's order as the tiebreak). A
+-- regular who plays four of them has to hunt for those four every morning. This
+-- column lets a player pin their own, and the board then sorts favorites first,
+-- then the games that player actually plays most, then the global order for
+-- everything else.
+--
+-- REGISTERED PLAYERS ONLY, by design (owner ruling, 2026-08-02): the set has to
+-- follow the account across devices, and a guest has no account to hang it on.
+-- A guest keeps the global order, unchanged.
+--
+-- Values are daily-game KEYS from lib/daily-games.js (DAILY_KEYS: 'crux',
+-- 'emcee', 'park', ...), never route paths, so a route rename (Park -> Parker)
+-- never orphans a saved favorite. /api/quiz/favorites validates every key
+-- against that roster before writing, and ignores unknown keys on read, so a
+-- retired game's key can sit here harmlessly.
+--
+-- Reads and writes go through the service role only (quiz_users has RLS enabled
+-- with NO policies, per migration 20), so no policy change is needed here.
+
+alter table quiz_users add column if not exists favorites text[] not null default '{}';

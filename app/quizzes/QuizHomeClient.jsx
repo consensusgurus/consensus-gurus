@@ -1060,7 +1060,7 @@ export default function QuizHomeClient() {
         { text: ` · ${(r.correct || 0).toLocaleString()}`, dim: true },
       ] }));
     if (dailyLead && dailyLead.name) {
-      leads.unshift({ type: 'lead', href: '/daily', segs: [
+      leads.unshift({ type: 'lead', href: '/quizzes/hub?tab=daily', segs: [
         { text: dailyLead.name, strong: true },
         { text: ' leads the Daily Board' },
         { text: ` · ${dailyLead.total}/${dailyLead.maxTotal}`, dim: true },
