@@ -25,8 +25,6 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@mindloftdaily',
-    creator: '@mindloftdaily',
     title: `Mind Loft | Elevate Your Thinking`,
     description: `Daily puzzles and quizzes to sharpen your brain. Word, number and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   },
@@ -70,6 +68,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
+        {/* Card attribution. Deliberately NOT in the metadata export: a route that defines
+            its own `twitter` block replaces the parent's entirely, and 52 routes do, so
+            these would disappear nearly everywhere. */}
+        <meta name="twitter:site" content="@mindloftdaily" />
+        <meta name="twitter:creator" content="@mindloftdaily" />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6094189268309966"
