@@ -1043,7 +1043,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--ink);}
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
-        .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 94px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
+        .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
         .sl-head .c{display:flex;align-items:center;justify-content:flex-start;text-align:left;}
@@ -1066,6 +1066,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-cm{display:none;}
         .sl-mpl{display:none;font-style:normal;}
         .sl-mld{display:none;font-style:normal;}
+        .sl-cat{display:flex;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
         .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;color:var(--muted);}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
