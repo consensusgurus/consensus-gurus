@@ -451,14 +451,28 @@ export default function QuizHomeClient() {
   const bestCatRef = useRef(null);
   const quizzesRef = useRef(null);
   // The inner surfaces' nav has no browse row to scroll to, so its Quizzes link
-  // is `/#quizzes` and the jump happens here on arrival. Deferred a frame: the
-  // browse row's position is not final until the three-column daily section
-  // above it has laid out, and the two search fields swap at 820px, which is
-  // what jumpToQuizzes resolves.
+  // is `/#quizzes` and the jump happens here on arrival. jumpToQuizzes handles
+  // resolving WHICH search field is on screen (the two swap at 820px) and
+  // offsetting for the sticky bar; what it cannot handle is WHEN.
+  //
+  // A single deferred call is not enough, verified live: the browse row's final
+  // position is not settled at first paint, because the three-column daily
+  // section above it fills in from async data and pushes it down. An 80ms call
+  // focused the field but computed its target against the pre-fill layout and
+  // left the page at scrollY 0. So re-run on a short schedule until the layout
+  // stops moving, and stand down the instant the visitor takes the scroll over
+  // themselves, which is the only way a repeated scrollTo could annoy anyone.
   useEffect(() => {
     if (typeof window === 'undefined' || window.location.hash !== '#quizzes') return undefined;
-    const t = setTimeout(jumpToQuizzes, 80);
-    return () => clearTimeout(t);
+    let cancelled = false;
+    const stop = () => { cancelled = true; };
+    const evs = ['wheel', 'touchstart', 'keydown'];
+    evs.forEach((e) => window.addEventListener(e, stop, { passive: true }));
+    const timers = [140, 700, 1500].map((ms) => setTimeout(() => { if (!cancelled) jumpToQuizzes(); }, ms));
+    return () => {
+      timers.forEach(clearTimeout);
+      evs.forEach((e) => window.removeEventListener(e, stop));
+    };
   }, []);
   const [search, setSearch] = useState('');
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
