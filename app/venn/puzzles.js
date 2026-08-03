@@ -78,7 +78,7 @@ export const PUZZLES = [
     rules: [{ k: 'vowels', n: 2 }, { k: 'lenGte', n: 6 }, { k: 'hides', set: 'animal' }],
     items: [
       'TRIVIAL', 'COMBAT', 'SUPPLIES', 'PANT',
-      'RESIGNS', 'WARRANTY', 'TAPE', 'RAPE',
+      'RESIGNS', 'WARRANTY', 'TAPE', 'CATER',
       'UNWANTED', 'BOWL', 'LOSES', 'WRATH',
     ],
   },
