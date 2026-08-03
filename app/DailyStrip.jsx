@@ -970,11 +970,23 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dhome.slate .dh-cell{flex:1 1 50%;}
         .dhome.slate .dh-cell .dh-play{min-width:104px;}
         @media(max-width:900px){
-          .dhome.slate .dh-sbar{flex-direction:column;align-items:stretch;gap:0;padding:0;}
-          .dhome.slate .dh-cell{padding:10px 12px;border-left:none;flex:none;width:100%;}
-          .dhome.slate .dh-cell + .dh-cell{padding-left:12px;border-left:none;border-top:1px solid var(--border);}
-          .dhome.slate .dh-cell .dh-play{margin-left:auto;min-width:88px;font-size:12px;padding:9px 14px;}
-          .dhome.slate .dh-busub{display:block;}
+          /* edge to edge. Negative margins, NOT the 50%/translateX trick: a
+             transform makes the console a containing block and kills the sticky
+             strip bar and column header inside it. */
+          .dhome.slate{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;}
+          .dhome.slate .sl-bar{border-left:none;border-right:none;border-radius:0;}
+          .dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
+          .dhome.slate .dh-sbar{flex-direction:column;align-items:stretch;gap:8px;padding:8px;background:transparent;border:none;}
+          .dhome.slate .dh-cell{position:relative;flex:none;width:100%;padding:12px 14px 12px 22px;border:none;border-radius:10px;background:var(--blue);color:var(--white);}
+          .dhome.slate .dh-cell + .dh-cell{padding-left:22px;border-left:none;background:#4d84f3;}
+          /* a white rule replaces the game icon, which is unreadable at this
+             size on a saturated ground */
+          .dhome.slate .dh-cell::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.9);}
+          .dhome.slate .dh-cell > img{display:none;}
+          .dhome.slate .dh-bue{color:#dbe8ff;font-size:9.5px;letter-spacing:.11em;}
+          .dhome.slate .dh-bun{color:var(--white);font-size:19px;}
+          .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;}
+          .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);min-width:92px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 16px;border-radius:8px;}
         }
         .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border:1.5px solid var(--border);border-bottom:2px solid var(--accent);border-radius:13px 13px 0 0;}
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
@@ -982,9 +994,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5a6b90;}
         .sl-filt{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
         .sl-filt::-webkit-scrollbar{display:none;}
-        .sl-filt button{border:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
+        .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--ink);}
-        .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:var(--white);}
+        .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
         .sl-row.dim{opacity:.42;}
         .sl-row.dim:hover{opacity:.72;}
         .sl-head,.sl-row{display:grid;grid-template-columns:42px minmax(0,1fr) 104px 58px 50px 116px 78px 104px;align-items:center;gap:9px;padding:6px 13px;}

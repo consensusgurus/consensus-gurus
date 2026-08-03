@@ -274,7 +274,7 @@ export default function HomeRails({
       /* Phone: the rail panels run edge to edge like the slate, rather than
          sitting as tiles inside the page gutter (owner, 2026-08-03). */
       @media(max-width:900px){
-        .hr-panel{width:100vw;margin-left:50%;transform:translateX(-50%);max-width:100vw;border-left:none;border-right:none;border-radius:0;}
+        .hr-panel{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-left:none;border-right:none;border-radius:0;}
       }
     `}</style>
   );
