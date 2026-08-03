@@ -899,15 +899,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* The row is already a wide target, so the small stats button sits at
            the end rather than floating over the corner. */
         .dh-board.slate .dh-tstats{position:static;order:8;flex:none;margin-left:2px;}
-        /* Phone: there is room for ONE trailing column, and who is winning it
-           beats how many have played (owner, 2026-08-03), so the play count goes
-           and the leader stays. */
+        /* Phone: the play count keeps its column and the leader moves UP onto
+           the title's line (owner, 2026-08-03). The leader lives inside the meta
+           stack, so that stack goes display:contents and its two children become
+           direct row items, letting the leader sit straight after the name while
+           the score and the play count push to the right. No DOM change. */
         @media(max-width:900px){
-          .dh-board.slate .dh-tcat,.dh-board.slate .dh-tcta,.dh-board.slate .dh-tcorner{display:none;}
-          .dh-board.slate .dh-tmeta{gap:8px;}
-          .dh-board.slate .dh-mrow{width:auto;}
-          .dh-board.slate .dh-mlead{width:auto;max-width:112px;}
-          .dh-board.slate .dh-tile{padding:8px 12px 8px 14px;}
+          .dh-board.slate .dh-tcat,.dh-board.slate .dh-tcta{display:none;}
+          .dh-board.slate .dh-tile{padding:8px 12px 8px 14px;gap:8px;}
+          .dh-board.slate .dh-tmeta{display:contents;}
+          .dh-board.slate .dh-tnm{flex:0 1 auto;}
+          .dh-board.slate .dh-mlead{order:2;flex:0 1 auto;width:auto;max-width:38vw;justify-content:flex-start;padding:0 !important;font-size:10px;}
+          .dh-board.slate .dh-mrow{order:3;width:auto;margin-left:auto;}
+          .dh-board.slate .dh-tcorner{order:4;width:auto;justify-content:flex-end;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}
