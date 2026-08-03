@@ -2,7 +2,7 @@
   "id": "/sworn",
   "name": "Sworn — Daily Liars Puzzle",
   "short_name": "Sworn",
-  "description": "A fresh pack of liars every day: sworn statements, an exact number of lies, one thief. Follow the contradictions and name the culprit. From Source of Truths.",
+  "description": "A fresh pack of liars every day: sworn statements, an exact number of lies, one thief. Follow the contradictions and name the culprit. From Mind Loft.",
   "start_url": "/sworn?src=pwa",
   "scope": "/",
   "display": "standalone",

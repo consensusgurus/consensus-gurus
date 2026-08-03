@@ -2,7 +2,7 @@
   "id": "/dating",
   "name": "Dating — Daily History Ordering Game",
   "short_name": "Dating",
-  "description": "Put five moments from history in chronological order in three checks or fewer. A new puzzle every day from Source of Truths.",
+  "description": "Put five moments from history in chronological order in three checks or fewer. A new puzzle every day from Mind Loft.",
   "start_url": "/dating?src=pwa",
   "scope": "/",
   "display": "standalone",

@@ -2,7 +2,7 @@
   "id": "/garble",
   "name": "Garble — Daily Word Scramble",
   "short_name": "Garble",
-  "description": "Five garbled words, one clued finale. A new scramble every day from Source of Truths.",
+  "description": "Five garbled words, one clued finale. A new scramble every day from Mind Loft.",
   "start_url": "/garble?src=pwa",
   "scope": "/",
   "display": "standalone",

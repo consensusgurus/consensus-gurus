@@ -2,7 +2,7 @@
   "id": "/venn",
   "name": "Venn — Daily Logic Game",
   "short_name": "Venn",
-  "description": "A daily logic puzzle from Source of Truths.",
+  "description": "A daily logic puzzle from Mind Loft.",
   "start_url": "/venn?src=pwa",
   "scope": "/",
   "display": "standalone",

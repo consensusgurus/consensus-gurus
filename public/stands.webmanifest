@@ -2,7 +2,7 @@
   "id": "/stands",
   "name": "Stands — Daily Logic Game",
   "short_name": "Stands",
-  "description": "A daily logic puzzle from Source of Truths.",
+  "description": "A daily logic puzzle from Mind Loft.",
   "start_url": "/stands?src=pwa",
   "scope": "/",
   "display": "standalone",

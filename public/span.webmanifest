@@ -2,7 +2,7 @@
   "id": "/span",
   "name": "Span — Daily Geography Border Game",
   "short_name": "Span",
-  "description": "Connect two countries with the shortest chain of land borders you can find. A new route every day from Source of Truths.",
+  "description": "Connect two countries with the shortest chain of land borders you can find. A new route every day from Mind Loft.",
   "start_url": "/span?src=pwa",
   "scope": "/",
   "display": "standalone",

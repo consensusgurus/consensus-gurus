@@ -2,7 +2,7 @@
   "id": "/warmer",
   "name": "Warmer — Daily Word Game",
   "short_name": "Warmer",
-  "description": "One secret word a day. Every guess is scored by meaning on a cold-to-hot spectrum until you land it. A new word every day from Source of Truths.",
+  "description": "One secret word a day. Every guess is scored by meaning on a cold-to-hot spectrum until you land it. A new word every day from Mind Loft.",
   "start_url": "/warmer?src=pwa",
   "scope": "/",
   "display": "standalone",

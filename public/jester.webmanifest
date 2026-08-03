@@ -2,7 +2,7 @@
   "id": "/jester",
   "name": "Jesters — Daily Court-Placement Puzzle",
   "short_name": "Jesters",
-  "description": "Seat one jester in every row, column and colored court - no two may touch. Exactly one solution, pure deduction, a bigger board on Sundays. From Source of Truths.",
+  "description": "Seat one jester in every row, column and colored court - no two may touch. Exactly one solution, pure deduction, a bigger board on Sundays. From Mind Loft.",
   "start_url": "/jester?src=pwa",
   "scope": "/",
   "display": "standalone",

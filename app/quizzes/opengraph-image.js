@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 // hammering the database on every scrape.
 export const revalidate = 3600;
 
-export const alt = 'Mind Loft quizzes: exercise your mind'
+export const alt = 'Mind Loft quizzes: elevate your thinking'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -67,7 +67,7 @@ export default async function Image() {
         h('div', { key: 'l1', style: { display: 'flex', width: '100%', height: '2px', background: '#e2e5ea', marginTop: '10px' } }),
         h('div', { key: 'l2', style: { display: 'flex', width: '210px', height: '4px', background: '#fbb615', marginTop: '3px' } }),
       ]),
-      T('Exercise Your Mind.', { fontSize: 74, fontWeight: 800, letterSpacing: '-1.5px', color: '#1c1e24', lineHeight: 1.0, marginBottom: 14 }),
+      T('Elevate Your Thinking.', { fontSize: 74, fontWeight: 800, letterSpacing: '-1.5px', color: '#1c1e24', lineHeight: 1.0, marginBottom: 14 }),
       T(`${count} timed quizzes across film, music, sports, and beyond. Name them, match them, map them, beat the clock.`, { fontSize: 26, fontWeight: 600, color: '#6b7280', lineHeight: 1.3, maxWidth: '92%' }),
     ]),
     h('div', { key: 'feat', style: { display: 'flex', flexDirection: 'column' } },

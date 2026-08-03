@@ -2,7 +2,7 @@
   "id": "/alibi",
   "name": "Alibi \u2014 Daily Logic Whodunit",
   "short_name": "Alibi",
-  "description": "A fresh mystery every day: four suspects, four rooms, four alibis. Every witness statement is true - work the deduction boards and close the case. From Source of Truths.",
+  "description": "A fresh mystery every day: four suspects, four rooms, four alibis. Every witness statement is true - work the deduction boards and close the case. From Mind Loft.",
   "start_url": "/alibi?src=pwa",
   "scope": "/",
   "display": "standalone",

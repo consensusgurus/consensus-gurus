@@ -2,7 +2,7 @@
   "id": "/suds",
   "name": "Suds — Daily Sudoku",
   "short_name": "Suds",
-  "description": "Fill the 9x9 grid so every row, column, and 3x3 box holds 1-9 with no repeats. A new sudoku every day from Source of Truths.",
+  "description": "Fill the 9x9 grid so every row, column, and 3x3 box holds 1-9 with no repeats. A new sudoku every day from Mind Loft.",
   "start_url": "/suds?src=pwa",
   "scope": "/",
   "display": "standalone",

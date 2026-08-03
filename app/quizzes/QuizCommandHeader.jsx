@@ -272,7 +272,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
         <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={30} /></Link>
         <Link href="/" className="qch-word"><span className="qch-wl">Mind <em>Loft</em></span><span className="qch-ws">ML</span></Link>
-        <span className="qch-src">Exercise Your Mind</span>
+        <span className="qch-src">Elevate Your Thinking</span>
         <button type="button" className="qch-searchbtn" ref={btnRef} onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>
         <div className="qch-me">
           {found ? (

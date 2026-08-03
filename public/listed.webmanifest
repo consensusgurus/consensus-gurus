@@ -2,7 +2,7 @@
   "id": "/listed",
   "name": "Listed: Daily Ranking Game",
   "short_name": "Listed",
-  "description": "Eight real things, one measurable quantity, five submits. Green locks a row that is exactly right, amber means you are off by one place. A new list every day from Source of Truths.",
+  "description": "Eight real things, one measurable quantity, five submits. Green locks a row that is exactly right, amber means you are off by one place. A new list every day from Mind Loft.",
   "start_url": "/listed?src=pwa",
   "scope": "/",
   "display": "standalone",

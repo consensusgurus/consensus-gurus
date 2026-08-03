@@ -2,7 +2,7 @@
   "id": "/lode",
   "name": "Lode — Daily Letter-Mining Word Game",
   "short_name": "Lode",
-  "description": "Seven letters, one core letter every word must use. Points come from how rare a word is, not how long — strike the vein, then dig for the Mother Lode. From Source of Truths.",
+  "description": "Seven letters, one core letter every word must use. Points come from how rare a word is, not how long — strike the vein, then dig for the Mother Lode. From Mind Loft.",
   "start_url": "/lode?src=pwa",
   "scope": "/",
   "display": "standalone",

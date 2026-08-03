@@ -2,7 +2,7 @@
   "id": "/tally",
   "name": "Tally — Daily Number Puzzle",
   "short_name": "Tally",
-  "description": "Fill the grid from your rack so every row and column adds up to its target. A new number puzzle every day from Source of Truths.",
+  "description": "Fill the grid from your rack so every row and column adds up to its target. A new number puzzle every day from Mind Loft.",
   "start_url": "/tally?src=pwa",
   "scope": "/",
   "display": "standalone",

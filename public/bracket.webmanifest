@@ -2,7 +2,7 @@
   "id": "/bracket",
   "name": "Bracket — Daily Bracket of Facts",
   "short_name": "Bracket",
-  "description": "Sixteen contenders, one question, fifteen picks that propagate. A new field every day from Source of Truths.",
+  "description": "Sixteen contenders, one question, fifteen picks that propagate. A new field every day from Mind Loft.",
   "start_url": "/bracket?src=pwa",
   "scope": "/",
   "display": "standalone",

@@ -2,7 +2,7 @@
   "id": "/axiom",
   "name": "Axiom — Daily Hidden-Rule Game",
   "short_name": "Axiom",
-  "description": "One hidden rule splits the board. Five candidates, a handful of tests, and most tiles teach you nothing. A new board every day from Source of Truths.",
+  "description": "One hidden rule splits the board. Five candidates, a handful of tests, and most tiles teach you nothing. A new board every day from Mind Loft.",
   "start_url": "/axiom?src=pwa",
   "scope": "/",
   "display": "standalone",

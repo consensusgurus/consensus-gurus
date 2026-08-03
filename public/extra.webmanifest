@@ -2,7 +2,7 @@
   "id": "/extra",
   "name": "Extra — Daily History Game",
   "short_name": "Extra",
-  "description": "One historic front page a day, with the giveaway words blacked out. Name the story before the censor strips run out. From Source of Truths.",
+  "description": "One historic front page a day, with the giveaway words blacked out. Name the story before the censor strips run out. From Mind Loft.",
   "start_url": "/extra?src=pwa",
   "scope": "/",
   "display": "standalone",

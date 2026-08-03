@@ -2,7 +2,7 @@
   "id": "/hearsay",
   "name": "Hearsay — Daily Deduction Puzzle",
   "short_name": "Hearsay",
-  "description": "Each of them was told one detail and nothing else. Then they speak, and every admission of ignorance cuts the shortlist. A new case every day from Source of Truths.",
+  "description": "Each of them was told one detail and nothing else. Then they speak, and every admission of ignorance cuts the shortlist. A new case every day from Mind Loft.",
   "start_url": "/hearsay?src=pwa",
   "scope": "/",
   "display": "standalone",

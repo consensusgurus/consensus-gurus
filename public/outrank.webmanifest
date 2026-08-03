@@ -2,7 +2,7 @@
   "id": "/outrank",
   "name": "Outrank — Daily Crowd-Ranking Game",
   "short_name": "Outrank",
-  "description": "The answer key is everyone playing today. Vote your favorite, then call the crowd's order. From Source of Truths.",
+  "description": "The answer key is everyone playing today. Vote your favorite, then call the crowd's order. From Mind Loft.",
   "start_url": "/outrank?src=pwa",
   "scope": "/",
   "display": "standalone",

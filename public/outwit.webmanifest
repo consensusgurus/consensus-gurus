@@ -2,7 +2,7 @@
   "id": "/outwit",
   "name": "Outwit — Daily Crowd Game",
   "short_name": "Outwit",
-  "description": "Your opponent is everyone playing today. Five quick duels, no right answers - only what the crowd does. From Source of Truths.",
+  "description": "Your opponent is everyone playing today. Five quick duels, no right answers - only what the crowd does. From Mind Loft.",
   "start_url": "/outwit?src=pwa",
   "scope": "/",
   "display": "standalone",

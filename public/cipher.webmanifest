@@ -2,7 +2,7 @@
   "id": "/cipher",
   "name": "Cipher \u2014 Daily Cryptarithm",
   "short_name": "Cipher",
-  "description": "One letter-arithmetic equation a day: every letter is a different digit, and there is exactly one solution. Crack it clean for a perfect 10. From Source of Truths.",
+  "description": "One letter-arithmetic equation a day: every letter is a different digit, and there is exactly one solution. Crack it clean for a perfect 10. From Mind Loft.",
   "start_url": "/cipher?src=pwa",
   "scope": "/",
   "display": "standalone",

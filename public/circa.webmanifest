@@ -2,7 +2,7 @@
   "id": "/circa",
   "name": "Circa — Daily History Game",
   "short_name": "Circa",
-  "description": "One historical moment a day. Six guesses to pin the exact year - every miss tells you earlier or later, hotter or colder. From Source of Truths.",
+  "description": "One historical moment a day. Six guesses to pin the exact year - every miss tells you earlier or later, hotter or colder. From Mind Loft.",
   "start_url": "/circa?src=pwa",
   "scope": "/",
   "display": "standalone",

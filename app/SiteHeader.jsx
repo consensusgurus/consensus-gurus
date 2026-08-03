@@ -25,7 +25,7 @@ function HeaderTagline({ active }) {
   if (active === 'lists') {
     return <>Where <SourcesPopover align="left" onDark href="/experts-and-aggregators" label={`${SOURCE_COUNT.toLocaleString()} Experts and Aggregators`} /> Agree</>;
   }
-  return <>Exercise Your Mind</>;
+  return <>Elevate Your Thinking</>;
 }
 export const LIST_COUNT = LISTS.length;
 // Total "quizzes" shown in the header: trivia quizzes + live Kids Corner games

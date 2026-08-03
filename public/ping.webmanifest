@@ -2,7 +2,7 @@
   "id": "/ping",
   "name": "Ping — Daily City Hunt",
   "short_name": "Ping",
-  "description": "One secret world city a day, no clues. Guess any city and home in by distance and compass. Find it in as few guesses as you can. From Source of Truths.",
+  "description": "One secret world city a day, no clues. Guess any city and home in by distance and compass. Find it in as few guesses as you can. From Mind Loft.",
   "start_url": "/ping?src=pwa",
   "scope": "/",
   "display": "standalone",

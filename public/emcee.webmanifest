@@ -2,7 +2,7 @@
   "id": "/emcee",
   "name": "Emcee — Daily Mini Crossword",
   "short_name": "Emcee",
-  "description": "A proper mini crossword, five by five: everyday words, fair clues, and a timer that stops when the grid is right. A new grid every day from Source of Truths.",
+  "description": "A proper mini crossword, five by five: everyday words, fair clues, and a timer that stops when the grid is right. A new grid every day from Mind Loft.",
   "start_url": "/emcee?src=pwa",
   "scope": "/",
   "display": "standalone",

@@ -14,18 +14,18 @@ const SOURCE_COUNT = getAllSources().length;
 export const metadata = {
   metadataBase: new URL('https://sourceoftruths.com'),
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Mind Loft' },
-  title: `Mind Loft | Exercise Your Mind`,
-  description: `Exercise your mind every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+  title: `Mind Loft | Elevate Your Thinking`,
+  description: `Elevate your thinking every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   openGraph: {
-    title: `Mind Loft | Exercise Your Mind`,
-    description: `Exercise your mind every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+    title: `Mind Loft | Elevate Your Thinking`,
+    description: `Elevate your thinking every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
     url: 'https://sourceoftruths.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Mind Loft | Exercise Your Mind`,
-    description: `Exercise your mind every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+    title: `Mind Loft | Elevate Your Thinking`,
+    description: `Elevate your thinking every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   },
 formatDetection: {
     telephone: false,

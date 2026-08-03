@@ -2,7 +2,7 @@
   "id": "/links",
   "name": "Links — Daily Word Grouping Game",
   "short_name": "Links",
-  "description": "Sixteen words hide four threads of four. Find every thread before four mistakes find you. A new puzzle every day from Source of Truths.",
+  "description": "Sixteen words hide four threads of four. Find every thread before four mistakes find you. A new puzzle every day from Mind Loft.",
   "start_url": "/links?src=pwa",
   "scope": "/",
   "display": "standalone",

@@ -2,7 +2,7 @@
   "id": "/feud",
   "name": "Feud — Daily Crowd-Survey Game",
   "short_name": "Feud",
-  "description": "The answer key is live: it's whatever today's players say. Five prompts, three answers each — match the crowd. From Source of Truths.",
+  "description": "The answer key is live: it's whatever today's players say. Five prompts, three answers each — match the crowd. From Mind Loft.",
   "start_url": "/feud?src=pwa",
   "scope": "/",
   "display": "standalone",

@@ -2,7 +2,7 @@
   "id": "/carve",
   "name": "Carve — Daily Equal-Sum Puzzle",
   "short_name": "Carve",
-  "description": "Slice the grid into connected blocks that all add to the same target. Exactly one valid carving. A new board every day from Source of Truths.",
+  "description": "Slice the grid into connected blocks that all add to the same target. Exactly one valid carving. A new board every day from Mind Loft.",
   "start_url": "/carve?src=pwa",
   "scope": "/",
   "display": "standalone",
