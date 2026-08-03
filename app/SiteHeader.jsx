@@ -82,7 +82,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .shc{width:100vw;margin-left:calc(50% - 50vw);}
-        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
+        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;position:sticky;top:0;z-index:90;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
         .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
         .shc-word em{font-style:normal;color:var(--blue);font-weight:800;}
         .shc-ws{display:none;}
@@ -132,7 +132,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       `}</style>
       <div className="shc-bar">
         <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><CommandLogo size={30} /></Link>
-        <Link href="/" className="shc-word"><span className="shc-wl">Mind <em>Loft</em></span><span className="shc-ws"><MindLoftMark size={22} /></span></Link>
+        <Link href="/" className="shc-word"><span className="shc-wl">Mind <em>Loft</em></span><span className="shc-ws"><MindLoftMark size={32} /></span></Link>
         <span className="shc-src"><HeaderTagline active={active} /></span>
         {showSearch && (
           <div className="shc-search" onClick={(e) => e.stopPropagation()}>

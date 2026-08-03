@@ -143,7 +143,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
+        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;position:sticky;top:0;z-index:90;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
         .qch-word em{font-style:normal;color:var(--blue);font-weight:800;}
         .qch-ws{display:none;}
@@ -175,7 +175,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
              edge (owner, 2026-07-29). Taking it out of flow is what makes it a
              true centre: the brand keeps the left, and the Stat Hub + toggle
              group is pushed flush right by the auto margin below. */
-          .qch-bar{position:relative;}
+          /* sticky rather than relative: it still establishes the containing block that
+             .qch-me is centred against, and keeps the bar pinned at this breakpoint. */
+          .qch-bar{position:sticky;top:0;z-index:90;}
           .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin-left:0;flex:none;display:flex;justify-content:center;max-width:min(48vw,640px);}
           .qch-me ~ .qch-hub{margin-left:auto;}
           .qch-melink{gap:13px;}
@@ -261,7 +263,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
       `}</style>
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
         <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={30} /></Link>
-        <Link href="/" className="qch-word"><span className="qch-wl">Mind <em>Loft</em></span><span className="qch-ws"><MindLoftMark size={22} /></span></Link>
+        <Link href="/" className="qch-word"><span className="qch-wl">Mind <em>Loft</em></span><span className="qch-ws"><MindLoftMark size={32} /></span></Link>
         <span className="qch-src">Elevate Your Thinking</span>
         <button type="button" className="qch-searchbtn" ref={btnRef} onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>
         <div className="qch-me">
