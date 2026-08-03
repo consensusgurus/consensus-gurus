@@ -69,7 +69,11 @@ function ruleFn(r) {
     case 'altvc': return (w) => [...w].every((c,i) => i === 0 || VOW.has(c) !== VOW.has(w[i-1]));
     case 'twinvowel': return (w) => [...w].some((c,i) => i > 0 && VOW.has(c) && VOW.has(w[i-1]));
     case 'nolet': return (w) => !w.includes(r.c);
-    case 'hides': return (w) => HIDDEN[r.set].some((h) => w.includes(h));
+    // A word only HIDES something when the smaller word sits inside a
+    // LONGER one. LUNG does not hide a lung and EYES does not hide an eye:
+    // an item that IS the hidden word, or merely its plural, hides nothing.
+    // HEART still qualifies, because a heart hides an EAR.
+    case 'hides': return (w) => HIDDEN[r.set].some((h) => w.includes(h) && w !== h && w !== h + 'S' && w !== h + 'ES');
     default: return () => false;
   }
 }
@@ -344,6 +348,9 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
   function resetGame() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} setG(freshState(N)); setHeld(null); setVerdict(null); setEndClosed(false); }
 
   const circleColor = [COLORS.cA, COLORS.cB, COLORS.cC];
+  const VOWEL_RULES = ['vowels', 'onevowel', 'startvowel', 'endvowel', 'altvc', 'twinvowel'];
+  const showVowelNote = PUZZLE.rules.some((r) => VOWEL_RULES.includes(r.k));
+  const showHidesNote = PUZZLE.rules.some((r) => r.k === 'hides');
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>File every word where it belongs.</p>
@@ -354,6 +361,12 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           </span>
         ))}
       </div>
+      {(showVowelNote || showHidesNote) && (
+        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: COLORS.faded, fontWeight: 600, marginBottom: 12 }}>
+          {showVowelNote && <div>The vowels are A, E, I, O and U. Y never counts as one.</div>}
+          {showHidesNote && <div>A word hides something only when the smaller word sits inside a longer one. SHIP hides a hip, but LUNG does not hide a lung.</div>}
+        </div>
+      )}
       <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
         <li style={{ marginBottom: 5 }}>Tap a word, then tap the region it belongs in. Tap a filed word to pull it back.</li>
         <li style={{ marginBottom: 5 }}>Words can satisfy two circles, or all three. Every region here holds at least one.</li>

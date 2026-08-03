@@ -79,7 +79,7 @@ export const PUZZLES = [
     items: [
       'TRIVIAL', 'COMBAT', 'SUPPLIES', 'PANT',
       'RESIGNS', 'WARRANTY', 'TAPE', 'RAPE',
-      'UNWANTED', 'PIGS', 'LOSES', 'WRATH',
+      'UNWANTED', 'BOWL', 'LOSES', 'WRATH',
     ],
   },
   {
@@ -116,7 +116,7 @@ export const PUZZLES = [
     rules: [{ k: 'onevowel' }, { k: 'hides', set: 'body' }, { k: 'startvowel' }],
     items: [
       'ALPHA', 'ALLY', 'SHINING', 'SHIP',
-      'ACCUSE', 'LUNG', 'EYES', 'BEARS',
+      'ACCUSE', 'CRIB', 'ITCHING', 'BEARS',
       'EARLIER', 'GRASP', 'ANYWAY', 'IMPOSING',
     ],
   },
@@ -190,7 +190,7 @@ export const PUZZLES = [
     rules: [{ k: 'len', n: 4 }, { k: 'hides', set: 'body' }, { k: 'nolet', c: 'S' }],
     items: [
       'HEART', 'TEARS', 'ROSE', 'SHIP',
-      'ARMY', 'TEACHING', 'FISHING', 'ARMS',
+      'ARMY', 'TEACHING', 'FISHING', 'SOLD',
       'ENTIRELY', 'BROUGHT', 'MACHINES', 'GAVE',
     ],
   },
@@ -245,7 +245,7 @@ export const PUZZLES = [
     num: 25, quizId: 'venn-8-17-26', live: '2026-08-17', dateLabel: 'August 17, 2026', sunday: false,
     rules: [{ k: 'hides', set: 'number' }, { k: 'nolet', c: 'E' }, { k: 'len', n: 6 }],
     items: [
-      'GAINED', 'SOONER', 'FOUR', 'MEDIUM',
+      'GAINED', 'SOONER', 'ABOUT', 'MEDIUM',
       'POUNDS', 'OPPONENT', 'SIXTH', 'LISTEN',
       'ANYONE', 'BOOK', 'FOURTH', 'NOBODY',
     ],
@@ -290,8 +290,8 @@ export const PUZZLES = [
     num: 30, quizId: 'venn-8-22-26', live: '2026-08-22', dateLabel: 'August 22, 2026', sunday: false,
     rules: [{ k: 'norepeat' }, { k: 'hides', set: 'body' }, { k: 'altvc' }],
     items: [
-      'ROMAN', 'STAND', 'BONE', 'HEARD',
-      'EYES', 'FLOATING', 'BONES', 'EARLIER',
+      'ROMAN', 'STAND', 'TULIP', 'HEARD',
+      'EYELID', 'FLOATING', 'LEGIT', 'EARLIER',
       'CLEARED', 'DEFINE', 'RECIPE', 'YEAR',
     ],
   },
@@ -403,8 +403,8 @@ export const PUZZLES = [
     rules: [{ k: 'norepeat' }, { k: 'hides', set: 'body' }, { k: 'nolet', c: 'E' }],
     items: [
       'MODE', 'CUSTODY', 'COACHING', 'ARMY',
-      'ARMED', 'PHYSICAL', 'EYES', 'PUSHING',
-      'BONE', 'REAR', 'DOWNLOAD', 'CATCHING',
+      'ARMED', 'PHYSICAL', 'AHEAD', 'PUSHING',
+      'BEARD', 'REAR', 'DOWNLOAD', 'CATCHING',
     ],
   },
   {
@@ -570,9 +570,9 @@ export const PUZZLES = [
     num: 60, quizId: 'venn-9-21-26', live: '2026-09-21', dateLabel: 'September 21, 2026', sunday: false,
     rules: [{ k: 'nolet', c: 'E' }, { k: 'vowels', n: 2 }, { k: 'hides', set: 'number' }],
     items: [
-      'ANYONE', 'STAGES', 'FOUR', 'ATTENDED',
+      'ANYONE', 'STAGES', 'FOURTH', 'ATTENDED',
       'SIXTH', 'COUNTY', 'WARD', 'ADULT',
-      'EVERYONE', 'TOUGH', 'OBJECT', 'NINE',
+      'EVERYONE', 'TOUGH', 'OBJECT', 'CLONE',
     ],
   },
   {

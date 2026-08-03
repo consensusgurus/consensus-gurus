@@ -39,7 +39,11 @@ function ruleFn(r) {
     case 'altvc': return (w) => [...w].every((c,i) => i === 0 || VOW.has(c) !== VOW.has(w[i-1]));
     case 'twinvowel': return (w) => [...w].some((c,i) => i > 0 && VOW.has(c) && VOW.has(w[i-1]));
     case 'nolet': return (w) => !w.includes(r.c);
-    case 'hides': return (w) => HIDDEN[r.set].some((h) => w.includes(h));
+    // A word only HIDES something when the smaller word sits inside a
+    // LONGER one. LUNG does not hide a lung and EYES does not hide an eye:
+    // an item that IS the hidden word, or merely its plural, hides nothing.
+    // HEART still qualifies, because a heart hides an EAR.
+    case 'hides': return (w) => HIDDEN[r.set].some((h) => w.includes(h) && w !== h && w !== h + 'S' && w !== h + 'ES');
     default: return null;
   }
 }
@@ -75,6 +79,19 @@ PUZZLES.forEach((p, i) => {
     else counts[r]++;
   });
   REGIONS.forEach((r) => { if (!counts[r]) fail(`${tag}: region ${r} is empty`); });
+  // No item may LOOK like it hides a word without qualifying. An item that
+  // is the hidden word itself, or just its plural, reads to a solver as a
+  // member of that circle while scoring outside it, which is unfair.
+  const hr = p.rules.find((r) => r.k === 'hides');
+  if (hr) {
+    p.items.forEach((w) => {
+      const hits = HIDDEN[hr.set].filter((h) => w.includes(h));
+      if (hits.length && !hits.some((h) => w !== h && w !== h + 'S' && w !== h + 'ES')) {
+        fail(`${tag}: ${w} reads as hiding ${hits.join('/')} but only IS that word`);
+      }
+    });
+  }
+
   if (counts[7] < 1 || counts[7] > 2) fail(`${tag}: triple overlap holds ${counts[7]} (want 1 or 2)`);
   const cap = p.sunday ? 4 : 3;
   REGIONS.forEach((r) => { if (counts[r] > cap) fail(`${tag}: region ${r} holds ${counts[r]} (cap ${cap})`); });
