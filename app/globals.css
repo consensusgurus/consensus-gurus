@@ -4,18 +4,20 @@
    places or the check fails. Values here are the CURRENT palette, unchanged;
    the Mind Loft flip swaps them here and in lib/theme.js together. */
 :root {
-  --ink: #1c1e24;
-  --muted: #262b35;
-  --slate: #46506a;
-  --accent: #0e1d40;
+  --ink: #0b0c0e;
+  --muted: #3f4757;
+  --slate: #6b7280;
+  --accent: #1e3a8a;
   --white: #ffffff;
-  --paper: #eceef1;
+  --paper: #f4f6f9;
   --surface: #f7f8fa;
-  --surface-alt: #eef1f5;
-  --border: #c3ccda;
+  --surface-alt: #eef2f7;
+  --border: #e5e7eb;
   --blue: #2563eb;
   --blue-deep: #1d4ed8;
   --blue-dark: #1e3a8a;
+  --blue-400: #60a5fa;
+  --blue-200: #bfdbfe;
   --accent-soft: #eef3ff;
   --accent-border: #cddffb;
   --success: #10b981;

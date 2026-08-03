@@ -42,7 +42,7 @@ const COLORS = {
   rust: T.danger,
   faded: T.muted,
   accent: '#334155',        // Glyph identity — slate
-  accentSoft: '#eef2f7',
+  accentSoft: T.surfaceAlt,
   green: T.successDeep,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";

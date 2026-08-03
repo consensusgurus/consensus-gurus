@@ -2007,7 +2007,7 @@ export default function QuizHomeClient() {
             /* the three leaderboard sections: identical layout, equal size (flex:1),
                content distributed so each has the same spacing and no dead gaps */
             .qzh .dhx-lb{padding:0;display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;}
-            .qzh .dhx-lb-band{padding:11px 15px 12px;background:#eef2f7;}
+            .qzh .dhx-lb-band{padding:11px 15px 12px;background:var(--surface-alt);}
             .qzh .dhx-lone > .dhx-lb:first-child .dhx-lb-band{border-top-left-radius:12.5px;border-top-right-radius:12.5px;}
             .qzh .dhx-lb.comm .dhx-lb-band{background:#f3edff;}
             .qzh .dhx-lb.daily .dhx-lb-band{background:#fdf3dc;}
@@ -2044,7 +2044,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb.xp .dhx-lb-gi .rk{background:#e1ebfd;color:#1c46a8;}
             .qzh .dhx-lb-gi b{flex:1;min-width:0;color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-gi:hover b{text-decoration:underline;}
-            .qzh .dhx-lb-gi .sc{flex:none;color:#6b7280;font-weight:700;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lb-gi .sc{flex:none;color:var(--slate);font-weight:700;font-variant-numeric:tabular-nums;}
             .qzh .dhx-lb-gi.me b{color:var(--gold-ink);}
             .qzh .dhx-lb-none{font-size:11.5px;color:#4b5563;padding:4px 0;}
             .qzh .dhx-lb-links{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;}
