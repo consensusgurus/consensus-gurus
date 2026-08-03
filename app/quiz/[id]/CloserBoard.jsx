@@ -32,15 +32,16 @@ import Count from '../../Count';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '@/app/ShareCreditPop';
 import { savedIdentity } from '@/lib/saved-identity';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  forest: '#10b981',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  forest: T.success,
+  faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -332,7 +333,7 @@ export default function CloserBoard({ quizId, mobile = false }) {
     const dist = reveal ? (side === 'left' ? reveal.dLeft : reveal.dRight) : null;
     const otherDist = reveal ? (side === 'left' ? reveal.dRight : reveal.dLeft) : null;
     const isCloser = reveal ? (dist <= otherDist) : false;
-    let border = COLORS.ink, bg = '#fff', badge = null;
+    let border = COLORS.ink, bg = T.white, badge = null;
     if (reveal) {
       if (isCloser) { border = COLORS.forest; bg = '#f0fbf6'; }
       else { border = COLORS.faded + '55'; bg = COLORS.paper; }
@@ -497,7 +498,7 @@ export default function CloserBoard({ quizId, mobile = false }) {
                 <div style={{ display: 'flex', marginBottom: 14, borderRadius: 10, border: `1px solid ${COLORS.faded}55`, width: 'fit-content' }}>
                   {[['registered', 'Registered'], ['all', 'All players']].map(([k, label], idx) => {
                     const on = lbView === k;
-                    return <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>;
+                    return <button key={k} onClick={() => setLbView(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? T.white : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>;
                   })}
                 </div>
               )}
@@ -514,7 +515,7 @@ export default function CloserBoard({ quizId, mobile = false }) {
                   {lbRows.map((row, i) => {
                     const mine = identity && row.username === identity.username;
                     return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? '#fff' : COLORS.paper, borderRadius: 10, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? T.white : COLORS.paper, borderRadius: 10, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>
                         <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: i < 3 ? COLORS.ember : COLORS.faded }}>{i + 1}</span>
                         <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${COLORS.faded}88`, cursor: 'pointer' }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: COLORS.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
@@ -548,7 +549,7 @@ export default function CloserBoard({ quizId, mobile = false }) {
                 <button onClick={downloadResultImage} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Download image</button>
               )}
             </div>
-            <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', borderRadius: 10, background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', borderRadius: 10, background: COLORS.ink, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
               <Swords size={14} strokeWidth={2.5} /> Challenge Someone
             </a>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
@@ -595,7 +596,7 @@ export default function CloserBoard({ quizId, mobile = false }) {
                 <textarea value={qMsg} onChange={(e) => setQMsg(e.target.value)} maxLength={1000} rows={4} placeholder="What's your question or comment? (optional)" style={{ width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: SANS, fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }} />
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button onClick={() => setQOpen(false)} style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>Cancel</button>
-                  <button onClick={submitQuestion} disabled={qBusy} style={{ cursor: 'pointer', background: COLORS.ember, color: '#fff', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}>{qBusy ? 'Sending…' : 'Send to editors'}</button>
+                  <button onClick={submitQuestion} disabled={qBusy} style={{ cursor: 'pointer', background: COLORS.ember, color: T.white, borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}>{qBusy ? 'Sending…' : 'Send to editors'}</button>
                 </div>
               </>
             )}
@@ -615,7 +616,7 @@ function ghostBtn(disabled) {
 }
 function StatBox({ label, value, accent }) {
   return (
-    <div style={{ background: accent ? COLORS.paper : '#eceef1', borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '18px 16px', textAlign: 'center' }}>
+    <div style={{ background: accent ? COLORS.paper : T.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '18px 16px', textAlign: 'center' }}>
       <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 30, lineHeight: 1, color: accent ? COLORS.ember : COLORS.ink }}>{value}</div>
       <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 8 }}>{label}</div>
     </div>

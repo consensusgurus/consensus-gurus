@@ -45,6 +45,7 @@ import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play,
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import useMyGames, { sortByMyGames } from './useMyGames';
 import DailyTilePanel from './DailyTilePanel';
+import { T } from '@/lib/theme';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -105,8 +106,8 @@ const BOARD_WINDOW = 30;
 const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#7c3aed', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf', hearsay: '#c4b5fd', venn: '#e0a568', stands: '#6aa3ff', bracket: '#f0894c', lode: '#e0b34c', etch: '#8fbf5a', hedge: '#4cc0d4', listed: '#e07ad0', axiom: '#3fc9b8', mate: '#d9b38c', four: '#9db8ff', park: '#f0cf9a', check: '#5fd6b8', rung: '#7fd4e8', crunch: '#f0c07a', fib: '#c4b5fd', streak: '#fb7185', feud: '#fda4af', babel: '#6ee7b7', glyph: '#94a3b8' };
 // Saturated one-color-per-game identity for the tile accent + expand panel
 // (the "one saturated color per game" system used on the live game pages).
-const TCOL = { crux: '#2563eb', emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c', lode: '#a16207', etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f', mate: '#6b4423', four: '#1e3a8a', park: '#7c5c2e', check: '#166e5a', rung: '#155e75', crunch: '#b45309', fib: '#4c1d95', streak: '#e11d48', feud: '#9f1239', babel: '#14532d', glyph: '#334155' };
-const tcol = (k) => TCOL[k] || '#2563eb';
+const TCOL = { crux: T.blue, emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: T.successDeep, suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: T.blueDeep, bracket: '#c2410c', lode: T.goldInk, etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f', mate: '#6b4423', four: T.blueDark, park: '#7c5c2e', check: '#166e5a', rung: '#155e75', crunch: '#b45309', fib: '#4c1d95', streak: '#e11d48', feud: '#9f1239', babel: '#14532d', glyph: '#334155' };
+const tcol = (k) => TCOL[k] || T.blue;
 // Today's play count, rendered in the tile's top-left corner. The badge has
 // roughly 30px before it reaches a long game name, so four figures collapse to
 // "1.2k" rather than running under the title.
@@ -116,7 +117,7 @@ const fmtPlays = (v) => (v >= 10000 ? Math.round(v / 1000) + 'k' : v >= 1000 ? (
 // tile is recognisably its game's colour while the board still reads as one
 // calm surface. The saturated hue stays on the top rule for punch. Computed
 // here rather than with CSS color-mix so it renders identically everywhere.
-const TINT_BASE = '#ffffff';
+const TINT_BASE = T.white;
 function mixHex(hex, pct, base) {
   const h = (x) => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
   const [r1, g1, b1] = h(hex), [r2, g2, b2] = h(base);
@@ -129,7 +130,7 @@ function mixHex(hex, pct, base) {
 // consistent layer of grouping. Navy-legible hues, one clearly distinct per
 // category.
 const CAT_COLOR = {
-  Word: '#1d4ed8', Numbers: '#9a3412', Logic: '#9f0f31',
+  Word: T.blueDeep, Numbers: '#9a3412', Logic: '#9f0f31',
   History: '#6b21a8', Geography: '#166534', 'Crowd Psychology': '#854d0e',
 };
 const CAT_CHIP_BG = {}, CAT_BD = {};
@@ -137,7 +138,7 @@ for (const [k, v] of Object.entries(CAT_COLOR)) {
   CAT_CHIP_BG[k] = mixHex(v, 0.13, TINT_BASE);
   CAT_BD[k] = mixHex(v, 0.72, TINT_BASE);
 }
-const catCol = (cat) => CAT_COLOR[cat] || '#262b35';
+const catCol = (cat) => CAT_COLOR[cat] || T.muted;
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Consecutive ET days on which the player finished at least one daily, counted
@@ -330,7 +331,7 @@ export default function DailyStrip({ board = null }) {
   const rankMove = rankChange == null || rankChange === 0
     ? '\u2014'
     : (rankChange > 0 ? `\u25b2${rankChange}` : `\u25bc${Math.abs(rankChange)}`);
-  const rankMoveColor = (rankChange == null || rankChange === 0) ? undefined : (rankChange > 0 ? '#15803d' : '#c0392b');
+  const rankMoveColor = (rankChange == null || rankChange === 0) ? undefined : (rankChange > 0 ? T.successDeep : T.danger);
 
   const n = GAMES.filter((g) => done.has(g.key)).length;
   const pct = Math.round((n / GAMES.length) * 100);
@@ -565,7 +566,7 @@ export default function DailyStrip({ board = null }) {
             <Star size={10} strokeWidth={0} fill="currentColor" />
           </span>
         ) : null}
-        <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (ip ? '#e8b43a' : 'transparent') }} aria-hidden="true" />
+        <span className="dh-tdot" style={{ background: isDone ? '#16a34a' : (ip ? T.gold : 'transparent') }} aria-hidden="true" />
         {pl != null ? (
           <span className="dh-tcorner">
             <span className="dh-tplays" title={`${pl.toLocaleString()} ${pl === 1 ? 'play' : 'plays'} today`}>
@@ -578,7 +579,7 @@ export default function DailyStrip({ board = null }) {
           <span className="dh-tcta">Click for stats &amp; archive</span>
         ) : (
           <>
-            <span className="dh-tcat" style={{ background: catCol(g.cat), color: '#fff' }}>
+            <span className="dh-tcat" style={{ background: catCol(g.cat), color: T.white }}>
               {CAT_SHORT[g.cat] || g.cat}
             </span>
             <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
@@ -659,7 +660,7 @@ export default function DailyStrip({ board = null }) {
                 ? `You have ${favMax} games pinned. Unpin one first.`
                 : 'Pin to your games. Your board reorders next visit.')}
           >
-            <Star size={11} strokeWidth={2.4} fill={fav ? '#e8b43a' : 'none'} aria-hidden="true" />
+            <Star size={11} strokeWidth={2.4} fill={fav ? T.gold : 'none'} aria-hidden="true" />
           </button>
         ) : null}
       </div>
@@ -671,29 +672,29 @@ export default function DailyStrip({ board = null }) {
       <style>{`
         .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
-        .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:#ffffff;border:1.5px solid #c3ccda;border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:#1c1e24;border-bottom:1px solid #eef0f4;}
-        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1.5px solid #c3ccda;}
+        .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:var(--ink);border-bottom:1px solid #eef0f4;}
+        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1.5px solid var(--border);}
         .dh-bup .dh-play{flex:1 1 auto;min-width:96px;max-width:none;font-size:13.5px;padding:11px 18px;}
         .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         /* Mobile: the easiest-leaderboard text collides with the Play button, so
            drop the game icon there to buy back the width (owner 2026-07-29). */
         @media(max-width:640px){.dh-bup>img{display:none;}}
         .dh-bupt{min-width:0;}
-        .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#a16207;white-space:nowrap;}
+        .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-ink);white-space:nowrap;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
-        .dh-busub{font-size:11px;font-weight:600;color:#262b35;line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dh-busub{font-size:11px;font-weight:600;color:var(--muted);line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dh-mcap{display:none;}
-        .dh-statlead{flex:none;display:flex;flex-direction:column;justify-content:center;font-size:15.5px;font-weight:800;line-height:1.06;color:#1c1e24;white-space:nowrap;padding-right:12px;letter-spacing:-.25px;}
+        .dh-statlead{flex:none;display:flex;flex-direction:column;justify-content:center;font-size:15.5px;font-weight:800;line-height:1.06;color:var(--ink);white-space:nowrap;padding-right:12px;letter-spacing:-.25px;}
         .dh-stats{display:flex;align-items:center;flex:none;min-width:0;overflow:hidden;}
         .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid #eef0f4;}
         .dh-stat:last-child{border-right:none;}
         .dh-stat:last-child{border-right:none;}
         .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:#262b35;white-space:nowrap;}
-        .dh-stat.g b{color:#15803d;}
-        .dh-stat.y b{color:#a16207;}
+        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+        .dh-stat.g b{color:var(--success-deep);}
+        .dh-stat.y b{color:var(--gold-ink);}
         /* IQ Points reads blue, not green: Completed already owns green in this bar. */
-        .dh-stat.iq b{color:#2563eb;}
+        .dh-stat.iq b{color:var(--blue);}
         @container (max-width:900px){.dh-stat.opt{display:none;}}
         @container (max-width:760px){.dh-stat.opt2{display:none;}}
         /* Narrow bars swap the segmented filter for a hamburger and shed the
@@ -712,12 +713,12 @@ export default function DailyStrip({ board = null }) {
            phone would query at ~366px. That mismatch no longer bites: the phone
            renders .dh-mcap instead and this row is hidden below 640px, which also
            makes the very narrow cutoffs unreachable. IQ leads and never drops. */
-        .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
+        .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--gold);color:var(--ink);font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
-        .dh-boardwrap{position:relative;background:#ffffff;border:1.5px solid #c3ccda;border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
+        .dh-boardwrap{position:relative;background:var(--white);border:1.5px solid var(--border);border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
 /* The board window. Until it has been measured (and always below 861px) this is
@@ -731,19 +732,19 @@ export default function DailyStrip({ board = null }) {
         /* The arrow sits ON the window's bottom edge, centred, so it half-covers the
            bottom of the two middle tiles in the last visible row (owner, 2026-07-30).
            It lives outside .dh-vp because the window clips its own overflow. */
-        .dh-more{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #c3ccda;box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:#0e1d40;font-family:inherit;}
-        .dh-more:hover{border-color:#0e1d40;background:#f7f8fa;box-shadow:0 4px 13px rgba(20,22,28,0.26);}
+        .dh-more{position:absolute;left:50%;bottom:0;transform:translate(-50%,50%);z-index:5;width:38px;height:38px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--white);border:1.5px solid var(--border);box-shadow:0 3px 10px rgba(20,22,28,0.20);cursor:pointer;color:var(--accent);font-family:inherit;}
+        .dh-more:hover{border-color:var(--accent);background:var(--surface);box-shadow:0 4px 13px rgba(20,22,28,0.26);}
         @media(max-width:860px){.dh-more{display:none;}}
         /* The phone "show all / show fewer" toggle under the board. Hidden
            everywhere but phones; see the 640px block for the reveal + the cut. */
-        .dh-mall{display:none;width:100%;margin-top:8px;align-items:center;justify-content:center;gap:6px;background:#f7f8fa;border:1.5px solid #c3ccda;border-radius:10px;padding:11px 14px;font-family:inherit;font-size:12.5px;font-weight:800;letter-spacing:-.1px;color:#0e1d40;cursor:pointer;}
-        .dh-mall:active{background:#eef1f6;border-color:#0e1d40;}
+        .dh-mall{display:none;width:100%;margin-top:8px;align-items:center;justify-content:center;gap:6px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:inherit;font-size:12.5px;font-weight:800;letter-spacing:-.1px;color:var(--accent);cursor:pointer;}
+        .dh-mall:active{background:#eef1f6;border-color:var(--accent);}
         /* Tile icon art is normalised to a dark-on-transparent set so it reads on the
        white tile with no plate. warmer, carve and suds resisted the recolour, so
        those three PNGs carry a baked navy plate instead (owner 2026-07-29). */
-        .dh-tile{container-type:inline-size;position:relative;overflow:hidden;background:#ffffff;border:1.5px solid #c3ccda;border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:#1c1e24;transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
+        .dh-tile{container-type:inline-size;position:relative;overflow:hidden;background:var(--white);border:1.5px solid var(--border);border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:var(--ink);transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
         .dh-tile:hover{transform:translateY(-2px);background:#f7f9fc;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
-        .dh-tile.sel{border-color:#a16207;box-shadow:0 0 0 2px #e8b43a;}
+        .dh-tile.sel{border-color:var(--gold-ink);box-shadow:0 0 0 2px var(--gold);}
         .dh-tile.inprog{background:#fffaeb;}
         /* A finished tile reads green (owner, 2026-07-31): the completed games
            sink to the end of the board, so the block of green is the day's
@@ -755,21 +756,21 @@ export default function DailyStrip({ board = null }) {
         .dh-tile.done{background:#dcfce7;border-color:#16a34a;color:#14532d;}
         .dh-tile.done:hover{background:#cdf5dc;}
         .dh-tile.done .dh-tnm{color:#14532d;}
-        .dh-tile.done .dh-msc{color:#15803d;}
+        .dh-tile.done .dh-msc{color:var(--success-deep);}
         .dh-tile.done .dh-mstrk{color:#8a5300;}
         .dh-tile.done .dh-mstrk.none{color:#5d7a68;}
         .dh-tile.done .dh-mlead{color:#2f4a3a;}
-        .dh-tile.done .dh-mlead svg{color:#a16207;}
+        .dh-tile.done .dh-mlead svg{color:var(--gold-ink);}
         .dh-tile.done .dh-nolead{color:#5d7a68;}
         /* Replaces the icon + category chip on a finished tile. Wraps to two
            lines on a narrow tile, which is exactly the room those two freed. */
-        .dh-tcta{margin:6px 2px 0;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;color:#15803d;max-width:100%;}
+        .dh-tcta{margin:6px 2px 0;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;color:var(--success-deep);max-width:100%;}
         /* The play target on an unfinished tile: a real link stretched over the
            whole face, so the tile is one click from the game and still supports
            middle-click / open in new tab. It sits ABOVE the tile's own spans
            (which are decorative) and BELOW the stats button. */
         .dh-tfill{position:absolute;inset:0;z-index:2;border-radius:10px;text-decoration:none;}
-        .dh-tile:focus-within{outline:2px solid #2563eb;outline-offset:1px;}
+        .dh-tile:focus-within{outline:2px solid var(--blue);outline-offset:1px;}
         /* Stats + archive, for a game you have not finished. Bottom-right
            rather than top-right: the top corners already carry the play count
            and the status dot, and a button up there would run
@@ -777,8 +778,8 @@ export default function DailyStrip({ board = null }) {
            EQUALLY on both sides (owner, 2026-07-31): a right-only pad cleared
            the button but pushed the leader name visibly off centre, so the
            name now sits dead centre and simply ellipsizes 16px earlier. */
-        .dh-tstats{position:absolute;right:3px;bottom:4px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #d5dce6;border-radius:5px;background:#ffffff;color:#6b7686;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,border-color .12s;}
-        .dh-tstats:hover{color:#0e1d40;background:#eef1f6;border-color:#0e1d40;}
+        .dh-tstats{position:absolute;right:3px;bottom:4px;z-index:3;width:17px;height:17px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid #d5dce6;border-radius:5px;background:var(--white);color:#6b7686;cursor:pointer;font-family:inherit;transition:color .12s,background .12s,border-color .12s;}
+        .dh-tstats:hover{color:var(--accent);background:#eef1f6;border-color:var(--accent);}
         /* Pin control / pinned indicator. BOTTOM-LEFT, mirroring the stats
            glyph at bottom-right (owner, 2026-08-02). It sat top-right at first,
            which forced the centred game name to pad right and knocked it off
@@ -793,14 +794,14 @@ export default function DailyStrip({ board = null }) {
            star-then-unstar left a faint gold block sitting behind the star
            (owner, 2026-08-02). Same reason the tap highlight is cleared above. */
         @media(hover:hover){
-          .dh-tfav:hover{color:#a16207;background:#fdf4dc;transform:scale(1.12);}
+          .dh-tfav:hover{color:var(--gold-ink);background:#fdf4dc;transform:scale(1.12);}
           .dh-tfav:disabled:hover{color:#798393;background:transparent;transform:none;}
         }
-        .dh-tfav.on{color:#a16207;}
+        .dh-tfav.on{color:var(--gold-ink);}
         .dh-tfav:disabled{cursor:default;opacity:.35;}
-        .dh-tfav.ind{pointer-events:none;color:#a16207;}
-        .dh-tile.done .dh-tfav.ind{color:#15803d;}
-        .dh-tfav:focus-visible{outline:2px solid #2563eb;outline-offset:1px;}
+        .dh-tfav.ind{pointer-events:none;color:var(--gold-ink);}
+        .dh-tile.done .dh-tfav.ind{color:var(--success-deep);}
+        .dh-tfav:focus-visible{outline:2px solid var(--blue);outline-offset:1px;}
         /* A FINISHED tile has no stats glyph, so .dh-mlead there is unpadded and
            a long leader name would run under the star. Pad it only when a star
            is actually drawn (.pinned), so an unpinned tile keeps its leader
@@ -812,7 +813,7 @@ export default function DailyStrip({ board = null }) {
         .dh-tile.done .dh-acc{background:#22c55e !important;}
         .dh-tic{width:46px;height:30px;display:flex;align-items:center;justify-content:center;flex:none;margin:5px 0 6px;}
         .dh-tic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
-        .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.34;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+        .dh-tnm{font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.34;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
         .dh-tcat{margin-top:3px;font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;border-radius:999px;padding:1px 6px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
         .dh-tmeta{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;min-width:0;margin-top:auto;}
         .dh-mrow{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:6px;max-width:100%;}
@@ -820,8 +821,8 @@ export default function DailyStrip({ board = null }) {
         .dh-msc{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:#116932;flex:none;}
         .dh-mstrk{display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:800;color:#8a5300;flex:none;}
         .dh-mstrk.none{color:#4d5872;}
-        .dh-mlead{display:flex;align-items:center;justify-content:center;gap:3px;font-size:9.5px;font-weight:700;color:#262b35;min-width:0;max-width:100%;width:100%;}
-        .dh-mlead svg{flex:none;color:#a16207;}
+        .dh-mlead{display:flex;align-items:center;justify-content:center;gap:3px;font-size:9.5px;font-weight:700;color:var(--muted);min-width:0;max-width:100%;width:100%;}
+        .dh-mlead svg{flex:none;color:var(--gold-ink);}
         .dh-mlead span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dh-tdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;}
         /* Top-left corner row: today's play count. It sits opposite
@@ -841,58 +842,58 @@ export default function DailyStrip({ board = null }) {
         .dh-tplays svg{flex:none;opacity:.85;}
         /* ── expand panel (navy, full width) ── */
         /* ── overall daily leaderboard (toggled) ── */
-        .dh-lbpanel{background:#ffffff;border:1.5px solid #c3ccda;;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:#1c1e24;}
+        .dh-lbpanel{background:var(--white);border:1.5px solid var(--border);;border:1px solid #e8c46a;border-radius:12px;padding:16px 16px 14px;margin-bottom:12px;color:var(--ink);}
         .dsd-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
-        .dsd-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#a16207;font-weight:800;}
-        .dsd-r{font-size:10.5px;color:#262b35;font-weight:600;}
+        .dsd-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink);font-weight:800;}
+        .dsd-r{font-size:10.5px;color:var(--muted);font-weight:600;}
         .dsd-grid{display:grid;grid-template-columns:320px 1fr;gap:18px;align-items:start;}
         @media(max-width:900px){.dsd-grid{grid-template-columns:1fr;}}
-        .dsd-sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;font-weight:800;margin-bottom:8px;}
-        .dsd-cols{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;padding:0 11px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;}
+        .dsd-sub{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:8px;}
+        .dsd-cols{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;padding:0 11px 6px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
         .dsd-row{display:grid;grid-template-columns:24px 1fr 46px 60px;gap:8px;align-items:center;padding:8px 11px;margin-bottom:5px;border-radius:10px;background:#fdf3dd;border:1px solid #fdf3dd;}
-        .dsd-row.plain{background:#f7f8fa;border-color:#262b35;}
+        .dsd-row.plain{background:var(--surface);border-color:var(--muted);}
         .dsd-row.me{background:#fdf3dd;border-color:#8a5300;}
         .dsd-rk{font-weight:800;font-size:15px;color:#8a5300;font-variant-numeric:tabular-nums;}
-        .dsd-row.plain .dsd-rk{color:#262b35;}
-        .dsd-pn{font-size:13.5px;font-weight:500;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dsd-pn b{color:#a16207;font-weight:700;}
-        .dsd-g{font-size:12px;color:#262b35;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+        .dsd-row.plain .dsd-rk{color:var(--muted);}
+        .dsd-pn{font-size:13.5px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dsd-pn b{color:var(--gold-ink);font-weight:700;}
+        .dsd-g{font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
         .dsd-tt{font-size:13.5px;font-weight:800;color:#8a5300;text-align:right;font-variant-numeric:tabular-nums;}
-        .dsd-tt s{font-size:10px;font-weight:600;color:#262b35;text-decoration:none;}
-        .dsd-empty{font-size:12.5px;color:#262b35;font-weight:600;padding:8px 2px;}
+        .dsd-tt s{font-size:10px;font-weight:600;color:var(--muted);text-decoration:none;}
+        .dsd-empty{font-size:12.5px;color:var(--muted);font-weight:600;padding:8px 2px;}
         .dsd-row.first{background:#fdf3dd;border-color:#8a5300;}
         .dsd-row.first .dsd-rk{font-size:17px;color:#8a5300;}
         .dsd-row.first .dsd-pn{font-weight:800;font-size:14.5px;color:#8a5300;display:flex;align-items:center;gap:5px;}
-        .dsd-row.first .dsd-cr{color:#a16207;flex:none;}
+        .dsd-row.first .dsd-cr{color:var(--gold-ink);flex:none;}
         .dsd-row.first .dsd-tt{font-size:15px;}
         .dsd-past{margin-top:20px;padding-top:16px;border-top:1px solid #eef0f4;}
-        .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:#f7f8fa;border:1px solid #eef0f4;}
-        .dsd-yest.top{padding:9px 11px;background:#f7f8fa;border-color:#262b35;}
-        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;font-weight:800;flex:none;min-width:56px;}
+        .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:var(--surface);border:1px solid #eef0f4;}
+        .dsd-yest.top{padding:9px 11px;background:var(--surface);border-color:var(--muted);}
+        .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800;flex:none;min-width:56px;}
         .dsd-yest b{min-width:0;font-size:12px;color:#c9d6ee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .dsd-yest.top b{font-size:13px;color:#1c1e24;font-weight:700;}
+        .dsd-yest.top b{font-size:13px;color:var(--ink);font-weight:700;}
         .dsd-yest .yt{margin-left:auto;flex:none;font-size:11.5px;font-weight:700;color:#d8c489;font-variant-numeric:tabular-nums;}
         .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#8a5300;}
-        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:#262b35;text-decoration:none;}
-        .dsd-yest .ynone{font-size:12px;color:#262b35;font-weight:600;}
+        .dsd-yest .yt s{font-size:9.5px;font-weight:600;color:var(--muted);text-decoration:none;}
+        .dsd-yest .ynone{font-size:12px;color:var(--muted);font-weight:600;}
         .dsd-hof{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;background:#fdf3dd;border:1px solid #e8c46a;color:#8a5300;font-size:12px;font-weight:800;text-decoration:none;transition:background .12s;}
         .dsd-hof:hover{background:#fdf3dd;}
-        .dsd-hof svg{color:#a16207;flex:none;}
-        .dsd-players{margin-top:9px;font-size:11.5px;color:#262b35;font-weight:600;}
-        .dsd-players b{color:#1c1e24;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dsd-players s{color:#262b35;text-decoration:none;font-size:10.5px;}
+        .dsd-hof svg{color:var(--gold-ink);flex:none;}
+        .dsd-players{margin-top:9px;font-size:11.5px;color:var(--muted);font-weight:600;}
+        .dsd-players b{color:var(--ink);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
+        .dsd-players s{color:var(--muted);text-decoration:none;font-size:10.5px;}
         .dsd-gt{font-size:11px;font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:baseline;text-decoration:none;}
-        .dsd-gt span{font-size:9px;color:#262b35;font-weight:600;}
+        .dsd-gt span{font-size:9px;color:var(--muted);font-weight:600;}
         .dsd-minis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;}
         @media(max-width:1200px){.dsd-minis{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:900px){.dsd-minis{grid-template-columns:repeat(2,1fr);}}
-        .dsd-mini{background:#f7f8fa;border:1px solid #eef0f4;border-radius:11px;padding:10px 11px;}
+        .dsd-mini{background:var(--surface);border:1px solid #eef0f4;border-radius:11px;padding:10px 11px;}
         .dsd-mr{display:flex;gap:6px;align-items:baseline;font-size:11.5px;padding:2px 0;}
         .dsd-k{width:11px;font-weight:800;color:#8a5300;font-variant-numeric:tabular-nums;flex:0 0 auto;}
-        .dsd-n2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1c1e24;font-weight:500;}
-        .dsd-n2 b{color:#a16207;font-weight:700;}
-        .dsd-p{color:#262b35;font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
-        .dsd-none{color:#262b35;font-size:10.5px;padding:2px 0;}
+        .dsd-n2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-weight:500;}
+        .dsd-n2 b{color:var(--gold-ink);font-weight:700;}
+        .dsd-p{color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
+        .dsd-none{color:var(--muted);font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-bup{border-left:none;padding-left:4px;}}
@@ -949,13 +950,13 @@ export default function DailyStrip({ board = null }) {
           .dh-sbar .dh-stats{display:none;}
           .dh-sbar .dh-bup{display:none;}
           .dh-mcap{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));align-items:center;width:100%;flex:1 1 auto;}
-          .dh-caplead{font-size:15px;font-weight:800;line-height:1.04;letter-spacing:-.3px;color:#1c1e24;white-space:nowrap;padding:0 11px 0 2px;}
+          .dh-caplead{font-size:15px;font-weight:800;line-height:1.04;letter-spacing:-.3px;color:var(--ink);white-space:nowrap;padding:0 11px 0 2px;}
           .dh-caplead span{display:block;}
           .dh-mcell{padding:8px 3px 9px;text-align:center;min-width:0;}
           .dh-mcell b{display:block;font-size:22px;font-weight:800;line-height:1;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
-          .dh-mcell.iq b{color:#2563eb;}
-          .dh-mcell.g b{color:#15803d;}
-          .dh-mcell span{display:block;margin-top:4px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#46506a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .dh-mcell.iq b{color:var(--blue);}
+          .dh-mcell.g b{color:var(--success-deep);}
+          .dh-mcell span{display:block;margin-top:4px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .dh-bup .dh-play{margin-left:auto;flex:0 0 auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
           /* The wider button leaves the eyebrow 95px; at 9px/.09em it needs 119
              and, since .dh-bue is overflow:visible, it spilled under the button
@@ -1019,12 +1020,12 @@ export default function DailyStrip({ board = null }) {
                 </div>
               </div>
               <a href={easiest.game.href} className="dh-play">
-                <Play size={11} fill="#1c1e24" strokeWidth={0} />{inprog.has(easiest.game.key) ? 'Resume' : 'Play'}
+                <Play size={11} fill={T.ink} strokeWidth={0} />{inprog.has(easiest.game.key) ? 'Resume' : 'Play'}
               </a>
             </>
           ) : (
             <>
-              <Trophy size={22} color="#e8b43a" strokeWidth={2.2} />
+              <Trophy size={22} color={T.gold} strokeWidth={2.2} />
               <div className="dh-bupt">
                 <div className="dh-bue">Clean sweep</div>
                 <div className="dh-bun">All {GAMES.length} done</div>
@@ -1075,7 +1076,7 @@ export default function DailyStrip({ board = null }) {
                   <div className="dsd-empty">Loading…</div>
                 ) : hist.length ? hist.map((d, i) => (
                   <div key={d.date || i} className={`dsd-yest${i === 0 ? ' top' : ''}`}>
-                    <Crown size={i === 0 ? 13 : 11} style={{ color: i === 0 ? '#e8b43a' : '#8d7c52', flex: 'none' }} />
+                    <Crown size={i === 0 ? 13 : 11} style={{ color: i === 0 ? T.gold : '#8d7c52', flex: 'none' }} />
                     <span className="yl">{i === 0 ? 'Yesterday' : d.label}</span>
                     {d.winner ? (
                       <>

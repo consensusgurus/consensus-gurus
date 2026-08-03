@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import ClueBox from './ClueBox';
+import { T } from '@/lib/theme';
 
 // Single-bank matching board (`format: 'bank'`). ONE prompt (the clue, e.g. a
 // company) shows at a time with a Next button to cycle through the prompts not
@@ -26,13 +27,13 @@ import ClueBox from './ClueBox';
 // reduce to the exact tile, so behaviour is unchanged.
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  forest: '#10b981',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  forest: T.success,
+  faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";

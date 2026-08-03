@@ -13,11 +13,12 @@
 import React, { useState, useEffect } from 'react';
 import { Flag, Check } from 'lucide-react';
 import { savedIdentity } from '@/lib/saved-identity';
+import { T } from '@/lib/theme';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const INK = '#1c1e24';
-const FADED = '#262b35';
+const INK = T.ink;
+const FADED = T.muted;
 
 // Today's puzzle id fragment in the daily convention (M-D-YY, e.g. 7-18-26),
 // in Eastern time — the day the daily puzzles roll over.
@@ -29,7 +30,7 @@ function etTodayId() {
   return `${Number(m)}-${Number(d)}-${String(Number(y) % 100)}`;
 }
 
-export default function ReportIssue({ self, name, accent = '#0e1d40', align = 'center' }) {
+export default function ReportIssue({ self, name, accent = T.accent, align = 'center' }) {
   const [open, setOpen] = useState(false);
   const [msg, setMsg] = useState('');
   const [nm, setNm] = useState('');
@@ -77,14 +78,14 @@ export default function ReportIssue({ self, name, accent = '#0e1d40', align = 'c
         .ri-link:hover{color:${INK};}
         .ri-form{max-width:400px;margin:6px auto 0;text-align:left;}
         .ri-h{font-size:12.5px;font-weight:800;color:${INK};margin:0 0 7px;text-align:center;}
-        .ri-form textarea,.ri-form input{width:100%;box-sizing:border-box;font-family:${SANS};font-size:13px;color:${INK};border:1.5px solid #d4d9e0;border-radius:8px;padding:9px 10px;outline:none;background:#fff;}
+        .ri-form textarea,.ri-form input{width:100%;box-sizing:border-box;font-family:${SANS};font-size:13px;color:${INK};border:1.5px solid #d4d9e0;border-radius:8px;padding:9px 10px;outline:none;background:var(--white);}
         .ri-form textarea{resize:vertical;margin-bottom:7px;}
         .ri-form textarea:focus,.ri-form input:focus{border-color:${INK};}
         .ri-row{display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
         .ri-row input{flex:1;min-width:130px;}
         .ri-actions{display:flex;gap:8px;justify-content:flex-end;}
-        .ri-btn{font-family:${SANS};font-weight:800;font-size:13px;border:1.5px solid ${INK};background:#fff;color:${INK};border-radius:8px;padding:8px 14px;cursor:pointer;}
-        .ri-btn.primary{color:#fff;}
+        .ri-btn{font-family:${SANS};font-weight:800;font-size:13px;border:1.5px solid ${INK};background:var(--white);color:${INK};border-radius:8px;padding:8px 14px;cursor:pointer;}
+        .ri-btn.primary{color:var(--white);}
         .ri-btn:disabled{opacity:.5;cursor:default;}
         .ri-sent{margin-top:6px;font-size:12.5px;font-weight:700;color:#0e7c5a;display:inline-flex;align-items:center;gap:6px;}
       `}</style>

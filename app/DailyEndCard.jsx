@@ -86,8 +86,9 @@ import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { T } from '@/lib/theme';
 
-const RUST = '#c0392b';
+const RUST = T.danger;
 const AMBER = '#b45309';
 
 // End Game titles where a loss is a defeat against a live opponent, not a
@@ -109,70 +110,70 @@ function etTodayEC() {
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const INK = '#1c1e24';
-const SLATE = '#46506a';
-const FADED = '#262b35';
+const INK = T.ink;
+const SLATE = T.slate;
+const FADED = T.muted;
 const BORD = '#e7eaf1';
-const NAVY = '#0e1d40';
-const GOLD = '#e8b43a';
-const BLUE = '#2563eb';
+const NAVY = T.accent;
+const GOLD = T.gold;
+const BLUE = T.blue;
 
 // ---- per-game finish accent (keyed by self) --------------------------------
 // accent = the game's brand color; used for the primary Share button.
 export const GAME_META = {
-  crux:   { accent: '#2563eb', badgeBg: '#2563eb', badgeInk: '#fff', Fin: LayoutGrid },
-  emcee:  { accent: '#c026d3', badgeBg: '#c026d3', badgeInk: '#fff', Fin: Type },
+  crux:   { accent: T.blue, badgeBg: T.blue, badgeInk: T.white, Fin: LayoutGrid },
+  emcee:  { accent: '#c026d3', badgeBg: '#c026d3', badgeInk: T.white, Fin: Type },
   garble: { accent: '#b7791f', badgeBg: GOLD, badgeInk: '#5c4a06', Fin: Trophy },
-  links:  { accent: '#166534', badgeBg: '#166534', badgeInk: '#fff', Fin: Link2 },
-  span:   { accent: '#9d174d', badgeBg: '#9d174d', badgeInk: '#fff', Fin: Flag },
-  dating: { accent: '#6d28d9', badgeBg: '#6d28d9', badgeInk: '#fff', Fin: CalendarCheck },
-  circa:  { accent: '#0e7490', badgeBg: '#0e7490', badgeInk: '#fff', Fin: Clock },
-  extra:  { accent: '#b91c1c', badgeBg: '#b91c1c', badgeInk: '#fff', Fin: Newspaper },
-  tally:  { accent: '#15803d', badgeBg: '#15803d', badgeInk: '#fff', Fin: Scale },
-  suds:   { accent: '#ea580c', badgeBg: '#ea580c', badgeInk: '#fff', Fin: Grid3x3 },
-  carve:  { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: '#fff', Fin: LayoutGrid },
-  stet:   { accent: '#0369a1', badgeBg: '#0369a1', badgeInk: '#fff', Fin: Pencil },
-  outwit: { accent: '#1f2937', badgeBg: '#1f2937', badgeInk: '#e8b43a', Fin: Users },
-  tuck:   { accent: '#92400e', badgeBg: '#92400e', badgeInk: '#fff', Fin: Puzzle },
-  alibi:  { accent: '#8b1e2d', badgeBg: '#8b1e2d', badgeInk: '#fff', Fin: Fingerprint },
-  cipher: { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: KeyRound },
-  ping:   { accent: '#0284c7', badgeBg: '#0284c7', badgeInk: '#fff', Fin: Globe },
-  warmer: { accent: '#dc2626', badgeBg: '#dc2626', badgeInk: '#fff', Fin: Thermometer },
-  jester: { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: '#fff', Fin: Crown },
-  sworn:  { accent: '#be185d', badgeBg: '#be185d', badgeInk: '#fff', Fin: Scale },
-  outrank: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: '#fff', Fin: ListOrdered },
-  shards: { accent: '#0d9488', badgeBg: '#0d9488', badgeInk: '#fff', Fin: Blocks },
-  axiom:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: '#fff', Fin: FlaskConical },
-  hearsay: { accent: '#7c2d92', badgeBg: '#7c2d92', badgeInk: '#fff', Fin: Ear },
-  venn:   { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: CircleDot },
-  stands:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: '#fff', Fin: Table2 },
-  bracket: { accent: '#c2410c', badgeBg: '#c2410c', badgeInk: '#fff', Fin: TrophyFin },
-  lode: { accent: '#a16207', badgeBg: '#a16207', badgeInk: '#fff', Fin: TrophyFin },
-  etch: { accent: '#4d7c0f', badgeBg: '#4d7c0f', badgeInk: '#fff', Fin: ImageIcon },
-  glyph: { accent: '#334155', badgeBg: '#334155', badgeInk: '#fff', Fin: KeyRound },
-  hedge: { accent: '#0891b2', badgeBg: '#0891b2', badgeInk: '#fff', Fin: Route },
-  listed: { accent: '#86198f', badgeBg: '#86198f', badgeInk: '#fff', Fin: BarChart3 },
-  mate: { accent: '#6b4423', badgeBg: '#6b4423', badgeInk: '#fff', Fin: Crown },
-  four: { accent: '#1e3a8a', badgeBg: '#1e3a8a', badgeInk: '#fff', Fin: Disc },
-  park: { accent: '#7c5c2e', badgeBg: '#7c5c2e', badgeInk: '#fff', Fin: Car },
-  check: { accent: '#166e5a', badgeBg: '#166e5a', badgeInk: '#fff', Fin: Swords },
-  rung: { accent: '#155e75', badgeBg: '#155e75', badgeInk: '#fff', Fin: MoveUp },
-  crunch: { accent: '#b45309', badgeBg: '#b45309', badgeInk: '#fff', Fin: Calculator },
-  taire: { accent: '#1d6b4f', badgeBg: '#1d6b4f', badgeInk: '#fff', Fin: Club },
-  fib: { accent: '#4c1d95', badgeBg: '#4c1d95', badgeInk: '#fff', Fin: Scale },
-  streak: { accent: '#e11d48', badgeBg: '#e11d48', badgeInk: '#fff', Fin: Flame },
-  feud: { accent: '#9f1239', badgeBg: '#9f1239', badgeInk: '#fff', Fin: BarChart3 },
-  babel: { accent: '#14532d', badgeBg: '#14532d', badgeInk: '#fff', Fin: Blocks },
+  links:  { accent: '#166534', badgeBg: '#166534', badgeInk: T.white, Fin: Link2 },
+  span:   { accent: '#9d174d', badgeBg: '#9d174d', badgeInk: T.white, Fin: Flag },
+  dating: { accent: '#6d28d9', badgeBg: '#6d28d9', badgeInk: T.white, Fin: CalendarCheck },
+  circa:  { accent: '#0e7490', badgeBg: '#0e7490', badgeInk: T.white, Fin: Clock },
+  extra:  { accent: '#b91c1c', badgeBg: '#b91c1c', badgeInk: T.white, Fin: Newspaper },
+  tally:  { accent: T.successDeep, badgeBg: T.successDeep, badgeInk: T.white, Fin: Scale },
+  suds:   { accent: '#ea580c', badgeBg: '#ea580c', badgeInk: T.white, Fin: Grid3x3 },
+  carve:  { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: T.white, Fin: LayoutGrid },
+  stet:   { accent: '#0369a1', badgeBg: '#0369a1', badgeInk: T.white, Fin: Pencil },
+  outwit: { accent: '#1f2937', badgeBg: '#1f2937', badgeInk: T.gold, Fin: Users },
+  tuck:   { accent: '#92400e', badgeBg: '#92400e', badgeInk: T.white, Fin: Puzzle },
+  alibi:  { accent: '#8b1e2d', badgeBg: '#8b1e2d', badgeInk: T.white, Fin: Fingerprint },
+  cipher: { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: T.white, Fin: KeyRound },
+  ping:   { accent: '#0284c7', badgeBg: '#0284c7', badgeInk: T.white, Fin: Globe },
+  warmer: { accent: '#dc2626', badgeBg: '#dc2626', badgeInk: T.white, Fin: Thermometer },
+  jester: { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: T.white, Fin: Crown },
+  sworn:  { accent: '#be185d', badgeBg: '#be185d', badgeInk: T.white, Fin: Scale },
+  outrank: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: ListOrdered },
+  shards: { accent: '#0d9488', badgeBg: '#0d9488', badgeInk: T.white, Fin: Blocks },
+  axiom:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: T.white, Fin: FlaskConical },
+  hearsay: { accent: '#7c2d92', badgeBg: '#7c2d92', badgeInk: T.white, Fin: Ear },
+  venn:   { accent: '#b45309', badgeBg: '#b45309', badgeInk: T.white, Fin: CircleDot },
+  stands:  { accent: T.blueDeep, badgeBg: T.blueDeep, badgeInk: T.white, Fin: Table2 },
+  bracket: { accent: '#c2410c', badgeBg: '#c2410c', badgeInk: T.white, Fin: TrophyFin },
+  lode: { accent: T.goldInk, badgeBg: T.goldInk, badgeInk: T.white, Fin: TrophyFin },
+  etch: { accent: '#4d7c0f', badgeBg: '#4d7c0f', badgeInk: T.white, Fin: ImageIcon },
+  glyph: { accent: '#334155', badgeBg: '#334155', badgeInk: T.white, Fin: KeyRound },
+  hedge: { accent: '#0891b2', badgeBg: '#0891b2', badgeInk: T.white, Fin: Route },
+  listed: { accent: '#86198f', badgeBg: '#86198f', badgeInk: T.white, Fin: BarChart3 },
+  mate: { accent: '#6b4423', badgeBg: '#6b4423', badgeInk: T.white, Fin: Crown },
+  four: { accent: T.blueDark, badgeBg: T.blueDark, badgeInk: T.white, Fin: Disc },
+  park: { accent: '#7c5c2e', badgeBg: '#7c5c2e', badgeInk: T.white, Fin: Car },
+  check: { accent: '#166e5a', badgeBg: '#166e5a', badgeInk: T.white, Fin: Swords },
+  rung: { accent: '#155e75', badgeBg: '#155e75', badgeInk: T.white, Fin: MoveUp },
+  crunch: { accent: '#b45309', badgeBg: '#b45309', badgeInk: T.white, Fin: Calculator },
+  taire: { accent: '#1d6b4f', badgeBg: '#1d6b4f', badgeInk: T.white, Fin: Club },
+  fib: { accent: '#4c1d95', badgeBg: '#4c1d95', badgeInk: T.white, Fin: Scale },
+  streak: { accent: '#e11d48', badgeBg: '#e11d48', badgeInk: T.white, Fin: Flame },
+  feud: { accent: '#9f1239', badgeBg: '#9f1239', badgeInk: T.white, Fin: BarChart3 },
+  babel: { accent: '#14532d', badgeBg: '#14532d', badgeInk: T.white, Fin: Blocks },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
 export const CAT_META = {
-  word:      { name: 'Word',      color: '#2563eb', Icon: Type },
+  word:      { name: 'Word',      color: T.blue, Icon: Type },
   history:   { name: 'History',   color: '#6d28d9', Icon: Clock },
   geography: { name: 'Geography', color: '#0e7c5a', Icon: Globe },
   numbers:   { name: 'Numbers',   color: '#ea580c', Icon: Hash },
   logic:     { name: 'Logic',     color: '#9f1239', Icon: Fingerprint },
-  crowd:     { name: 'Crowd Psychology', color: '#a16207', Icon: Users },
+  crowd:     { name: 'Crowd Psychology', color: T.goldInk, Icon: Users },
   trivia:    { name: 'Trivia',    color: '#0f766e', Icon: Brain },
 };
 // Family render order for the "more games" grid.
@@ -823,7 +824,7 @@ export default function DailyEndCard({
   // daily puzzle gets the same burst on a finish, with no per-client wiring.
   const confetti = React.useMemo(() => {
     if (!won) return [];
-    const cols = [meta.accent, GOLD, '#2563eb', '#15803d', '#c0392b', '#c026d3', '#0e7490'];
+    const cols = [meta.accent, GOLD, T.blue, T.successDeep, T.danger, '#c026d3', '#0e7490'];
     return Array.from({ length: 96 }, (_, i) => {
       const w = 7 + ((i * 13) % 8);
       return {
@@ -985,8 +986,8 @@ export default function DailyEndCard({
       </div>
       <div className="dec-cal-key">
         <span><span className="dec-cal-sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
-        <span><span className="dec-cal-sw" style={{ background: '#fff', border: `1px solid ${BORD}` }} />Unplayed</span>
-        <span><span className="dec-cal-sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
+        <span><span className="dec-cal-sw" style={{ background: T.white, border: `1px solid ${BORD}` }} />Unplayed</span>
+        <span><span className="dec-cal-sw" style={{ background: T.white, boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
       </div>
     </div>
   );
@@ -999,21 +1000,21 @@ export default function DailyEndCard({
         </button>
       )}
       <style>{`
-        .dec-card{background:#fff;border:1px solid ${BORD};border-radius:16px;padding:20px 22px 16px;max-width:760px;width:100%;margin:0 auto;font-family:${SANS};color:${INK};}
+        .dec-card{background:var(--white);border:1px solid ${BORD};border-radius:16px;padding:20px 22px 16px;max-width:760px;width:100%;margin:0 auto;font-family:${SANS};color:${INK};}
         .dec-backdrop{position:fixed;inset:0;z-index:85;background:rgba(20,22,28,0.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
-        .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:#fff;border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:3;}
-        .dec-x:hover{color:${INK};background:#f7f8fa;}
+        .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:var(--white);border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:3;}
+        .dec-x:hover{color:${INK};background:var(--surface);}
         /* Modal scroller: round the track to match the card's 16px corners
            (owner 2026-07-31). The track margin insets it below the curve so the
            bar never pokes into the rounded corner. */
         .dec-card{scrollbar-width:thin;scrollbar-color:#c9cfda transparent;}
         .dec-card::-webkit-scrollbar{width:10px;}
         .dec-card::-webkit-scrollbar-track{background:transparent;border-radius:16px;margin:16px 0;}
-        .dec-card::-webkit-scrollbar-thumb{background:#c9cfda;border-radius:999px;border:2px solid #fff;background-clip:padding-box;}
+        .dec-card::-webkit-scrollbar-thumb{background:#c9cfda;border-radius:999px;border:2px solid var(--white);background-clip:padding-box;}
         .dec-card::-webkit-scrollbar-thumb:hover{background:#aeb6c5;background-clip:padding-box;}
 
         .dec-head{margin-bottom:12px;}
-        .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:#15803d;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-check{width:30px;height:30px;border-radius:50%;background:#e8f5ec;color:var(--success-deep);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-check.loss{background:#fdecec;color:${RUST};}
         .dec-check.near{background:#fdf2e2;color:${AMBER};}
         /* Title line: the result on the left, the player chip hard right. The
@@ -1032,7 +1033,7 @@ export default function DailyEndCard({
         .dec-answer-lbl{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:${SLATE};flex-shrink:0;}
         .dec-answer-word{font-size:21px;font-weight:800;letter-spacing:-.02em;color:${RUST};}
         .dec-idbox{display:inline-flex;align-items:center;gap:8px;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:#f4f6fa;border:1px solid ${BORD};border-radius:999px;padding:5px 13px 5px 5px;max-width:100%;}
-        .dec-idbox .av{width:23px;height:23px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+        .dec-idbox .av{width:23px;height:23px;border-radius:50%;color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
         .dec-idbox .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         /* Guest CTA: the long label on desktop, the short one on a phone. */
         .dec-idbox .sm{display:none;}
@@ -1046,7 +1047,7 @@ export default function DailyEndCard({
            (owner 2026-08-01), sized to be the second thing a finisher reaches
            for after their score. Opens the shared ShareCreditPop through the
            caller's own share handler. */
-        .dec-sharebar{display:flex;align-items:center;gap:13px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:#fff;background:${INK};border:1px solid ${INK};border-radius:13px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:filter .12s ease;}
+        .dec-sharebar{display:flex;align-items:center;gap:13px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:var(--white);background:${INK};border:1px solid ${INK};border-radius:13px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:filter .12s ease;}
         .dec-sharebar:hover{filter:brightness(1.16);}
         .dec-sharebar .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-sharebar .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
@@ -1056,11 +1057,11 @@ export default function DailyEndCard({
         /* Guest claim banner: the loudest element on the card by design. */
         .dec-claim{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:${NAVY};background:linear-gradient(180deg,#f3f7ff,#e4edff);border:2px solid ${BLUE};border-radius:13px;padding:11px 13px;margin-bottom:10px;cursor:pointer;animation:dec-claimpulse 1.8s ease-in-out infinite;}
         .dec-claim:hover{filter:brightness(1.03);}
-        .dec-claim .ic{width:32px;height:32px;border-radius:9px;background:${BLUE};color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;}
+        .dec-claim .ic{width:32px;height:32px;border-radius:9px;background:${BLUE};color:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;z-index:1;}
         .dec-claim .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;position:relative;z-index:1;}
         .dec-claim .t{font-size:13.5px;font-weight:800;letter-spacing:-.01em;}
         .dec-claim .s{font-size:11.5px;font-weight:600;color:${SLATE};}
-        .dec-claim .cta{flex-shrink:0;position:relative;z-index:1;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#fff;background:${BLUE};border-radius:999px;padding:7px 13px;animation:dec-claimblink 1.8s ease-in-out infinite;}
+        .dec-claim .cta{flex-shrink:0;position:relative;z-index:1;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--white);background:${BLUE};border-radius:999px;padding:7px 13px;animation:dec-claimblink 1.8s ease-in-out infinite;}
         .dec-claim::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.7) 50%,transparent 68%);transform:translateX(-100%);animation:dec-claimsweep 2.8s ease-in-out infinite;pointer-events:none;}
         @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.36);}55%{box-shadow:0 0 0 7px rgba(37,99,235,0);}}
         @keyframes dec-claimblink{0%,100%{opacity:1;}50%{opacity:.52;}}
@@ -1068,14 +1069,14 @@ export default function DailyEndCard({
         @media(prefers-reduced-motion:reduce){.dec-claim,.dec-claim .cta{animation:none;}.dec-claim::after{display:none;}}
 
         .dec-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px;}
-        .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
+        .dec-tiles-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${BORD};border-radius:12px;background:var(--surface);font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
         .dec-tiles-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @media(prefers-reduced-motion:reduce){.dec-tiles-loading::after{animation:none;}}
         .dec-tile-cal{position:absolute;top:11px;right:8px;color:${SLATE};}
         /* Tiles carry the same confidence as the hero (owner 2026-08-01): a 2px
            border, white ground, soft shadow and a bigger numeral, so the row
            does not read as a pale afterthought under the navy panel. */
-        .dec-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:2px solid #cfdcf4;background:linear-gradient(180deg,#fff,#eff5ff);border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:0 3px 13px rgba(20,30,60,.08);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
+        .dec-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:2px solid #cfdcf4;background:linear-gradient(180deg,var(--white),#eff5ff);border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:0 3px 13px rgba(20,30,60,.08);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
         /* A colored cap across the top of every tile: the row reads as three
            deliberate cards rather than three pale boxes (owner 2026-08-01). */
         .dec-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
@@ -1087,7 +1088,7 @@ export default function DailyEndCard({
         .dec-tile.m1::before{background:linear-gradient(90deg,#d9a327,#f2d489);}
         .dec-tile.m1 .dec-tile-lbl{color:#96700d;}
         .dec-tile.m1 .dec-tile-rk{color:#8a6407;}
-        .dec-tile.m2{border-color:#c3cad6;background:linear-gradient(180deg,#fff,#f1f3f7);box-shadow:0 3px 13px rgba(40,50,70,.13);}
+        .dec-tile.m2{border-color:#c3cad6;background:linear-gradient(180deg,var(--white),#f1f3f7);box-shadow:0 3px 13px rgba(40,50,70,.13);}
         .dec-tile.m2::before{background:linear-gradient(90deg,#98a2b3,#d6dbe4);}
         .dec-tile.m2 .dec-tile-lbl{color:#5d6779;}
         .dec-tile.m2 .dec-tile-rk{color:#414b5e;}
@@ -1199,7 +1200,7 @@ export default function DailyEndCard({
           .dec-brain-fill{transition:none;}
         }
 
-        .dec-expand{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:#fff;}
+        .dec-expand{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:var(--white);}
         .dec-expand-hd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
         .dec-expand-ti{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};}
         .dec-expand-full{font-size:11.5px;font-weight:800;color:${BLUE};background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:3px;}
@@ -1244,18 +1245,18 @@ export default function DailyEndCard({
         .dec-slip{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:9px 13px;border-radius:11px;margin-bottom:10px;width:100%;text-align:left;}
         .dec-slip.info{background:#eff4fd;border:1px solid #d7e3f8;color:${SLATE};}
         .dec-slip.info b{font-weight:800;color:${NAVY};}
-        .dec-slip.neutral{background:#f7f8fa;border:1px solid ${BORD};color:${SLATE};cursor:pointer;font-family:${SANS};font-weight:600;}
+        .dec-slip.neutral{background:var(--surface);border:1px solid ${BORD};color:${SLATE};cursor:pointer;font-family:${SANS};font-weight:600;}
         .dec-slip.neutral:hover{background:#eef0f4;}
         .dec-slip .clink{font:inherit;font-weight:800;color:${BLUE};background:none;border:none;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer;}
         .dec-slip .chev{margin-left:auto;display:inline-flex;color:${SLATE};}
         .dec-slip-right{margin-left:auto;display:inline-flex;align-items:center;gap:9px;flex:none;}
         .dec-slip-pct{font-weight:800;color:${INK};white-space:nowrap;}
 
-        .dec-cal{border:1px solid ${BORD};border-radius:12px;padding:12px 13px;margin:-2px 0 12px;background:#fff;}
+        .dec-cal{border:1px solid ${BORD};border-radius:12px;padding:12px 13px;margin:-2px 0 12px;background:var(--white);}
         .dec-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
         .dec-cal-mo{font-size:14px;font-weight:800;color:${INK};}
         .dec-cal-nav{display:flex;gap:6px;}
-        .dec-cal-nav button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${BORD};background:#fff;color:${SLATE};cursor:pointer;}
+        .dec-cal-nav button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${BORD};background:var(--white);color:${SLATE};cursor:pointer;}
         .dec-cal-nav button:disabled{opacity:.4;cursor:default;}
         .dec-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
         .dec-cal-wd{font-family:${MONO};font-size:9.5px;color:${FADED};text-align:center;padding-bottom:2px;}
@@ -1263,8 +1264,8 @@ export default function DailyEndCard({
         .dec-cal-cell.empty{background:transparent;}
         .dec-cal-cell.none{color:#c9cdd6;}
         a.dec-cal-cell{text-decoration:none;}
-        a.dec-cal-cell.played{background:#e8f5ec;color:#15803d;border:1px solid #bfe3ca;}
-        a.dec-cal-cell.unplayed{background:#fff;color:${SLATE};border:1px solid ${BORD};}
+        a.dec-cal-cell.played{background:#e8f5ec;color:var(--success-deep);border:1px solid #bfe3ca;}
+        a.dec-cal-cell.unplayed{background:var(--white);color:${SLATE};border:1px solid ${BORD};}
         a.dec-cal-cell.unplayed:hover{border-color:${BLUE};color:${BLUE};}
         a.dec-cal-cell.today{box-shadow:0 0 0 2px ${BLUE};}
         .dec-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}
@@ -1314,9 +1315,9 @@ export default function DailyEndCard({
         .dec-blurb{flex:1 1 auto;font-size:13px;line-height:1.45;color:${SLATE};background:rgba(255,255,255,.72);border-radius:10px;padding:10px 12px;}
         .dec-blurb.ez{color:#7a6114;background:rgba(255,255,255,.62);}
         .dec-nx-btns{display:flex;gap:7px;}
-        .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:14.5px;border-radius:11px;padding:13px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid #ccd8ea;background:#fff;color:${SLATE};}
-        .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:#fff;box-shadow:0 3px 10px rgba(37,99,235,.30);}
-        .dec-nx-btns .b.primary:hover{background:#1d4ed8;filter:none;}
+        .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:14.5px;border-radius:11px;padding:13px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid #ccd8ea;background:var(--white);color:${SLATE};}
+        .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:var(--white);box-shadow:0 3px 10px rgba(37,99,235,.30);}
+        .dec-nx-btns .b.primary:hover{background:var(--blue-deep);filter:none;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
         .dec-nx-auto{font-family:${MONO};font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#5d7cae;text-align:center;margin-top:-4px;}
 
@@ -1324,7 +1325,7 @@ export default function DailyEndCard({
            shadow, 60px icon and a taller shadowed button (owner 2026-08-01). */
         .dec-ez{border:2px solid #eed79c;background:linear-gradient(180deg,#fffaee 0%,#fdf2d9 100%);box-shadow:0 3px 14px rgba(184,138,20,.12);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
         .dec-ez-top{display:flex;align-items:center;gap:13px;min-width:0;}
-        .dec-ez-ico{position:relative;width:60px;height:60px;border-radius:16px;background:#fff;border:1px solid #eed79c;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-ez-ico{position:relative;width:60px;height:60px;border-radius:16px;background:var(--white);border:1px solid #eed79c;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-ez-ico > svg{width:22px;height:22px;}
         .dec-ez-ico .tr{position:absolute;right:-5px;bottom:-5px;width:22px;height:22px;border-radius:50%;background:${GOLD};color:#5c4a06;display:flex;align-items:center;justify-content:center;border:2px solid #fdf6e4;}
         .dec-ez-name{font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
@@ -1341,10 +1342,10 @@ export default function DailyEndCard({
         .dec-col{min-width:0;display:flex;flex-direction:column;}
         .dec-group{margin-bottom:12px;}
         .dec-gh{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;margin-bottom:8px;text-decoration:none;}
-        .dec-gh .lbl{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#fff;}
+        .dec-gh .lbl{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--white);}
         .dec-gh .cnt{margin-left:auto;font-size:11px;color:rgba(255,255,255,.78);display:flex;align-items:center;}
-        .dec-row{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid ${BORD};border-radius:11px;background:#fff;margin-bottom:7px;text-decoration:none;min-width:0;}
-        .dec-row:hover{background:#f7f8fa;}
+        .dec-row{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid ${BORD};border-radius:11px;background:var(--white);margin-bottom:7px;text-decoration:none;min-width:0;}
+        .dec-row:hover{background:var(--surface);}
         .dec-row .nm{font-size:14px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:6px;min-width:0;}
         .dec-row .nm span.t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dec-row .tg{font-size:11px;color:#8a92a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -1354,9 +1355,9 @@ export default function DailyEndCard({
 
         .dec-foot{display:flex;align-items:stretch;gap:8px;margin-top:16px;}
         .dec-foot .dec-btn{flex:1;justify-content:center;}
-        .dec-btn{font-family:${SANS};font-weight:700;font-size:12.5px;border:1px solid ${BORD};background:#fff;color:${SLATE};border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
-        .dec-btn:hover{background:#f7f8fa;}
-        .dec-btn.ink{background:${INK};border-color:${INK};color:#fff;font-weight:800;}
+        .dec-btn{font-family:${SANS};font-weight:700;font-size:12.5px;border:1px solid ${BORD};background:var(--white);color:${SLATE};border-radius:10px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;}
+        .dec-btn:hover{background:var(--surface);}
+        .dec-btn.ink{background:${INK};border-color:${INK};color:var(--white);font-weight:800;}
         .dec-btn.ink:hover{filter:brightness(1.12);background:${INK};}
 
         @media(max-width:640px){
@@ -1671,7 +1672,7 @@ export default function DailyEndCard({
                   <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
                     <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="4" />
                     {autoRun ? (
-                      <circle cx="28" cy="28" r="24" fill="none" stroke="#2563eb" strokeWidth="4" strokeLinecap="round"
+                      <circle cx="28" cy="28" r="24" fill="none" stroke={T.blue} strokeWidth="4" strokeLinecap="round"
                         transform="rotate(-90 28 28)" strokeDasharray={RING_C} strokeDashoffset={ringOffset} />
                     ) : null}
                   </svg>

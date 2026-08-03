@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { COLORS } from '@/lib/data';
 import { getAllSources } from '@/lib/sources';
 import SourcesGrid from './SourcesGrid';
+import { T } from '@/lib/theme';
 
 // Inline trigger (used in the homepage blurb) that reveals a popover listing
 // every publication behind the consensus, with logos and how many lists each
@@ -65,7 +66,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark, p
           textDecorationStyle: (onDark || emphasis) ? 'solid' : 'dotted',
           textDecorationThickness: emphasis ? '2px' : (onDark ? '1px' : 'auto'),
           textUnderlineOffset: '3px',
-          textDecorationColor: onDark ? 'rgba(255,255,255,0.5)' : '#0e1d40',
+          textDecorationColor: onDark ? 'rgba(255,255,255,0.5)' : T.accent,
         }}
       >
         {triggerLabel}
@@ -80,7 +81,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark, p
                  later DOM sibling in the same stacking context and would otherwise tie-break
                  on top of us. 60 clears it while staying under the modal tier. */
               z-index:60;width:min(720px,90vw);max-height:64vh;overflow-y:auto;
-              background:#ffffff;border:1px solid rgba(20,22,28,0.12);border-radius:14px;
+              background:var(--white);border:1px solid rgba(20,22,28,0.12);border-radius:14px;
               box-shadow:0 14px 44px rgba(20,22,28,0.18);padding:0;text-align:left;cursor:default;
             }
             @media(max-width:640px){
@@ -103,7 +104,7 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark, p
               position: 'sticky',
               top: 0,
               zIndex: 2,
-              background: '#ffffff',
+              background: T.white,
               borderTopLeftRadius: 14,
               borderTopRightRadius: 14,
               display: 'flex',
@@ -123,13 +124,13 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark, p
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase',
                   fontWeight: 700,
-                  color: '#0e1d40',
+                  color: T.accent,
                   marginBottom: 4,
                 }}
               >
                 Experts and Aggregators
               </div>
-              <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, color: '#262b35' }}>
+              <div style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, color: T.muted }}>
                 {sources.length} publications, with how many lists each shapes
               </div>
             </div>
@@ -142,9 +143,9 @@ export default function SourcesPopover({ label, emphasis, align, href, onDark, p
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
                 fontWeight: 700,
-                color: '#1c1e24',
+                color: T.ink,
                 textDecoration: 'none',
-                borderBottom: `2px solid #0e1d40`,
+                borderBottom: `2px solid ${T.accent}`,
                 paddingBottom: 2,
               }}
             >

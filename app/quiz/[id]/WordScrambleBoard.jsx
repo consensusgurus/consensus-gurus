@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { T } from '@/lib/theme';
 
 // Word-scramble board (`format: 'word-scramble'`). ONE scrambled country shows
 // at a time as letter tiles; below sits a single text input where you TYPE the
@@ -11,8 +12,8 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 // (cosmetic only — never changes the answer).
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
-  rust: '#c0392b', forest: '#10b981', faded: '#262b35',
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, forest: T.success, faded: T.muted,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -52,7 +53,7 @@ function Tiles({ text }) {
       {words.map((w, wi) => (
         <span key={wi} style={{ display: 'inline-flex', gap: 4 }}>
           {w.split('').map((ch, ci) => (
-            <span key={ci} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'clamp(22px,4.6vw,34px)', height: 'clamp(28px,5.6vw,42px)', borderRadius: 7, background: '#fff', color: COLORS.ink, fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(15px,3vw,22px)', boxShadow: '0 1px 0 rgba(20,22,28,0.18)', textTransform: 'uppercase' }}>{ch}</span>
+            <span key={ci} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'clamp(22px,4.6vw,34px)', height: 'clamp(28px,5.6vw,42px)', borderRadius: 7, background: T.white, color: COLORS.ink, fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(15px,3vw,22px)', boxShadow: '0 1px 0 rgba(20,22,28,0.18)', textTransform: 'uppercase' }}>{ch}</span>
           ))}
         </span>
       ))}
@@ -144,7 +145,7 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
               ref={inputRef} value={val} disabled={!live} onChange={onChange} onKeyDown={onKey}
               placeholder={live ? `Type the ${noun}…` : ''}
               autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: '#fff', color: COLORS.ink, transition: 'border-color .15s' }}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: T.white, color: COLORS.ink, transition: 'border-color .15s' }}
             />
             {cur != null && (
               <button onMouseDown={(e) => e.preventDefault()} onClick={reshuffle} title="Re-shuffle the visible letters." style={{ flex: 'none', fontFamily: SANS, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>↻ Shuffle</button>

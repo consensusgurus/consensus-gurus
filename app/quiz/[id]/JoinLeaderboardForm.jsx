@@ -2,16 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
 import { ensureMyRefCode } from '@/lib/referrals';
+import { T } from '@/lib/theme';
 
 // Shared "Join the Leaderboard" sign-up form for every quiz board. Self-manages
 // its name/email fields (email optional, display name capped at 15). onJoined(id)
 // fires after a successful join so the board can update its own identity and
 // navigate; onViewLeaderboard switches to the leaderboard tab.
-const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#262b35', forest: '#10b981' };
+const C = { ember: T.accent, ink: T.ink, faded: T.muted, forest: T.success };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const labelStyle = { display: 'block', fontFamily: FONT, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.faded, marginBottom: 6 };
-const fieldStyle = { width: '100%', fontFamily: FONT, fontSize: 16, padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${C.ink}`, background: '#fff', color: C.ink, boxSizing: 'border-box' };
+const fieldStyle = { width: '100%', fontFamily: FONT, fontSize: 16, padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${C.ink}`, background: T.white, color: C.ink, boxSizing: 'border-box' };
 
 function getAnonId() {
   if (typeof window === 'undefined') return null;
@@ -104,7 +105,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
         autoFocus={recover}
         style={recover ? { ...fieldStyle, borderColor: C.ember } : fieldStyle}
       />
-      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: '#e8b43a', color: '#1c1e24', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: T.gold, color: T.ink, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
         {busy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
       </button>
       {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? C.ember : C.forest }}>{msg}</p>)}

@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { T } from '@/lib/theme';
 
 // Unified daily leaderboard (2026-07-16). Replaces the single-game
 // <QuizLeaderboard daily/> on every daily-game page. One "Overall" tab ranks
@@ -19,7 +20,7 @@ import { DAILY_GAME_MAP } from '@/lib/daily-games';
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 // gold / silver / bronze for the top-3 podium highlight (light theme)
-const MEDAL = ['#e8b43a', '#a9b0bd', '#c8814b'];
+const MEDAL = [T.gold, '#a9b0bd', '#c8814b'];
 const MEDAL_BG = ['#fdf8ec', '#f4f5f7', '#f8f1e9'];
 const MEDAL_BD = ['#f0e2ba', '#e3e5ea', '#e8d6c2'];
 
@@ -32,41 +33,41 @@ const ACCENTS_NAVY = Object.fromEntries(Object.values(DAILY_GAME_MAP).map((g) =>
 function theme(light) {
   if (light) return {
     light: true,
-    card: '#fff', cardBorder: 'rgba(20,22,28,0.12)', boxShadow: 'none',
-    label: '#262b35', labelWeight: 700, sub: '#262b35',
+    card: T.white, cardBorder: 'rgba(20,22,28,0.12)', boxShadow: 'none',
+    label: T.muted, labelWeight: 700, sub: T.muted,
     line: 'rgba(20,22,28,0.30)',
-    row: '#fff', topRow: '#fff', topBorder: 'rgba(20,22,28,0.30)',
-    meRow: '#eef3ff', meBorder: '#cddffb',
-    rankTop: '#0e1d40', rankOther: '#262b35',
-    name: '#1c1e24', nameDot: '#262b3588', you: '#262b35',
-    dim: '#262b35', total: '#1c1e24', unit: '#262b35',
-    tabOnText: '#fff', tabOffBg: '#fff', tabOffText: '#262b35',
-    expandColor: '#0e1d40', expandBorder: '#cddffb',
-    note: '#262b35', empty: '#262b35',
+    row: T.white, topRow: T.white, topBorder: 'rgba(20,22,28,0.30)',
+    meRow: T.accentSoft, meBorder: T.accentBorder,
+    rankTop: T.accent, rankOther: T.muted,
+    name: T.ink, nameDot: '#262b3588', you: T.muted,
+    dim: T.muted, total: T.ink, unit: T.muted,
+    tabOnText: T.white, tabOffBg: T.white, tabOffText: T.muted,
+    expandColor: T.accent, expandBorder: T.accentBorder,
+    note: T.muted, empty: T.muted,
     skeleton: 'linear-gradient(90deg,#f2f4f7,#f8fafc,#f2f4f7)',
     scrollThumb: 'rgba(20,22,28,0.18)',
-    accents: ACCENTS_LIGHT, overallAccent: '#0e1d40',
+    accents: ACCENTS_LIGHT, overallAccent: T.accent,
   };
   return {
     light: false,
     card: 'linear-gradient(165deg,#16294f,#0c1a34)', cardBorder: 'rgba(232,180,58,0.28)', boxShadow: '0 10px 30px rgba(10,18,38,0.25)',
-    label: '#e8b43a', labelWeight: 800, sub: '#93a7cc',
+    label: T.gold, labelWeight: 800, sub: '#93a7cc',
     line: 'rgba(255,255,255,0.09)',
     row: 'rgba(255,255,255,0.045)', topRow: 'rgba(232,180,58,0.08)', topBorder: 'rgba(232,180,58,0.22)',
     meRow: 'rgba(232,180,58,0.16)', meBorder: 'rgba(232,180,58,0.55)',
     rankTop: '#f5d878', rankOther: '#93a7cc',
-    name: '#eaf0fb', nameDot: '#93a7cc88', you: '#e8b43a',
+    name: '#eaf0fb', nameDot: '#93a7cc88', you: T.gold,
     dim: '#93a7cc', total: '#f5d878', unit: '#6a80a8',
     tabOnText: '#10203f', tabOffBg: 'transparent', tabOffText: '#93a7cc',
     expandColor: '#f5d878', expandBorder: 'rgba(232,180,58,0.45)',
     note: '#6a80a8', empty: '#93a7cc',
     skeleton: 'linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.08),rgba(255,255,255,0.03))',
     scrollThumb: 'rgba(255,255,255,0.18)',
-    accents: ACCENTS_NAVY, overallAccent: '#e8b43a',
+    accents: ACCENTS_NAVY, overallAccent: T.gold,
   };
 }
 // Active-tab fill: navy = uniform gold; light = the game's own accent (blue for Overall).
-function tabAccent(th, key) { return th.light ? (key === 'overall' ? th.overallAccent : th.accents[key] || '#0e1d40') : th.overallAccent; }
+function tabAccent(th, key) { return th.light ? (key === 'overall' ? th.overallAccent : th.accents[key] || T.accent) : th.overallAccent; }
 
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 function fmtPts(n) { const v = Math.round(Number(n) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
@@ -263,7 +264,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
         return (
           <button key={k} onClick={() => setGameScope(k)}
             style={{ padding: '5px 14px', borderRadius: 999, cursor: 'pointer', fontFamily: FONT, fontSize: 11.5, fontWeight: 800, whiteSpace: 'nowrap', border: 'none',
-              background: on ? (th.light ? '#fff' : 'rgba(255,255,255,0.16)') : 'transparent', color: on ? th.total : th.dim, boxShadow: on && th.light ? '0 1px 2px rgba(20,22,28,0.12)' : 'none' }}>
+              background: on ? (th.light ? T.white : 'rgba(255,255,255,0.16)') : 'transparent', color: on ? th.total : th.dim, boxShadow: on && th.light ? '0 1px 2px rgba(20,22,28,0.12)' : 'none' }}>
             {lbl}
           </button>
         );
@@ -306,7 +307,7 @@ function RankNum({ n, th }) {
   if (th.light && n >= 1 && n <= 3) {
     const sz = d ? 19 : 23;
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: sz, height: sz, borderRadius: '50%', background: MEDAL[n - 1], color: '#fff', fontFamily: FONT, fontWeight: 900, fontSize: d ? 11 : 13, fontVariantNumeric: 'tabular-nums', boxShadow: '0 1px 2px rgba(20,22,28,0.18)' }}>{n}</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: sz, height: sz, borderRadius: '50%', background: MEDAL[n - 1], color: T.white, fontFamily: FONT, fontWeight: 900, fontSize: d ? 11 : 13, fontVariantNumeric: 'tabular-nums', boxShadow: '0 1px 2px rgba(20,22,28,0.18)' }}>{n}</span>
     );
   }
   return <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: d ? 14 : 17, color: n <= 3 ? th.rankTop : th.rankOther, fontVariantNumeric: 'tabular-nums' }}>{n}</span>;

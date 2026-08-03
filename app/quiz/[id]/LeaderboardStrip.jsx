@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import { Trophy } from 'lucide-react';
+import { T } from '@/lib/theme';
 
 // Slim, always-visible top-3 leaderboard strip under the quiz title on EVERY
 // format. On phones it collapses to just the #1 spot (entries 2-3 and the play
@@ -9,7 +10,7 @@ import { Trophy } from 'lucide-react';
 // hairline border, medal circles, blue accent). Renders a "be the first" link
 // when the quiz has no scores yet so the leaderboard stays reachable.
 
-const C = { ink: '#1c1e24', soft: '#262b35', muted: '#262b35', acc: '#0e1d40', line: 'rgba(20,22,28,0.30)', gold: '#e8b43a', silver: '#aeb4bd', bronze: '#c88a55' };
+const C = { ink: T.ink, soft: T.muted, muted: T.muted, acc: T.accent, line: 'rgba(20,22,28,0.30)', gold: T.gold, silver: T.silver, bronze: T.bronze };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const MEDAL = [C.gold, C.silver, C.bronze];
 const CSS = `.qz-lbstrip{scrollbar-width:none;-ms-overflow-style:none;}
@@ -34,7 +35,7 @@ export default function LeaderboardStrip({ board, identity, onOpen }) {
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (onOpen) onOpen(); } }}
       title="See the full leaderboard"
       className="qz-lbstrip"
-      style={{ display: 'flex', alignItems: 'center', width: '100%', boxSizing: 'border-box', margin: '11px 0 0', padding: '8px 12px', background: '#fff', border: `1px solid ${C.line}`, borderRadius: 12, cursor: 'pointer', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: FONT }}
+      style={{ display: 'flex', alignItems: 'center', width: '100%', boxSizing: 'border-box', margin: '11px 0 0', padding: '8px 12px', background: T.white, border: `1px solid ${C.line}`, borderRadius: 12, cursor: 'pointer', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: FONT }}
     >
       <style>{CSS}</style>
       <Trophy size={13} strokeWidth={2.5} color={C.acc} style={{ flex: 'none', marginRight: 8 }} />
@@ -52,7 +53,7 @@ export default function LeaderboardStrip({ board, identity, onOpen }) {
       <span className="qz-lbscroll" style={{ display: 'flex', alignItems: 'center', flex: '1 1 auto', minWidth: 0, overflow: 'hidden' }}>
       {top.map((r, i) => (
         <span key={`${r.username || 'p'}-${i}`} className={`qz-lbe qz-lbe-${i + 1}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginRight: 13 }}>
-          <span style={{ width: 17, height: 17, borderRadius: '50%', background: MEDAL[i], color: '#fff', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>{i + 1}</span>
+          <span style={{ width: 17, height: 17, borderRadius: '50%', background: MEDAL[i], color: T.white, fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>{i + 1}</span>
           <span className="qz-lbnm" style={{ fontSize: 12.5, fontWeight: mine(r) ? 800 : 600, color: mine(r) ? C.acc : C.ink }}>{(r.username || 'Player') + (mine(r) ? ' (you)' : '')}</span>
           <span style={{ fontSize: 12.5, color: C.soft }}>{r.score}</span>
         </span>

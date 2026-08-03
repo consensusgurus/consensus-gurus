@@ -7,11 +7,12 @@ import Footer from '../../Footer';
 import { QUIZZES } from '@/lib/quizzes';
 import { COMPANY_META } from '@/lib/company-quiz-meta';
 import { SECTOR_META, BN_NEWS_RE as NEWS_RE, BN_EARN_RE as EARN_RE } from '@/lib/business-news-hub';
+import { T } from '@/lib/theme';
 
 // ─── palette / type (matches the Quizzes home) ──────────────────────────────
 const C = {
-  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35', soft: '#262b35',
-  line: 'rgba(20,22,28,0.30)', accent: '#0e1d40', accsoft: '#e8effb', live: '#10b981',
+  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted, soft: T.muted,
+  line: 'rgba(20,22,28,0.30)', accent: T.accent, accsoft: '#e8effb', live: T.success,
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -124,7 +125,7 @@ export default function BusinessNewsClient() {
     .bnh .qrow .qmeta.is-new{color:${C.live};}
     .bnh .sectors{display:flex;flex-direction:column;gap:10px;}
     .bnh .sbtn{display:flex;align-items:center;gap:13px;background:${C.surface};border:1px solid ${C.line};border-radius:13px;padding:13px 15px;min-height:66px;transition:border-color .15s,box-shadow .15s;}
-    .bnh a.sbtn:hover{border-color:#cddffb;box-shadow:0 1px 0 #eef2f8,0 6px 18px rgba(20,40,80,.06);}
+    .bnh a.sbtn:hover{border-color:var(--accent-border);box-shadow:0 1px 0 #eef2f8,0 6px 18px rgba(20,40,80,.06);}
     .bnh .sfav{width:42px;height:42px;border-radius:11px;flex:none;background:#f3f5f8;border:1px solid ${C.line};display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;}
     .bnh .sbody{flex:1;min-width:0;display:flex;flex-direction:column;}
     .bnh .sname{font-size:14px;font-weight:800;color:${C.ink};}
@@ -132,16 +133,16 @@ export default function BusinessNewsClient() {
     .bnh .sname,.bnh .ssub{display:block;}
     .bnh .sdate{flex:none;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${C.soft};margin-right:2px;}
     .bnh .smeta{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${C.soft};margin-top:3px;}
-    .bnh .splay{flex:none;width:34px;height:34px;border-radius:50%;background:${C.accent};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;}
+    .bnh .splay{flex:none;width:34px;height:34px;border-radius:50%;background:${C.accent};color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;}
     .bnh .sbtn-soon{border-style:dashed;background:transparent;}
     .bnh .sbtn-soon .sfav{background:transparent;border-style:dashed;color:${C.soft};}
     .bnh .sbtn-soon .sname{color:${C.soft};}
     .bnh .cosearch{margin:0 0 14px;position:relative;max-width:340px;}
-    .bnh .cosearch input{width:100%;padding:9px 12px;border:1px solid ${C.line};border-radius:10px;font-family:${FONT};font-size:13.5px;background:#fff;color:${C.ink};outline:none;}
-    .bnh .cosearch input:focus{border-color:#cddffb;box-shadow:0 0 0 3px ${C.accsoft};}
+    .bnh .cosearch input{width:100%;padding:9px 12px;border:1px solid ${C.line};border-radius:10px;font-family:${FONT};font-size:13.5px;background:var(--white);color:${C.ink};outline:none;}
+    .bnh .cosearch input:focus{border-color:var(--accent-border);box-shadow:0 0 0 3px ${C.accsoft};}
     .bnh .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}
     .bnh .card{background:${C.surface};border:1px solid ${C.line};border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;min-height:96px;transition:border-color .15s,box-shadow .15s;}
-    .bnh .card:hover{border-color:#cddffb;box-shadow:0 1px 0 #eef2f8,0 6px 18px rgba(20,40,80,.06);}
+    .bnh .card:hover{border-color:var(--accent-border);box-shadow:0 1px 0 #eef2f8,0 6px 18px rgba(20,40,80,.06);}
     .bnh .fav{width:42px;height:42px;border-radius:11px;flex:none;background:#f3f5f8;border:1px solid ${C.line};display:flex;align-items:center;justify-content:center;overflow:hidden;}
     .bnh .cbody{flex:1;min-width:0;}
     .bnh .ctop{display:flex;align-items:center;gap:8px;}
@@ -149,8 +150,8 @@ export default function BusinessNewsClient() {
     .bnh .tk{font-size:10px;font-weight:800;letter-spacing:.04em;color:${C.accent};background:${C.accsoft};border-radius:5px;padding:2px 6px;}
     .bnh .ctitle{font-size:13px;font-weight:600;color:${C.ink};margin-top:3px;line-height:1.32;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
     .bnh .cmeta{font-size:11px;font-weight:600;color:${C.soft};margin-top:5px;display:flex;align-items:center;gap:7px;}
-    .bnh .play{flex:none;width:34px;height:34px;border-radius:50%;background:${C.accent};color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;}
-    .bnh .moreBtn{margin:14px 0 0;display:inline-flex;align-items:center;gap:6px;background:#fff;color:${C.accent};border:1px solid #cddffb;padding:8px 16px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;cursor:pointer;}
+    .bnh .play{flex:none;width:34px;height:34px;border-radius:50%;background:${C.accent};color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;}
+    .bnh .moreBtn{margin:14px 0 0;display:inline-flex;align-items:center;gap:6px;background:var(--white);color:${C.accent};border:1px solid var(--accent-border);padding:8px 16px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;cursor:pointer;}
     .bnh .moreBtn:hover{background:${C.accsoft};}
     .bnh .empty{padding:18px 2px;color:${C.soft};font-size:14px;}
   `;

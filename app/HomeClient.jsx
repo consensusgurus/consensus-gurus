@@ -46,6 +46,7 @@ import { getAllSources } from '@/lib/sources';
 import SiteHeader from './SiteHeader';
 import { QUIZZES } from '@/lib/quizzes';
 import { quizDept as quizDeptOf, quizIcon as quizIconOf, DEPT_COLOR as QUIZ_DEPT_COLOR } from '@/lib/quiz-departments';
+import { T } from '@/lib/theme';
 
 // ── HOMEPAGE V2 (June 2026 redesign) ────────────────────────────────────────
 // Flip this single flag to false to restore the previous homepage exactly —
@@ -180,7 +181,7 @@ const CAT_BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 // text. The five new tones extend the existing palette (ember, rust, forest,
 // faded) with slate (Products) and plum (Entertainment).
 const PARENT_COLORS = {
-  restaurants: '#c0392b',      // ember — Eating
+  restaurants: T.danger,      // ember — Eating
   'bars-nightlife': '#a44a26', // rust — Drinking
   travel: '#3d4f2b',           // forest — Hotels & Travel
   shops: '#3a5670',            // slate — Products
@@ -901,7 +902,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         style={active ? { background: meta.color, borderColor: meta.color } : null}
         onClick={() => { setTypeFilter(c.id); setNavMenu(null); }}
       >
-        <Icon size={13} strokeWidth={2.25} style={{ color: active ? '#fff' : meta.color }} /> {c.label}
+        <Icon size={13} strokeWidth={2.25} style={{ color: active ? T.white : meta.color }} /> {c.label}
       </button>
     );
   };
@@ -926,7 +927,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .nt-wrap{max-width:1300px;margin:0 auto;padding:8px 24px 70px;}
-        .nt-stickytop{position:sticky;top:0;z-index:50;background:#f7f8fa;}
+        .nt-stickytop{position:sticky;top:0;z-index:50;background:var(--surface);}
         .nt-pillsbar{max-width:1300px;margin:0 auto;padding:10px 24px 10px;}
         .nt-toolwrap{max-width:1300px;margin:0 auto;padding:0 24px;display:none;}
         .nt-bodywrap{padding-top:0;}
@@ -941,37 +942,37 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-tagline{font-size:12px;color:${NT.muted};line-height:1.5;max-width:430px;}
         .nt-tagline b{color:${NT.ink};}
         .nt-pills{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0;position:relative;}
-        .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 10px;border-radius:9px;border:1px solid ${NT.line};background:#fff;color:${NT.muted};cursor:pointer;display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:5px;font-family:inherit;white-space:nowrap;}
-        .nt-pill.on{color:#fff;}
-        .nt-pill.ghost.on{background:${NT.ink};border-color:${NT.ink};color:#fff;}
-        .nt-panel{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;background:#fff;border:1px solid ${NT.line};border-radius:12px;box-shadow:0 12px 30px rgba(20,22,28,0.12);padding:14px 16px 18px;max-height:62vh;overflow:auto;}
+        .nt-pill{font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:7px 10px;border-radius:9px;border:1px solid ${NT.line};background:var(--white);color:${NT.muted};cursor:pointer;display:flex;flex:1 1 auto;align-items:center;justify-content:center;gap:5px;font-family:inherit;white-space:nowrap;}
+        .nt-pill.on{color:var(--white);}
+        .nt-pill.ghost.on{background:${NT.ink};border-color:${NT.ink};color:var(--white);}
+        .nt-panel{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:30;background:var(--white);border:1px solid ${NT.line};border-radius:12px;box-shadow:0 12px 30px rgba(20,22,28,0.12);padding:14px 16px 18px;max-height:62vh;overflow:auto;}
         .nt-chip{font-size:11px;font-weight:700;letter-spacing:.02em;padding:6px 10px;border-radius:8px;border:1px solid ${NT.line};background:${NT.bg};color:${NT.ink};cursor:pointer;font-family:inherit;white-space:nowrap;}
-        .nt-chip.on{background:${NT.accent};border-color:${NT.accent};color:#fff;}
+        .nt-chip.on{background:${NT.accent};border-color:${NT.accent};color:var(--white);}
         .nt-phead{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:${NT.soft};margin:14px 0 8px;}
         .nt-phead:first-child{margin-top:0;}
         .nt-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;position:relative;}
         .nt-field{position:relative;flex:1 1 280px;min-width:0;}
         .nt-field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:${NT.soft};}
-        .nt-field input{width:100%;padding:10px 34px 10px 36px;border:1px solid ${NT.line};border-radius:10px;font-family:inherit;font-size:13.5px;background:#fff;outline:none;color:${NT.ink};}
+        .nt-field input{width:100%;padding:10px 34px 10px 36px;border:1px solid ${NT.line};border-radius:10px;font-family:inherit;font-size:13.5px;background:var(--white);outline:none;color:${NT.ink};}
         .nt-field .nt-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:${NT.soft};cursor:pointer;display:flex;padding:4px;}
-        .nt-tbtn{display:flex;align-items:center;gap:7px;border:1px solid ${NT.line};background:#fff;border-radius:10px;padding:10px 13px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;white-space:nowrap;}
-        .nt-tbtn.primary{background:${NT.accent};border-color:${NT.accent};color:#fff;font-weight:700;text-decoration:none;}
+        .nt-tbtn{display:flex;align-items:center;gap:7px;border:1px solid ${NT.line};background:var(--white);border-radius:10px;padding:10px 13px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;white-space:nowrap;}
+        .nt-tbtn.primary{background:${NT.accent};border-color:${NT.accent};color:var(--white);font-weight:700;text-decoration:none;}
         .nt-mfilter{display:none;}
-        .nt-msheet{display:none;box-sizing:border-box;background:#fff;border:1px solid ${NT.line};border-radius:12px;padding:4px 14px calc(14px + env(safe-area-inset-bottom) + 76px);max-height:calc(100dvh - 120px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+        .nt-msheet{display:none;box-sizing:border-box;background:var(--white);border:1px solid ${NT.line};border-radius:12px;padding:4px 14px calc(14px + env(safe-area-inset-bottom) + 76px);max-height:calc(100dvh - 120px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
         .nt-sortpill{position:relative;flex:none;display:flex;}
-        .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:#fff;border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
-        .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
+        .nt-sortmenu{position:absolute;top:calc(100% + 6px);z-index:30;min-width:190px;background:var(--white);border:1px solid ${NT.line};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.12);overflow:hidden;}
+        .nt-sortitem{width:100%;display:block;text-align:left;border:none;background:var(--white);padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:${NT.ink};cursor:pointer;}
         .nt-sortitem.on,.nt-sortitem:hover{background:${NT.accsoft};color:${NT.accent};}
         .nt-grid{display:grid;grid-template-columns:repeat(5,1fr);grid-auto-flow:dense;gap:16px;}
         @media(max-width:1240px){.nt-grid{grid-template-columns:repeat(4,1fr);}}
         @media(max-width:1040px){.nt-grid{grid-template-columns:repeat(3,1fr);}}
         @media(max-width:720px){.nt-grid{grid-template-columns:repeat(2,1fr);}}
         @media(max-width:480px){.nt-grid{grid-template-columns:1fr;}}
-        .nt-tile{height:100%;background:#fff;border:1px solid ${NT.line};border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:${NT.ink};transition:box-shadow .15s,transform .15s;}
+        .nt-tile{height:100%;background:var(--white);border:1px solid ${NT.line};border-radius:12px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:${NT.ink};transition:box-shadow .15s,transform .15s;}
         .nt-tile:hover{box-shadow:0 8px 24px rgba(20,22,28,0.10);transform:translateY(-2px);}
         .nt-timg{position:relative;height:180px;display:flex;align-items:center;justify-content:center;}
-        .nt-tcat{position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;padding:3px 7px 3px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
-        .nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
+        .nt-tcat{position:absolute;top:8px;left:8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--white);padding:3px 7px 3px 6px;border-radius:6px;display:inline-flex;align-items:center;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,0.18);}
+        .nt-tbadge{position:absolute;bottom:8px;left:8px;background:rgba(28,30,36,0.85);color:var(--white);font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;}
         .nt-tbody{padding:12px 14px 13px;display:flex;flex-direction:column;flex:1 1 auto;}
         .nt-ttitle{font-size:16px;font-weight:800;line-height:1.18;letter-spacing:-0.01em;margin:0 0 9px;}
         .nt-crow{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px dashed rgba(20,22,28,0.12);font-size:12.5px;}
@@ -982,7 +983,7 @@ function Home({ lists, viewCounts, voteData, extras, trending = {}, openList, on
         .nt-tfoot span{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${NT.soft};display:flex;align-items:center;gap:4px;}
         .nt-relwrap{flex:1 1 0;min-height:0;position:relative;overflow:hidden;margin-top:10px;}
         .nt-rel{display:flex;align-items:center;justify-content:space-between;gap:8px;background:${NT.bg};border:1px solid ${NT.line};border-radius:8px;padding:8px 11px;cursor:pointer;color:${NT.ink};transition:background .12s,border-color .12s;}
-        .nt-rel:hover{background:#fff;border-color:${NT.accent};}
+        .nt-rel:hover{background:var(--white);border-color:${NT.accent};}
         .nt-rel-t{flex:1 1 auto;min-width:0;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .nt-rel-a{flex:none;color:${NT.accent};font-weight:800;}
         @media(max-width:560px){.nt-wrap{padding:16px 14px 60px;}.nt-tagline{display:none;}.nt-pillsbar{display:none !important;}.nt-mfilter{display:inline-flex !important;flex:1 1 auto;justify-content:space-between;}.nt-msheet{display:block;flex:1 1 100%;width:100%;}.nt-toolbar{margin-bottom:10px;}.nt-toolwrap{display:block !important;padding:10px 14px 0 !important;}.nt-bodywrap{padding-top:0 !important;}}
@@ -1331,14 +1332,14 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
             backgroundSize: heroPhoto.contain ? 'contain' : 'cover',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            backgroundColor: heroPhoto.contain ? (heroBg || '#ffffff') : COLORS.paper,
+            backgroundColor: heroPhoto.contain ? (heroBg || T.white) : COLORS.paper,
             transition: 'background-color 0.2s ease',
           }}
         >
           {!heroPhoto.contain && (
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(18,14,10,0.55), rgba(18,14,10,0) 55%)' }} />
           )}
-          <span style={{ position: 'absolute', left: heroPhoto.contain ? 8 : 12, bottom: 8, maxWidth: 'calc(100% - 16px)', color: '#fff', fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: heroPhoto.contain ? 'rgba(26,22,17,0.78)' : 'transparent', padding: heroPhoto.contain ? '3px 8px' : 0 }}>
+          <span style={{ position: 'absolute', left: heroPhoto.contain ? 8 : 12, bottom: 8, maxWidth: 'calc(100% - 16px)', color: T.white, fontSize: 12, fontFamily: 'DM Mono, monospace', letterSpacing: '0.06em', textShadow: '0 1px 5px rgba(0,0,0,0.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', background: heroPhoto.contain ? 'rgba(26,22,17,0.78)' : 'transparent', padding: heroPhoto.contain ? '3px 8px' : 0 }}>
             {heroPhoto.rank != null ? (
               <span style={{ color: '#e7cf73', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14 }}>#{heroPhoto.rank}</span>
             ) : (
@@ -1586,16 +1587,16 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
 // Modern light theme: Manrope, soft gray bg, white cards, blue accent, lucide
 // icons. Mirrors app/quizzes/QuizHomeClient.jsx so Lists and Quizzes match.
 const NT = {
-  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40',
-  accsoft: '#e8effb', live: '#10b981',
+  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
+  accsoft: '#e8effb', live: T.success,
 };
 const NFONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 // Broad category → lucide icon + accent color (used by pills + tile badges).
 const CAT_META = {
   all: { Icon: LayoutGrid, color: NT.ink },
-  restaurants: { Icon: Utensils, color: '#c0392b' },
+  restaurants: { Icon: Utensils, color: T.danger },
   'bars-nightlife': { Icon: Wine, color: '#b0466e' },
   travel: { Icon: Plane, color: '#2e7d6b' },
   shops: { Icon: ShoppingBag, color: '#7a4fb0' },
@@ -1646,9 +1647,9 @@ function NTLogo({ size = 38 }) {
         </radialGradient>
       </defs>
       <rect x="3" y="3" width="58" height="58" rx="17.5" fill="url(#sotLogoBlue)" />
-      <circle cx="32" cy="32.5" r="16.4" fill="#ffffff" /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
+      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
       <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke="#0e1d40" strokeWidth="0.4" strokeLinejoin="round" fill="url(#sotLogoGold)" />
+      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill="url(#sotLogoGold)" />
     </svg>
   );
 }
@@ -1722,7 +1723,7 @@ export function BrowseTile({ list, views, voteData, extras, onClick, featured, r
 
   return (
     <a className="nt-tile" style={featured ? { gridRow: 'span 2' } : null} href={`/list/${encodeURIComponent(list.id)}`} onClick={(e) => { if (onClick) { e.preventDefault(); onClick(); } }}>
-      <div className="nt-timg" style={hero ? { backgroundImage: `url("${hero.src}")`, backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: containHero ? '#fff' : undefined } : { background: ntGrad(list.title || list.id) }}>
+      <div className="nt-timg" style={hero ? { backgroundImage: `url("${hero.src}")`, backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: containHero ? T.white : undefined } : { background: ntGrad(list.title || list.id) }}>
         {!hero && <Icon size={34} strokeWidth={1.75} style={{ color: 'rgba(255,255,255,0.6)' }} />}
         <span className="nt-tcat" style={{ background: cat.color }}><Icon size={11} strokeWidth={2.25} /> {cat.label}</span>
         {hero && hero.rank && <span className="nt-tbadge">#{hero.rank}</span>}
@@ -1732,7 +1733,7 @@ export function BrowseTile({ list, views, voteData, extras, onClick, featured, r
         <div className="nt-lbl" style={{ marginBottom: 5 }}>{preview.label}</div>
         {preview.items.map((name, i) => (
           <div className="nt-crow" key={i}>
-            <span className="nt-cnum" style={i < 3 ? { background: '#fff', color: NT_MEDAL[i], border: `1.5px solid ${NT_MEDAL[i]}` } : { background: ntTint(cat.color), color: cat.color }}>{i + 1}</span>
+            <span className="nt-cnum" style={i < 3 ? { background: T.white, color: NT_MEDAL[i], border: `1.5px solid ${NT_MEDAL[i]}` } : { background: ntTint(cat.color), color: cat.color }}>{i + 1}</span>
             <span className="nt-cname">{stripItemScore(name)}</span>
           </div>
         ))}
@@ -1787,7 +1788,7 @@ function NTQuizTile({ quiz, leaders }) {
         <div className="nt-lbl" style={{ marginBottom: 5 }}>Top Players</div>
         {top.length > 0 ? top.map((name, i) => (
           <div className="nt-crow" key={i}>
-            <span className="nt-cnum" style={{ background: '#fff', color: NT_MEDAL[i], border: `1.5px solid ${NT_MEDAL[i]}` }}>{i + 1}</span>
+            <span className="nt-cnum" style={{ background: T.white, color: NT_MEDAL[i], border: `1.5px solid ${NT_MEDAL[i]}` }}>{i + 1}</span>
             <span className="nt-cname">{name}</span>
           </div>
         )) : (

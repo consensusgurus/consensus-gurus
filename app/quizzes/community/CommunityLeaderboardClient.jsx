@@ -7,16 +7,17 @@ import QuizNavHeader from '../QuizNavHeader';
 import JoinLeaderboardForm from '../../quiz/[id]/JoinLeaderboardForm';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
+import { T } from '@/lib/theme';
 
 // Public referral board. The Top Community Member tile on the home hub shows only
 // the winner and the two runners-up; this is the full ranking behind it, plus the
 // viewer's own standing and share link.
 
 const C = {
-  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40', cta: '#e8b43a',
+  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent, cta: T.gold,
 };
-const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
+const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const WINDOWS = [
@@ -137,7 +138,7 @@ export default function CommunityLeaderboardClient() {
                 padding: '7px 13px', borderRadius: 999,
                 border: `1px solid ${days === w.key ? C.accent : C.line}`,
                 background: days === w.key ? C.accent : C.surface,
-                color: days === w.key ? '#fff' : C.muted,
+                color: days === w.key ? T.white : C.muted,
               }}
             >
               {w.label}
@@ -192,7 +193,7 @@ export default function CommunityLeaderboardClient() {
           onClick={() => setJoinOpen(false)}
           style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(14,29,64,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: 390, maxWidth: '100%', background: '#fff', borderRadius: 16, padding: '22px 20px 20px', maxHeight: '88vh', overflow: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: 390, maxWidth: '100%', background: T.white, borderRadius: 16, padding: '22px 20px 20px', maxHeight: '88vh', overflow: 'auto' }}>
             <JoinLeaderboardForm
               hideIcon
               heading="Register to get your share link"

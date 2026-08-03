@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { Swords, X } from 'lucide-react';
+import { T } from '@/lib/theme';
 
 // Universal duel context for a quiz page. Works for EVERY board format because
 // QuizClient calls this hook once, above its per-format early returns, and drops
@@ -101,7 +102,7 @@ export default function useDuelContext(quizId, searchParams) {
   return { duelToken: token, duelInfo: info, duelSubmitted: submitted };
 }
 
-const ACCENT = '#0e1d40';
+const ACCENT = T.accent;
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 // A slim fixed bar shown on any quiz opened as part of a duel. Before the player
@@ -121,11 +122,11 @@ export function DuelBanner({ token, info, submitted }) {
   const wrap = {
     position: 'fixed', left: '50%', bottom: 16, transform: 'translateX(-50%)', zIndex: 95,
     maxWidth: 'calc(100vw - 24px)', display: 'flex', alignItems: 'center', gap: 12,
-    background: '#fff', border: `2px solid ${ACCENT}`, borderRadius: 999,
+    background: T.white, border: `2px solid ${ACCENT}`, borderRadius: 999,
     boxShadow: '0 12px 34px rgba(20,22,28,0.22)', padding: '9px 10px 9px 16px', fontFamily: FONT,
   };
-  const txt = { fontSize: 13, fontWeight: 700, color: '#1c1e24', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60vw' };
-  const btn = { flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: ACCENT, color: '#fff', textDecoration: 'none', borderRadius: 999, padding: '8px 15px', fontWeight: 800, fontSize: 13 };
+  const txt = { fontSize: 13, fontWeight: 700, color: T.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '60vw' };
+  const btn = { flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: ACCENT, color: T.white, textDecoration: 'none', borderRadius: 999, padding: '8px 15px', fontWeight: 800, fontSize: 13 };
   return (
     <div style={wrap} className="sot-duel-banner">
       <Swords size={17} style={{ color: ACCENT, flex: 'none' }} />
@@ -140,7 +141,7 @@ export function DuelBanner({ token, info, submitted }) {
           <a href={href} style={{ ...btn, background: '#eef2fb', color: ACCENT }}>Back to duel</a>
         </>
       )}
-      <button onClick={() => setHidden(true)} aria-label="Dismiss" style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 999, border: 'none', background: 'transparent', color: '#262b35', cursor: 'pointer', padding: 0 }}><X size={16} strokeWidth={2.5} /></button>
+      <button onClick={() => setHidden(true)} aria-label="Dismiss" style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 999, border: 'none', background: 'transparent', color: T.muted, cursor: 'pointer', padding: 0 }}><X size={16} strokeWidth={2.5} /></button>
       <style>{`@media(max-width:560px){.sot-duel-banner{bottom:78px !important;}}`}</style>
     </div>
   );

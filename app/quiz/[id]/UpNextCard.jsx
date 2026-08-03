@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { nextQuizMeta } from '@/lib/quiz-similar';
 import { getQuiz } from '@/lib/quizzes';
 import { useChallengeRun } from './useChallengeRun';
+import { T } from '@/lib/theme';
 
 // Auto-advance "Up next" card shown on the end-of-quiz recap, directly under the
 // Play again button (mirrors the daily-game end card's countdown-to-next-game).
@@ -15,7 +16,7 @@ import { useChallengeRun } from './useChallengeRun';
 // during a Daily Challenge run, where the challenge overlay owns advancing to
 // the next step (detected via useChallengeRun on this quiz's id).
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-const BLUE = '#2563eb';
+const BLUE = T.blue;
 const RING_C = 150.8; // 2*pi*24
 
 export default function UpNextCard({ quiz, seconds = 25 }) {
@@ -49,24 +50,24 @@ export default function UpNextCard({ quiz, seconds = 25 }) {
   const mini = { fontFamily: FONT, fontWeight: 700, fontSize: 12, borderRadius: 9, padding: '9px 13px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, textDecoration: 'none', whiteSpace: 'nowrap', border: 'none' };
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14, border: '1px solid #cddffb', background: '#eef3ff', borderRadius: 14, padding: '13px 15px' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14, border: `1px solid ${T.accentBorder}`, background: T.accentSoft, borderRadius: 14, padding: '13px 15px' }}>
       <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
         <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
           <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="5" />
           <circle cx="28" cy="28" r="24" fill="none" stroke={BLUE} strokeWidth="5" strokeLinecap="round" transform="rotate(-90 28 28)" strokeDasharray={RING_C} strokeDashoffset={ringOffset} />
         </svg>
-        <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, fontSize: 18, fontWeight: 800, color: '#1c1e24' }}>
+        <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, fontSize: 18, fontWeight: 800, color: T.ink }}>
           {autoRun ? (secs > 0 ? secs : '') : <ArrowRight size={18} strokeWidth={2.4} color={BLUE} />}
         </span>
       </div>
       <div style={{ minWidth: 0, flex: '1 1 200px' }}>
         <div style={{ fontFamily: FONT, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: BLUE, marginBottom: 2 }}>Up next · closest related{meta.badge ? ` · part ${meta.badge.part} of ${meta.badge.total}` : ''}</div>
-        <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15, color: '#1c1e24' }}>{meta.title}</div>
+        <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15, color: T.ink }}>{meta.title}</div>
         <div style={{ fontFamily: FONT, fontSize: 12, color: '#4a4339', marginTop: 2 }}>{tag}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
-        <a href={`/quiz/${meta.id}`} style={{ ...mini, background: BLUE, color: '#fff' }}>Go to quiz</a>
-        {autoRun ? <button onClick={() => setCancelled(true)} style={{ ...mini, background: '#fff', color: '#262b35', border: '1px solid rgba(20,22,28,0.14)' }}>Not now</button> : null}
+        <a href={`/quiz/${meta.id}`} style={{ ...mini, background: BLUE, color: T.white }}>Go to quiz</a>
+        {autoRun ? <button onClick={() => setCancelled(true)} style={{ ...mini, background: T.white, color: T.muted, border: '1px solid rgba(20,22,28,0.14)' }}>Not now</button> : null}
       </div>
     </div>
   );

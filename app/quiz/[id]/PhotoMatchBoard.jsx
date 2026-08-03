@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
+import { T } from '@/lib/theme';
 
 // Photo MATCH board (`format: 'photo-match'`). A photo-prompt twist on the bank
 // board: ONE picture shows at a time (slideshow, with Back / Next to cycle the
@@ -14,8 +15,8 @@ import React, { useMemo, useState, useEffect } from 'react';
 // onMatch/onWrong/onEnd/onHint, the same contract as PhotoBoard / BankQuizBoard.
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
-  rust: '#c0392b', forest: '#10b981', faded: '#262b35',
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, forest: T.success, faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -122,7 +123,7 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
           const got = matched.has(i);
           const show = got || revealed;
           return (
-            <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? '#fff' : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
+            <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? T.white : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
               <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', background: COLORS.ink, overflow: 'hidden' }}>
                 <img src={it.img} alt={show ? it.t : `Picture ${i + 1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', opacity: show ? 1 : 0.5, filter: show ? 'none' : 'grayscale(0.5)' }} />
               </div>

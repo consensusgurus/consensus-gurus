@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { RotateCcw, Shuffle, Swords, Play, ArrowRight } from 'lucide-react';
 import { nextQuizMeta } from '@/lib/quiz-similar';
+import { T } from '@/lib/theme';
 
 // Persistent end-of-quiz results panel.
 //
@@ -22,7 +23,7 @@ import { nextQuizMeta } from '@/lib/quiz-similar';
 //   Challenge Someone button links to the duel composer with this quiz
 //   prefilled (needs `quiz`); the old onShare prop is accepted but ignored.
 
-const C = { cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40', forest: '#10b981', faded: '#262b35' };
+const C = { cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent, forest: T.success, faded: T.muted };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function btn(bg, fg, outline) {
@@ -50,11 +51,11 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
         )}
         <div style={{ display: 'grid', gap: 8, gridTemplateColumns: mobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', alignItems: 'stretch' }}>
           {onPlayAgain ? (
-            <button onClick={onPlayAgain} style={btn(C.ember, '#fff')}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>
+            <button onClick={onPlayAgain} style={btn(C.ember, T.white)}><RotateCcw size={13} strokeWidth={2.5} /> Play Again</button>
           ) : null}
           {onPlaySimilar ? (
             nextMeta ? (
-              <button onClick={onPlaySimilar} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '8px 12px', borderRadius: 10, border: 'none', background: C.forest, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={onPlaySimilar} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', padding: '8px 12px', borderRadius: 10, border: 'none', background: C.forest, color: T.white, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Play size={18} strokeWidth={2.5} style={{ flexShrink: 0 }} />
                 <span style={{ minWidth: 0, flex: 1 }}>
                   <span style={{ display: 'block', fontFamily: FONT, fontSize: 9, letterSpacing: '0.13em', textTransform: 'uppercase', fontWeight: 800, opacity: 0.88 }}>{nextMeta.label}{nextMeta.badge ? ` · part ${nextMeta.badge.part} of ${nextMeta.badge.total}` : ''}</span>
@@ -63,7 +64,7 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
                 <ArrowRight size={16} strokeWidth={2.5} style={{ flexShrink: 0 }} />
               </button>
             ) : (
-              <button onClick={onPlaySimilar} style={btn(C.forest, '#fff')}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>
+              <button onClick={onPlaySimilar} style={btn(C.forest, T.white)}><Shuffle size={13} strokeWidth={2.5} /> Play Similar</button>
             )
           ) : null}
           {quiz && quiz.id ? (
@@ -80,7 +81,7 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
           <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, fontWeight: 700, marginBottom: 10 }}>{answersTitle}</div>
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {rows.map((r, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: `1px solid ${r.good ? C.forest : C.faded + '33'}`, marginBottom: 8, background: r.good ? '#fff' : C.paper }}>
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: `1px solid ${r.good ? C.forest : C.faded + '33'}`, marginBottom: 8, background: r.good ? T.white : C.paper }}>
                 <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, color: C.faded, minWidth: 20 }}>{i + 1}</span>
                 <span style={{ flex: 1, fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>{r.label}</span>
                 {r.detail != null ? <span style={{ fontFamily: FONT, fontSize: 12, color: C.faded }}>{r.detail}</span> : null}

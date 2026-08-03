@@ -3,12 +3,13 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X, Crown, Medal } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
+import { T } from '@/lib/theme';
 
-const ACCENT='#0e1d40', INK='#1c1e24', MUTED='#262b35', SOFT='#aeb4bd', LINE='rgba(20,22,28,0.30)';
-const BARBG='#0a1730', ONBLUE='#ffffff', ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
-const MEDAL=['#e8b43a','#c3c7cf','#cf8b4e'];
+const ACCENT=T.accent, INK=T.ink, MUTED=T.muted, SOFT=T.silver, LINE='rgba(20,22,28,0.30)';
+const BARBG='#0a1730', ONBLUE=T.white, ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
+const MEDAL=[T.gold,'#c3c7cf','#cf8b4e'];
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:ONBLUE_SOFT,marginBottom:2};
-const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#1e3a6b',color:'#fff',border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
+const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#1e3a6b',color:T.white,border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
 function getAnonId(){try{return localStorage.getItem('sot_quiz_anon');}catch{return null;}}
 function ensureAnonId(){
@@ -44,16 +45,16 @@ function SignupModal({ onClose }){
   }
   return (
     <div onClick={onClose} style={{position:'fixed',inset:0,zIndex:300,background:'rgba(20,22,28,0.45)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
-      <div onClick={e=>e.stopPropagation()} style={{width:380,maxWidth:'100%',background:'#fff',borderRadius:14,border:`1px solid ${LINE}`,padding:22,fontFamily:'inherit'}}>
+      <div onClick={e=>e.stopPropagation()} style={{width:380,maxWidth:'100%',background:T.white,borderRadius:14,border:`1px solid ${LINE}`,padding:22,fontFamily:'inherit'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
           <div style={{fontSize:18,fontWeight:800,color:INK}}>Claim your name</div>
           <button onClick={onClose} aria-label="Close" style={{border:'none',background:'transparent',cursor:'pointer',color:SOFT,display:'flex'}}><X size={18}/></button>
         </div>
         <p style={{fontSize:13,color:MUTED,margin:'0 0 16px',lineHeight:1.5}}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
-        {err&&<div style={{marginBottom:12,padding:10,borderRadius:8,background:'rgba(192,57,43,0.08)',border:'1px solid rgba(192,57,43,0.4)',color:'#c0392b',fontSize:13}}>{err}</div>}
+        {err&&<div style={{marginBottom:12,padding:10,borderRadius:8,background:'rgba(192,57,43,0.08)',border:'1px solid rgba(192,57,43,0.4)',color:T.danger,fontSize:13}}>{err}</div>}
         <input value={u} onChange={e=>setU(e.target.value)} placeholder="Display name" maxLength={15} autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp}/>
         <input value={em} onChange={e=>setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{...inp,marginTop:10}}/>
-        <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background:'#e8b43a',color:'#1c1e24',border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
+        <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background:T.gold,color:T.ink,border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
       </div>
     </div>
   );
@@ -152,7 +153,7 @@ export default function QuizPlayerBar({ me: meProp, controlled = false, rightAct
             <>
               <div className="qpb-lbdiv" style={{width:3,height:34,background:'rgba(255,255,255,0.42)',borderRadius:2,flex:'none'}}/>
               <div className="qpb-lb" ref={lbRef} style={{flex:'1 1 auto',minWidth:0,overflow:'hidden',display:'flex',alignItems:'center',gap:16}}>
-                <div style={{...lbl,fontSize:13,display:'inline-flex',alignItems:'center',gap:6,marginBottom:0,flex:'none',whiteSpace:'nowrap',fontWeight:800,color:ONBLUE}}><Crown size={12} strokeWidth={2} style={{color:'#e8b43a',flex:'none'}}/>{leaderboard.label}</div>
+                <div style={{...lbl,fontSize:13,display:'inline-flex',alignItems:'center',gap:6,marginBottom:0,flex:'none',whiteSpace:'nowrap',fontWeight:800,color:ONBLUE}}><Crown size={12} strokeWidth={2} style={{color:T.gold,flex:'none'}}/>{leaderboard.label}</div>
                 <div className="qpb-lbrows" style={{display:'flex',flexWrap:'nowrap',gap:22,whiteSpace:'nowrap',overflow:'hidden',alignItems:'center',justifyContent:'space-evenly',flex:'1 1 auto',minWidth:0}}>
                   {lbRows.map((r,i)=>(<span key={i} className={`qpb-lb${i+1}`} style={{display:'inline-flex',alignItems:'center',gap:6,fontSize:14,fontWeight:800,color:ONBLUE}}><Medal size={14} strokeWidth={2} style={{color:MEDAL[i]||ONBLUE_SOFT,flex:'none'}}/>{r.name}</span>))}
                 </div>

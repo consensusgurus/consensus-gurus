@@ -3,8 +3,9 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown, Trophy } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
+import { T } from '@/lib/theme';
 
-const NAVY = '#0e1d40', ACCENT = '#0e1d40', AMBER = '#f8b84a';
+const NAVY = T.accent, ACCENT = T.accent, AMBER = '#f8b84a';
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function getAnon() { try { return localStorage.getItem('sot_quiz_anon') || ''; } catch { return ''; } }
@@ -120,11 +121,11 @@ export default function DuelTile() {
   const field = { position: 'relative' };
   const inputBox = { display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 9, padding: '8px 11px', cursor: 'text' };
   const inputEl = { flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: '#eaf0fb', fontFamily: FONT, fontSize: 12.5 };
-  const menu = { position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 40, background: '#fff', border: '1px solid rgba(20,22,28,0.12)', borderRadius: 10, boxShadow: '0 10px 28px rgba(8,15,35,0.28)', maxHeight: 210, overflowY: 'auto', padding: 4 };
-  const item = { display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '8px 10px', borderRadius: 7, cursor: 'pointer', fontFamily: FONT, fontSize: 13, color: '#1c1e24' };
+  const menu = { position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 40, background: T.white, border: '1px solid rgba(20,22,28,0.12)', borderRadius: 10, boxShadow: '0 10px 28px rgba(8,15,35,0.28)', maxHeight: 210, overflowY: 'auto', padding: 4 };
+  const item = { display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '8px 10px', borderRadius: 7, cursor: 'pointer', fontFamily: FONT, fontSize: 13, color: T.ink };
   const clearBtn = { border: 'none', background: 'transparent', color: '#9fb0d4', cursor: 'pointer', display: 'flex', flex: 'none' };
   const picked = { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, color: '#eaf0fb', fontWeight: 700 };
-  const ctaBtn = { marginTop: 'auto', width: '100%', background: '#e8b43a', color: '#1c1e24', border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
+  const ctaBtn = { marginTop: 'auto', width: '100%', background: T.gold, color: T.ink, border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
   const faceBase = { backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', display: 'flex', flexDirection: 'column' };
 
   return (
@@ -133,7 +134,7 @@ export default function DuelTile() {
       ref={wrapRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ background: NAVY, borderRadius: 14, padding: '14px 15px', color: '#fff', display: 'flex', flexDirection: 'column', minHeight: 190, minWidth: 0, fontFamily: FONT, perspective: 1100 }}
+      style={{ background: NAVY, borderRadius: 14, padding: '14px 15px', color: T.white, display: 'flex', flexDirection: 'column', minHeight: 190, minWidth: 0, fontFamily: FONT, perspective: 1100 }}
     >
       <div className="duel-flip" style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', transformStyle: 'preserve-3d', transition: 'transform .65s cubic-bezier(.3,.7,.25,1)', transform: face === 'last' ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
         {/* FRONT: the duel composer */}
@@ -165,7 +166,7 @@ export default function DuelTile() {
                 </div>
                 {oppOpen && !opp && oppQ.trim() && (
                   <div style={menu}>
-                    {oppResults.length === 0 ? <div style={{ padding: '8px 10px', fontSize: 12, color: '#262b35' }}>No players match. Leave blank for a shareable link.</div>
+                    {oppResults.length === 0 ? <div style={{ padding: '8px 10px', fontSize: 12, color: T.muted }}>No players match. Leave blank for a shareable link.</div>
                       : oppResults.map((p) => (
                         <button key={p.anon} onClick={() => { setOpp(p); setOppOpen(false); }} style={item}>{p.name}</button>
                       ))}
@@ -189,11 +190,11 @@ export default function DuelTile() {
                   <div style={menu}>
                     {quizResults.map((x) => (
                       <button key={x.id} onClick={() => { setQuiz({ id: x.id, title: x.title }); setQuizOpen(false); }} style={item}>
-                        <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: '#1c1e24', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
-                        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#262b35' }}>{x.category || 'Quiz'}</span>
+                        <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: T.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
+                        <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: T.muted }}>{x.category || 'Quiz'}</span>
                       </button>
                     ))}
-                    {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: '#262b35' }}>No quizzes match.</div>}
+                    {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: T.muted }}>No quizzes match.</div>}
                   </div>
                 )}
               </div>
@@ -247,7 +248,7 @@ export default function DuelTile() {
           <div className="dueltile-body" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <div style={{ fontSize: 12.5, color: '#c7d3ee', fontWeight: 600, marginTop: 9, lineHeight: 1.35 }}>{last.scores ? `${last.scores} on ` : 'On '}{last.quizTitle}</div>
             <a href="/quizzes/hub?tab=duels" style={{ ...ctaBtn, textDecoration: 'none', marginTop: 12 }}>See the Duel Leaderboard <ArrowRight size={15} /></a>
-            <button onClick={start} style={{ ...ctaBtn, background: 'transparent', color: '#fff', border: '1px solid rgba(255,255,255,0.28)', marginTop: 8 }}>Start a Duel <ArrowRight size={15} /></button>
+            <button onClick={start} style={{ ...ctaBtn, background: 'transparent', color: T.white, border: '1px solid rgba(255,255,255,0.28)', marginTop: 8 }}>Start a Duel <ArrowRight size={15} /></button>
           </div>
         </div>
       )}

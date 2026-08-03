@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from '../../dailyMeClient';
+import { T } from '@/lib/theme';
 
 // DailyBoardPanel — the on-page "<player> Stats" section, in the light page
 // theme, placed directly under the Challenge / Share actions on every daily-game
@@ -40,16 +41,16 @@ import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from '../../dailyMeClie
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const INK = '#1c1e24';
-const SLATE = '#46506a';
-const FADED = '#262b35';
+const INK = T.ink;
+const SLATE = T.slate;
+const FADED = T.muted;
 const BORD = '#e7eaf1';
-const NAVY = '#0e1d40';
-const BLUE = '#2563eb';
+const NAVY = T.accent;
+const BLUE = T.blue;
 
 const GAME_NAMES = Object.fromEntries(Object.values(DAILY_GAME_MAP).map((g) => [g.key, g.name]));
 // Per-game brand accent (matches the end card / DailyCombinedLeaderboard).
-const ACCENTS = { ...Object.fromEntries(Object.values(DAILY_GAME_MAP).map((g) => [g.key, g.color])), crux: '#2563eb', emcee: '#c026d3', garble: '#b7791f', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: '#15803d', suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed', stet: '#0369a1', outwit: '#1f2937', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', outrank: '#4338ca', axiom: '#0f766e', hearsay: '#7c2d92', venn: '#b45309', stands: '#1d4ed8', bracket: '#c2410c' };
+const ACCENTS = { ...Object.fromEntries(Object.values(DAILY_GAME_MAP).map((g) => [g.key, g.color])), crux: T.blue, emcee: '#c026d3', garble: '#b7791f', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: T.successDeep, suds: '#ea580c', circa: '#0e7490', extra: '#b91c1c', carve: '#7c3aed', stet: '#0369a1', outwit: '#1f2937', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', outrank: '#4338ca', axiom: '#0f766e', hearsay: '#7c2d92', venn: '#b45309', stands: T.blueDeep, bracket: '#c2410c' };
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -258,10 +259,10 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   return (
     <div id="daily-leaderboard" className="dbp" style={{ maxWidth, margin: '18px auto 26px' }}>
       <style>{`
-        .dbp{font-family:${SANS};background:#fff;border:1.5px solid rgba(20,22,28,0.12);border-radius:14px;padding:15px 16px 14px;}
+        .dbp{font-family:${SANS};background:var(--white);border:1.5px solid rgba(20,22,28,0.12);border-radius:14px;padding:15px 16px 14px;}
         .dbp-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;}
         .dbp-hd .t{font-size:16px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:8px;min-width:0;}
-        .dbp-hd .t .av{width:22px;height:22px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+        .dbp-hd .t .av{width:22px;height:22px;border-radius:50%;color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
         .dbp-hd .t .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dbp-hd .s{font-family:${MONO};font-size:10.5px;letter-spacing:.04em;color:${FADED};font-weight:500;white-space:nowrap;flex-shrink:0;}
         .dbp-signup{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-size:12px;font-weight:800;color:${BLUE};background:#eff4fd;border:1px solid #cfe0fb;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
@@ -274,7 +275,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
            card and this panel show the same three standings, so they now wear
            the same skin. Keep the two in sync when either changes. */
         .dbp-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
-        .dbp-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:${SANS};cursor:pointer;border:2px solid #cfdcf4;background:linear-gradient(180deg,#fff,#eff5ff);border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:0 3px 13px rgba(20,30,60,.08);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
+        .dbp-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:${SANS};cursor:pointer;border:2px solid #cfdcf4;background:linear-gradient(180deg,var(--white),#eff5ff);border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:0 3px 13px rgba(20,30,60,.08);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
         /* The colored cap across the top: three deliberate cards, not three
            pale boxes. */
         .dbp-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
@@ -286,7 +287,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-tile.m1::before{background:linear-gradient(90deg,#d9a327,#f2d489);}
         .dbp-tile.m1 .dbp-tile-lbl{color:#96700d;}
         .dbp-tile.m1 .dbp-tile-rk{color:#8a6407;}
-        .dbp-tile.m2{border-color:#c3cad6;background:linear-gradient(180deg,#fff,#f1f3f7);box-shadow:0 3px 13px rgba(40,50,70,.13);}
+        .dbp-tile.m2{border-color:#c3cad6;background:linear-gradient(180deg,var(--white),#f1f3f7);box-shadow:0 3px 13px rgba(40,50,70,.13);}
         .dbp-tile.m2::before{background:linear-gradient(90deg,#98a2b3,#d6dbe4);}
         .dbp-tile.m2 .dbp-tile-lbl{color:#5d6779;}
         .dbp-tile.m2 .dbp-tile-rk{color:#414b5e;}
@@ -302,7 +303,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-tile-cx{position:absolute;top:9px;right:6px;color:${SLATE};transition:transform .15s ease;pointer-events:none;}
         .dbp-tile.on .dbp-tile-cx,.dbp-tile:hover .dbp-tile-cx{color:${BLUE};}
 
-        .dbp-board{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 10px;margin-top:11px;background:#fff;}
+        .dbp-board{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 10px;margin-top:11px;background:var(--white);}
         .dbp-board.plain{padding:0;border:none;}
         .dbp-board-ti{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};margin-bottom:7px;}
         .dbp-lbrow{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:6px 8px;border-radius:8px;}
@@ -312,7 +313,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-lbrow .nm .you{color:${BLUE};font-weight:800;}
         .dbp-lbrow.me .nm{font-weight:800;}
         .dbp-lbrow .vl{font-family:${MONO};font-size:12px;color:${SLATE};flex-shrink:0;}
-        .dbp-lbrow .vl .u{color:#262b35;}
+        .dbp-lbrow .vl .u{color:var(--muted);}
         .dbp-lbempty{font-size:12.5px;color:${FADED};padding:6px 2px;}
         .dbp-note{font-size:11px;color:${FADED};line-height:1.45;margin:9px 2px 1px;}
 
@@ -347,7 +348,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
         .dbp-cal-mo{font-size:14px;font-weight:800;color:${INK};}
         .dbp-cal-nav{display:flex;gap:6px;}
-        .dbp-cal-nav button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${BORD};background:#fff;color:${SLATE};cursor:pointer;}
+        .dbp-cal-nav button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${BORD};background:var(--white);color:${SLATE};cursor:pointer;}
         .dbp-cal-nav button:disabled{opacity:.4;cursor:default;}
         .dbp-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
         .dbp-cal-wd{font-family:${MONO};font-size:9.5px;color:${FADED};text-align:center;padding-bottom:2px;}
@@ -355,15 +356,15 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-cal-cell.empty{background:transparent;}
         .dbp-cal-cell.none{color:#c9cdd6;}
         a.dbp-cal-cell{text-decoration:none;}
-        a.dbp-cal-cell.played{background:#e8f5ec;color:#15803d;border:1px solid #bfe3ca;}
-        a.dbp-cal-cell.unplayed{background:#fff;color:${SLATE};border:1px solid ${BORD};}
+        a.dbp-cal-cell.played{background:#e8f5ec;color:var(--success-deep);border:1px solid #bfe3ca;}
+        a.dbp-cal-cell.unplayed{background:var(--white);color:${SLATE};border:1px solid ${BORD};}
         a.dbp-cal-cell.unplayed:hover{border-color:${BLUE};color:${BLUE};}
         a.dbp-cal-cell.today{box-shadow:0 0 0 2px ${BLUE};}
         .dbp-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}
         .dbp-cal-key span{display:inline-flex;align-items:center;gap:5px;}
         .dbp-cal-sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
 
-        .dbp-full{width:100%;margin-top:11px;padding:9px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:transparent;border:1.5px solid #cddffb;display:inline-flex;align-items:center;justify-content:center;gap:5px;}
+        .dbp-full{width:100%;margin-top:11px;padding:9px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:transparent;border:1.5px solid var(--accent-border);display:inline-flex;align-items:center;justify-content:center;gap:5px;}
         .dbp-full:hover{background:#f5f8ff;}
 
         /* Phone: the three tiles stay side by side, tighter — same as the end
@@ -465,8 +466,8 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
                 </div>
                 <div className="dbp-cal-key">
                   <span><span className="dbp-cal-sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
-                  <span><span className="dbp-cal-sw" style={{ background: '#fff', border: `1px solid ${BORD}` }} />Unplayed</span>
-                  <span><span className="dbp-cal-sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
+                  <span><span className="dbp-cal-sw" style={{ background: T.white, border: `1px solid ${BORD}` }} />Unplayed</span>
+                  <span><span className="dbp-cal-sw" style={{ background: T.white, boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
                 </div>
               </>
             ) : <div className="dbp-lbempty">No archive of {selfName} games yet.</div>

@@ -17,9 +17,10 @@
 // behavior. Used by every daily game client.
 
 import React from 'react';
+import { T } from '@/lib/theme';
 
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const COLORS = { ink: '#1c1e24', faded: '#262b35', ember: '#0e1d40', paper: '#eceef1' };
+const COLORS = { ink: T.ink, faded: T.muted, ember: T.accent, paper: T.paper };
 
 export default function DailyTopNav({ player, compact = false }) {
   const fz = compact ? 9.5 : 10.5;

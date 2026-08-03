@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Zap, ArrowRight } from 'lucide-react';
+import { T } from '@/lib/theme';
 
 // Top SoT Player tile on /quizzes. Took the Featured Sports slot in row 2 on
 // 2026-07-20 (the Newest tile was retired and Geo + Sports each shifted left).
@@ -19,9 +20,9 @@ import { Zap, ArrowRight } from 'lucide-react';
 // OUTSIDE the flip (shared by both faces), and the TOP SOT PLAYER tag stays on
 // the tile frame; only the body (name + podium) turns.
 
-const C = { accent: '#0e1d40', cta: '#e8b43a', gold: '#ffd166' };
+const C = { accent: T.accent, cta: T.gold, gold: '#ffd166' };
 // Gold / silver / bronze, matching the medal palette used on the ranking pages.
-const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b', '#5f6f8f', '#5f6f8f'];
+const MEDAL = [T.gold, '#b8bcc4', '#c8814b', '#5f6f8f', '#5f6f8f'];
 
 // The leader's name is the tile's headline, so it is set as large as will fit
 // rather than at a fixed size. Same binary-search fitter as CommunityTile.
@@ -110,7 +111,7 @@ function XpBody({ face }) {
       ) : (
         <>
           <div className="xp-namewrap" ref={wrapRef}>
-            <span className="xp-who" ref={textRef} style={{ fontSize: 24, color: '#fff' }}>This spot is open</span>
+            <span className="xp-who" ref={textRef} style={{ fontSize: 24, color: T.white }}>This spot is open</span>
           </div>
           <div className="xp-sub">{face.empty}</div>
         </>
@@ -188,8 +189,8 @@ export default function XpTile() {
         /* Electric-blue ground, so it reads as the IQ Points slot and stays distinct
            from the bronze Community tile it sits in a row with. The gradient is
            on the frame, shared by both flip faces. */
-        .xptile{background:radial-gradient(135% 105% at 24% 36%, rgba(91,139,255,.34) 0%, rgba(91,139,255,.08) 46%, rgba(0,0,0,0) 74%), linear-gradient(155deg,#132a5c 0%,#0e1d40 58%,#080f23 100%);cursor:pointer;perspective:1100px;}
-        .xptile .xp-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:4px 10px;z-index:5;color:#0e1d40;display:inline-flex;align-items:center;gap:4px;}
+        .xptile{background:radial-gradient(135% 105% at 24% 36%, rgba(91,139,255,.34) 0%, rgba(91,139,255,.08) 46%, rgba(0,0,0,0) 74%), linear-gradient(155deg,#132a5c 0%,var(--accent) 58%,#080f23 100%);cursor:pointer;perspective:1100px;}
+        .xptile .xp-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:var(--white);border-radius:10px;padding:4px 10px;z-index:5;color:var(--accent);display:inline-flex;align-items:center;gap:4px;}
         /* flip mechanics: only the body turns; the frame + tag + panel stay put */
         .xptile .xpflip{position:relative;width:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.3,.7,.25,1);}
         .xptile .xpface{backface-visibility:hidden;-webkit-backface-visibility:hidden;}
@@ -197,7 +198,7 @@ export default function XpTile() {
         .xptile .xpface.back{position:absolute;inset:0;transform:rotateY(180deg);}
         .xptile .xp-dots{position:absolute;top:15px;right:12px;z-index:5;display:flex;gap:4px;pointer-events:none;}
         .xptile .xp-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);transition:background .3s;}
-        .xptile .xp-dot.on{background:#fff;}
+        .xptile .xp-dot.on{background:var(--white);}
         .xptile .xp-body{position:relative;z-index:1;padding:18px 16px 15px;}
         .xptile .xp-scopelbl{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#8fb0ff;margin-bottom:5px;}
         .xptile .xp-namewrap{width:100%;}
@@ -216,7 +217,7 @@ export default function XpTile() {
         .xptile .xp-h{font-size:12px;font-weight:800;letter-spacing:.07em;color:${C.cta};text-transform:uppercase;}
         .xptile .xp-why{font-size:12px;line-height:1.34;font-weight:700;color:${C.gold};}
         .xptile .xp-p{font-size:12px;line-height:1.38;color:rgba(255,255,255,.86);}
-        .xptile .xp-cta{display:inline-flex;align-items:center;gap:6px;margin-top:auto;align-self:flex-start;font-size:12.5px;font-weight:800;color:#0e1d40;background:${C.cta};border-radius:8px;padding:8px 11px;text-decoration:none;}
+        .xptile .xp-cta{display:inline-flex;align-items:center;gap:6px;margin-top:auto;align-self:flex-start;font-size:12.5px;font-weight:800;color:var(--accent);background:${C.cta};border-radius:8px;padding:8px 11px;text-decoration:none;}
       `}</style>
 
       <span className="xp-tag"><Zap size={11} style={{ verticalAlign: -1, color: '#5b8bff' }} fill="#5b8bff" /> TOP SOT PLAYER</span>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import SourcesPopover from '../SourcesPopover';
 import { getAllSources } from '@/lib/sources';
 import { QUIZ_COUNT } from '../SiteHeader';
+import { T } from '@/lib/theme';
 
 // Full-bleed command-bar header for the quizzes HOME page only (individual
 // quiz pages, the Stat Hub, and the lists site keep SiteHeader). One 56px
@@ -32,28 +33,28 @@ function Logo({ size = 30 }) {
           <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
         </radialGradient>
       </defs>
-      <rect x="3" y="3" width="58" height="58" rx="17.5" fill="#f7f8fa" />
-      <circle cx="32" cy="32.5" r="16.4" fill="#ffffff" /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
+      <rect x="3" y="3" width="58" height="58" rx="17.5" fill={T.surface} />
+      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
       <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke="#0e1d40" strokeWidth="0.4" strokeLinejoin="round" fill={`url(#g-${uid})`} />
+      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#g-${uid})`} />
     </svg>
   );
 }
 
-const SearchIcon = ({ c = '#1c1e24' }) => (
+const SearchIcon = ({ c = T.ink }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.4" style={{ flex: 'none' }} aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
 );
 
 // Per-type ticker icons (play / lead / duel / new / stat).
 const TICO = {
   play: <svg width="10" height="10" viewBox="0 0 24 24" fill="#5ad48f" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>,
-  lead: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e8b43a" strokeWidth="2.4" aria-hidden="true"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10" /></svg>,
+  lead: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={T.gold} strokeWidth="2.4" aria-hidden="true"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10" /></svg>,
   duel: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f08a8a" strokeWidth="2.2" aria-hidden="true"><path d="m4 4 16 16M20 4 4 20" /></svg>,
   new: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9dbcf7" strokeWidth="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>,
   stat: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9dbcf7" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>,
   // Community leader (crown), category champion (trophy), achievement (star), streak (flame).
-  top: <svg width="11" height="11" viewBox="0 0 24 24" fill="#e8b43a" aria-hidden="true"><path d="M3 7l3.8 3.4L12 3l5.2 7.4L21 7l-1.7 12H4.7z" /></svg>,
-  champ: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e8b43a" strokeWidth="2.1" aria-hidden="true"><path d="M6 4h12v3.5a6 6 0 0 1-12 0zM6 5H3.5v1.8a3 3 0 0 0 3 3M18 5h2.5v1.8a3 3 0 0 1-3 3M9.5 20h5M12 13.5V20" /></svg>,
+  top: <svg width="11" height="11" viewBox="0 0 24 24" fill={T.gold} aria-hidden="true"><path d="M3 7l3.8 3.4L12 3l5.2 7.4L21 7l-1.7 12H4.7z" /></svg>,
+  champ: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={T.gold} strokeWidth="2.1" aria-hidden="true"><path d="M6 4h12v3.5a6 6 0 0 1-12 0zM6 5H3.5v1.8a3 3 0 0 0 3 3M18 5h2.5v1.8a3 3 0 0 1-3 3M9.5 20h5M12 13.5V20" /></svg>,
   ach: <svg width="11" height="11" viewBox="0 0 24 24" fill="#b79cf2" aria-hidden="true"><path d="M12 2.5l2.7 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.3 6.5 19.2l1.2-6.1L3.2 8.9l6.1-.8z" /></svg>,
   streak: <svg width="11" height="11" viewBox="0 0 24 24" fill="#f5893e" aria-hidden="true"><path d="M12 2c1 4-2 5.2-2 8a2 2 0 0 0 4 0c2 2 3 4 3 6a5 5 0 0 1-10 0C7 12 11 10 12 2z" /></svg>,
 };
@@ -152,11 +153,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1.5px solid #c3ccda;}
-        .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
-        .qch-word em{font-style:normal;color:#262b35;font-weight:600;}
+        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
+        .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
+        .qch-word em{font-style:normal;color:var(--muted);font-weight:600;}
         .qch-ws{display:none;}
-        .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#1c1e24;flex:none;}
+        .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:var(--ink);flex:none;}
         /* The search INPUT left this bar on 2026-07-29 (it now sits in the
            full-width tool row under the three-column daily section), so the
            welcome/rank block simply takes the free space with margin-left:auto
@@ -164,13 +165,13 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
            ICON button stays exactly as it was: hidden on desktop, shown at
            <=820px, where it focuses the browse-row field (the one visible at
            that width) so phone layout is untouched. */
-        .qch-searchbtn{display:none;align-items:center;justify-content:center;width:36px;height:36px;flex:none;background:#f7f8fa;border:1.5px solid #c3ccda;border-radius:10px;cursor:pointer;padding:0;}
+        .qch-searchbtn{display:none;align-items:center;justify-content:center;width:36px;height:36px;flex:none;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;padding:0;}
         .qch-me{margin-left:auto;flex:none;min-width:0;}
         .qch-melink{display:flex;align-items:center;gap:8px;text-decoration:none;min-width:0;}
-        .qch-ava{width:30px;height:30px;border-radius:50%;background:#eef1f5;border:1.5px solid #c3ccda;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#1c1e24;flex:none;}
+        .qch-ava{width:30px;height:30px;border-radius:50%;background:var(--surface-alt);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--ink);flex:none;}
         .qch-mecol{display:flex;flex-direction:column;gap:2px;min-width:0;}
-        .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:#1c1e24;line-height:1;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
-        .qch-hi{font-weight:600;color:#46506a;}
+        .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:var(--ink);line-height:1;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
+        .qch-hi{font-weight:600;color:var(--slate);}
         .qch-of{display:none;}
         /* Wide bars had a large dead gap between the brand and the player chip
            (owner 2026-07-29). From 1181px up the welcome and the rank detail sit
@@ -190,37 +191,37 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-melink{gap:13px;}
           .qch-mecol{flex-direction:row;align-items:center;gap:clamp(14px,2.6vw,38px);}
           .qch-nm{font-size:15px;max-width:none;}
-          .qch-sub{font-size:12.5px;border-left:1.5px solid #c3ccda;padding-left:clamp(14px,2.6vw,38px);}
-          .qch-of{display:inline;color:#262b35;}
+          .qch-sub{font-size:12.5px;border-left:1.5px solid var(--border);padding-left:clamp(14px,2.6vw,38px);}
+          .qch-of{display:inline;color:var(--muted);}
         }
-        .qch-sub{font-size:10.5px;font-weight:700;color:#46506a;line-height:1;white-space:nowrap;}
-        .qch-rankm{display:none;font-size:11px;font-weight:800;color:#1c1e24;line-height:1;white-space:nowrap;}
-        .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:#eef1f5;color:#0e1d40;font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
-        .qch-signup{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;border:1px solid #e8b43a;border-radius:9px;color:#1c1e24;font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;}
-        .qch-signup:hover{background:#f0c358;border-color:#f0c358;color:#1c1e24;}
-        .qch-seg{display:flex;gap:2px;background:#eef1f5;border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:#eef1f5;border:1.5px solid #c3ccda;cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
-        .qch-seg a{font-size:12px;font-weight:700;color:#1c1e24;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
-        .qch-seg a.on{background:#0e1d40;color:#fff;}
-        .qch-hub{display:inline-flex;align-items:center;gap:6px;background:#e8b43a;color:#1c1e24;font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
-        .qch-hub:hover{background:#d49a2a;color:#1c1e24;}
-        .qch-tickwrap{display:flex;align-items:stretch;background:#ffffff;}
-        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:#ffffff;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#262b35;position:relative;z-index:2;}
+        .qch-sub{font-size:10.5px;font-weight:700;color:var(--slate);line-height:1;white-space:nowrap;}
+        .qch-rankm{display:none;font-size:11px;font-weight:800;color:var(--ink);line-height:1;white-space:nowrap;}
+        .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:var(--surface-alt);color:var(--accent);font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
+        .qch-signup{display:inline-flex;align-items:center;gap:6px;background:var(--gold);border:1px solid var(--gold);border-radius:9px;color:var(--ink);font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;}
+        .qch-signup:hover{background:#f0c358;border-color:#f0c358;color:var(--ink);}
+        .qch-seg{display:flex;gap:2px;background:var(--surface-alt);border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:var(--surface-alt);border:1.5px solid var(--border);cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:var(--white);border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#eef2fb;color:var(--accent);}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
+        .qch-seg a{font-size:12px;font-weight:700;color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
+        .qch-seg a.on{background:var(--accent);color:var(--white);}
+        .qch-hub{display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:var(--ink);font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}
+        .qch-hub:hover{background:#d49a2a;color:var(--ink);}
+        .qch-tickwrap{display:flex;align-items:stretch;background:var(--white);}
+        .qch-tlabel{display:flex;align-items:center;gap:6px;flex:none;padding:0 14px 0 clamp(14px,2vw,24px);background:var(--white);font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);position:relative;z-index:2;}
         .qch-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,0.5);animation:qchpul 2s infinite;}
         @keyframes qchpul{0%{box-shadow:0 0 0 0 rgba(90,212,143,0.45)}70%{box-shadow:0 0 0 7px rgba(90,212,143,0)}100%{box-shadow:0 0 0 0 rgba(90,212,143,0)}}
         .qch-ticker{position:relative;overflow:hidden;flex:1 1 0;min-width:0;height:34px;}
         .qch-ticker:before,.qch-ticker:after{content:'';position:absolute;top:0;bottom:0;width:30px;z-index:1;pointer-events:none;}
-        .qch-ticker:before{left:0;background:linear-gradient(90deg,#ffffff,rgba(255,255,255,0));}
-        .qch-ticker:after{right:0;background:linear-gradient(270deg,#ffffff,rgba(255,255,255,0));}
+        .qch-ticker:before{left:0;background:linear-gradient(90deg,var(--white),rgba(255,255,255,0));}
+        .qch-ticker:after{right:0;background:linear-gradient(270deg,var(--white),rgba(255,255,255,0));}
         .qch-track{display:flex;align-items:center;height:34px;width:max-content;animation:qchtick linear infinite;}
         @keyframes qchtick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
         .qch-ticker:hover .qch-track{animation-play-state:paused;}
         @media (prefers-reduced-motion: reduce){.qch-track{animation:none;}}
         .qch-set{display:flex;align-items:center;flex:none;}
-        .qch-titem{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#46506a;text-decoration:none;white-space:nowrap;}
+        .qch-titem{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--slate);text-decoration:none;white-space:nowrap;}
         .qch-titem:hover .qch-ts{text-decoration:underline;text-underline-offset:2px;}
-        .qch-ts{color:#1c1e24;font-weight:800;}
-        .qch-td{color:#262b35;}
-        .qch-tdot{width:4px;height:4px;border-radius:50%;background:#c3ccda;margin:0 14px;flex:none;}
+        .qch-ts{color:var(--ink);font-weight:800;}
+        .qch-td{color:var(--muted);}
+        .qch-tdot{width:4px;height:4px;border-radius:50%;background:var(--border);margin:0 14px;flex:none;}
         .qch-tico{width:17px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none;}
         .qch-tico-play{background:rgba(46,163,106,0.22);}
         .qch-tico-lead{background:rgba(232,180,58,0.2);}
@@ -331,7 +332,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           <Link href="/lists">Top 10 Lists</Link>
         </nav>
         <details className="qch-burger">
-          <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1e24" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+          <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.ink} strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
           <div className="qch-bmenu">
             <Link href="/" className="on">Puzzles &amp; Quizzes</Link>
             <Link href="/lists">Top 10 Lists</Link>

@@ -20,10 +20,11 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react';
+import { T } from '@/lib/theme';
 
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const INK = '#1c1e24';
-const FADED = '#262b35';
+const INK = T.ink;
+const FADED = T.muted;
 
 export default function DailyMasthead({
   blocks,

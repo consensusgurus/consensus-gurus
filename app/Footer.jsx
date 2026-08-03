@@ -2,14 +2,15 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { T } from '@/lib/theme';
 
 // Shared, site-wide footer. Deliberately font/brand-neutral (it inherits the
 // surrounding page's body font and uses neutral grays) so it reads correctly on
 // BOTH the cream list/home pages and the blue quiz pages. No heavy accent color.
 const NEUTRAL = {
-  ink: '#1c1e24',
-  muted: '#262b35',
-  soft: '#262b35',
+  ink: T.ink,
+  muted: T.muted,
+  soft: T.muted,
   line: 'rgba(20,22,28,0.12)',
 };
 

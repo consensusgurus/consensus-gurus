@@ -13,13 +13,14 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { withRef } from '@/lib/referrals';
 import { Metric, CategoryView, ActivityFeed, XpPanel, TrophyCase } from '../../player/ProfileShared';
+import { T } from '@/lib/theme';
 
 const C = {
-  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40',
-  accsoft: '#e8effb', live: '#047857', danger: '#c0392b',
+  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
+  accsoft: '#e8effb', live: '#047857', danger: T.danger,
 };
-const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
+const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 const MEDAL_INK = ['#8a5300', '#5b6472', '#8a4f24'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const MEDAL_BG = ['#fbf2dc', '#eef0f2', '#f6e9df'];
@@ -70,9 +71,9 @@ function Logo({ size = 22 }) {
         </radialGradient>
       </defs>
       <rect x="3" y="3" width="58" height="58" rx="17.5" fill={`url(#bh-${uid})`} />
-      <circle cx="32" cy="32.5" r="16.4" fill="#ffffff" /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
+      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
       <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke="#0e1d40" strokeWidth="0.4" strokeLinejoin="round" fill={`url(#gh-${uid})`} />
+      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#gh-${uid})`} />
     </svg>
   );
 }
@@ -110,16 +111,16 @@ function SignupModal({ onClose }) {
   }
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: FONT }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: T.white, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: C.ink }}>Claim your name</div>
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
-        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
-        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
       </div>
     </div>
   );
@@ -146,7 +147,7 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   const lbl = { fontFamily: FONT, fontWeight: 700, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: C.muted };
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(20,22,28,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: FONT }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: '#fff', borderRadius: 16, border: `1px solid ${C.line}`, overflow: 'hidden', color: C.ink }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: T.white, borderRadius: 16, border: `1px solid ${C.line}`, overflow: 'hidden', color: C.ink }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: `1px solid ${C.line}` }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Logo size={20} /><span style={{ fontWeight: 800, fontSize: 14 }}>Source of Truths</span></span>
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><ArrowLeft size={0} /><span style={{ fontSize: 20, lineHeight: 1 }}>&times;</span></button>
@@ -181,9 +182,9 @@ function ShareStatsModal({ profile, byKey, onClose }) {
           </div>
         ) : null}
         <div style={{ display: 'flex', gap: 9, padding: '16px 18px 18px' }}>
-          <button onClick={copy} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={15} strokeWidth={2.4} /> {copied ? 'Link copied!' : 'Copy share link'}</button>
-          <a href={`/api/quiz/share-card?key=${encodeURIComponent(profile.userKey || '')}`} target="_blank" rel="noopener noreferrer" download="source-of-truths-stats.png" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: '#fff', color: C.ink, borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', textDecoration: 'none' }}><Download size={15} strokeWidth={2.4} /> Image</a>
-          <button onClick={onClose} style={{ border: `1px solid ${C.line}`, background: '#fff', color: C.ink, borderRadius: 10, padding: '11px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Close</button>
+          <button onClick={copy} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={15} strokeWidth={2.4} /> {copied ? 'Link copied!' : 'Copy share link'}</button>
+          <a href={`/api/quiz/share-card?key=${encodeURIComponent(profile.userKey || '')}`} target="_blank" rel="noopener noreferrer" download="source-of-truths-stats.png" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: T.white, color: C.ink, borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', textDecoration: 'none' }}><Download size={15} strokeWidth={2.4} /> Image</a>
+          <button onClick={onClose} style={{ border: `1px solid ${C.line}`, background: T.white, color: C.ink, borderRadius: 10, padding: '11px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Close</button>
         </div>
       </div>
     </div>
@@ -348,7 +349,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
           {pulse && !iAmCh ? <button onClick={() => decline(d)} style={smallBtn(C.danger)}>Decline</button> : null}
           {pulse && iAmCh ? <button onClick={() => cancel(d)} style={smallBtn(C.muted)}>Dismiss</button> : null}
           {pulse ? (
-            <a href={`/duel/${d.token}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', borderRadius: 9, padding: '7px 14px', fontSize: 12.5, fontWeight: 800, textDecoration: 'none' }}><Play size={13} /> Play</a>
+            <a href={`/duel/${d.token}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: T.white, borderRadius: 9, padding: '7px 14px', fontSize: 12.5, fontWeight: 800, textDecoration: 'none' }}><Play size={13} /> Play</a>
           ) : (
             <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft }}>Pending</span>
           )}
@@ -361,7 +362,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
         <div style={{ fontSize: 15, fontWeight: 800 }}>Duel Arena</div>
-        <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: '#fff', padding: '10px 17px', borderRadius: 10, fontWeight: 800, fontSize: 13.5, textDecoration: 'none' }}><Swords size={16} /> Start a Duel</a>
+        <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: T.white, padding: '10px 17px', borderRadius: 10, fontWeight: 800, fontSize: 13.5, textDecoration: 'none' }}><Swords size={16} /> Start a Duel</a>
       </div>
 
       {mine ? (
@@ -487,7 +488,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
                   style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isMe ? 800 : 700, fontSize: 14, color: C.accent, cursor: 'pointer' }}
                 >{p.name}{isMe ? <span style={{ fontSize: 9.5, color: C.accent, fontWeight: 800, marginLeft: 6 }}>YOU</span> : null}</span>
                 <span style={{ flex: 'none', fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
-                <span className="lbar" style={{ flex: 'none', width: 86, height: 7, borderRadius: 999, background: isMe ? '#fff' : '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.max(3, Math.min(100, p.winPct || 0))}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+                <span className="lbar" style={{ flex: 'none', width: 86, height: 7, borderRadius: 999, background: isMe ? T.white : '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.max(3, Math.min(100, p.winPct || 0))}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
                 <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: C.muted, width: 38, textAlign: 'right' }}>{p.winPct}%</span>
                 <span className="lform"><FormDots results={matches.map((m) => m.result)} /></span>
                 <ChevronDown size={15} style={{ flex: 'none', color: C.soft, opacity: canOpen ? 1 : 0.25, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
@@ -519,7 +520,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
         <label onClick={toggleMuteAll} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer', padding: '4px 0' }}>
           <span style={{ fontSize: 14, fontWeight: 600 }}>Mute all duel alerts</span>
           <span style={{ width: 44, height: 26, borderRadius: 999, background: muteAll ? C.accent : '#cfd4dc', position: 'relative', flex: 'none' }}>
-            <span style={{ position: 'absolute', top: 3, left: muteAll ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff' }} />
+            <span style={{ position: 'absolute', top: 3, left: muteAll ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: T.white }} />
           </span>
         </label>
         <div style={{ fontSize: 12, color: C.soft, marginTop: 4 }}>When on, you won{"'"}t get any duel challenge pop-ups.</div>
@@ -680,7 +681,7 @@ export default function StatHubClient() {
     return best;
   }, [profile]);
   const tierLabel = profile && profile.tier ? profile.tier : 'Unrated';
-  const tierBg = profile && profile.tierBg ? profile.tierBg : '#eceef1';
+  const tierBg = profile && profile.tierBg ? profile.tierBg : T.paper;
   const tierFg = profile && profile.tierFg ? profile.tierFg : C.muted;
 
   const statsById = useMemo(() => Object.fromEntries(stats.map((s) => [s.quizId, s])), [stats]);
@@ -726,10 +727,10 @@ export default function StatHubClient() {
     .qzhub .metric .v{font-size:21px;font-weight:700;}
     .qzhub .rankchip{font-size:10px;font-weight:700;color:${C.accent};background:${C.accsoft};border-radius:5px;padding:1px 6px;letter-spacing:0;text-transform:none;margin-left:6px;}
     .qzhub .pvbtn{border:none;background:transparent;border-radius:6px;padding:5px 11px;font:inherit;font-family:${FONT};font-size:12px;color:${C.muted};cursor:pointer;}
-    .qzhub .pvbtn.on{background:#fff;color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
+    .qzhub .pvbtn.on{background:var(--white);color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
     .qzhub .dd{position:relative;}
-    .qzhub .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
-    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+    .qzhub .ddbtn{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
+    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:var(--white);border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzhub .ddmenu .ddall{grid-column:1 / -1;}
     .qzhub .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzhub .dditem:hover{background:${C.bg};}
@@ -757,7 +758,7 @@ export default function StatHubClient() {
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
     @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;gap:14px !important;}.qzhub .shpbar-main > div:nth-child(3){gap:14px !important;}.qzhub .sh-mext{display:none !important;}.qzhub .sh-rank{font-size:30px !important;}}
     .qzhub .lbl2{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
-    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:#fff;color:${C.accent};border:1px solid #cddffb;border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
+    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:var(--white);color:${C.accent};border:1px solid var(--accent-border);border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
     .qzhub .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
     .qzhub .hubbtn:hover{background:${C.accsoft};}
     .qzhub .qz-srank{font-size:11px;font-weight:600;color:${C.soft};}
@@ -777,13 +778,13 @@ export default function StatHubClient() {
     .qzhub .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 14px;}
     @media(max-width:900px){.qzhub .tiles{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:680px){.qzhub .tiles{grid-template-columns:1fr 1fr;gap:8px;}}
-    .qzhub .tile{position:relative;text-align:left;background:#fff;border:1px solid rgba(20,22,28,0.30);border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
-    .qzhub .tile:hover{border-color:#cddffb;}
+    .qzhub .tile{position:relative;text-align:left;background:var(--white);border:1px solid rgba(20,22,28,0.30);border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
+    .qzhub .tile:hover{border-color:var(--accent-border);}
     .qzhub .tile.on{background:${C.accent};border-color:${C.accent};}
-    .qzhub .tilebadge{position:absolute;top:9px;right:11px;background:${C.danger};color:#fff;font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;}
-    .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(20,22,28,0.30);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
-    .qzhub .pill:hover{border-color:#cddffb;}
-    .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:#fff;font-weight:800;}
+    .qzhub .tilebadge{position:absolute;top:9px;right:11px;background:${C.danger};color:var(--white);font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;}
+    .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid rgba(20,22,28,0.30);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
+    .qzhub .pill:hover{border-color:var(--accent-border);}
+    .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:var(--white);font-weight:800;}
   `;
 
   return (
@@ -796,20 +797,20 @@ export default function StatHubClient() {
         {viewing ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 10, padding: '8px 14px', marginTop: 10 }}>
             <span style={{ fontSize: 13, color: C.ink }}>Viewing <b>{(viewProfile && viewProfile.name) || 'player'}</b>{"'"}s stats</span>
-            <button onClick={() => { setViewKey(null); if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', '/quizzes/hub'); }} style={{ border: '1px solid #cddffb', background: '#fff', color: C.accent, borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
+            <button onClick={() => { setViewKey(null); if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', '/quizzes/hub'); }} style={{ border: `1px solid ${T.accentBorder}`, background: T.white, color: C.accent, borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
           </div>
         ) : null}
 
         {!viewing && me && !(me.found && !me.isAnon) ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 12, padding: '14px 18px', marginTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: C.accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><UserPlus size={20} /></div>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: C.accent, color: T.white, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><UserPlus size={20} /></div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.2 }}>You{"'"}re playing as a guest</div>
-                <div style={{ fontSize: 13, color: '#46506a', lineHeight: 1.45, marginTop: 2 }}>Add a display name (email optional) to put your scores on the leaderboards and keep your stats across devices. No password needed.</div>
+                <div style={{ fontSize: 13, color: T.slate, lineHeight: 1.45, marginTop: 2 }}>Add a display name (email optional) to put your scores on the leaderboards and keep your stats across devices. No password needed.</div>
               </div>
             </div>
-            <button onClick={() => setSignupOpen(true)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '11px 18px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}><UserPlus size={15} /> Create name</button>
+            <button onClick={() => setSignupOpen(true)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '11px 18px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}><UserPlus size={15} /> Create name</button>
           </div>
         ) : null}
 
@@ -818,8 +819,8 @@ export default function StatHubClient() {
           {(() => {
             const meFound = me && me.found;
             const on = (t) => tab === t;
-            const lblSt = (t) => ({ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 800, color: on(t) ? '#fff' : C.muted });
-            const bigSt = (t) => ({ display: 'block', fontSize: 18, fontWeight: 800, marginTop: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: on(t) ? '#fff' : C.ink, fontVariantNumeric: 'tabular-nums' });
+            const lblSt = (t) => ({ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 800, color: on(t) ? T.white : C.muted });
+            const bigSt = (t) => ({ display: 'block', fontSize: 18, fontWeight: 800, marginTop: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: on(t) ? T.white : C.ink, fontVariantNumeric: 'tabular-nums' });
             const smSt = (t) => ({ fontSize: 11, fontWeight: 700, color: on(t) ? 'rgba(255,255,255,0.75)' : C.soft });
             const subSt = (t, warn) => ({ display: 'block', fontSize: 10.5, fontWeight: 700, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: warn ? (on(t) ? '#ffd9d3' : C.danger) : (on(t) ? 'rgba(255,255,255,0.75)' : C.soft) });
             const waiting = duels.yourMove.length;
@@ -838,7 +839,7 @@ export default function StatHubClient() {
                 <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
                   {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
                   <span style={lblSt('duels')}><Swords size={15} /> Duels</span>
-                  <span style={bigSt('duels')}>{myDuel ? <>{myDuel.wins}-{myDuel.losses}{myDuel.ties ? `-${myDuel.ties}` : ''}{myDuelStreak ? <span style={{ fontSize: 12, fontWeight: 800, marginLeft: 6, color: on('duels') ? '#fff' : (myDuelStreak.kind === 'win' ? C.live : C.danger) }}>{myDuelStreak.kind === 'win' ? 'W' : 'L'}{myDuelStreak.n}</span> : null}</> : '—'}</span>
+                  <span style={bigSt('duels')}>{myDuel ? <>{myDuel.wins}-{myDuel.losses}{myDuel.ties ? `-${myDuel.ties}` : ''}{myDuelStreak ? <span style={{ fontSize: 12, fontWeight: 800, marginLeft: 6, color: on('duels') ? T.white : (myDuelStreak.kind === 'win' ? C.live : C.danger) }}>{myDuelStreak.kind === 'win' ? 'W' : 'L'}{myDuelStreak.n}</span> : null}</> : '—'}</span>
                   <span style={subSt('duels', waiting > 0)}>{waiting > 0 ? `${waiting} waiting on you` : myDuel ? `${myDuel.winPct}% win rate` : 'Challenge someone'}</span>
                 </button>
                 <button className={`tile${on('challenges') ? ' on' : ''}`} onClick={() => setTab('challenges')}>
@@ -866,7 +867,7 @@ export default function StatHubClient() {
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: '#047857' }} /> Played</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#a16207" /> Completed (100%)</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill={T.gold} color={T.goldInk} /> Completed (100%)</span>
       </div>
       <Footer />
     </div>
@@ -984,7 +985,7 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
       {/* 2. Day-by-day champion history. */}
       <div id="daily-champions" className="card" style={{ padding: '16px 18px', marginTop: 16, scrollMarginTop: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Crown size={17} style={{ color: '#a16207' }} /> Daily Champions</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Crown size={17} style={{ color: T.goldInk }} /> Daily Champions</span>
           {hist == null ? null : <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>{history.length} {history.length === 1 ? 'day' : 'days'} crowned</span>}
         </div>
         {topChamp && topChamp.wins > 1 ? (
@@ -1011,7 +1012,7 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
               <div key={h.date} style={{ display: 'grid', gridTemplateColumns: col, gap: 8, alignItems: 'center', padding: '9px 4px', borderTop: `1px solid ${C.line}` }}>
                 <span style={{ fontSize: 12.5, fontWeight: 700, color: C.ink }}>{h.label}</span>
                 <span style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  {i === 0 ? <Crown size={13} style={{ color: '#a16207', flex: 'none' }} /> : null}
+                  {i === 0 ? <Crown size={13} style={{ color: T.goldInk, flex: 'none' }} /> : null}
                   {nameBtn(h.winner.userKey, h.winner.username, 13.5)}
                 </span>
                 <span style={{ textAlign: 'right', fontSize: 13, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{fmtPts1(h.winner.total)}<span style={{ fontSize: 10.5, fontWeight: 600, color: C.soft }}>/{h.maxTotal}</span></span>
@@ -1065,7 +1066,7 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
                   <div style={{ marginTop: 10, paddingTop: 9, borderTop: `1px solid ${C.line}`, fontSize: 11.5, color: C.muted, fontWeight: 600 }}>
                     {leader ? (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 5, overflow: 'hidden' }}>
-                        <span style={{ color: '#a16207', flex: 'none', display: 'inline-flex' }}><Crown size={12} /></span>
+                        <span style={{ color: T.goldInk, flex: 'none', display: 'inline-flex' }}><Crown size={12} /></span>
                         <span style={{ color: C.soft, flex: 'none' }}>Today:</span>
                         {nameBtn(leader.userKey, leader.username, 11.5)}
                       </span>
@@ -1165,7 +1166,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
             <div key={p.userKey} style={{ background: mine ? '#f3f7fe' : C.bg, border: `1px solid ${mine ? '#c6d8f5' : C.line}`, borderTop: `3px solid ${MEDAL[i]}`, borderRadius: '0 0 12px 12px', padding: '14px 12px 12px', textAlign: 'center', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
               <span style={{ position: 'relative', display: 'inline-flex', flex: 'none' }}>
                 <Avatar name={p.name} bg={MEDAL_BG[i]} fg={MEDAL_INK[i]} size={40} />
-                {i === 0 ? <span style={{ position: 'absolute', top: -7, right: -9, width: 19, height: 19, borderRadius: '50%', background: '#fff', border: `1px solid ${C.line}`, color: MEDAL_INK[0], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Crown size={11} /></span> : null}
+                {i === 0 ? <span style={{ position: 'absolute', top: -7, right: -9, width: 19, height: 19, borderRadius: '50%', background: T.white, border: `1px solid ${C.line}`, color: MEDAL_INK[0], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Crown size={11} /></span> : null}
               </span>
               <div style={{ marginTop: 7, fontSize: 13, fontWeight: 800, lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 <button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: mine ? C.ink : C.accent, cursor: 'pointer' }}>{p.name}</button>
@@ -1185,7 +1186,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
             <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>{chase.sub}</span>
             <span style={{ display: 'block', height: 6, borderRadius: 999, background: '#e4e7ec', marginTop: 8, overflow: 'hidden' }}><span style={{ display: 'block', width: `${chase.pct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
           </span>
-          <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
+          <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: T.white, background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
         </div>
       ) : null}
       <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = IQ Points earned over the last week.' : ''}</div>
@@ -1277,7 +1278,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
                   <td style={{ fontWeight: 600, maxWidth: 280 }}>
                     <span style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                       <Link href={`/quiz/${q.id}`} className="qlink" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{q.title}</Link>
-                      {doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill="#e8b43a" color="#a16207" style={{ flex: 'none', marginLeft: 5 }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ flex: 'none', color: '#047857', marginLeft: 5 }} aria-label="Played" /> : null}
+                      {doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill={T.gold} color={T.goldInk} style={{ flex: 'none', marginLeft: 5 }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ flex: 'none', color: '#047857', marginLeft: 5 }} aria-label="Played" /> : null}
                     </span>
                   </td>
                   <td className="score" style={{ textAlign: 'right' }}>{(s.plays || 0).toLocaleString()}</td>
@@ -1297,7 +1298,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
 }
 
 // ─── Challenges tab ─────────────────────────────────────────────────────────
-const CH_MEDAL = { 1: '#e8b43a', 2: '#b8bcc4', 3: '#c8814b' };
+const CH_MEDAL = { 1: T.gold, 2: '#b8bcc4', 3: '#c8814b' };
 const CH_TINT = { 1: 'rgba(232,180,58,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'rgba(200,129,75,0.12)' };
 function chMmss(s) { const n = Math.max(0, Math.round(Number(s) || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
 function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; } catch (e) { return ''; } }
@@ -1314,7 +1315,7 @@ function WinnersCircle({ winners, loaded, onOpen }) {
   const hd = { fontSize: 11, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft, margin: '14px 0 2px' };
   const Row = ({ w }) => (
     <button onClick={() => onOpen && onOpen(w.id)} title="Open the full board" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '9px 0', borderBottom: `1px solid ${C.line}`, cursor: 'pointer', fontFamily: FONT }}>
-      <span style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: w.winner ? '#fbf2dc' : '#eef0f2', color: w.winner ? '#e8b43a' : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trophy size={13} /></span>
+      <span style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: w.winner ? '#fbf2dc' : '#eef0f2', color: w.winner ? T.gold : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trophy size={13} /></span>
       <span style={{ flex: '0 0 auto', width: 132, fontSize: 12, fontWeight: 700, color: C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.label}</span>
       <span style={{ flex: 1, minWidth: 60, fontSize: 13.5, fontWeight: 800, color: w.winner ? C.accent : C.soft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.winner ? w.winner.username : (w.closed ? 'No finishers' : 'No entries yet')}</span>
       {w.winner ? <span className="wc-score" style={{ flex: 'none', fontSize: 11.5, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{w.winner.totalCorrect} correct · {chMmss(w.winner.totalTime)}</span> : null}
@@ -1392,7 +1393,7 @@ function ChallengesPanel({ me }) {
       <style>{`
         .chg-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;font-size:12px;color:${C.muted};margin-top:14px;}
         .chg-meta b{color:${C.ink};font-weight:700;}
-        .chg-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid ${C.line};border-radius:8px;font:inherit;font-family:${FONT};font-size:12px;font-weight:600;color:${C.ink};cursor:pointer;}
+        .chg-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--white);border:1px solid ${C.line};border-radius:8px;font:inherit;font-family:${FONT};font-size:12px;font-weight:600;color:${C.ink};cursor:pointer;}
         .chg-btn:hover{background:${C.bg};}
         .chg-btn:disabled{opacity:0.55;cursor:default;}
         @keyframes chgspin{to{transform:rotate(360deg);}}
@@ -1425,9 +1426,9 @@ function ChallengesPanel({ me }) {
         .chg-sw{width:10px;height:10px;border-radius:3px;display:inline-block;}
         .chg-foot{font-size:11.5px;line-height:1.7;color:${C.soft};max-width:880px;margin-top:12px;}
         .chg-foot b{color:${C.muted};font-weight:700;}
-        .chg-prize{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 13px;background:${C.accent};color:#fff;font-size:12px;font-weight:700;border-radius:8px;}
+        .chg-prize{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 13px;background:${C.accent};color:var(--white);font-size:12px;font-weight:700;border-radius:8px;}
         .chg-play{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-        .chg-playchip{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:${C.accent};color:#fff;padding:8px 14px;border-radius:8px;font-family:${FONT};font-size:12px;font-weight:700;text-decoration:none;text-align:center;}
+        .chg-playchip{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:${C.accent};color:var(--white);padding:8px 14px;border-radius:8px;font-family:${FONT};font-size:12px;font-weight:700;text-decoration:none;text-align:center;}
         @media(max-width:600px){.chg-play{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;}.chg-play:has(> :nth-child(4):last-child),.chg-play:has(> :nth-child(-n+3):last-child){grid-template-columns:1fr;}.chg-playchip{width:100%;box-sizing:border-box;}}
       `}</style>
 
@@ -1464,7 +1465,7 @@ function ChallengesPanel({ me }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>Challenge</span>
-          <select value={ch.id} onChange={(e) => setChId(e.target.value)} style={{ padding: '8px 12px', border: `1px solid ${C.line}`, borderRadius: 8, fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.ink, background: '#fff', cursor: 'pointer', maxWidth: 280 }}>
+          <select value={ch.id} onChange={(e) => setChId(e.target.value)} style={{ padding: '8px 12px', border: `1px solid ${C.line}`, borderRadius: 8, fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.ink, background: T.white, cursor: 'pointer', maxWidth: 280 }}>
             <optgroup label="Daily Challenge">
               {menu.filter((it) => it.daily).map((it) => (
                 <option key={it.id} value={it.id}>{it.label}</option>
@@ -1519,7 +1520,7 @@ function ChallengesPanel({ me }) {
                   return (
                     <tr key={u.username + i} style={{ background: mine ? C.accsoft : tint }}>
                       <th className="chg-player" style={mine ? { background: C.accsoft } : undefined}>
-                        <span className="chg-rk" style={medal ? { background: medal, borderColor: medal, color: '#1c1e24' } : undefined}>{rank}</span>
+                        <span className="chg-rk" style={medal ? { background: medal, borderColor: medal, color: T.ink } : undefined}>{rank}</span>
                         <span className="chg-nm">{u.username}{mine ? <span style={{ color: C.accent, fontWeight: 700, marginLeft: 6, fontSize: 11 }}>you</span> : null}</span>
                         <span className="chg-pl">{u.quizzesPlayed}/{cols.length}</span>
                       </th>

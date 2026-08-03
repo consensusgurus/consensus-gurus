@@ -2,6 +2,7 @@
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getChallenge, challengeQuizIds } from '@/lib/challenges';
+import { T } from '@/lib/theme';
 
 // Shared Daily Challenge run support for the special-format quiz boards
 // (grid-fill, timed-mcq, logic-grid, place-map, globe). These boards are
@@ -74,8 +75,8 @@ export function useChallengeRun(quizId) {
 }
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-const EMBER = '#0e1d40';
-const ACC_BORDER = '#cddffb';
+const EMBER = T.accent;
+const ACC_BORDER = T.accentBorder;
 
 // A layout-agnostic fixed bar (bottom-center) shown once the run's quiz has
 // ended. Renders the challenge accent, step dots, and the auto-advancing
@@ -89,7 +90,7 @@ export function ChallengeRunOverlay({ run }) {
     : (chCountdown != null && chCountdown > 0 ? `Your results in ${chCountdown}…` : 'See your results →');
   return (
     <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 200, display: 'flex', justifyContent: 'center', padding: '0 16px 16px', pointerEvents: 'none' }}>
-      <div style={{ pointerEvents: 'auto', width: '100%', maxWidth: 420, boxSizing: 'border-box', background: '#fff', border: `1.5px solid ${ACC_BORDER}`, borderRadius: 14, boxShadow: '0 10px 30px rgba(20,22,28,0.18)', padding: '12px 14px', fontFamily: FONT }}>
+      <div style={{ pointerEvents: 'auto', width: '100%', maxWidth: 420, boxSizing: 'border-box', background: T.white, border: `1.5px solid ${ACC_BORDER}`, borderRadius: 14, boxShadow: '0 10px 30px rgba(20,22,28,0.18)', padding: '12px 14px', fontFamily: FONT }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
           <span style={{ fontFamily: FONT, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800, color: EMBER }}>Daily Challenge · {chAccent}</span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -98,7 +99,7 @@ export function ChallengeRunOverlay({ run }) {
             ))}
           </span>
         </div>
-        <button onClick={goNextStep} style={{ width: '100%', boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 800, padding: '14px 18px', borderRadius: 10, border: 'none', background: EMBER, color: '#fff', cursor: 'pointer' }}>{label}</button>
+        <button onClick={goNextStep} style={{ width: '100%', boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 800, padding: '14px 18px', borderRadius: 10, border: 'none', background: EMBER, color: T.white, cursor: 'pointer' }}>{label}</button>
       </div>
     </div>
   );

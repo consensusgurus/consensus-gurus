@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Crown } from 'lucide-react';
+import { T } from '@/lib/theme';
 
 /**
  * Featured hero tile that FLIPS between several picks (owner request 2026-07-21).
@@ -113,7 +114,7 @@ function FlipFace({ it, back, active }) {
   // that was the discoloured strip across the top of every tile (2026-07-21).
   const bg = it.hero
     ? { backgroundImage: `url("${it.hero}")`, backgroundPosition: it.pos || 'center' }
-    : { background: it.accent || '#0e1d40' };
+    : { background: it.accent || T.accent };
   return (
     <Link
       href={it.href}
@@ -132,7 +133,7 @@ function FlipFace({ it, back, active }) {
           <span className="ttile-p" style={{ flex: 'none' }}>Play <ArrowRight size={13} style={{ verticalAlign: -1 }} /></span>
           {it.leader ? (
             <span className="ttile-plays hpill" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
-              <Crown size={12} style={{ color: '#e8b43a', flex: 'none' }} />
+              <Crown size={12} style={{ color: T.gold, flex: 'none' }} />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.leader}</span>
             </span>
           ) : null}

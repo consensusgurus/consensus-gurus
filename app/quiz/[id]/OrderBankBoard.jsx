@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { T } from '@/lib/theme';
 
 // Ordered answer-bank, sudden-death board (`format: 'order-bank'`).
 //
@@ -17,13 +18,13 @@ import React, { useMemo, useState } from 'react';
 // `answers` array in correct order; only each item's `t` (display title) is used.
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  forest: '#10b981',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  forest: T.success,
+  faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";

@@ -7,6 +7,7 @@ import ResultQueue from './ResultQueue';
 import ShareCreditPop from './ShareCreditPop';
 import TrophyPop from './TrophyPop';
 import { getAllSources } from '@/lib/sources';
+import { T } from '@/lib/theme';
 
 const SOURCE_COUNT = getAllSources().length;
 
@@ -36,7 +37,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  viewportFit: 'cover', themeColor: '#0e1d40',
+  viewportFit: 'cover', themeColor: T.accent,
 };
 
 const websiteJsonLd = {

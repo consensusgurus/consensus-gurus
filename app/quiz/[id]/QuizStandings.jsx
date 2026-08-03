@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import { notifyTrophies } from '../../TrophyPop';
 import { quizDept, DEPT_LABEL } from '@/lib/quiz-departments';
+import { T } from '@/lib/theme';
 
 // Shared end-of-quiz IQ card, rendered by every quiz board (the twelve that use
 // QuizResultModal plus the inline QuizClient end screen).
@@ -33,7 +34,7 @@ import { quizDept, DEPT_LABEL } from '@/lib/quiz-departments';
 // and `placement` are the new optional additions; QuizResultModal injects them
 // via cloneElement, so only the QuizClient caller passes them directly. Without
 // them the card still renders, minus the This Quiz tile's figures.
-const C = { ember: '#0e1d40', ink: '#1c1e24', faded: '#262b35', slate: '#46506a', bord: '#e7eaf1', blue: '#2563eb', forest: '#10b981' };
+const C = { ember: T.accent, ink: T.ink, faded: T.muted, slate: T.slate, bord: '#e7eaf1', blue: T.blue, forest: T.success };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 
@@ -283,7 +284,7 @@ export default function QuizStandings({
         .qiq-hero:hover{border-color:#9dbdea;}
         .qiq-hero.full:hover{border-color:#9fd3ba;}
         .qiq-hero.open{border-color:${C.blue};box-shadow:0 0 0 1px ${C.blue};}
-        .qiq-hero.full.open{border-color:#15803d;box-shadow:0 0 0 1px #15803d;}
+        .qiq-hero.full.open{border-color:var(--success-deep);box-shadow:0 0 0 1px var(--success-deep);}
         .qiq-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(37,99,235,.16) 0%,rgba(37,99,235,0) 62%);}
         .qiq-hero.full .qiq-rays{background:radial-gradient(circle,rgba(21,128,61,.17) 0%,rgba(21,128,61,0) 62%);}
         .qiq-hero.landed .qiq-rays{animation:qiq-rays 1.1s ease-out 1;}
@@ -297,11 +298,11 @@ export default function QuizStandings({
         .qiq-lbl{display:block;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#3d63a8;}
         .qiq-hero.full .qiq-lbl{color:#0f6e56;}
         .qiq-gain{display:block;font-size:58px;font-weight:800;letter-spacing:-.03em;line-height:1;color:${C.blue};margin-top:1px;font-variant-numeric:tabular-nums;}
-        .qiq-hero.full .qiq-gain{color:#15803d;}
+        .qiq-hero.full .qiq-gain{color:var(--success-deep);}
         .qiq-gain .dash{color:#c2c8d2;}
         .qiq-sub{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(61,99,168,.16);font-size:12.5px;color:#4d6a97;}
         .qiq-hero.full .qiq-sub{border-top-color:rgba(15,110,86,.16);color:#3d6b58;}
-        .qiq-sub b{font-weight:800;color:#1d4ed8;}
+        .qiq-sub b{font-weight:800;color:var(--blue-deep);}
         .qiq-hero.full .qiq-sub b{color:#0f6e56;}
         .qiq-sub .prov,.qiq-rk .prov{font-weight:700;color:${C.faded};}
         .qiq-sub .lvl{font-weight:800;color:${C.forest};}
@@ -310,18 +311,18 @@ export default function QuizStandings({
         .qiq-hero.full .qiq-mx{color:#0f6e56;}
         .qiq-hero.open .qiq-mx,.qiq-hero:hover .qiq-mx{color:${C.blue};}
         .qiq-tiles{display:grid;grid-template-columns:repeat(${tiles.length},minmax(0,1fr));gap:10px;margin-bottom:10px;}
-        .qiq-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${C.bord};border-radius:12px;background:#f7f8fa;font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${C.slate};}
+        .qiq-loading{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;height:74px;margin-bottom:10px;border:1px solid ${C.bord};border-radius:12px;background:var(--surface);font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${C.slate};}
         .qiq-loading::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:qiq-shim 1.15s ease-in-out infinite;}
-        .qiq-tile{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid ${C.bord};background:#f7f8fa;border-radius:12px;padding:13px 10px 11px;min-width:0;transition:background .12s ease,border-color .12s ease;}
-        .qiq-tile:hover{background:#fff;border-color:#cfd6e2;}
-        .qiq-tile.open{border-color:${C.blue};box-shadow:0 0 0 1px ${C.blue};background:#fff;}
+        .qiq-tile{position:relative;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid ${C.bord};background:var(--surface);border-radius:12px;padding:13px 10px 11px;min-width:0;transition:background .12s ease,border-color .12s ease;}
+        .qiq-tile:hover{background:var(--white);border-color:#cfd6e2;}
+        .qiq-tile.open{border-color:${C.blue};box-shadow:0 0 0 1px ${C.blue};background:var(--white);}
         .qiq-tile-lbl{font-size:12.5px;font-weight:700;color:${C.slate};padding:0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .qiq-rk{font-size:34px;font-weight:800;letter-spacing:-.02em;color:${C.ink};line-height:1.1;margin-top:4px;display:block;}
         .qiq-rk .dash{color:#c2c8d2;}
         .qiq-rk .prov{font-size:11px;}
         .qiq-of{font-size:12px;color:${C.faded};display:block;margin-top:3px;}
         .qiq-tile-mx{position:absolute;top:9px;right:8px;color:${C.slate};display:flex;}
-        .qiq-expand{border:1px solid ${C.bord};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:#fff;}
+        .qiq-expand{border:1px solid ${C.bord};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:var(--white);}
         .qiq-expand-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;}
         .qiq-expand-ti{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${C.slate};}
         .qiq-expand-full{font-size:11.5px;font-weight:800;color:${C.blue};background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:3px;text-decoration:none;white-space:nowrap;}

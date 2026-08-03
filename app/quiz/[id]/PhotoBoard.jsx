@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { T } from '@/lib/theme';
 
 // Photo-recall board (`format: 'photo'`). ONE landmark photo shows at a time with
 // a Next button to cycle through photos not yet solved; below sits a single text
@@ -15,8 +16,8 @@ import { createPortal } from 'react-dom';
 // stays put and keeps focus.
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
-  rust: '#c0392b', forest: '#10b981', faded: '#262b35',
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, forest: T.success, faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -232,10 +233,10 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: live ? '#fff' : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: live ? T.white : COLORS.paper, color: COLORS.ink, opacity: live ? 1 : 0.6, transition: 'border-color .15s' }}
             />
             {live && cur != null && noSkip && (
-              <button onMouseDown={(e) => e.preventDefault()} onClick={() => submit(val, true)} title="Submit your guess" style={{ flex: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', background: COLORS.ember, color: '#fff', borderRadius: 10, border: 'none', cursor: 'pointer' }}>Guess</button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={() => submit(val, true)} title="Submit your guess" style={{ flex: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', background: COLORS.ember, color: T.white, borderRadius: 10, border: 'none', cursor: 'pointer' }}>Guess</button>
             )}
             {live && cur != null && !noSkip && (
               <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Go back to the previous photo." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 11px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
@@ -279,7 +280,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
             const got = matched.has(i);
             const show = got || revealed;
             return (
-              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? '#fff' : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
+              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? T.white : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: photoAspect, background: COLORS.ink, overflow: 'hidden' }}>
                   <img src={it.img} alt={show ? it.t : `Photo ${i + 1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: show ? 1 : 0.5, filter: show ? 'none' : 'grayscale(0.5)' }} />
                 </div>
@@ -294,7 +295,7 @@ export default function PhotoBoard({ items, started, ended, revealed, onMatch, o
       )}
       {zoomOn && curItem && createPortal(
         (<div onClick={closeZoom} style={{ position: 'fixed', inset: 0, zIndex: 120, background: 'rgba(8,8,10,0.95)', overflow: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
-          <button onClick={(e) => { e.stopPropagation(); closeZoom(); }} aria-label="Close" style={{ position: 'fixed', top: 'calc(10px + env(safe-area-inset-top))', right: 12, zIndex: 2, width: 42, height: 42, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.18)', color: '#fff', fontSize: 20, lineHeight: '42px', textAlign: 'center', cursor: 'pointer' }}>&#10005;</button>
+          <button onClick={(e) => { e.stopPropagation(); closeZoom(); }} aria-label="Close" style={{ position: 'fixed', top: 'calc(10px + env(safe-area-inset-top))', right: 12, zIndex: 2, width: 42, height: 42, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.18)', color: T.white, fontSize: 20, lineHeight: '42px', textAlign: 'center', cursor: 'pointer' }}>&#10005;</button>
           <div style={{ width: '100%', minHeight: '100%', boxSizing: 'border-box', padding: 16, textAlign: 'center', display: zoomed ? 'block' : 'flex', alignItems: zoomed ? undefined : 'center', justifyContent: zoomed ? undefined : 'center' }}>
             <div onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }} style={{ position: 'relative', display: 'inline-block', lineHeight: 0, width: zoomed ? '230%' : 'auto', maxWidth: zoomed ? 'none' : '100%', cursor: zoomed ? 'zoom-out' : 'zoom-in' }}>
               <img src={curItem.img} alt={`Name the ${noun} in this photo`} style={{ display: 'block', width: zoomed ? '100%' : 'auto', height: 'auto', maxWidth: zoomed ? 'none' : '100%', maxHeight: zoomed ? 'none' : '86vh' }} />

@@ -8,6 +8,7 @@ import UpNextCard from './UpNextCard';
 import ScrollToTopOnMount from './ScrollToTopOnMount';
 import RegisterRankLine from './RegisterRankLine';
 import { registerRank } from '@/lib/quiz-lb';
+import { T } from '@/lib/theme';
 
 // Shared end-of-game results for every quiz board (owner rule, 2026-07-02).
 //
@@ -27,7 +28,7 @@ import { registerRank } from '@/lib/quiz-lb';
 // for the top-right rank), leaderboard (node = the full leaderboard element),
 // standings (node), quiz (Challenge + Similar quizzes), onPlayAgain, onReport.
 
-const C = { cream: '#f7f8fa', ink: '#1c1e24', ember: '#0e1d40', forest: '#10b981', faded: '#262b35', line: 'rgba(20,22,28,0.30)' };
+const C = { cream: T.surface, ink: T.ink, ember: T.accent, forest: T.success, faded: T.muted, line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const stackBtn = { fontFamily: FONT, fontSize: 12.5, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700, borderRadius: 10, padding: '14px 12px', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', boxSizing: 'border-box', textDecoration: 'none' };
 
@@ -90,9 +91,9 @@ export default function QuizResultModal({
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-        {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: '#e8b43a', color: '#1c1e24' }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
+        {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: T.gold, color: T.ink }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
         <UpNextCard quiz={quiz} />
-        {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: C.ink, color: '#fff' }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
+        {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: C.ink, color: T.white }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
       </div>
 
       {similar.length > 0 ? (

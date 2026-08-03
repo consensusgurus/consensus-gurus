@@ -32,15 +32,16 @@ import Count from '../../Count';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '@/app/ShareCreditPop';
 import { savedIdentity } from '@/lib/saved-identity';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  forest: '#10b981',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  forest: T.success,
+  faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -374,7 +375,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
     return (
       <button
         onClick={() => setTab(key)}
-        style={{ flex: '1 0 auto', justifyContent: 'center', background: isActive ? '#fff' : 'transparent', color: isActive ? COLORS.ink : COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: isActive ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: isActive ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}
+        style={{ flex: '1 0 auto', justifyContent: 'center', background: isActive ? T.white : 'transparent', color: isActive ? COLORS.ink : COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: isActive ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: isActive ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}
       >
         {icon}
         {label}
@@ -418,12 +419,12 @@ export default function LogicGridClient({ quizId, mobile = false }) {
         {/* Ribbon */}
         <div style={{ marginTop: 18 }}>
           <div style={{ position: 'relative' }}>
-            <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:#fff;box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
-            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: '#eceef1', borderRadius: 10, padding: 4, gap: 6 }}>
+            <style>{`@keyframes qzCueR{0%,100%{transform:translate(0,-50%);}50%{transform:translate(3px,-50%);}}@keyframes qzCueL{0%,100%{transform:translate(0,-50%);}50%{transform:translate(-3px,-50%);}}.qz-cue{position:absolute;top:50%;z-index:3;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:${COLORS.ember};color:var(--white);box-shadow:0 1px 4px rgba(26,22,17,0.45);pointer-events:none;font-size:15px;line-height:1;}.qz-cue-r{right:10px;animation:qzCueR 1.4s ease-in-out infinite;}.qz-cue-l{left:10px;animation:qzCueL 1.4s ease-in-out infinite;}@media(min-width:760px){.qz-cue{display:none;}}.qz-ribbon{scrollbar-width:none;-ms-overflow-style:none;}.qz-ribbon::-webkit-scrollbar{display:none;}`}</style>
+            <div ref={ribbonRef} className="qz-ribbon" style={{ display: 'flex', alignItems: 'stretch', flexWrap: 'nowrap', overflowX: 'auto', background: T.paper, borderRadius: 10, padding: 4, gap: 6 }}>
             {chip('play', 'Play')}
             {phase !== 'playing' && chip('stats', 'Leaderboard')}
             {chip('join', 'Sign-up', <Trophy size={12} strokeWidth={2.5} />)}
-            {phase !== 'playing' && (<a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ flex: '1 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ink, color: '#fff', borderRadius: 10, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, textDecoration: 'none' }}><Swords size={12} strokeWidth={2.5} /> Challenge Someone</a>)}
+            {phase !== 'playing' && (<a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ flex: '1 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: COLORS.ink, color: T.white, borderRadius: 10, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, textDecoration: 'none' }}><Swords size={12} strokeWidth={2.5} /> Challenge Someone</a>)}
             <button
               onClick={() => { setQSent(false); setQOpen(true); }}
               style={{ flex: '1 0 auto', justifyContent: 'center', background: 'transparent', color: COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
@@ -481,7 +482,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                      style={{ fontFamily: SANS, fontSize: 17, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: phase !== 'playing' ? COLORS.paper : '#eceef1', color: COLORS.ink, opacity: phase !== 'playing' ? 0.5 : 1 }}
+                      style={{ fontFamily: SANS, fontSize: 17, padding: '14px 16px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: phase !== 'playing' ? COLORS.paper : T.paper, color: COLORS.ink, opacity: phase !== 'playing' ? 0.5 : 1 }}
                     />
                   </div>
                 </div>
@@ -535,7 +536,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                           const isSolved = solved[i];
                           const isActive = i === active && phase === 'playing';
                           const isMiss = phase === 'done' && !isSolved;
-                          const bg = isSolved ? '#eef3e6' : isMiss ? '#f6ead9' : isActive ? '#fff' : COLORS.paper;
+                          const bg = isSolved ? '#eef3e6' : isMiss ? '#f6ead9' : isActive ? T.white : COLORS.paper;
                           const bdr = isSolved ? COLORS.forest : isMiss ? COLORS.rust : isActive ? COLORS.ember : COLORS.faded + '33';
                           return (
                             <button
@@ -552,7 +553,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                                 <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 14, lineHeight: 1.1, color: isMiss ? COLORS.rust : COLORS.ink }}>{cell.t}</span>
                               )}
                               {cell.clue ? (
-                                <span style={{ fontFamily: SANS, fontSize: 11, lineHeight: 1.25, color: isSolved || isMiss ? COLORS.faded : '#262b35' }}>{cell.clue}</span>
+                                <span style={{ fontFamily: SANS, fontSize: 11, lineHeight: 1.25, color: isSolved || isMiss ? COLORS.faded : T.muted }}>{cell.clue}</span>
                               ) : (
                                 !isSolved && !isMiss && <span style={{ fontFamily: MONO, fontSize: 10, fontStyle: 'italic', color: COLORS.faded, opacity: 0.7 }}>no clue — deduce it</span>
                               )}
@@ -591,8 +592,8 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 {/* Give up */}
                 {phase === 'playing' && (
                   <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center' }}>
-                    <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <Flag size={14} strokeWidth={2.5} color="#fff" /> Give up
+                    <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: 'none', background: COLORS.ember, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Flag size={14} strokeWidth={2.5} color={T.white} /> Give up
                     </button>
                     <button onClick={() => setTab('stats')} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 26px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                       <Trophy size={14} strokeWidth={2.5} /> Leaderboard
@@ -631,7 +632,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                     {LB_POPS.map(([k, label], idx) => {
                       const on = lbPop === k;
                       return (
-                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? T.white : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
                       );
                     })}
                   </div>
@@ -639,7 +640,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                     {LB_FILTERS.map(([k, label], idx) => {
                       const on = lbFilter === k;
                       return (
-                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? '#fff' : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
+                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? COLORS.ink : 'transparent', color: on ? T.white : COLORS.faded, border: 'none', borderLeft: idx === 0 ? 'none' : `1px solid ${COLORS.faded}55`, fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}>{label}</button>
                       );
                     })}
                   </div>
@@ -658,7 +659,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                   {lbRows.map((row, i) => {
                     const mine = identity && row.username === identity.username;
                     return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? '#fff' : COLORS.paper, borderRadius: 10, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? T.white : COLORS.paper, borderRadius: 10, border: `1px solid ${mine ? COLORS.ember : COLORS.faded + '22'}` }}>
                         <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: i < 3 ? COLORS.ember : COLORS.faded }}>{i + 1}</span>
                         <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: COLORS.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
                         <span style={{ fontFamily: MONO, fontSize: 14, textAlign: 'right' }}>{row.score}</span>
@@ -688,7 +689,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 <button onClick={downloadResultImage} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, padding: '10px 20px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>Download image</button>
               )}
             </div>
-            <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', borderRadius: 10, background: COLORS.ink, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            <a href={`/duel/new?quiz=${encodeURIComponent(quizId)}`} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '46px', border: 'none', borderRadius: 10, background: COLORS.ink, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
               <Swords size={14} strokeWidth={2.5} /> Challenge Someone
             </a>
             <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 16, wordBreak: 'break-all' }}>{shareUrl}</div>
@@ -745,7 +746,7 @@ export default function LogicGridClient({ quizId, mobile = false }) {
                 <textarea value={qMsg} onChange={(e) => setQMsg(e.target.value)} maxLength={1000} rows={4} placeholder="What's your question or comment? (optional)" style={{ width: '100%', boxSizing: 'border-box', padding: 12, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: SANS, fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }} />
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button onClick={() => setQOpen(false)} style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>Cancel</button>
-                  <button onClick={submitQuestion} disabled={qBusy} style={{ cursor: 'pointer', background: COLORS.ember, color: '#fff', borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}>{qBusy ? 'Sending…' : 'Send to editors'}</button>
+                  <button onClick={submitQuestion} disabled={qBusy} style={{ cursor: 'pointer', background: COLORS.ember, color: T.white, borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}>{qBusy ? 'Sending…' : 'Send to editors'}</button>
                 </div>
               </>
             )}
@@ -759,11 +760,11 @@ export default function LogicGridClient({ quizId, mobile = false }) {
 }
 
 const labelStyle = { display: 'block', fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6 };
-const fieldStyle = { width: '100%', fontFamily: SANS, fontSize: 16, padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', color: COLORS.ink };
+const fieldStyle = { width: '100%', fontFamily: SANS, fontSize: 16, padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: T.white, color: COLORS.ink };
 
 function StatBox({ label, value, accent }) {
   return (
-    <div style={{ background: accent ? COLORS.paper : '#eceef1', borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '18px 16px', textAlign: 'center' }}>
+    <div style={{ background: accent ? COLORS.paper : T.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '18px 16px', textAlign: 'center' }}>
       <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 30, lineHeight: 1, color: accent ? COLORS.ember : COLORS.ink }}>{value}</div>
       <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 8 }}>{label}</div>
     </div>

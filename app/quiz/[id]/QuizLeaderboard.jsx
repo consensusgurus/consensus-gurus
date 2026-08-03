@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
+import { T } from '@/lib/theme';
 
 // Shared full leaderboard element (owner rule, 2026-07-02).
 //
@@ -11,7 +12,7 @@ import { LB_POPS, LB_FILTERS, pickLb, lbEmptyNote } from '@/lib/quiz-lb';
 // identity, and the quiz total. No "Quiz stats" boxes (that info lives in the
 // header line), per the owner rule.
 
-const C = { ink: '#1c1e24', ember: '#0e1d40', faded: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.30)', accSoft: '#eef3ff', accBorder: '#cddffb' };
+const C = { ink: T.ink, ember: T.accent, faded: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.30)', accSoft: T.accentSoft, accBorder: T.accentBorder };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
@@ -37,7 +38,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
   const lbRanks = [], lbTied = [];
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; lbRanks[i] = p ? lbRanks[i - 1] : i + 1; }
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; const n = i < lb.length - 1 && lb[i].score === lb[i + 1].score && lb[i].timeElapsed === lb[i + 1].timeElapsed; lbTied[i] = p || n; }
-  const chip = (on) => ({ padding: '6px 14px', background: on ? '#fff' : 'transparent', color: on ? C.ink : C.soft, border: 'none', borderRadius: 7, fontFamily: FONT, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' });
+  const chip = (on) => ({ padding: '6px 14px', background: on ? T.white : 'transparent', color: on ? C.ink : C.soft, border: 'none', borderRadius: 7, fontFamily: FONT, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' });
   return (
     <div>
       <style>{`.qlb-grid{grid-template-columns:40px 1fr 76px 70px 64px;}
@@ -49,10 +50,10 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
       </div>
       {!daily && board.plays > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>
-          <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
+          <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: T.surfaceAlt, padding: 4, width: 'fit-content' }}>
             {LB_POPS.map(([k, label]) => <button key={k} onClick={() => setLbPop(k)} style={chip(lbPop === k)}>{label}</button>)}
           </div>
-          <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: '#eef1f5', padding: 4, width: 'fit-content' }}>
+          <div style={{ display: 'inline-flex', gap: 4, borderRadius: 10, background: T.surfaceAlt, padding: 4, width: 'fit-content' }}>
             {LB_FILTERS.map(([k, label]) => <button key={k} onClick={() => setLbFilter(k)} style={chip(lbFilter === k)}>{label}</button>)}
           </div>
         </div>
@@ -65,7 +66,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
             <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>{wordsCol ? 'Score' : 'Correct'}</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>{guessLabel}</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Words</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Misses</span> : null}<span className={gridClass ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
           </div>
           {lb.map((row, i) => { const mine = identity && row.username === identity.username; return (
-            <div key={i} className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : '#fff', borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
+            <div key={i} className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : T.white, borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
               <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? C.ember : C.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontFamily: FONT, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${C.faded}88` }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{!daily && row.tryNum ? <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 400, color: C.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>

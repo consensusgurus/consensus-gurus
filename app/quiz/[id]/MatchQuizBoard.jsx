@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { T } from '@/lib/theme';
 
 // Two-column matching board (the `pairs` quiz format). The LEFT column holds the
 // clues (the prompt you pick first); the RIGHT column holds the answers, listed
@@ -13,13 +14,13 @@ import React, { useMemo, useState } from 'react';
 // reports up to QuizClient via callbacks, mirroring how MapQuizBoard reports picks.
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  forest: '#10b981',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  forest: T.success,
+  faded: T.muted,
 };
 // Distinct column tints so the two sides read as separate at a glance: the
 // clues (prompt) sit on a warm parchment panel with an ember accent, the
@@ -207,7 +208,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
                     textDecoration: isDead ? 'line-through' : 'none',
                     color: isDead ? COLORS.faded : COLORS.ink,
                     opacity: isDead ? 0.5 : 1,
-                    background: isDead ? COLORS.paper : '#eceef1',
+                    background: isDead ? COLORS.paper : T.paper,
                     cursor: isDead || !live ? 'default' : 'pointer',
                   }}
                 >

@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react';
 import { X, Check, Copy } from 'lucide-react';
 import { myRefCode, withRef, ensureMyRefCode } from '@/lib/referrals';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
+import { T } from '@/lib/theme';
 
 export const SHARE_CREDIT_EVENT = 'sot:share-credit';
 
@@ -37,10 +38,10 @@ export function notifyShareCredit(resultText, url) {
   }
 }
 
-const INK = '#1c1e24';
-const SLATE = '#46506a';
+const INK = T.ink;
+const SLATE = T.slate;
 const BORD = '#e7eaf1';
-const BLUE = '#2563eb';
+const BLUE = T.blue;
 const PAPER = '#f4f6fa';
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -109,9 +110,9 @@ export default function ShareCreditPop() {
   if (!open) return null;
 
   const backdrop = { position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(20,22,28,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: SANS };
-  const card = { background: '#fff', border: `1px solid ${BORD}`, borderRadius: 16, padding: '24px 24px 20px', maxWidth: 460, width: '100%', color: INK, position: 'relative', boxShadow: '0 18px 50px rgba(15,20,35,0.28)', maxHeight: '90vh', overflowY: 'auto' };
+  const card = { background: T.white, border: `1px solid ${BORD}`, borderRadius: 16, padding: '24px 24px 20px', maxWidth: 460, width: '100%', color: INK, position: 'relative', boxShadow: '0 18px 50px rgba(15,20,35,0.28)', maxHeight: '90vh', overflowY: 'auto' };
   const closeBtn = (
-    <button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 9, background: '#fff', border: `1px solid ${BORD}`, color: SLATE, cursor: 'pointer', zIndex: 2 }}>
+    <button type="button" onClick={() => setOpen(false)} aria-label="Close" style={{ position: 'absolute', top: 12, right: 12, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 9, background: T.white, border: `1px solid ${BORD}`, color: SLATE, cursor: 'pointer', zIndex: 2 }}>
       <X size={18} strokeWidth={2.4} />
     </button>
   );
@@ -135,7 +136,7 @@ export default function ShareCreditPop() {
     <button
       type="button"
       onClick={() => copyText(txt, key)}
-      style={{ flexShrink: 0, alignSelf: 'stretch', fontSize: 13, fontWeight: 800, color: '#fff', background: copiedKey === key ? '#15803d' : INK, border: `1px solid ${copiedKey === key ? '#15803d' : INK}`, borderRadius: 10, padding: '0 16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}
+      style={{ flexShrink: 0, alignSelf: 'stretch', fontSize: 13, fontWeight: 800, color: T.white, background: copiedKey === key ? T.successDeep : INK, border: `1px solid ${copiedKey === key ? T.successDeep : INK}`, borderRadius: 10, padding: '0 16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}
     >
       {copiedKey === key ? <><Check size={15} strokeWidth={2.6} /> Copied</> : <><Copy size={15} strokeWidth={2.4} /> Copy</>}
     </button>
@@ -180,7 +181,7 @@ export default function ShareCreditPop() {
         )}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-          <a href="/quizzes/community" onClick={() => setOpen(false)} style={{ fontSize: 13, fontWeight: 800, color: SLATE, textDecoration: 'none', padding: '9px 14px', borderRadius: 10, border: `1px solid ${BORD}`, background: '#fff', display: 'inline-flex', alignItems: 'center' }}>Community leaderboard</a>
+          <a href="/quizzes/community" onClick={() => setOpen(false)} style={{ fontSize: 13, fontWeight: 800, color: SLATE, textDecoration: 'none', padding: '9px 14px', borderRadius: 10, border: `1px solid ${BORD}`, background: T.white, display: 'inline-flex', alignItems: 'center' }}>Community leaderboard</a>
         </div>
       </div>
     </div>

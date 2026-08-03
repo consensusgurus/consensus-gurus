@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import ClueBox from './ClueBox';
+import { T } from '@/lib/theme';
 
 // Typed-recall board (`format: 'type-it'`). ONE clue (e.g. an airport) shows at a
 // time in the clue bar with a Next button to cycle through clues not yet solved;
@@ -12,8 +13,8 @@ import ClueBox from './ClueBox';
 // up to QuizClient via onMatch/onWrong/onEnd/onHint exactly like BankQuizBoard.
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
-  rust: '#c0392b', forest: '#10b981', faded: '#262b35',
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, forest: T.success, faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -163,7 +164,7 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: '#fff', color: COLORS.ink, transition: 'border-color .15s' }}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: T.white, color: COLORS.ink, transition: 'border-color .15s' }}
             />
             {cur != null && (
               <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Go back to the previous clue." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
@@ -174,7 +175,7 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
           </div>
         )}
         {clueVariant === 'careers' ? (
-        <div style={{ background: '#ffffff', color: COLORS.ink, borderRadius: 12, border: `1px solid ${COLORS.faded}44`, padding: '14px 16px' }}>
+        <div style={{ background: T.white, color: COLORS.ink, borderRadius: 12, border: `1px solid ${COLORS.faded}44`, padding: '14px 16px' }}>
           <div style={{ textAlign: 'center', fontFamily: SERIF, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', color: COLORS.ink, paddingBottom: 8, marginBottom: 8, borderBottom: `1px solid ${COLORS.faded}33` }}>Career history</div>
           {(live && cur != null) ? (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>

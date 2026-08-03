@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useState, useCallback, useRef } from 'react';
 import { Crown, Copy, Check, UserPlus, ArrowRight, X } from 'lucide-react';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import { T } from '@/lib/theme';
 
 // Top Community Member tile on /quizzes. Sits in the row-1 hero slot (it swapped
 // places with the Newest tile 2026-07-20), and keeps the .ttile class so the
@@ -17,7 +18,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 // inside each board), and /quizzes/leaderboard is a redirect to the Stat Hub,
 // so linking anywhere here would dead-end the one action the tile is asking for.
 
-const C = { accent: '#0e1d40', cta: '#e8b43a', gold: '#ffd166' };
+const C = { accent: T.accent, cta: T.gold, gold: '#ffd166' };
 
 // The winner's name is the single most emphasised username on the page, so it is
 // set as large as will fit rather than at a fixed size: binary-search the largest
@@ -131,7 +132,7 @@ export default function CommunityTile() {
         /* Trophy tile: warm bronze ground with a gold spotlight behind the name, so it
            reads as the celebration slot and stands apart from the navy tiles beside it. */
         .cmtile{background:radial-gradient(135% 105% at 24% 36%, rgba(255,196,74,.30) 0%, rgba(255,196,74,.07) 44%, rgba(0,0,0,0) 72%), linear-gradient(155deg,#33280f 0%,#1f1809 58%,#130f08 100%);cursor:pointer;}
-        .cmtile .cm-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:4px 10px;z-index:3;color:#0e1d40;display:inline-flex;align-items:center;gap:4px;}
+        .cmtile .cm-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:var(--white);border-radius:10px;padding:4px 10px;z-index:3;color:var(--accent);display:inline-flex;align-items:center;gap:4px;}
         .cmtile .cm-body{position:relative;z-index:1;padding:18px 16px 15px;}
         .cmtile .cm-namewrap{width:100%;}
         /* Auto-fitted: font-size is set inline by useFittedName. */
@@ -155,15 +156,15 @@ export default function CommunityTile() {
         .cmtile .cm-why{font-size:12px;line-height:1.34;font-weight:700;color:${C.gold};}
         .cmtile .cm-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:${C.gold};background:rgba(255,209,102,.12);border-radius:4px;padding:1px 4px;}
         .cmtile .cm-link{display:flex;align-items:center;gap:6px;margin-top:auto;}
-        .cmtile .cm-url{flex:1 1 auto;min-width:0;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cmtile .cm-copy,.cmtile .cm-join{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#0e1d40;background:${C.cta};border:0;border-radius:8px;padding:8px 11px;cursor:pointer;font-family:inherit;}
+        .cmtile .cm-url{flex:1 1 auto;min-width:0;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--white);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cmtile .cm-copy,.cmtile .cm-join{flex:none;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--accent);background:${C.cta};border:0;border-radius:8px;padding:8px 11px;cursor:pointer;font-family:inherit;}
         .cmtile .cm-join{margin-top:auto;align-self:flex-start;font-size:12.5px;}
         .cm-modal{position:fixed;inset:0;z-index:9999;background:rgba(24,18,8,.66);display:flex;align-items:center;justify-content:center;padding:20px;cursor:default;}
-        .cm-modal-card{position:relative;width:100%;max-width:390px;background:#fff;border-radius:16px;padding:22px 20px 20px;max-height:88vh;overflow:auto;}
-        .cm-modal-x{position:absolute;top:11px;right:11px;background:none;border:0;padding:5px;cursor:pointer;color:#262b35;line-height:0;}
+        .cm-modal-card{position:relative;width:100%;max-width:390px;background:var(--white);border-radius:16px;padding:22px 20px 20px;max-height:88vh;overflow:auto;}
+        .cm-modal-x{position:absolute;top:11px;right:11px;background:none;border:0;padding:5px;cursor:pointer;color:var(--muted);line-height:0;}
       `}</style>
 
-      <span className="cm-tag"><Crown size={11} style={{ verticalAlign: -1, color: '#e8b43a' }} /> TOP COMMUNITY MEMBER</span>
+      <span className="cm-tag"><Crown size={11} style={{ verticalAlign: -1, color: T.gold }} /> TOP COMMUNITY MEMBER</span>
 
       <div className="cm-body">
         {leader ? (
@@ -202,7 +203,7 @@ export default function CommunityTile() {
         ) : (
           <>
             <div className="cm-namewrap" ref={wrapRef}>
-              <span className="cm-who" ref={textRef} style={{ fontSize: 24, color: '#fff' }}>This spot is open</span>
+              <span className="cm-who" ref={textRef} style={{ fontSize: 24, color: T.white }}>This spot is open</span>
             </div>
             <div className="cm-sub">Nobody has brought in a player yet recently.</div>
           </>

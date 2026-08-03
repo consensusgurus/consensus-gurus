@@ -31,6 +31,7 @@ import Grain from '../Grain';
 import Footer from '../Footer';
 import { withRef } from '@/lib/referrals';
 import { savedIdentity } from '@/lib/saved-identity';
+import { T } from '@/lib/theme';
 
 // Brand mark (gradient ids suffixed per render so multiple instances stay unique).
 let __logoSeq = 0;
@@ -50,21 +51,21 @@ function Logo({ size = 22 }) {
         </radialGradient>
       </defs>
       <rect x="3" y="3" width="58" height="58" rx="17.5" fill={`url(#bh-${uid})`} />
-      <circle cx="32" cy="32.5" r="16.4" fill="#ffffff" /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
+      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
       <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke="#0e1d40" strokeWidth="0.4" strokeLinejoin="round" fill={`url(#gh-${uid})`} />
+      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#gh-${uid})`} />
     </svg>
   );
 }
 
 // ─── palette / type ─────────────────────────────────────────────────────────
 const C = {
-  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40',
-  accsoft: '#e8effb', live: '#10b981',
-  cta: '#e8b43a', ctaInk: '#1c1e24', ctaHover: '#d49a2a',
+  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
+  accsoft: '#e8effb', live: T.success,
+  cta: T.gold, ctaInk: T.ink, ctaHover: '#d49a2a',
 };
-const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
+const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 // Leaderboard rail: the #1 name shrinks as it lengthens so a long handle keeps its
 // descenders (the 'g' in VicMcDoogle) instead of being clipped by a fixed 37px line.
 function lbNameSize(s) {
@@ -200,7 +201,7 @@ function DoneMark({ id, size = 13 }) {
   const { played, completed } = useContext(QuizDoneContext);
   if (!id || (!played && !completed)) return null;
   if (completed && completed.has(id)) {
-    return <Star className="donemark" size={size} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" style={{ flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
+    return <Star className="donemark" size={size} strokeWidth={1.5} fill={T.gold} color={T.gold} style={{ flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
   }
   if (played && played.has(id)) {
     return <Check className="donemark" size={size} strokeWidth={2.75} style={{ color: C.live, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" />;
@@ -328,7 +329,7 @@ function LbRow({ i, name, value, frac }) {
           <span className="qtitle" style={{ flex: '1 1 auto' }}>{name}</span>
           <span style={{ flex: 'none', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{value}</span>
         </div>
-        <div style={{ height: 3, borderRadius: 3, background: '#eef1f5', marginTop: 4, overflow: 'hidden' }}><div className="lbbar" style={{ height: '100%', width: `${w}%`, background: col }} /></div>
+        <div style={{ height: 3, borderRadius: 3, background: T.surfaceAlt, marginTop: 4, overflow: 'hidden' }}><div className="lbbar" style={{ height: '100%', width: `${w}%`, background: col }} /></div>
       </div>
     </div>
   );
@@ -357,13 +358,13 @@ function SignupModal({ onClose }) {
   }
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: T.white, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: C.ink }}>Claim your name</div>
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
-        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
@@ -430,7 +431,7 @@ function FeedbackModal({ mode, onClose }) {
   }
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: T.white, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: C.ink }}>{sent ? 'Thanks, noted.' : cfg.heading}</div>
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
@@ -443,7 +444,7 @@ function FeedbackModal({ mode, onClose }) {
         ) : (
           <>
             <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>{cfg.blurb}</p>
-            {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
+            {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
             <textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder={cfg.placeholder} maxLength={1000} rows={4} style={{ ...inp, resize: 'vertical', lineHeight: 1.45 }} />
             <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
               <input value={nm} onChange={(e) => setNm(e.target.value)} placeholder="Name (optional)" maxLength={120} style={inp} />
@@ -1448,26 +1449,26 @@ export default function QuizHomeClient() {
     @media(max-width:680px){.qzh .lf-extra{display:none;}}
     @keyframes qzp{0%{opacity:1}50%{opacity:.35}100%{opacity:1}}
     .qzh .dd{position:relative;}
-    .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #b8c0cc;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
+    .qzh .ddbtn{display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid #b8c0cc;border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;}
     .qzh .qz-searchwrap input::placeholder{color:#5b6472;opacity:1;}
-    .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:#fff;border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+    .qzh .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:var(--white);border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzh .ddmenu .ddall{grid-column:1 / -1;}
     @media(max-width:560px){.qzh .ddmenu{left:0;right:auto;width:88vw;min-width:0;max-width:88vw;grid-template-columns:1fr 1fr;max-height:60vh;overflow-y:auto;}}
     .qzh .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzh .ddhead{display:none;}
-    @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
+    @media(max-width:560px){.qzh .ddhead{display:flex !important;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--white);margin:-6px -6px 5px;padding:10px 12px;border-bottom:1px solid ${C.line};z-index:3;font-weight:700;font-size:13px;color:${C.ink};}.qzh .ddhead .ddclose{background:#eef1f6;border:none;border-radius:8px;width:34px;height:34px;font-size:17px;line-height:1;cursor:pointer;color:${C.ink};display:flex;align-items:center;justify-content:center;flex:none;}}
     .qzh .dditem:hover{background:${C.bg};}
     .qzh .dot{width:9px;height:9px;border-radius:3px;flex:none;}
     /* Daily puzzles row: four half-height buttons above the hero tiles */
     .qzh .th-games{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px;}
     @media(min-width:761px){.qzh .th-g-crux{order:1;}.qzh .th-g-garble{order:2;}.qzh .th-g-links{order:3;}.qzh .th-g-span{order:4;}.qzh .th-g-dating{order:5;}.qzh .th-g-tally{order:6;}}
-    .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:#ffffff;padding:11px 15px;text-decoration:none;overflow:hidden;}
-    .qzh .th-game:hover{border-color:#2563eb;}
+    .qzh .th-game{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:86px;border:1px solid ${C.line};border-radius:14px;background:var(--white);padding:11px 15px;text-decoration:none;overflow:hidden;}
+    .qzh .th-game:hover{border-color:var(--blue);}
     .qzh .th-game-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;overflow:hidden;}
     .qzh .th-game-art{flex:0 0 auto;height:52px;width:auto;max-width:56px;object-fit:contain;}
     .qzh .th-game-tag{font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#8a5300;margin-bottom:3px;}
-    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#1c1e24;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:#262b35;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .qzh .th-game-t{font-size:17px;font-weight:800;letter-spacing:-.3px;color:var(--ink);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .qzh .th-game-p{font-size:11.5px;font-weight:700;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     @media(max-width:1180px){.qzh .th-game-art{height:44px;max-width:48px;}.qzh .th-game-p{display:none;}}
     @media(max-width:1080px){.qzh .th-game-art{height:40px;}.qzh .th-game{padding:11px 12px;gap:8px;}}
     @media(max-width:980px){.qzh .th-game-art{height:34px;max-width:36px;}.qzh .th-game{padding:10px 10px;gap:7px;}.qzh .th-game-t{font-size:15.5px;}}
@@ -1481,12 +1482,12 @@ export default function QuizHomeClient() {
       .qzh .th-game:nth-child(n+3) .th-game-t{font-size:13.5px;}
       .qzh .th-game:nth-child(n+3) .th-game-art{height:24px;}
     }
-    .qzh .qotd{display:flex;align-items:stretch;gap:0;background:#ffffff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:#1c1e24;}
+    .qzh .qotd{display:flex;align-items:stretch;gap:0;background:var(--white);border:1px solid ${C.line};border-radius:14px;overflow:hidden;min-height:215px;text-decoration:none;color:var(--ink);}
     .qzh .qotd-photo{flex:0 0 48%;background-size:cover;background-position:center;min-height:180px;}
     .qzh .qotd-body{flex:1 1 auto;min-width:0;padding:18px 22px;display:flex;flex-direction:column;justify-content:center;}
     .qzh .qotd-eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8a5300;margin-bottom:7px;}
-    .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:#1c1e24;}
-    .qzh .qotd-meta{font-size:13px;color:#262b35;margin-top:7px;max-width:560px;line-height:1.45;}
+    .qzh .qotd-title{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.04;color:var(--ink);}
+    .qzh .qotd-meta{font-size:13px;color:var(--muted);margin-top:7px;max-width:560px;line-height:1.45;}
     .qzh .qotd-foot{display:flex;align-items:center;gap:14px;margin-top:15px;flex-wrap:wrap;}
     .qzh .qotd-play{display:inline-flex;align-items:center;gap:7px;background:${C.cta};color:${C.ctaInk};border-radius:9px;padding:10px 20px;font-weight:800;font-size:14px;}
     .qzh .qotd:hover .qotd-play{background:${C.ctaHover};}
@@ -1494,21 +1495,21 @@ export default function QuizHomeClient() {
     /* Desktop: top row shares the second row's 4-col template so QOTD lines up exactly over Geo+Sports, Newest over Trending, Daily Challenge over Duel. */
     @media(min-width:1025px){.qzh .th-heroes .th-qotd{grid-column:1 / 3;}}
     @media(max-width:760px){.qzh .th-heroes{grid-template-columns:minmax(0,1fr);}}
-    .qzh .ttile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:215px;background-size:cover;background-position:center;background-color:#0e1d40;}
-    .qzh .ttile-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:#fff;border-radius:10px;padding:4px 10px;z-index:2;color:#c2410c;display:inline-flex;align-items:center;gap:4px;}
+    .qzh .ttile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:215px;background-size:cover;background-position:center;background-color:var(--accent);}
+    .qzh .ttile-tag{position:absolute;top:12px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;background:var(--white);border-radius:10px;padding:4px 10px;z-index:2;color:#c2410c;display:inline-flex;align-items:center;gap:4px;}
     .qzh .ttile-ov{position:relative;z-index:1;padding:18px 16px 15px;background:linear-gradient(to top, rgba(8,15,35,0.9), rgba(8,15,35,0.45) 55%, rgba(8,15,35,0));}
-    .qzh .ttile-t{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.1;color:#fff;}
+    .qzh .ttile-t{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.1;color:var(--white);}
     .qzh .ttile-foot{display:flex;align-items:center;gap:12px;margin-top:9px;}
-    .qzh .ttile-p{font-size:13px;font-weight:800;color:#fff;}
-    .qzh .ttile-plays{font-size:12px;font-weight:800;color:#fff;}
+    .qzh .ttile-p{font-size:13px;font-weight:800;color:var(--white);}
+    .qzh .ttile-plays{font-size:12px;font-weight:800;color:var(--white);}
     /* Daily-rotating category hero tiles (Top Geo Guesser / Top Sports): same look as .ttile, own class so th-r2 order rules do not collide. */
-    .qzh .hstile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:215px;background-size:cover;background-position:center;background-color:#0e1d40;}
+    .qzh .hstile{position:relative;border:1px solid ${C.line};border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;min-height:215px;background-size:cover;background-position:center;background-color:var(--accent);}
     /* Flip variant of .hstile (Featured Geo Guesser / Featured <category>): the
        tile itself becomes a transparent 3D stage and the two faces carry the look.
        Rotation/duration/easing match DuelTile so the header reads as one system. */
     .qzh .hsflip-wrap{background:transparent !important;background-color:transparent !important;border:0 !important;overflow:visible;perspective:1100px;}
     .qzh .hsflip{position:relative;flex:1;width:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.3,.7,.25,1);}
-    .qzh .hsface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:0;border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;background-color:#0e1d40;box-shadow:inset 0 0 0 1px ${C.line};}
+    .qzh .hsface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:0;border-radius:14px;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;justify-content:flex-end;background-color:var(--accent);box-shadow:inset 0 0 0 1px ${C.line};}
     /* The photo sits on its own layer, 2px PROUD of the face on every side, and
        the face clips it. So the visible top edge is always interior image, never
        the image's own first row, the border seam, or the composited layer's
@@ -1517,9 +1518,9 @@ export default function QuizHomeClient() {
     .qzh .hsface-ph{position:absolute;inset:-2px;z-index:0;background-size:cover;background-position:center;background-repeat:no-repeat;}
     .qzh .hsflip-dots{position:absolute;right:11px;bottom:9px;z-index:3;display:flex;gap:4px;pointer-events:none;}
     .qzh .hsflip-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);transition:background .3s;}
-    .qzh .hsflip-dot.on{background:#fff;}
+    .qzh .hsflip-dot.on{background:var(--white);}
     @media(max-width:560px){.qzh .hsflip-dots{display:none;}}
-    .qzh .qotd-stats{font-size:12px;color:#1c1e24;font-weight:800;display:inline-flex;align-items:center;gap:6px;min-width:0;}
+    .qzh .qotd-stats{font-size:12px;color:var(--ink);font-weight:800;display:inline-flex;align-items:center;gap:6px;min-width:0;}
     @media(max-width:760px){.qzh .qotd{flex-direction:column;min-height:0;}.qzh .qotd-photo{flex:none;height:128px;}.qzh .qotd-title{font-size:21px;}}
     .qzh .thub{display:flex;gap:12px;margin-bottom:14px;align-items:stretch;}
     .qzh .thub-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px;}
@@ -1555,14 +1556,14 @@ export default function QuizHomeClient() {
       .qzh .dtile-head .x8{font-size:12px !important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .qzh .dtile-chip{font-size:9px;padding:2px 7px;}
     }
-    .qzh .dtile{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;padding:14px 15px;color:#1c1e24;display:flex;flex-direction:column;min-height:190px;}
+    .qzh .dtile{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 15px;color:var(--ink);display:flex;flex-direction:column;min-height:190px;}
     .qzh .th-only-desk{display:none !important;}
     @media(min-width:1025px){.qzh .th-only-mob{display:none !important;}.qzh .th-only-desk{display:flex !important;}}
     .qzh .dtile-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
-    .qzh .dtile-chip{font-size:10px;font-weight:800;background:#eef1f5;border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
+    .qzh .dtile-chip{font-size:10px;font-weight:800;background:var(--surface-alt);border-radius:12px;padding:2px 9px;text-transform:uppercase;letter-spacing:.04em;}
     .qzh .dtile-prog{display:flex;gap:5px;margin-bottom:10px;}
     .qzh .dtile-rows{display:flex;flex-direction:column;justify-content:space-evenly;flex:1;margin:2px 0 8px;}
-    .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#1c1e24;text-decoration:none;padding:2px 0;}
+    .qzh .dtile-row{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--ink);text-decoration:none;padding:2px 0;}
     .qzh .dtile-num{width:16px;height:16px;border-radius:50%;border:2px solid #c8ced9;flex:none;font-size:9px;display:flex;align-items:center;justify-content:center;}
     .qzh .dtile-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .dtile-cta{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;background:${C.cta};color:${C.ctaInk};border-radius:10px;padding:9px 12px;font-weight:800;font-size:12.5px;text-decoration:none;}
@@ -1570,22 +1571,22 @@ export default function QuizHomeClient() {
     .qzh .dtile-cta-ldr{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:1;justify-content:center;padding:0 6px 0 10px;border-left:1px solid rgba(28,30,36,0.25);}
     .qzh .dtile-cta-nm{min-width:0;font-size:13.5px;font-weight:900;letter-spacing:0.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .dtile-cta-unseat{flex:0 1 auto;min-width:0;gap:5px;}
-    .qzh .lbtile{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
+    .qzh .lbtile{background:var(--white);border:1px solid ${C.line};border-radius:14px;padding:12px 15px;flex:1;display:flex;flex-direction:column;min-height:132px;overflow:hidden;}
     .qzh .lbtile-head{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
     .qzh .duelbtn{background:${C.cta};color:${C.ctaInk};border:none;border-radius:12px;padding:12px;font-weight:800;font-size:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;flex:none;}
     .qzh .dueltile-chev{display:none;}
     .qzh .duel-mob-last{display:none;flex-direction:column;flex:1;}
     @media(max-width:560px){.qzh .dueltile{min-height:0 !important;}.qzh .dueltile-head{cursor:pointer;}.qzh .dueltile-chev{display:inline-flex !important;transition:transform .15s;}.qzh .dueltile.mc-closed .dueltile-body{display:none !important;}.qzh .dueltile.has-mob-last .duel-flip{display:none !important;}.qzh .dueltile.has-mob-last .duel-mob-last{display:flex !important;}}
-    .qzh .rail{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;padding:10px 9px 9px;display:flex;flex-direction:column;}
+    .qzh .rail{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:10px 9px 9px;display:flex;flex-direction:column;}
     .qzh .rail-head{display:flex;align-items:center;gap:5px;margin-bottom:7px;}
     .qzh .rail-bars{flex:1;display:flex;flex-direction:column;gap:3px;min-height:0;}
     .qzh .rseg{position:relative;isolation:isolate;overflow:hidden;flex:1 1 0;min-height:24px;display:flex;align-items:center;background:#f1f3f6;border:none;border-radius:7px;margin:0;padding:0 9px;cursor:pointer;width:100%;text-align:left;}
     .qzh .rseg:hover{background:#e9edf3;}
     .qzh .rseg:hover .rmeter{filter:brightness(1.18);}
-    .qzh .rmeter{position:absolute;left:0;top:0;bottom:0;z-index:0;min-width:3px;background:linear-gradient(90deg,rgba(37,99,235,.16),rgba(37,99,235,.05));border-right:2px solid #2563eb;border-radius:7px 0 0 7px;}
+    .qzh .rmeter{position:absolute;left:0;top:0;bottom:0;z-index:0;min-width:3px;background:linear-gradient(90deg,rgba(37,99,235,.16),rgba(37,99,235,.05));border-right:2px solid var(--blue);border-radius:7px 0 0 7px;}
     .qzh .rseg-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
-    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:#1c1e24;}
-    .qzh .rseg .rpct{font-size:10.5px;font-weight:800;flex:none;color:#46506a;font-variant-numeric:tabular-nums;}
+    .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:var(--ink);}
+    .qzh .rseg .rpct{font-size:10.5px;font-weight:800;flex:none;color:var(--slate);font-variant-numeric:tabular-nums;}
     /* Search + category + submit moved into the top command bar on desktop, so
        the browse control row collapses to just its (conditional) heading there. */
     @media(min-width:821px){.qzh .qz-browserow .qz-catbtn,.qzh .qz-browserow .qz-searchwrap,.qzh .qz-browserow .qz-submit,.qzh .qz-browserow .qz-daily{display:none !important;}}
@@ -1609,26 +1610,26 @@ export default function QuizHomeClient() {
     /* Full-width tool row under the three-column daily section, styled as ONE
        integrated element (owner 2026-07-29): a navy casing wraps the white search
        field and the three white action buttons, all one uniform treatment. */
-    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:#ffffff;border:1.5px solid #c3ccda;border-radius:13px;padding:8px;}
-    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:#f7f8fa;border:1.5px solid #c3ccda;border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
-    .qzh .qz-toolsearch:hover{border-color:#262b35;}
-    .qzh .qz-toolsearch:focus-within{border-color:#262b35;background:#f7f8fa;}
-    .qzh .qz-toolsearch svg{flex:none;color:#262b35;}
-    .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:#1c1e24;}
-    .qzh .qz-toolsearch input::placeholder{color:#262b35;font-weight:500;}
-    .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:#262b35;display:flex;}
-    .qzh .qz-toolclear:hover{color:#1c1e24;}
+    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:var(--white);border:1.5px solid var(--border);border-radius:13px;padding:8px;}
+    .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
+    .qzh .qz-toolsearch:hover{border-color:var(--muted);}
+    .qzh .qz-toolsearch:focus-within{border-color:var(--muted);background:var(--surface);}
+    .qzh .qz-toolsearch svg{flex:none;color:var(--muted);}
+    .qzh .qz-toolsearch input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:${FONT};font-size:14.5px;font-weight:600;color:var(--ink);}
+    .qzh .qz-toolsearch input::placeholder{color:var(--muted);font-weight:500;}
+    .qzh .qz-toolclear{flex:none;border:none;background:transparent;padding:0;cursor:pointer;color:var(--muted);display:flex;}
+    .qzh .qz-toolclear:hover{color:var(--ink);}
     .qzh .qz-toolbtns{display:flex;align-items:center;gap:8px;flex:none;}
-    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1.5px solid #c3ccda;background:transparent;color:#46506a;font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
-    .qzh .qz-toolbtn svg{flex:none;color:#262b35;transition:color .14s ease;}
-    .qzh .qz-toolbtn:hover{background:#f7f8fa;border-color:#262b35;color:#1c1e24;}
-    .qzh .qz-toolbtn:hover svg{color:#1c1e24;}
+    .qzh .qz-toolbtn{display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 15px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--slate);font-family:${FONT};font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .14s ease,color .14s ease,border-color .14s ease;}
+    .qzh .qz-toolbtn svg{flex:none;color:var(--muted);transition:color .14s ease;}
+    .qzh .qz-toolbtn:hover{background:var(--surface);border-color:var(--muted);color:var(--ink);}
+    .qzh .qz-toolbtn:hover svg{color:var(--ink);}
     /* One accent in the row: Share my day, the button we most want pressed
        (owner 2026-07-30). It leads the row, left of the search field. */
-    .qzh .qz-toolbtn-cta{background:#e8b43a;border-color: #a16207;color:#1c1e24;font-weight:800;}
-    .qzh .qz-toolbtn-cta svg{color:#1c1e24;}
-    .qzh .qz-toolbtn-cta:hover{background:#f0c358;border-color:#f0c358;color:#1c1e24;}
-    .qzh .qz-toolbtn-cta:hover svg{color:#1c1e24;}
+    .qzh .qz-toolbtn-cta{background:var(--gold);border-color: var(--gold-ink);color:var(--ink);font-weight:800;}
+    .qzh .qz-toolbtn-cta svg{color:var(--ink);}
+    .qzh .qz-toolbtn-cta:hover{background:#f0c358;border-color:#f0c358;color:var(--ink);}
+    .qzh .qz-toolbtn-cta:hover svg{color:var(--ink);}
     @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
     /* ONE search bar at every width. The browse row's own field is hidden from
        821px up (rule above), so this tool-row field is the desktop search; at
@@ -1658,26 +1659,26 @@ export default function QuizHomeClient() {
     .qzh .qrow:hover .qtitle{color:${C.accent};}
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
-    .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column;padding-bottom:4px;}
+    .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:var(--white);display:flex;flex-direction:column;padding-bottom:4px;}
     /* Hero height = 7 row-units (7 x 31px .qrow) so its bottom edge lands flush
    on a list-row gridline instead of ending mid-row; keeps quiz rows aligned
    across neighbouring columns with no ragged end gap. cover = crop, no stretch. */
-    .qzh .cc-hero{position:relative;display:block;min-height:217px;background-size:cover;background-position:center;background-color:#0e1d40;text-decoration:none;}
+    .qzh .cc-hero{position:relative;display:block;min-height:217px;background-size:cover;background-position:center;background-color:var(--accent);text-decoration:none;}
     .qzh .cc-ov{position:absolute;inset:0;background:linear-gradient(to top, rgba(8,15,35,0.92), rgba(8,15,35,0.4) 52%, rgba(8,15,35,0.05));z-index:1;}
-    .qzh .cc-stat{position:absolute;top:8px;left:10px;z-index:2;font-size:10px;font-weight:700;color:#fff;display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-shadow:0 1px 6px rgba(0,0,0,.65);transition:background-color .18s ease;}
+    .qzh .cc-stat{position:absolute;top:8px;left:10px;z-index:2;font-size:10px;font-weight:700;color:var(--white);display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 9px;max-width:calc(100% - 20px);white-space:nowrap;overflow:hidden;text-shadow:0 1px 6px rgba(0,0,0,.65);transition:background-color .18s ease;}
     .qzh .cc-stat.pill{background:rgba(17,32,74,.82);backdrop-filter:blur(2px);text-shadow:none;}
     .qzh .hpill{background:rgba(17,32,74,.85);border-radius:999px;padding:2px 8px;backdrop-filter:blur(2px);}
     .qzh .cc-btm{position:absolute;left:12px;right:12px;bottom:11px;z-index:2;display:flex;flex-direction:column;gap:5px;}
-    .qzh .cc-htitle{color:#fff;font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.14;text-shadow:0 1px 8px rgba(0,0,0,.5);}
-    .qzh .cc-play{font-size:13px;font-weight:800;color:#fff;display:inline-flex;align-items:center;gap:4px;}
+    .qzh .cc-htitle{color:var(--white);font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.14;text-shadow:0 1px 8px rgba(0,0,0,.5);}
+    .qzh .cc-play{font-size:13px;font-weight:800;color:var(--white);display:inline-flex;align-items:center;gap:4px;}
     .qzh .catcard .colhead.cc-head{border-radius:0;border:none;margin:0;order:-1;}
     .qzh .catcard .qrow{padding-left:11px;padding-right:11px;}
     .qzh .catcard .qrow:last-child{border-bottom:none;}
     .qzh .colhead.cc-filled{border-bottom:none;}
-    .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:#fff;color:${C.accent};border:1px solid #cddffb;border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
+    .qzh .hubbtn{display:flex;align-items:center;gap:7px;background:var(--white);color:${C.accent};border:1px solid var(--accent-border);border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;}
     .qzh .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
     .qz-playerbar .qz-skill-empty{display:none !important;}
-    .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#262b35;margin-bottom:2px;}
+    .qz-playerbar .lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
     .qz-chev{display:none;}
     @media(max-width:560px){.qz-playerbar{flex-wrap:wrap !important;align-items:center !important;gap:10px 14px !important;}.qz-playerbar .qz-div{display:none !important;}.qz-playerbar:not(.open) .qz-stats{display:none !important;}.qz-playerbar.open .qz-stats{order:9 !important;flex:1 1 100% !important;margin-left:0 !important;justify-content:space-between !important;gap:10px !important;}.qz-playerbar{cursor:pointer;}.qz-chev{display:inline-flex !important;}.qz-playerbar .qz-bestcat{display:none !important;}.qz-playerbar .hubbtn{order:4 !important;margin-left:auto !important;flex:0 0 auto !important;}.qzh .boards{display:flex !important;flex-direction:column;gap:12px;}.qzh .boards .lb-card{display:none !important;}.qzh .boards .live-card{display:none !important;}.qzh .boards .lblive-card{order:1;}.qzh .boards .daily-card{order:2;}.qz-submit{display:none !important;}.qzh{padding-left:14px !important;padding-right:14px !important;}}
     .qzh .hubbtn:hover{background:${C.accsoft};}
@@ -1705,9 +1706,9 @@ export default function QuizHomeClient() {
     /* Mobile: surface the leaderboard + last-played boards (otherwise display:none on phones)
        as two side-by-side toggle buttons; tapping one expands its existing card full-width below. */
     @media(max-width:560px){
-      .qzh .qz-mobtoggle{display:flex;gap:4px;margin-bottom:12px;background:#eef1f5;border-radius:12px;padding:4px;}
+      .qzh .qz-mobtoggle{display:flex;gap:4px;margin-bottom:12px;background:var(--surface-alt);border-radius:12px;padding:4px;}
       .qzh .qz-mobtoggle .mtbtn{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:7px;background:transparent;border:none;border-radius:9px;padding:9px 12px;cursor:pointer;font:inherit;color:${C.soft};font-weight:700;font-size:12.5px;}
-      .qzh .qz-mobtoggle .mtbtn.active{background:#fff;color:${C.ink};box-shadow:0 1px 2px rgba(20,22,28,0.06);}
+      .qzh .qz-mobtoggle .mtbtn.active{background:var(--white);color:${C.ink};box-shadow:0 1px 2px rgba(20,22,28,0.06);}
       .qzh .qz-mobtoggle .mtbtn .mtlbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .qzh .qz-mobtoggle .mtbtn{justify-content:center !important;}
       .qzh .qz-mobtoggle .mtbtn svg:last-child{margin-left:0 !important;}
@@ -1735,24 +1736,24 @@ export default function QuizHomeClient() {
       .qzh section.mc-closed > .qrow{display:none !important;}
       .qzh .dailyicon{color:#374151 !important;}
       .qzh .livedot{background:#9aa1ab !important;animation:none !important;}
-      .qzh .colhead{background:#ffffff !important;}
+      .qzh .colhead{background:var(--white) !important;}
       .qzh .colhead .colicon{background:#f1f3f6 !important;}
-      .qzh .colhead h3{color:#1c1e24 !important;}
-      .qzh .colhead .viewall{color:#262b35 !important;}
+      .qzh .colhead h3{color:var(--ink) !important;}
+      .qzh .colhead .viewall{color:var(--muted) !important;}
       .qzh .dot{background:#9aa1ab !important;}
       .qzh .mc-closed .vall{display:none !important;}
       .qzh .vall{text-transform:uppercase !important;font-size:10px !important;font-weight:700 !important;letter-spacing:.05em !important;}
       .qzh .lb-card.mc-open .lbbody{max-height:50vh;overflow-y:auto;justify-content:flex-start;}
       .qzh .qz-searchwrap input{font-size:16px !important;}
-      .qzh .qz-mobhub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:${C.accsoft};color:${C.accent};border:1px solid #cddffb;border-radius:12px;padding:14px 16px;text-decoration:none;font-family:${FONT};}
+      .qzh .qz-mobhub{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;background:${C.accsoft};color:${C.accent};border:1px solid var(--accent-border);border-radius:12px;padding:14px 16px;text-decoration:none;font-family:${FONT};}
       .qzh .duelbtn-mob{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;background:${C.cta};color:${C.ctaInk};border:none;border-radius:12px;padding:14px;font-weight:800;font-size:14px;text-decoration:none;font-family:${FONT};}      .qzh .lblive-card{display:flex;flex-direction:column;}
-      .qzh .lblive-head{background:#fff !important;}
-      .qzh .lblive-tabs{display:flex;gap:4px;flex:1 1 auto;min-width:0;background:#eef1f5;border-radius:10px;padding:4px;}
+      .qzh .lblive-head{background:var(--white) !important;}
+      .qzh .lblive-tabs{display:flex;gap:4px;flex:1 1 auto;min-width:0;background:var(--surface-alt);border-radius:10px;padding:4px;}
       .qzh .lblive-tab{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;background:transparent;border:none;border-radius:8px;padding:8px 6px;font:inherit;font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#5f5e5a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .qzh .lblive-tab.on{background:#fff;color:#1c1e24;box-shadow:0 1px 2px rgba(20,22,28,0.08);}
+      .qzh .lblive-tab.on{background:var(--white);color:var(--ink);box-shadow:0 1px 2px rgba(20,22,28,0.08);}
       .qzh .lblive-tab .livedot2{width:8px;height:8px;border-radius:50%;background:#9aa1ab;flex:none;}
       .qzh .lblive-body{max-height:50vh;overflow-y:auto;padding:3px 0;}
-      .qzh .lblive-sub{position:sticky;top:0;z-index:1;display:block;padding:9px 13px 8px;background:#fff;border-bottom:1px solid ${C.line};font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${C.soft};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+      .qzh .lblive-sub{position:sticky;top:0;z-index:1;display:block;padding:9px 13px 8px;background:var(--white);border-bottom:1px solid ${C.line};font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${C.soft};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     }
   `;
 
@@ -1799,7 +1800,7 @@ export default function QuizHomeClient() {
                       {dailyIds.includes(f.quizId) ? <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 800, letterSpacing: '.03em', textTransform: 'uppercase', color: C.accent, background: C.accsoft, padding: '1px 6px', borderRadius: 6 }}><Flame size={10} />Daily</span> : null}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: C.soft }}>
-                          <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#15803d' : C.soft }}>{f.score}/{f.total}</span>
+                          <span className="scorebadge" style={{ flex: 'none', fontWeight: 700, padding: '1px 6px', borderRadius: 6, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? T.successDeep : C.soft }}>{f.score}/{f.total}</span>
                       <span style={{ fontWeight: 700 }}>{f.attempt > 1 ? `attempt ${f.attempt}` : '1st try'}</span>
                       <span style={{ marginLeft: 'auto' }}>{relTime(f.playedAt)}</span>
                     </span>
@@ -1842,10 +1843,10 @@ export default function QuizHomeClient() {
           }
           const txtBtn = { background: 'transparent', border: 'none', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer' };
           return (
-            <div style={{ position: 'fixed', right: 18, bottom: 18, zIndex: 90, width: 352, maxWidth: 'calc(100vw - 28px)', background: '#fff', borderRadius: 16, border: `2px solid ${C.accent}`, boxShadow: '0 16px 44px rgba(20,22,28,0.22)', overflow: 'hidden', fontFamily: FONT }}>
-              <div style={{ background: C.accent, color: '#fff', padding: '11px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ position: 'fixed', right: 18, bottom: 18, zIndex: 90, width: 352, maxWidth: 'calc(100vw - 28px)', background: T.white, borderRadius: 16, border: `2px solid ${C.accent}`, boxShadow: '0 16px 44px rgba(20,22,28,0.22)', overflow: 'hidden', fontFamily: FONT }}>
+              <div style={{ background: C.accent, color: T.white, padding: '11px 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.08em', display: 'inline-flex', alignItems: 'center', gap: 7 }}><Swords size={16} /> {it.kind === 'challenge' ? 'DUEL CHALLENGE' : it.kind === 'yourturn' ? 'YOUR MOVE' : 'DUEL RESULT'}</span>
-                <button onClick={() => (it.kind === 'challenge' || it.kind === 'yourturn') ? duelLaterAdd(it.token) : duelSeenAdd(it.token)} aria-label="Dismiss" style={{ border: 'none', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: 18, lineHeight: 1, opacity: 0.85 }}>×</button>
+                <button onClick={() => (it.kind === 'challenge' || it.kind === 'yourturn') ? duelLaterAdd(it.token) : duelSeenAdd(it.token)} aria-label="Dismiss" style={{ border: 'none', background: 'transparent', color: T.white, cursor: 'pointer', fontSize: 18, lineHeight: 1, opacity: 0.85 }}>×</button>
               </div>
               <div style={{ padding: '16px 16px 15px' }}>
                 {(it.kind === 'challenge' || it.kind === 'yourturn') ? (
@@ -1854,13 +1855,13 @@ export default function QuizHomeClient() {
                       <span style={{ width: 36, height: 36, borderRadius: '50%', background: C.accsoft, color: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>{((it.kind === 'yourturn' ? it.opponent_name : it.challenger_name) || 'P').slice(0, 2).toUpperCase()}</span>
                       <span style={{ fontSize: 12, fontWeight: 800, color: C.soft }}>VS</span>
                       <span style={{ width: 36, height: 36, borderRadius: '50%', background: '#faedd0', color: '#a9781a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 12 }}>YOU</span>
-                      {it.device && it.device !== 'any' && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 800, color: '#fff', background: C.ink, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase' }}>{it.device === 'mobile' ? 'Mobile Only' : 'Desktop Only'}</span>}
+                      {it.device && it.device !== 'any' && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 800, color: T.white, background: C.ink, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase' }}>{it.device === 'mobile' ? 'Mobile Only' : 'Desktop Only'}</span>}
                     </div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: C.ink, margin: '13px 0 3px' }}>{it.kind === 'yourturn' ? `${it.opponent_name || 'Your opponent'} played, your move` : `${it.challenger_name || 'Someone'} Challenged You`}</div>
                     <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>{qTitle}{more ? ` · +${more} More` : ''}</div>
-                    <a href={`/duel/${it.token}`} style={{ display: 'block', textAlign: 'center', background: C.accent, color: '#fff', padding: '12px', borderRadius: 10, fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>Play Now →</a>
+                    <a href={`/duel/${it.token}`} style={{ display: 'block', textAlign: 'center', background: C.accent, color: T.white, padding: '12px', borderRadius: 10, fontWeight: 800, fontSize: 15, textDecoration: 'none' }}>Play Now →</a>
                     <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 16, marginTop: 11 }}>
-                      {it.kind === 'challenge' && <button onClick={() => duelDecline(it.token)} style={{ ...txtBtn, color: '#c0392b' }}>Turn Down</button>}
+                      {it.kind === 'challenge' && <button onClick={() => duelDecline(it.token)} style={{ ...txtBtn, color: T.danger }}>Turn Down</button>}
                       <button onClick={() => duelLaterAdd(it.token)} style={{ ...txtBtn, color: C.soft }}>Maybe Later</button>
                       {it.kind === 'challenge' && <button onClick={() => duelMuteAdd(it.challenger_anon, it.challenger_name, it.token)} style={{ ...txtBtn, color: C.soft }}>Mute User</button>}
                     </div>
@@ -1869,7 +1870,7 @@ export default function QuizHomeClient() {
                   <>
                     <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, marginBottom: 3 }}>{outcome}</div>
                     <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>{qTitle}{more ? ` · +${more} More` : ''}</div>
-                    <a href={`/duel/${it.token}`} style={{ display: 'block', textAlign: 'center', background: C.accent, color: '#fff', padding: '11px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none' }}>See Duel →</a>
+                    <a href={`/duel/${it.token}`} style={{ display: 'block', textAlign: 'center', background: C.accent, color: T.white, padding: '11px', borderRadius: 10, fontWeight: 800, fontSize: 14, textDecoration: 'none' }}>See Duel →</a>
                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: 11 }}>
                       <button onClick={() => duelSeenAdd(it.token)} style={{ ...txtBtn, color: C.soft }}>Dismiss</button>
                     </div>
@@ -1889,7 +1890,7 @@ export default function QuizHomeClient() {
           const copyIt = async () => { if (!shareUrl) return; try { await navigator.clipboard.writeText(shareUrl); setCreditCopied(true); setTimeout(() => setCreditCopied(false), 1800); } catch (e) {} };
           return (
             <div onClick={() => setCreditOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-              <div onClick={(e) => e.stopPropagation()} style={{ width: 400, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: 400, maxWidth: '100%', background: T.white, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: C.ink }}>How to get credit</h3>
                   <button onClick={() => setCreditOpen(false)} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
@@ -1931,74 +1932,74 @@ export default function QuizHomeClient() {
             .qzh .dhx-right .dhx-lp{flex:1 1 auto;display:flex;flex-direction:column;}
             .qzh .dhx-right .dhx-lp .dhx-lp-rows{flex:1 1 auto;}
             /* left leaderboards element */
-            .qzh .dhx-lb{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:13px 14px;}
-            .qzh .dhx-lb-eb{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.02em;margin-bottom:8px;color:#a16207;}
-            .qzh .dhx-lb-eb svg{color: #a16207;flex:none;}
-            .qzh .dhx-lb1{display:flex;align-items:center;gap:9px;border-radius:11px;padding:8px 10px;margin-bottom:4px;background:linear-gradient(90deg,#fdf1d3,#fff);border:1px solid #f0dcae;}
-            .qzh .dhx-lb1 .av{width:32px;height:32px;border-radius:50%;background:#e8b43a;color:#2b1d00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none;}
+            .qzh .dhx-lb{background:var(--white);border:1px solid ${C.line};border-radius:14px;padding:13px 14px;}
+            .qzh .dhx-lb-eb{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.02em;margin-bottom:8px;color:var(--gold-ink);}
+            .qzh .dhx-lb-eb svg{color: var(--gold-ink);flex:none;}
+            .qzh .dhx-lb1{display:flex;align-items:center;gap:9px;border-radius:11px;padding:8px 10px;margin-bottom:4px;background:linear-gradient(90deg,#fdf1d3,var(--white));border:1px solid #f0dcae;}
+            .qzh .dhx-lb1 .av{width:32px;height:32px;border-radius:50%;background:var(--gold);color:#2b1d00;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex:none;}
             .qzh .dhx-lb1 .m{flex:1;min-width:0;}
-            .qzh .dhx-lb1 .m .n{display:block;font-size:19px;font-weight:800;line-height:1.02;color:#a16207;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-            .qzh .dhx-lb1 .m .s{display:block;font-size:10px;font-weight:600;color:#262b35;margin-top:1px;}
-            .qzh .dhx-lb1 .sc{flex:none;font-size:14px;font-weight:800;color:#a16207;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lb1 .m .n{display:block;font-size:19px;font-weight:800;line-height:1.02;color:var(--gold-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb1 .m .s{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-top:1px;}
+            .qzh .dhx-lb1 .sc{flex:none;font-size:14px;font-weight:800;color:var(--gold-ink);font-variant-numeric:tabular-nums;}
             .qzh .dhx-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:12px;color:#4a4f5c;}
-            .qzh .dhx-lrow .pl{width:15px;font-size:10.5px;font-weight:700;color:#262b35;font-variant-numeric:tabular-nums;flex:none;}
-            .qzh .dhx-lrow b{flex:1;min-width:0;color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-            .qzh .dhx-lrow .sc{flex:none;font-size:11.5px;font-weight:700;color:#262b35;font-variant-numeric:tabular-nums;}
+            .qzh .dhx-lrow .pl{width:15px;font-size:10.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;flex:none;}
+            .qzh .dhx-lrow b{flex:1;min-width:0;color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lrow .sc{flex:none;font-size:11.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;}
             .qzh .dhx-lrow.you{background:#fdf7ec;border-radius:7px;padding:5px 8px;margin:2px -8px 0;}
-            .qzh .dhx-lrow.you b{color:#a16207;}
-            .qzh .dhx-lb-more{display:inline-block;margin-top:8px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
+            .qzh .dhx-lrow.you b{color:var(--gold-ink);}
+            .qzh .dhx-lb-more{display:inline-block;margin-top:8px;font-size:11px;font-weight:800;color:var(--blue);text-decoration:none;}
             /* full Last Played: white game rows on the navy card + hourly activity bars */
             .qzh .dhx-lp-bars{margin-left:auto;display:flex;align-items:flex-end;gap:2px;height:30px;}
             .qzh .dhx-lp-bars span{width:5px;border-radius:2px;flex:none;}
-            .qzh .dhx-lp .dhx-lp-rows{background:#fff;border-radius:12px;padding:3px 11px;margin-top:2px;overflow:hidden;gap:0;}
+            .qzh .dhx-lp .dhx-lp-rows{background:var(--white);border-radius:12px;padding:3px 11px;margin-top:2px;overflow:hidden;gap:0;}
             .qzh .dhx-lpr{display:flex;align-items:center;gap:10px;padding:7px 0;text-decoration:none;border-bottom:1px solid #eef1f6;flex:1 1 auto;min-height:0;}
             .qzh .dhx-lpr:last-child{border-bottom:none;}
             .qzh .dhx-lpr .ring{width:30px;height:30px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center;}
-            .qzh .dhx-lpr .ring .in{width:23px;height:23px;border-radius:999px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#1c1e24;}
+            .qzh .dhx-lpr .ring .in{width:23px;height:23px;border-radius:999px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:var(--ink);}
             .qzh .dhx-lpr .mid{flex:1;min-width:0;}
-            .qzh .dhx-lpr .mid .t{display:block;font-size:12px;font-weight:700;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-            .qzh .dhx-lpr .mid .c .x{font-weight:600;color:#262b35;}
-            .qzh .dhx-lpr .mid .c{display:flex;align-items:center;gap:4px;font-size:9.5px;color:#262b35;margin-top:1px;}
+            .qzh .dhx-lpr .mid .t{display:block;font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+            .qzh .dhx-lpr .mid .c .x{font-weight:600;color:var(--muted);}
+            .qzh .dhx-lpr .mid .c{display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted);margin-top:1px;}
             .qzh .dhx-lpr .mid .c i{width:6px;height:6px;border-radius:2px;flex:none;}
             .qzh .dhx-lpr .rt{flex:none;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
             .qzh .dhx-lpr .rt .s{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;}
-            .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:#15803d;background:#e7f7ed;border-radius:999px;padding:1px 6px;}
-            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:#262b35;font-weight:600;white-space:nowrap;}
+            .qzh .dhx-lpr .rt .beat{font-size:8.5px;font-weight:800;color:var(--success-deep);background:#e7f7ed;border-radius:999px;padding:1px 6px;}
+            .qzh .dhx-lpr .rt .tm{font-size:9.5px;color:var(--muted);font-weight:600;white-space:nowrap;}
             /* beat chip and "how long ago" share one line under the score */
             .qzh .dhx-lpr .rt .when{display:flex;align-items:center;gap:5px;}
             /* quick play element */
-            .qzh .dhx-quick{background:#fff;border:1px solid ${C.line};border-radius:14px;padding:5px;flex:none;}
+            .qzh .dhx-quick{background:var(--white);border:1px solid ${C.line};border-radius:14px;padding:5px;flex:none;}
             .qzh .dhx-qrow{display:flex;align-items:center;gap:11px;padding:9px 9px;border-radius:11px;text-decoration:none;}
             .qzh .dhx-qrow + .dhx-qrow{border-top:1px solid ${C.line};}
             .qzh .dhx-qrow:hover{background:#f6f7f9;}
-            .qzh .dhx-qrow .qic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;color:#fff;}
+            .qzh .dhx-qrow .qic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;color:var(--white);}
             .qzh .dhx-qrow .qm{flex:1;min-width:0;}
-            .qzh .dhx-qrow .qm .qt{display:block;font-size:13px;font-weight:800;color:#1c1e24;}
-            .qzh .dhx-qrow .qm .qs{display:block;font-size:10.5px;color:#262b35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+            .qzh .dhx-qrow .qm .qt{display:block;font-size:13px;font-weight:800;color:var(--ink);}
+            .qzh .dhx-qrow .qm .qs{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
             /* who currently leads this row, beside the title */
-            .qzh .dhx-qrow .qm .qlead{display:inline-flex;align-items:center;gap:3px;margin-left:6px;vertical-align:1px;max-width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;font-weight:800;border-radius:999px;padding:1px 7px;background:#fdf7ec;color:#a16207;border:1px solid #f0dcae;}
+            .qzh .dhx-qrow .qm .qlead{display:inline-flex;align-items:center;gap:3px;margin-left:6px;vertical-align:1px;max-width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;font-weight:800;border-radius:999px;padding:1px 7px;background:#fdf7ec;color:var(--gold-ink);border:1px solid #f0dcae;}
             .qzh .dhx-qrow .qm .qlead svg{flex:none;}
-            .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(232,180,58,0.16);color:#a16207;border-color:rgba(232,180,58,0.42);}
-            .qzh .dhx-qrow .qa{flex:none;color:#262b35;font-weight:800;font-size:16px;}
+            .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(232,180,58,0.16);color:var(--gold-ink);border-color:rgba(232,180,58,0.42);}
+            .qzh .dhx-qrow .qa{flex:none;color:var(--muted);font-weight:800;font-size:16px;}
             /* Category Mastery (collapsible) */
-            .qzh .dhx-cm{background:#fff;border:1px solid ${C.line};border-radius:14px;flex:none;overflow:hidden;}
-            .qzh .dhx-cm-h{width:100%;display:flex;align-items:center;gap:7px;padding:12px 14px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;color:#a16207;}
-            .qzh .dhx-cm-h .cmchev{margin-left:auto;color:#262b35;transition:transform .2s;}
+            .qzh .dhx-cm{background:var(--white);border:1px solid ${C.line};border-radius:14px;flex:none;overflow:hidden;}
+            .qzh .dhx-cm-h{width:100%;display:flex;align-items:center;gap:7px;padding:12px 14px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--gold-ink);}
+            .qzh .dhx-cm-h .cmchev{margin-left:auto;color:var(--muted);transition:transform .2s;}
             .qzh .dhx-cm.open .dhx-cm-h .cmchev{transform:rotate(180deg);}
             .qzh .dhx-cm-bars{padding:0 13px 12px;display:flex;flex-direction:column;gap:5px;}
             .qzh .dhx-cmbar{position:relative;display:flex;align-items:center;background:#eef1f6;border:none;border-radius:7px;padding:7px 10px;cursor:pointer;font-family:inherit;overflow:hidden;}
             .qzh .dhx-cmbar .mtr{position:absolute;left:0;top:0;bottom:0;background:#dbe6fb;border-radius:7px;}
-            .qzh .dhx-cmbar .nm{position:relative;font-size:11.5px;font-weight:700;color:#1c1e24;}
+            .qzh .dhx-cmbar .nm{position:relative;font-size:11.5px;font-weight:700;color:var(--ink);}
             .qzh .dhx-cmbar .p{position:relative;margin-left:auto;font-size:11px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
             .qzh .dhx-cm-empty{padding:0 14px 13px;font-size:11px;color:#4b5563;font-weight:600;}
             /* ── LEFT: one integrated navy element (three leaderboards) ── */
-            .qzh .dhx-lone{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-lone{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-lone > *{border:0 !important;border-radius:0 !important;box-shadow:none !important;margin:0 !important;background:transparent !important;}
-            .qzh .dhx-lone > * + *{border-top:1.5px solid #c3ccda !important;}
+            .qzh .dhx-lone > * + *{border-top:1.5px solid var(--border) !important;}
             /* neutralize CommunityTile / XpTile tile chrome so they read as sections of the one card */
-            .qzh .dhx-lone .cmtile,.qzh .dhx-lone .ttile{min-height:0 !important;background:#ffffff !important;}
+            .qzh .dhx-lone .cmtile,.qzh .dhx-lone .ttile{min-height:0 !important;background:var(--white) !important;}
             .qzh .dhx-lone .cmtile:before,.qzh .dhx-lone .cmtile:after,.qzh .dhx-lone .ttile:before,.qzh .dhx-lone .ttile:after{display:none !important;}
-            .qzh .dhx-lone .xp-body{background:#ffffff !important;}
+            .qzh .dhx-lone .xp-body{background:var(--white) !important;}
             /* three equal fixed boxes that fill the element; clip hover panels/scrollers; no load shift */
             .qzh .dhx-lone > *{flex:1 1 0 !important;min-height:0 !important;overflow:hidden !important;}
             .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;line-height:1.15 !important;}
@@ -2030,9 +2031,9 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb-stat i.wrap{white-space:normal;line-height:1.45;}
             .qzh .dhx-lb.comm .dhx-lb-stat b{color:#7c3aed;}
             .qzh .dhx-lb.comm .dhx-lb-stat i{color:#6d28d9;}
-            .qzh .dhx-lb.daily .dhx-lb-stat b{color:#a16207;}
+            .qzh .dhx-lb.daily .dhx-lb-stat b{color:var(--gold-ink);}
             .qzh .dhx-lb.daily .dhx-lb-stat i{color:#8a5b0a;}
-            .qzh .dhx-lb.xp .dhx-lb-stat b{color:#2563eb;}
+            .qzh .dhx-lb.xp .dhx-lb-stat b{color:var(--blue);}
             .qzh .dhx-lb.xp .dhx-lb-stat i{color:#1c46a8;}
             .qzh .dhx-lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 13px;}
             .qzh .dhx-lb-gi{display:flex;align-items:center;gap:6px;font-size:11.5px;min-width:0;padding:3px 0;text-decoration:none;border-bottom:1px solid #eef1f6;}
@@ -2041,19 +2042,19 @@ export default function QuizHomeClient() {
             .qzh .dhx-lb.comm .dhx-lb-gi .rk{background:#ece5fb;color:#5b21b6;}
             .qzh .dhx-lb.daily .dhx-lb-gi .rk{background:#f6ebd2;color:#7c4a06;}
             .qzh .dhx-lb.xp .dhx-lb-gi .rk{background:#e1ebfd;color:#1c46a8;}
-            .qzh .dhx-lb-gi b{flex:1;min-width:0;color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lb-gi b{flex:1;min-width:0;color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lb-gi:hover b{text-decoration:underline;}
             .qzh .dhx-lb-gi .sc{flex:none;color:#6b7280;font-weight:700;font-variant-numeric:tabular-nums;}
-            .qzh .dhx-lb-gi.me b{color:#a16207;}
+            .qzh .dhx-lb-gi.me b{color:var(--gold-ink);}
             .qzh .dhx-lb-none{font-size:11.5px;color:#4b5563;padding:4px 0;}
             .qzh .dhx-lb-links{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;}
-            .qzh .dhx-lb-more{display:inline-block;margin-top:9px;font-size:11px;font-weight:800;color:#2563eb;text-decoration:none;}
+            .qzh .dhx-lb-more{display:inline-block;margin-top:9px;font-size:11px;font-weight:800;color:var(--blue);text-decoration:none;}
             .qzh .dhx-lb-morebtn{background:none;border:none;padding:0;cursor:pointer;font-family:inherit;text-align:left;}
             .qzh .dhx-lb-dots{display:inline-flex;align-items:center;gap:3px;margin-left:auto;}
             .qzh .dhx-lb-dots i{width:4px;height:4px;border-radius:50%;background:#c3cdd9;display:block;font-style:normal;}
-            .qzh .dhx-lb-dots i.on{background:#2563eb;}
+            .qzh .dhx-lb-dots i.on{background:var(--blue);}
             /* ── RIGHT: one integrated navy element ── */
-            .qzh .dhx-rone{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
+            .qzh .dhx-rone{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:100%;}
             .qzh .dhx-rone > *{border-radius:0 !important;border-left:0 !important;border-right:0 !important;box-shadow:none !important;background:transparent !important;}
             .qzh .dhx-rone .dhx-lp{border:0 !important;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
             .qzh .dhx-rone .dhx-lp .dhx-lp-rows{flex:1 1 auto;min-height:0;overflow:hidden;}
@@ -2063,42 +2064,42 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone.cm-open .dhx-lp{flex:0 0 auto;max-height:104px;}
             .qzh .dhx-rone.cm-open .dhx-cm{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
             .qzh .dhx-rone.cm-open .dhx-cm-bars{flex:1 1 auto;min-height:0;overflow-y:auto;}
-            .qzh .dhx-rone .dhx-quick{border-top:1.5px solid #c3ccda !important;padding:5px;}
-            .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:#c3ccda !important;}
-            .qzh .dhx-rone .dhx-qrow:hover{background:#f7f8fa !important;}
-            .qzh .dhx-rone .dhx-qrow .qt{color:#1c1e24 !important;}
-            .qzh .dhx-rone .dhx-qrow .qs{color:#262b35 !important;}
+            .qzh .dhx-rone .dhx-quick{border-top:1.5px solid var(--border) !important;padding:5px;}
+            .qzh .dhx-rone .dhx-qrow + .dhx-qrow{border-top-color:var(--border) !important;}
+            .qzh .dhx-rone .dhx-qrow:hover{background:var(--surface) !important;}
+            .qzh .dhx-rone .dhx-qrow .qt{color:var(--ink) !important;}
+            .qzh .dhx-rone .dhx-qrow .qs{color:var(--muted) !important;}
             .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
-            .qzh .dhx-rone .dhx-cm{border-top:1.5px solid #c3ccda !important;}
+            .qzh .dhx-rone .dhx-cm{border-top:1.5px solid var(--border) !important;}
             .qzh .dhx-rone .dhx-cm-h{color:#8a5300 !important;}
-            .qzh .dhx-rone .dhx-cm-h .cmchev{color:#262b35 !important;}
+            .qzh .dhx-rone .dhx-cm-h .cmchev{color:var(--muted) !important;}
             .qzh .dhx-rone .dhx-cmbar{background:#f1f3f6 !important;}
             .qzh .dhx-rone .dhx-cmbar .mtr{background:#dbe6fb !important;}
-            .qzh .dhx-rone .dhx-cmbar .nm{color:#1c1e24 !important;}
-            .qzh .dhx-rone .dhx-cmbar .p{color:#46506a !important;}
-            .qzh .dhx-rone .dhx-cm-empty{color:#262b35 !important;}
+            .qzh .dhx-rone .dhx-cmbar .nm{color:var(--ink) !important;}
+            .qzh .dhx-rone .dhx-cmbar .p{color:var(--slate) !important;}
+            .qzh .dhx-rone .dhx-cm-empty{color:var(--muted) !important;}
             .qzh .dhx-center .dstrip-wrap,.qzh .dhx-center .dhome{margin-bottom:0;}
             /* Quiz of the Day sized for the narrow right rail: photo over body */
             .qzh .dhx-qotd{flex-direction:column;min-height:0;}
             .qzh .dhx-qotd .qotd-photo{flex:0 0 auto;min-height:132px;}
             .qzh .dhx-qotd .qotd-body{padding:14px 16px;}
             /* Last Played rail card (navy) */
-            .qzh .dhx-lp{background:#ffffff;border:1.5px solid #c3ccda;border-radius:14px;padding:14px 15px;color:#1c1e24;}
+            .qzh .dhx-lp{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 15px;color:var(--ink);}
             .qzh .dhx-lp-top{display:flex;align-items:center;gap:8px;margin-bottom:11px;}
-            .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:#1c1e24;}
-            .qzh .dhx-lp-ttl svg{color:#1c1e24;flex:none;}
-            .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:#15803d;background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
-            .qzh .dhx-live i{width:5px;height:5px;border-radius:999px;background:#10b981;display:block;}
-            .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:#46506a;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
+            .qzh .dhx-lp-ttl{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:var(--ink);}
+            .qzh .dhx-lp-ttl svg{color:var(--ink);flex:none;}
+            .qzh .dhx-live{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--success-deep);background:rgba(16,185,129,0.16);border-radius:999px;padding:2px 7px;}
+            .qzh .dhx-live i{width:5px;height:5px;border-radius:999px;background:var(--success);display:block;}
+            .qzh .dhx-lp-all{margin-left:auto;background:none;border:none;color:var(--slate);font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;}
             .qzh .dhx-lp-stats{display:flex;flex-wrap:nowrap;align-items:flex-start;gap:12px;margin-bottom:11px;}
             .qzh .dhx-lp-stats b{display:block;font-size:15px;font-weight:800;line-height:1;white-space:nowrap;}
-            .qzh .dhx-lp-stats span{display:block;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#262b35;margin-top:4px;white-space:nowrap;}
+            .qzh .dhx-lp-stats span{display:block;font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-top:4px;white-space:nowrap;}
             .qzh .dhx-lp-rows{display:flex;flex-direction:column;gap:1px;}
-            .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1.5px solid #c3ccda;text-decoration:none;}
+            .qzh .dhx-lp-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1.5px solid var(--border);text-decoration:none;}
             .qzh .dhx-lp-row:last-child{border-bottom:none;}
-            .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+            .qzh .dhx-lp-nm{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
             .qzh .dhx-lp-sc{flex:none;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;border-radius:7px;padding:2px 7px;}
-            .qzh .dhx-lp-none{font-size:12px;color:#262b35;padding:6px 0;}
+            .qzh .dhx-lp-none{font-size:12px;color:var(--muted);padding:6px 0;}
             @media(max-width:1200px){
               .qzh .dhx{grid-template-columns:1fr;}.qzh .dhx-center{order:-1;}.qzh .dhx-left{order:1;}.qzh .dhx-right{order:2;}.qzh .dhx-qotd .qotd-photo{min-height:150px;}
               /* mobile: rails stack at natural height — no fixed boxes, no clipping/collapse */
@@ -2251,14 +2252,14 @@ export default function QuizHomeClient() {
                   const nowMs = Date.now(); const HB = 11; const bars = new Array(HB).fill(0);
                   for (const p of (recent || [])) { const tt = (p && p.playedAt) ? Date.parse(p.playedAt) : 0; if (!tt) continue; const hrsAgo = Math.floor((nowMs - tt) / 3600000); if (hrsAgo >= 0 && hrsAgo < HB) bars[HB - 1 - hrsAgo] += 1; }
                   const maxBar = Math.max(1, ...bars);
-                  return (<div className="dhx-lp-bars" title="plays per hour (last 11h)">{bars.map((b, i) => (<span key={i} style={{ height: `${Math.max(9, Math.round((b / maxBar) * 100))}%`, background: i >= HB - 2 ? '#15803d' : '#c3ccda' }} />))}</div>);
+                  return (<div className="dhx-lp-bars" title="plays per hour (last 11h)">{bars.map((b, i) => (<span key={i} style={{ height: `${Math.max(9, Math.round((b / maxBar) * 100))}%`, background: i >= HB - 2 ? T.successDeep : T.border }} />))}</div>);
                 })()}
               </div>
               <div className="dhx-lp-rows">
                 {(lastPlayed || []).slice(0, 7).map((f, i) => {
                   const frac = f.total ? f.score / f.total : 0;
                   const pct = Math.min(100, Math.round(frac * 100));
-                  const ring = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? '#e8b43a' : '#dc2626');
+                  const ring = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? T.gold : '#dc2626');
                   const good = frac >= 0.8;
                   const fam = gameFamily(f.quizId);
                   const dgc = fam ? DG_CAT[fam] : null;
@@ -2268,7 +2269,7 @@ export default function QuizHomeClient() {
                     <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
                       <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
                       <span className="mid"><span className="t">{stripVerb(resolveTitle(f.quizId) || f.title || f.quizId)}</span><span className="c"><i style={{ background: catColor }} />{catLabel}{todayPlays(f.quizId) > 0 ? <span className="x"> · x{todayPlays(f.quizId).toLocaleString()} today</span> : null}</span></span>
-                      <span className="rt"><span className="s" style={{ color: good ? '#15803d' : '#1c1e24' }}>{f.score}/{f.total}</span><span className="when">{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : null}{relTime(f.playedAt) ? <span className="tm">{relTime(f.playedAt)} ago</span> : null}</span></span>
+                      <span className="rt"><span className="s" style={{ color: good ? T.successDeep : T.ink }}>{f.score}/{f.total}</span><span className="when">{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : null}{relTime(f.playedAt) ? <span className="tm">{relTime(f.playedAt)} ago</span> : null}</span></span>
                     </a>
                   );
                 })}
@@ -2286,7 +2287,7 @@ export default function QuizHomeClient() {
               ) : null}
               {qotd ? (
                 <Link href={`/quiz/${qotd.id}`} className="dhx-qrow">
-                  <span className="qic" style={{ background: '#c2410c' }}><Play size={14} fill="#fff" strokeWidth={0} /></span>
+                  <span className="qic" style={{ background: '#c2410c' }}><Play size={14} fill={T.white} strokeWidth={0} /></span>
                   <span className="qm"><span className="qt">Quiz of the Day{qotdLeader ? <span className="qlead"><Crown size={9} strokeWidth={2.6} />{qotdLeader}</span> : null}</span><span className="qs">{stripVerb(qotd.title)}</span></span>
                   <span className="qa">›</span>
                 </Link>
@@ -2300,7 +2301,7 @@ export default function QuizHomeClient() {
             {/* Category Mastery (moved from the removed hub row) — collapses to its title by default */}
             <div className={`dhx-cm${cmOpen ? ' open' : ''}`}>
               <button type="button" className="dhx-cm-h" onClick={() => setCmOpen((v) => !v)} aria-expanded={cmOpen}>
-                <BarChart3 size={13} style={{ color: '#2563eb', flex: 'none' }} /><span>Category Mastery</span>
+                <BarChart3 size={13} style={{ color: T.blue, flex: 'none' }} /><span>Category Mastery</span>
                 <ChevronDown size={15} strokeWidth={2.5} className="cmchev" />
               </button>
               {cmOpen ? (catMastery.length > 0 ? (
@@ -2393,7 +2394,7 @@ export default function QuizHomeClient() {
                     <div className="ddall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, padding: '4px 9px 2px' }}>My progress</div>
                     {[['unplayed', 'Unplayed'], ['played', 'Played'], ['completed', 'Completed']].map(([k, lbl]) => (
                       <div key={k} className="dditem ddall" onClick={() => { setDoneFilter(k); setScope('all'); setDdOpen(false); setSearch(''); setListMode(null); }} style={doneFilter === k ? { background: C.accsoft } : undefined}>
-                        {k === 'completed' ? <Star size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> : k === 'played' ? <Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> : <span style={{ width: 13, height: 13, borderRadius: '50%', border: `1.5px solid ${C.soft}`, display: 'inline-block' }} />}
+                        {k === 'completed' ? <Star size={14} strokeWidth={1.5} fill={T.gold} color={T.gold} /> : k === 'played' ? <Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> : <span style={{ width: 13, height: 13, borderRadius: '50%', border: `1.5px solid ${C.soft}`, display: 'inline-block' }} />}
                         <span style={{ flex: 1 }}>{lbl}</span>
                         <span style={{ fontSize: 11, color: C.soft }}>{statusCounts[k]}</span>
                       </div>
@@ -2435,16 +2436,16 @@ export default function QuizHomeClient() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={`Search ${QUIZ_COUNT.toLocaleString()} quizzes…`}
               autoComplete="off"
-              style={{ width: '100%', padding: '9px 12px 9px 36px', border: '1.5px solid #b8c0cc', borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: '#fff', color: C.ink, outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '9px 12px 9px 36px', border: '1.5px solid #b8c0cc', borderRadius: 10, font: 'inherit', fontFamily: FONT, fontSize: 13.5, background: T.white, color: C.ink, outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
           {(!searchResults && scope === 'all' && !listMode) && (
-            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.accent, color: '#fff', border: `1px solid ${C.accent}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.accent, color: T.white, border: `1px solid ${C.accent}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
               Submit a Quiz
             </Link>
           )}
           {curCh && (
-            <Link key={curCh.id} href={curCh.href || `/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accsoft, color: C.accent, border: '1px solid #cddffb', padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={curCh.title}>
+            <Link key={curCh.id} href={curCh.href || `/quizzes/hub?tab=challenges&ch=${encodeURIComponent(curCh.id)}`} className="qz-daily" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 9, background: C.accsoft, color: C.accent, border: `1px solid ${T.accentBorder}`, padding: '8px 14px', borderRadius: 10, textDecoration: 'none' }} title={curCh.title}>
               <Flame size={17} style={{ flex: 'none' }} />
               <span style={{ lineHeight: 1.15, display: 'grid' }}>
                 {rotation.map((c, i) => (
@@ -2511,7 +2512,7 @@ export default function QuizHomeClient() {
               <Link href={playHref(f.quizId)} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
                 <span className="qmeta" style={{ gap: 8 }}>
-                  <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? '#15803d' : C.soft }}>{f.score}/{f.total}</span>
+                  <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? T.successDeep : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>
                 </span>
               </Link>
@@ -2552,21 +2553,21 @@ export default function QuizHomeClient() {
               const lpRows = lastPlayed.slice(0, 6);
               return (
                 <section className="mc-open catcard" style={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ background: C.accent, color: '#fff', padding: '11px 13px 12px', borderRadius: '8px 8px 0 0' }}>
+                  <div style={{ background: C.accent, color: T.white, padding: '11px 13px 12px', borderRadius: '8px 8px 0 0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 24, height: 24, borderRadius: 7, background: '#eef1f5', color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={13} /></span>
-                      <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: '#fff' }}>Last Played</h3>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: '#15803d', background: 'rgba(16,185,129,0.16)', borderRadius: 999, padding: '2px 7px' }}><span style={{ width: 5, height: 5, borderRadius: 999, background: C.live }} />LIVE</span>
-                      <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: '#46506a', background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>View all ›</button>
+                      <span style={{ width: 24, height: 24, borderRadius: 7, background: T.surfaceAlt, color: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Play size={13} /></span>
+                      <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0, color: T.white }}>Last Played</h3>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 4, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', color: T.successDeep, background: 'rgba(16,185,129,0.16)', borderRadius: 999, padding: '2px 7px' }}><span style={{ width: 5, height: 5, borderRadius: 999, background: C.live }} />LIVE</span>
+                      <button type="button" onClick={() => setListMode('live')} style={{ marginLeft: 'auto', color: T.slate, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase' }}>View all ›</button>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, marginTop: 12 }}>
                       <div style={{ flex: 'none' }}>
                         <div style={{ fontSize: 21, fontWeight: 800, lineHeight: 1, letterSpacing: '-.02em' }}>{(playsToday || 0).toLocaleString()}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#262b35', marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: T.muted, marginTop: 4, textTransform: 'uppercase' }}>plays today</div>
                       </div>
                       <div style={{ flex: 'none' }}>
                         <div style={{ fontSize: 18, fontWeight: 800, lineHeight: 1, letterSpacing: '-.01em', paddingBottom: 1 }}>{fmtT(totals.todayTime)}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: '#262b35', marginTop: 5, textTransform: 'uppercase' }}>played today</div>
+                        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.06em', color: T.muted, marginTop: 5, textTransform: 'uppercase' }}>played today</div>
                       </div>
                       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'flex-end', gap: 2, height: 32 }} title="plays per hour (last 11h)">
                         {bars.map((b, i) => (
@@ -2576,15 +2577,15 @@ export default function QuizHomeClient() {
                     </div>
                     <div style={{ marginTop: 11, display: 'flex', gap: 6 }}>
                       {hot ? (
-                        <a href={playHref(hot.id)} style={{ flex: '1 1 0', minWidth: 0, background: '#f7f8fa', border: '1px solid #eef1f5', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                        <a href={playHref(hot.id)} style={{ flex: '1 1 0', minWidth: 0, background: T.surface, border: `1px solid ${T.surfaceAlt}`, borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
                           <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#f4b183', textTransform: 'uppercase', display: 'block' }}>🔥 Hot now</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(titleById[hot.id] || hot.title)}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: T.white, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(titleById[hot.id] || hot.title)}</span>
                         </a>
                       ) : null}
                       {tough ? (
-                        <a href={playHref(tough.quizId)} style={{ flex: '1 1 0', minWidth: 0, background: '#f7f8fa', border: '1px solid #eef1f5', borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
+                        <a href={playHref(tough.quizId)} style={{ flex: '1 1 0', minWidth: 0, background: T.surface, border: `1px solid ${T.surfaceAlt}`, borderRadius: 8, padding: '4px 8px', textDecoration: 'none', display: 'block' }}>
                           <span style={{ fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', color: '#9ec5e8', textTransform: 'uppercase', display: 'block' }}>🧠 Toughest · {Math.round((tough.aceRate || 0) * 100)}% ace</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(resolveTitle(tough.quizId) || '')}</span>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: T.white, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block', marginTop: 1 }}>{stripVerb(resolveTitle(tough.quizId) || '')}</span>
                         </a>
                       ) : null}
                     </div>
@@ -2607,7 +2608,7 @@ export default function QuizHomeClient() {
                       return (
                         <Link href={playHref(f.quizId)} className={`qrow lp-row${idx >= 3 ? ' lp-mobhide' : ''}`} key={f.quizId} title={f.title} style={{ alignItems: 'center', gap: 10, padding: '0 11px', flex: '1 1 0', minHeight: 0 }}>
                           <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 999, background: `conic-gradient(${ringCol} ${pctScore}%, #eef1f6 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ width: 23, height: 23, borderRadius: 999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: C.ink }}>{pctScore}%</span>
+                            <span style={{ width: 23, height: 23, borderRadius: 999, background: T.white, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 800, color: C.ink }}>{pctScore}%</span>
                           </span>
                           <span style={{ minWidth: 0, flex: 1 }}>
                             <span style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0 }}>
@@ -2620,9 +2621,9 @@ export default function QuizHomeClient() {
                             </span>
                           </span>
                           <span style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                            <span style={{ fontSize: 12, fontWeight: 800, color: good ? '#15803d' : C.ink, fontVariantNumeric: 'tabular-nums' }}>{f.score}/{f.total}</span>
+                            <span style={{ fontSize: 12, fontWeight: 800, color: good ? T.successDeep : C.ink, fontVariantNumeric: 'tabular-nums' }}>{f.score}/{f.total}</span>
                             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                              {typeof f.pct === 'number' ? <span style={{ fontSize: 9, fontWeight: 800, color: good ? '#15803d' : '#b45309', background: good ? '#e7f7ed' : '#fef6e7', borderRadius: 999, padding: '1px 6px' }}>beat {f.pct}%</span> : null}
+                              {typeof f.pct === 'number' ? <span style={{ fontSize: 9, fontWeight: 800, color: good ? T.successDeep : '#b45309', background: good ? '#e7f7ed' : '#fef6e7', borderRadius: 999, padding: '1px 6px' }}>beat {f.pct}%</span> : null}
                               <span style={{ fontSize: 9.5, color: C.soft, fontWeight: 600 }}>{relTime(f.playedAt)}</span>
                             </span>
                           </span>
@@ -2701,7 +2702,7 @@ export default function QuizHomeClient() {
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check className="donemark" size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star className="donemark" size={14} strokeWidth={1.5} fill="#e8b43a" color="#e8b43a" /> Completed (100%)</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star className="donemark" size={14} strokeWidth={1.5} fill={T.gold} color={T.gold} /> Completed (100%)</span>
       </div>
 
       <Footer />
@@ -2791,12 +2792,12 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   const { Icon, c: color, t: tint } = cat;
   return (
     <section style={{ minWidth: 0 }}>
-      <div className="colhead" style={{ borderColor: C.ink, background: '#ffffff' }}>
-        <span style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.22)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="colhead" style={{ borderColor: C.ink, background: T.white }}>
+        <span style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.22)', color: T.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} />
         </span>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#fff' }}>{cat.label}</h3>
-        <span className="viewall" style={{ color: '#fff' }}>{cat.count} quizzes</span>
+        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: T.white }}>{cat.label}</h3>
+        <span className="viewall" style={{ color: T.white }}>{cat.count} quizzes</span>
       </div>
       <div className="qfull">
         {rows.map((q) => (
@@ -2873,7 +2874,7 @@ function usePillProbe(url, region, scrim, useParentBox) {
 function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled, fill, baseCount }) {
   const hasHero = !!heroUrl;
   const blueHead = hasHero || filled;
-  const headFg = '#1c1e24';
+  const headFg = T.ink;
   const heroLink = heroHref || (heroId ? `/quiz/${heroId}` : '#');
   const base = baseCount || rows.length;
   // A column with its own hero is already the full row height, so the gap-fill
@@ -2932,14 +2933,14 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
       {hasHero ? (
         <Link href={heroLink} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
           <span className="cc-ov" ref={pillRef} />
-          {heroId ? <span className={`cc-stat${statPill ? ' pill' : ''}`}>{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: '#a16207', flex: 'none' }} /> {heroLeader}</> : null}</span> : null}
+          {heroId ? <span className={`cc-stat${statPill ? ' pill' : ''}`}>{heroPlays > 0 ? `${heroPlays.toLocaleString()} plays` : 'New quiz'}{heroLeader ? <><span aria-hidden="true"> · </span><Crown size={11} style={{ color: T.goldInk, flex: 'none' }} /> {heroLeader}</> : null}</span> : null}
           <div className="cc-btm">
             <span className="cc-htitle">{stripVerb(heroTitle)}</span>
             <span className="cc-play">{heroCta || 'Play'} <ArrowRight size={13} style={{ verticalAlign: -2 }} /></span>
           </div>
         </Link>
       ) : null}
-      <div ref={headRef} className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: '#1c1e24', background: '#ffffff' }}>
+      <div ref={headRef} className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: T.ink, background: T.white }}>
         <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: tint, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>

@@ -7,9 +7,10 @@
 
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { PLACE_MAP_GEO } from '@/lib/place-map-geo';
+import { T } from '@/lib/theme';
 
 const LAND = '#eef1f4', LINE = '#94a0b0', SEA = '#bcd4ec';
-const GREEN = '#10b981', RED = '#c0392b', INK = '#1c1e24', FADED = '#262b35';
+const GREEN = T.success, RED = T.danger, INK = T.ink, FADED = T.muted;
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function StreetMapBoard({ answers, found, revealed, region, mobile = false }) {
@@ -55,10 +56,10 @@ export default function StreetMapBoard({ answers, found, revealed, region, mobil
             if (!f && !revealed) return null;
             const xy = geo.proj(a.lon, a.lat);
             const isLast = f && i === last;
-            return <circle key={i} cx={xy[0].toFixed(1)} cy={xy[1].toFixed(1)} r={isLast ? 3.6 : 2.2} fill={f ? GREEN : RED} stroke="#fff" strokeWidth={isLast ? 1 : 0.5} opacity={f ? 1 : 0.85} />;
+            return <circle key={i} cx={xy[0].toFixed(1)} cy={xy[1].toFixed(1)} r={isLast ? 3.6 : 2.2} fill={f ? GREEN : RED} stroke={T.white} strokeWidth={isLast ? 1 : 0.5} opacity={f ? 1 : 0.85} />;
           })}
           {last != null && found[last] && !revealed && (() => { const xy = geo.proj(answers[last].lon, answers[last].lat); return (
-            <text x={xy[0]} y={(xy[1] - 6).toFixed(1)} textAnchor="middle" fontFamily={MONO} fontSize={9} fontWeight={800} fill={INK} stroke="#fff" strokeWidth={2.4} paintOrder="stroke">{answers[last].t}</text>
+            <text x={xy[0]} y={(xy[1] - 6).toFixed(1)} textAnchor="middle" fontFamily={MONO} fontSize={9} fontWeight={800} fill={INK} stroke={T.white} strokeWidth={2.4} paintOrder="stroke">{answers[last].t}</text>
           ); })()}
         </svg>
       </div>

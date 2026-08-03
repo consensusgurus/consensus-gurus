@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { T } from '@/lib/theme';
 
 // Lazy, per-region geometry — each import() is a static specifier so webpack
 // code-splits one chunk per region; only the played region's geometry loads.
@@ -24,11 +25,11 @@ const LOADERS = {
 const LAND = '#eef1f4';
 const LINE = '#94a0b0';
 const SEA = '#bcd4ec';
-const GREEN = '#10b981';
-const RED = '#c0392b';
+const GREEN = T.success;
+const RED = T.danger;
 const HOVER = '#e8effb';
-const CTRL_INK = '#1c1e24';
-const CTRL_ACCENT = '#0e1d40';
+const CTRL_INK = T.ink;
+const CTRL_ACCENT = T.accent;
 
 // In-window size control. The map was capped at 680px wide and centered, which
 // renders small on a wide-but-short region (e.g. the no-outline lower-48). These
@@ -217,7 +218,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
     <div>
       {!isMobile && (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
-        <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#262b35', marginRight: 2 }}>Map size</span>
+        <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.muted, marginRight: 2 }}>Map size</span>
         {SIZE_ORDER.map((s) => {
           const on = s === size;
           return (
@@ -228,8 +229,8 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
                 fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
                 padding: '4px 11px', cursor: 'pointer', borderRadius: 6,
                 border: `1px solid ${on ? CTRL_INK : 'rgba(20,22,28,0.18)'}`,
-                background: on ? CTRL_INK : '#fff',
-                color: on ? '#fff' : '#262b35',
+                background: on ? CTRL_INK : T.white,
+                color: on ? T.white : T.muted,
               }}
             >
               {SIZES[s].label}
@@ -247,7 +248,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
       {isMobile && zoomed && (
         <button
           onClick={resetZoom}
-          style={{ position: 'absolute', top: 8, right: 8, zIndex: 6, fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', padding: '6px 12px', cursor: 'pointer', borderRadius: 6, border: `1px solid ${CTRL_ACCENT}`, background: '#fff', color: CTRL_ACCENT }}
+          style={{ position: 'absolute', top: 8, right: 8, zIndex: 6, fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', padding: '6px 12px', cursor: 'pointer', borderRadius: 6, border: `1px solid ${CTRL_ACCENT}`, background: T.white, color: CTRL_ACCENT }}
         >
           Reset
         </button>
@@ -300,7 +301,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
           const hasCallout = m.lx != null && m.ly != null;
           const bx = hasCallout ? m.lx : m.x;
           const by = hasCallout ? m.ly : m.y;
-          const tint = fillFor(m.name, '#ffffff');
+          const tint = fillFor(m.name, T.white);
           const active = (foundNames && foundNames.has(m.name)) || (flash && flash.name === m.name) || (hover === m.name && live);
           const lineColor = active ? tint : LINE;
           const enter = () => setHover(m.name);

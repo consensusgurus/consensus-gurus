@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { T } from '@/lib/theme';
 
 // One-line CTA on the end-of-game card for players who have NOT registered:
 // it tells them where their just-finished score would land on the REGISTERED
@@ -8,7 +9,7 @@ import React from 'react';
 // boards switch to the Join tab). Renders nothing when the rank can't be
 // computed or no register handler is supplied (so it never shows for players who
 // are already registered, or in the non-results leaderboard views).
-const C = { ink: '#1c1e24', ember: '#0e1d40', accSoft: '#eef3ff', accBorder: '#cddffb' };
+const C = { ink: T.ink, ember: T.accent, accSoft: T.accentSoft, accBorder: T.accentBorder };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function RegisterRankLine({ rank, onRegister, margin = '0 0 16px' }) {

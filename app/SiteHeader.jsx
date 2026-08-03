@@ -8,13 +8,14 @@ import { LISTS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import { EXAM_ORDER } from './exams/examData';
+import { T } from '@/lib/theme';
 
 // Shared site header. Blue header card with the brand + Lists/Quizzes nav on the
 // top row, and an optional INLAY slot (a white pill the page passes in) below it:
 // category nav on lists home, the section tabs on a list, the player stat bar on
 // quizzes. Desktop keeps the card inset and rounded; mobile goes full-bleed and
 // the nav condenses to a compact segmented toggle next to the "SoT" mark.
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#262b35', line: 'rgba(20,22,28,0.30)' };
+const C = { ink: T.ink, accent: T.accent, muted: T.muted, line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const SOURCE_COUNT = getAllSources().length;
 
@@ -45,9 +46,9 @@ function Logo({ size = 40 }) {
         </radialGradient>
       </defs>
       <rect x="3" y="3" width="58" height="58" rx="17.5" fill="url(#shLogoBlue)" />
-      <circle cx="32" cy="32.5" r="16.4" fill="#ffffff" /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
+      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
       <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke="#0e1d40" strokeWidth="0.4" strokeLinejoin="round" fill="url(#shLogoGold)" />
+      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill="url(#shLogoGold)" />
     </svg>
   );
 }
@@ -65,9 +66,9 @@ function CommandLogo({ size = 30 }) {
         </radialGradient>
       </defs>
       <rect x="3" y="3" width="58" height="58" rx="17.5" fill="rgba(255,255,255,0.14)" />
-      <circle cx="32" cy="32.5" r="16.4" fill="#ffffff" /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
+      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
       <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke="#0e1d40" strokeWidth="0.4" strokeLinejoin="round" fill={`url(#g-${uid})`} />
+      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#g-${uid})`} />
     </svg>
   );
 }
@@ -104,25 +105,25 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .shc{width:100vw;margin-left:calc(50% - 50vw);}
-        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:#ffffff;border-bottom:1.5px solid #c3ccda;}
-        .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;text-decoration:none;white-space:nowrap;flex:none;}
-        .shc-word em{font-style:normal;color:#262b35;font-weight:600;}
+        .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
+        .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
+        .shc-word em{font-style:normal;color:var(--muted);font-weight:600;}
         .shc-ws{display:none;}
-        .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:#1c1e24;flex:none;}
+        .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:var(--ink);flex:none;}
         .shc-games{display:flex;align-items:center;gap:9px;min-width:0;flex:none;}
-        .shc-game{display:inline-flex;align-items:center;gap:9px;background:#f7f8fa;border:1px solid #eef1f5;border-radius:11px;padding:6px 13px 6px 11px;text-decoration:none;transition:background .15s,border-color .15s;flex:none;}
-        .shc-game:hover{background:#eef1f5;border-color:#46506a;}
+        .shc-game{display:inline-flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--surface-alt);border-radius:11px;padding:6px 13px 6px 11px;text-decoration:none;transition:background .15s,border-color .15s;flex:none;}
+        .shc-game:hover{background:var(--surface-alt);border-color:var(--slate);}
         .shc-dot{width:8px;height:8px;border-radius:50%;flex:none;}
         .shc-gtxt{display:flex;flex-direction:column;gap:2px;line-height:1;}
-        .shc-gnm{font-size:13px;font-weight:800;color:#1c1e24;letter-spacing:-.2px;}
-        .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#262b35;white-space:nowrap;}
-        .shc-search{flex:0 1 auto;width:clamp(200px,26vw,460px);min-width:130px;margin-left:auto;display:flex;align-items:center;gap:7px;height:36px;padding:0 10px 0 12px;background:#eef1f5;border:1px solid #eef1f5;border-radius:11px;}
-        .shc-search svg{flex:none;color:#262b35;}
-        .shc-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#1c1e24;font-family:inherit;font-size:13px;font-weight:600;}
-        .shc-search input::placeholder{color:#262b35;opacity:1;}
-        .shc-search:focus-within{border-color:#46506a;background:#eef1f5;}
-        .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:#262b35;cursor:pointer;padding:2px;flex:none;}
-        .shc-clear:hover{color:#1c1e24;}
+        .shc-gnm{font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.2px;}
+        .shc-gtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+        .shc-search{flex:0 1 auto;width:clamp(200px,26vw,460px);min-width:130px;margin-left:auto;display:flex;align-items:center;gap:7px;height:36px;padding:0 10px 0 12px;background:var(--surface-alt);border:1px solid var(--surface-alt);border-radius:11px;}
+        .shc-search svg{flex:none;color:var(--muted);}
+        .shc-search input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:var(--ink);font-family:inherit;font-size:13px;font-weight:600;}
+        .shc-search input::placeholder{color:var(--muted);opacity:1;}
+        .shc-search:focus-within{border-color:var(--slate);background:var(--surface-alt);}
+        .shc-clear{display:flex;align-items:center;justify-content:center;background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;flex:none;}
+        .shc-clear:hover{color:var(--ink);}
         /* margin-left:auto pins the Sort + Lists/Quizzes toggle group to the
            far-right edge. When the search box caps at its max width on wide
            screens, the leftover space now flows into this margin instead of
@@ -130,15 +131,15 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
            (matching the quizzes header) rather than tied to the search box. */
         .shc-sortwrap{position:relative;flex:none;}
         .shc-right{display:flex;align-items:center;gap:9px;margin-left:auto;flex:none;}
-        .shc-sort{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:#f7f8fa;border:1px solid #eef1f5;border-radius:11px;color:#1c1e24;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
-        .shc-sort:hover{background:#eef1f5;border-color:#46506a;}
+        .shc-sort{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;background:var(--surface);border:1px solid var(--surface-alt);border-radius:11px;color:var(--ink);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+        .shc-sort:hover{background:var(--surface-alt);border-color:var(--slate);}
         .shc-sort svg{flex:none;}
-        .shc-sortmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:10px;box-shadow:0 12px 30px rgba(10,16,32,0.28);overflow:hidden;}
-        .shc-sortitem{width:100%;display:block;text-align:left;border:none;background:#fff;padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:#1c1e24;cursor:pointer;}
-        .shc-sortitem.on,.shc-sortitem:hover{background:#eef2fb;color:#0e1d40;}
-        .shc-seg{display:flex;gap:2px;background:#eef1f5;border-radius:999px;padding:3px;flex:none;}.shc-burger{display:none;position:relative;flex:none;}.shc-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:#eef1f5;border:1px solid #eef1f5;cursor:pointer;}.shc-burger>summary::-webkit-details-marker{display:none;}.shc-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.shc-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.shc-bmenu a.on,.shc-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.shc-seg{display:none;}.shc-burger{display:block;}}
-        .shc-seg a{font-size:12px;font-weight:700;color:#1c1e24;text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
-        .shc-seg a.on{background:#fff;color:#0e1d40;}
+        .shc-sortmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:60;min-width:200px;background:var(--white);border:1px solid rgba(20,22,28,0.12);border-radius:10px;box-shadow:0 12px 30px rgba(10,16,32,0.28);overflow:hidden;}
+        .shc-sortitem{width:100%;display:block;text-align:left;border:none;background:var(--white);padding:10px 14px;font-family:inherit;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;}
+        .shc-sortitem.on,.shc-sortitem:hover{background:#eef2fb;color:var(--accent);}
+        .shc-seg{display:flex;gap:2px;background:var(--surface-alt);border-radius:999px;padding:3px;flex:none;}.shc-burger{display:none;position:relative;flex:none;}.shc-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:var(--surface-alt);border:1px solid var(--surface-alt);cursor:pointer;}.shc-burger>summary::-webkit-details-marker{display:none;}.shc-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:var(--white);border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.shc-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;}.shc-bmenu a.on,.shc-bmenu a:hover{background:#eef2fb;color:var(--accent);}@media(max-width:600px){.shc-seg{display:none;}.shc-burger{display:block;}}
+        .shc-seg a{font-size:12px;font-weight:700;color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
+        .shc-seg a.on{background:var(--white);color:var(--accent);}
         @media(max-width:1180px){.shc-src{display:none;}}
         @media(max-width:1080px){.shc-gtag{display:none;}.shc-game{padding:7px 12px;}}
         @media(max-width:900px){.shc-games{display:none;}}
@@ -204,7 +205,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
             <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
           </nav>
           <details className="shc-burger">
-            <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1e24" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+            <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.ink} strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
             <div className="shc-bmenu">
               <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
               <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>
@@ -222,7 +223,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
     <div className="sh-root" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:#ffffff;border:1.5px solid #c3ccda;;border-radius:16px;}
+        .sh-bar{display:flex;flex-direction:column;padding:12px 16px;background:var(--white);border:1.5px solid var(--border);;border-radius:16px;}
         .sh-bar.flush{border-radius:16px 16px 0 0;}
         .qzf-line{position:absolute;top:0;bottom:0;left:24px;right:24px;border-left:1px solid rgba(20,22,28,0.30);border-right:1px solid rgba(20,22,28,0.30);border-bottom:1px solid rgba(20,22,28,0.30);border-bottom-left-radius:16px;border-bottom-right-radius:16px;pointer-events:none;z-index:0;}
         @media(max-width:560px){.qzf-line{display:none;}.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
@@ -230,13 +231,13 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         .sh-inlay{margin-top:12px;}
         .sh-outer{padding:10px 24px 0;}
         .sh-brand{display:flex;align-items:center;gap:11px;text-decoration:none;flex:none;}
-        .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:#1c1e24;}
+        .sh-word{font-size:21px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);}
         .sh-word-sot{display:none;}
         .sh-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;flex:none;}
-        .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}.sh-burger{display:none;position:relative;flex:none;}.sh-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:#eef1f5;border:1px solid #eef1f5;cursor:pointer;}.sh-burger>summary::-webkit-details-marker{display:none;}.sh-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:#fff;border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.sh-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:#1c1e24;text-decoration:none;white-space:nowrap;}.sh-bmenu a.on,.sh-bmenu a:hover{background:#eef2fb;color:#0e1d40;}@media(max-width:600px){.sh-nav{display:none;}.sh-burger{display:block;}}
-        .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:#1c1e24;border:1.5px solid #c3ccda;border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
-        .sh-navbtn:hover{background:#eef1f5;border-color:#1c1e24;color:#1c1e24;}
-        .sh-navbtn.on{background:#fff;border-color:#1c1e24;border-bottom:2px solid #e8b43a;color:#0e1d40;}
+        .sh-nav{display:flex;align-items:center;gap:12px;justify-content:flex-end;flex-wrap:wrap;}.sh-burger{display:none;position:relative;flex:none;}.sh-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:var(--surface-alt);border:1px solid var(--surface-alt);cursor:pointer;}.sh-burger>summary::-webkit-details-marker{display:none;}.sh-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:var(--white);border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.sh-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;}.sh-bmenu a.on,.sh-bmenu a:hover{background:#eef2fb;color:var(--accent);}@media(max-width:600px){.sh-nav{display:none;}.sh-burger{display:block;}}
+        .sh-navbtn{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-size:13.5px;font-weight:700;color:var(--ink);border:1.5px solid var(--border);border-radius:8px;padding:7px 13px;background:transparent;transition:background .15s,border-color .15s,color .15s;}
+        .sh-navbtn:hover{background:var(--surface-alt);border-color:var(--ink);color:var(--ink);}
+        .sh-navbtn.on{background:var(--white);border-color:var(--ink);border-bottom:2px solid var(--gold);color:var(--accent);}
         @media(max-width:860px){.sh-tag{display:none;}}
         @media(max-width:560px){
           .sh-outer{padding:0;}
@@ -246,10 +247,10 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
           .sh-word{font-size:18px;}
           .sh-tag{display:none;}
           .sh-right{gap:0;}
-          .sh-nav{gap:2px;flex-wrap:nowrap;background:#eef1f5;border-radius:999px;padding:2px;}
+          .sh-nav{gap:2px;flex-wrap:nowrap;background:var(--surface-alt);border-radius:999px;padding:2px;}
           .sh-navbtn{flex:none;border:none;padding:6px 13px;border-radius:999px;font-size:11.5px;}
-          .sh-navbtn:hover{background:transparent;color:#1c1e24;}
-          .sh-navbtn.on{background:#fff;color:#0e1d40;}
+          .sh-navbtn:hover{background:transparent;color:var(--ink);}
+          .sh-navbtn.on{background:var(--white);color:var(--accent);}
           .sh-inlay{margin-top:10px;}
         }
       `}</style>
@@ -259,8 +260,8 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <div className="sh-brand">
               <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
               <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'nowrap' }}>
-                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:'#1c1e24' }}><span className="sh-word-full">Source <span style={{ color: '#262b35', fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: '#262b35', fontWeight: 600 }}>o</span>T</span></Link>
-                <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color:'#1c1e24', marginTop: 0 }}><HeaderTagline active={active} /></span>
+                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:T.ink }}><span className="sh-word-full">Source <span style={{ color: T.muted, fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: T.muted, fontWeight: 600 }}>o</span>T</span></Link>
+                <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color:T.ink, marginTop: 0 }}><HeaderTagline active={active} /></span>
               </span>
             </div>
             <div className="sh-right">
@@ -269,7 +270,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
                 <Link href="/lists" className={`sh-navbtn${active === 'lists' ? ' on' : ''}`}>Top 10 Lists</Link>
               </nav>
               <details className="sh-burger">
-                <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1e24" strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
+                <summary aria-label="Open menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={T.ink} strokeWidth="2.4" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg></summary>
                 <div className="sh-bmenu">
                   <Link href="/" className={active === 'quizzes' ? 'on' : undefined}>Puzzles &amp; Quizzes</Link>
                   <Link href="/lists" className={active === 'lists' ? 'on' : undefined}>Top 10 Lists</Link>

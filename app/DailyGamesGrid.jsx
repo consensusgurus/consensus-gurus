@@ -43,6 +43,7 @@ import { Share2, Check, RotateCcw, ChevronRight } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
 import { fetchDailyMe, dailyMeQuery } from './dailyMeClient';
+import { T } from '@/lib/theme';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
@@ -169,27 +170,27 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
       <style>{`
         .dgg-grp{margin-bottom:14px;}
         .dgg-glabel{display:flex;align-items:center;gap:10px;margin:0 2px 8px;}
-        .dgg-glabel .k{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#0e1d40;white-space:nowrap;}
+        .dgg-glabel .k{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);white-space:nowrap;}
         .dgg-glabel .line{flex:1;height:1px;background:rgba(28,30,36,0.12);}
         .dgg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
         @media(min-width:768px){.dgg{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:359px){.dgg{grid-template-columns:1fr;}}
-        .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:58px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:#ffffff;padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
+        .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:58px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:var(--white);padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
         .dgg-t:hover{border-color:#5b8bff;}
         .dgg-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
         .dgg-art{flex:0 0 auto;height:42px;width:auto;}
-        .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:#1c1e24;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dgg-p{font-size:10.5px;font-weight:700;color:#262b35;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.14),rgba(22,163,74,0.14)),#0e1d40;border-color:rgba(34,197,94,0.5);}
+        .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:var(--ink);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dgg-p{font-size:10.5px;font-weight:700;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.14),rgba(22,163,74,0.14)),var(--accent);border-color:rgba(34,197,94,0.5);}
         .dgg-done .dgg-art{opacity:.5;}
         .dgg-done .dgg-nm{color:#dfeee4;}
-        .dgg-check{position:absolute;top:7px;right:7px;width:19px;height:19px;border-radius:50%;background:#16a34a;color:#1c1e24;display:flex;align-items:center;justify-content:center;border:2px solid #0e1d40;box-shadow:0 1px 2px rgba(0,0,0,0.35);}
+        .dgg-check{position:absolute;top:7px;right:7px;width:19px;height:19px;border-radius:50%;background:#16a34a;color:var(--ink);display:flex;align-items:center;justify-content:center;border:2px solid var(--accent);box-shadow:0 1px 2px rgba(0,0,0,0.35);}
         .dgg-act{min-height:76px;justify-content:center;gap:10px;cursor:pointer;font-family:inherit;width:100%;}
-        .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#1c1e24;line-height:1.15;text-align:center;}
+        .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);line-height:1.15;text-align:center;}
         .dgg-act svg{flex:0 0 auto;}
         .dgg-replay{margin-bottom:12px;}
         .dgg-act.dgg-again{min-height:64px;background:#eef7f1;border-color:#cfe6d8;}
-        .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
+        .dgg-act.dgg-again .dgg-act-l{color:var(--success-deep);}
         .dgg-act.dgg-again svg{color:#16a34a;}
         .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:#3f6b4e;}
 
@@ -198,10 +199,10 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
            handler and open the same ShareCreditPop, so showing one as a black
            feature bar and the other as a cream tile made a single action look
            like two. The ink treatment is the one that stays. */
-        .dgg-sharebar{display:flex;align-items:center;gap:13px;width:100%;box-sizing:border-box;text-align:left;font-family:inherit;color:#fff;background:#1c1e24;border:1px solid #1c1e24;border-radius:13px;padding:12px 14px;margin-bottom:12px;cursor:pointer;transition:filter .12s ease;}
+        .dgg-sharebar{display:flex;align-items:center;gap:13px;width:100%;box-sizing:border-box;text-align:left;font-family:inherit;color:var(--white);background:var(--ink);border:1px solid var(--ink);border-radius:13px;padding:12px 14px;margin-bottom:12px;cursor:pointer;transition:filter .12s ease;}
         .dgg-sharebar:hover{filter:brightness(1.16);}
         .dgg-sharebar .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-        .dgg-sharebar .ic svg{color:#fff;}
+        .dgg-sharebar .ic svg{color:var(--white);}
         .dgg-sharebar .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
         .dgg-sharebar .t{font-size:14px;font-weight:800;letter-spacing:-.01em;}
         .dgg-sharebar .s{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.66);}
@@ -214,22 +215,22 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
 
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
            bottom section matches the end-of-game card. Game icons are kept. */
-        .dgg-light .dgg-t{background:#fff;border-color:rgba(20,22,28,0.12);}
+        .dgg-light .dgg-t{background:var(--white);border-color:rgba(20,22,28,0.12);}
         .dgg-light .dgg-t:hover{border-color:#5b8bff;}
-        .dgg-light .dgg-nm{color:#1c1e24;}
-        .dgg-light .dgg-p{color:#262b35;}
+        .dgg-light .dgg-nm{color:var(--ink);}
+        .dgg-light .dgg-p{color:var(--muted);}
         /* The letter-tile game icons are drawn for a dark ground and wash out on
            white, so give the icon its own navy chip on the light tiles. */
         .dgg-light .dgg-art{background:#f1f3f6;border-radius:9px;padding:5px;box-sizing:border-box;}
-        .dgg-light .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.10),rgba(22,163,74,0.10)),#fff;border-color:rgba(34,197,94,0.5);}
+        .dgg-light .dgg-done{background:linear-gradient(0deg,rgba(22,163,74,0.10),rgba(22,163,74,0.10)),var(--white);border-color:rgba(34,197,94,0.5);}
         .dgg-light .dgg-done .dgg-art{opacity:.6;}
-        .dgg-light .dgg-done .dgg-nm{color:#15803d;}
-        .dgg-light .dgg-check{border-color:#1c1e24;}
+        .dgg-light .dgg-done .dgg-nm{color:var(--success-deep);}
+        .dgg-light .dgg-check{border-color:var(--ink);}
         /* The .dgg-again tint must be scoped to .dgg-light too: the unscoped
            rule ties on specificity with .dgg-light .dgg-t and loses on order,
            so the button rendered white. Same pattern as share. */
         .dgg-light .dgg-act.dgg-again{background:#eef7f1;border-color:#cfe6d8;}
-        .dgg-light .dgg-act.dgg-again .dgg-act-l{color:#15803d;}
+        .dgg-light .dgg-act.dgg-again .dgg-act-l{color:var(--success-deep);}
         .dgg-light .dgg-act.dgg-again svg{color:#16a34a;}
       `}</style>
       {/* Report an issue leads the block (owner, 2026-08-01): it belongs
@@ -237,7 +238,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
           between the replay and share buttons. */}
       {self ? (
         <div style={{ marginBottom: 12 }}>
-          <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent="#0e1d40" />
+          <ReportIssue self={self} name={GAMES_BY_KEY[self] ? GAMES_BY_KEY[self].name : undefined} accent={T.accent} />
         </div>
       ) : null}
       {replay ? (

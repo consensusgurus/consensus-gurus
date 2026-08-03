@@ -34,6 +34,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2, Users, Star } from 'lucide-react';
 import { notifyShareCredit } from './ShareCreditPop';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
+import { T } from '@/lib/theme';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -228,7 +229,7 @@ export default function DailyTilePanel({
                 aria-pressed={pinned}
                 title={pinned ? 'Remove from your games' : 'Show this game first on your board'}
               >
-                <Star size={11} strokeWidth={2.6} fill={pinned ? '#e8b43a' : 'none'} />
+                <Star size={11} strokeWidth={2.6} fill={pinned ? T.gold : 'none'} />
                 {pinned ? 'One of your games' : 'Pin to your games'}
               </button>
             ) : null}
@@ -237,7 +238,7 @@ export default function DailyTilePanel({
         </div>
         <div className="dtp-acts">
           <a href={game.href} className="dtp-play">
-            <Play size={15} fill="#1c1e24" strokeWidth={0} />
+            <Play size={15} fill={T.ink} strokeWidth={0} />
             {isDone ? 'Play again' : (inProgress ? 'Resume' : 'Play')}
           </a>
           <button type="button" className="dtp-shrink" onClick={onClose}><X size={14} strokeWidth={2.6} />Close</button>
@@ -459,7 +460,7 @@ export default function DailyTilePanel({
       </section>
 
       <style>{`
-        .dtp{position:absolute;inset:0;z-index:6;background:#ffffff;border-radius:13px;color:#1c1e24;
+        .dtp{position:absolute;inset:0;z-index:6;background:var(--white);border-radius:13px;color:var(--ink);
              padding:13px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;animation:dtpIn .16s ease-out;}
         /* Opacity only. A scale here left the panel measurably inset from the
@@ -468,7 +469,7 @@ export default function DailyTilePanel({
            scale never settled and the panel sat ~4px inside its box. */
         @keyframes dtpIn{from{opacity:0;}to{opacity:1;}}
         .dtp-hd{display:flex;align-items:flex-start;gap:13px;flex:none;}
-        .dtp-ic{flex:none;width:50px;height:50px;border-radius:12px;background:#f7f9fc;border:1.5px solid #c3ccda;display:flex;align-items:center;justify-content:center;}
+        .dtp-ic{flex:none;width:50px;height:50px;border-radius:12px;background:#f7f9fc;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;}
         .dtp-ic img{height:32px;width:auto;max-width:42px;object-fit:contain;}
         .dtp-idt{flex:1;min-width:0;}
         .dtp-nm{font-size:22px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.1;}
@@ -476,22 +477,22 @@ export default function DailyTilePanel({
         .dtp-donechip{display:inline-flex;align-items:center;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#116932;}
         .dtp-sharechip{display:inline-flex;align-items:center;gap:5px;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#8a5300;font-family:inherit;cursor:pointer;transition:background .12s,color .12s;}
         .dtp-sharechip svg{transition:color .12s;}
-        .dtp-sharechip:hover{background:#e8b43a;color:#1c1e24;}
-        .dtp-sharechip:hover svg{color:#1c1e24;}
+        .dtp-sharechip:hover{background:var(--gold);color:var(--ink);}
+        .dtp-sharechip:hover svg{color:var(--ink);}
         /* Pin chip. The panel is WHITE (.dtp above), so this takes the same ink
            treatment as the share chip beside it rather than the navy-panel
            palette the board's tiles use. Unpinned it is a grey outline, pinned
            it fills gold, which matches the star on the tiles. This is the only
            pin control a FINISHED game has, so it has to be plainly visible. */
-        .dtp-pinchip{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid #c3ccda;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#4d5872;font-family:inherit;cursor:pointer;transition:background .12s,color .12s,border-color .12s;}
+        .dtp-pinchip{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#4d5872;font-family:inherit;cursor:pointer;transition:background .12s,color .12s,border-color .12s;}
         .dtp-pinchip:hover{background:rgba(232,180,58,0.16);border-color:rgba(232,180,58,0.55);color:#8a5300;}
-        .dtp-pinchip.on{background:#e8b43a;border-color:#e8b43a;color:#1c1e24;}
-        .dtp-how{font-size:12.5px;line-height:1.4;color:#46506a;font-weight:600;margin:4px 0 0;max-width:64ch;}
+        .dtp-pinchip.on{background:var(--gold);border-color:var(--gold);color:var(--ink);}
+        .dtp-how{font-size:12.5px;line-height:1.4;color:var(--slate);font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
-        .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#e8b43a;color:#1c1e24;font-weight:800;font-size:15px;
+        .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--gold);color:var(--ink);font-weight:800;font-size:15px;
                   border-radius:10px;padding:12px 24px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
         .dtp-play:hover{background:#f0c358;transform:translateY(-1px);}
-        .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e8b43a;background:#e8b43a;color:#1c1e24;
+        .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--gold);background:var(--gold);color:var(--ink);
                     font-weight:800;font-size:13px;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:background .12s,transform .12s;}
         .dtp-shrink:hover{background:#f0c358;border-color:#f0c358;transform:translateY(-1px);}
         /* THE THREE CARDS ARE ALWAYS THE SAME HEIGHT (owner rule, 2026-08-01).
@@ -505,8 +506,8 @@ export default function DailyTilePanel({
            that was reverted on 2026-07-29 for looking sparse. The cards match
            the calendar and stop there; the leftover navy below is untouched.) */
         .dtp-grid{flex:none;display:grid;grid-template-columns:1.05fr .95fr .95fr;gap:13px;align-items:stretch;}
-        .dtp-col{min-width:0;display:flex;flex-direction:column;background:#fff;border:1.5px solid #c3ccda;border-radius:11px;padding:12px 13px;}
-        .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;font-weight:500;margin-bottom:8px;flex:none;}
+        .dtp-col{min-width:0;display:flex;flex-direction:column;background:var(--white);border:1.5px solid var(--border);border-radius:11px;padding:12px 13px;}
+        .dtp-lab{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:8px;flex:none;}
         .dtp-lab.sm{margin-top:10px;}
         /* community size lives in the leaderboard label, right aligned, rather than
            as its own stat row in column one (owner, 2026-07-29). */
@@ -515,55 +516,55 @@ export default function DailyTilePanel({
         .dtp-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:none;}
         .dtp-stats>div{background:#f7f9fc;border:1px solid #dde3ec;border-radius:9px;padding:6px 9px;}
         .dtp-stats b{display:block;font-size:17px;font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums;}
-        .dtp-stats span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:#262b35;margin-top:2px;display:block;}
+        .dtp-stats span{font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px;display:block;}
         /* the rows take the height the calendar handed this column and spread
            through it, rather than bunching under the stat tiles */
         .dtp-rows{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between;margin-top:8px;}
         .dtp-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid #dde3ec;font-size:11.5px;}
         .dtp-row:last-child{border-bottom:none;}
-        .dtp-row span{color:#262b35;font-weight:600;}
-        .dtp-row b{color:#1c1e24;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+        .dtp-row span{color:var(--muted);font-weight:600;}
+        .dtp-row b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
         .dtp-row.beat b{color:#6ee7b7;}
         .dtp-calhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;flex:none;}
         .dtp-mo{font-size:13px;font-weight:800;}
-        .dtp-calhd button{width:25px;height:25px;display:flex;align-items:center;justify-content:center;border-radius:7px;border:1px solid #c8d0dc;background:transparent;color:#46506a;cursor:pointer;}
-        .dtp-calhd button:hover:not(:disabled){background:#f7f8fa;color:#1c1e24;}
+        .dtp-calhd button{width:25px;height:25px;display:flex;align-items:center;justify-content:center;border-radius:7px;border:1px solid #c8d0dc;background:transparent;color:var(--slate);cursor:pointer;}
+        .dtp-calhd button:hover:not(:disabled){background:var(--surface);color:var(--ink);}
         .dtp-calhd button:disabled{opacity:.3;cursor:default;}
         .dtp-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:none;margin-bottom:3px;}
-        .dtp-wd span{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#262b35;text-align:center;}
+        .dtp-wd span{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:var(--muted);text-align:center;}
         /* the month fills the column: each week row is an equal share of the height */
         .dtp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:none;}
         .dtp-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border-radius:6px;color:#4b5563;text-decoration:none;font-variant-numeric:tabular-nums;}
         .dtp-cell.empty{background:transparent;}
         .dtp-cell.none{color:#3d4f70;}
         a.dtp-cell.played{background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.45);color:#6ee7b7;}
-        a.dtp-cell.open{background:#f7f8fa;border:1px solid #c8d0dc;color:#46506a;}
-        a.dtp-cell.open:hover{border-color:var(--gc);color:#1c1e24;}
-        a.dtp-cell.today{box-shadow:0 0 0 2px #e8b43a;}
-        .dtp-key{display:flex;flex-wrap:wrap;gap:5px 13px;margin-top:auto;padding-top:8px;font-size:10.5px;color:#262b35;font-weight:600;flex:none;}
+        a.dtp-cell.open{background:var(--surface);border:1px solid #c8d0dc;color:var(--slate);}
+        a.dtp-cell.open:hover{border-color:var(--gc);color:var(--ink);}
+        a.dtp-cell.today{box-shadow:0 0 0 2px var(--gold);}
+        .dtp-key{display:flex;flex-wrap:wrap;gap:5px 13px;margin-top:auto;padding-top:8px;font-size:10.5px;color:var(--muted);font-weight:600;flex:none;}
         .dtp-key span{display:inline-flex;align-items:center;gap:5px;}
         .dtp-key .sw{width:10px;height:10px;border-radius:3px;flex:none;}
         .dtp-key .sw.played{background:rgba(34,197,94,0.35);border:1px solid rgba(34,197,94,0.55);}
-        .dtp-key .sw.open{background:#f7f8fa;border:1px solid #c8d0dc;}
-        .dtp-key .sw.today{background:transparent;border:2px solid #e8b43a;}
+        .dtp-key .sw.open{background:var(--surface);border:1px solid #c8d0dc;}
+        .dtp-key .sw.today{background:transparent;border:2px solid var(--gold);}
         /* leaderboard rows share the leftover height the same way: the two
            boards split it evenly and each spreads its own rows */
         .dtp-lb{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between;}
-        .dtp-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;border-bottom:1px solid #dde3ec;font-size:11.5px;color:#262b35;}
+        .dtp-lrow{display:flex;align-items:center;gap:9px;padding:4px 0;border-bottom:1px solid #dde3ec;font-size:11.5px;color:var(--muted);}
         .dtp-lrow:last-child{border-bottom:none;}
-        .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:#262b35;flex:none;display:flex;align-items:center;}
-        .dtp-lrow .pl svg{color:#a16207;}
-        .dtp-lrow b{color:#1c1e24;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
-        .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#1c1e24;flex:none;}
+        .dtp-lrow .pl{width:17px;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:var(--muted);flex:none;display:flex;align-items:center;}
+        .dtp-lrow .pl svg{color:var(--gold-ink);}
+        .dtp-lrow b{color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
+        .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:var(--ink);flex:none;}
         .dtp-lrow.me{background:#fdf4dd;border-radius:6px;padding:3px 8px;border-bottom:none;margin:1px -8px;}
         .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#8a5300;}
-        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:9px;font-size:10.5px;color:#262b35;font-weight:600;flex:none;}
+        .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:9px;font-size:10.5px;color:var(--muted);font-weight:600;flex:none;}
         .dtp-lfoot a{color:#8a5300;text-decoration:none;font-weight:700;}
         .dtp-lfoot a:hover{text-decoration:underline;}
-        .dtp-empty{font-size:12px;color:#262b35;font-weight:600;padding:6px 0;}
+        .dtp-empty{font-size:12px;color:var(--muted);font-weight:600;padding:6px 0;}
         /* score trend */
         .dtp-trend{flex:1 1 auto;min-height:92px;display:flex;flex-direction:column;padding-top:2px;}
-        .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#262b35;}
+        .dtp-tsum{margin-left:auto;font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--muted);}
         /* legend, so the bars, the dashed line and the bubbles all say what they are */
         .dtp-tkey{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:3px 14px;margin:-3px 0 6px;
                   font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:#5b6577;}
@@ -575,48 +576,48 @@ export default function DailyTilePanel({
            lockstep and the average label has clear space to sit in */
         .dtp-trend{--agut:44px;}
         .dtp-bars{position:relative;flex:1 1 auto;min-height:48px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid #dde3ec;padding-bottom:1px;padding-right:var(--agut);}
-        .dtp-avg{position:absolute;left:0;right:var(--agut);height:0;border-top:1px dashed #c3ccda;pointer-events:none;}
+        .dtp-avg{position:absolute;left:0;right:var(--agut);height:0;border-top:1px dashed var(--border);pointer-events:none;}
         .dtp-avg i{position:absolute;left:100%;bottom:-6px;margin-left:5px;font-style:normal;white-space:nowrap;
                    font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;line-height:12px;letter-spacing:.04em;color:#5b6577;}
         .dtp-daterow{flex:none;display:flex;gap:3px;margin-top:5px;padding-right:var(--agut);font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#5b6577;}
         .dtp-dc{flex:1 1 0;min-width:0;max-width:48px;display:flex;justify-content:center;white-space:nowrap;overflow:hidden;}
         .dtp-dc.today{color:#8a5300;font-weight:500;}
         .dtp-barw{flex:1 1 0;min-width:0;max-width:48px;height:100%;display:flex;align-items:flex-end;justify-content:center;text-decoration:none;border-radius:3px;}
-        .dtp-barw:hover{background:#f7f8fa;}
+        .dtp-barw:hover{background:var(--surface);}
         .dtp-bar{display:block;width:100%;max-width:22px;background:var(--gc);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:opacity .12s;}
         .dtp-barw:hover .dtp-bar{opacity:1;}
-        .dtp-bar.today{background:#e8b43a;opacity:1;}
-        .dtp-bar.miss{height:5px;background:#f7f8fa;border-radius:2px;}
-        .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;padding-right:var(--agut);font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:#262b35;}
+        .dtp-bar.today{background:var(--gold);opacity:1;}
+        .dtp-bar.miss{height:5px;background:var(--surface);border-radius:2px;}
+        .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;padding-right:var(--agut);font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:var(--muted);}
         /* crowd answers (outwit / outrank / feud) — the default bottom view for
            those three, with the history chart one click away via .dtp-tabs */
         .dtp-tabs{margin-left:auto;display:inline-flex;gap:2px;background:#f0f3f8;border:1px solid #dde3ec;border-radius:8px;padding:2px;flex:none;}
         .dtp-tabs button{font-family:'Manrope',system-ui,sans-serif;font-size:10.5px;font-weight:800;letter-spacing:0;text-transform:none;
-                         border:none;background:transparent;color:#46506a;border-radius:6px;padding:3px 9px;cursor:pointer;transition:background .12s,color .12s;}
+                         border:none;background:transparent;color:var(--slate);border-radius:6px;padding:3px 9px;cursor:pointer;transition:background .12s,color .12s;}
         /* When the summary line is present it owns the free space, so the two
            of them ride right together instead of splitting the gap. */
         .dtp-tsum + .dtp-tabs{margin-left:8px;}
-        .dtp-tabs button:hover{color:#1c1e24;}
-        .dtp-tabs button.on{background:#fff;color:#1c1e24;box-shadow:0 1px 2px rgba(28,30,36,.12);}
+        .dtp-tabs button:hover{color:var(--ink);}
+        .dtp-tabs button.on{background:var(--white);color:var(--ink);box-shadow:0 1px 2px rgba(28,30,36,.12);}
         .dtp-cwrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;gap:6px;overflow:auto;}
         /* One card per prompt. Feud and Outwit run five, so they sit side by
            side; Outrank has a single slate and its card simply spans the row. */
         .dtp-cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:8px;align-items:start;}
-        .dtp-ccard{min-width:0;background:#fff;border:1.5px solid #c3ccda;border-radius:9px;padding:8px 9px;}
-        .dtp-cq{display:flex;align-items:flex-start;gap:6px;font-size:11.5px;font-weight:800;line-height:1.3;color:#1c1e24;margin-bottom:6px;}
+        .dtp-ccard{min-width:0;background:var(--white);border:1.5px solid var(--border);border-radius:9px;padding:8px 9px;}
+        .dtp-cq{display:flex;align-items:flex-start;gap:6px;font-size:11.5px;font-weight:800;line-height:1.3;color:var(--ink);margin-bottom:6px;}
         .dtp-cq span{flex:1 1 auto;min-width:0;}
         .dtp-cq b{flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;color:#5b6577;white-space:nowrap;padding-top:1px;}
         .dtp-crows{display:flex;flex-direction:column;gap:3px;}
         .dtp-crow{position:relative;display:flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;background:#f7f9fc;overflow:hidden;font-size:11px;}
         .dtp-crow .bar{position:absolute;left:0;top:0;bottom:0;background:var(--gc);opacity:.17;border-radius:5px;}
         .dtp-crow.you{background:#fdf4dd;}
-        .dtp-crow.you .bar{background:#e8b43a;opacity:.34;}
-        .dtp-crow .nm{position:relative;flex:1 1 auto;min-width:0;font-weight:700;color:#1c1e24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dtp-crow.you .bar{background:var(--gold);opacity:.34;}
+        .dtp-crow .nm{position:relative;flex:1 1 auto;min-width:0;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dtp-crow.you .nm{color:#8a5300;}
         .dtp-crow .sub,.dtp-crow .tg{position:relative;flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:#5b6577;white-space:nowrap;}
         .dtp-crow.you .sub,.dtp-crow.you .tg{color:#8a5300;}
-        .dtp-crow .pc{position:relative;flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;color:#262b35;font-variant-numeric:tabular-nums;}
-        .dtp-ctext{font-size:10.5px;font-weight:600;line-height:1.45;color:#46506a;margin-top:6px;}
+        .dtp-crow .pc{position:relative;flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;}
+        .dtp-ctext{font-size:10.5px;font-weight:600;line-height:1.45;color:var(--slate);margin-top:6px;}
         .dtp-cfoot{flex:none;font-size:10.5px;font-weight:600;color:#5b6577;}
         @media(max-width:980px){
           /* IN FLOW below 980px. As an absolutely positioned overlay with its

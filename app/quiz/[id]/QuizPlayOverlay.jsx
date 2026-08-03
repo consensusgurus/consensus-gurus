@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { T } from '@/lib/theme';
 
 // Fullscreen live-play popup for mobile quiz play.
 //
@@ -19,7 +20,7 @@ import { createPortal } from 'react-dom';
 // the overlay to the visual viewport removes that, and keeps a bottom-docked input
 // (position:fixed, bottom:kbInset) aligned to the top of the keyboard.
 
-export default function QuizPlayOverlay({ open, background = '#f7f8fa', children }) {
+export default function QuizPlayOverlay({ open, background = T.surface, children }) {
   const [vp, setVp] = useState(null); // { top, left, width, height } from visualViewport
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function QuizPlayOverlay({ open, background = '#f7f8fa', children
         ...pos,
         zIndex: 60,
         background,
-        color: '#1c1e24',
+        color: T.ink,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'contain',
