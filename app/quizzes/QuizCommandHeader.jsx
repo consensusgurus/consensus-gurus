@@ -143,7 +143,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;position:sticky;top:0;z-index:90;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
+        .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;position:fixed;top:0;left:0;right:0;z-index:90;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
         .qch-word em{font-style:normal;color:var(--blue);font-weight:800;}
         .qch-ws{display:none;}
@@ -177,7 +177,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
              group is pushed flush right by the auto margin below. */
           /* sticky rather than relative: it still establishes the containing block that
              .qch-me is centred against, and keeps the bar pinned at this breakpoint. */
-          .qch-bar{position:sticky;top:0;z-index:90;}
+          .qch-bar{position:fixed;top:0;left:0;right:0;z-index:90;}
           .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin-left:0;flex:none;display:flex;justify-content:center;max-width:min(48vw,640px);}
           .qch-me ~ .qch-hub{margin-left:auto;}
           .qch-melink{gap:13px;}
@@ -231,7 +231,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline-flex;align-items:center;}.qch-brandlogo{display:none !important;}.qch-searchbtn{display:inline-flex;margin-left:auto;}.qch-me{margin-left:0;}.qch-nm{max-width:none;}}
         @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
-        @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
+        @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}.qch{min-height:calc(56px + env(safe-area-inset-top));}}
         /* Mobile header (owner 2026-07-29, rev 3): three slots, edges fixed, the
            identity absolutely centred in the bar for BOTH states so it is centred
            in the header rather than merely sitting between the side controls.
