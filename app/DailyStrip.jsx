@@ -1036,6 +1036,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-sbar{order:-1;flex-direction:column;align-items:stretch;gap:0;padding:0;background:transparent;border:none;}
           .dhome.slate .sl-bar{order:0;}
           .dhome.slate .dh-boardwrap{order:1;}
+          .dhome.slate .dh-cell > img{display:none !important;}
           .dhome.slate .dh-cell{position:relative;flex:none;width:100%;padding:13px 14px 13px 22px;border:none;border-radius:0;background:var(--blue);color:var(--white);}
           .dhome.slate .dh-cell + .dh-cell{padding-left:22px;border-left:none;background:#4d84f3;}
           /* a white rule replaces the game icon, which is unreadable at this
