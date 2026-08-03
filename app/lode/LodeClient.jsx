@@ -479,7 +479,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
-    const url = withRef(`sourceoftruths.com/lode${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    const url = withRef(`mindloftdaily.com/lode${isTodays ? '' : `?p=${PUZZLE.num}`}`);
     const text = playing && !g.found.length
       ? `Lode No. ${PUZZLE.num} — seven letters, one core, dig for the rare ones.\n${url}`
       : `Lode No. ${PUZZLE.num} — ${rank.n}\n${score} pts · ${g.found.length} words${pangramsFound ? ` · ${pangramsFound} pangram${pangramsFound > 1 ? 's' : ''}` : ''}${streakBit}\n${assayBar()}\n${url}`;

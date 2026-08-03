@@ -7,22 +7,17 @@ const nextConfig = {
     // optimized/cached by the built-in image optimizer at request time.
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
-  // mindloftdaily.com is live so the rebrand can be seen on a real domain, but it serves the
-  // SAME content as sourceoftruths.com. Two hosts returning identical 200s is duplicate
-  // content, and letting Google index both would split signals and undercut the Change of
-  // Address filed at cutover. So the new host is noindexed until it becomes canonical.
+  // mindloftdaily.com serves the same app as sourceoftruths.com during the soft launch, and
+  // the share URLs and screenshot watermark now point at it so people learn the new address.
   //
-  // DELETE THIS BLOCK AT CUTOVER, in the same change that flips the 301s to point AT
-  // mindloftdaily.com. Leaving it in place would silently deindex the live site.
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: '(www\\.)?mindloftdaily\\.com' }],
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
-      },
-    ];
-  },
+  // It is NOT noindexed. Every page already declares alternates.canonical, and metadataBase
+  // is still the old domain, so a page served from the new host emits a canonical pointing
+  // back at sourceoftruths.com. Google therefore consolidates all ranking on the old domain
+  // by itself. A blanket noindex would have been the blunter tool: it would also have stopped
+  // shared links counting for anything at all.
+  //
+  // AT CUTOVER: flip metadataBase to the new domain (which flips every canonical with it) in
+  // the same change that sets MOVE_ACTIVE, so the canonical and the redirect agree.
   async redirects() {
     return [
       // 2026-07-18: the Quizzes hub is now the site root (sourceoftruths.com).

@@ -505,7 +505,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     setSel(null); setHintSq(null); setEndClosed(false);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/check${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`mindloftdaily.com/check${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
     const g5 = won ? 5 : Math.max(1, Math.min(4, taken));
     const squares = (won ? '\u{1F534}' : '\u{1F7E4}').repeat(g5) + '⬜'.repeat(5 - g5);

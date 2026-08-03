@@ -496,7 +496,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
     setDraft(''); setEndClosed(false);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/rung${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`mindloftdaily.com/rung${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
     const vs = used === perfect ? 'perfect'
       : used < par ? `${par - used} under par`

@@ -352,10 +352,10 @@ export default function LogicGridClient({ quizId, mobile = false }) {
   }
 
   const clock = fmtTime(time);
-  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`);
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://mindloftdaily.com/quiz/${quiz.id}`);
   const resultMsg = phase === 'done' ? `I scored ${score}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
-  const promoImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/share-image`;
-  const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${score}&t=${total}&p=0`;
+  const promoImgUrl = `https://mindloftdaily.com/quiz/${quiz.id}/share-image`;
+  const resultImgUrl = `https://mindloftdaily.com/quiz/${quiz.id}/result-image?s=${score}&t=${total}&p=0`;
   function openShare(kind) { const u = encodeURIComponent(shareUrl); const t = encodeURIComponent(resultMsg); const url = kind === 'x' ? `https://twitter.com/intent/tweet?text=${t}&url=${u}` : kind === 'reddit' ? `https://www.reddit.com/submit?url=${u}&title=${t}` : kind === 'facebook' ? `https://www.facebook.com/sharer/sharer.php?u=${u}` : kind === 'whatsapp' ? `https://api.whatsapp.com/send?text=${t}%20${u}` : shareUrl; try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} }
   function copyResult() { if (notifyShareCredit(`${resultMsg}\n${shareUrl}`)) return; try { navigator.clipboard?.writeText(`${resultMsg}\n${shareUrl}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {} }
   async function downloadPromoImage() { try { const r = await fetch(promoImgUrl); const b = await r.blob(); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `source-of-truths-${quiz.id}.png`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(u); } catch (e) {} }

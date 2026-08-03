@@ -33,6 +33,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '@/app/ShareCreditPop';
 import { savedIdentity } from '@/lib/saved-identity';
 import { T } from '@/lib/theme';
+import MindLoftMark from '../../MindLoftMark';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const StreetMapBoard = dynamic(() => import('./StreetMapBoard'), { ssr: false, loading: () => null });
@@ -85,28 +86,11 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 // Brand mark (gradient ids suffixed per render so multiple instances stay unique).
 let __logoSeq = 0;
-function Logo({ size = 22 }) {
-  const uid = useMemo(() => `l${(__logoSeq += 1)}`, []);
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
-      <defs>
-        <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#1e3a6b" />
-          <stop offset="1" stopColor="#0a1730" />
-        </linearGradient>
-        <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
-          <stop offset="0" stopColor="#ffe24d" />
-          <stop offset="0.55" stopColor="#fbb615" />
-          <stop offset="1" stopColor="#f59008" />
-        </radialGradient>
-      </defs>
-      <rect x="3" y="3" width="58" height="58" rx="17.5" fill={`url(#bh-${uid})`} />
-      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
-      <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#gh-${uid})`} />
-    </svg>
-  );
+function Logo( size = 22 ) {
+  return <MindLoftMark size={size} />;
 }
+
+// eslint-disable-next-line no-unused-vars -- size default kept at 22
 
 
 function norm(s) {
@@ -1313,11 +1297,11 @@ export default function QuizClient({ quizId }) {
     : typeMode ? `One clue at a time; type the ${quiz.noun || 'answer'}. Correct answers lock in the moment they match, no Enter needed.`
     : `Type ${/^[aeiou]/.test(quiz.noun || '') ? 'an' : 'a'} ${quiz.noun || 'answer'} and it locks in the moment it matches, no Enter needed.`;
   const introBody = `${total} ${total === 1 ? 'answer' : 'answers'}, ${clockMax} on the clock. ${introMech} Solve as many as you can; time is the tiebreak.`;
-  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/quiz/${quiz.id}`);
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : `https://mindloftdaily.com/quiz/${quiz.id}`);
   const sharePct = total ? Math.round((dispScore / total) * 100) : 0;
   const resultMsg = ended ? `I scored ${dispScore}/${total} on "${quiz.title}". Can you beat me?` : `Can you beat my score on "${quiz.title}"?`;
-  const resultImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/result-image?s=${dispScore}&t=${total}&p=${attemptsPct || 0}`;
-  const promoImgUrl = `https://sourceoftruths.com/quiz/${quiz.id}/share-image`;
+  const resultImgUrl = `https://mindloftdaily.com/quiz/${quiz.id}/result-image?s=${dispScore}&t=${total}&p=${attemptsPct || 0}`;
+  const promoImgUrl = `https://mindloftdaily.com/quiz/${quiz.id}/share-image`;
   function share() {
     if (navigator.share) {
       navigator.share({ title: quiz.title, text: resultMsg, url: shareUrl }).catch(() => {});

@@ -395,7 +395,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
     commit(done);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/streak${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`mindloftdaily.com/streak${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
     const blocks = Math.floor(depth / 8);
     const part = depth % 8 >= 4 ? 1 : 0;

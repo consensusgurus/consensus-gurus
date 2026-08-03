@@ -494,7 +494,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
     setSel(null); setOp(null); setEndClosed(false);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/crunch${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`mindloftdaily.com/crunch${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
     const g5 = Math.max(0, Math.min(5, Math.round(finalScore / 2)));
     const squares = '\u{1F7E7}'.repeat(g5) + '⬜'.repeat(5 - g5);

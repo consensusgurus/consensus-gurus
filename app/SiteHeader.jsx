@@ -9,6 +9,7 @@ import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import { EXAM_ORDER } from './exams/examData';
 import { T } from '@/lib/theme';
+import MindLoftMark from './MindLoftMark';
 
 // Shared site header. Blue header card with the brand + Lists/Quizzes nav on the
 // top row, and an optional INLAY slot (a white pill the page passes in) below it:
@@ -34,44 +35,20 @@ export const QUIZ_COUNT = (Array.isArray(QUIZZES) ? QUIZZES.length : 0)
   + (Array.isArray(KIDS_GAMES) ? KIDS_GAMES.length : 0)
   + (Array.isArray(EXAM_ORDER) ? EXAM_ORDER.length : 0);
 
-function Logo({ size = 40 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none' }}>
-      <defs>
-        <linearGradient id="shLogoBlue" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#1e3a6b" /><stop offset="1" stopColor="#0a1730" />
-        </linearGradient>
-        <radialGradient id="shLogoGold" cx="0.5" cy="0.42" r="0.7">
-          <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
-        </radialGradient>
-      </defs>
-      <rect x="3" y="3" width="58" height="58" rx="17.5" fill="url(#shLogoBlue)" />
-      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
-      <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill="url(#shLogoGold)" />
-    </svg>
-  );
+function Logo( size = 40 ) {
+  return <MindLoftMark size={size} />;
 }
+
+// eslint-disable-next-line no-unused-vars -- size default kept at 40
 
 // Logo variant for the full-bleed command bar: translucent-white tile so the
 // mark reads on the blue gradient (matches app/quizzes/QuizCommandHeader).
 let __shcLogoSeq = 0;
-function CommandLogo({ size = 30 }) {
-  const uid = `shc${(__shcLogoSeq += 1)}`;
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none', display: 'block' }}>
-      <defs>
-        <radialGradient id={`g-${uid}`} cx="0.5" cy="0.42" r="0.7">
-          <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
-        </radialGradient>
-      </defs>
-      <rect x="3" y="3" width="58" height="58" rx="17.5" fill="rgba(255,255,255,0.14)" />
-      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
-      <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#g-${uid})`} />
-    </svg>
-  );
+function CommandLogo( size = 30 ) {
+  return <MindLoftMark size={size} />;
 }
+
+// eslint-disable-next-line no-unused-vars -- size default kept at 30
 
 // The two daily games surfaced in the command bar. Navy-legible accent dots
 // match DailyStrip's per-game accents.
@@ -143,7 +120,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         @media(max-width:1180px){.shc-src{display:none;}}
         @media(max-width:1080px){.shc-gtag{display:none;}.shc-game{padding:7px 12px;}}
         @media(max-width:900px){.shc-games{display:none;}}
-        @media(max-width:820px){.shc-wl{display:none;}.shc-ws{display:inline;}}
+        @media(max-width:820px){.shc-wl{display:none;}.shc-ws{display:inline-flex;align-items:center;}}
         @media(max-width:640px){.shc-sortwrap{display:none;}.shc-sorttxt{display:none;}}
         @media(max-width:560px){
           .shc{width:100vw;margin-left:calc(50% - 50vw);}
@@ -155,7 +132,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       `}</style>
       <div className="shc-bar">
         <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><CommandLogo size={30} /></Link>
-        <Link href="/" className="shc-word"><span className="shc-wl">Mind <em>Loft</em></span><span className="shc-ws">ML</span></Link>
+        <Link href="/" className="shc-word"><span className="shc-wl">Mind <em>Loft</em></span><span className="shc-ws"><MindLoftMark size={22} /></span></Link>
         <span className="shc-src"><HeaderTagline active={active} /></span>
         {showSearch && (
           <div className="shc-search" onClick={(e) => e.stopPropagation()}>
@@ -260,7 +237,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <div className="sh-brand">
               <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={34} /></Link>
               <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'nowrap' }}>
-                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:T.ink }}><span className="sh-word-full">Mind <span style={{ color: T.blue, fontWeight: 800 }}>Loft</span></span><span className="sh-word-sot">ML</span></Link>
+                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:T.ink }}><span className="sh-word-full">Mind <span style={{ color: T.blue, fontWeight: 800 }}>Loft</span></span><span className="sh-word-sot"><MindLoftMark size={24} /></span></Link>
                 <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color:T.ink, marginTop: 0 }}><HeaderTagline active={active} /></span>
               </span>
             </div>

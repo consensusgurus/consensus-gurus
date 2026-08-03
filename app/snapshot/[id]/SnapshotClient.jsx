@@ -272,7 +272,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
     if (!list) return;
     const lines = [list.title, `— ${modeLabel} —`, ''];
     items.forEach((item, i) => { lines.push(`${String(i + 1)}. ${item}`); });
-    lines.push('', withRef(`sourceoftruths.com/list/${list.id}`));
+    lines.push('', withRef(`mindloftdaily.com/list/${list.id}`));
     navigator.clipboard.writeText(lines.join('\n')).then(() => { setCopied('text'); setTimeout(() => setCopied(''), 1800); });
   }
 
@@ -535,7 +535,7 @@ function PosterLedger({ list, items, modeLabel, sourceNames, pal }) {
       </div>
       <div style={{ flexShrink: 0, padding: '14px 64px', borderTop: `2px solid ${pal.text}`, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: pal.faded }}>
         <span>{sourceNames && sourceNames.length > 0 ? `Sources: ${sourceNames.join(', ')}` : ''}</span>
-        <span>sourceoftruths.com</span>
+        <span>mindloftdaily.com</span>
       </div>
     </div>
   );
@@ -566,7 +566,7 @@ function PosterStack({ list, items, modeLabel, sourceNames, pal }) {
       </div>
       <div style={{ flexShrink: 0, height: 46, background: pal.text, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 56px' }}>
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.bg, opacity: 0.8 }}>{sourceNames && sourceNames.length > 0 ? sourceNames.join(' · ') : ''}</span>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.bg }}>sourceoftruths.com</span>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: pal.bg }}>mindloftdaily.com</span>
       </div>
     </div>
   );
@@ -603,7 +603,7 @@ function PosterChart({ list, items, modeLabel, sourceNames, pal }) {
       </div>
       <div style={{ flexShrink: 0, padding: '12px 60px 24px', borderTop: `2px solid ${pal.accent}`, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: pal.faded }}>
         <span>{sourceNames && sourceNames.length > 0 ? `Sources: ${sourceNames.join(', ')}` : ''}</span>
-        <span>sourceoftruths.com</span>
+        <span>mindloftdaily.com</span>
       </div>
     </div>
   );
@@ -643,7 +643,7 @@ function PosterSpotlight({ list, items, modeLabel, sourceNames, pal }) {
       </div>
       <div style={{ flexShrink: 0, padding: '10px 56px 26px', display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: pal.faded }}>
         <span>{sourceNames && sourceNames.length > 0 ? `Sources: ${sourceNames.join(', ')}` : ''}</span>
-        <span>sourceoftruths.com</span>
+        <span>mindloftdaily.com</span>
       </div>
     </div>
   );
@@ -696,7 +696,7 @@ function PosterShowcase({ list, items, modeLabel, sourceNames, pal }) {
       </div>
       <div style={{ flexShrink: 0, padding: '10px 56px 24px', display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: pal.faded }}>
         <span>{sourceNames && sourceNames.length > 0 ? `Sources: ${sourceNames.join(', ')}` : ''}</span>
-        <span>sourceoftruths.com</span>
+        <span>mindloftdaily.com</span>
       </div>
     </div>
   );
@@ -750,7 +750,7 @@ function PosterScorecard({ list, items, modeLabel, sourceNames, pal }) {
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: pal.faded }}>
           {sourceNames && sourceNames.length > 0 ? `Sources: ${sourceNames.join(', ')}` : ''}
         </div>
-        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: pal.faded }}>sourceoftruths.com</div>
+        <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: pal.faded }}>mindloftdaily.com</div>
       </div>
     </div>
   );

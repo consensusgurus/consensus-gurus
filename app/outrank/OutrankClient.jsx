@@ -543,7 +543,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
     return `Outrank #${PUZZLE.num} · ${score}/${TOTAL}${crowdBit}${streakBit}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/outrank${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/outrank${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

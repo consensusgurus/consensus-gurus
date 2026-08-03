@@ -632,7 +632,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
     return grid ? `${head}\n${grid}\n${shareUrl()}` : `${head}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/dating${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/dating${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

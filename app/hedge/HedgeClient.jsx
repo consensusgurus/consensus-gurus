@@ -534,7 +534,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
   }, [onKey]);
 
   function shareUrl() {
-    return withRef(`sourceoftruths.com/hedge${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/hedge${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function shareText() {
     const g5 = won ? Math.max(1, Math.round(finalScore / 2)) : 0;

@@ -919,8 +919,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F0CF} Seated the court in ${elapsed} · ${g.placements} placements${hintBit}`
       : g.status === 'lost' ? '\u{1F0CF} The court dissolved' : '\u{1F0CF} Still seating the court…';
     const text = playing
-      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Mind Loft.\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Mind Loft.\n${withRef(`mindloftdaily.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {

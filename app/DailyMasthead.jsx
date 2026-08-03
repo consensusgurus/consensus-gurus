@@ -3,17 +3,17 @@
 // DailyMasthead — shared masthead meta for the daily games.
 //
 // Renders the game's letter blocks alongside the issue No., the date, and the
-// sourceoftruths.com/<slug> URL (so the URL shows on every screenshot / share).
+// mindloftdaily.com/<slug> URL (so the URL shows on every screenshot / share).
 // The No./date/URL group regroups responsively in three tiers, measured live
 // with a ResizeObserver against the masthead's own width:
 //
 //   Tier 1 (wide):   [blocks]  No. # + date        (URL on the row below, beside blocks)
-//                              sourceoftruths.com/x
+//                              mindloftdaily.com/x
 //   Tier 2 (medium): [blocks]  No. #                (No. stays up on the blocks row)
-//                    date  sourceoftruths.com/x     (date + URL together, full-width row below)
+//                    date  mindloftdaily.com/x     (date + URL together, full-width row below)
 //   Tier 3 (narrow): [blocks]                       (blocks alone on row 1)
 //                    No. # + date                   (all three below as a two-row box)
-//                    sourceoftruths.com/x
+//                    mindloftdaily.com/x
 //
 // ink/faded/MONO are identical across every game's COLORS, so they are baked in
 // here; only the accent (URL color) is passed per game.
@@ -103,7 +103,7 @@ export default function DailyMasthead({
     <span ref={dateRef} style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.03em', color: FADED, whiteSpace: 'nowrap' }}>{dateLabel}</span>
   );
   const urlEl = (
-    <span ref={urlRef} style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.02em', color: accent, whiteSpace: 'nowrap' }}>sourceoftruths.com/{slug}</span>
+    <span ref={urlRef} style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.02em', color: accent, whiteSpace: 'nowrap' }}>mindloftdaily.com/{slug}</span>
   );
   // Wrapped so its width is measurable; inline-flex keeps the chip on the same
   // baseline it sat on when it was rendered bare.

@@ -587,7 +587,7 @@ export default function BabelClient({ puzzles, forceNum }) {
       ? `Babel ${PUZZLE.dateLabel} — mid-endgame.`
       : `Babel ${PUZZLE.dateLabel}\nSpread ${signed(spread)} vs par ${signed(PAR)}${won ? ' ✓' : ''}\n${g.over === 'you-out' ? 'Went out first.' : g.over === 'foe-out' ? 'Caught holding tiles.' : 'Board closed out.'}`;
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
-    const text = `${line}${streakBit}\nsourceoftruths.com/babel`;
+    const text = `${line}${streakBit}\nmindloftdaily.com/babel`;
     try {
       navigator.clipboard.writeText(text);
       setCopied(true);

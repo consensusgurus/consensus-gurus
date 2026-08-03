@@ -476,7 +476,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
     setSel(null); setHintBlock(null); setEndClosed(false);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/parker${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`mindloftdaily.com/parker${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
     const vs = used === perfect ? 'perfect'
       : used < par ? `${par - used} under par`

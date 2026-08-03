@@ -386,11 +386,11 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     const row = PUZZLE.words.map((_, i) => (g.solved[i] ? '\u{1F7E6}' : '⬛')).join('');
     const star = g.finalSolved ? '⭐' : '⬛';
     const score = solvedCount + (g.finalSolved ? 5 : 0);
-    return `Garble #${PUZZLE.num} · ${score}/10 · ${g.misses} miss${g.misses === 1 ? '' : 'es'} · ${elapsed}\n${row}${star}\n${withRef('sourceoftruths.com/garble')}`;
+    return `Garble #${PUZZLE.num} · ${score}/10 · ${g.misses} miss${g.misses === 1 ? '' : 'es'} · ${elapsed}\n${row}${star}\n${withRef('mindloftdaily.com/garble')}`;
   }
   function copyShare() {
     const text = playing
-      ? `Garble #${PUZZLE.num} — five garbled words, one clued finale. Can you untangle it?\n${withRef('sourceoftruths.com/garble')}`
+      ? `Garble #${PUZZLE.num} — five garbled words, one clued finale. Can you untangle it?\n${withRef('mindloftdaily.com/garble')}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {

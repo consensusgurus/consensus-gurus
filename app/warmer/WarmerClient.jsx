@@ -362,7 +362,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       : `Warmer #${PUZZLE.num} — gave up · closest #${bestRank || '—'} in ${gc} guess${gc === 1 ? '' : 'es'}`;
     return `${head}\n${trail}\n${shareUrl()}`;
   }
-  function shareUrl() { return withRef(`sourceoftruths.com/warmer${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`mindloftdaily.com/warmer${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function copyShare() {
     const text = playing ? `Warmer #${PUZZLE.num} — the daily hot-and-cold word hunt from Mind Loft.\n${shareUrl()}` : shareText();
     if (notifyShareCredit(text)) return;

@@ -896,8 +896,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       : g.status === 'lost' ? '🕯️ The case went cold' : '🕵️ Still on the case…';
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Alibi #${PUZZLE.num} — the nightly whodunit from Mind Loft.\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Alibi — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Alibi #${PUZZLE.num} — the nightly whodunit from Mind Loft.\n${withRef(`mindloftdaily.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Alibi — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {

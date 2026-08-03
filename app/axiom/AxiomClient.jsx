@@ -976,8 +976,8 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F9EA} Rule found on ${testsUsed} test${testsUsed === 1 ? '' : 's'} (perfect ${PERFECT})${g.wrongPicks.length ? ` · ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}`
       : g.status === 'lost' ? '\u{1F9EA} The board kept its rule' : '\u{1F9EA} Still testing…';
     const text = playing
-      ? `Axiom #${PUZZLE.num} — the daily rule-induction puzzle from Mind Loft.\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Axiom — Board #${PUZZLE.num}\n${solvedBit}${streakBit}\n${pips}\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Axiom #${PUZZLE.num} — the daily rule-induction puzzle from Mind Loft.\n${withRef(`mindloftdaily.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Axiom — Board #${PUZZLE.num}\n${solvedBit}${streakBit}\n${pips}\n${withRef(`mindloftdaily.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {

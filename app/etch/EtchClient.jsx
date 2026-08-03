@@ -543,7 +543,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
   }, [onKey]);
 
   function shareUrl() {
-    return withRef(`sourceoftruths.com/etch${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/etch${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function shareText() {
     const g5 = won ? Math.max(1, Math.round(finalScore / 2)) : 0;

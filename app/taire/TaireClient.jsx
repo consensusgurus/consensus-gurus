@@ -502,7 +502,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
     setSel(null); setHintCards(null); setEndClosed(false);
   }
 
-  function shareUrl() { return withRef(`sourceoftruths.com/taire${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareUrl() { return withRef(`mindloftdaily.com/taire${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function shareText() {
     const vs = used === perfect ? 'perfect'
       : used < par ? `${par - used} under par`

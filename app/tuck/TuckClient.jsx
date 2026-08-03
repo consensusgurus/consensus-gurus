@@ -579,8 +579,8 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   function copyShare() {
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Tuck #${PUZZLE.num} — tuck ${RACK} letters into one grid. Par is ${PAR}.\n${withRef(`sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Tuck #${PUZZLE.num} · ${finalScore} pts (par ${PAR})${finalScore >= PAR ? ' · beat par' : ''}${streakBit}\n${shareArt()}${withRef(`sourceoftruths.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Tuck #${PUZZLE.num} — tuck ${RACK} letters into one grid. Par is ${PAR}.\n${withRef(`mindloftdaily.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Tuck #${PUZZLE.num} · ${finalScore} pts (par ${PAR})${finalScore >= PAR ? ' · beat par' : ''}${streakBit}\n${shareArt()}${withRef(`mindloftdaily.com/tuck${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {

@@ -463,7 +463,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     return `${head}\n${rows}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/links${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/links${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

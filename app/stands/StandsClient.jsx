@@ -641,8 +641,8 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{1F3C6} Rebuilt clean in ${elapsed}` : `\u{1F3C6} Rebuilt in ${elapsed} · ${g.rejected} rejected${g.hints ? ` · ${g.hints} nudge${g.hints === 1 ? '' : 's'}` : ''}`)
       : g.status === 'lost' ? '\u{1F3C6} The record won' : '\u{1F3C6} Still reconstructing…';
     const text = playing
-      ? `Stands #${PUZZLE.num} — the daily results-table reconstruction from Mind Loft.\n${withRef(`sourceoftruths.com/stands${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Stands — Season #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/stands${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Stands #${PUZZLE.num} — the daily results-table reconstruction from Mind Loft.\n${withRef(`mindloftdaily.com/stands${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Stands — Season #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/stands${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
     try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}

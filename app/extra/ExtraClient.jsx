@@ -437,7 +437,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/extra${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/extra${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

@@ -574,7 +574,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/carve${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/carve${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

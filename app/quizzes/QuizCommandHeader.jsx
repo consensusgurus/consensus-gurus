@@ -6,6 +6,7 @@ import SourcesPopover from '../SourcesPopover';
 import { getAllSources } from '@/lib/sources';
 import { QUIZ_COUNT } from '../SiteHeader';
 import { T } from '@/lib/theme';
+import MindLoftMark from '../MindLoftMark';
 
 // Full-bleed command-bar header for the quizzes HOME page only (individual
 // quiz pages, the Stat Hub, and the lists site keep SiteHeader). One 56px
@@ -24,22 +25,11 @@ const SOURCE_COUNT = getAllSources().length;
 function fmtK(n) { return (typeof n === 'number' && n > 999) ? `${(n / 1000).toFixed(1)}k` : (n != null ? n.toLocaleString() : n); }
 
 let __qchLogoSeq = 0;
-function Logo({ size = 30 }) {
-  const uid = useMemo(() => `qch${(__qchLogoSeq += 1)}`, []);
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none', display: 'block' }}>
-      <defs>
-        <radialGradient id={`g-${uid}`} cx="0.5" cy="0.42" r="0.7">
-          <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
-        </radialGradient>
-      </defs>
-      <rect x="3" y="3" width="58" height="58" rx="17.5" fill={T.surface} />
-      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
-      <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#g-${uid})`} />
-    </svg>
-  );
+function Logo( size = 30 ) {
+  return <MindLoftMark size={size} />;
 }
+
+// eslint-disable-next-line no-unused-vars -- size default kept at 30
 
 const SearchIcon = ({ c = T.ink }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.4" style={{ flex: 'none' }} aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
@@ -236,7 +226,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         @media(max-width:1180px){.qch-src{display:none;}}
         @media(max-width:1024px){.qch-hub-me{display:none;}}
         @media(max-width:980px){.qch-sub{display:none;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
-        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline;}.qch-searchbtn{display:inline-flex;margin-left:auto;}.qch-me{margin-left:0;}.qch-nm{max-width:none;}}
+        @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline-flex;align-items:center;}.qch-searchbtn{display:inline-flex;margin-left:auto;}.qch-me{margin-left:0;}.qch-nm{max-width:none;}}
         @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}}
@@ -271,7 +261,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
       `}</style>
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
         <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={30} /></Link>
-        <Link href="/" className="qch-word"><span className="qch-wl">Mind <em>Loft</em></span><span className="qch-ws">ML</span></Link>
+        <Link href="/" className="qch-word"><span className="qch-wl">Mind <em>Loft</em></span><span className="qch-ws"><MindLoftMark size={22} /></span></Link>
         <span className="qch-src">Elevate Your Thinking</span>
         <button type="button" className="qch-searchbtn" ref={btnRef} onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>
         <div className="qch-me">

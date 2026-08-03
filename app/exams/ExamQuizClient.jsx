@@ -148,7 +148,7 @@ export default function ExamQuizClient({ examKey }) {
   }
 
   function share() {
-    const url = withRef(typeof window !== 'undefined' ? window.location.href : `https://sourceoftruths.com/${examKey}`);
+    const url = withRef(typeof window !== 'undefined' ? window.location.href : `https://mindloftdaily.com/${examKey}`);
     const text = phase === 'done'
       ? `I got ${correctCount}/${total} on the ${exam.label} practice quiz. Where will you get in?`
       : `${exam.label} practice: 10 hard questions. Where will you get in?`;

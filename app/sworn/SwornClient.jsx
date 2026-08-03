@@ -785,8 +785,8 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
       ? `⚖️ Named the thief in ${elapsed} · ${g.wrong} wrong accusation${g.wrong === 1 ? '' : 's'}${hintBit}`
       : g.status === 'lost' ? '⚖️ The inquest collapsed' : '⚖️ Still weighing the testimony…';
     const text = playing
-      ? `Sworn #${PUZZLE.num} — the daily liars puzzle from Mind Loft.\n${withRef(`sourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Sworn — Inquest #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Sworn #${PUZZLE.num} — the daily liars puzzle from Mind Loft.\n${withRef(`mindloftdaily.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Sworn — Inquest #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/sworn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {

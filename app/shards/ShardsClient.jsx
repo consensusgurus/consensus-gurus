@@ -783,7 +783,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     return art;
   }
   function copyShare() {
-    const url = withRef(`sourceoftruths.com/shards${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    const url = withRef(`mindloftdaily.com/shards${isTodays ? '' : `?p=${PUZZLE.num}`}`);
     const text = playing
       ? `Shards No. ${PUZZLE.num} - reassemble the shattered crossword.\n${url}`
       : `Shards No. ${PUZZLE.num} - ${finalScore}/${START} · ${elapsed} · ${g.misplaced} miss${g.misplaced === 1 ? '' : 'es'} · ${g.hintsUsed} hint${g.hintsUsed === 1 ? '' : 's'}\n${shareArt()}${url}`;

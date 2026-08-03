@@ -460,7 +460,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, g.t0, sel, setLetter, clearLetter]);
 
-  function shareUrl() { return 'https://sourceoftruths.com/glyph'; }
+  function shareUrl() { return 'https://mindloftdaily.com/glyph'; }
   function shareText() {
     const bits = won
       ? `${finalScore}/10 · ${checks === 0 ? 'no checks' : `${checks} check${checks === 1 ? '' : 's'}`} · ${elapsed}`

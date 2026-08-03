@@ -562,8 +562,8 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
     const rows = perRound.map(([hit, of], r) => `${ROUND_NAME(r, ROUNDS).replace('Round of ', 'R')} ${hit}/${of}`).join(' · ');
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Bracket #${PUZZLE.num} — the daily bracket of facts from Mind Loft.\n${withRef(`sourceoftruths.com/bracket${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Bracket #${PUZZLE.num} — ${score}/${TOTAL}\n${rows}${streakBit}\n${withRef(`sourceoftruths.com/bracket${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Bracket #${PUZZLE.num} — the daily bracket of facts from Mind Loft.\n${withRef(`mindloftdaily.com/bracket${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Bracket #${PUZZLE.num} — ${score}/${TOTAL}\n${rows}${streakBit}\n${withRef(`mindloftdaily.com/bracket${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
     try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}

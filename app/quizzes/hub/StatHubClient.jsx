@@ -14,6 +14,7 @@ import Footer from '../../Footer';
 import { withRef } from '@/lib/referrals';
 import { Metric, CategoryView, ActivityFeed, XpPanel, TrophyCase } from '../../player/ProfileShared';
 import { T } from '@/lib/theme';
+import MindLoftMark from '../../MindLoftMark';
 
 const C = {
   bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
@@ -55,28 +56,11 @@ function fmtPlayTime(totalSec) {
   return parts.join(' ');
 }
 
-function Logo({ size = 22 }) {
-  const uid = useMemo(() => `l${(__logoSeq += 1)}`, []);
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', flex: 'none' }} aria-hidden="true">
-      <defs>
-        <linearGradient id={`bh-${uid}`} x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#1e3a6b" />
-          <stop offset="1" stopColor="#0a1730" />
-        </linearGradient>
-        <radialGradient id={`gh-${uid}`} cx="0.5" cy="0.42" r="0.7">
-          <stop offset="0" stopColor="#ffe24d" />
-          <stop offset="0.55" stopColor="#fbb615" />
-          <stop offset="1" stopColor="#f59008" />
-        </radialGradient>
-      </defs>
-      <rect x="3" y="3" width="58" height="58" rx="17.5" fill={`url(#bh-${uid})`} />
-      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
-      <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill={`url(#gh-${uid})`} />
-    </svg>
-  );
+function Logo( size = 22 ) {
+  return <MindLoftMark size={size} />;
 }
+
+// eslint-disable-next-line no-unused-vars -- size default kept at 22
 
 const TABS = [
   { t: 'player', label: 'Player', Icon: User },
@@ -137,7 +121,7 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   const maxR = cats3.length ? Math.max(...cats3.map(([, v]) => v.xp || 0), 1) : 1;
   const label = (k) => (byKey && byKey[k] && byKey[k].label) || k;
   function copy() {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mindloftdaily.com';
     const url = withRef(!profile.isAnon && profile.name
       ? `${origin}/player/${encodeURIComponent(profile.name)}`
       : `${origin}/quizzes/hub?player=${encodeURIComponent(profile.userKey || '')}`);
@@ -1378,7 +1362,7 @@ function ChallengesPanel({ me }) {
   useEffect(() => { setLoaded(false); setData(null); load(false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [chId]);
 
   const doShare = () => {
-    const base = typeof window !== 'undefined' ? window.location.origin : 'https://sourceoftruths.com';
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://mindloftdaily.com';
     const url = withRef(`${base}/quizzes/hub?tab=challenges&ch=${encodeURIComponent(ch.id)}`);
     const text = 'Can you beat my score?';
     if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: ch.title, text, url }).catch(() => {});

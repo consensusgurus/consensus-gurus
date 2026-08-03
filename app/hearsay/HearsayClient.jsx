@@ -776,8 +776,8 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{1F5E3}\u{FE0F} Named it first time in ${elapsed}` : `\u{1F5E3}\u{FE0F} Named it in ${elapsed} · ${g.wrong.length} wrong name${g.wrong.length === 1 ? '' : 's'}`)
       : g.status === 'lost' ? '\u{1F5E3}\u{FE0F} The room kept its secret' : '\u{1F5E3}\u{FE0F} Still listening…';
     const text = playing
-      ? `Hearsay #${PUZZLE.num} — the daily puzzle of what other people don't know, from Mind Loft.\n${withRef(`sourceoftruths.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Hearsay — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Hearsay #${PUZZLE.num} — the daily puzzle of what other people don't know, from Mind Loft.\n${withRef(`mindloftdaily.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Hearsay — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {

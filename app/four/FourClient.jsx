@@ -549,7 +549,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   }
 
   function shareUrl() {
-    return withRef(`sourceoftruths.com/four${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/four${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function shareText() {
     const g5 = won ? 5 : drawn ? 2 : g.status === 'lost' ? 1 : 0;

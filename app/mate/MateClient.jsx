@@ -608,7 +608,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   }
 
   function shareUrl() {
-    return withRef(`sourceoftruths.com/mate${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/mate${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function shareText() {
     const g5 = won ? Math.max(1, Math.round(finalScore / 2)) : 0;

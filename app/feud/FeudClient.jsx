@@ -524,7 +524,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
     return `Feud #${PUZZLE.num} · ${score} pts${crowdBit}${streakBit}${pctBit}\n${rows.join('\n')}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/feud${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/feud${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

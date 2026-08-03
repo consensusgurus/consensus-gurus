@@ -594,8 +594,8 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{25CE} Filed clean in ${elapsed}` : `\u{25CE} Filed in ${elapsed} · ${g.rejected} rejected sheet${g.rejected === 1 ? '' : 's'}`)
       : g.status === 'lost' ? '\u{25CE} The sheet won' : '\u{25CE} Still filing…';
     const text = playing
-      ? `Venn #${PUZZLE.num} — the daily three-circle sorting puzzle from Mind Loft.\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Venn — Sheet #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Venn #${PUZZLE.num} — the daily three-circle sorting puzzle from Mind Loft.\n${withRef(`mindloftdaily.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Venn — Sheet #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
     try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}

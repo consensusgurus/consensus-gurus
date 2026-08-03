@@ -251,7 +251,7 @@ export default function GeoClient() {
   const promptSpot = phase === 'playing' && order.length ? SPOTS[order[idx]] : null;
   const lastIsHit = last && last.pts >= 700;
 
-  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : 'https://sourceoftruths.com/geo/nyc-restaurants');
+  const shareUrl = withRef(typeof window !== 'undefined' ? window.location.href : 'https://mindloftdaily.com/geo/nyc-restaurants');
   function share() {
     const text = phase === 'done' ? `I scored ${points}/${MAX_POINTS} on Locate the Restaurant (NYC). Can you beat me?` : 'Locate the Restaurant — a NYC aerial geo game.';
     if (notifyShareCredit(`${text} ${shareUrl}`)) return;

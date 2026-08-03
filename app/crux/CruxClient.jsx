@@ -814,7 +814,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   // Archive results must link the puzzle they describe — a bare /crux would
   // hand the recipient a different board than the score they just saw.
   function shareUrl() {
-    return withRef(`sourceoftruths.com/crux${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/crux${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

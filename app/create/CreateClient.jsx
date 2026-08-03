@@ -487,7 +487,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
-          sourceoftruths.com
+          mindloftdaily.com
         </div>
       </div>
   );

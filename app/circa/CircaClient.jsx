@@ -475,7 +475,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/circa${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/circa${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing

@@ -501,7 +501,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     return `Cipher #${PUZZLE.num} · ${eqnText}\n${solvedBit}${streakBit}\n${shareUrl()}`;
   }
   function shareUrl() {
-    return withRef(`sourceoftruths.com/cipher${isTodays ? '' : `?p=${PUZZLE.num}`}`);
+    return withRef(`mindloftdaily.com/cipher${isTodays ? '' : `?p=${PUZZLE.num}`}`);
   }
   function copyShare() {
     const text = playing
