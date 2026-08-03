@@ -4,7 +4,6 @@ import { guestHandleFromAnon } from '@/lib/quiz-xp';
 import Link from 'next/link';
 import SourcesPopover from '../SourcesPopover';
 import { getAllSources } from '@/lib/sources';
-import { QUIZ_COUNT } from '../SiteHeader';
 import { T } from '@/lib/theme';
 import MindLoftMark from '../MindLoftMark';
 import useDayStats from '../useDayStats';
@@ -95,33 +94,27 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
   }, [found]);
   const signed = !!(found && me.signed);
   const rank = found ? ((me.ranks && me.ranks.xp) || me.rank) : null;
-  const completed = (found && me.activity && me.activity.completed != null) ? me.activity.completed : null;
   // Lifetime IQ Points. A running total, so it renders bare: the "+" prefix is
   // reserved for amounts EARNED (the Your day strip, the end card).
   const xp = (found && typeof me.xp === 'number') ? me.xp : null;
   const totalPlayers = (found && typeof me.totalPlayers === 'number' && me.totalPlayers > 0) ? me.totalPlayers : null;
   // "Your day" moved off the daily board's cap and into this bar (owner,
-  // 2026-08-03). Each day figure renders as a chip PAIRED with its lifetime
-  // counterpart rather than as its own stat group: the rank move beside the
-  // rank, IQ earned beside total IQ, today's puzzles beside completed. A climb
-  // toward #1 is a POSITIVE rankChange even though the rank number falls, so an
-  // up arrow reads green. A flat or unknown figure renders NO chip, which is
-  // what keeps the bar quiet for a player who has not started their day.
+  // 2026-08-03). Each figure is a COLUMN: the actual on the top line, the day's
+  // figure on the bottom line with the word "today" spelled out, so a delta can
+  // never be misread as a total. A climb toward #1 is a POSITIVE rankChange even
+  // though the rank number falls, so an up arrow reads green. A flat or unknown
+  // move says "no change today" rather than blanking the line, which would leave
+  // the column short and knock the row out of alignment.
   const day = useDayStats();
-  const dayMove = (day.rankChange != null && day.rankChange !== 0)
-    ? (day.rankChange > 0 ? `\u25b2${day.rankChange}` : `\u25bc${Math.abs(day.rankChange)}`)
-    : null;
-  const dayMoveCls = day.rankChange > 0 ? 'qch-d qch-dup' : 'qch-d qch-ddown';
+  const moved = (day.rankChange != null && day.rankChange !== 0);
+  const moveTxt = moved
+    ? (day.rankChange > 0 ? `\u25b2${day.rankChange} today` : `\u25bc${Math.abs(day.rankChange)} today`)
+    : 'no change today';
+  const moveCls = !moved ? '' : (day.rankChange > 0 ? 'qch-tup' : 'qch-tdown');
   const dayXp = (typeof day.todayXp === 'number' && day.todayXp > 0) ? day.todayXp : null;
-  const dayGames = day.done > 0 ? `${day.done}/${day.total}` : null;
-  // Share of the whole catalogue this player has completed, shown next to the
-  // raw count (owner 2026-07-29). Under 10% keeps one decimal so an early
-  // player does not read a flat 0%; anything that rounds to nothing shows <0.1%.
-  const donePct = (completed != null && QUIZ_COUNT > 0) ? (() => {
-    const v = (completed / QUIZ_COUNT) * 100;
-    if (v > 0 && v < 0.1) return '<0.1%';
-    return `${v < 10 ? v.toFixed(1) : Math.round(v)}%`;
-  })() : null;
+  // Lifetime "N completed / X% of the catalogue" was dropped on 2026-08-03: it
+  // measures the QUIZ catalogue, which is not what this bar is about now that
+  // the day figures live here. The third column counts today's dailies instead.
   // Duplicate short item lists so the looping track never shows a hole.
   const items = ticker.length ? (ticker.length < 8 ? [...ticker, ...ticker] : ticker) : [];
   const dur = `${Math.min(96, Math.max(36, items.length * 5))}s`;
@@ -178,10 +171,31 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-me{margin-left:auto;flex:none;min-width:0;}
         .qch-melink{display:flex;align-items:center;gap:8px;text-decoration:none;min-width:0;}
         .qch-ava{width:30px;height:30px;border-radius:50%;background:var(--surface-alt);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--ink);flex:none;}
-        .qch-mecol{display:flex;flex-direction:column;gap:2px;min-width:0;}
+        /* Name beside the stat block, not above it: the stats are themselves two
+           lines now, so stacking all three would make the bar three deep. Below
+           900px it does stack, and the bar grows to suit (see that breakpoint). */
+        .qch-mecol{display:flex;flex-direction:row;align-items:center;min-width:0;}
         .qch-nm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:var(--ink);line-height:1;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
         .qch-hi{font-weight:600;color:var(--slate);}
-        .qch-of{display:none;}
+        /* ── the stat block (owner, 2026-08-03) ──
+           One column per figure, ACTUAL on the top line and TODAY on the bottom,
+           with the word "today" spelled out on every lower line so a delta can
+           never be mistaken for a total. Three columns: the player's rank, their
+           lifetime IQ, and how much of today's daily slate they have played (a
+           today-only figure, so its top line is the count and its lower line is
+           the label). Lifetime "completed / %" used to sit here and was dropped:
+           it counts quizzes, which is a different subject from this bar. */
+        .qch-stats{display:flex;align-items:center;min-width:0;margin-left:clamp(11px,1.6vw,20px);padding-left:clamp(11px,1.6vw,20px);border-left:1.5px solid var(--border);}
+        .qch-col{display:flex;flex-direction:column;align-items:flex-start;gap:2.5px;line-height:1;white-space:nowrap;min-width:0;}
+        .qch-col + .qch-col{margin-left:13px;padding-left:13px;border-left:1px solid var(--border);}
+        .qch-col b{font-size:13px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+        .qch-col em{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.01em;color:var(--muted);font-variant-numeric:tabular-nums;}
+        .qch-tup{color:var(--success-deep);}
+        .qch-tdown{color:var(--danger);}
+        .qch-tblue{color:var(--blue);}
+        .qch-tgreen{color:var(--success-deep);}
+        .qch-of{font-style:normal;font-weight:700;color:var(--muted);}
+        .qch-nudge{font-size:10.5px;font-weight:700;color:var(--slate);line-height:1;white-space:nowrap;}
         /* Wide bars had a large dead gap between the brand and the player chip
            (owner 2026-07-29). From 1181px up the welcome and the rank detail sit
            on ONE line, separated by a rule and a fluid gap that grows with the
@@ -200,36 +214,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin-left:0;flex:none;display:flex;justify-content:center;max-width:min(56vw,780px);}
           .qch-me ~ .qch-hub{margin-left:auto;}
           .qch-melink{gap:13px;}
-          .qch-mecol{flex-direction:row;align-items:center;gap:clamp(14px,2.6vw,38px);}
           .qch-nm{font-size:15px;max-width:none;}
-          .qch-sub{font-size:12.5px;border-left:1.5px solid var(--border);padding-left:clamp(14px,2.6vw,38px);}
-          .qch-d{font-size:11px;}
-          .qch-of{display:inline;color:var(--muted);}
+          .qch-col b{font-size:14px;}
+          .qch-col em{font-size:10px;}
+          .qch-col + .qch-col{margin-left:16px;padding-left:16px;}
         }
-        /* One line now carries three lifetime stats AND three day chips, which
-           stops fitting between the brand and the Stat Hub below ~1440px. Shed
-           the two least useful pieces there, widest first: the "of N players"
-           tail, then the completion percentage. Both come back on a wide bar.
-           This block follows the one above, so its display:none wins there. */
-        @media(min-width:1181px) and (max-width:1439px){
-          .qch-of{display:none;}
-          .qch-pct{display:none;}
-          .qch-mecol{gap:clamp(12px,1.8vw,22px);}
-          .qch-sub{padding-left:clamp(12px,1.8vw,22px);}
-        }
-        .qch-sub{display:flex;align-items:center;font-size:10.5px;font-weight:700;color:var(--slate);line-height:1;white-space:nowrap;}
-        .qch-rankm{display:none;align-items:center;font-size:11px;font-weight:800;color:var(--ink);line-height:1;white-space:nowrap;}
-        /* One lifetime stat plus, optionally, its day chip. Groups are split by
-           a rendered dot so the pair inside a group reads as a single unit. */
-        .qch-st{display:inline-flex;align-items:center;gap:5px;min-width:0;}
-        .qch-st + .qch-st:before{content:'\u00b7';margin:0 8px 0 3px;color:var(--muted);font-weight:700;}
-        .qch-d{font-size:10px;font-weight:800;line-height:1;padding:2.5px 5px;border-radius:5px;background:var(--surface-alt);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
-        .qch-dup{color:var(--success-deep);background:rgba(21,128,61,0.11);}
-        .qch-ddown{color:var(--danger);background:rgba(192,57,43,0.11);}
-        .qch-dblue{color:var(--blue);background:rgba(37,99,235,0.10);}
-        .qch-dgreen{color:var(--success-deep);background:rgba(21,128,61,0.11);}
-        .qch-dsm{display:none;}
-        .qch-pct{color:var(--muted);}
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:var(--surface-alt);color:var(--accent);font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
         .qch-signup{display:inline-flex;align-items:center;gap:6px;background:var(--cta);border:1px solid var(--cta);border-radius:9px;color:var(--cta-ink);font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;}
         .qch-signup:hover{background:var(--cta-hover);border-color:var(--cta-hover);color:var(--cta-ink);}
@@ -269,11 +258,23 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-hidefit{display:none !important;}
         @media(max-width:1180px){.qch-src{display:none;}}
         @media(max-width:1024px){.qch-hub-me{display:none;}}
-        @media(max-width:980px){.qch-sub{display:none;}.qch-rankm{display:flex;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
+        /* First things to go as the bar narrows: the "of N players" tail, then
+           a size step on both lines. The columns themselves never drop. */
+        @media(max-width:980px){.qch-of{display:none;}.qch-col b{font-size:12px;}.qch-col em{font-size:9px;}.qch-col + .qch-col{margin-left:10px;padding-left:10px;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
+        /* Below 900 the name sits ABOVE the stat block instead of beside it, so
+           the identity is three lines deep and the bar has to grow with it. The
+           .qch reserve must move in lockstep, since the bar is position:fixed and
+           .qch is what holds its space in flow. */
+        @media(max-width:900px){
+          .qch{min-height:64px;}
+          .qch-bar{min-height:64px;}
+          .qch-mecol{flex-direction:column;align-items:center;gap:3px;}
+          .qch-stats{margin-left:0;padding-left:0;border-left:none;}
+        }
         @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline-flex;align-items:center;}.qch-brandlogo{display:none !important;}.qch-searchbtn{display:inline-flex;margin-left:auto;}.qch-me{margin-left:0;}.qch-nm{max-width:none;}}
-        @media(max-width:620px){.qch-rankm{display:flex;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
+        @media(max-width:620px){.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
-        @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}.qch{min-height:calc(56px + env(safe-area-inset-top));}}
+        @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}.qch{min-height:calc(64px + env(safe-area-inset-top));}}
         /* Mobile header (owner 2026-07-29, rev 3): three slots, edges fixed, the
            identity absolutely centred in the bar for BOTH states so it is centred
            in the header rather than merely sitting between the side controls.
@@ -295,18 +296,16 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
              so it must be told about the extra side furniture or it overlaps. */
           .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin:0;display:flex;justify-content:center;flex:none;max-width:calc(100% - 188px);}
           .qch-melink{justify-content:center;min-width:0;gap:0;}
-          .qch-mecol{flex-direction:column;align-items:center;gap:1px;min-width:0;}
-          .qch-nm,.qch-rankm{text-align:center;max-width:100%;}
-          /* Stacked and tight (owner, 2026-08-03): the day figures ride under
-             the name on ONE condensed line, so three paired stats fit the
-             ~200px the absolutely-centred identity gets on a phone. Wide forms
-             swap for short ones there (#1 not Rank #1, 8.3k not 8,307). */
-          .qch-rankm{justify-content:center;flex-wrap:nowrap;font-size:10px;letter-spacing:-.02em;gap:0;}
-          .qch-rankm .qch-st{gap:3px;}
-          .qch-rankm .qch-st + .qch-st:before{margin:0 5px 0 2px;}
-          .qch-rankm .qch-d{font-size:9.5px;padding:2px 4px;}
-          .qch-dsm{display:inline;}
-          .qch-dlg{display:none;}
+          .qch-mecol{flex-direction:column;align-items:center;gap:2px;min-width:0;}
+          .qch-nm{text-align:center;max-width:100%;}
+          /* Tight on a phone (owner, 2026-08-03): same three columns, same
+             two-line reading, just condensed. Each column centres its own pair
+             so the block reads as a row of little stats under the name. */
+          .qch-stats{justify-content:center;}
+          .qch-col{align-items:center;gap:2px;}
+          .qch-col b{font-size:11.5px;letter-spacing:-.02em;}
+          .qch-col em{font-size:8px;letter-spacing:0;}
+          .qch-col + .qch-col{margin-left:8px;padding-left:8px;}
           .qch-bar.is-user .qch-brandlogo{display:none !important;}
           .qch-bar.is-guest .qch-searchbtn{display:none !important;}
           .qch-bar.is-guest .qch-brandlogo{flex:none;}
@@ -324,49 +323,24 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
               <span className="qch-ava">{(me.name || '?').slice(0, 1).toUpperCase()}</span>
               <span className="qch-mecol">
                 <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
-                <span className="qch-sub">
+                <span className="qch-stats">
                   {rank ? (
-                    <span className="qch-st">
-                      <span>{`Rank #${fmtK(rank)}`}{totalPlayers ? <span className="qch-of">{` of ${totalPlayers.toLocaleString()}`}</span> : null}</span>
-                      {dayMove ? <span className={dayMoveCls} title="Places moved on the IQ board today">{dayMove}</span> : null}
+                    <span className="qch-col">
+                      <b>{`#${fmtK(rank)}`}{totalPlayers ? <i className="qch-of">{` of ${totalPlayers.toLocaleString()}`}</i> : null}</b>
+                      <em className={moveCls} title="Places moved on the IQ board today">{moveTxt}</em>
                     </span>
                   ) : null}
                   {xp != null ? (
-                    <span className="qch-st">
-                      <span>{`${xp.toLocaleString()} IQ`}</span>
-                      {dayXp ? <span className="qch-d qch-dblue" title="IQ Points earned today">{`+${dayXp.toLocaleString()}`}</span> : null}
+                    <span className="qch-col">
+                      <b>{`${xp.toLocaleString()} IQ`}</b>
+                      <em className={dayXp ? 'qch-tblue' : ''} title="IQ Points earned today">{dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today'}</em>
                     </span>
                   ) : null}
-                  {completed != null ? (
-                    <span className="qch-st">
-                      <span>{`${completed.toLocaleString()} completed`}</span>
-                      {donePct ? <span className="qch-pct">{`· ${donePct}`}</span> : null}
-                      {dayGames ? <span className="qch-d qch-dgreen" title="Daily puzzles finished today">{`${dayGames} today`}</span> : null}
-                    </span>
-                  ) : null}
-                </span>
-                {rank || xp != null || dayGames ? (
-                  <span className="qch-rankm">
-                    {rank ? (
-                      <span className="qch-st">
-                        <span><span className="qch-dlg">Rank </span>{`#${fmtK(rank)}`}</span>
-                        {dayMove ? <span className={dayMoveCls}>{dayMove}</span> : null}
-                      </span>
-                    ) : null}
-                    {xp != null ? (
-                      <span className="qch-st">
-                        <span className="qch-dlg">{`${xp.toLocaleString()} IQ`}</span>
-                        <span className="qch-dsm">{`${fmtK(xp)} IQ`}</span>
-                        {dayXp ? <span className="qch-d qch-dblue">{`+${dayXp.toLocaleString()}`}</span> : null}
-                      </span>
-                    ) : null}
-                    {dayGames ? (
-                      <span className="qch-st">
-                        <span className="qch-d qch-dgreen">{dayGames}</span>
-                      </span>
-                    ) : null}
+                  <span className="qch-col">
+                    <b>{`${day.done}/${day.total}`}</b>
+                    <em className={day.done ? 'qch-tgreen' : ''} title="Daily puzzles played today">played today</em>
                   </span>
-                ) : null}
+                </span>
               </span>
             </Link>
           ) : (
@@ -376,24 +350,25 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
                   <span className="qch-ava">G</span>
                   <span className="qch-mecol">
                     <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {guestName}</span>
-                    <span className="qch-sub">
-                      {dayGames || dayXp ? (
-                        <>
-                          {dayXp ? (
-                            <span className="qch-st"><span>Today</span><span className="qch-d qch-dblue">{`+${dayXp.toLocaleString()} IQ`}</span></span>
-                          ) : null}
-                          {dayGames ? (
-                            <span className="qch-st"><span>Puzzles</span><span className="qch-d qch-dgreen">{`${dayGames} today`}</span></span>
-                          ) : null}
-                        </>
-                      ) : 'Sign up to keep your scores and rank'}
-                    </span>
-                    {dayGames || dayXp ? (
-                      <span className="qch-rankm">
-                        {dayXp ? <span className="qch-st"><span className="qch-d qch-dblue">{`+${dayXp.toLocaleString()} IQ`}</span></span> : null}
-                        {dayGames ? <span className="qch-st"><span className="qch-d qch-dgreen">{dayGames}</span></span> : null}
+                    {/* A guest has no lifetime rank or IQ to head a column, so
+                        they get the day figures alone once their day starts, and
+                        the sign-up nudge until then. */}
+                    {dayXp || day.done ? (
+                      <span className="qch-stats">
+                        {dayXp ? (
+                          <span className="qch-col">
+                            <b className="qch-tblue">{`+${dayXp.toLocaleString()}`}</b>
+                            <em>IQ today</em>
+                          </span>
+                        ) : null}
+                        <span className="qch-col">
+                          <b>{`${day.done}/${day.total}`}</b>
+                          <em className={day.done ? 'qch-tgreen' : ''}>played today</em>
+                        </span>
                       </span>
-                    ) : null}
+                    ) : (
+                      <span className="qch-nudge">Sign up to keep your scores and rank</span>
+                    )}
                   </span>
                 </>
               ) : null}
