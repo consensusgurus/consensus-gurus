@@ -46,6 +46,7 @@ import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import useMyGames, { sortByMyGames } from './useMyGames';
 import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
+import { fetchDayStatus } from './useDayStats';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -141,24 +142,6 @@ for (const [k, v] of Object.entries(CAT_COLOR)) {
 const catCol = (cat) => CAT_COLOR[cat] || T.muted;
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
-// Consecutive ET days on which the player finished at least one daily, counted
-// back from today. Today is optional (a live streak shows before you have played
-// today); any earlier gap ends it. Derived from the played quiz ids that
-// daily-status already returns, so it costs no extra request.
-function computeDayStreak(playedIds) {
-  const days = new Set();
-  for (const id of (playedIds || [])) {
-    const m = /^[a-z]+-(\d{1,2})-(\d{1,2})-(\d{2})$/.exec(id);
-    if (m) days.add(`20${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`);
-  }
-  if (!days.size) return 0;
-  const back = (iso) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
-  const today = etToday();
-  let cur = days.has(today) ? today : back(today), n = 0;
-  while (days.has(cur)) { n += 1; cur = back(cur); }
-  return n;
-}
-
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -181,9 +164,10 @@ export default function DailyStrip({ board = null }) {
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
-  const [dayStreak, setDayStreak] = useState(0); // cross-game: days in a row with at least one daily played
-  const [todayXp, setTodayXp] = useState(null);   // IQ Points earned today (ET), from daily-status
-  const [rankChange, setRankChange] = useState(null); // places climbed on the global IQ board today
+  // NOTE the day figures this component used to own (IQ Points earned today,
+  // the day's move on the IQ board, the cross-game day streak) moved into the
+  // page header on 2026-08-03 and are read there from useDayStats. Do not
+  // re-derive them here: the header is the one place they render.
   const [sel, setSel] = useState(null); // selected game key (expanded tile), or null
   const [lbOpen, setLbOpen] = useState(false); // overall daily leaderboard toggle
 
@@ -281,24 +265,16 @@ export default function DailyStrip({ board = null }) {
     try { if (typeof window !== 'undefined' && window.innerWidth <= 560) setFilter('todo'); } catch (e) {}
   }, []);
 
-  // cross-device: the signed-in player's finished-today set from the server
+  // cross-device: the signed-in player's finished-today set from the server.
+  // Goes through the shared fetchDayStatus (app/useDayStats.js) rather than its
+  // own fetch, because the page header now reads the same /api/quiz/daily-status
+  // payload for its day chips and the two must not request it twice.
   useEffect(() => {
-    let anonId = null, email = null;
-    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
-    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
-    const qs = new URLSearchParams();
-    if (anonId) qs.set('anonId', anonId);
-    if (email) qs.set('email', email);
-    if (!qs.toString()) return;
     let alive = true;
-    fetch('/api/quiz/daily-status?' + qs.toString())
-      .then((r) => r.json())
+    fetchDayStatus()
       .then((data) => {
         if (!alive || !data) return;
         if (data.streaks && typeof data.streaks === 'object') setStreaks(data.streaks);
-        if (typeof data.todayXp === 'number') setTodayXp(data.todayXp);
-        if (typeof data.rankChange === 'number') setRankChange(data.rankChange);
-        setDayStreak(computeDayStreak(data.played));
         const [Y, M, D] = etToday().split('-').map(Number);
         const yy = Y % 100;
         const completed = new Set(data.completed || []);
@@ -325,14 +301,6 @@ export default function DailyStrip({ board = null }) {
     return () => { alive = false; };
   }, []);
 
-  // Rank movement reads as an arrow, never a bare signed number: up is a climb
-  // toward #1, so a POSITIVE rankChange must render as an up arrow even though
-  // the rank number itself went down. Flat or unknown shows an em dash.
-  const rankMove = rankChange == null || rankChange === 0
-    ? '\u2014'
-    : (rankChange > 0 ? `\u25b2${rankChange}` : `\u25bc${Math.abs(rankChange)}`);
-  const rankMoveColor = (rankChange == null || rankChange === 0) ? undefined : (rankChange > 0 ? T.successDeep : T.danger);
-
   const n = GAMES.filter((g) => done.has(g.key)).length;
   const pct = Math.round((n / GAMES.length) * 100);
   const left = GAMES.length - n;
@@ -353,10 +321,14 @@ export default function DailyStrip({ board = null }) {
   const uniquePlayers = board && typeof board.uniquePlayers === 'number' ? board.uniquePlayers : null;
 
   // Easiest board to climb: fewest players today among the games still open to
-  // you. Ties keep the earlier game in daily order.
+  // you. Ties keep the earlier game in daily order. Since 2026-08-03 the cap's
+  // left half is Up next, which already offers nextGame, so the easiest board is
+  // chosen from the OTHER open games: a cap pointing at the same game twice
+  // wastes half its width. A day with exactly one game left therefore has no
+  // easiest card, and that half shows the almost-done note instead.
   const easiest = (() => {
     if (!nextGame) return null;
-    const open = games.filter((g) => !done.has(g.key));
+    const open = games.filter((g) => !done.has(g.key) && g.key !== nextGame.key);
     let best = null, bestN = Infinity;
     for (const g of open) {
       const b = byKey[g.key];
@@ -364,7 +336,7 @@ export default function DailyStrip({ board = null }) {
       if (cnt == null) continue;
       if (cnt < bestN) { bestN = cnt; best = g; }
     }
-    return best ? { game: best, players: bestN } : { game: nextGame, players: null };
+    return best ? { game: best, players: bestN } : (open[0] ? { game: open[0], players: null } : null);
   })();
 
   // The player's row on a game's per-game board (their score/rank today).
@@ -673,46 +645,36 @@ export default function DailyStrip({ board = null }) {
         .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:var(--ink);border-bottom:1px solid #eef0f4;}
-        .dh-bup{display:flex;align-items:center;gap:12px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1.5px solid var(--border);}
-        .dh-bup .dh-play{flex:1 1 auto;min-width:96px;max-width:none;font-size:13.5px;padding:11px 18px;}
-        .dh-bup>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
-        /* Mobile: the easiest-leaderboard text collides with the Play button, so
-           drop the game icon there to buy back the width (owner 2026-07-29). */
-        @media(max-width:640px){.dh-bup>img{display:none;}}
+        /* ── the cap: two equal halves ── (owner, 2026-08-03)
+           The Your-day stat row and its phone-only variant moved OUT of this bar
+           and up into the page header, where each figure pairs with its lifetime
+           counterpart. What is left is a pure "where to go next" cap, split down
+           the middle: Up next (the first unfinished daily in board order) on the
+           left, Easiest leaderboard (fewest players today) on the right. Both
+           halves are flex:1 1 0 so they hold exactly 50% each at every width,
+           desktop and phone alike, rather than one growing to fit its text. */
+        .dh-cell{display:flex;align-items:center;gap:12px;flex:1 1 0;min-width:0;}
+        .dh-cell + .dh-cell{padding-left:14px;border-left:1.5px solid var(--border);}
+        .dh-cell .dh-play{flex:0 0 auto;margin-left:auto;min-width:92px;font-size:13.5px;padding:11px 18px;}
+        .dh-cell>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
-        .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-ink);white-space:nowrap;}
-        .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;}
+        .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        /* Up next reads blue against the gold the easiest board owns, the same
+           split the two eyebrows use on the end card. */
+        .dh-bue.up{color:var(--blue);}
+        .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dh-busub{font-size:11px;font-weight:600;color:var(--muted);line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dh-mcap{display:none;}
-        .dh-statlead{flex:none;display:flex;flex-direction:column;justify-content:center;font-size:15.5px;font-weight:800;line-height:1.06;color:var(--ink);white-space:nowrap;padding-right:12px;letter-spacing:-.25px;}
-        .dh-stats{display:flex;align-items:center;flex:none;min-width:0;overflow:hidden;}
-        .dh-stat{padding:0 9px;white-space:nowrap;line-height:1.15;border-right:1px solid #eef0f4;}
-        .dh-stat:last-child{border-right:none;}
-        .dh-stat:last-child{border-right:none;}
-        .dh-stat b{display:block;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .dh-stat span{font-family:'DM Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
-        .dh-stat.g b{color:var(--success-deep);}
-        .dh-stat.y b{color:var(--gold-ink);}
-        /* IQ Points reads blue, not green: Completed already owns green in this bar. */
-        .dh-stat.iq b{color:var(--blue);}
-        @container (max-width:900px){.dh-stat.opt{display:none;}}
-        @container (max-width:760px){.dh-stat.opt2{display:none;}}
-        /* Narrow bars swap the segmented filter for a hamburger and shed the
-           remaining optional stats, so the topper never wraps to a second row. */
-        @container (max-width:620px){.dh-stat.opt3{display:none;}
-          .dh-sbar{justify-content:space-between;gap:8px;}
-          .dh-statlead{font-size:13px;padding-right:7px;}
-        .dh-stat{border-right:none;padding:0 5px;}
-          .dh-bup{padding-left:8px;gap:9px;}
+        /* @container widths are the BAR's content box, not the viewport (.dh-sbar
+           is border-box with 12px side padding), so a 390px phone queries at
+           ~366px. Both halves shed furniture at the same width so neither wraps. */
+        @container (max-width:620px){
+          .dh-sbar{gap:8px;}
+          .dh-cell{gap:9px;}
+          .dh-cell + .dh-cell{padding-left:9px;}
           .dh-busub{display:none;}
           .dh-wideonly{display:none;}
-          .dh-bup .dh-play{flex:0 0 auto;min-width:0;font-size:12px;padding:9px 13px;margin-left:4px;}}
-        @container (max-width:430px){.dh-stat.opt4{display:none;}}
-        /* NOTE these @container widths are the bar's CONTENT box, not the
-           viewport (.dh-sbar is border-box with 12px side padding), so a 390px
-           phone would query at ~366px. That mismatch no longer bites: the phone
-           renders .dh-mcap instead and this row is hidden below 640px, which also
-           makes the very narrow cutoffs unreachable. IQ leads and never drops. */
+          .dh-cell .dh-play{min-width:0;font-size:12px;padding:9px 13px;}
+        }
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:var(--cta-hover);}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
@@ -896,7 +858,7 @@ export default function DailyStrip({ board = null }) {
         .dsd-none{color:var(--muted);font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
-        @media(max-width:940px){.dh-bup{border-left:none;padding-left:4px;}}
+        @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
         @media(max-width:640px){
           .dh-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;grid-auto-rows:minmax(122px,1fr);}
@@ -937,76 +899,61 @@ export default function DailyStrip({ board = null }) {
           .dhome.open .dh-sbar{display:none;}
           .dhome.open .dh-boardwrap{display:none;}
         }
-        /* Mobile "Your day" bar (owner 2026-07-29): the Play button was 68x35 and
-           stopped 2px short of the tile grid, because .dh-sbar uses 12px side
-           padding where .dh-boardwrap uses 10px. Matching the padding puts the
-           button's right edge exactly on the grid's, and margin-left:auto anchors
-           it there rather than letting it hug the leaderboard text. Selector matches the
-           @container rule's .dh-bup .dh-play specificity, since a bare .dh-play loses
-           to it regardless of source order. */
+        /* Phone cap (owner 2026-08-03). Both halves survive here, unlike the old
+           bar where the Easiest CTA was hidden below 640px to make room for the
+           stat row: with the stats gone there is room for two. Each half keeps
+           50%, sheds its game icon and subtitle, and runs a compact Play button.
+           .dh-sbar takes the grid's 10px side padding so the right button's edge
+           lands exactly on the tile grid's. */
         @media(max-width:640px){
-          .dh-sbar{padding-left:10px;padding-right:10px;}
-          /* The phone cap replaces the stat row AND the Easiest-leaderboard CTA. */
-          .dh-sbar .dh-stats{display:none;}
-          .dh-sbar .dh-bup{display:none;}
-          .dh-mcap{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));align-items:center;width:100%;flex:1 1 auto;}
-          .dh-caplead{font-size:15px;font-weight:800;line-height:1.04;letter-spacing:-.3px;color:var(--ink);white-space:nowrap;padding:0 11px 0 2px;}
-          .dh-caplead span{display:block;}
-          .dh-mcell{padding:8px 3px 9px;text-align:center;min-width:0;}
-          .dh-mcell b{display:block;font-size:22px;font-weight:800;line-height:1;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
-          .dh-mcell.iq b{color:var(--blue);}
-          .dh-mcell.g b{color:var(--success-deep);}
-          .dh-mcell span{display:block;margin-top:4px;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-          .dh-bup .dh-play{margin-left:auto;flex:0 0 auto;font-size:13.5px;padding:12px 18px;min-width:96px;}
-          /* The wider button leaves the eyebrow 95px; at 9px/.09em it needs 119
-             and, since .dh-bue is overflow:visible, it spilled under the button
-             rather than truncating. 7.5px/.02em needs 89. Ellipsis is a safety
-             net if a longer label is ever used here. */
-          .dh-bue{font-size:7.5px;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;}
+          .dh-sbar{padding-left:10px;padding-right:10px;gap:6px;}
+          .dh-cell{gap:7px;}
+          .dh-cell + .dh-cell{padding-left:8px;}
+          .dh-cell>img{display:none;}
+          .dh-busub{display:none;}
+          .dh-bue{font-size:7.5px;letter-spacing:.02em;}
+          .dh-bun{font-size:14px;}
+          .dh-cell .dh-play{margin-left:auto;flex:0 0 auto;min-width:0;font-size:11.5px;padding:8px 10px;gap:4px;}
         }
-        /* Under 375px the third cap cell squeezes the labels ("IQ RANK CHANGE"
-           truncates at 8.5px between 356 and 374), so ease them down. Measured:
-           8.5px is clean at 375 and clips at 360. The ellipsis above is the
-           safety net if a longer label is ever used. */
+        /* Under 375px the eyebrows clip first, so ease them down rather than let
+           a game name wrap. */
         @media(max-width:374px){
-          .dh-mcell span{font-size:7.5px;letter-spacing:.01em;}
-          .dh-caplead{font-size:13px;padding-right:8px;}
+          .dh-bue{font-size:7px;}
+          .dh-bun{font-size:13px;}
+          .dh-cell .dh-play{padding:8px 8px;font-size:11px;}
         }
       `}</style>
 
-      {/* Stats bar. This is welded directly onto the grid below (rounded top
-          corners only, no margin), and the filters live inside it, so nothing
-          sits between the bar and the tiles. */}
+      {/* The cap. Welded directly onto the grid below (rounded top corners only,
+          no margin), split into two equal halves: Up next on the left, Easiest
+          leaderboard on the right. The Your-day stats that used to live here
+          moved into the page header on 2026-08-03. */}
       <div className="dh-sbar">
-        {/* Mobile cap (owner, 2026-07-30). On a phone the Easiest-leaderboard
-            block plus its Play button took 206px of the bar's ~321px content box,
-            leaving room for exactly ONE stat, so the desktop row and that CTA are
-            both hidden below 640px and the phone gets this two-cell cap instead.
-            Numbers are large because this is the only stat surface on mobile. */}
-        <div className="dh-mcap">
-          <div className="dh-caplead"><span>Your</span><span>day:</span></div>
-          <div className="dh-mcell g">
-            <b>{n}/{GAMES.length}</b>
-            <span>Games played</span>
-          </div>
-          <div className="dh-mcell iq">
-            <b>{todayXp != null ? `+${todayXp.toLocaleString()}` : '\u2014'}</b>
-            <span>IQ Points</span>
-          </div>
-          <div className="dh-mcell">
-            <b style={rankMoveColor ? { color: rankMoveColor } : undefined}>{rankMove}</b>
-            <span>IQ rank</span>
-          </div>
+        <div className="dh-cell">
+          {nextGame ? (
+            <>
+              <img src={nextGame.img} alt="" aria-hidden="true" />
+              <div className="dh-bupt">
+                <div className="dh-bue up">Up next</div>
+                <div className="dh-bun">{nextGame.name}</div>
+                <div className="dh-busub">{nextGame.tag}</div>
+              </div>
+              <a href={nextGame.href} className="dh-play">
+                <Play size={11} fill="currentColor" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}
+              </a>
+            </>
+          ) : (
+            <>
+              <Trophy size={22} color={T.gold} strokeWidth={2.2} />
+              <div className="dh-bupt">
+                <div className="dh-bue">Clean sweep</div>
+                <div className="dh-bun">All {GAMES.length} done</div>
+                <div className="dh-busub">A fresh slate lands at midnight</div>
+              </div>
+            </>
+          )}
         </div>
-        <div className="dh-stats">
-          <div className="dh-statlead"><span>Your</span><span>day:</span></div>
-          <div className="dh-stat g"><b>{n}/{GAMES.length}</b><span>Completed</span></div>
-          {todayXp != null ? <div className="dh-stat iq"><b>+{todayXp.toLocaleString()}</b><span>IQ Points</span></div> : null}
-          <div className="dh-stat opt3"><b style={rankMoveColor ? { color: rankMoveColor } : undefined}>{rankMove}</b><span>IQ rank</span></div>
-          {board && board.me ? <div className="dh-stat opt3"><b>#{board.me.rank}</b><span>Daily rank</span></div> : null}
-          {dayStreak >= 2 ? <div className="dh-stat y opt4"><b>{dayStreak}</b><span>Streak</span></div> : null}
-        </div>
-        <div className="dh-bup">
+        <div className="dh-cell">
           {easiest ? (
             <>
               <img src={easiest.game.img} alt="" aria-hidden="true" />
@@ -1027,8 +974,9 @@ export default function DailyStrip({ board = null }) {
             <>
               <Trophy size={22} color={T.gold} strokeWidth={2.2} />
               <div className="dh-bupt">
-                <div className="dh-bue">Clean sweep</div>
-                <div className="dh-bun">All {GAMES.length} done</div>
+                <div className="dh-bue">{nextGame ? 'Almost there' : 'Clean sweep'}</div>
+                <div className="dh-bun">{nextGame ? 'One to go' : `All ${GAMES.length} done`}</div>
+                <div className="dh-busub">{nextGame ? 'Finish the slate to sweep the day' : 'Every daily played today'}</div>
               </div>
             </>
           )}

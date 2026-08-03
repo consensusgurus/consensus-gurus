@@ -7,6 +7,7 @@ import { getAllSources } from '@/lib/sources';
 import { QUIZ_COUNT } from '../SiteHeader';
 import { T } from '@/lib/theme';
 import MindLoftMark from '../MindLoftMark';
+import useDayStats from '../useDayStats';
 
 // Full-bleed command-bar header for the quizzes HOME page only (individual
 // quiz pages, the Stat Hub, and the lists site keep SiteHeader). One 56px
@@ -99,6 +100,20 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
   // reserved for amounts EARNED (the Your day strip, the end card).
   const xp = (found && typeof me.xp === 'number') ? me.xp : null;
   const totalPlayers = (found && typeof me.totalPlayers === 'number' && me.totalPlayers > 0) ? me.totalPlayers : null;
+  // "Your day" moved off the daily board's cap and into this bar (owner,
+  // 2026-08-03). Each day figure renders as a chip PAIRED with its lifetime
+  // counterpart rather than as its own stat group: the rank move beside the
+  // rank, IQ earned beside total IQ, today's puzzles beside completed. A climb
+  // toward #1 is a POSITIVE rankChange even though the rank number falls, so an
+  // up arrow reads green. A flat or unknown figure renders NO chip, which is
+  // what keeps the bar quiet for a player who has not started their day.
+  const day = useDayStats();
+  const dayMove = (day.rankChange != null && day.rankChange !== 0)
+    ? (day.rankChange > 0 ? `\u25b2${day.rankChange}` : `\u25bc${Math.abs(day.rankChange)}`)
+    : null;
+  const dayMoveCls = day.rankChange > 0 ? 'qch-d qch-dup' : 'qch-d qch-ddown';
+  const dayXp = (typeof day.todayXp === 'number' && day.todayXp > 0) ? day.todayXp : null;
+  const dayGames = day.done > 0 ? `${day.done}/${day.total}` : null;
   // Share of the whole catalogue this player has completed, shown next to the
   // raw count (owner 2026-07-29). Under 10% keeps one decimal so an early
   // player does not read a flat 0%; anything that rounds to nothing shows <0.1%.
@@ -182,16 +197,39 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           /* sticky rather than relative: it still establishes the containing block that
              .qch-me is centred against, and keeps the bar pinned at this breakpoint. */
           .qch-bar{position:fixed;top:0;left:0;right:0;z-index:90;}
-          .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin-left:0;flex:none;display:flex;justify-content:center;max-width:min(48vw,640px);}
+          .qch-me{position:absolute;left:50%;transform:translateX(-50%);margin-left:0;flex:none;display:flex;justify-content:center;max-width:min(56vw,780px);}
           .qch-me ~ .qch-hub{margin-left:auto;}
           .qch-melink{gap:13px;}
           .qch-mecol{flex-direction:row;align-items:center;gap:clamp(14px,2.6vw,38px);}
           .qch-nm{font-size:15px;max-width:none;}
           .qch-sub{font-size:12.5px;border-left:1.5px solid var(--border);padding-left:clamp(14px,2.6vw,38px);}
+          .qch-d{font-size:11px;}
           .qch-of{display:inline;color:var(--muted);}
         }
-        .qch-sub{font-size:10.5px;font-weight:700;color:var(--slate);line-height:1;white-space:nowrap;}
-        .qch-rankm{display:none;font-size:11px;font-weight:800;color:var(--ink);line-height:1;white-space:nowrap;}
+        /* One line now carries three lifetime stats AND three day chips, which
+           stops fitting between the brand and the Stat Hub below ~1440px. Shed
+           the two least useful pieces there, widest first: the "of N players"
+           tail, then the completion percentage. Both come back on a wide bar.
+           This block follows the one above, so its display:none wins there. */
+        @media(min-width:1181px) and (max-width:1439px){
+          .qch-of{display:none;}
+          .qch-pct{display:none;}
+          .qch-mecol{gap:clamp(12px,1.8vw,22px);}
+          .qch-sub{padding-left:clamp(12px,1.8vw,22px);}
+        }
+        .qch-sub{display:flex;align-items:center;font-size:10.5px;font-weight:700;color:var(--slate);line-height:1;white-space:nowrap;}
+        .qch-rankm{display:none;align-items:center;font-size:11px;font-weight:800;color:var(--ink);line-height:1;white-space:nowrap;}
+        /* One lifetime stat plus, optionally, its day chip. Groups are split by
+           a rendered dot so the pair inside a group reads as a single unit. */
+        .qch-st{display:inline-flex;align-items:center;gap:5px;min-width:0;}
+        .qch-st + .qch-st:before{content:'\u00b7';margin:0 8px 0 3px;color:var(--muted);font-weight:700;}
+        .qch-d{font-size:10px;font-weight:800;line-height:1;padding:2.5px 5px;border-radius:5px;background:var(--surface-alt);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+        .qch-dup{color:var(--success-deep);background:rgba(21,128,61,0.11);}
+        .qch-ddown{color:var(--danger);background:rgba(192,57,43,0.11);}
+        .qch-dblue{color:var(--blue);background:rgba(37,99,235,0.10);}
+        .qch-dgreen{color:var(--success-deep);background:rgba(21,128,61,0.11);}
+        .qch-dsm{display:none;}
+        .qch-pct{color:var(--muted);}
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:var(--surface-alt);color:var(--accent);font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
         .qch-signup{display:inline-flex;align-items:center;gap:6px;background:var(--cta);border:1px solid var(--cta);border-radius:9px;color:var(--cta-ink);font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;}
         .qch-signup:hover{background:var(--cta-hover);border-color:var(--cta-hover);color:var(--cta-ink);}
@@ -231,9 +269,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         .qch-hidefit{display:none !important;}
         @media(max-width:1180px){.qch-src{display:none;}}
         @media(max-width:1024px){.qch-hub-me{display:none;}}
-        @media(max-width:980px){.qch-sub{display:none;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
+        @media(max-width:980px){.qch-sub{display:none;}.qch-rankm{display:flex;}.qch-hubtxt{display:none;}.qch-hub{padding:8px 10px;}}
         @media(max-width:820px){.qch-wl{display:none;}.qch-ws{display:inline-flex;align-items:center;}.qch-brandlogo{display:none !important;}.qch-searchbtn{display:inline-flex;margin-left:auto;}.qch-me{margin-left:0;}.qch-nm{max-width:none;}}
-        @media(max-width:620px){.qch-rankm{display:block;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
+        @media(max-width:620px){.qch-rankm{display:flex;}.qch-ava{display:none;}.qch-hi{display:none;}.qch-bar{gap:9px;padding-left:12px;padding-right:12px;}.qch-seg a{padding:6px 10px;font-size:11px;}.qch-tlabel{display:none;}.qch-word{font-size:17px;}}
         @media(max-width:768px){.qch-tickwrap{display:none;}}
         @media(max-width:560px){.qch-bar{padding-top:calc(9px + env(safe-area-inset-top));}.qch{min-height:calc(56px + env(safe-area-inset-top));}}
         /* Mobile header (owner 2026-07-29, rev 3): three slots, edges fixed, the
@@ -259,6 +297,16 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-melink{justify-content:center;min-width:0;gap:0;}
           .qch-mecol{flex-direction:column;align-items:center;gap:1px;min-width:0;}
           .qch-nm,.qch-rankm{text-align:center;max-width:100%;}
+          /* Stacked and tight (owner, 2026-08-03): the day figures ride under
+             the name on ONE condensed line, so three paired stats fit the
+             ~200px the absolutely-centred identity gets on a phone. Wide forms
+             swap for short ones there (#1 not Rank #1, 8.3k not 8,307). */
+          .qch-rankm{justify-content:center;flex-wrap:nowrap;font-size:10px;letter-spacing:-.02em;gap:0;}
+          .qch-rankm .qch-st{gap:3px;}
+          .qch-rankm .qch-st + .qch-st:before{margin:0 5px 0 2px;}
+          .qch-rankm .qch-d{font-size:9.5px;padding:2px 4px;}
+          .qch-dsm{display:inline;}
+          .qch-dlg{display:none;}
           .qch-bar.is-user .qch-brandlogo{display:none !important;}
           .qch-bar.is-guest .qch-searchbtn{display:none !important;}
           .qch-bar.is-guest .qch-brandlogo{flex:none;}
@@ -277,18 +325,46 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
               <span className="qch-mecol">
                 <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {me.name}{signed ? <span className="qch-chk">✓</span> : null}</span>
                 <span className="qch-sub">
-                  {rank ? <>{`Rank #${fmtK(rank)}`}{totalPlayers ? <span className="qch-of">{` of ${totalPlayers.toLocaleString()}`}</span> : null}</> : null}
-                  {rank && xp != null ? ' · ' : ''}
-                  {xp != null ? `${xp.toLocaleString()} IQ` : ''}
-                  {(rank || xp != null) && completed != null ? ' · ' : ''}
-                  {completed != null ? `${completed.toLocaleString()} completed` : ''}
-                  {completed != null && donePct ? ` · ${donePct}` : ''}
+                  {rank ? (
+                    <span className="qch-st">
+                      <span>{`Rank #${fmtK(rank)}`}{totalPlayers ? <span className="qch-of">{` of ${totalPlayers.toLocaleString()}`}</span> : null}</span>
+                      {dayMove ? <span className={dayMoveCls} title="Places moved on the IQ board today">{dayMove}</span> : null}
+                    </span>
+                  ) : null}
+                  {xp != null ? (
+                    <span className="qch-st">
+                      <span>{`${xp.toLocaleString()} IQ`}</span>
+                      {dayXp ? <span className="qch-d qch-dblue" title="IQ Points earned today">{`+${dayXp.toLocaleString()}`}</span> : null}
+                    </span>
+                  ) : null}
+                  {completed != null ? (
+                    <span className="qch-st">
+                      <span>{`${completed.toLocaleString()} completed`}</span>
+                      {donePct ? <span className="qch-pct">{`· ${donePct}`}</span> : null}
+                      {dayGames ? <span className="qch-d qch-dgreen" title="Daily puzzles finished today">{`${dayGames} today`}</span> : null}
+                    </span>
+                  ) : null}
                 </span>
-                {rank || xp != null ? (
+                {rank || xp != null || dayGames ? (
                   <span className="qch-rankm">
-                    {rank ? `Rank #${fmtK(rank)}` : ''}
-                    {rank && xp != null ? ' · ' : ''}
-                    {xp != null ? `${xp.toLocaleString()} IQ` : ''}
+                    {rank ? (
+                      <span className="qch-st">
+                        <span><span className="qch-dlg">Rank </span>{`#${fmtK(rank)}`}</span>
+                        {dayMove ? <span className={dayMoveCls}>{dayMove}</span> : null}
+                      </span>
+                    ) : null}
+                    {xp != null ? (
+                      <span className="qch-st">
+                        <span className="qch-dlg">{`${xp.toLocaleString()} IQ`}</span>
+                        <span className="qch-dsm">{`${fmtK(xp)} IQ`}</span>
+                        {dayXp ? <span className="qch-d qch-dblue">{`+${dayXp.toLocaleString()}`}</span> : null}
+                      </span>
+                    ) : null}
+                    {dayGames ? (
+                      <span className="qch-st">
+                        <span className="qch-d qch-dgreen">{dayGames}</span>
+                      </span>
+                    ) : null}
                   </span>
                 ) : null}
               </span>
@@ -300,7 +376,24 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
                   <span className="qch-ava">G</span>
                   <span className="qch-mecol">
                     <span className="qch-nm" ref={nmRef}><span className="qch-hi">Welcome</span> {guestName}</span>
-                    <span className="qch-sub">Sign up to keep your scores and rank</span>
+                    <span className="qch-sub">
+                      {dayGames || dayXp ? (
+                        <>
+                          {dayXp ? (
+                            <span className="qch-st"><span>Today</span><span className="qch-d qch-dblue">{`+${dayXp.toLocaleString()} IQ`}</span></span>
+                          ) : null}
+                          {dayGames ? (
+                            <span className="qch-st"><span>Puzzles</span><span className="qch-d qch-dgreen">{`${dayGames} today`}</span></span>
+                          ) : null}
+                        </>
+                      ) : 'Sign up to keep your scores and rank'}
+                    </span>
+                    {dayGames || dayXp ? (
+                      <span className="qch-rankm">
+                        {dayXp ? <span className="qch-st"><span className="qch-d qch-dblue">{`+${dayXp.toLocaleString()} IQ`}</span></span> : null}
+                        {dayGames ? <span className="qch-st"><span className="qch-d qch-dgreen">{dayGames}</span></span> : null}
+                      </span>
+                    ) : null}
                   </span>
                 </>
               ) : null}
