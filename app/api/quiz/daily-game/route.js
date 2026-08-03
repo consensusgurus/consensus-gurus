@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, guestGameResult, DAILY_KEYS } from '@/lib/daily-combined';
+import { creditedFor } from '@/lib/daily-credits';
 
 // Each game's puzzle list is server-only (answers never ship to the client). We
 // read nothing but `quizId`, `num`, and `live` off it — the same fields the
@@ -152,6 +153,13 @@ export async function GET(request) {
       arr.push(r);
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
       if (pk && myKey && pk === myKey) played.add(qid);
+    }
+    // Hand-granted credits: drops this player really finished but whose result
+    // post was lost. Calendar, archive percentage and streaks only, never score
+    // (no row exists, so nothing enters scoreGame or any board). See
+    // lib/daily-credits.js. DAILY_ONE_RE already scopes the id to THIS game.
+    for (const qid of creditedFor(myKey)) {
+      if (DAILY_ONE_RE.test(qid)) played.add(qid);
     }
 
     // A guest (anon viewer) is never on the registered cumulative board, but we
