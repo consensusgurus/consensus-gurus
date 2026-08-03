@@ -718,7 +718,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The court is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Seat one jester in every row, column and colored court, with none touching. The board stays covered until you begin.</p>
+                <p style={{ margin: '0 0 6px' }}>Seat {STARS === 2 ? 'two jesters' : 'one jester'} in every row, column and colored court, with none touching. The board stays covered until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -943,7 +943,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Jesters</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Jesters is a free daily logic puzzle from Mind Loft &mdash; a one-per-row, one-per-column, one-per-region placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat one jester in each: every row, every column and every court gets exactly one, and no two jesters may ever touch, not even at the corners.
+          Jesters is a free daily logic puzzle from Mind Loft &mdash; a placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat the jesters so that every row, every column and every court holds its quota: one apiece from Monday to Saturday, two apiece on the bigger Sunday board. No two jesters may ever touch, not even at the corners.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction &mdash; rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.
