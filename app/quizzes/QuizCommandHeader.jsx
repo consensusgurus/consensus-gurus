@@ -309,7 +309,32 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-bar.is-user .qch-brandlogo{display:none !important;}
           .qch-bar.is-guest .qch-searchbtn{display:none !important;}
           .qch-bar.is-guest .qch-brandlogo{flex:none;}
-          .qch-bar.is-guest .qch-melink{gap:9px;}
+          /* Guest phone layout (owner, Aug 2026). A signed-out visitor carries
+             the widest furniture on this bar: the guest chip AND the Sign Up
+             button. Absolutely centring that pair inside a fixed 188px reserve
+             left the nudge line wider than its column, so it slid UNDER the
+             Sign Up button at one end and up against the wordmark at the other.
+             Two changes fix it. The hamburger goes on guest phones: its two
+             links are still in the footer, and getting a guest signed up is
+             worth more than the nav here. And the chip drops out of the
+             absolute centring, so the chip + button are a normal right-aligned
+             flex group that takes whatever the wordmark leaves, with the text
+             column allowed to shrink (min-width:0) and ellipsis rather than
+             overflow when it runs out of room. */
+          .qch-bar.is-guest .qch-burger{display:none !important;}
+          .qch-bar.is-guest .qch-me{position:static;transform:none;margin:0 0 0 auto;max-width:none;min-width:0;flex:1 1 auto;}
+          .qch-bar.is-guest .qch-melink{gap:9px;justify-content:flex-end;min-width:0;}
+          .qch-bar.is-guest .qch-mecol{align-items:stretch;min-width:0;overflow:hidden;text-align:right;}
+          .qch-bar.is-guest .qch-nm{justify-content:flex-end;max-width:100%;}
+          .qch-bar.is-guest .qch-nudge{overflow:hidden;text-overflow:ellipsis;}
+          .qch-bar.is-guest .qch-stats{justify-content:flex-end;}
+        }
+        /* Under ~380px the nudge line stops fitting beside the button, and it
+           only restates what the button already says, so it goes rather than
+           truncating to a stub. The button keeps its full label at every width:
+           a bare person icon does not read as "sign up". */
+        @media(max-width:380px){
+          .qch-bar.is-guest .qch-nudge{display:none;}
         }
       `}</style>
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
