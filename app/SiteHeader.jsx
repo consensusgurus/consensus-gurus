@@ -120,7 +120,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         @media(max-width:1180px){.shc-src{display:none;}}
         @media(max-width:1080px){.shc-gtag{display:none;}.shc-game{padding:7px 12px;}}
         @media(max-width:900px){.shc-games{display:none;}}
-        @media(max-width:820px){.shc-wl{display:none;}.shc-ws{display:inline-flex;align-items:center;}}
+        @media(max-width:820px){.shc-wl{display:none;}.shc-ws{display:inline-flex;align-items:center;}.shc-brandlogo{display:none !important;}}
         @media(max-width:640px){.shc-sortwrap{display:none;}.shc-sorttxt{display:none;}}
         @media(max-width:560px){
           .shc{width:100vw;margin-left:calc(50% - 50vw);}
