@@ -4,19 +4,27 @@ import QuizCommandHeader from './QuizCommandHeader';
 import { T } from '@/lib/theme';
 
 // Self-contained command-bar header for the inner quiz surfaces (individual
-// quiz boards, Challenge, Duel, Business News, Stat Hub). Same full-bleed bar
-// as the /quizzes home, minus the search box and the live ticker tape — those
-// stay on the quizzes main page only. Fetches the player identity itself and
-// hosts its own sign-up modal, so it drops straight in wherever the old
-// SiteHeader + QuizPlayerBar casing used to live. Page content widths below it
-// are unchanged; this only swaps the header chrome.
+// quiz boards, Challenge, Duel, Business News, Community, Stat Hub, player
+// profiles). Fetches the player identity itself and hosts its own sign-up modal,
+// so it drops straight in wherever the old SiteHeader + QuizPlayerBar casing
+// used to live. Page content widths below it are unchanged; this only swaps the
+// header chrome.
 //
-// The search box is hidden here with a scoped rule (`.qnh-wrap .qch-search`)
-// rather than a QuizCommandHeader prop, so the shared header component stays
-// untouched. No ticker is passed, so the ticker tape never renders.
+// 2026-08-03: switched from the white 56px bar to the navy two-row scoreboard
+// (`variant="inner"`), matching the homepage. The stat row is KEPT because the
+// white bar it replaces already showed rank / IQ / played-today inline, so
+// dropping it would have been a regression for every player on these pages.
+// No ticker is passed, so the ticker tape never renders.
+//
+// NO WRAPPER ELEMENT. The old version wrapped the bar in `.qnh-wrap` to hide the
+// search box with a scoped rule; the navy variant has no search box, so the
+// wrapper is gone. That also matters structurally: a wrapper whose height equals
+// its only child's is a containing block a sticky child can never move within,
+// so leaving it in place would have quietly broken any future decision to pin
+// this bar. Eleven consumers still wrap it in their own `zIndex: 3` div, which is
+// harmless while the bar is in normal flow.
 const ACCENT = T.accent, INK = T.ink, MUTED = T.muted, SOFT = T.silver, LINE = 'rgba(20,22,28,0.30)';
 const MODAL_FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-const NOOP = () => {};
 
 function getAnonId() { try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
 function ensureAnonId() {
@@ -76,14 +84,12 @@ export default function QuizNavHeader() {
     const params = new URLSearchParams();
     if (anonId) params.set('anonId', anonId);
     if (email) params.set('email', email);
+    params.set('light', '1');
     fetch(`/api/quiz/me?${params.toString()}`).then((r) => r.json()).then((d) => setMe(d || null)).catch(() => setMe(null));
   }, []);
   return (
     <>
-      <div className="qnh-wrap">
-        <style>{`.qnh-wrap .qch-search,.qnh-wrap .qch-searchbtn{display:none !important;}`}</style>
-        <QuizCommandHeader me={me} search="" onSearch={NOOP} onSignup={() => setSignupOpen(true)} />
-      </div>
+      <QuizCommandHeader me={me} onSignup={() => setSignupOpen(true)} ticker={[]} variant="inner" />
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
     </>
   );

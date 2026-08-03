@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef, createContext, useContext 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { QUIZ_COUNT } from '../SiteHeader';
-import QuizCommandHeader from './QuizCommandHeader';
+import QuizCommandHeader, { jumpToQuizzes } from './QuizCommandHeader';
 import DuelTile from './DuelTile';
 import CommunityTile from './CommunityTile';
 import FeaturedFlipTile from './FeaturedFlipTile';
@@ -450,6 +450,16 @@ export default function QuizHomeClient() {
   const playerBarRef = useRef(null);
   const bestCatRef = useRef(null);
   const quizzesRef = useRef(null);
+  // The inner surfaces' nav has no browse row to scroll to, so its Quizzes link
+  // is `/#quizzes` and the jump happens here on arrival. Deferred a frame: the
+  // browse row's position is not final until the three-column daily section
+  // above it has laid out, and the two search fields swap at 820px, which is
+  // what jumpToQuizzes resolves.
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.location.hash !== '#quizzes') return undefined;
+    const t = setTimeout(jumpToQuizzes, 80);
+    return () => clearTimeout(t);
+  }, []);
   const [search, setSearch] = useState('');
   const [listMode, setListMode] = useState(null); // null | 'newest' | 'mostplayed' | 'live' (View all expansions)
   const [doneFilter, setDoneFilter] = useState('all'); // 'all' | 'unplayed' | 'played' | 'completed' (my-progress filter)

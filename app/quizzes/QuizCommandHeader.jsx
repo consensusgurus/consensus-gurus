@@ -83,7 +83,7 @@ function focusListSearch() {
 // that whole row at the TOP of the viewport (owner, 2026-08-03), so the quiz
 // catalogue starts at the fold rather than sitting mid-screen. scrollIntoView
 // with block:'center' cannot express that, hence the explicit scrollTo.
-function jumpToQuizzes() {
+export function jumpToQuizzes() {
   try {
     // TWO search fields exist and they swap at 820px: the tool row's
     // #qz-hero-search on desktop, the browse row's #qz-main-search below it.
@@ -197,7 +197,13 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
     return () => { ro.disconnect(); document.documentElement.style.removeProperty('--ml-headh'); };
   }, [variant, found]);
 
-  if (variant === 'home') {
+  if (variant === 'home' || variant === 'inner') {
+    // `inner` is the same two-row navy bar on every quiz surface that used to
+    // carry the white 56px bar (quiz boards, Stat Hub, Duel, Challenge,
+    // Business News, Community, player profiles). Two deliberate differences
+    // from `home`, both below: it sits in normal flow rather than sticking, and
+    // its nav links out instead of scrolling the page it is on.
+    const inner = variant === 'inner';
     const stat = (label, value, sub, subCls) => (
       <div className="qchm-cell">
         <div className="qchm-k">{label}</div>
@@ -206,13 +212,19 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
       </div>
     );
     return (
-      <div className="qchm">
+      <div className={inner ? 'qchm qchm-inner' : 'qchm'}>
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
           /* Locked to the top (owner, 2026-08-03). sticky rather than fixed so it
              keeps its own space in flow and needs no spacer element the way the
              white bar below does. */
           .qchm{font-family:${FONT};position:sticky;top:0;z-index:90;}
+          /* Inner surfaces sit in normal FLOW (no sticking: see the note in the
+             component), but stay position:relative rather than static so .qchm's
+             z-index still applies. Several of these pages render <Grain /> as a
+             fixed z-index:1 noise overlay, and a static header paints beneath it,
+             so the bar would have come out under a multiply-blended grain wash. */
+          .qchm-inner{position:relative;}
           .qchm-r1{background:var(--accent);color:var(--white);}
           .qchm-in{max-width:1560px;margin:0 auto;padding:12px clamp(16px,2.5vw,34px);display:flex;align-items:center;gap:16px;}
           .qchm-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;}
@@ -264,8 +276,14 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           </Link>
           <span className="qchm-tag">Elevate Your Thinking</span>
           <nav className="qchm-nav">
-            <Link href="/" className="on">Today</Link>
-            <button type="button" onClick={jumpToQuizzes}>Quizzes</button>
+            {/* On the homepage Today IS this page and Quizzes is a scroll, so one
+                is marked active and the other is a button. On an inner surface
+                neither is the current page: both navigate, and Quizzes carries
+                the #quizzes hash the homepage reads on arrival. */}
+            <Link href="/" className={inner ? undefined : 'on'}>Today</Link>
+            {inner
+              ? <Link href="/#quizzes">Quizzes</Link>
+              : <button type="button" onClick={jumpToQuizzes}>Quizzes</button>}
             <Link href="/lists">Top 10 Lists</Link>
           </nav>
           <div className="qchm-user">
