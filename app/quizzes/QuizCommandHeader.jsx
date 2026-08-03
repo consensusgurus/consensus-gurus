@@ -214,7 +214,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
              white bar below does. */
           .qchm{font-family:${FONT};position:sticky;top:0;z-index:90;}
           .qchm-r1{background:var(--accent);color:var(--white);}
-          .qchm-in{max-width:1560px;margin:0 auto;padding:12px clamp(12px,2vw,20px);display:flex;align-items:center;gap:16px;}
+          .qchm-in{max-width:1560px;margin:0 auto;padding:12px clamp(16px,2.5vw,34px);display:flex;align-items:center;gap:16px;}
           .qchm-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;}
           .qchm-wm{font-size:18px;font-weight:800;letter-spacing:-.025em;color:var(--white);line-height:1;white-space:nowrap;}
           .qchm-wm em{font-style:normal;color:var(--blue-400);}
@@ -243,10 +243,10 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-signup:hover{background:#3b7bf5;}
           @media(max-width:1100px){.qchm-tag{display:none;}}
           @media(max-width:860px){
-            .qchm-in{padding:11px 12px;gap:10px;}
+            .qchm-in{padding:11px 14px;gap:10px;}
             .qchm-nav{display:none;}
             .qchm-user{display:flex;}
-            .qchm-r2 .qchm-in{padding:9px 4px;}
+            .qchm-r2 .qchm-in{padding:9px 6px;}
             .qchm-cell{flex:1;padding:0 6px;text-align:center;}
             .qchm-hidem{display:none;}
             .qchm-k{display:none;}

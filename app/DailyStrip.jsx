@@ -549,6 +549,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           <a className="sl-ic" href={g.href} aria-label={g.name}><img src={g.img} alt="" aria-hidden="true" /></a>
           <a className="sl-nm" href={g.href}>
             <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
+            <i className="sl-mld">{lead ? <><Crown size={9} strokeWidth={2.6} />{lead}</> : 'Be the first'}</i>
             <span className="sl-sub">{g.tag}{pl != null ? <em className="sl-mpl">{` \u00b7 ${fmtPlays(pl)} playing`}</em> : null}</span>
           </a>
           <span className="sl-cat"><span style={{ background: `${col}1a`, color: col }}>{cat}</span></span>
@@ -962,6 +963,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
         .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
         .dh-board.slate:hover::-webkit-scrollbar-thumb{background:#c9d1dd;}
+        /* Up next and Easiest leaderboard are a matched pair on the slate: two
+           equal cells, same eyebrow, same button (owner, 2026-08-03). On a phone
+           they stop being cells and become two full-width bars, one under the
+           other, the way the mockup has them. */
+        .dhome.slate .dh-cell{flex:1 1 50%;}
+        .dhome.slate .dh-cell .dh-play{min-width:104px;}
+        @media(max-width:900px){
+          .dhome.slate .dh-sbar{flex-direction:column;align-items:stretch;gap:0;padding:0;}
+          .dhome.slate .dh-cell{padding:10px 12px;border-left:none;flex:none;width:100%;}
+          .dhome.slate .dh-cell + .dh-cell{padding-left:12px;border-left:none;border-top:1px solid var(--border);}
+          .dhome.slate .dh-cell .dh-play{margin-left:auto;min-width:88px;font-size:12px;padding:9px 14px;}
+          .dhome.slate .dh-busub{display:block;}
+        }
         .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border:1.5px solid var(--border);border-bottom:2px solid var(--accent);border-radius:13px 13px 0 0;}
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);}
@@ -988,6 +1002,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-nm .sl-sub{display:block;font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-cm{display:none;}
         .sl-mpl{display:none;font-style:normal;}
+        .sl-mld{display:none;font-style:normal;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
         .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;color:#a16207;display:flex;align-items:center;justify-content:flex-end;gap:2px;}
@@ -1022,6 +1037,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-nm b{display:inline;font-size:14.5px;}
           .sl-cm{display:inline;font-weight:600;font-size:12px;margin-left:6px;}
           .sl-mpl{display:inline;}
+          .sl-mld{display:inline-flex;align-items:center;gap:3px;margin-left:8px;font-size:11px;font-weight:700;color:var(--muted);max-width:38vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:baseline;}
+          .sl-mld svg{flex:none;color:var(--gold-ink);}
           .sl-btn{width:64px;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
