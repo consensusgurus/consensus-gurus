@@ -1,8 +1,9 @@
 import { LISTS } from '@/lib/data';
 import { QUIZZES } from '@/lib/quizzes';
+import { SITE_URL } from '@/lib/site';
 
 export default function sitemap() {
-  const baseUrl = 'https://sourceoftruths.com';
+  const baseUrl = SITE_URL;
 
   // Newest list's publish time doubles as the homepage lastModified,
   // since the homepage changes whenever a list is added.

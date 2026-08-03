@@ -8,11 +8,12 @@ import ShareCreditPop from './ShareCreditPop';
 import TrophyPop from './TrophyPop';
 import { getAllSources } from '@/lib/sources';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 const SOURCE_COUNT = getAllSources().length;
 
 export const metadata = {
-  metadataBase: new URL('https://sourceoftruths.com'),
+  metadataBase: new URL(SITE_URL),
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Mind Loft' },
   title: `Mind Loft | Elevate Your Thinking`,
   description: `Elevate your thinking every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
