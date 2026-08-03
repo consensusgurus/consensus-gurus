@@ -243,9 +243,6 @@ export default function HomeRails({
       .hr-stats > div:last-child{border-right:none;}
       .hr-stats b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;}
       .hr-stats span{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);font-weight:800;}
-      .hr-livewrap{display:flex;align-items:center;flex:none !important;}
-      .hr-live{font-size:10px;font-weight:800;letter-spacing:.11em;color:var(--success-deep);display:inline-flex;align-items:center;gap:5px;}
-      .hr-live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--success);}
       .hr-res{display:flex;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-res:last-child{border-bottom:none;}
       .hr-res:hover{background:var(--surface);}
@@ -368,7 +365,6 @@ export default function HomeRails({
         <div className="hr-stats">
           <div><b>{num(playsToday)}</b><span>plays today</span></div>
           <div><b>{timeToday}</b><span>played today</span></div>
-          <div className="hr-livewrap"><span className="hr-live">Live</span></div>
         </div>
         <div className="hr-scroll hr-flex hr-actbody">
           {tab === 'feed' ? (

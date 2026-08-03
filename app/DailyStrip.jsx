@@ -267,6 +267,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // called setFilter since the board was built, but the state was never
   // declared, so the call threw inside its own try/catch and did nothing.
   const [filter, setFilter] = useState('all');
+  // Slate sort: null keeps the board's own order (unplayed first, then done).
+  // Text columns default to A-Z, number columns to biggest first, because that
+  // is what someone clicking "Players" or "Streak" is looking for.
+  const [sort, setSort] = useState(null);
   const vpRef = useRef(null);
   const boardRef = useRef(null);
 
@@ -421,7 +425,45 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
   // The slate filters for real (the tile board still dims rather than removes).
   const slateMatch = (g) => (filter === 'all' ? true : filter === 'todo' ? !done.has(g.key) : g.cat === filter);
-  const slateList = list.filter(slateMatch);
+  const SORT_NUMERIC = new Set(['players', 'streak', 'archive', 'status']);
+  const sortVal = (g, key) => {
+    if (key === 'game') return g.name || '';
+    if (key === 'cat') return g.cat || '';
+    if (key === 'players') return playsOf(g.key) || 0;
+    if (key === 'streak') return streaks[g.key] || 0;
+    if (key === 'leader') {
+      const b = byKey[g.key];
+      return (hasBoard && b && b.board && b.board[0] && b.board[0].username) || '';
+    }
+    // done (2) beats in progress (1) beats untouched (0)
+    if (key === 'status') return done.has(g.key) ? 2 : (inprog.has(g.key) ? 1 : 0);
+    if (key === 'archive') {
+      const a = archive[g.key];
+      return (a && a.total) ? (a.played / a.total) : -1;
+    }
+    return '';
+  };
+  const slateList = (() => {
+    const rows = list.filter(slateMatch);
+    if (!sort) return rows;
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    // A blank leader sorts last either way rather than clumping at the top of
+    // an ascending list.
+    return rows.slice().sort((a, b) => {
+      const x = sortVal(a, sort.key), y = sortVal(b, sort.key);
+      if (typeof x === 'string' || typeof y === 'string') {
+        const sx = String(x), sy = String(y);
+        if (!sx !== !sy) return sx ? -1 : 1;
+        return sx.localeCompare(sy) * dir || (a.name || '').localeCompare(b.name || '');
+      }
+      return (x - y) * dir || (a.name || '').localeCompare(b.name || '');
+    });
+  })();
+  const toggleSort = (key) => setSort((cur) => (
+    cur && cur.key === key
+      ? { key, dir: cur.dir === 'asc' ? 'desc' : 'asc' }
+      : { key, dir: SORT_NUMERIC.has(key) ? 'desc' : 'asc' }
+  ));
   const slateCats = [];
   for (const g of games) if (!slateCats.includes(g.cat)) slateCats.push(g.cat);
   const slatePlays = games.reduce((n, g) => n + (playsOf(g.key) || 0), 0);
@@ -1005,6 +1047,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
         .sl-head .c{display:flex;align-items:center;justify-content:flex-start;text-align:left;}
+        .sl-sort{display:inline-flex;align-items:center;gap:4px;border:0;border-radius:0;background:transparent;padding:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;white-space:nowrap;}
+        .sl-sort svg{opacity:0;transition:opacity .12s;flex:none;}
+        .sl-sort:hover{color:var(--accent);}
+        .sl-sort:hover svg{opacity:.45;}
+        .sl-sort.on{color:var(--blue-deep);}
+        .sl-sort.on svg{opacity:1;}
         .sl-row{border-bottom:1px solid #f0f2f6;font-size:13px;}
         .sl-row:hover{background:var(--surface);}
         .sl-row.done{background:#f6fbf8;}
@@ -1316,10 +1364,29 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             </div>
           ) : null}
           {slate ? (
-            <div className="sl-head" aria-hidden="true">
-              <span /><span>Game</span><span>Category</span>
-              <span className="c">Players</span><span className="c">Streak</span><span>Leader</span>
-              <span className="c">Status</span><span className="c">Archive &amp; stats</span>
+            <div className="sl-head" role="row">
+              <span />
+              {[['game', 'Game', ''], ['cat', 'Category', ''], ['players', 'Players', 'c'],
+                ['streak', 'Streak', 'c'], ['leader', 'Leader', ''], ['status', 'Status', 'c'],
+                ['archive', 'Archive & stats', 'c']].map(([key, label, cls]) => {
+                const on = sort && sort.key === key;
+                return (
+                  <span key={key} className={cls || undefined}>
+                    <button
+                      type="button"
+                      className={`sl-sort${on ? ' on' : ''}`}
+                      onClick={() => toggleSort(key)}
+                      aria-label={`Sort by ${label}`}
+                      aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                    >
+                      {label}
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" aria-hidden="true">
+                        {on && sort.dir === 'asc' ? <path d="m6 15 6-6 6 6" /> : <path d="m6 9 6 6 6-6" />}
+                      </svg>
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           ) : null}
           <div
