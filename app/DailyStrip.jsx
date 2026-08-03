@@ -546,7 +546,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const open = sel === g.key;
       out.push(
         <div key={g.key} className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}`}>
-          <span className="sl-rk">{i + 1}</span>
           <a className="sl-ic" href={g.href} aria-label={g.name}><img src={g.img} alt="" aria-hidden="true" /></a>
           <a className="sl-nm" href={g.href}>
             <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
@@ -949,7 +948,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            and the per-game panel opens as a drawer under its own row. */
         .dh-boardwrap.slate{padding:0;}
         .dh-boardwrap.slate.open{min-height:0;}
-        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;}
+        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;max-height:calc(100vh - 300px);min-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
+        .dh-board.slate::-webkit-scrollbar{width:6px;}
+        .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
+        .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
+        .dh-board.slate:hover::-webkit-scrollbar-thumb{background:#c9d1dd;}
         .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border-bottom:2px solid var(--accent);}
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);}
         .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5a6b90;}
@@ -959,7 +962,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button:hover{color:var(--ink);}
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:var(--white);}
         .sl-empty{padding:18px 13px;font-size:12.5px;color:var(--muted);text-align:center;}
-        .sl-head,.sl-row{display:grid;grid-template-columns:26px 42px minmax(0,1fr) 104px 58px 50px 116px 78px 104px;align-items:center;gap:9px;padding:6px 13px;}
+        .sl-head,.sl-row{display:grid;grid-template-columns:42px minmax(0,1fr) 104px 58px 50px 116px 78px 104px;align-items:center;gap:9px;padding:6px 13px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
         .sl-row{border-bottom:1px solid #f0f2f6;font-size:13px;}
@@ -967,7 +970,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-row.done{background:#f6fbf8;}
         .sl-row.inprog{background:#fffaeb;}
         .sl-row.open{background:var(--accent-soft);}
-        .sl-rk{font-size:11px;font-weight:800;color:#9aa2b1;font-variant-numeric:tabular-nums;text-align:right;}
         .sl-ic{display:flex;align-items:center;justify-content:center;height:34px;background:var(--surface-alt);border-radius:8px;}
         .sl-ic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
         .sl-nm{min-width:0;text-decoration:none;color:var(--ink);display:block;}
@@ -1001,9 +1003,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            the play count moves into the subtitle, and only the status button
            keeps the right edge (owner, 2026-08-03). */
         @media(max-width:900px){
+          .dh-board.slate{max-height:none;min-height:0;overflow:visible;}
           .sl-head{display:none;}
           .sl-row{grid-template-columns:40px minmax(0,1fr) auto;gap:10px;padding:8px 12px;}
-          .sl-rk,.sl-cat,.sl-pl,.sl-st,.sl-ld,.sl-arch{display:none;}
+          .sl-cat,.sl-pl,.sl-st,.sl-ld,.sl-arch{display:none;}
           .sl-nm b{display:inline;font-size:14.5px;}
           .sl-cm{display:inline;font-weight:600;font-size:12px;margin-left:6px;}
           .sl-btn{width:64px;}
@@ -1256,7 +1259,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           ) : null}
           {slate ? (
             <div className="sl-head" aria-hidden="true">
-              <span className="r">#</span><span /><span>Game</span><span>Category</span>
+              <span /><span>Game</span><span>Category</span>
               <span className="r">Players</span><span className="r">Streak</span><span>Leader</span>
               <span className="r">Status</span><span className="r">Archive &amp; stats</span>
             </div>
