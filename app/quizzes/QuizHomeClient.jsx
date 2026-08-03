@@ -1814,7 +1814,11 @@ export default function QuizHomeClient() {
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
       <QuizCommandHeader me={me} onSignup={() => setSignupOpen(true)} ticker={[]} variant="home" onCredit={() => setCreditOpen(true)} />
-      <div className="qzh qzf-w" style={{ maxWidth: 1560, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style>
+      <div className="qzh qzf-w" style={{ maxWidth: 1560, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
+        /* Phone: the daily console butts straight up against the command bar,
+           so the page's own top padding goes and the section carries no gap
+           above it (owner, 2026-08-03). */
+        @media(max-width:900px){.qzf-w{padding-top:0 !important;}.qzh .dhx{padding-top:0 !important;}.qzh .dhx-center{margin-top:0 !important;}}`}</style>
 
         {(() => {
           if (duelMuteAll) return null;

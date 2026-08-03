@@ -974,12 +974,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              transform makes the console a containing block and kills the sticky
              strip bar and column header inside it. */
           .dhome.slate{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;}
-          .dhome.slate .sl-bar{border-left:none;border-right:none;border-radius:0;border-top:1.5px solid var(--border);margin-top:10px;}
+          .dhome.slate .sl-bar{border-left:none;border-right:none;border-radius:0;border-top:none;margin-top:0;}
           .dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
           /* the two lead-in bars come FIRST on a phone, above the slate's own
              title band. .dhome is a flex column, so this is an order flip, not
              a second copy of the markup. */
-          .dhome.slate .dh-sbar{order:-1;flex-direction:column;align-items:stretch;gap:2px;padding:0;background:transparent;border:none;}
+          .dhome.slate .dh-sbar{order:-1;flex-direction:column;align-items:stretch;gap:0;padding:0;background:transparent;border:none;}
           .dhome.slate .sl-bar{order:0;}
           .dhome.slate .dh-boardwrap{order:1;}
           .dhome.slate .dh-cell{position:relative;flex:none;width:100%;padding:13px 14px 13px 22px;border:none;border-radius:0;background:var(--blue);color:var(--white);}
