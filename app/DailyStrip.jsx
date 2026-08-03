@@ -262,6 +262,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Phones open on the first eight tiles only (owner, 2026-07-31). This is the
   // toggle behind .dh-mall; the cut itself is CSS, see .dh-board.mcut below.
   const [showAll, setShowAll] = useState(false);
+  // Board filter: 'all' | 'todo' | a category name. The phone default below has
+  // called setFilter since the board was built, but the state was never
+  // declared, so the call threw inside its own try/catch and did nothing.
+  const [filter, setFilter] = useState('all');
   const vpRef = useRef(null);
   const boardRef = useRef(null);
 
@@ -413,6 +417,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
+  // The slate filters for real (the tile board still dims rather than removes).
+  const slateList = filter === 'all'
+    ? list
+    : filter === 'todo'
+      ? list.filter((g) => !done.has(g.key))
+      : list.filter((g) => g.cat === filter);
+  const slateCats = [];
+  for (const g of games) if (!slateCats.includes(g.cat)) slateCats.push(g.cat);
+  const slatePlays = games.reduce((n, g) => n + (playsOf(g.key) || 0), 0);
   const shift = metrics ? Math.min(rowOffset, metrics.maxOffset) : 0;
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
@@ -937,6 +950,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-boardwrap.slate{padding:0;}
         .dh-boardwrap.slate.open{min-height:0;}
         .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;}
+        .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border-bottom:2px solid var(--accent);}
+        .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);}
+        .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5a6b90;}
+        .sl-filt{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+        .sl-filt::-webkit-scrollbar{display:none;}
+        .sl-filt button{border:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
+        .sl-filt button:hover{color:var(--ink);}
+        .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:var(--white);}
+        .sl-empty{padding:18px 13px;font-size:12.5px;color:var(--muted);text-align:center;}
         .sl-head,.sl-row{display:grid;grid-template-columns:26px 42px minmax(0,1fr) 104px 58px 50px 116px 78px 104px;align-items:center;gap:9px;padding:6px 13px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
@@ -1213,6 +1235,26 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
           {slate ? (
+            <div className="sl-bar">
+              <span className="sl-ttl">Today&rsquo;s slate</span>
+              <span className="sl-count">{games.length} games &middot; {slatePlays.toLocaleString()} plays</span>
+            </div>
+          ) : null}
+          {slate ? (
+            <div className="sl-filt" role="tablist" aria-label="Filter the slate">
+              {[['all', 'All'], ['todo', 'Unplayed']].concat(slateCats.map((c) => [c, CAT_SHORT[c] || c])).map(([k, label]) => (
+                <button
+                  key={k}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === k}
+                  className={filter === k ? 'on' : undefined}
+                  onClick={() => setFilter(k)}
+                >{label}</button>
+              ))}
+            </div>
+          ) : null}
+          {slate ? (
             <div className="sl-head" aria-hidden="true">
               <span className="r">#</span><span /><span>Game</span><span>Category</span>
               <span className="r">Players</span><span className="r">Streak</span><span>Leader</span>
@@ -1229,7 +1271,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
-            {slate ? renderSlate(list) : renderTiles(list, false)}
+            {slate ? (slateList.length
+              ? renderSlate(slateList)
+              : <div className="sl-empty">Nothing matches that filter today.</div>)
+              : renderTiles(list, false)}
           </div>
         </div>
         {metrics && metrics.maxOffset > 0 && !selGame ? (
