@@ -1,7 +1,7 @@
 import { renderTaireCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Taire — a daily puzzle from Source of Truths'
+export const alt = 'Taire — a daily puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one deal a day, same look): render the Taire snapshot card

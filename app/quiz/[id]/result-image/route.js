@@ -15,7 +15,7 @@ export async function GET(req, { params }) {
   const total = Math.max(0, parseInt(searchParams.get('t') || '0', 10) || 0);
   const pct = Math.max(0, Math.min(100, parseInt(searchParams.get('p') || '0', 10) || 0));
   return renderQuizResultCard({
-    title: quiz ? quiz.title : 'Source of Truths Quiz',
+    title: quiz ? quiz.title : 'Mind Loft Quiz',
     category: quiz ? quiz.category : 'Quiz',
     score, total, pct,
     faviconDomain: companyDomainForQuiz(id),

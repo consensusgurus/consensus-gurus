@@ -1,7 +1,7 @@
 import { renderAlibiCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Alibi — the nightly whodunit from Source of Truths'
+export const alt = 'Alibi — the nightly whodunit from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one case a day, same look): render the Alibi snapshot card

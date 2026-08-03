@@ -15,7 +15,7 @@ import { T } from '@/lib/theme';
 // reverse-engineered before playing.
 
 export const metadata = {
-  title: 'Outrank — Daily Crowd Puzzle: Predict the Crowd’s Ranking | Source of Truths',
+  title: 'Outrank — Daily Crowd Puzzle: Predict the Crowd’s Ranking | Mind Loft',
   description:
     'A free daily puzzle where the crowd is the answer key. Vote your favorite from a themed slate, then predict how everyone playing today ranks the whole list. Seven items in the Sunday Edition. Exact slot pays double; the order shifts all day as votes arrive.',
   alternates: { canonical: '/outrank' },
@@ -28,10 +28,10 @@ export const metadata = {
   openGraph: {
     title: 'Outrank — The Daily Crowd-Ranking Puzzle',
     description:
-      'Vote your favorite, then call the crowd’s order. The answer key is everyone playing today. From Source of Truths.',
+      'Vote your favorite, then call the crowd’s order. The answer key is everyone playing today. From Mind Loft.',
     url: '/outrank',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -57,7 +57,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/outrank.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

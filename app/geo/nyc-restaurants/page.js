@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 export const metadata = {
-  title: 'NYC Restaurant Geo Guesser | Source of Truths',
+  title: 'NYC Restaurant Geo Guesser | Mind Loft',
   alternates: { canonical: '/quiz/nyc-restaurant-geo-guesser' },
 };
 

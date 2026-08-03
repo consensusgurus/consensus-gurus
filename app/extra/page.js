@@ -10,7 +10,7 @@ import { T } from '@/lib/theme';
 // strips run out. Sundays run a trickier story.
 
 export const metadata = {
-  title: 'Extra — Daily History Puzzle: Name the Redacted Headline | Source of Truths',
+  title: 'Extra — Daily History Puzzle: Name the Redacted Headline | Mind Loft',
   description:
     "A free daily history puzzle — one historic front page with the giveaway words blacked out. Name the story; every wrong guess tears one more word free. Six tears, one hint, and a perfect score for naming it cold.",
   alternates: { canonical: '/extra' },
@@ -23,10 +23,10 @@ export const metadata = {
   openGraph: {
     title: 'Extra — The Daily Front Page',
     description:
-      "One historic headline a day, with the giveaway words blacked out. Name the story before the censor strips run out. From Source of Truths.",
+      "One historic headline a day, with the giveaway words blacked out. Name the story before the censor strips run out. From Mind Loft.",
     url: '/extra',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -52,7 +52,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/extra.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

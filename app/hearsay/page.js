@@ -14,7 +14,7 @@ import { T } from '@/lib/theme';
 // derived in the browser rather than shipped.
 
 export const metadata = {
-  title: 'Hearsay — Free Daily Logic Puzzle: Deduce What They Know | Source of Truths',
+  title: 'Hearsay — Free Daily Logic Puzzle: Deduce What They Know | Mind Loft',
   description:
     'A free daily logic puzzle in the Cheryl’s Birthday family. Two people are each told one detail of a secret card, then they talk. Work out which card it is from what they admit they do not know. New case every day.',
   alternates: { canonical: '/hearsay' },
@@ -27,10 +27,10 @@ export const metadata = {
   openGraph: {
     title: 'Hearsay — Deduce It From What They Don’t Know',
     description:
-      'Each of them was told one detail and nothing else. Then they speak. Every admission of ignorance cuts the shortlist, and exactly one card survives. A new daily logic puzzle from Source of Truths.',
+      'Each of them was told one detail and nothing else. Then they speak. Every admission of ignorance cuts the shortlist, and exactly one card survives. A new daily logic puzzle from Mind Loft.',
     url: '/hearsay',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -55,7 +55,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/hearsay.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

@@ -1140,7 +1140,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
   const mode = list.mode || 'both';
   // Total contributing sources for this list: every entry in list.sources
   // except the legacy `ai` seed (the real publications/rating sources), plus
-  // the Source of Truths user vote on lists that have voting. Floored at 1 so
+  // the Mind Loft user vote on lists that have voting. Floored at 1 so
   // objective `facts` lists (no editorial sources, no vote) still read "Sources: 1".
   const sourceCount = (() => {
     const pubs = Object.keys(list.sources || {}).filter((id) => id !== 'ai').length;
@@ -1637,7 +1637,7 @@ function ntPreview(list, voteData, extras, limit) {
 // two white rings, gold star. Inlined as SVG so it needs no asset/CDN.
 function NTLogo({ size = 38 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none' }}>
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none' }}>
       <defs>
         <linearGradient id="sotLogoBlue" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#1e3a6b" /><stop offset="1" stopColor="#0a1730" />

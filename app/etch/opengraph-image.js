@@ -1,7 +1,7 @@
 import { renderEtchCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Etch — a daily nonogram from Source of Truths'
+export const alt = 'Etch — a daily nonogram from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one picture a day, same look): render the Etch snapshot card

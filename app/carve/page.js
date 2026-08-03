@@ -9,7 +9,7 @@ import { T } from '@/lib/theme';
 // are a 6×6 board in six blocks; Sundays step up to a 7×7 board in nine.
 
 export const metadata = {
-  title: 'Carve — Free Daily Number Puzzle | Source of Truths',
+  title: 'Carve — Free Daily Number Puzzle | Mind Loft',
   description:
     'A free daily equal-sum puzzle — carve the grid into connected blocks, one per colored anchor, so every block adds to the same target. One valid carving, a clean solve wins, and Sundays go bigger.',
   alternates: { canonical: '/carve' },
@@ -22,10 +22,10 @@ export const metadata = {
   openGraph: {
     title: 'Carve — A Daily Equal-Sum Puzzle',
     description:
-      'Slice the grid into connected blocks that all add to the same target. Exactly one valid carving. A new board from Source of Truths, daily.',
+      'Slice the grid into connected blocks that all add to the same target. Exactly one valid carving. A new board from Mind Loft, daily.',
     url: '/carve',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -51,7 +51,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/carve.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

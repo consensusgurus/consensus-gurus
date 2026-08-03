@@ -14,7 +14,7 @@ import { T } from '@/lib/theme';
 // crowd could be reverse-engineered before playing.
 
 export const metadata = {
-  title: 'Outwit — Daily Crowd Puzzle: Beat Everyone Playing Today | Source of Truths',
+  title: 'Outwit — Daily Crowd Puzzle: Beat Everyone Playing Today | Mind Loft',
   description:
     'A free daily puzzle where the puzzle is other people. Five game-theory prompts against the whole field: dodge the popular pick, read the herd, meet the crowd, be the rare bird, then undercut the average by a fraction that changes daily. Six prompts in the Sunday Edition. Then see where everyone actually went.',
   alternates: { canonical: '/outwit' },
@@ -27,10 +27,10 @@ export const metadata = {
   openGraph: {
     title: 'Outwit — The Daily Crowd Puzzle',
     description:
-      'Your opponent is everyone playing today. Five quick prompts, no right answers — only what the crowd does. From Source of Truths.',
+      'Your opponent is everyone playing today. Five quick prompts, no right answers — only what the crowd does. From Mind Loft.',
     url: '/outwit',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -56,7 +56,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/outwit.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

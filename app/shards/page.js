@@ -10,7 +10,7 @@ import { T } from '@/lib/theme';
 // pieces into the one grid where every run is a real word.
 
 export const metadata = {
-  title: 'Shards - Daily Jigsaw Crossword | Source of Truths',
+  title: 'Shards - Daily Jigsaw Crossword | Mind Loft',
   description:
     'A free daily word puzzle: a mini crossword arrives already solved but shattered into lettered puzzle pieces. Reassemble them so every across and down run is a real word. No clues, one verified solution, a fresh grid every day.',
   alternates: { canonical: '/shards' },
@@ -18,10 +18,10 @@ export const metadata = {
   openGraph: {
     title: 'Shards - The Daily Jigsaw Crossword',
     description:
-      'The grid comes solved, then shattered into lettered pieces. Put it back together so every word reads true. A new daily word puzzle from Source of Truths.',
+      'The grid comes solved, then shattered into lettered pieces. Put it back together so every word reads true. A new daily word puzzle from Mind Loft.',
     url: '/shards',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -47,7 +47,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/shards.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

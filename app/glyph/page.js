@@ -10,7 +10,7 @@ import { T } from '@/lib/theme';
 // key) never reaches the browser.
 
 export const metadata = {
-  title: 'Glyph — Free Daily Codeword Puzzle | Source of Truths',
+  title: 'Glyph — Free Daily Codeword Puzzle | Mind Loft',
   description:
     'A free daily codeword, the crossword with no clues. Every letter is replaced by a number from 1 to 26, the same number always meaning the same letter. Crack the whole alphabet from two or three given letters. One solution, a new grid every day, and a bigger 17x17 Edition on Sundays.',
   alternates: { canonical: '/glyph' },
@@ -20,7 +20,7 @@ export const metadata = {
       'No clues. Every letter is a number, and the same number always means the same letter. Crack the code, fill the grid.',
     url: '/glyph',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -44,7 +44,7 @@ const gameJsonLd = {
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

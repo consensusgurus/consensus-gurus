@@ -545,7 +545,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, color: COLORS.ink }}>About Bracket</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Bracket is a free daily puzzle from Source of Truths that borrows the most-shared format in America and fills it with facts. Sixteen real things are seeded into a single-elimination draw, every matchup asks the same question, and you fill the whole sheet before you learn anything.
+          Bracket is a free daily puzzle from Mind Loft that borrows the most-shared format in America and fills it with facts. Sixteen real things are seeded into a single-elimination draw, every matchup asks the same question, and you fill the whole sheet before you learn anything.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           What makes it bite is propagation. Your winners carry forward, so a first-round call you got wrong quietly ruins every later line it touches, and you will not find out until the reveal. The draw is built so the opening round is lopsided and the true final is a coin flip, which is why the last pick is worth eight times the first.
@@ -562,7 +562,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
     const rows = perRound.map(([hit, of], r) => `${ROUND_NAME(r, ROUNDS).replace('Round of ', 'R')} ${hit}/${of}`).join(' · ');
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Bracket #${PUZZLE.num} — the daily bracket of facts from Source of Truths.\n${withRef(`sourceoftruths.com/bracket${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Bracket #${PUZZLE.num} — the daily bracket of facts from Mind Loft.\n${withRef(`sourceoftruths.com/bracket${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Bracket #${PUZZLE.num} — ${score}/${TOTAL}\n${rows}${streakBit}\n${withRef(`sourceoftruths.com/bracket${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}

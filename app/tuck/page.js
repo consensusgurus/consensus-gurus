@@ -10,7 +10,7 @@ import { T } from '@/lib/theme';
 // chase the solver-verified par.
 
 export const metadata = {
-  title: 'Tuck — Daily Word Puzzle: Same Letters, Highest Score Wins | Source of Truths',
+  title: 'Tuck — Daily Word Puzzle: Same Letters, Highest Score Wins | Mind Loft',
   description:
     'A free daily word puzzle — everyone gets the same 14 letters, and 15 in the Sunday Edition. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified par to beat.',
   alternates: { canonical: '/tuck' },
@@ -23,10 +23,10 @@ export const metadata = {
   openGraph: {
     title: 'Tuck — The Daily Tile-Tucking Word Puzzle',
     description:
-      'Fourteen letters, one empty board, no single answer. Everyone plays the same rack, and the highest score wins the day. From Source of Truths.',
+      'Fourteen letters, one empty board, no single answer. Everyone plays the same rack, and the highest score wins the day. From Mind Loft.',
     url: '/tuck',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -52,7 +52,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/tuck.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

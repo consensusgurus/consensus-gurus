@@ -1,7 +1,7 @@
 import { renderWarmerCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Warmer — a daily hot-and-cold word puzzle from Source of Truths'
+export const alt = 'Warmer — a daily hot-and-cold word puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one word a day, same look): render the Warmer snapshot card

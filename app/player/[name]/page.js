@@ -4,14 +4,14 @@ import PlayerProfileClient from './PlayerProfileClient';
 // guests stay reachable through the Stat Hub's in-place viewer.
 export async function generateMetadata({ params }) {
   const name = decodeURIComponent(params.name || '');
-  const title = `${name} · Player Profile | Source of Truths`;
-  const description = `${name}'s Source of Truths player profile: trophy case, IQ Points, level and tier, category standings, streaks, and the full game history.`;
+  const title = `${name} · Player Profile | Mind Loft`;
+  const description = `${name}'s Mind Loft player profile: trophy case, IQ Points, level and tier, category standings, streaks, and the full game history.`;
   const url = `/player/${encodeURIComponent(name)}`;
   return {
     title,
     description,
     alternates: { canonical: url },
-    openGraph: { title: `${name} · Source of Truths Player Profile`, description, url, type: 'profile', siteName: 'Source of Truths' },
+    openGraph: { title: `${name} · Mind Loft Player Profile`, description, url, type: 'profile', siteName: 'Mind Loft' },
     twitter: { card: 'summary_large_image', title, description },
   };
 }

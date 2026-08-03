@@ -10,7 +10,7 @@ import { T } from '@/lib/theme';
 // to a 7×7 pinwheel with 22.
 
 export const metadata = {
-  title: 'Emcee — Free Daily Mini Crossword | Source of Truths',
+  title: 'Emcee — Free Daily Mini Crossword | Mind Loft',
   description:
     'A free daily mini crossword — a 5×5 grid of everyday words with fair Across and Down clues, done in a minute or two. The grid checks itself when the last square lands, and Sundays go bigger.',
   alternates: { canonical: '/emcee' },
@@ -23,10 +23,10 @@ export const metadata = {
   openGraph: {
     title: 'Emcee — A Daily Mini Crossword',
     description:
-      'A proper mini crossword, five by five: everyday words, fair clues, and a timer that stops when the grid is right. A new grid from Source of Truths, daily.',
+      'A proper mini crossword, five by five: everyday words, fair clues, and a timer that stops when the grid is right. A new grid from Mind Loft, daily.',
     url: '/emcee',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -52,7 +52,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/emcee.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

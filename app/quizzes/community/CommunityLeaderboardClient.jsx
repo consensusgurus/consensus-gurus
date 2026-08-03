@@ -86,7 +86,7 @@ export default function CommunityLeaderboardClient() {
           <h1 style={{ margin: 0, fontSize: 30, fontWeight: 800, letterSpacing: '-0.6px' }}>Community Leaderboard</h1>
         </div>
         <p style={{ margin: '0 0 4px', fontSize: 14.5, lineHeight: 1.5, color: C.muted, maxWidth: 620 }}>
-          The players bringing the most new people to Source of Truths. I&apos;m a single person
+          The players bringing the most new people to Mind Loft. I&apos;m a single person
           startup, so word of mouth is how this grows.
         </p>
         <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.5, color: C.soft, maxWidth: 620 }}>

@@ -557,7 +557,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Etch #${PUZZLE.num} — the daily nonogram from Source of Truths.\n${shareUrl()}`
+      ? `Etch #${PUZZLE.num} — the daily nonogram from Mind Loft.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -872,7 +872,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Etch</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Etch is a free daily nonogram from Source of Truths, the picture-logic puzzle also known as a picross or griddler. The numbers along each row and column tell you how many squares are filled in a row, in order, and your job is to work out which ones. Get them all and a picture appears.
+          Etch is a free daily nonogram from Mind Loft, the picture-logic puzzle also known as a picross or griddler. The numbers along each row and column tell you how many squares are filled in a row, in order, and your job is to work out which ones. Get them all and a picture appears.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board has exactly one solution and is reachable by pure line logic, so there is never a moment where you have to guess. Drag to fill a run, mark the squares you have ruled out with an ×, and watch each clue dim as its line falls into place. Fill a square that isn&rsquo;t part of the picture and it turns red, so you always know where you stand.

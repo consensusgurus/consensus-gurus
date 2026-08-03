@@ -756,7 +756,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Hearsay</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Hearsay is a free daily logic puzzle from Source of Truths, in the family made famous by Cheryl&rsquo;s Birthday. A shortlist of candidates is public. Two people (three on Sundays) are each told one detail of the secret entry and nothing more, and then they talk. Your job is to work out which entry they are circling.
+          Hearsay is a free daily logic puzzle from Mind Loft, in the family made famous by Cheryl&rsquo;s Birthday. A shortlist of candidates is public. Two people (three on Sundays) are each told one detail of the secret entry and nothing more, and then they talk. Your job is to work out which entry they are circling.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The trick that makes it click is that ignorance carries information. When someone says they cannot work it out, every candidate that would have handed them the answer is gone. When someone says they now can, the survivors that stayed ambiguous fall away. Each line cuts the list, and exactly one entry lives through all of them.
@@ -776,7 +776,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{1F5E3}\u{FE0F} Named it first time in ${elapsed}` : `\u{1F5E3}\u{FE0F} Named it in ${elapsed} · ${g.wrong.length} wrong name${g.wrong.length === 1 ? '' : 's'}`)
       : g.status === 'lost' ? '\u{1F5E3}\u{FE0F} The room kept its secret' : '\u{1F5E3}\u{FE0F} Still listening…';
     const text = playing
-      ? `Hearsay #${PUZZLE.num} — the daily puzzle of what other people don't know, from Source of Truths.\n${withRef(`sourceoftruths.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Hearsay #${PUZZLE.num} — the daily puzzle of what other people don't know, from Mind Loft.\n${withRef(`sourceoftruths.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Hearsay — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/hearsay${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {

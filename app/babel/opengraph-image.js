@@ -1,7 +1,7 @@
 import { renderBabelCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Babel — the daily word tile endgame from Source of Truths'
+export const alt = 'Babel — the daily word tile endgame from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one endgame a day, same look): render the Babel snapshot card

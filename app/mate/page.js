@@ -10,17 +10,17 @@ import { T } from '@/lib/theme';
 // the solution tree that comes with it) never reaches the browser.
 
 export const metadata = {
-  title: 'Mate — Free Daily Chess Puzzle (Mate in Two) | Source of Truths',
+  title: 'Mate — Free Daily Chess Puzzle (Mate in Two) | Mind Loft',
   description:
     'A free daily chess puzzle. White to play and force checkmate in two, with exactly one first move that works. Tap a piece and its legal squares light up, so no chess notation is needed. Play the line out against Black’s best defence, keep a streak, and Sundays step up to a mate in three.',
   alternates: { canonical: '/mate' },
   openGraph: {
     title: 'Mate — A Daily Chess Puzzle',
     description:
-      'White to play and mate. One key move works and every other fails. A new position from Source of Truths, daily.',
+      'White to play and mate. One key move works and every other fails. A new position from Mind Loft, daily.',
     url: '/mate',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -44,7 +44,7 @@ const gameJsonLd = {
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

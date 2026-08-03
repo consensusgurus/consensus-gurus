@@ -513,7 +513,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Rung #${PUZZLE.num} — the daily word ladder from Source of Truths. ${PUZZLE.start.toUpperCase()} to ${PUZZLE.target.toUpperCase()}, par ${par}.\n${shareUrl()}`
+      ? `Rung #${PUZZLE.num} — the daily word ladder from Mind Loft. ${PUZZLE.start.toUpperCase()} to ${PUZZLE.target.toUpperCase()}, par ${par}.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -788,7 +788,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Rung</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Rung is a free daily word ladder from Source of Truths. Two five-letter words, and a climb from one to the other changing a single letter at a time, with every rung a word in its own right. The puzzle is as old as Lewis Carroll and still one of the best things you can do with a dictionary.
+          Rung is a free daily word ladder from Mind Loft. Two five-letter words, and a climb from one to the other changing a single letter at a time, with every rung a word in its own right. The puzzle is as old as Lewis Carroll and still one of the best things you can do with a dictionary.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every ladder is machine generated and then solved exactly, so perfect really is the shortest route rather than somebody&rsquo;s guess, and it was confirmed by a second search written independently of the first. Par sits a cushion above perfect: it is what a clean climb comes in at, and it is beatable. On most boards there is only one shortest ladder, which is what makes matching perfect worth something. Weekday climbs run 10 to 12 rungs and Sundays a good deal further.

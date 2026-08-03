@@ -1,8 +1,8 @@
 import LegalLayout, { H2 } from '@/app/LegalLayout';
 
 export const metadata = {
-  title: 'Affiliate Disclosure | Source of Truths',
-  description: 'How Source of Truths makes money through affiliate partnerships.',
+  title: 'Affiliate Disclosure | Mind Loft',
+  description: 'How Mind Loft makes money through affiliate partnerships.',
 };
 
 export default function DisclosurePage() {
@@ -14,15 +14,15 @@ export default function DisclosurePage() {
       updated="May 2026"
     >
       <p>
-        Source of Truths participates in affiliate marketing programs. This page exists to be transparent about that.
+        Mind Loft participates in affiliate marketing programs. This page exists to be transparent about that.
       </p>
 
       <H2>Amazon Associates</H2>
       <p>
-        Source of Truths is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to amazon.com and affiliated sites.
+        Mind Loft is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to amazon.com and affiliated sites.
       </p>
       <p>
-        <strong>As an Amazon Associate, Source of Truths earns from qualifying purchases.</strong>
+        <strong>As an Amazon Associate, Mind Loft earns from qualifying purchases.</strong>
       </p>
       <p>
         When you click an Amazon link on this site and make a qualifying purchase within Amazon's tracking window, we receive a small commission. The price you pay is unchanged whether you click through us or go to Amazon directly.

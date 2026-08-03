@@ -1,7 +1,7 @@
 import { renderCircaCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Circa — the daily year hunt from Source of Truths'
+export const alt = 'Circa — the daily year hunt from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one moment a day, same look): render the Circa snapshot card

@@ -13,7 +13,7 @@ import { T } from '@/lib/theme';
 // before anything reaches the client.
 
 export const metadata = {
-  title: 'Lode — Free Daily Word Puzzle: Seven Letters, Rare Words Pay | Source of Truths',
+  title: 'Lode — Free Daily Word Puzzle: Seven Letters, Rare Words Pay | Mind Loft',
   description:
     'A free daily word puzzle and a fresh spin on the letters puzzle. Seven letters, one core letter every word must use, and points that reward rare words over long ones. Strike the vein, then chase the Mother Lode. New board every day.',
   alternates: { canonical: '/lode' },
@@ -29,7 +29,7 @@ export const metadata = {
       'Seven letters, one core letter, four letters minimum. Common words are chip shots; the rare ones are worth three times as much. Strike the vein, then dig for the Mother Lode.',
     url: '/lode',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -55,7 +55,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/lode.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

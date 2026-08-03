@@ -955,7 +955,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Axiom</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Axiom is a free daily logic puzzle from Source of Truths, built on the oldest experiment in reasoning: find the hidden rule. A board of ordinary words is split by a rule you cannot see. A few tiles are flipped for you, a short list of candidate rules sits underneath, and a small budget of tests is all you get to tell them apart.
+          Axiom is a free daily logic puzzle from Mind Loft, built on the oldest experiment in reasoning: find the hidden rule. A board of ordinary words is split by a rule you cannot see. A few tiles are flipped for you, a short list of candidate rules sits underneath, and a small budget of tests is all you get to tell them apart.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The trap is the one every scientist knows. Most tiles confirm what you already believe, and confirmation costs a test and teaches nothing. The tiles worth spending on are the ones where two surviving rules disagree. Every board is generated and machine-verified so that exactly one candidate fits it, and so that no single test can settle the question on its own.
@@ -976,7 +976,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F9EA} Rule found on ${testsUsed} test${testsUsed === 1 ? '' : 's'} (perfect ${PERFECT})${g.wrongPicks.length ? ` · ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}`
       : g.status === 'lost' ? '\u{1F9EA} The board kept its rule' : '\u{1F9EA} Still testing…';
     const text = playing
-      ? `Axiom #${PUZZLE.num} — the daily rule-induction puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Axiom #${PUZZLE.num} — the daily rule-induction puzzle from Mind Loft.\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Axiom — Board #${PUZZLE.num}\n${solvedBit}${streakBit}\n${pips}\n${withRef(`sourceoftruths.com/axiom${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {

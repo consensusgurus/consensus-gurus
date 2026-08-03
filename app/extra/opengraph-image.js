@@ -1,7 +1,7 @@
 import { renderExtraCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Extra — the daily front page from Source of Truths'
+export const alt = 'Extra — the daily front page from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one page a day, same look): render the Extra snapshot card

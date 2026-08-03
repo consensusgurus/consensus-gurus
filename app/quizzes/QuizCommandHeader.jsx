@@ -27,7 +27,7 @@ let __qchLogoSeq = 0;
 function Logo({ size = 30 }) {
   const uid = useMemo(() => `qch${(__qchLogoSeq += 1)}`, []);
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none', display: 'block' }}>
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none', display: 'block' }}>
       <defs>
         <radialGradient id={`g-${uid}`} cx="0.5" cy="0.42" r="0.7">
           <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
@@ -270,7 +270,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         }
       `}</style>
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
-        <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={30} /></Link>
+        <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={30} /></Link>
         <Link href="/" className="qch-word"><span className="qch-wl">Source <em>of</em> Truths</span><span className="qch-ws">S<em>o</em>T</span></Link>
         <span className="qch-src">Exercise Your Mind</span>
         <button type="button" className="qch-searchbtn" ref={btnRef} onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>

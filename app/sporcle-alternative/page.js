@@ -4,16 +4,16 @@ import Footer from '@/app/Footer';
 import { T } from '@/lib/theme';
 
 export const metadata = {
-  title: 'Sporcle Alternative: Free Trivia Quizzes, No Ads | Source of Truths',
+  title: 'Sporcle Alternative: Free Trivia Quizzes, No Ads | Mind Loft',
   description:
-    'Looking for Sporcle without the ads? Source of Truths is a fast, ad-free trivia quiz site with 1,100+ timed name-them-all, map, and matching quizzes, leaderboards, and a modern interface.',
+    'Looking for Sporcle without the ads? Mind Loft is a fast, ad-free trivia quiz site with 1,100+ timed name-them-all, map, and matching quizzes, leaderboards, and a modern interface.',
   alternates: { canonical: '/sporcle-alternative' },
   openGraph: {
     title: 'A Sporcle Alternative With No Ads',
     description: 'Fast, ad-free trivia quizzes. Name-them-all, maps, and matching, with leaderboards and a modern interface.',
     url: '/sporcle-alternative',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: { card: 'summary_large_image', title: 'A Sporcle Alternative With No Ads', description: 'Fast, ad-free trivia quizzes with leaderboards and a modern interface.' },
 };
@@ -52,7 +52,7 @@ export default function SporcleAlternativePage() {
       <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 6, background: 'linear-gradient(90deg,#0a1730,#1e3a6b 55%,#fbb615)' }} />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 820, margin: '0 auto', padding: '28px 20px 64px' }}>
         <Link href="/" style={{ fontFamily: F, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: C.ink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
-          <ArrowLeft size={14} strokeWidth={2.5} /> Back to Source of Truths
+          <ArrowLeft size={14} strokeWidth={2.5} /> Back to Mind Loft
         </Link>
 
         <div style={{ borderBottom: `2px solid ${C.ink}`, paddingBottom: 24, marginTop: 16, marginBottom: 32 }}>
@@ -61,7 +61,7 @@ export default function SporcleAlternativePage() {
             Trivia without<br /><span style={{ color: C.blue }}>the ad circus.</span>
           </h1>
           <p style={{ fontFamily: F, fontSize: 18, lineHeight: 1.6, color: C.muted, maxWidth: 640, marginTop: 22 }}>
-            If you came looking for Sporcle without the ads, you found it. Source of Truths has everything you liked about the classic quiz sites, name-them-all, beat-the-clock, climb-the-leaderboard, on a fast, clean page with zero ads in your way.
+            If you came looking for Sporcle without the ads, you found it. Mind Loft has everything you liked about the classic quiz sites, name-them-all, beat-the-clock, climb-the-leaderboard, on a fast, clean page with zero ads in your way.
           </p>
           <Link href="/quizzes" style={{ display: 'inline-flex', marginTop: 24, fontFamily: F, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '14px 28px', borderRadius: 10, background: C.blue, color: T.white, textDecoration: 'none' }}>
             Browse the quizzes
@@ -79,7 +79,7 @@ export default function SporcleAlternativePage() {
           <thead>
             <tr>
               <th style={{ textAlign: 'left', padding: '12px', fontFamily: F, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.muted }}></th>
-              <th style={{ textAlign: 'center', padding: '12px', fontFamily: F, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.blue, fontWeight: 800 }}>Source of Truths</th>
+              <th style={{ textAlign: 'center', padding: '12px', fontFamily: F, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.blue, fontWeight: 800 }}>Mind Loft</th>
               <th style={{ textAlign: 'center', padding: '12px', fontFamily: F, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.muted }}>The old quiz sites</th>
             </tr>
           </thead>

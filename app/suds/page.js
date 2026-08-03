@@ -9,7 +9,7 @@ import { T } from '@/lib/theme';
 // a standard 9×9 board; Sundays step up to a harder Edition with fewer clues.
 
 export const metadata = {
-  title: 'Suds — Free Daily Sudoku | Source of Truths',
+  title: 'Suds — Free Daily Sudoku | Mind Loft',
   description:
     'A free daily sudoku — fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/suds' },
@@ -22,10 +22,10 @@ export const metadata = {
   openGraph: {
     title: 'Suds — A Daily Sudoku',
     description:
-      'Fill the 9×9 grid so every row, column, and box holds 1–9 once. One solution, clean solve wins. A new sudoku from Source of Truths, daily.',
+      'Fill the 9×9 grid so every row, column, and box holds 1–9 once. One solution, clean solve wins. A new sudoku from Mind Loft, daily.',
     url: '/suds',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -51,7 +51,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/suds.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

@@ -10,7 +10,7 @@ import { T } from '@/lib/theme';
 // same hunt with a trickier moment.
 
 export const metadata = {
-  title: 'Circa — Daily History Puzzle: Guess the Year | Source of Truths',
+  title: 'Circa — Daily History Puzzle: Guess the Year | Mind Loft',
   description:
     'A free daily history puzzle — one famous moment, six guesses to pin the exact year. Every miss plays hot and cold: earlier or later, and how close you are. Land within three years to solve it; a dead-on first guess is a perfect score.',
   alternates: { canonical: '/circa' },
@@ -23,10 +23,10 @@ export const metadata = {
   openGraph: {
     title: 'Circa — The Daily Year Hunt',
     description:
-      'One historical moment a day. Six guesses to pin the exact year — every miss tells you earlier or later, hotter or colder. From Source of Truths.',
+      'One historical moment a day. Six guesses to pin the exact year — every miss tells you earlier or later, hotter or colder. From Mind Loft.',
     url: '/circa',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -52,7 +52,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/circa.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

@@ -6,7 +6,7 @@ import { PUZZLES } from './puzzles';
 // /quiz/garble-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Garble — Free Daily Word Scramble Puzzle | Source of Truths',
+  title: 'Garble — Free Daily Word Scramble Puzzle | Mind Loft',
   description:
     'A free daily word scramble puzzle — untangle five garbled words, feed their gold letters into a clued finale, and finish in the fewest misses. New puzzle every day, and a six-letter Sunday Edition each week.',
   alternates: { canonical: '/garble' },
@@ -19,10 +19,10 @@ export const metadata = {
   openGraph: {
     title: 'Garble — A Daily Word Scramble',
     description:
-      'Five garbled words, one clued finale. Untangle it in the fewest misses. A new word puzzle from Source of Truths.',
+      'Five garbled words, one clued finale. Untangle it in the fewest misses. A new word puzzle from Mind Loft.',
     url: '/garble',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -47,7 +47,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/garble.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

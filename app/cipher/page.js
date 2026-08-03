@@ -9,7 +9,7 @@ import { T } from '@/lib/theme';
 // here). One cryptarithm a day, machine-verified to a unique solution.
 
 export const metadata = {
-  title: 'Cipher — Daily Cryptarithm: Crack the Letter Math | Source of Truths',
+  title: 'Cipher — Daily Cryptarithm: Crack the Letter Math | Mind Loft',
   description:
     'A free daily cryptarithm — one WORD + WORD = WORD equation where every letter hides a different digit. Exactly one solution, no guessing required. Crack it clean for a perfect 10, and take on three addends in the Sunday Edition.',
   alternates: { canonical: '/cipher' },
@@ -22,10 +22,10 @@ export const metadata = {
   openGraph: {
     title: 'Cipher — The Daily Cryptarithm',
     description:
-      'One letter-arithmetic equation a day: every letter is a different digit, and there is exactly one solution. From Source of Truths.',
+      'One letter-arithmetic equation a day: every letter is a different digit, and there is exactly one solution. From Mind Loft.',
     url: '/cipher',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -51,7 +51,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/cipher.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

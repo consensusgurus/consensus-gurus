@@ -10,14 +10,14 @@ import { T } from '@/lib/theme';
 // of the bank never reaches a client.
 
 export const metadata = {
-  title: 'Streak — Free Daily Trivia Survival Game | Source of Truths',
+  title: 'Streak — Free Daily Trivia Survival Game | Mind Loft',
   description:
     'A free daily trivia gauntlet. Forty questions climb from easy to brutal, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same forty. No app, no signup, a new gauntlet every day.',
   alternates: { canonical: '/streak' },
   openGraph: {
     title: 'Streak — The Daily Trivia Gauntlet',
     description: 'Forty questions, one life. How deep can you go before one wrong answer ends the run?',
-    url: '/streak', type: 'website', siteName: 'Source of Truths',
+    url: '/streak', type: 'website', siteName: 'Mind Loft',
   },
   twitter: { card: 'summary_large_image', title: 'Streak — The Daily Trivia Gauntlet', description: 'Forty questions, one life. How deep can you go?' },
 };
@@ -30,7 +30,7 @@ const gameJsonLd = {
   genre: ['Trivia', 'Quiz', 'Survival'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',

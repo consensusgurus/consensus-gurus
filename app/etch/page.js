@@ -10,17 +10,17 @@ import { T } from '@/lib/theme';
 // its solution) never reaches the browser.
 
 export const metadata = {
-  title: 'Etch — Free Daily Nonogram (Picross) | Source of Truths',
+  title: 'Etch — Free Daily Nonogram (Picross) | Mind Loft',
   description:
     'A free daily nonogram, also called picross or griddler. The row and column clues give the run lengths of filled squares. Fill the grid by pure logic, never guesswork, and a picture appears. One solution, a new picture every day, and a bigger 15x15 Edition on Sundays.',
   alternates: { canonical: '/etch' },
   openGraph: {
     title: 'Etch — A Daily Nonogram',
     description:
-      'Row and column clues, one logical solution, and a picture at the end. A new picture-logic puzzle from Source of Truths, daily.',
+      'Row and column clues, one logical solution, and a picture at the end. A new picture-logic puzzle from Mind Loft, daily.',
     url: '/etch',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -44,7 +44,7 @@ const gameJsonLd = {
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

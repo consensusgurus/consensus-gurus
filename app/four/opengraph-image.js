@@ -1,7 +1,7 @@
 import { renderFourCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Four — a daily Connect Four puzzle from Source of Truths'
+export const alt = 'Four — a daily Connect Four puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one board a day, same look): render the Four snapshot card

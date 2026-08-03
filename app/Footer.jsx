@@ -81,7 +81,7 @@ export default function Footer() {
         }}
       >
         <div style={{ maxWidth: 250 }}>
-          <div style={{ fontSize: 15, fontWeight: 800 }}>Source of Truths</div>
+          <div style={{ fontSize: 15, fontWeight: 800 }}>Mind Loft</div>
           <div style={{ fontSize: 12, color: NEUTRAL.muted, marginTop: 5, lineHeight: 1.5 }}>
             Exercise your mind: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.
           </div>
@@ -141,8 +141,8 @@ export default function Footer() {
           color: NEUTRAL.soft,
         }}
       >
-        <span>© {year} Source of Truths</span>
-        <span>As an Amazon Associate, Source of Truths earns from qualifying purchases.</span>
+        <span>© {year} Mind Loft</span>
+        <span>As an Amazon Associate, Mind Loft earns from qualifying purchases.</span>
       </div>
     </footer>
   );

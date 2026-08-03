@@ -36,7 +36,7 @@ export const QUIZ_COUNT = (Array.isArray(QUIZZES) ? QUIZZES.length : 0)
 
 function Logo({ size = 40 }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none' }}>
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none' }}>
       <defs>
         <linearGradient id="shLogoBlue" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#1e3a6b" /><stop offset="1" stopColor="#0a1730" />
@@ -59,7 +59,7 @@ let __shcLogoSeq = 0;
 function CommandLogo({ size = 30 }) {
   const uid = `shc${(__shcLogoSeq += 1)}`;
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source of Truths" style={{ flex: 'none', display: 'block' }}>
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none', display: 'block' }}>
       <defs>
         <radialGradient id={`g-${uid}`} cx="0.5" cy="0.42" r="0.7">
           <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
@@ -154,7 +154,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         }
       `}</style>
       <div className="shc-bar">
-        <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><CommandLogo size={30} /></Link>
+        <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><CommandLogo size={30} /></Link>
         <Link href="/" className="shc-word"><span className="shc-wl">Source <em>of</em> Truths</span><span className="shc-ws">S<em>o</em>T</span></Link>
         <span className="shc-src"><HeaderTagline active={active} /></span>
         {showSearch && (
@@ -258,7 +258,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
         <div className={`sh-bar${flush ? ' flush' : ''}`}>
           <div className="sh-top">
             <div className="sh-brand">
-              <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Source of Truths home"><Logo size={34} /></Link>
+              <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={34} /></Link>
               <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'nowrap' }}>
                 <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:T.ink }}><span className="sh-word-full">Source <span style={{ color: T.muted, fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: T.muted, fontWeight: 600 }}>o</span>T</span></Link>
                 <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color:T.ink, marginTop: 0 }}><HeaderTagline active={active} /></span>

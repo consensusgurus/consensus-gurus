@@ -14,14 +14,14 @@ import { T } from '@/lib/theme';
 // Eastern date here, so tomorrow's board never reaches the browser.
 
 export const metadata = {
-  title: 'Taire — Free Daily Solitaire Puzzle | Source of Truths',
+  title: 'Taire — Free Daily Solitaire Puzzle | Mind Loft',
   description:
     'A free daily solitaire puzzle. Two suits dealt face up with a free cell or two beside them, sixteen cards early in the week and twenty from Thursday on. No hidden cards and no luck, so every deal is winnable and everybody plays the same one. You play against par, the number a clean line comes home in, and perfect, the proven minimum nobody beats. No app, no signup, and a new deal every day.',
   alternates: { canonical: '/taire' },
   openGraph: {
     title: 'Taire — A Daily Solitaire Puzzle',
-    description: 'Send all twenty home. Beat par, chase perfect, and there is no undo. A new deal from Source of Truths, daily.',
-    url: '/taire', type: 'website', siteName: 'Source of Truths',
+    description: 'Send all twenty home. Beat par, chase perfect, and there is no undo. A new deal from Mind Loft, daily.',
+    url: '/taire', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -39,7 +39,7 @@ const gameJsonLd = {
   genre: ['Solitaire', 'Card puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',

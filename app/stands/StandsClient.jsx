@@ -622,7 +622,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Stands</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Stands is a free daily logic puzzle from Source of Truths. A small league played a full round robin, the results sheet was lost, and a handful of facts survive: a points total here, an unbeaten run there, one remembered result. Rebuild every match.
+          Stands is a free daily logic puzzle from Mind Loft. A small league played a full round robin, the results sheet was lost, and a handful of facts survive: a points total here, an unbeaten run there, one remembered result. Rebuild every match.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           No sport knowledge is needed and the clubs are invented. The reasoning is arithmetic under constraint: three points a win and one a draw means a points total is a tight little equation, and one solved row usually forces the next. Every board is generated with a constraint solver and machine-verified to admit exactly one table, from a clue set trimmed until nothing in it is redundant.
@@ -641,7 +641,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{1F3C6} Rebuilt clean in ${elapsed}` : `\u{1F3C6} Rebuilt in ${elapsed} · ${g.rejected} rejected${g.hints ? ` · ${g.hints} nudge${g.hints === 1 ? '' : 's'}` : ''}`)
       : g.status === 'lost' ? '\u{1F3C6} The record won' : '\u{1F3C6} Still reconstructing…';
     const text = playing
-      ? `Stands #${PUZZLE.num} — the daily results-table reconstruction from Source of Truths.\n${withRef(`sourceoftruths.com/stands${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Stands #${PUZZLE.num} — the daily results-table reconstruction from Mind Loft.\n${withRef(`sourceoftruths.com/stands${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Stands — Season #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/stands${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}

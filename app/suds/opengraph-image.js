@@ -1,7 +1,7 @@
 import { renderSudsCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Suds — a daily sudoku from Source of Truths'
+export const alt = 'Suds — a daily sudoku from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one board a day, same look): render the Suds snapshot card

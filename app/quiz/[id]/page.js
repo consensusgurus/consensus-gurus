@@ -19,7 +19,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }) {
   const id = decodeURIComponent(params.id);
   const quiz = getQuiz(id);
-  if (!quiz) return { title: 'Quiz not found | Source of Truths' };
+  if (!quiz) return { title: 'Quiz not found | Mind Loft' };
 
   const url = `/quiz/${encodeURIComponent(id)}`;
   // Format-agnostic share copy: just the topic and its description, so the card
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }) {
   const gameCanonical = GAME_URLS[quiz.format] || null;
 
   return {
-    title: `${quiz.title} | Source of Truths`,
+    title: `${quiz.title} | Mind Loft`,
     description,
     alternates: { canonical: gameCanonical || url },
     openGraph: {
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }) {
       description,
       url,
       type: 'website',
-      siteName: 'Source of Truths',
+      siteName: 'Mind Loft',
     },
     twitter: {
       card: 'summary_large_image',

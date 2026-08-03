@@ -1,7 +1,7 @@
 import { renderMateCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Mate — a daily chess puzzle from Source of Truths'
+export const alt = 'Mate — a daily chess puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one position a day, same look): render the Mate snapshot card

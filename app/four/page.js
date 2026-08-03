@@ -10,17 +10,17 @@ import { T } from '@/lib/theme';
 // the winning column that comes with it) never reaches the browser.
 
 export const metadata = {
-  title: 'Four — Free Daily Connect Four Puzzle | Source of Truths',
+  title: 'Four — Free Daily Connect Four Puzzle | Mind Loft',
   description:
     'A free daily Connect Four puzzle. The position is already won for you, in four moves, and exactly one column keeps it. Drop the wrong one and there is no take-back: a perfect engine plays the game out, so the win never comes back. Keep a streak, and Sundays step up to a win in five.',
   alternates: { canonical: '/four' },
   openGraph: {
     title: 'Four — A Daily Connect Four Puzzle',
     description:
-      'One column wins. Every other drop throws it away, and the engine does not give it back. A new position from Source of Truths, daily.',
+      'One column wins. Every other drop throws it away, and the engine does not give it back. A new position from Mind Loft, daily.',
     url: '/four',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -44,7 +44,7 @@ const gameJsonLd = {
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

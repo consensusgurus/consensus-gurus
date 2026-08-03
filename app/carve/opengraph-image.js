@@ -1,7 +1,7 @@
 import { renderCarveCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Carve — a daily equal-sum puzzle from Source of Truths'
+export const alt = 'Carve — a daily equal-sum puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one board a day, same look): render the Carve snapshot card

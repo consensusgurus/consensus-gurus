@@ -1,7 +1,7 @@
 import { renderSpanCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Span — a daily border-hopping geography puzzle from Source of Truths'
+export const alt = 'Span — a daily border-hopping geography puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one puzzle a day, same board look): render the Span snapshot

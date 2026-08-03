@@ -364,7 +364,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   }
   function shareUrl() { return withRef(`sourceoftruths.com/warmer${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
   function copyShare() {
-    const text = playing ? `Warmer #${PUZZLE.num} — the daily hot-and-cold word hunt from Source of Truths.\n${shareUrl()}` : shareText();
+    const text = playing ? `Warmer #${PUZZLE.num} — the daily hot-and-cold word hunt from Mind Loft.\n${shareUrl()}` : shareText();
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}
     try { navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {}
@@ -631,7 +631,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Warmer</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Warmer is a free daily word puzzle from Source of Truths. There is one secret word each day, and your only clue is how close your guesses are to it in meaning. Every guess lands on a cold-to-hot color spectrum with an exact proximity rank, so you can feel your way from freezing to scorching and, finally, to the word itself.
+          Warmer is a free daily word puzzle from Mind Loft. There is one secret word each day, and your only clue is how close your guesses are to it in meaning. Every guess lands on a cold-to-hot color spectrum with an exact proximity rank, so you can feel your way from freezing to scorching and, finally, to the word itself.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Closeness is semantic, not alphabetical: for the answer &ldquo;sea,&rdquo; words like ocean, waves, and coast run hot, while unrelated words stay cold. Guesses are unlimited, so you can always reach the answer &mdash; the challenge is getting there in as few guesses as you can. Solvers are ranked by fewest guesses, and even if you give up you&rsquo;re ranked by the closest word you found.

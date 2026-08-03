@@ -1,7 +1,7 @@
 import { renderPingCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Ping — the daily city hunt from Source of Truths'
+export const alt = 'Ping — the daily city hunt from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one city a day, same look): render the Ping snapshot card once.

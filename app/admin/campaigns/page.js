@@ -9,7 +9,7 @@ import { T } from '@/lib/theme';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Campaigns | Source of Truths',
+  title: 'Campaigns | Mind Loft',
   robots: { index: false, follow: false },
 };
 

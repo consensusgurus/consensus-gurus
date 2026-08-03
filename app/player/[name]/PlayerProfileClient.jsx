@@ -78,8 +78,8 @@ export default function PlayerProfileClient({ name }) {
   function share() {
     const url = typeof window !== 'undefined' ? window.location.origin + `/player/${encodeURIComponent(name)}` : '';
     const line = found
-      ? `${mine ? 'My' : `${prof.name}'s`} Source of Truths player card: Level ${prof.level || 1}, ${(prof.xp || 0).toLocaleString()} IQ, rank #${prof.rank || '?'}${trophies ? `, ${trophies.earnedCount} trophies` : ''}.`
-      : `Source of Truths player profile: ${name}`;
+      ? `${mine ? 'My' : `${prof.name}'s`} Mind Loft player card: Level ${prof.level || 1}, ${(prof.xp || 0).toLocaleString()} IQ, rank #${prof.rank || '?'}${trophies ? `, ${trophies.earnedCount} trophies` : ''}.`
+      : `Mind Loft player profile: ${name}`;
     if (!notifyShareCredit(line, url)) {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
         navigator.clipboard.writeText(`${line} ${url}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); }).catch(() => {});

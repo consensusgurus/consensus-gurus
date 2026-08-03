@@ -11,7 +11,7 @@ import { T } from '@/lib/theme';
 // the verifier does, so nothing but the puzzle itself ever ships.
 
 export const metadata = {
-  title: 'Stands — Free Daily Logic Puzzle: Rebuild the Results | Source of Truths',
+  title: 'Stands — Free Daily Logic Puzzle: Rebuild the Results | Mind Loft',
   description: 'A free daily logic puzzle. A small league played a full round robin, the results sheet was lost, and a handful of facts survive. Exactly one set of results fits them. New season every day.',
   alternates: { canonical: '/stands' },
   manifest: '/stands.webmanifest',
@@ -20,7 +20,7 @@ export const metadata = {
     apple: [{ url: '/stands-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Stands' },
-  openGraph: { title: 'Stands — Rebuild the Lost Results Table', description: 'Everyone played everyone once. Win 3, draw 1. The sheet is gone and a few facts survive, and only one set of results fits them all.', url: '/stands', type: 'website', siteName: 'Source of Truths' },
+  openGraph: { title: 'Stands — Rebuild the Lost Results Table', description: 'Everyone played everyone once. Win 3, draw 1. The sheet is gone and a few facts survive, and only one set of results fits them all.', url: '/stands', type: 'website', siteName: 'Mind Loft' },
   twitter: { card: 'summary_large_image', title: 'Stands — Rebuild the Lost Results Table', description: 'Everyone played everyone once. Win 3, draw 1. The sheet is gone and a few facts survive, and only one set of results fits them all.' },
 };
 
@@ -36,7 +36,7 @@ const gameJsonLd = {
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   image: 'https://sourceoftruths.com/quiz-heroes/stands.png',
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',

@@ -15,7 +15,7 @@ import { T } from '@/lib/theme';
 // ships.
 
 export const metadata = {
-  title: 'Sworn — Daily Liars Puzzle: Find the Thief | Source of Truths',
+  title: 'Sworn — Daily Liars Puzzle: Find the Thief | Mind Loft',
   description:
     'A free daily Knights-and-Knaves logic puzzle — a handful of locals under oath, exactly so many of them lying, one of them a thief. Work the contradictions and name the culprit. A new inquest every day, six sworn on Sundays.',
   alternates: { canonical: '/sworn' },
@@ -28,10 +28,10 @@ export const metadata = {
   openGraph: {
     title: 'Sworn — A Fresh Pack of Liars Every Day',
     description:
-      'Everyone testified. An exact number of them lied. One is the thief. Follow the contradictions, weigh the lie count, and name the culprit — exactly one story holds together. From Source of Truths.',
+      'Everyone testified. An exact number of them lied. One is the thief. Follow the contradictions, weigh the lie count, and name the culprit — exactly one story holds together. From Mind Loft.',
     url: '/sworn',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -57,7 +57,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/sworn.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

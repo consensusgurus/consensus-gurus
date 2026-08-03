@@ -528,7 +528,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Feud #${PUZZLE.num} — the daily crowd-survey game from Source of Truths. The answer key is live: it's whatever today's players say.\n${shareUrl()}`
+      ? `Feud #${PUZZLE.num} — the daily crowd-survey game from Mind Loft. The answer key is live: it's whatever today's players say.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -840,7 +840,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Feud</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Feud is a free daily crowd-survey game from Source of Truths with a live answer key. Every day brings five everyday prompts &mdash; name something people do when they can&rsquo;t sleep, name a food that&rsquo;s better as a leftover &mdash; and you type three answers per prompt, blind. There is no hidden answer list written by an editor: the key is the live tally of what today&rsquo;s players actually say. Your answers are votes, and the moment you lock in they join the crowd everyone else is scored against.
+          Feud is a free daily crowd-survey game from Mind Loft with a live answer key. Every day brings five everyday prompts &mdash; name something people do when they can&rsquo;t sleep, name a food that&rsquo;s better as a leftover &mdash; and you type three answers per prompt, blind. There is no hidden answer list written by an editor: the key is the live tally of what today&rsquo;s players actually say. Your answers are votes, and the moment you lock in they join the crowd everyone else is scored against.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Scoring is pure crowd-reading: each answer pays the percent of the crowd that said the same thing, so naming the consensus answer pays big and a clever answer nobody else gives pays nothing. You&rsquo;re always graded on the crowd minus your own votes, so you can never tip the tally you&rsquo;re scored on. And nothing is final &mdash; the shares reshuffle as new players lock in, so your score and your place on the live standings move all day until the key freezes at midnight Eastern. A pre-written house pool seeds the small hours, then retires once ten real players are in.

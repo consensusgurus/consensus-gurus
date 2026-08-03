@@ -11,7 +11,7 @@ import { T } from '@/lib/theme';
 // the verifier does, so nothing but the puzzle itself ever ships.
 
 export const metadata = {
-  title: 'Venn — Free Daily Logic Puzzle: Sort the Overlaps | Source of Truths',
+  title: 'Venn — Free Daily Logic Puzzle: Sort the Overlaps | Mind Loft',
   description: 'A free daily logic puzzle. Three overlapping circles, twelve words, and every region prints how many words belong in it, so a misfiling always shows up in the arithmetic. New sheet every day.',
   alternates: { canonical: '/venn' },
   manifest: '/venn.webmanifest',
@@ -20,7 +20,7 @@ export const metadata = {
     apple: [{ url: '/venn-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Venn' },
-  openGraph: { title: 'Venn — Sort Every Word Into Its Region', description: 'Three circles, twelve words, seven regions, and a count on every one. The counts are the proof: a word in the wrong place is a number that refuses to add up.', url: '/venn', type: 'website', siteName: 'Source of Truths' },
+  openGraph: { title: 'Venn — Sort Every Word Into Its Region', description: 'Three circles, twelve words, seven regions, and a count on every one. The counts are the proof: a word in the wrong place is a number that refuses to add up.', url: '/venn', type: 'website', siteName: 'Mind Loft' },
   twitter: { card: 'summary_large_image', title: 'Venn — Sort Every Word Into Its Region', description: 'Three circles, twelve words, seven regions, and a count on every one. The counts are the proof: a word in the wrong place is a number that refuses to add up.' },
 };
 
@@ -36,7 +36,7 @@ const gameJsonLd = {
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   image: 'https://sourceoftruths.com/quiz-heroes/venn.png',
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',

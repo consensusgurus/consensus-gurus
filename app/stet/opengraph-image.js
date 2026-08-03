@@ -1,7 +1,7 @@
 import { renderStetCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Stet — the daily copy-desk puzzle from Source of Truths'
+export const alt = 'Stet — the daily copy-desk puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one brief a day, same look): render the Stet snapshot card

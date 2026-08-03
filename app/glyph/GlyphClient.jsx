@@ -469,7 +469,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
   }
   function copyShare() {
     const text = playing
-      ? `Glyph #${PUZZLE.num} — the daily codeword from Source of Truths.\n${shareUrl()}`
+      ? `Glyph #${PUZZLE.num} — the daily codeword from Mind Loft.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -724,7 +724,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
       <section style={{ position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Glyph</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Glyph is a free daily codeword from Source of Truths, the crossword with no clues at all. Every letter in the grid has been replaced by a number from 1 to 26, the same number standing for the same letter everywhere, and your job is to work out the whole alphabet from two or three given letters.
+          Glyph is a free daily codeword from Mind Loft, the crossword with no clues at all. Every letter in the grid has been replaced by a number from 1 to 26, the same number standing for the same letter everywhere, and your job is to work out the whole alphabet from two or three given letters.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           You solve it the way you would crack a cipher, except the constraint is the grid itself. A one-letter gap between two blocks, a number that keeps landing at the end of words, a three-letter shape with a repeated outer number: each one narrows the field, and every letter you commit propagates across the entire board. All 26 letters appear in every key, so the ones you have ruled out tell you as much as the ones you have found.

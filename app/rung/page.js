@@ -8,14 +8,14 @@ import { T } from '@/lib/theme';
 // tomorrow's pair never reaches the browser.
 
 export const metadata = {
-  title: 'Rung — Free Daily Word Ladder | Source of Truths',
+  title: 'Rung — Free Daily Word Ladder | Mind Loft',
   description:
     'A free daily word ladder. Change one letter at a time to climb from one five-letter word to another, every rung a real word. You play against par, the length a clean climb comes in at, and perfect, the proven shortest ladder. No app, no signup, a new climb every day.',
   alternates: { canonical: '/rung' },
   openGraph: {
     title: 'Rung — A Daily Word Ladder',
-    description: 'One letter at a time, every rung a word. Beat par, chase the perfect ladder. A new climb from Source of Truths, daily.',
-    url: '/rung', type: 'website', siteName: 'Source of Truths',
+    description: 'One letter at a time, every rung a word. Beat par, chase the perfect ladder. A new climb from Mind Loft, daily.',
+    url: '/rung', type: 'website', siteName: 'Mind Loft',
   },
   twitter: { card: 'summary_large_image', title: 'Rung — A Daily Word Ladder', description: 'Change one letter at a time. Can you get under par?' },
 };
@@ -28,7 +28,7 @@ const gameJsonLd = {
   genre: ['Word ladder', 'Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',

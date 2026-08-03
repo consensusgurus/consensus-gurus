@@ -11,14 +11,14 @@ import { T } from '@/lib/theme';
 // are gated by Eastern date here, so tomorrow's board never reaches the browser.
 
 export const metadata = {
-  title: 'Parker — Free Daily Sliding Block Puzzle | Source of Truths',
+  title: 'Parker — Free Daily Sliding Block Puzzle | Mind Loft',
   description:
     'A free daily sliding-block puzzle. A jammed six by six lot, blocks that each slide on one axis, and a red block that has to reach the one gap in the wall. Every board is solved exactly, so you play against a real par and a perfect line that nobody can beat. No app, no signup, and a new jam every day.',
   alternates: { canonical: '/parker' },
   openGraph: {
     title: 'Parker — A Daily Sliding Block Puzzle',
-    description: 'You are in the red one. Everybody has blocked you in, and there is one gap in the wall. A new jam from Source of Truths, daily.',
-    url: '/parker', type: 'website', siteName: 'Source of Truths',
+    description: 'You are in the red one. Everybody has blocked you in, and there is one gap in the wall. A new jam from Mind Loft, daily.',
+    url: '/parker', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -36,7 +36,7 @@ const gameJsonLd = {
   genre: ['Sliding block puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',

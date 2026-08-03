@@ -14,7 +14,7 @@ import { T } from '@/lib/theme';
 // with its own backtracking solver, so the answer never ships.
 
 export const metadata = {
-  title: 'Jesters — Daily Logic Puzzle: Seat the Court | Source of Truths',
+  title: 'Jesters — Daily Logic Puzzle: Seat the Court | Mind Loft',
   description:
     'A free daily placement puzzle in the Star Battle family — seat one jester in every row, column and colored court, with no two jesters touching. Exactly one solution, pure deduction. A new court every day, bigger on Sundays.',
   alternates: { canonical: '/jester' },
@@ -27,10 +27,10 @@ export const metadata = {
   openGraph: {
     title: 'Jesters — Seat the Court, Every Day',
     description:
-      'One jester per row, per column, per colored court — and no two may touch. Every board is machine-verified to a single solution reachable by pure deduction. From Source of Truths.',
+      'One jester per row, per column, per colored court — and no two may touch. Every board is machine-verified to a single solution reachable by pure deduction. From Mind Loft.',
     url: '/jester',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -56,7 +56,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/jester.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

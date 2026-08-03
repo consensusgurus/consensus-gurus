@@ -8,14 +8,14 @@ import { T } from '@/lib/theme';
 // date here, so tomorrow's round never reaches the browser.
 
 export const metadata = {
-  title: 'Crunch — Free Daily Numbers Game | Source of Truths',
+  title: 'Crunch — Free Daily Numbers Game | Mind Loft',
   description:
     'A free daily numbers game. Six numbers, four operations, and a three-digit target to hit exactly. Every round is proved solvable before it ships. No app, no signup, a new round every day.',
   alternates: { canonical: '/crunch' },
   openGraph: {
     title: 'Crunch — A Daily Numbers Game',
-    description: 'Six numbers, four operations, one target. Always reachable, rarely obvious. A new round from Source of Truths, daily.',
-    url: '/crunch', type: 'website', siteName: 'Source of Truths',
+    description: 'Six numbers, four operations, one target. Always reachable, rarely obvious. A new round from Mind Loft, daily.',
+    url: '/crunch', type: 'website', siteName: 'Mind Loft',
   },
   twitter: { card: 'summary_large_image', title: 'Crunch — A Daily Numbers Game', description: 'Six numbers and a target. Can you get there exactly?' },
 };
@@ -28,7 +28,7 @@ const gameJsonLd = {
   genre: ['Numbers game', 'Arithmetic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',

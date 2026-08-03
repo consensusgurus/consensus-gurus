@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 export async function GET(req, { params }) {
   const id = decodeURIComponent(params.id);
   const quiz = getQuiz(id);
-  if (!quiz) return renderQuizPromoCard({ title: 'Source of Truths Quiz', blurb: '', category: 'Quiz', id });
+  if (!quiz) return renderQuizPromoCard({ title: 'Mind Loft Quiz', blurb: '', category: 'Quiz', id });
   if (quiz.category === 'Business' && quiz.format === 'timed-mcq' && Array.isArray(quiz.questions) && quiz.questions.length) {
     return renderQuizQuestionCard({ title: quiz.title, category: quiz.category, question: quiz.questions[0], qIndex: 1, total: quiz.questions.length, id, faviconDomain: companyDomainForQuiz(id) });
   }

@@ -509,7 +509,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Crunch #${PUZZLE.num} — the daily numbers round from Source of Truths. Six numbers, target ${TARGET}.\n${shareUrl()}`
+      ? `Crunch #${PUZZLE.num} — the daily numbers round from Mind Loft. Six numbers, target ${TARGET}.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -819,7 +819,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crunch</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Crunch is a free daily numbers round from Source of Truths. Six numbers, one target between 101 and 999, and four operations. Combine two numbers, the answer replaces both, and you go again. Every value along the way has to be a positive whole number, and you never have to use all six.
+          Crunch is a free daily numbers round from Mind Loft. Six numbers, one target between 101 and 999, and four operations. Combine two numbers, the answer replaces both, and you go again. Every value along the way has to be a positive whole number, and you never have to use all six.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board is checked by an exhaustive solver before it ships, so the target is always reachable and the difficulty rating, the fewest numbers any exact answer needs, is a fact rather than a guess. Scoring is the scale people already know: spot on is ten, within five is seven, within ten is five. Undo and start over cost nothing, because the score is about where you land, not how you got there.

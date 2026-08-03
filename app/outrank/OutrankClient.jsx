@@ -547,7 +547,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Outrank #${PUZZLE.num} — the daily crowd-ranking puzzle from Source of Truths.\n${shareUrl()}`
+      ? `Outrank #${PUZZLE.num} — the daily crowd-ranking puzzle from Mind Loft.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -891,7 +891,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Outrank</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Outrank is a free daily puzzle from Source of Truths where the crowd itself is the answer key. Every day brings a new themed slate &mdash; breakfast classics, candy bars, karaoke closers, the seven deadly sins &mdash; and every player makes two moves: vote for their honest favorite, then predict how the entire field of players ranks the whole list. Your vote helps build the real order; your prediction is scored against it.
+          Outrank is a free daily puzzle from Mind Loft where the crowd itself is the answer key. Every day brings a new themed slate &mdash; breakfast classics, candy bars, karaoke closers, the seven deadly sins &mdash; and every player makes two moves: vote for their honest favorite, then predict how the entire field of players ranks the whole list. Your vote helps build the real order; your prediction is scored against it.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           There is no trivia to know &mdash; the puzzle is pure crowd-reading. Placing an item in its exact crowd slot pays two points, one slot off pays one, and the daily maximum is a perfect call of the whole board. And the score is alive: the crowd&rsquo;s order is recomputed from every vote as it arrives, so your points and your place on the live standings keep moving all day. A pre-written house crowd seeds the small hours, then retires once ten real players are in; your own prediction is always graded on the crowd minus your own vote, so you can never tip the order you&rsquo;re scored against. On Sundays the slate grows to seven items.

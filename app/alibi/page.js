@@ -13,7 +13,7 @@ import { T } from '@/lib/theme';
 // clues with its own brute-force solver, so the answer never ships.
 
 export const metadata = {
-  title: 'Alibi — Daily Logic Puzzle: Solve the Whodunit | Source of Truths',
+  title: 'Alibi — Daily Logic Puzzle: Solve the Whodunit | Mind Loft',
   description:
     'A free daily logic deduction puzzle — four suspects, four rooms, four departure times, four curious items, and five of each in the Sunday Edition. Every witness statement is true; work the deduction boards and close the case. A new mystery every day.',
   alternates: { canonical: '/alibi' },
@@ -26,10 +26,10 @@ export const metadata = {
   openGraph: {
     title: 'Alibi — A Fresh Mystery Every Day',
     description:
-      'Four suspects, one stolen treasure. Work the deduction boards, corner the truth, and close the case — every statement is true, and there is exactly one solution. From Source of Truths.',
+      'Four suspects, one stolen treasure. Work the deduction boards, corner the truth, and close the case — every statement is true, and there is exactly one solution. From Mind Loft.',
     url: '/alibi',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -55,7 +55,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/alibi.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

@@ -408,7 +408,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
   }
   function copyShare() {
     const text = playing
-      ? `Streak #${PUZZLE.num} — the daily trivia gauntlet from Source of Truths. Forty questions, one life.\n${shareUrl()}`
+      ? `Streak #${PUZZLE.num} — the daily trivia gauntlet from Mind Loft. Forty questions, one life.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -672,7 +672,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Streak</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Streak is a free daily trivia survival game from Source of Truths. Forty multiple-choice questions climb from questions anyone can answer to questions almost nobody can, and a single wrong answer ends the run. Your score is simply how many you cleared in a row, which makes every question a small act of nerve: the deeper you go, the more you have to lose.
+          Streak is a free daily trivia survival game from Mind Loft. Forty multiple-choice questions climb from questions anyone can answer to questions almost nobody can, and a single wrong answer ends the run. Your score is simply how many you cleared in a row, which makes every question a small act of nerve: the deeper you go, the more you have to lose.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Everyone plays the same forty questions in the same order each day, so the daily leaderboard is a straight fight: deepest run wins, and ties break by time. Twenty seconds a question keeps it honest. The questions rotate through eight categories every round, so a run rewards range rather than one deep specialty.

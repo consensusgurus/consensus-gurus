@@ -876,7 +876,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Alibi</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Alibi is a free daily logic puzzle from Source of Truths &mdash; an Einstein-style deduction puzzle dressed as a nightly whodunit. Something has vanished from the manor, and four guests (five in the Sunday Edition) were each alone in a different room, each left at a different hour, and each carried one curious item. The witness statements are all true; the detective work is yours.
+          Alibi is a free daily logic puzzle from Mind Loft &mdash; an Einstein-style deduction puzzle dressed as a nightly whodunit. Something has vanished from the manor, and four guests (five in the Sunday Edition) were each alone in a different room, each left at a different hour, and each carried one curious item. The witness statements are all true; the detective work is yours.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Fill the three deduction boards the way a pencil-and-paper logician would: cross off what a statement rules out, confirm what elimination forces, and let the ✗s corner the ●s. Every case is generated with a constraint solver and machine-verified to have exactly one solution, so a careful chain of inference always closes the case &mdash; no guessing, no leaps.
@@ -896,7 +896,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       : g.status === 'lost' ? '🕯️ The case went cold' : '🕵️ Still on the case…';
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = playing
-      ? `Alibi #${PUZZLE.num} — the nightly whodunit from Source of Truths.\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Alibi #${PUZZLE.num} — the nightly whodunit from Mind Loft.\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Alibi — Case #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/alibi${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {

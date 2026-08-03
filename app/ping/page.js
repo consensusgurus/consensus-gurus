@@ -12,7 +12,7 @@ import { T } from '@/lib/theme';
 // hide a trickier city.
 
 export const metadata = {
-  title: 'Ping — Daily City Puzzle: Guess the City by Distance | Source of Truths',
+  title: 'Ping — Daily City Puzzle: Guess the City by Distance | Mind Loft',
   description:
     'A free daily geography puzzle — one secret world city, no clues. Guess any city and Ping tells you exactly how many miles away it is. Home in and keep guessing until you find it; the fewer guesses, the better your score.',
   alternates: { canonical: '/ping' },
@@ -25,10 +25,10 @@ export const metadata = {
   openGraph: {
     title: 'Ping — The Daily City Hunt',
     description:
-      'One secret city a day, no clues. Guess a city and get the exact miles to the target. Home in and find it. From Source of Truths.',
+      'One secret city a day, no clues. Guess a city and get the exact miles to the target. Home in and find it. From Mind Loft.',
     url: '/ping',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -54,7 +54,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/ping.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

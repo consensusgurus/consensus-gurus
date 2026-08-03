@@ -452,7 +452,7 @@ function buildDailyByGame(rows) {
 }
 
 export const metadata = {
-  title: 'Editor\'s Desk | Source of Truths',
+  title: 'Editor\'s Desk | Mind Loft',
   robots: { index: false, follow: false },
 };
 

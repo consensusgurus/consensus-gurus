@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 // hammering the database on every scrape.
 export const revalidate = 3600;
 
-export const alt = 'Source of Truths quizzes: exercise your mind'
+export const alt = 'Mind Loft quizzes: exercise your mind'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -60,7 +60,7 @@ export default async function Image() {
         h('div', { key: 'row', style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
           h('div', { key: 'brand', style: { display: 'flex', alignItems: 'center' } }, [
             h('img', { key: 'i', src: iconRingsDataURI(), width: 116, height: 116, style: { marginLeft: '-16px', marginRight: '-2px' } }),
-            T('Source of Truths', { fontSize: 42, fontWeight: 800, letterSpacing: '-1.2px', color: '#1c1e24' }),
+            T('Mind Loft', { fontSize: 42, fontWeight: 800, letterSpacing: '-1.2px', color: '#1c1e24' }),
           ]),
           T('The Quizzes', { fontSize: 22, fontWeight: 700, letterSpacing: 3, color: '#0e1d40', textTransform: 'uppercase' }),
         ]),

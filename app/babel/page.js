@@ -10,17 +10,17 @@ import { T } from '@/lib/theme';
 // decide the spread.
 
 export const metadata = {
-  title: 'Babel — Daily Word Tile Endgame Puzzle: The Bag Is Empty | Source of Truths',
+  title: 'Babel — Daily Word Tile Endgame Puzzle: The Bag Is Empty | Mind Loft',
   description:
     'A free daily word puzzle for endgame players. The bag is empty, so your opponent’s rack is not a secret: it is the bag minus the board minus your own tiles. Race them out or block the lane they need, and beat the solver’s par on spread.',
   alternates: { canonical: '/babel' },
   openGraph: {
     title: 'Babel — The Daily Word Tile Endgame',
     description:
-      'Five tiles, no bag, and one exchange left. Their rack is knowable, so the only question is whether to race or block. From Source of Truths.',
+      'Five tiles, no bag, and one exchange left. Their rack is knowable, so the only question is whether to race or block. From Mind Loft.',
     url: '/babel',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -45,7 +45,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/games/hero/babel.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

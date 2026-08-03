@@ -14,7 +14,7 @@ import { T } from '@/lib/theme';
 // browser by finding the one spec that agrees with every tile.
 
 export const metadata = {
-  title: 'Axiom — Free Daily Logic Puzzle: Find the Hidden Rule | Source of Truths',
+  title: 'Axiom — Free Daily Logic Puzzle: Find the Hidden Rule | Mind Loft',
   description:
     'A free daily logic puzzle. One hidden rule splits a board of words, five candidate rules are on the table, and you get a handful of tests to tell them apart. New board every day.',
   alternates: { canonical: '/axiom' },
@@ -27,10 +27,10 @@ export const metadata = {
   openGraph: {
     title: 'Axiom — Find the Hidden Rule',
     description:
-      'Green tiles obey a rule you cannot see. Red ones break it. Five candidates, a handful of tests, and most tiles teach you nothing. A new daily logic puzzle from Source of Truths.',
+      'Green tiles obey a rule you cannot see. Red ones break it. Five candidates, a handful of tests, and most tiles teach you nothing. A new daily logic puzzle from Mind Loft.',
     url: '/axiom',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -55,7 +55,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/axiom.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

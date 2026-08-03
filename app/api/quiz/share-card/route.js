@@ -80,7 +80,7 @@ export async function GET(request) {
       (
         <div style={{ width: SZ, height: SZ, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', flexDirection: 'column', padding: '60px 60px 50px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ display: 'flex', fontWeight: 800, fontSize: 30, color: PAL.accent }}>Source of Truths</span>
+            <span style={{ display: 'flex', fontWeight: 800, fontSize: 30, color: PAL.accent }}>Mind Loft</span>
             <span style={{ display: 'flex', fontWeight: 700, fontSize: 22, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>Player Card</span>
           </div>
 
@@ -136,6 +136,6 @@ export async function GET(request) {
       { width: SZ, height: SZ, fonts, headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200' } }
     );
   } catch (e) {
-    return textImage('Source of Truths', fonts, sans);
+    return textImage('Mind Loft', fonts, sans);
   }
 }

@@ -1,8 +1,8 @@
 import LegalLayout, { H2 } from '@/app/LegalLayout';
 
 export const metadata = {
-  title: 'Privacy Policy | Source of Truths',
-  description: 'How Source of Truths collects and uses information.',
+  title: 'Privacy Policy | Mind Loft',
+  description: 'How Mind Loft collects and uses information.',
 };
 
 export default function PrivacyPage() {
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       updated="July 2026"
     >
       <p>
-        This Privacy Policy describes how Source of Truths ("we", "us", "the site") collects and uses information when you visit. We aim to keep things simple and to collect only what we need to operate the site.
+        This Privacy Policy describes how Mind Loft ("we", "us", "the site") collects and uses information when you visit. We aim to keep things simple and to collect only what we need to operate the site.
       </p>
 
       <H2>What we collect</H2>
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
 
       <H2>Children</H2>
       <p>
-        Most of Source of Truths &mdash; the lists, quizzes, and daily puzzles &mdash; is written for a general audience. Our Kids Corner offers games designed for children: they require no sign-up, ask for no name, email, or other personal information, and progress is stored only on the device. We do not knowingly collect personal information from children under 13 anywhere on the site, and leaderboard sign-up is intended for users 13 and older. If you believe a child under 13 has provided us personal information, please contact us and we will delete it.
+        Most of Mind Loft &mdash; the lists, quizzes, and daily puzzles &mdash; is written for a general audience. Our Kids Corner offers games designed for children: they require no sign-up, ask for no name, email, or other personal information, and progress is stored only on the device. We do not knowingly collect personal information from children under 13 anywhere on the site, and leaderboard sign-up is intended for users 13 and older. If you believe a child under 13 has provided us personal information, please contact us and we will delete it.
       </p>
 
       <H2>Changes to this policy</H2>

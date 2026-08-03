@@ -9,14 +9,14 @@ import { T } from '@/lib/theme';
 // the browser.
 
 export const metadata = {
-  title: 'Check — Free Daily Checkers Puzzle | Source of Truths',
+  title: 'Check — Free Daily Checkers Puzzle | Mind Loft',
   description:
     'A free daily checkers puzzle. Red to play, with a forced sweep on the board: capture every black piece in three moves, four on Sundays. Captures are compulsory, so the key is always a sacrifice. No app, no signup, and a new board every day.',
   alternates: { canonical: '/check' },
   openGraph: {
     title: 'Check — A Daily Checkers Puzzle',
-    description: 'One move sweeps the board. It is always a sacrifice, and there is no take-back. A new shot from Source of Truths, daily.',
-    url: '/check', type: 'website', siteName: 'Source of Truths',
+    description: 'One move sweeps the board. It is always a sacrifice, and there is no take-back. A new shot from Mind Loft, daily.',
+    url: '/check', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -34,7 +34,7 @@ const gameJsonLd = {
   genre: ['Checkers puzzle', 'Draughts puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',

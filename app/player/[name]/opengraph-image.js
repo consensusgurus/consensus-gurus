@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 import React from 'react';
 
 export const runtime = 'nodejs';
-export const alt = 'Source of Truths player profile';
+export const alt = 'Mind Loft player profile';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 export const dynamicParams = true;

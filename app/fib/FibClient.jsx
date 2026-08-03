@@ -565,7 +565,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Fib #${PUZZLE.num} — the daily grid with one lying clue, from Source of Truths.\n${shareUrl()}`
+      ? `Fib #${PUZZLE.num} — the daily grid with one lying clue, from Mind Loft.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -921,7 +921,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Fib</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Fib is a free daily logic puzzle from Source of Truths. It is a Latin square with inequality signs, close cousin to futoshiki, with one rule added that changes everything: exactly one of the signs is lying to you.
+          Fib is a free daily logic puzzle from Mind Loft. It is a Latin square with inequality signs, close cousin to futoshiki, with one rule added that changes everything: exactly one of the signs is lying to you.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           That single change is what makes the puzzle. In an ordinary grid a contradiction means you slipped up somewhere and have to walk it back. Here it might mean you have just found the fib, so every chain of reasoning carries a second question, and the clue you trusted first is usually the one worth doubting.

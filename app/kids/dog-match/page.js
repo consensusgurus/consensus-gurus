@@ -1,7 +1,7 @@
 import DogMatchClient from './DogMatchClient';
 
 export const metadata = {
-  title: 'Dog Match | Kids Corner | Source of Truths',
+  title: 'Dog Match | Kids Corner | Mind Loft',
   description: 'A free picture-matching memory game for kids. Flip 28 cards to find 14 pairs of dog breeds. One-player or two-player pass-and-play.',
   alternates: { canonical: '/kids/dog-match' },
   openGraph: {
@@ -9,7 +9,7 @@ export const metadata = {
     description: 'Flip the cards and find all fourteen matching dog breeds. Play solo or two-player.',
     url: '/kids/dog-match',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
 };
 

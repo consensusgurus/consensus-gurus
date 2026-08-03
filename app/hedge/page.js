@@ -10,17 +10,17 @@ import { T } from '@/lib/theme';
 // browser.
 
 export const metadata = {
-  title: 'Hedge — Free Daily Slitherlink Loop Puzzle | Source of Truths',
+  title: 'Hedge — Free Daily Slitherlink Loop Puzzle | Mind Loft',
   description:
     'A free daily slitherlink, the loop puzzle also known as fences. Draw one single closed loop so every numbered cell has exactly that many of its four sides on the loop. One logical solution, a new grid every day, and a bigger 10x10 Edition on Sundays.',
   alternates: { canonical: '/hedge' },
   openGraph: {
     title: 'Hedge — A Daily Loop Puzzle',
     description:
-      'One closed loop, every number satisfied. A new slitherlink from Source of Truths, daily.',
+      'One closed loop, every number satisfied. A new slitherlink from Mind Loft, daily.',
     url: '/hedge',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -44,7 +44,7 @@ const gameJsonLd = {
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

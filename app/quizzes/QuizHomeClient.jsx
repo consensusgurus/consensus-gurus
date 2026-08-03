@@ -1346,7 +1346,7 @@ export default function QuizHomeClient() {
   const [mLb, setMLb] = useState(false);
   function shareChallenge() {
     const url = withRef((typeof window !== 'undefined' ? window.location.origin : '') + `/quiz/${qotd ? qotd.id : ''}`);
-    const data = { title: 'Source of Truths', text: 'Can you beat me on today’s quiz?', url };
+    const data = { title: 'Mind Loft', text: 'Can you beat me on today’s quiz?', url };
     if (typeof navigator !== 'undefined' && navigator.share) { navigator.share(data).catch(() => {}); }
     else if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(url).then(() => { setChCopied(true); setTimeout(() => setChCopied(false), 2000); }).catch(() => {}); }
   }

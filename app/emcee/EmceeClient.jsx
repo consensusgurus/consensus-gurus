@@ -582,7 +582,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Emcee #${PUZZLE.num} — the daily mini crossword from Source of Truths.\n${shareUrl()}`
+      ? `Emcee #${PUZZLE.num} — the daily mini crossword from Mind Loft.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -936,7 +936,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Emcee</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Emcee is a free daily mini crossword from Source of Truths. Say the name fast and you&rsquo;ll hear the initials &mdash; M.C. &mdash; because that&rsquo;s all it is: a proper mini crossword, five squares by five, with numbered Across and Down clues and a timer that only stops when the grid is right.
+          Emcee is a free daily mini crossword from Mind Loft. Say the name fast and you&rsquo;ll hear the initials &mdash; M.C. &mdash; because that&rsquo;s all it is: a proper mini crossword, five squares by five, with numbered Across and Down clues and a timer that only stops when the grid is right.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The words are everyday words and the clues play fair, so most grids fall in a minute or two &mdash; the puzzle is speed and cleanliness. The grid checks itself when the last square lands: wrong squares flash red and each failed check counts against you on the leaderboard, where ties break on fewest checks and then fastest time.

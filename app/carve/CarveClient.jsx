@@ -578,7 +578,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Carve #${PUZZLE.num} — the daily equal-sum puzzle from Source of Truths.\n${shareUrl()}`
+      ? `Carve #${PUZZLE.num} — the daily equal-sum puzzle from Mind Loft.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -902,7 +902,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Carve</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Carve is a free daily number puzzle from Source of Truths. Each day gives you a fresh grid of digits and a handful of colored anchor squares. Slice the whole board into connected blocks, one grown from each anchor, so that every block adds up to the same target. There is always exactly one valid carving &mdash; the anchors pin it down.
+          Carve is a free daily number puzzle from Mind Loft. Each day gives you a fresh grid of digits and a handful of colored anchor squares. Slice the whole board into connected blocks, one grown from each anchor, so that every block adds up to the same target. There is always exactly one valid carving &mdash; the anchors pin it down.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           It plays like a knife-and-ledger cousin of sudoku: part arithmetic, part territory. Watch the running totals, spot the squares only one block can reach, and let each locked block squeeze the next. A wrong cut shakes red and costs an error &mdash; carve the whole board clean for a perfect score.

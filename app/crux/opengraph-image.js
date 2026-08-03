@@ -1,7 +1,7 @@
 import { renderCruxCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Crux — a daily word puzzle from Source of Truths'
+export const alt = 'Crux — a daily word puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one puzzle a day, same board look): render the Crux snapshot

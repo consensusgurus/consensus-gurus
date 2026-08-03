@@ -10,7 +10,7 @@ import { T } from '@/lib/theme';
 // sentences with finer copy-desk calls.
 
 export const metadata = {
-  title: 'Stet — Daily Copy-Desk Word Puzzle: Find the Wrong Word or Grammar Slip | Source of Truths',
+  title: 'Stet — Daily Copy-Desk Word Puzzle: Find the Wrong Word or Grammar Slip | Mind Loft',
   description:
     "A free daily word puzzle — you're the copy editor. Almost every sentence in today's brief hides one wrong word or grammar slip (real words only, so spellcheck can't save you): free reign, should of, a mute point. But some sentences are clean — stamp those 'stet.' Tap it, fix it, keep a clean desk.",
   alternates: { canonical: '/stet' },
@@ -23,10 +23,10 @@ export const metadata = {
   openGraph: {
     title: 'Stet — The Daily Copy-Desk Puzzle',
     description:
-      'One news brief a day, one wrong word per sentence — maybe. Every error is a real word, so spellcheck is no help. Tap it, fix it — or stamp clean copy stet. From Source of Truths.',
+      'One news brief a day, one wrong word per sentence — maybe. Every error is a real word, so spellcheck is no help. Tap it, fix it — or stamp clean copy stet. From Mind Loft.',
     url: '/stet',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -52,7 +52,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/stet.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

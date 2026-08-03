@@ -575,7 +575,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Venn</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Venn is a free daily logic puzzle from Source of Truths. Three overlapping circles, each one a plain property of a word, and a tray of words that between them fill every region of the diagram, including the sliver in the middle where all three are true at once.
+          Venn is a free daily logic puzzle from Mind Loft. Three overlapping circles, each one a plain property of a word, and a tray of words that between them fill every region of the diagram, including the sliver in the middle where all three are true at once.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The counts are what turn sorting into deduction. Each region tells you how many words belong in it, so a word in the wrong place is never just a wrong answer, it is a number that refuses to add up. Work the shortfalls and the board corrects itself.
@@ -594,7 +594,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       ? (won ? `\u{25CE} Filed clean in ${elapsed}` : `\u{25CE} Filed in ${elapsed} · ${g.rejected} rejected sheet${g.rejected === 1 ? '' : 's'}`)
       : g.status === 'lost' ? '\u{25CE} The sheet won' : '\u{25CE} Still filing…';
     const text = playing
-      ? `Venn #${PUZZLE.num} — the daily three-circle sorting puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Venn #${PUZZLE.num} — the daily three-circle sorting puzzle from Mind Loft.\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Venn — Sheet #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/venn${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try { if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; } } catch (e) {}

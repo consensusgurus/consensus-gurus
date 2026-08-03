@@ -1,7 +1,7 @@
 import { renderOutrankCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Outrank — the daily crowd-ranking puzzle from Source of Truths'
+export const alt = 'Outrank — the daily crowd-ranking puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one crowd a day, same look): render the Outrank snapshot card

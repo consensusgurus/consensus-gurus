@@ -898,7 +898,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Jesters</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Jesters is a free daily logic puzzle from Source of Truths &mdash; a one-per-row, one-per-column, one-per-region placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat one jester in each: every row, every column and every court gets exactly one, and no two jesters may ever touch, not even at the corners.
+          Jesters is a free daily logic puzzle from Mind Loft &mdash; a one-per-row, one-per-column, one-per-region placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat one jester in each: every row, every column and every court gets exactly one, and no two jesters may ever touch, not even at the corners.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction &mdash; rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.
@@ -919,7 +919,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F0CF} Seated the court in ${elapsed} · ${g.placements} placements${hintBit}`
       : g.status === 'lost' ? '\u{1F0CF} The court dissolved' : '\u{1F0CF} Still seating the court…';
     const text = playing
-      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Source of Truths.\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Mind Loft.\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
       : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`sourceoftruths.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {

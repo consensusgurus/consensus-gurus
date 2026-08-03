@@ -1,7 +1,7 @@
 import LetterMatchClient from './LetterMatchClient';
 
 export const metadata = {
-  title: 'Letter Match | Kids Corner | Source of Truths',
+  title: 'Letter Match | Kids Corner | Mind Loft',
   description: 'A free matching memory game for kids. Match each capital letter to its lowercase letter. 52 cards, 26 pairs. Up to four players.',
   alternates: { canonical: '/kids/letter-match' },
   openGraph: {
@@ -9,7 +9,7 @@ export const metadata = {
     description: 'Match each capital letter to its lowercase letter. Find all twenty-six pairs. Up to four players.',
     url: '/kids/letter-match',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
 };
 

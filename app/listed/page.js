@@ -7,7 +7,7 @@ import { PUZZLES } from './puzzles';
 // canonical, evergreen URL — the dated /quiz/listed-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Listed: Free Daily History and Geography Puzzle | Source of Truths',
+  title: 'Listed: Free Daily History and Geography Puzzle | Mind Loft',
   description:
     'A free daily history and geography puzzle. Eight real things, one measurable quantity, five submits. Green locks a row that is exactly right, amber means you are off by one place. New list every day, and nine items in the Sunday Edition.',
   alternates: { canonical: '/listed' },
@@ -20,10 +20,10 @@ export const metadata = {
   openGraph: {
     title: 'Listed: A Daily Ranking Puzzle',
     description:
-      'Eight real things a day, shuffled. Rank them highest to lowest in five submits. Green locks, amber means you are one place off. History and geography, alternating daily, from Source of Truths.',
+      'Eight real things a day, shuffled. Rank them highest to lowest in five submits. Green locks, amber means you are one place off. History and geography, alternating daily, from Mind Loft.',
     url: '/listed',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -49,7 +49,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/listed.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

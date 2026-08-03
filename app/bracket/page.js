@@ -11,7 +11,7 @@ import { T } from '@/lib/theme';
 // and the client recomputes each matchup, exactly as the verifier does.
 
 export const metadata = {
-  title: 'Bracket — Free Daily Puzzle: Fill the Bracket of Facts | Source of Truths',
+  title: 'Bracket — Free Daily Puzzle: Fill the Bracket of Facts | Mind Loft',
   description:
     'A free daily bracket puzzle. Sixteen real things, one comparison question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
   alternates: { canonical: '/bracket' },
@@ -24,7 +24,7 @@ export const metadata = {
   openGraph: {
     title: 'Bracket — The Daily Bracket of Facts',
     description: 'Sixteen contenders, one question, fifteen picks. Your winners carry forward, so a first-round mistake takes every later line down with it.',
-    url: '/bracket', type: 'website', siteName: 'Source of Truths',
+    url: '/bracket', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -41,7 +41,7 @@ const gameJsonLd = {
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   image: 'https://sourceoftruths.com/quiz-heroes/bracket.png',
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',

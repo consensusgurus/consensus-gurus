@@ -7,7 +7,7 @@ import { PUZZLES } from './puzzles';
 // dated /quiz/links-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Links — Free Daily Word Grouping Puzzle | Source of Truths',
+  title: 'Links — Free Daily Word Grouping Puzzle | Mind Loft',
   description:
     'A free daily word grouping puzzle — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day, and the Sunday Edition lays twice as many traps.',
   alternates: { canonical: '/links' },
@@ -20,10 +20,10 @@ export const metadata = {
   openGraph: {
     title: 'Links — A Daily Word Grouping Puzzle',
     description:
-      'Sixteen words, four hidden threads, four mistakes to spare. The words that look like they belong together usually don’t. A new word puzzle from Source of Truths.',
+      'Sixteen words, four hidden threads, four mistakes to spare. The words that look like they belong together usually don’t. A new word puzzle from Mind Loft.',
     url: '/links',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -49,7 +49,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/links.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

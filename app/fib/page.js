@@ -10,17 +10,17 @@ import { T } from '@/lib/theme';
 // never reaches the browser.
 
 export const metadata = {
-  title: 'Fib — Free Daily Logic Puzzle With One Lying Clue | Source of Truths',
+  title: 'Fib — Free Daily Logic Puzzle With One Lying Clue | Mind Loft',
   description:
     'A free daily logic grid where every row and column holds 1 to 5 once, the open end of each inequality sign points at the larger number, and exactly one of those signs is lying. Solve the grid, then accuse the clue that lied. One provable answer, no guessing, and a bigger 6x6 Edition on Sundays.',
   alternates: { canonical: '/fib' },
   openGraph: {
     title: 'Fib — One Clue Is Lying',
     description:
-      'A Latin square with inequality clues, except one clue is false. Solve the grid and name the liar. A new logic puzzle from Source of Truths, daily.',
+      'A Latin square with inequality clues, except one clue is false. Solve the grid and name the liar. A new logic puzzle from Mind Loft, daily.',
     url: '/fib',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -44,7 +44,7 @@ const gameJsonLd = {
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

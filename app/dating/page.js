@@ -7,7 +7,7 @@ import { PUZZLES } from './puzzles';
 // evergreen URL — the dated /quiz/dating-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Dating — Free Daily History Ordering Puzzle | Source of Truths',
+  title: 'Dating — Free Daily History Ordering Puzzle | Mind Loft',
   description:
     'A free daily history puzzle — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day, and six moments in the Sunday Edition.',
   alternates: { canonical: '/dating' },
@@ -20,10 +20,10 @@ export const metadata = {
   openGraph: {
     title: 'Dating — A Daily Put-History-In-Order Puzzle',
     description:
-      'Five moments a day, shuffled out of sequence. Arrange them oldest to newest in three checks or fewer. A new history puzzle from Source of Truths.',
+      'Five moments a day, shuffled out of sequence. Arrange them oldest to newest in three checks or fewer. A new history puzzle from Mind Loft.',
     url: '/dating',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -49,7 +49,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/dating.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

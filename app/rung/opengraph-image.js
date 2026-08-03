@@ -1,7 +1,7 @@
 import { renderRungCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Rung — a daily puzzle from Source of Truths'
+export const alt = 'Rung — a daily puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one board a day, same look): render the Rung snapshot card

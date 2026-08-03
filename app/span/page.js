@@ -7,7 +7,7 @@ import { PUZZLES } from './puzzles';
 // dated /quiz/span-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Span — Free Daily Geography Border Puzzle | Source of Truths',
+  title: 'Span — Free Daily Geography Border Puzzle | Mind Loft',
   description:
     'A free daily geography puzzle — connect two countries with the shortest chain of land borders you can find. Par is the shortest road on the map. New route every day.',
   alternates: { canonical: '/span' },
@@ -20,10 +20,10 @@ export const metadata = {
   openGraph: {
     title: 'Span — A Daily Border-Hopping Geography Puzzle',
     description:
-      'Two countries a day. Chain land borders between them in the fewest moves — par is the shortest road on the map. A new geography puzzle from Source of Truths.',
+      'Two countries a day. Chain land borders between them in the fewest moves — par is the shortest road on the map. A new geography puzzle from Mind Loft.',
     url: '/span',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -49,7 +49,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/span.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

@@ -1,7 +1,7 @@
 import { renderDailyCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Shards - a daily jigsaw crossword from Source of Truths'
+export const alt = 'Shards - a daily jigsaw crossword from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one puzzle a day, same board look): render the shared daily

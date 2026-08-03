@@ -14,7 +14,7 @@ import { T } from '@/lib/theme';
 // list of the rest — so future words never reach the browser.
 
 export const metadata = {
-  title: 'Warmer — Daily Word Puzzle: Hotter or Colder | Source of Truths',
+  title: 'Warmer — Daily Word Puzzle: Hotter or Colder | Mind Loft',
   description:
     'A free daily word puzzle — one secret word, and every guess tells you how close it is in meaning on a cold-to-hot spectrum. Ocean is scorching for "sea," pencil is freezing. Unlimited guesses; the leaderboard ranks fewest guesses, fastest time. The Sunday Edition hides a rarer word.',
   alternates: { canonical: '/warmer' },
@@ -27,10 +27,10 @@ export const metadata = {
   openGraph: {
     title: 'Warmer — Hotter or Colder',
     description:
-      'One secret word a day. Every guess is scored by meaning, cold to hot, until you land the word. A new one every day from Source of Truths.',
+      'One secret word a day. Every guess is scored by meaning, cold to hot, until you land the word. A new one every day from Mind Loft.',
     url: '/warmer',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -53,7 +53,7 @@ const gameJsonLd = {
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
   image: 'https://sourceoftruths.com/quiz-heroes/warmer.png',
-  publisher: { '@type': 'Organization', name: 'Source of Truths', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
 };
 
 const breadcrumbJsonLd = {

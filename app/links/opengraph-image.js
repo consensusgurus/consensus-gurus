@@ -1,7 +1,7 @@
 import { renderLinksCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Links — a daily word grouping puzzle from Source of Truths'
+export const alt = 'Links — a daily word grouping puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one puzzle a day, same board look): render the Links snapshot

@@ -1,7 +1,7 @@
 import { renderCrunchCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Crunch — a daily puzzle from Source of Truths'
+export const alt = 'Crunch — a daily puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one board a day, same look): render the Crunch snapshot card

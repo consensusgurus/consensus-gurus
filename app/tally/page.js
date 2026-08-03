@@ -9,7 +9,7 @@ import { T } from '@/lib/theme';
 // are a 5×5 board; Sundays step up to 6×6.
 
 export const metadata = {
-  title: 'Tally — Free Daily Number Puzzle (Sudoku-style) | Source of Truths',
+  title: 'Tally — Free Daily Number Puzzle (Sudoku-style) | Mind Loft',
   description:
     'A free daily number puzzle — fill the grid from a rack of tiles so every row and column hits its target. A logic puzzle in the sudoku family, with a new board every day and a bigger 6×6 grid on Sundays.',
   alternates: { canonical: '/tally' },
@@ -22,10 +22,10 @@ export const metadata = {
   openGraph: {
     title: 'Tally — A Daily Number-Ledger Puzzle',
     description:
-      'Fill the grid from your rack so every row and column adds up to its target. One solution, fewest moves wins. A new number puzzle from Source of Truths, daily.',
+      'Fill the grid from your rack so every row and column adds up to its target. One solution, fewest moves wins. A new number puzzle from Mind Loft, daily.',
     url: '/tally',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -51,7 +51,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/tally.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

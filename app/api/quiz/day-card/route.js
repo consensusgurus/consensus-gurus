@@ -168,7 +168,7 @@ export async function GET(request) {
       (
         <div style={{ width: SZ, height: SZ, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', flexDirection: 'column', padding: '54px 60px 44px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ display: 'flex', fontWeight: 800, fontSize: 30, letterSpacing: '0.14em', textTransform: 'uppercase', color: PAL.navy }}>Source of Truths</span>
+            <span style={{ display: 'flex', fontWeight: 800, fontSize: 30, letterSpacing: '0.14em', textTransform: 'uppercase', color: PAL.navy }}>Mind Loft</span>
             <span style={{ display: 'flex', fontWeight: 600, fontSize: 24, color: PAL.slate }}>{dayLabel ? `Daily slate · ${dayLabel}` : 'Daily slate'}</span>
           </div>
 
@@ -214,6 +214,6 @@ export async function GET(request) {
       { width: SZ, height: SZ, fonts, headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch (e) {
-    return textImage('Source of Truths', fonts, sans);
+    return textImage('Mind Loft', fonts, sans);
   }
 }

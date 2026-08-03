@@ -7,7 +7,7 @@ import { PUZZLES } from './puzzles';
 // /quiz/crux-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Crux — Free Daily Word Puzzle | Source of Truths',
+  title: 'Crux — Free Daily Word Puzzle | Mind Loft',
   description:
     'A clueless crossword and a free daily word puzzle. Eight hidden words interlock, and four categories are the only hints. New puzzle every day.',
   alternates: { canonical: '/crux' },
@@ -20,10 +20,10 @@ export const metadata = {
   openGraph: {
     title: 'Crux — A Daily Word Puzzle',
     description:
-      'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses. A new daily word puzzle from Source of Truths.',
+      'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses. A new daily word puzzle from Mind Loft.',
     url: '/crux',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -49,7 +49,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/crux.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

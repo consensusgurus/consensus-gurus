@@ -1,7 +1,7 @@
 import { renderTallyCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Tally — a daily number-ledger puzzle from Source of Truths'
+export const alt = 'Tally — a daily number-ledger puzzle from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one board a day, same look): render the Tally snapshot card

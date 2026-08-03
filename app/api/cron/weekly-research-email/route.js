@@ -84,7 +84,7 @@ export async function GET(request) {
       },
       body: JSON.stringify({
         type: 'raw',
-        subject: `Source of Truths: weekly consensus research summary (${dateStr})`,
+        subject: `Mind Loft: weekly consensus research summary (${dateStr})`,
         html: `<div style="font-family:Arial,sans-serif;font-size:14px;color:#1a1611">${html}</div>`,
       }),
     });

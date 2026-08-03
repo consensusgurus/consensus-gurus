@@ -15,7 +15,7 @@ import { T } from '@/lib/theme';
 // questions go to the client.
 
 export const metadata = {
-  title: 'Feud — Daily Crowd Survey Game: Match What Everyone Says | Source of Truths',
+  title: 'Feud — Daily Crowd Survey Game: Match What Everyone Says | Mind Loft',
   description:
     'A free daily survey game with a LIVE answer key: five everyday prompts, three answers each, and the key is whatever today’s players say. Match the crowd, bank their percentages, and watch the shares shift all day.',
   alternates: { canonical: '/feud' },
@@ -28,10 +28,10 @@ export const metadata = {
   openGraph: {
     title: 'Feud — The Daily Crowd-Survey Game',
     description:
-      'The answer key is live: it’s whatever today’s players say. Five prompts, three answers each — match the crowd. From Source of Truths.',
+      'The answer key is live: it’s whatever today’s players say. Five prompts, three answers each — match the crowd. From Mind Loft.',
     url: '/feud',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
@@ -57,7 +57,7 @@ const gameJsonLd = {
   image: 'https://sourceoftruths.com/quiz-heroes/feud.png',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: 'https://sourceoftruths.com',
   },
 };

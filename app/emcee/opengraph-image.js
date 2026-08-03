@@ -1,7 +1,7 @@
 import { renderEmceeCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Emcee — a daily mini crossword from Source of Truths'
+export const alt = 'Emcee — a daily mini crossword from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one grid a day, same look): render the Emcee snapshot card

@@ -87,17 +87,17 @@ const BABEL = BABEL_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 // client-side from each game's per-puzzle localStorage save.
 
 export const metadata = {
-  title: 'Daily Puzzles — Crux, Emcee, Garble, Links, Span & More | Source of Truths',
+  title: 'Daily Puzzles — Crux, Emcee, Garble, Links, Span & More | Mind Loft',
   description:
-    "Every Source of Truths daily puzzle in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Lode, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, Stands, and Bracket. A new puzzle in each, every day.",
+    "Every Mind Loft daily puzzle in one place: today's puzzle and the full archive for Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Lode, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, Stands, and Bracket. A new puzzle in each, every day.",
   alternates: { canonical: '/daily' },
   openGraph: {
-    title: 'Daily Puzzles — Source of Truths',
+    title: 'Daily Puzzles — Mind Loft',
     description:
       "Today's puzzle and the full archive for every daily puzzle: Crux, Emcee, Garble, Links, Span, Dating, Tally, Suds, Circa, Extra, Carve, Stet, Outwit, Tuck, Lode, Alibi, Cipher, Ping, Warmer, Jesters, Sworn, Shards, Axiom, Hearsay, Venn, Stands, and Bracket.",
     url: '/daily',
     type: 'website',
-    siteName: 'Source of Truths',
+    siteName: 'Mind Loft',
   },
 };
 

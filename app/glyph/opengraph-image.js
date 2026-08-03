@@ -1,7 +1,7 @@
 import { renderGlyphCard } from '@/lib/og-brand-card'
 
 export const runtime = 'nodejs'
-export const alt = 'Glyph — a daily codeword from Source of Truths'
+export const alt = 'Glyph — a daily codeword from Mind Loft'
 export { size, contentType } from '@/lib/og-brand-card'
 
 // Static route (one grid a day, same look): render the Glyph snapshot card
