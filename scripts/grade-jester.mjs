@@ -7,7 +7,7 @@
 //                   row/col whose candidates all sit in one court.
 // Tier 3 (hard)   : single-placement lookahead - place a jester, see a unit
 //                   die, eliminate the cell. The only move needing foresight.
-import { PUZZLES } from '../app/jester/puzzles.js';
+import { PUZZLES } from '../app/jesters/puzzles.js';
 
 export function humanSolveGraded(n, regions) {
   const cand = Array.from({ length: n }, () => Array(n).fill(true));

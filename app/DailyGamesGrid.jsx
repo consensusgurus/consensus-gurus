@@ -65,7 +65,7 @@ const GAMES = [
   { key: 'cipher', href: '/cipher', name: 'Cipher', tag: 'Crack the letter math', img: '/games/btn-cipher.png' },
   { key: 'ping', href: '/ping', name: 'Ping', tag: 'Find the secret city', img: '/games/btn-ping.png' },
   { key: 'warmer', href: '/warmer', name: 'Warmer', tag: 'Hotter or colder', img: '/games/btn-warmer.png' },
-  { key: 'jester', href: '/jester', name: 'Jesters', tag: 'Seat the court', img: '/games/btn-jester.png' },
+  { key: 'jester', href: '/jesters', name: 'Jesters', tag: 'Seat the court', img: '/games/btn-jester.png' },
   { key: 'sworn', href: '/sworn', name: 'Sworn', tag: 'Spot the liars', img: '/games/btn-sworn.png' },
   { key: 'axiom', href: '/axiom', name: 'Axiom', tag: 'Find the hidden rule', img: '/games/btn-axiom.png' },
   { key: 'hearsay', href: '/hearsay', name: 'Hearsay', tag: "Deduce what they don't know", img: '/games/btn-hearsay.png' },

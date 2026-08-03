@@ -18,7 +18,7 @@ import { PUZZLES as ALIBI_FULL } from '../alibi/puzzles';
 import { PUZZLES as CIPHER } from '../cipher/puzzles';
 import { PUZZLES as PING } from '../ping/puzzles';
 import { PUZZLES as WARMER } from '../warmer/puzzles';
-import { PUZZLES as JESTER_FULL } from '../jester/puzzles';
+import { PUZZLES as JESTER_FULL } from '../jesters/puzzles';
 import { PUZZLES as SWORN_FULL } from '../sworn/puzzles';
 import { PUZZLES as SHARDS } from '../shards/puzzles';
 import { PUZZLES as AXIOM_FULL } from '../axiom/puzzles';
@@ -144,7 +144,7 @@ const GAMES = [
   { key: 'cipher', name: 'Cipher', path: '/cipher', tag: 'Crack the letter math', accent: '#0f766e', bg: '#d9f0ee', border: 'rgba(15,118,110,0.35)', src: CIPHER },
   { key: 'ping', name: 'Ping', path: '/ping', tag: 'Find the secret city', accent: '#0284c7', bg: '#e0f2fe', border: 'rgba(2,132,199,0.35)', src: PING },
   { key: 'warmer', name: 'Warmer', path: '/warmer', tag: 'Hotter or colder', accent: '#dc2626', bg: '#fef2f2', border: 'rgba(220,38,38,0.35)', src: WARMER },
-  { key: 'jester', name: 'Jesters', path: '/jester', tag: 'Seat the court', accent: '#7c3aed', bg: '#f3e8ff', border: 'rgba(124,58,237,0.35)', src: JESTER },
+  { key: 'jester', name: 'Jesters', path: '/jesters', tag: 'Seat the court', accent: '#7c3aed', bg: '#f3e8ff', border: 'rgba(124,58,237,0.35)', src: JESTER },
   { key: 'sworn', name: 'Sworn', path: '/sworn', tag: 'Spot the liars', accent: '#be185d', bg: '#fce7f3', border: 'rgba(190,24,93,0.35)', src: SWORN },
   { key: 'axiom', name: 'Axiom', path: '/axiom', tag: 'Find the hidden rule', accent: '#0f766e', bg: '#ccfbf1', border: 'rgba(15,118,110,0.35)', src: AXIOM },
   { key: 'hearsay', name: 'Hearsay', path: '/hearsay', tag: "Deduce what they don't know", accent: '#7c2d92', bg: '#f5e8fb', border: 'rgba(124,45,146,0.35)', src: HEARSAY },

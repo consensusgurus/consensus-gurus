@@ -770,7 +770,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           The reasoning is pure case-work: suppose a suspect is the thief, follow what each statement would make of its speaker, and check the lie count. Wrong theories collapse under their own contradictions; the truth is the one story that holds together. Every case is generated with a constraint solver and machine-verified to have exactly one consistent world &mdash; and to be crackable by clean deduction, never guesswork.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new inquest is sworn every day at midnight Eastern, with six suspects at Sunday&rsquo;s Grand Inquest. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, <a href="/jester" style={{ color: COLORS.ink, fontWeight: 800 }}>Jester</a>, our court-placement puzzle, and <a href="/cipher" style={{ color: COLORS.ink, fontWeight: 800 }}>Cipher</a>, our daily cryptarithm.
+          A new inquest is sworn every day at midnight Eastern, with six suspects at Sunday&rsquo;s Grand Inquest. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, <a href="/jesters" style={{ color: COLORS.ink, fontWeight: 800 }}>Jesters</a>, our court-placement puzzle, and <a href="/cipher" style={{ color: COLORS.ink, fontWeight: 800 }}>Cipher</a>, our daily cryptarithm.
         </p>
       </section>
 

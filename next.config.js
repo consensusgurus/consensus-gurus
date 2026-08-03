@@ -35,6 +35,16 @@ const nextConfig = {
         destination: '/crux',
         permanent: true,
       },
+      // Renamed 2026-08-03: the game is called Jesters, so /jester moved to
+      // /jesters. Same game, same board numbering, same 'jester-M-D-YY' quiz
+      // ids and leaderboards, and the PWA manifest id is deliberately left as
+      // '/jester' so already-installed apps are not orphaned. Archive deep
+      // links like /jester?p=23 308 across with the query string intact.
+      {
+        source: '/jester',
+        destination: '/jesters',
+        permanent: true,
+      },
       // Renamed 2026-07-31: Park relaunched as Parker (same game, same board
       // numbering, same 'park-M-D-YY' quiz ids and leaderboards). Old links,
       // including archive deep links like /park?p=2, 308 to the new home. Next

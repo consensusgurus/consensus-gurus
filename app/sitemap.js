@@ -59,7 +59,7 @@ export default function sitemap() {
     { url: `${baseUrl}/cipher`, lastModified: newestOfFormat('cipher'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/ping`, lastModified: newestOfFormat('ping'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/warmer`, lastModified: newestOfFormat('warmer'), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${baseUrl}/jester`, lastModified: newestOfFormat('jester'), changeFrequency: 'daily', priority: 0.9 },
+    { url: `${baseUrl}/jesters`, lastModified: newestOfFormat('jester'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/sworn`, lastModified: newestOfFormat('sworn'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/axiom`, lastModified: newestOfFormat('axiom'), changeFrequency: 'daily', priority: 0.9 },
     { url: `${baseUrl}/hearsay`, lastModified: newestOfFormat('hearsay'), changeFrequency: 'daily', priority: 0.9 },

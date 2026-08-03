@@ -204,7 +204,7 @@ export const DAILY_GAMES = [
   { key: 'outrank', cat: 'crowd',    name: 'Outrank', tag: "Call the crowd's order",   blurb: 'Predict how everyone else ranked the list today, not how you would rank it yourself.', href: '/outrank' },
   { key: 'cipher', cat: 'numbers',   name: 'Cipher', tag: 'Crack the letter math',     blurb: 'A sum written in letters instead of digits. Work out which digit each letter stands for.', href: '/cipher' },
   { key: 'alibi',  cat: 'logic',     name: 'Alibi',  tag: 'Solve the nightly whodunit', blurb: 'Statements, motives and one liar. Deduce who did it before your questions run out.', href: '/alibi' },
-  { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             blurb: 'Seat every jester at the table using only the clues about who sits beside whom.', href: '/jester' },
+  { key: 'jester', cat: 'logic',     name: 'Jesters', tag: 'Seat the court',             blurb: 'Seat the jesters so every row, column and colored court holds its quota, and no two ever touch.', href: '/jesters' },
   { key: 'sworn',  cat: 'logic',     name: 'Sworn',  tag: 'Spot the liars',             blurb: 'Some witnesses always tell the truth and some never do. Work out which is which.', href: '/sworn' },
   { key: 'warmer', cat: 'word',      name: 'Warmer', tag: 'Hotter or colder',           blurb: 'Guess a word and get told how close in meaning it is. Close in on today’s secret word.', href: '/warmer' },
   { key: 'listed', cat: 'history',   name: 'Listed', tag: 'Rank the list, top to bottom', blurb: 'Eight real things, one true order. Rank them by the figures behind them, best to worst.', href: '/listed' },

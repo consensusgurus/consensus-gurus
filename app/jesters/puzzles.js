@@ -1,6 +1,6 @@
 // Puzzle data for Jester, the daily one-per-row-column-region placement
 // game (Star Battle). Imported ONLY by the server page
-// (app/jester/page.js), which filters live<=today AND strips the solution
+// (app/jesters/page.js), which filters live<=today AND strips the solution
 // before passing puzzles to the client — the client re-derives the unique
 // placement from the regions with its own backtracking solver, so the answer
 // never ships over the wire.

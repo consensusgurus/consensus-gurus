@@ -21,8 +21,8 @@
 // only, per the house rule.
 //
 // Same daily plumbing as Circa/Suds/Alibi: banked boards gated by Eastern
-// date on the server (app/jester/page.js), per-puzzle localStorage saves,
-// /jester?p=N archive pinning, streaks + stats, and the shared /api/quiz/*
+// date on the server (app/jesters/page.js), per-puzzle localStorage saves,
+// /jesters?p=N archive pinning, streaks + stats, and the shared /api/quiz/*
 // board flow.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -829,7 +829,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}
-                      <a href={`/jester?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                      <a href={`/jesters?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
                         replay yesterday&rsquo;s court &rarr;
                       </a>
                     </>
@@ -838,7 +838,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
               ) : (
                 <>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/jester" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s court &rarr;</a>
+                  <a href="/jesters" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s court &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
@@ -964,8 +964,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       ? `\u{1F0CF} Seated the court in ${elapsed} · ${g.placements} placements${hintBit}`
       : g.status === 'lost' ? '\u{1F0CF} The court dissolved' : '\u{1F0CF} Still seating the court…';
     const text = playing
-      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Mind Loft.\n${withRef(`mindloftdaily.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
-      : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/jester${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
+      ? `Jesters #${PUZZLE.num} — the daily court-placement puzzle from Mind Loft.\n${withRef(`mindloftdaily.com/jesters${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`
+      : `Jesters — Court #${PUZZLE.num}\n${solvedBit}${streakBit}\n${withRef(`mindloftdaily.com/jesters${isTodays ? '' : `?p=${PUZZLE.num}`}`)}`;
     if (notifyShareCredit(text)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {

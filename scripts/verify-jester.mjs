@@ -1,4 +1,4 @@
-// Verify the Jester bank (app/jester/puzzles.js) from scratch:
+// Verify the Jesters bank (app/jesters/puzzles.js) from scratch:
 //   - structural: nums sequential, quizId/live/dateLabel agree, sunday flag
 //     matches the real weekday, no gaps or duplicate dates in the run
 //   - regions: an n x n partition into exactly n contiguous courts
@@ -10,7 +10,7 @@
 //     difficulty signal and is deliberately not checked against the weekday.
 //   - every unplayed Sunday is a two-jester board
 // Run: node scripts/verify-jester.mjs
-import { PUZZLES } from '../app/jester/puzzles.js';
+import { PUZZLES } from '../app/jesters/puzzles.js';
 import { humanSolve2 } from './jester2-human.mjs';
 import { gradeBoard } from './grade-jester.mjs';
 
