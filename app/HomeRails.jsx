@@ -46,6 +46,15 @@ function scoreTone(pct) {
 
 function ringTone(pct) { return pct >= 70 ? T.successDeep : '#c0392b'; }
 
+// m:ss, or h:mm:ss on the rare long one. Seconds in, never a bare float.
+function fmtTime(sec) {
+  const t = Math.max(0, Math.round(Number(sec) || 0));
+  if (!t) return null;
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const two = (n) => String(n).padStart(2, '0');
+  return h ? `${h}:${two(m)}:${two(s)}` : `${m}:${two(s)}`;
+}
+
 function Rows({ rows, fmt, open, hrefFor }) {
   return (
     <table className="hr-tbl"><tbody>
@@ -180,7 +189,7 @@ export default function HomeRails({
         return {
           key: k, name: g.name, cat: g.cat, img: g.img,
           score: r.score, total: r.total, rank: r.rank, field: r.field,
-          points: r.points, completion: r.completion,
+          points: r.points, completion: r.completion, time: r.timeElapsed,
         };
       })
       .sort((a, b) => (b.points || 0) - (a.points || 0));
@@ -391,6 +400,7 @@ export default function HomeRails({
                     <span className="hr-s">
                       {(g.score != null && g.total) ? <b className="hr-res-sc">{g.score}/{g.total}</b> : <b className="hr-res-sc">{g.points} pts</b>}
                       {g.rank ? ` · #${g.rank}${g.field ? ` of ${g.field}` : ''}` : ''}
+                      {fmtTime(g.time) ? ` · ${fmtTime(g.time)}` : ''}
                       {g.points != null ? ` · ${g.points} pts` : ''}
                     </span>
                   </span>
