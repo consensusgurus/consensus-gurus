@@ -60,8 +60,17 @@ for (const f of walk('app')) {
   if (EXCLUDE.has(f) || f === 'app/globals.css') continue;
   readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
     if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
-    const m = line.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
-    for (const h of m) if (HEXES.has(h.toLowerCase())) fail.push(`${f}:${i + 1} raw brand hex ${h} (use T.* or var(--*))`);
+    // SVG assembled as a STRING (the kids-game icons, data URIs) can use NEITHER var() nor
+    // T.*: written into a string, `fill={T.x}` is broken markup, not an interpolation. Hexes
+    // there are legitimately raw, so skip a markup-bearing string.
+    const markup = /<(svg|path|circle|rect|text|ellipse|g)\b/.test(line);
+    for (const m of line.matchAll(/#[0-9a-fA-F]{3,8}\b/g)) {
+      if (!HEXES.has(m[0].toLowerCase())) continue;
+      const before = line.slice(0, m.index);
+      const inString = ["'", '"', '`'].some(q => (before.split(q).length - 1) % 2 === 1);
+      if (markup && inString) continue;
+      fail.push(`${f}:${i + 1} raw brand hex ${m[0]} (use T.* or var(--*))`);
+    }
   });
 }
 

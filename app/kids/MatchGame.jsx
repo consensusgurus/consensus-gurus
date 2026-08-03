@@ -6,7 +6,7 @@ import SiteHeader from '../SiteHeader';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import { formatCount } from '../Count';
-import { T } from '@/lib/theme';
+import { T as THEME } from '@/lib/theme';
 
 // Generic Kids Corner matching (concentration) game engine.
 //
@@ -24,11 +24,11 @@ import { T } from '@/lib/theme';
 // the default card size (so dense boards do not balloon on big screens). Players
 // (1-4) are chosen on a pre-game screen. Page views are recorded via the
 // quiz-view system (the given `quizId`).
-const C = { ink: T.ink, accent: T.accent, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.30)' };
+const C = { ink: THEME.ink, accent: THEME.accent, muted: THEME.muted, soft: THEME.muted, line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const Star = () => (
-  <svg viewBox="0 0 24 24" width="30" height="30" fill={T.white} aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5 20.4l1.4-6.8L1.3 9l6.9-.7z" /></svg>
+  <svg viewBox="0 0 24 24" width="30" height="30" fill={THEME.white} aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5 20.4l1.4-6.8L1.3 9l6.9-.7z" /></svg>
 );
 const Refresh = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
@@ -171,7 +171,7 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, color: C.ink, position: 'relative', overflow: 'clip', fontFamily: FONT }}>
+    <div style={{ minHeight: '100vh', background: THEME.surface, color: C.ink, position: 'relative', overflow: 'clip', fontFamily: FONT }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2 }}>
         <SiteHeader active="" />
