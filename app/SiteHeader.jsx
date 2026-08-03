@@ -107,7 +107,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
         .shc{width:100vw;margin-left:calc(50% - 50vw);}
         .shc-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
         .shc-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
-        .shc-word em{font-style:normal;color:var(--muted);font-weight:600;}
+        .shc-word em{font-style:normal;color:var(--blue);font-weight:800;}
         .shc-ws{display:none;}
         .shc-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:var(--ink);flex:none;}
         .shc-games{display:flex;align-items:center;gap:9px;min-width:0;flex:none;}
@@ -155,7 +155,7 @@ function CommandHeader({ active, search, onSearch, sortBy, onSort, sortButtons, 
       `}</style>
       <div className="shc-bar">
         <Link href="/" className="shc-brandlogo" style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><CommandLogo size={30} /></Link>
-        <Link href="/" className="shc-word"><span className="shc-wl">Source <em>of</em> Truths</span><span className="shc-ws">S<em>o</em>T</span></Link>
+        <Link href="/" className="shc-word"><span className="shc-wl">Mind <em>Loft</em></span><span className="shc-ws">ML</span></Link>
         <span className="shc-src"><HeaderTagline active={active} /></span>
         {showSearch && (
           <div className="shc-search" onClick={(e) => e.stopPropagation()}>
@@ -260,7 +260,7 @@ export default function SiteHeader({ active = 'lists', maxWidth = 1180, visitors
             <div className="sh-brand">
               <Link href="/" style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={34} /></Link>
               <span style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'nowrap' }}>
-                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:T.ink }}><span className="sh-word-full">Source <span style={{ color: T.muted, fontWeight: 600 }}>of</span> Truths</span><span className="sh-word-sot">S<span style={{ color: T.muted, fontWeight: 600 }}>o</span>T</span></Link>
+                <Link href="/" className="sh-word" style={{ textDecoration: 'none', color:T.ink }}><span className="sh-word-full">Mind <span style={{ color: T.blue, fontWeight: 800 }}>Loft</span></span><span className="sh-word-sot">ML</span></Link>
                 <span className="sh-tag" style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 'normal', textTransform: 'uppercase', color:T.ink, marginTop: 0 }}><HeaderTagline active={active} /></span>
               </span>
             </div>

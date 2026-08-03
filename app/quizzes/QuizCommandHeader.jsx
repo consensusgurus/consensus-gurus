@@ -155,7 +155,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
         .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
-        .qch-word em{font-style:normal;color:var(--muted);font-weight:600;}
+        .qch-word em{font-style:normal;color:var(--blue);font-weight:800;}
         .qch-ws{display:none;}
         .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:var(--ink);flex:none;}
         /* The search INPUT left this bar on 2026-07-29 (it now sits in the
@@ -271,7 +271,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
       `}</style>
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
         <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={30} /></Link>
-        <Link href="/" className="qch-word"><span className="qch-wl">Source <em>of</em> Truths</span><span className="qch-ws">S<em>o</em>T</span></Link>
+        <Link href="/" className="qch-word"><span className="qch-wl">Mind <em>Loft</em></span><span className="qch-ws">ML</span></Link>
         <span className="qch-src">Exercise Your Mind</span>
         <button type="button" className="qch-searchbtn" ref={btnRef} onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>
         <div className="qch-me">
