@@ -185,7 +185,7 @@ function DoneMark({ id, size = 13 }) {
   const { played, completed } = useContext(QuizDoneContext);
   if (!id || (!played && !completed)) return null;
   if (completed && completed.has(id)) {
-    return <Star className="donemark" size={size} strokeWidth={1.5} fill={T.gold} color={T.gold} style={{ flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
+    return <Star className="donemark" size={size} strokeWidth={1.5} fill={T.gold} color={T.goldInk} style={{ flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Completed (100%)" />;
   }
   if (played && played.has(id)) {
     return <Check className="donemark" size={size} strokeWidth={2.75} style={{ color: C.live, flex: 'none', marginLeft: 5, verticalAlign: '-2px' }} aria-label="Played" />;
@@ -2399,7 +2399,7 @@ export default function QuizHomeClient() {
                     <div className="ddall" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, padding: '4px 9px 2px' }}>My progress</div>
                     {[['unplayed', 'Unplayed'], ['played', 'Played'], ['completed', 'Completed']].map(([k, lbl]) => (
                       <div key={k} className="dditem ddall" onClick={() => { setDoneFilter(k); setScope('all'); setDdOpen(false); setSearch(''); setListMode(null); }} style={doneFilter === k ? { background: C.accsoft } : undefined}>
-                        {k === 'completed' ? <Star size={14} strokeWidth={1.5} fill={T.gold} color={T.gold} /> : k === 'played' ? <Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> : <span style={{ width: 13, height: 13, borderRadius: '50%', border: `1.5px solid ${C.soft}`, display: 'inline-block' }} />}
+                        {k === 'completed' ? <Star size={14} strokeWidth={1.5} fill={T.gold} color={T.goldInk} /> : k === 'played' ? <Check size={14} strokeWidth={2.75} style={{ color: C.live }} /> : <span style={{ width: 13, height: 13, borderRadius: '50%', border: `1.5px solid ${C.soft}`, display: 'inline-block' }} />}
                         <span style={{ flex: 1 }}>{lbl}</span>
                         <span style={{ fontSize: 11, color: C.soft }}>{statusCounts[k]}</span>
                       </div>
@@ -2707,7 +2707,7 @@ export default function QuizHomeClient() {
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check className="donemark" size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star className="donemark" size={14} strokeWidth={1.5} fill={T.gold} color={T.gold} /> Completed (100%)</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star className="donemark" size={14} strokeWidth={1.5} fill={T.gold} color={T.goldInk} /> Completed (100%)</span>
       </div>
 
       <Footer />
