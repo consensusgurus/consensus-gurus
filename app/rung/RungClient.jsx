@@ -14,7 +14,7 @@
 // lib/par.js. Floor of 1, so finishing always beats walking away. Weekday
 // perfect lines are 10 to 12 rungs and Sundays 15 or more.
 //
-// THE WORD LIST IS THE RULES. A rung must be one of the 1,846 common five-letter
+// THE WORD LIST IS THE RULES. A rung must be one of the 1,292 common five-letter
 // words in VOCAB, and perfect was computed over exactly that list. Validating
 // against anything wider would let a player find a shorter ladder than perfect
 // through vocabulary the solver never saw, and it would stop meaning anything.
@@ -41,12 +41,13 @@ import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
 import { VOCAB } from './puzzles';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
-  rust: '#c0392b', faded: '#262b35',
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, faded: T.muted,
   accent: '#155e75',        // Rung identity — deep teal
-  accentSoft: '#e4f2f6', green: '#15803d',
+  accentSoft: '#e4f2f6', green: T.successDeep,
 };
 const TILE = '#f3f1ea';
 const TILE_EDGE = '#d5d0c4';
@@ -541,7 +542,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
             width: 40, height: 44, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: SANS, fontWeight: 800, fontSize: 21, textTransform: 'uppercase',
             background: outline ? 'transparent' : changed ? COLORS.accent : TILE,
-            color: outline ? COLORS.faded : changed ? '#fff' : COLORS.ink,
+            color: outline ? COLORS.faded : changed ? T.white : COLORS.ink,
             border: outline ? `2px dashed ${TILE_EDGE}` : `1.5px solid ${changed ? COLORS.accent : TILE_EDGE}`,
             opacity: dim ? 0.55 : 1,
           }}>{ch}</div>
@@ -551,15 +552,15 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="rg-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.rg-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .rg-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .rg-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .rg-btn:hover{background:${COLORS.paper};}
-          .rg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .rg-in{font-family:${SANS};font-weight:800;font-size:20px;letter-spacing:0.28em;text-transform:uppercase;text-align:center;width:100%;max-width:230px;padding:10px 8px;border-radius:8px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};}
+          .rg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .rg-in{font-family:${SANS};font-weight:800;font-size:20px;letter-spacing:0.28em;text-transform:uppercase;text-align:center;width:100%;max-width:230px;padding:10px 8px;border-radius:8px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};}
           .rg-in:focus{outline:none;border-color:${COLORS.accent};}
           .rg-ladder{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:2px 0;}
           .rg-shake{animation:rgshake .34s ease;}
@@ -572,9 +573,9 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
         <DailyMasthead
           slug="rung" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Par {par}</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Par {par}</span>}
           blocks={'RUNG'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
 
@@ -587,7 +588,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="rg-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="rg-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -598,7 +599,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>rungs <b style={{ color: used > par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
@@ -622,7 +623,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
                   aria-label="Type the next rung"
                 />
                 <button className="rg-btn" onClick={submit} disabled={draft.length !== 5}
-                  style={{ background: draft.length === 5 ? COLORS.ink : '#fff', color: draft.length === 5 ? '#fff' : COLORS.faded, opacity: draft.length === 5 ? 1 : 0.55, cursor: draft.length === 5 ? 'pointer' : 'default' }}>
+                  style={{ background: draft.length === 5 ? COLORS.ink : T.white, color: draft.length === 5 ? T.white : COLORS.faded, opacity: draft.length === 5 ? 1 : 0.55, cursor: draft.length === 5 ? 'pointer' : 'default' }}>
                   Climb
                 </button>
               </div>
@@ -724,14 +725,14 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
             boardSlot={<DailyBoardPanel self="rung" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Rung to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -742,7 +743,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
               ) : (
                 <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s ladder, every day.</p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -767,7 +768,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
       )}
 
       {showHelp && (
@@ -779,7 +780,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="rg-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="rg-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}
