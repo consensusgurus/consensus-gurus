@@ -263,6 +263,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Phones open on the first eight tiles only (owner, 2026-07-31). This is the
   // toggle behind .dh-mall; the cut itself is CSS, see .dh-board.mcut below.
   const [showAll, setShowAll] = useState(false);
+  // The two lead-in bars drop their game icon on a phone (they carry a white
+  // rule instead). Hiding it in CSS still let the browser lay it out and paint
+  // it for a frame, which read as a flicker, so it is not rendered at all.
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia('(max-width: 900px)');
+    const on = () => setPhone(mq.matches);
+    on();
+    if (mq.addEventListener) { mq.addEventListener('change', on); return () => mq.removeEventListener('change', on); }
+    mq.addListener(on); return () => mq.removeListener(on);
+  }, []);
+  const capIcon = !(slate && phone);
   // Board filter: 'all' | 'todo' | a category name. The phone default below has
   // called setFilter since the board was built, but the state was never
   // declared, so the call threw inside its own try/catch and did nothing.
@@ -787,7 +800,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            shrinking by half the gap), which is what the owner asked for. */
         .dh-cell{display:flex;align-items:center;gap:12px;flex:1 1 50%;min-width:0;box-sizing:border-box;}
         .dh-cell + .dh-cell{padding-left:14px;border-left:1.5px solid var(--border);}
-        .dh-cell .dh-play{flex:0 0 auto;margin-left:auto;min-width:92px;font-size:13.5px;padding:11px 18px;}
+        .dh-cell .dh-play{flex:0 0 auto;margin-left:auto;width:112px;min-width:0;font-size:13.5px;padding:11px 0;}
         .dh-cell>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
         /* Both eyebrows read blue (owner, 2026-08-03). The easiest board used to
@@ -1009,7 +1022,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            they stop being cells and become two full-width bars, one under the
            other, the way the mockup has them. */
         .dhome.slate .dh-cell{flex:1 1 50%;}
-        .dhome.slate .dh-cell .dh-play{min-width:104px;}
+        .dhome.slate .dh-cell .dh-play{width:112px;}
         @media(max-width:900px){
           /* edge to edge. Negative margins, NOT the 50%/translateX trick: a
              transform makes the console a containing block and kills the sticky
@@ -1028,11 +1041,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* a white rule replaces the game icon, which is unreadable at this
              size on a saturated ground */
           .dhome.slate .dh-cell::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.9);}
-          .dhome.slate .dh-cell > img{display:none;}
           .dhome.slate .dh-bue{color:#dbe8ff;font-size:9.5px;letter-spacing:.11em;}
           .dhome.slate .dh-bun{color:var(--white);font-size:19px;}
           .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;}
-          .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);min-width:92px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 16px;border-radius:8px;}
+          .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:98px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 0;border-radius:8px;}
         }
         .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border:1.5px solid var(--border);border-bottom:2px solid var(--accent);border-radius:13px 13px 0 0;}
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
@@ -1201,7 +1213,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         <div className="dh-cell">
           {nextGame ? (
             <>
-              <img src={nextGame.img} alt="" aria-hidden="true" />
+              {capIcon ? <img src={nextGame.img} alt="" aria-hidden="true" /> : null}
               <div className="dh-bupt">
                 <div className="dh-bue up">Up next</div>
                 <div className="dh-bun">{nextGame.name}</div>
@@ -1225,7 +1237,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         <div className="dh-cell">
           {easiest ? (
             <>
-              <img src={easiest.game.img} alt="" aria-hidden="true" />
+              {capIcon ? <img src={easiest.game.img} alt="" aria-hidden="true" /> : null}
               <div className="dh-bupt">
                 <div className="dh-bue"><span className="dh-bwide">Easiest leaderboard</span><span className="dh-bshort">Easiest board</span></div>
                 <div className="dh-bun">{easiest.game.name}</div>
