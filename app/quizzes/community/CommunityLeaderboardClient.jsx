@@ -15,7 +15,7 @@ import { T } from '@/lib/theme';
 
 const C = {
   bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
-  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent, cta: T.cta,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent, cta: T.cta, ctaInk: T.ctaInk,
 };
 const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -109,7 +109,7 @@ export default function CommunityLeaderboardClient() {
                 <code style={{ flex: '1 1 260px', minWidth: 0, fontSize: 12.5, background: '#f2f4f7', border: `1px solid ${C.line}`, borderRadius: 9, padding: '9px 11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {me.shareUrl}
                 </code>
-                <button type="button" onClick={copy} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 13, fontWeight: 800, color: C.ink, background: C.cta, border: 0, borderRadius: 9, padding: '10px 14px', cursor: 'pointer' }}>
+                <button type="button" onClick={copy} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 13, fontWeight: 800, color: C.ctaInk, background: C.cta, border: 0, borderRadius: 9, padding: '10px 14px', cursor: 'pointer' }}>
                   {copied ? <Check size={14} /> : <Copy size={14} />}{copied ? 'Copied' : 'Copy link'}
                 </button>
               </div>
@@ -119,7 +119,7 @@ export default function CommunityLeaderboardClient() {
               <div style={{ flex: '1 1 300px', fontSize: 14, color: C.muted }}>
                 Register to get your own share link and appear on this board.
               </div>
-              <button type="button" onClick={() => setJoinOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 13, fontWeight: 800, color: C.ink, background: C.cta, border: 0, borderRadius: 9, padding: '10px 14px', cursor: 'pointer' }}>
+              <button type="button" onClick={() => setJoinOpen(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 13, fontWeight: 800, color: C.ctaInk, background: C.cta, border: 0, borderRadius: 9, padding: '10px 14px', cursor: 'pointer' }}>
                 <UserPlus size={14} /> Register
               </button>
             </div>

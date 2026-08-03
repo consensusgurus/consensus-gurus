@@ -63,7 +63,7 @@ const C = {
   bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
   soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
   accsoft: '#e8effb', live: T.success,
-  cta: T.cta, ctaInk: T.ink, ctaHover: T.ctaHover,
+  cta: T.cta, ctaInk: T.ctaInk, ctaHover: T.ctaHover,
 };
 const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 // Leaderboard rail: the #1 name shrinks as it lengthens so a long handle keeps its
