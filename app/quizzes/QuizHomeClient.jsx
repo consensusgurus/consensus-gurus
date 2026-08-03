@@ -2144,6 +2144,7 @@ export default function QuizHomeClient() {
           <div className="dhx-rail dhx-right" style={{ height: railH || undefined }}>
             <HomeRails
               side="right"
+              dailyBoard={dailyBoard}
               totals={totals}
               lastPlayed={(lastPlayed || []).map((f) => ({ ...f, when: relTime(f.playedAt) ? `${relTime(f.playedAt)} ago` : '' }))}
               titleFor={(id) => stripVerb(resolveTitle(id) || id)}

@@ -30,7 +30,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { T } from '@/lib/theme';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
-import { fetchDayStatus, etToday, DAY_ROSTER } from './useDayStats';
+import { fetchDayStatus } from './useDayStats';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
 
@@ -143,12 +143,13 @@ export default function HomeRails({
     return top.map((r) => ({ name: r.username || 'Player', value: r.credits }));
   }, [refData]);
 
+  // The combined daily-games score (best-N total), NOT games played: "29/42"
+  // read as a fraction of the slate and told you nothing about how well anyone
+  // did (owner, 2026-08-03).
   const dailyRows = useMemo(() => {
     const ov = (dailyBoard && Array.isArray(dailyBoard.overall)) ? dailyBoard.overall : [];
-    return ov.map((r) => ({ name: r.username || 'Player', value: r.gamesPlayed }));
+    return ov.map((r) => ({ name: r.username || 'Player', value: r.total }));
   }, [dailyBoard]);
-
-  const gameCount = (dailyBoard && dailyBoard.gameCount) || DAY_ROSTER.length;
 
   // ── RIGHT ─────────────────────────────────────────────────────────────────
   const [tab, setTab] = useState('feed');
@@ -164,19 +165,26 @@ export default function HomeRails({
   // daily-status payload the header already pulls: today's roster, in play
   // order, showing which are finished. When a per-player score feed lands this
   // is the one block to swap.
+  // Only games actually FINISHED today, each with its score, board rank and
+  // points, straight off the daily-combined payload's me.perGame. An unplayed
+  // game has nothing to report, so it is simply absent rather than listed as a
+  // row of dashes (owner, 2026-08-03).
   const myRows = useMemo(() => {
-    if (!mine) return [];
-    const today = etToday();
-    const [Y, M, D] = today.split('-').map(Number);
-    const yy = Y % 100;
-    const completed = new Set(mine.completed || []);
-    const played = new Set(mine.played || []);
-    return DAY_ROSTER.map((k) => {
-      const id = `${k}-${M}-${D}-${yy}`;
-      const g = DAILY_GAME_MAP[k] || { name: k, cat: '' };
-      return { key: k, name: g.name, cat: g.cat, img: g.img, done: completed.has(id) || played.has(id) };
-    }).sort((a, b) => Number(b.done) - Number(a.done));
-  }, [mine]);
+    const per = (dailyBoard && dailyBoard.me && dailyBoard.me.perGame) || null;
+    if (!per) return [];
+    return Object.keys(per)
+      .filter((k) => per[k] && !per[k].abandoned)
+      .map((k) => {
+        const g = DAILY_GAME_MAP[k] || { name: k, cat: '' };
+        const r = per[k];
+        return {
+          key: k, name: g.name, cat: g.cat, img: g.img,
+          score: r.score, total: r.total, rank: r.rank, field: r.field,
+          points: r.points, completion: r.completion,
+        };
+      })
+      .sort((a, b) => (b.points || 0) - (a.points || 0));
+  }, [dailyBoard]);
 
   const playsToday = (totals && totals.today) || 0;
   const timeToday = (() => {
@@ -251,7 +259,9 @@ export default function HomeRails({
       .hr-ft{display:block;font-size:13px;font-weight:800;}
       .hr-fs{display:block;font-size:11px;color:var(--slate);}
       .hr-fa{margin-left:auto;color:#9aa2b1;font-size:18px;line-height:1;}
-      @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}}
+      /* The rails stack at natural height on a phone, but the activity list is
+         unbounded, so it alone keeps a cap and scrolls inside it. */
+      @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:360px;overflow-y:auto;}}
     `}</style>
   );
 
@@ -288,9 +298,9 @@ export default function HomeRails({
           faces={[
             {
               label: 'Daily games',
-              sub: 'Daily puzzles played today',
+              sub: 'Combined daily games score',
               rows: dailyRows,
-              fmt: (v) => `${v || 0}/${gameCount}`,
+              fmt: (v) => (Math.round((v || 0) * 10) / 10).toLocaleString(),
               hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
               href: '/quizzes/hub?tab=daily',
             },
@@ -346,7 +356,7 @@ export default function HomeRails({
           <div><b>{timeToday}</b><span>played today</span></div>
           <div className="hr-livewrap"><span className="hr-live">Live</span></div>
         </div>
-        <div className="hr-scroll hr-flex">
+        <div className="hr-scroll hr-flex hr-actbody">
           {tab === 'feed' ? (
             (lastPlayed || []).slice(0, 14).map((f, i) => {
               const frac = f.total ? f.score / f.total : 0;
@@ -369,20 +379,28 @@ export default function HomeRails({
               );
             })
           ) : (
-            myRows.map((g) => (
-              <Link key={g.key} href={`/${g.key}`} className="hr-res">
-                {g.img ? <img src={g.img} alt="" aria-hidden="true" className="hr-ic" /> : null}
-                <span className="hr-mid">
-                  <span className="hr-t"><span className="hr-ttl">{g.name}</span></span>
-                  <span className="hr-s">{g.cat}</span>
-                </span>
-                <span className="hr-sc" style={g.done ? scoreTone(100) : { background: T.surface, color: T.slate, border: `1px solid ${T.border}` }}>
-                  {g.done ? 'Done' : 'Play'}
-                </span>
-              </Link>
-            ))
+            myRows.map((g) => {
+              const pct = (g.completion != null)
+                ? Math.round(g.completion)
+                : (g.total ? Math.round((g.score / g.total) * 100) : 0);
+              return (
+                <Link key={g.key} href={`/${g.key}`} className="hr-res">
+                  {g.img ? <img src={g.img} alt="" aria-hidden="true" className="hr-ic" /> : null}
+                  <span className="hr-mid">
+                    <span className="hr-t"><span className="hr-ttl">{g.name}</span></span>
+                    <span className="hr-s">
+                      {(g.score != null && g.total) ? <b className="hr-res-sc">{g.score}/{g.total}</b> : <b className="hr-res-sc">{g.points} pts</b>}
+                      {g.rank ? ` · #${g.rank}${g.field ? ` of ${g.field}` : ''}` : ''}
+                      {g.points != null ? ` · ${g.points} pts` : ''}
+                    </span>
+                  </span>
+                  <span className="hr-ring" style={{ background: `conic-gradient(${ringTone(pct)} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
+                </Link>
+              );
+            })
           )}
           {tab === 'feed' && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
+          {tab === 'mine' && !myRows.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>Finish a daily puzzle and your result shows up here.</div> : null}
         </div>
         <div className="hr-foot">
           <button type="button" className="hr-exp" onClick={onAllLive}>All activity</button>
