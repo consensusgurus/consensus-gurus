@@ -324,10 +324,17 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
           .qch-bar.is-guest .qch-burger{display:none !important;}
           .qch-bar.is-guest .qch-me{position:static;transform:none;margin:0 0 0 auto;max-width:none;min-width:0;flex:1 1 auto;}
           .qch-bar.is-guest .qch-melink{gap:9px;justify-content:flex-end;min-width:0;}
-          .qch-bar.is-guest .qch-mecol{align-items:stretch;min-width:0;overflow:hidden;text-align:right;}
-          .qch-bar.is-guest .qch-nm{justify-content:flex-end;max-width:100%;}
-          .qch-bar.is-guest .qch-nudge{overflow:hidden;text-overflow:ellipsis;}
-          .qch-bar.is-guest .qch-stats{justify-content:flex-end;}
+          /* The two text lines CENTRE on each other (owner, Aug 2026): the
+             guest handle sits centred over the nudge beneath it, not flush to
+             one edge. Line-height is also relaxed off the bar-wide 1 on both
+             lines, because the nudge clips its own overflow to get the ellipsis
+             and a line box exactly one em tall cut the descenders off the g, p
+             and y. The clip stays on the nudge itself, never on the column, so
+             nothing else in the chip is trimmed vertically. */
+          .qch-bar.is-guest .qch-mecol{align-items:stretch;min-width:0;text-align:center;}
+          .qch-bar.is-guest .qch-nm{justify-content:center;max-width:100%;line-height:1.25;}
+          .qch-bar.is-guest .qch-nudge{max-width:100%;line-height:1.3;overflow:hidden;text-overflow:ellipsis;}
+          .qch-bar.is-guest .qch-stats{justify-content:center;}
         }
         /* Under ~380px the nudge line stops fitting beside the button, and it
            only restates what the button already says, so it goes rather than
