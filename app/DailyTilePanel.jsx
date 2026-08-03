@@ -238,7 +238,7 @@ export default function DailyTilePanel({
         </div>
         <div className="dtp-acts">
           <a href={game.href} className="dtp-play">
-            <Play size={15} fill={T.ink} strokeWidth={0} />
+            <Play size={15} fill="currentColor" strokeWidth={0} />
             {isDone ? 'Play again' : (inProgress ? 'Resume' : 'Play')}
           </a>
           <button type="button" className="dtp-shrink" onClick={onClose}><X size={14} strokeWidth={2.6} />Close</button>
@@ -491,10 +491,10 @@ export default function DailyTilePanel({
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
         .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:15px;
                   border-radius:10px;padding:12px 24px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
-        .dtp-play:hover{background:#f0c358;transform:translateY(-1px);}
+        .dtp-play:hover{background:var(--cta-hover);transform:translateY(-1px);}
         .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--gold);background:var(--cta);color:var(--cta-ink);
                     font-weight:800;font-size:13px;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:background .12s,transform .12s;}
-        .dtp-shrink:hover{background:#f0c358;border-color:#f0c358;transform:translateY(-1px);}
+        .dtp-shrink:hover{background:var(--cta-hover);border-color:var(--cta-hover);transform:translateY(-1px);}
         /* THE THREE CARDS ARE ALWAYS THE SAME HEIGHT (owner rule, 2026-08-01).
            The archive card sets that height, because its calendar is padded to
            six week rows (the tallest possible month, see the cells builder), so

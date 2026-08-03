@@ -714,7 +714,7 @@ export default function DailyStrip({ board = null }) {
            renders .dh-mcap instead and this row is hidden below 640px, which also
            makes the very narrow cutoffs unreachable. IQ leads and never drops. */
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
-        .dh-play:hover{background:#d49a2a;}
+        .dh-play:hover{background:var(--cta-hover);}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
@@ -1020,7 +1020,7 @@ export default function DailyStrip({ board = null }) {
                 </div>
               </div>
               <a href={easiest.game.href} className="dh-play">
-                <Play size={11} fill={T.ink} strokeWidth={0} />{inprog.has(easiest.game.key) ? 'Resume' : 'Play'}
+                <Play size={11} fill="currentColor" strokeWidth={0} />{inprog.has(easiest.game.key) ? 'Resume' : 'Play'}
               </a>
             </>
           ) : (

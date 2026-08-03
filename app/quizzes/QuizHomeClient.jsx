@@ -1627,9 +1627,9 @@ export default function QuizHomeClient() {
     /* One accent in the row: Share my day, the button we most want pressed
        (owner 2026-07-30). It leads the row, left of the search field. */
     .qzh .qz-toolbtn-cta{background:var(--cta);border-color: var(--cta-hover);color:var(--cta-ink);font-weight:800;}
-    .qzh .qz-toolbtn-cta svg{color:var(--ink);}
-    .qzh .qz-toolbtn-cta:hover{background:#f0c358;border-color:#f0c358;color:var(--ink);}
-    .qzh .qz-toolbtn-cta:hover svg{color:var(--ink);}
+    .qzh .qz-toolbtn-cta svg{color:var(--cta-ink);}
+    .qzh .qz-toolbtn-cta:hover{background:var(--cta-hover);border-color:var(--cta-hover);color:var(--cta-ink);}
+    .qzh .qz-toolbtn-cta:hover svg{color:var(--cta-ink);}
     @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
     /* ONE search bar at every width. The browse row's own field is hidden from
        821px up (rule above), so this tool-row field is the desktop search; at
