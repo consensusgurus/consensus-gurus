@@ -418,11 +418,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
   // The slate filters for real (the tile board still dims rather than removes).
-  const slateList = filter === 'all'
-    ? list
-    : filter === 'todo'
-      ? list.filter((g) => !done.has(g.key))
-      : list.filter((g) => g.cat === filter);
+  const slateMatch = (g) => (filter === 'all' ? true : filter === 'todo' ? !done.has(g.key) : g.cat === filter);
+  const slateList = list.filter(slateMatch);
+  const slateRest = filter === 'all' ? [] : list.filter((g) => !slateMatch(g));
   const slateCats = [];
   for (const g of games) if (!slateCats.includes(g.cat)) slateCats.push(g.cat);
   const slatePlays = games.reduce((n, g) => n + (playsOf(g.key) || 0), 0);
@@ -530,9 +528,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
   // The slate: one row per game, with the per-game panel opening as a drawer
   // directly under its own row rather than as an overlay over the board.
-  const renderSlate = (arr) => {
+  const renderSlate = (arr, dim) => {
     const out = [];
-    arr.forEach((g, i) => {
+    arr.forEach((g) => {
       const isDone = done.has(g.key);
       const ip = !isDone && inprog.has(g.key);
       const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
@@ -545,7 +543,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const cat = CAT_SHORT[g.cat] || g.cat;
       const open = sel === g.key;
       out.push(
-        <div key={g.key} className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}`}>
+        <div key={g.key} className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}`}>
           <a className="sl-ic" href={g.href} aria-label={g.name}><img src={g.img} alt="" aria-hidden="true" /></a>
           <a className="sl-nm" href={g.href}>
             <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
@@ -961,7 +959,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button{border:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--ink);}
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:var(--white);}
-        .sl-empty{padding:18px 13px;font-size:12.5px;color:var(--muted);text-align:center;}
+        .sl-row.dim{opacity:.42;}
+        .sl-row.dim:hover{opacity:.72;}
         .sl-head,.sl-row{display:grid;grid-template-columns:42px minmax(0,1fr) 104px 58px 50px 116px 78px 104px;align-items:center;gap:9px;padding:6px 13px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
@@ -1274,9 +1273,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
-            {slate ? (slateList.length
-              ? renderSlate(slateList)
-              : <div className="sl-empty">Nothing matches that filter today.</div>)
+            {slate
+              ? [...renderSlate(slateList, false), ...renderSlate(slateRest, true)]
               : renderTiles(list, false)}
           </div>
         </div>
