@@ -85,17 +85,25 @@ function focusListSearch() {
 // with block:'center' cannot express that, hence the explicit scrollTo.
 function jumpToQuizzes() {
   try {
-    const el = document.getElementById('qz-main-search');
+    // TWO search fields exist and they swap at 820px: the tool row's
+    // #qz-hero-search on desktop, the browse row's #qz-main-search below it.
+    // The hidden one measures as a zero-height box at the top of the document,
+    // so targeting it blindly scrolled the row clean off screen. Take whichever
+    // is actually laid out.
+    const vis = (id) => { const el = document.getElementById(id); return (el && el.offsetParent !== null) ? el : null; };
+    const el = vis('qz-hero-search') || vis('qz-main-search')
+      || document.getElementById('qz-main-search') || document.getElementById('qz-hero-search');
     if (!el) return;
     // Focus first, synchronously inside the click gesture, or mobile keyboards
     // never open (same reason as focusListSearch above).
     try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
-    const box = el.closest('.qz-browserow') || el.closest('.qz-searchwrap') || el;
+    const box = el.closest('.qz-toolrow') || el.closest('.qz-browserow') || el.closest('.qz-searchwrap') || el;
     // The bar is sticky, so "top of screen" means below it, not under it.
     const bar = document.querySelector('.qchm');
     const off = (bar ? bar.getBoundingClientRect().height : 0) + 8;
     const y = box.getBoundingClientRect().top + window.scrollY - off;
-    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: Math.min(max, Math.max(0, y)), behavior: 'smooth' });
   } catch (e) {}
 }
 
