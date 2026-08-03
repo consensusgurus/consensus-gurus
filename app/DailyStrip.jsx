@@ -1044,7 +1044,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button:hover{color:var(--ink);}
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
-        .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
+        .sl-head{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
         .sl-head .c{display:flex;align-items:center;justify-content:flex-start;text-align:left;}
         .sl-sort{display:inline-flex;align-items:center;gap:4px;border:0;border-radius:0;background:transparent;padding:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;white-space:nowrap;}
@@ -1364,32 +1364,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               ))}
             </div>
           ) : null}
-          {slate ? (
-            <div className="sl-head" role="row">
-              <span />
-              {[['game', 'Game', ''], ['cat', 'Category', ''], ['players', 'Players', 'c'],
-                ['streak', 'Streak', 'c'], ['leader', 'Leader', ''], ['status', 'Status', 'c'],
-                ['archive', 'Archive & stats', 'c']].map(([key, label, cls]) => {
-                const on = sort && sort.key === key;
-                return (
-                  <span key={key} className={cls || undefined}>
-                    <button
-                      type="button"
-                      className={`sl-sort${on ? ' on' : ''}`}
-                      onClick={() => toggleSort(key)}
-                      aria-label={`Sort by ${label}`}
-                      aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
-                    >
-                      {label}
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" aria-hidden="true">
-                        {on && sort.dir === 'asc' ? <path d="m6 15 6-6 6 6" /> : <path d="m6 9 6 6 6-6" />}
-                      </svg>
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          ) : null}
           <div
             ref={boardRef}
             className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '')}
@@ -1400,6 +1374,32 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
+            {slate ? (
+              <div className="sl-head" role="row">
+                <span />
+                {[['game', 'Game', ''], ['cat', 'Category', ''], ['players', 'Players', 'c'],
+                  ['streak', 'Streak', 'c'], ['leader', 'Leader', ''], ['status', 'Status', 'c'],
+                  ['archive', 'Archive & stats', 'c']].map(([key, label, cls]) => {
+                  const on = sort && sort.key === key;
+                  return (
+                    <span key={key} className={cls || undefined}>
+                      <button
+                        type="button"
+                        className={`sl-sort${on ? ' on' : ''}`}
+                        onClick={() => toggleSort(key)}
+                        aria-label={`Sort by ${label}`}
+                        aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                      >
+                        {label}
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" aria-hidden="true">
+                          {on && sort.dir === 'asc' ? <path d="m6 15 6-6 6 6" /> : <path d="m6 9 6 6 6-6" />}
+                        </svg>
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
             {slate ? renderSlate(slateList, false) : renderTiles(list, false)}
           </div>
         </div>
