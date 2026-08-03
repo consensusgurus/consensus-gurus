@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { buildLeaderboardMatrix, playerPlacement } from '@/lib/quiz-anon';
-import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost } from '@/lib/ua';
+import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost, INTERNAL_HOST } from '@/lib/ua';
 import { creditReferral } from '@/lib/referrals-server';
 import { normalizeRefCode } from '@/lib/referrals';
 import { normalizeCampaign } from '@/lib/campaigns';
@@ -74,7 +74,7 @@ export async function POST(request) {
     let referrer = null;
     if (typeof body.referrer === 'string' && body.referrer.trim()) {
       const h = referrerHost(body.referrer);
-      referrer = h ? (/(^|\.)sourceoftruths\.com$/i.test(h) ? 'internal' : h) : null;
+      referrer = h ? (INTERNAL_HOST.test(h) ? 'internal' : h) : null;
     } else if (body.referrer === '' || body.referrer === null) {
       referrer = 'direct';
     }

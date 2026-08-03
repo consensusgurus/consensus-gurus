@@ -25,6 +25,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    site: '@mindloftdaily',
+    creator: '@mindloftdaily',
     title: `Mind Loft | Elevate Your Thinking`,
     description: `Daily puzzles and quizzes to sharpen your brain. Word, number and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   },
@@ -58,8 +60,8 @@ const organizationJsonLd = {
   url: `${SITE_URL}`,
   logo: `${SITE_URL}/icon.png`,
   sameAs: [
-    'https://x.com/sourceoftruths',
-    'https://www.instagram.com/source_of_truths/',
+    'https://x.com/mindloftdaily',
+    'https://www.instagram.com/mindloftdaily/',
   ],
   description: `Daily puzzles and quizzes, plus consensus Top 10 Lists scored from ${SOURCE_COUNT} expert and reader sources using Borda methodology.`,
 };

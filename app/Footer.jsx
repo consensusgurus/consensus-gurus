@@ -36,8 +36,8 @@ const COLS = [
   {
     head: 'Follow',
     links: [
-      { label: 'Instagram', href: 'https://www.instagram.com/source_of_truths/', external: true },
-      { label: 'X', href: 'https://x.com/sourceoftruths', external: true },
+      { label: 'Instagram', href: 'https://www.instagram.com/mindloftdaily/', external: true },
+      { label: 'X', href: 'https://x.com/mindloftdaily', external: true },
     ],
   },
   {

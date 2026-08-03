@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, referrerHost } from '@/lib/ua';
+import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, referrerHost, INTERNAL_HOST } from '@/lib/ua';
 import { normalizeCampaign } from '@/lib/campaigns';
 
 export const dynamic = 'force-dynamic';
@@ -36,7 +36,7 @@ export async function POST(request) {
     let referrer = null;
     if (typeof body.referrer === 'string' && body.referrer.trim()) {
       const h = referrerHost(body.referrer);
-      referrer = h ? (/(^|\.)sourceoftruths\.com$/i.test(h) ? 'internal' : h) : null;
+      referrer = h ? (INTERNAL_HOST.test(h) ? 'internal' : h) : null;
     }
 
     const row = {
