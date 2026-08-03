@@ -2099,6 +2099,17 @@ export default function QuizHomeClient() {
               .qzh .dhx-lpr{flex:none !important;}
               .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;}
             }
+            /* 761-1200: the board goes full width on its own row, but the two rails
+               sit SIDE BY SIDE beneath it instead of each stretching to full width
+               (owner, 2026-08-03: a narrowed desktop rendered them as giant full-width
+               bands). Each column lands at ~360px+, i.e. wider than the 284/300 desktop
+               rails, so every rail card keeps its intended proportions. */
+            @media(min-width:761px) and (max-width:1200px){
+              .qzh .dhx{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;}
+              .qzh .dhx-center{grid-column:1 / -1;}
+              .qzh .dhx-left{grid-column:1;}
+              .qzh .dhx-right{grid-column:2;}
+            }
             @media(max-width:760px){
               /* rails stack full width on phones: the leaderboards stay a top 5 */
               .qzh .dhx-lb-gi:nth-child(n+5){display:none !important;}
