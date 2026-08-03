@@ -19,7 +19,7 @@ import {
   ShoppingBag,
   Clock,
 } from 'lucide-react';
-import { LISTS, COLORS } from '@/lib/data';
+import { LISTS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { buildItemLink, getSources, voteKey, dedupeByName } from '@/lib/helpers';
 import { fetchBootstrap, postVote, postView, postExtra } from '@/lib/api';
@@ -56,11 +56,11 @@ function getListTags(list) {
 //     Amazon reviews, booking sites) -- forest green
 //   - pricing: live pricing data -- rust
 const EXPERT_GROUPS = [
-  { key: 'composite', title: 'Composite Ranking', color: COLORS.ember },
-  { key: 'trueexpert', title: 'True Experts', color: COLORS.ember },
-  { key: 'publication', title: 'Expert Publications', color: COLORS.ink },
-  { key: 'platform', title: 'Reviews & Ratings Aggregations', color: COLORS.forest },
-  { key: 'pricing', title: 'Pricing Data', color: COLORS.rust },
+  { key: 'composite', title: 'Composite Ranking', color: T.accent },
+  { key: 'trueexpert', title: 'True Experts', color: T.accent },
+  { key: 'publication', title: 'Expert Publications', color: T.ink },
+  { key: 'platform', title: 'Reviews & Ratings Aggregations', color: T.successDeep },
+  { key: 'pricing', title: 'Pricing Data', color: T.blueDeep },
 ];
 
 // Vote-page ordering: the same universe + ranking the User Vote tab shows, so a
@@ -569,7 +569,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               lineHeight: 1.05,
               letterSpacing: '-0.025em',
               margin: 0,
-              color: COLORS.ink,
+              color: T.ink,
             }}
           >
             {list.title}
@@ -612,16 +612,16 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           onClick={() => setComplainOpen(false)}
           style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(26,22,17,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 24 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: T.surface, border: `2px solid ${T.ink}`, padding: 24 }}>
             {complainSent ? (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
-                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: T.slate, margin: '0 0 20px' }}>
                   Your note went to the editors' desk. Flagged lists get re-researched.
                 </p>
                 <button
                   onClick={() => { setComplainOpen(false); setComplainSent(false); setComplainMsg(''); setComplainName(''); setComplainEmail(''); }}
-                  style={{ cursor: 'pointer', background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '12px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
+                  style={{ cursor: 'pointer', background: T.ink, color: T.surface, border: `1.5px solid ${T.ink}`, padding: '12px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
                 >
                   Close
                 </button>
@@ -629,7 +629,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             ) : (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
-                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.slate, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -639,7 +639,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     onChange={(e) => setComplainName(e.target.value)}
                     maxLength={120}
                     placeholder="Name (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${T.ink}`, background: T.surfaceAlt, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.ink, outline: 'none' }}
                   />
                   <input
                     type="email"
@@ -647,7 +647,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     onChange={(e) => setComplainEmail(e.target.value)}
                     maxLength={200}
                     placeholder="Email (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${T.ink}`, background: T.surfaceAlt, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.ink, outline: 'none' }}
                   />
                 </div>
                 <textarea
@@ -656,19 +656,19 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   maxLength={1000}
                   rows={4}
                   placeholder="What's off about this list? (optional)"
-                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${T.ink}`, background: T.surfaceAlt, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
                 />
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button
                     onClick={() => setComplainOpen(false)}
-                    style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+                    style={{ cursor: 'pointer', background: 'transparent', color: T.ink, border: `1.5px solid ${T.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={submitComplaint}
                     disabled={complainBusy}
-                    style={{ cursor: 'pointer', background: COLORS.rust, color: COLORS.cream, border: `1.5px solid ${COLORS.rust}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: complainBusy ? 0.6 : 1 }}
+                    style={{ cursor: 'pointer', background: T.blueDeep, color: T.surface, border: `1.5px solid ${T.blueDeep}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: complainBusy ? 0.6 : 1 }}
                   >
                     {complainBusy ? 'Sending…' : 'Send to editors'}
                   </button>
@@ -696,13 +696,13 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               style={{
                 background: hasVoted ? T.surfaceAlt : T.surfaceAlt,
                 padding: 16,
-                border: `1.5px solid ${COLORS.ink}`,
+                border: `1.5px solid ${T.ink}`,
                 marginBottom: 24,
                 fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontStyle: 'italic',
                 fontSize: 14,
-                color: COLORS.ink,
-                borderLeft: `3px solid ${COLORS.ember}`,
+                color: T.ink,
+                borderLeft: `3px solid ${T.accent}`,
               }}
             >
               {voteMessage}
@@ -718,7 +718,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 fontSize: 11,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: COLORS.faded,
+                color: T.slate,
                 fontWeight: 600,
                 marginBottom: 12,
               }}
@@ -740,8 +740,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   style={{
                     width: '100%',
                     padding: '14px 20px',
-                    background: COLORS.ember,
-                    color: COLORS.cream,
+                    background: T.accent,
+                    color: T.surface,
                     border: 'none',
                     fontFamily: 'DM Mono, monospace',
                     fontSize: 12,
@@ -772,13 +772,13 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                         style={{
                           padding: '12px 12px',
                           minHeight: 92,
-                          border: isActive ? `1.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.ink}`,
-                          background: val || isActive ? COLORS.ink : T.surfaceAlt,
-                          color: val || isActive ? COLORS.cream : COLORS.ink,
+                          border: isActive ? `1.5px solid ${T.accent}` : `1.5px solid ${T.ink}`,
+                          background: val || isActive ? T.ink : T.surfaceAlt,
+                          color: val || isActive ? T.surface : T.ink,
                           cursor: locked ? 'default' : 'pointer',
                           opacity: locked ? 0.7 : 1,
                           transition: 'all 0.2s ease',
-                          boxShadow: isActive || val ? `3px 3px 0 ${COLORS.ember}` : 'none',
+                          boxShadow: isActive || val ? `3px 3px 0 ${T.accent}` : 'none',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: 6,
@@ -787,7 +787,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, opacity: 0.85 }}>
                           {labels[slot]}{locked ? ' · cast' : ''}
                         </div>
-                        <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 15, fontWeight: 600, flex: 1, lineHeight: 1.1, fontStyle: val ? 'normal' : 'italic', color: !val && !isActive ? COLORS.faded : 'inherit' }}>
+                        <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 15, fontWeight: 600, flex: 1, lineHeight: 1.1, fontStyle: val ? 'normal' : 'italic', color: !val && !isActive ? T.slate : 'inherit' }}>
                           {val || (isActive ? 'Tap a choice' : 'Tap to pick')}
                         </div>
                         {val && !locked && (
@@ -809,7 +809,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     fontSize: 10,
                     letterSpacing: '0.12em',
                     textTransform: 'uppercase',
-                    color: COLORS.faded,
+                    color: T.slate,
                     marginTop: 12,
                   }}
                 >
@@ -820,7 +820,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 {completing && (
                   <button
                     onClick={cancelCompleting}
-                    style={{ marginTop: 8, background: 'transparent', border: 'none', color: COLORS.faded, cursor: 'pointer', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', padding: 0, textDecoration: 'underline' }}
+                    style={{ marginTop: 8, background: 'transparent', border: 'none', color: T.slate, cursor: 'pointer', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', padding: 0, textDecoration: 'underline' }}
                   >
                     Cancel
                   </button>
@@ -830,17 +830,17 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {[1, 2, 3].map((slot) => {
                   const labels = { 1: '1st · 3 pts', 2: '2nd · 2 pts', 3: '3rd · 1 pt' };
-                  const colors = { 1: COLORS.ember, 2: COLORS.ink, 3: COLORS.faded };
+                  const colors = { 1: T.accent, 2: T.ink, 3: T.slate };
                   const val = userCurrentVote[slot];
                   if (!val) {
                     return (
-                      <div key={slot} style={{ padding: '12px', minHeight: 72, border: `1.5px dashed ${COLORS.faded}`, opacity: 0.5, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>
+                      <div key={slot} style={{ padding: '12px', minHeight: 72, border: `1.5px dashed ${T.slate}`, opacity: 0.5, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.slate }}>
                         {labels[slot]}
                       </div>
                     );
                   }
                   return (
-                    <div key={slot} style={{ padding: '12px', minHeight: 72, background: colors[slot], color: COLORS.cream, border: `1.5px solid ${colors[slot]}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div key={slot} style={{ padding: '12px', minHeight: 72, background: colors[slot], color: T.surface, border: `1.5px solid ${colors[slot]}`, display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, opacity: 0.85 }}>{labels[slot]}</div>
                       <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 15, fontWeight: 600, lineHeight: 1.1 }}>{val}</div>
                     </div>
@@ -857,8 +857,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                   marginTop: 10,
                   padding: '12px 20px',
                   background: 'transparent',
-                  color: COLORS.ink,
-                  border: `1.5px solid ${COLORS.ink}`,
+                  color: T.ink,
+                  border: `1.5px solid ${T.ink}`,
                   fontFamily: 'DM Mono, monospace',
                   fontSize: 11,
                   letterSpacing: '0.16em',
@@ -879,7 +879,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               fontSize: 11,
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
-              color: COLORS.faded,
+              color: T.slate,
               fontWeight: 600,
               marginBottom: 12,
             }}
@@ -901,7 +901,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               const selectedSlot = Object.entries(voteSelections).find(([, v]) => v === entry.item)?.[0];
               const isClickable = activeVoteSlot !== null && !isSelected;
               const linksDisabled = activeVoteSlot !== null;
-              const bg = selectedSlot === '1' ? COLORS.ember : selectedSlot === '2' ? COLORS.ink : selectedSlot === '3' ? COLORS.faded : COLORS.paper;
+              const bg = selectedSlot === '1' ? T.accent : selectedSlot === '2' ? T.ink : selectedSlot === '3' ? T.slate : T.surfaceAlt;
               return (
                 <div
                   key={entry.item}
@@ -911,9 +911,9 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                     flexDirection: 'column',
                     gap: 6,
                     padding: '12px 14px',
-                    border: `1.5px solid ${isSelected ? bg : COLORS.ink}`,
-                    background: isSelected ? bg : COLORS.paper,
-                    color: isSelected ? COLORS.cream : COLORS.ink,
+                    border: `1.5px solid ${isSelected ? bg : T.ink}`,
+                    background: isSelected ? bg : T.surfaceAlt,
+                    color: isSelected ? T.surface : T.ink,
                     cursor: isClickable ? 'pointer' : 'default',
                     opacity: activeVoteSlot && !isClickable && !isSelected ? 0.4 : 1,
                     transition: 'all 0.15s ease',
@@ -942,7 +942,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                         fontSize: 10,
                         letterSpacing: '0.12em',
                         textTransform: 'uppercase',
-                        color: COLORS.cream,
+                        color: T.surface,
                       }}
                     >
                       {selectedSlot === '1' ? 'Your 1st pick' : selectedSlot === '2' ? 'Your 2nd pick' : 'Your 3rd pick'}
@@ -959,8 +959,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               gap: 8,
               marginBottom: 18,
               padding: 14,
-              border: `1.5px dashed ${COLORS.ink}`,
-              background: COLORS.paper,
+              border: `1.5px dashed ${T.ink}`,
+              background: T.surfaceAlt,
             }}
           >
             <input
@@ -979,11 +979,11 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                 flex: 1,
                 background: 'transparent',
                 border: 'none',
-                borderBottom: `1.5px solid ${COLORS.ink}`,
+                borderBottom: `1.5px solid ${T.ink}`,
                 padding: '8px 4px',
                 fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                 fontSize: 16,
-                color: COLORS.ink,
+                color: T.ink,
                 outline: 'none',
                 fontVariationSettings: '"SOFT" 100',
               }}
@@ -991,8 +991,8 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             <button
               onClick={handleAdd}
               style={{
-                background: COLORS.ink,
-                color: COLORS.cream,
+                background: T.ink,
+                color: T.surface,
                 border: 'none',
                 padding: '8px 16px',
                 fontFamily: 'DM Mono, monospace',
@@ -1015,7 +1015,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
               style={{
                 fontFamily: 'Manrope, sans-serif',
                 fontSize: 13,
-                color: COLORS.ember,
+                color: T.accent,
                 margin: '-8px 0 16px',
                 paddingLeft: 4,
               }}
@@ -1029,7 +1029,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       {/* RELATED LISTS — internal linking for SEO and stickiness */}
       {relatedLists && relatedLists.length > 0 && (
         <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid rgba(20,22,28,0.30)' }}>
-          <h2 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 16px', color: COLORS.ink }}>More Lists</h2>
+          <h2 style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 16px', color: T.ink }}>More Lists</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
             {relatedLists.map((rl) => (
               <BrowseTile
@@ -1050,12 +1050,12 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           style={{
             marginTop: 48,
             paddingTop: 18,
-            borderTop: `1px solid ${COLORS.faded}`,
+            borderTop: `1px solid ${T.slate}`,
             fontFamily: 'DM Mono, monospace',
             fontSize: 9,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: COLORS.faded,
+            color: T.slate,
             opacity: 0.7,
             textAlign: 'center',
           }}
@@ -1084,8 +1084,8 @@ function TabButton({ active, onClick, icon, children }) {
       onClick={onClick}
       style={{
         flex: 1,
-        background: active ? COLORS.ink : 'transparent',
-        color: active ? COLORS.cream : COLORS.ink,
+        background: active ? T.ink : 'transparent',
+        color: active ? T.surface : T.ink,
         border: 'none',
         padding: '14px 12px',
         fontFamily: 'DM Mono, monospace',
@@ -1222,8 +1222,8 @@ function auxChip() {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 5,
-    color: COLORS.ink,
-    border: `1.3px solid ${COLORS.ink}`,
+    color: T.ink,
+    border: `1.3px solid ${T.ink}`,
     borderRadius: 4,
     padding: '4px 9px',
     textTransform: 'uppercase',
@@ -1239,9 +1239,9 @@ function buyChip() {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 5,
-    color: COLORS.cream,
-    background: COLORS.ink,
-    border: `1.3px solid ${COLORS.ink}`,
+    color: T.surface,
+    background: T.ink,
+    border: `1.3px solid ${T.ink}`,
     borderRadius: 4,
     padding: '4px 9px',
     textTransform: 'uppercase',
@@ -1297,7 +1297,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
         alignItems: 'baseline',
         gap: unranked ? 14 : 18,
         padding: '20px 0',
-        borderBottom: `1px solid ${COLORS.ink}`,
+        borderBottom: `1px solid ${T.ink}`,
       }}
     >
       {unranked ? (
@@ -1308,7 +1308,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             fontWeight: 900,
             fontSize: 22,
             lineHeight: 1,
-            color: COLORS.ember,
+            color: T.accent,
             minWidth: 18,
             textAlign: 'center',
             flexShrink: 0,
@@ -1323,7 +1323,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             fontWeight: 900,
             fontSize: isTop ? 64 : showFullSize ? 44 : 32,
             lineHeight: 0.85,
-            color: isTop ? COLORS.ember : rank > 10 ? COLORS.faded : COLORS.ink,
+            color: isTop ? T.accent : rank > 10 ? T.slate : T.ink,
             opacity: rank > 10 ? 0.85 : 1,
             width: 50,
             flexShrink: 0,
@@ -1352,7 +1352,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
             gap: 8,
             transition: 'transform 0.12s ease, box-shadow 0.12s ease',
             transform: hover && hasLinks ? 'translate(-2px, -2px)' : 'none',
-            boxShadow: hover && hasLinks ? `3px 3px 0 ${COLORS.ember}` : 'none',
+            boxShadow: hover && hasLinks ? `3px 3px 0 ${T.accent}` : 'none',
           }}
         >
           <span
@@ -1361,7 +1361,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
               fontSize: unranked ? 20 : isTop ? 28 : showFullSize ? 22 : 19,
               fontWeight: unranked ? 500 : isTop ? 700 : 500,
               lineHeight: 1.15,
-              color: COLORS.ink,
+              color: T.ink,
               letterSpacing: '-0.01em',
               opacity: !unranked && rank > 10 ? 0.85 : 1,
             }}
@@ -1370,8 +1370,8 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
           </span>
           {hasLinks && (
             expanded
-              ? <ChevronUp size={isTop ? 14 : 12} strokeWidth={2.5} style={{ color: COLORS.ember, flexShrink: 0, opacity: 0.8 }} />
-              : <ChevronDown size={isTop ? 14 : 12} strokeWidth={2.5} style={{ color: COLORS.ember, flexShrink: 0, opacity: hover ? 0.7 : 0 }} />
+              ? <ChevronUp size={isTop ? 14 : 12} strokeWidth={2.5} style={{ color: T.accent, flexShrink: 0, opacity: 0.8 }} />
+              : <ChevronDown size={isTop ? 14 : 12} strokeWidth={2.5} style={{ color: T.accent, flexShrink: 0, opacity: hover ? 0.7 : 0 }} />
           )}
         </button>
 
@@ -1383,7 +1383,7 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
               fontFamily: 'Manrope, sans-serif',
               fontSize: 14,
               lineHeight: 1.55,
-              color: COLORS.faded,
+              color: T.slate,
               maxWidth: 560,
             }}
           >
@@ -1416,12 +1416,12 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
                 <a href={aux.map} target="_blank" rel="noopener noreferrer" style={auxChip()}>
                   <MapPin size={11} strokeWidth={2.2} /> Map
                 </a>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${COLORS.ink}`, borderRadius: 4, padding: '4px 9px' }}>
-                  <span style={{ textTransform: 'uppercase', color: COLORS.ink }}>{pics.label}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, border: `1.3px solid ${T.ink}`, borderRadius: 4, padding: '4px 9px' }}>
+                  <span style={{ textTransform: 'uppercase', color: T.ink }}>{pics.label}</span>
                   {pics.links.filter(([key]) => aux[key]).map(([key, label], i) => (
                     <React.Fragment key={key}>
-                      {i > 0 && <span style={{ color: COLORS.ink }}>|</span>}
-                      <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ink, textDecoration: 'none' }}>{label}</a>
+                      {i > 0 && <span style={{ color: T.ink }}>|</span>}
+                      <a href={aux[key]} target="_blank" rel="noopener noreferrer" style={{ color: T.ink, textDecoration: 'none' }}>{label}</a>
                     </React.Fragment>
                   ))}
                 </span>
@@ -1436,9 +1436,9 @@ function DataRow({ rank, item, list, unranked, showPrice }) {
                 href={video}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ ...auxChip(), background: COLORS.ember, color: COLORS.cream, border: `1.3px solid ${COLORS.ember}` }}
+                style={{ ...auxChip(), background: T.accent, color: T.surface, border: `1.3px solid ${T.accent}` }}
               >
-                <Play size={11} strokeWidth={2.2} fill={COLORS.cream} /> {videoLabel}
+                <Play size={11} strokeWidth={2.2} fill={T.surface} /> {videoLabel}
               </a>
             )}
             {buyUrl && buyMode === 'video' && (
@@ -1605,7 +1605,7 @@ export default function DetailClient({ listId }) {
       style={{
         minHeight: '100vh',
         background: T.surface,
-        color: COLORS.ink,
+        color: T.ink,
         position: 'relative',
         overflow: LIST_RIBBON_V2 ? 'clip' : 'hidden',
       }}
@@ -1654,8 +1654,8 @@ export default function DetailClient({ listId }) {
             onClick={backHome}
             style={{
               marginTop: 16,
-              background: COLORS.ink,
-              color: COLORS.cream,
+              background: T.ink,
+              color: T.surface,
               border: 'none',
               padding: '10px 20px',
               fontFamily: 'DM Mono, monospace',

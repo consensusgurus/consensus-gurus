@@ -2,15 +2,15 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import Grain from '@/app/Grain';
 import Footer from '@/app/Footer';
-import { COLORS } from '@/lib/data';
+import { T } from '@/lib/theme';
 
 export default function LegalLayout({ kicker, title, italic, children, updated }) {
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
+        background: T.surface,
+        color: T.ink,
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -34,7 +34,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
             fontSize: 11,
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
-            color: COLORS.ink,
+            color: T.ink,
             textDecoration: 'none',
             display: 'inline-flex',
             alignItems: 'center',
@@ -46,14 +46,14 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
           Back to all lists
         </Link>
 
-        <div style={{ borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 20, marginTop: 16, marginBottom: 32 }}>
+        <div style={{ borderBottom: `2px solid ${T.ink}`, paddingBottom: 20, marginTop: 16, marginBottom: 32 }}>
           <div
             style={{
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
               letterSpacing: '0.25em',
               textTransform: 'uppercase',
-              color: COLORS.ember,
+              color: T.accent,
               marginBottom: 12,
             }}
           >
@@ -67,7 +67,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
               lineHeight: 0.9,
               letterSpacing: '-0.015em',
               margin: 0,
-              color: COLORS.ink,
+              color: T.ink,
               fontVariationSettings: '"SOFT" 100',
             }}
           >
@@ -75,7 +75,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
             {italic && (
               <>
                 <br />
-                <span style={{ fontStyle: 'italic', color: COLORS.ember }}>{italic}</span>
+                <span style={{ fontStyle: 'italic', color: T.accent }}>{italic}</span>
               </>
             )}
           </h1>
@@ -87,7 +87,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
                 fontSize: 10,
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: COLORS.faded,
+                color: T.slate,
               }}
             >
               Last updated · {updated}
@@ -100,7 +100,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
             fontFamily: 'Manrope, sans-serif',
             fontSize: 16,
             lineHeight: 1.7,
-            color: COLORS.ink,
+            color: T.ink,
           }}
         >
           {children}
@@ -121,7 +121,7 @@ export function H2({ children }) {
         fontStyle: 'italic',
         fontSize: 26,
         margin: '36px 0 12px',
-        color: COLORS.ink,
+        color: T.ink,
         fontVariationSettings: '"SOFT" 100',
         letterSpacing: '-0.01em',
       }}

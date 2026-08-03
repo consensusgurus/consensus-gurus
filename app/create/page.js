@@ -1,7 +1,8 @@
-import { LISTS, COLORS } from '@/lib/data';
+import { LISTS } from '@/lib/data';
 import CreateClient from './CreateClient';
 import Footer from '../Footer';
 import Grain from '../Grain';
+import { T } from '@/lib/theme';
 
 export const metadata = {
   title: 'Create Your Own Grid | Source of Truths',
@@ -25,8 +26,8 @@ export default function Page() {
     <div
       style={{
         minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
+        background: T.surface,
+        color: T.ink,
         position: 'relative',
         overflow: 'hidden',
       }}

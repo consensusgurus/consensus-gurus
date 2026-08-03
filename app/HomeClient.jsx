@@ -33,7 +33,7 @@ import {
   ArrowRight,
   ArrowDownUp,
 } from 'lucide-react';
-import { LISTS, TYPES, COLORS } from '@/lib/data';
+import { LISTS, TYPES } from '@/lib/data';
 import { voteKey, dedupeByName, getSources, stripItemScore } from '@/lib/helpers';
 import { useSampledBg } from '@/lib/useSampledBg';
 import { fetchBootstrap, postView } from '@/lib/api';
@@ -1115,20 +1115,20 @@ function QuizTile({ quiz, leader }) {
       href={`/quiz/${quiz.id}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: hover ? '#e4dbc8' : COLORS.paper, color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${accent.c}` : 'none' }}
+      style={{ cursor: 'pointer', textDecoration: 'none', display: 'flex', flexDirection: 'column', background: hover ? '#e4dbc8' : T.surfaceAlt, color: T.ink, border: `1.5px solid ${T.ink}`, overflow: 'hidden', transition: 'all 0.2s ease', transform: hover ? 'translate(-2px, -2px)' : 'none', boxShadow: hover ? `3px 3px 0 ${accent.c}` : 'none' }}
     >
-      <div style={{ flex: '0 0 auto', height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16, padding: '0 18px', background: accent.t, borderBottom: `1.5px solid ${COLORS.ink}` }}>
+      <div style={{ flex: '0 0 auto', height: 150, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16, padding: '0 18px', background: accent.t, borderBottom: `1.5px solid ${T.ink}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.cream, background: accent.c, padding: '5px 10px' }}>Quiz</span>
-          <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: COLORS.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={23} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
+          <span style={{ flex: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.surface, background: accent.c, padding: '5px 10px' }}>Quiz</span>
+          <span style={{ flex: 'none', width: 46, height: 46, borderRadius: '50%', background: T.surface, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={23} strokeWidth={2} aria-hidden="true" style={{ color: accent.c }} /></span>
         </div>
       </div>
       <div style={{ padding: '16px 18px 18px', flex: '1 1 auto', display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: COLORS.ink }}>{heading}</h3>
-        {quiz.blurb && (<p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: COLORS.faded, margin: 0 }}>{quiz.blurb}</p>)}
+        <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 26, lineHeight: 1.05, letterSpacing: '-0.02em', margin: '0 0 12px', fontVariationSettings: '"SOFT" 100', color: T.ink }}>{heading}</h3>
+        {quiz.blurb && (<p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.5, color: T.slate, margin: 0 }}>{quiz.blurb}</p>)}
         <span style={{ marginTop: 'auto', paddingTop: 16, display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, color: accent.c }}>
           <span style={{ flex: 'none' }}>Current Leader:</span>
-          <span style={{ flex: '1 1 auto', minWidth: 0, fontWeight: 700, color: leader ? COLORS.ink : COLORS.faded, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader || 'Empty'}</span>
+          <span style={{ flex: '1 1 auto', minWidth: 0, fontWeight: 700, color: leader ? T.ink : T.slate, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{leader || 'Empty'}</span>
         </span>
         <div style={{ paddingTop: 10, fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, color: accent.c }}>▶ Play</div>
       </div>
@@ -1307,9 +1307,9 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
-        background: hover ? '#e4dbc8' : COLORS.paper,
-        color: COLORS.ink,
-        border: `1.5px solid ${COLORS.ink}`,
+        background: hover ? '#e4dbc8' : T.surfaceAlt,
+        color: T.ink,
+        border: `1.5px solid ${T.ink}`,
         padding: HOME_V2 ? 0 : 20,
         overflow: HOME_V2 ? 'hidden' : 'visible',
         textAlign: 'left',
@@ -1317,7 +1317,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
         position: 'relative',
         fontFamily: 'inherit',
         transform: hover ? 'translate(-2px, -2px)' : 'none',
-        boxShadow: hover ? `3px 3px 0 ${COLORS.ember}` : 'none',
+        boxShadow: hover ? `3px 3px 0 ${T.accent}` : 'none',
       }}
     >
       {HOME_V2 && heroPhoto && (
@@ -1327,12 +1327,12 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
             height: 150,
             flex: '0 0 auto',
             alignSelf: 'stretch',
-            borderBottom: `1.5px solid ${COLORS.ink}`,
+            borderBottom: `1.5px solid ${T.ink}`,
             backgroundImage: `url("${heroPhoto.src}")`,
             backgroundSize: heroPhoto.contain ? 'contain' : 'cover',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            backgroundColor: heroPhoto.contain ? (heroBg || T.white) : COLORS.paper,
+            backgroundColor: heroPhoto.contain ? (heroBg || T.white) : T.surfaceAlt,
             transition: 'background-color 0.2s ease',
           }}
         >
@@ -1387,8 +1387,8 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
               {list.isUserSubmitted && (
                 <span
                   style={{
-                    background: COLORS.ink,
-                    color: COLORS.cream,
+                    background: T.ink,
+                    color: T.surface,
                     padding: '2px 6px',
                     fontSize: 8,
                     letterSpacing: '0.15em',
@@ -1454,7 +1454,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
                   alignItems: 'center',
                   gap: 8,
                   padding: '4px 0',
-                  borderBottom: i < preview.rows.length - 1 ? `1px dashed ${COLORS.faded}` : 'none',
+                  borderBottom: i < preview.rows.length - 1 ? `1px dashed ${T.slate}` : 'none',
                   opacity: 1,
                 }}
               >
@@ -1503,7 +1503,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
                       fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                       fontWeight: 600,
                       fontSize: 13,
-                      color: COLORS.faded,
+                      color: T.slate,
                     }}
                   >
                     {i + 1}
@@ -1533,8 +1533,8 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
                     flex: '0 0 auto',
                     visibility: shown ? 'visible' : 'hidden',
                     pointerEvents: shown ? 'auto' : 'none',
-                    background: hover ? '#d9ccb0' : COLORS.paper,
-                    border: `1.5px solid ${COLORS.ink}`,
+                    background: hover ? '#d9ccb0' : T.surfaceAlt,
+                    border: `1.5px solid ${T.ink}`,
                     padding: '8px 12px',
                     display: 'flex',
                     alignItems: 'center',
@@ -1556,7 +1556,7 @@ export function Tile({ list, rank, views, voteData, extras, onClick, href, showC
         style={{
           marginTop: 16,
           paddingTop: 12,
-          borderTop: `1px solid ${COLORS.ink}`,
+          borderTop: `1px solid ${T.ink}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

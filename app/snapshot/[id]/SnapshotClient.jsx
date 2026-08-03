@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Download, Copy, Link2, Check, Image as ImageIcon } from 'lucide-react';
-import { LISTS, COLORS } from '@/lib/data';
+import { LISTS } from '@/lib/data';
 import { getSources, voteKey, dedupeByName } from '@/lib/helpers';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { fetchBootstrap } from '@/lib/api';
@@ -308,14 +308,14 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
   }
 
   if (!loaded) {
-    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: COLORS.cream, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: COLORS.faded }}>loading</div>;
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: T.surface, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 18, color: T.slate }}>loading</div>;
   }
 
   if (!list) {
     return (
-      <div style={{ padding: 48, textAlign: 'center', background: COLORS.cream, minHeight: '100vh' }}>
-        <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', color: COLORS.faded }}>That list seems to have wandered off.</p>
-        <button onClick={() => router.push('/')} style={{ marginTop: 16, background: COLORS.ink, color: COLORS.cream, border: 'none', padding: '10px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' }}>Back home</button>
+      <div style={{ padding: 48, textAlign: 'center', background: T.surface, minHeight: '100vh' }}>
+        <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', color: T.slate }}>That list seems to have wandered off.</p>
+        <button onClick={() => router.push('/')} style={{ marginTop: 16, background: T.ink, color: T.surface, border: 'none', padding: '10px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', cursor: 'pointer' }}>Back home</button>
       </div>
     );
   }
@@ -329,23 +329,23 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
   if (list.mode !== 'facts' && list.mode !== 'scores' && list.mode !== 'unranked') modeOptions.push({ id: 'vote', label: 'Source of Truths User Vote' });
 
   return (
-    <div style={embedded ? undefined : { minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, padding: '24px 16px 64px' }}>
+    <div style={embedded ? undefined : { minHeight: '100vh', background: T.surface, color: T.ink, padding: '24px 16px 64px' }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
         {!embedded && (
           <button onClick={() => router.push(`/list/${encodeURIComponent(listId)}`)}
-            style={{ background: 'transparent', border: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0', marginBottom: 12 }}>
+            style={{ background: 'transparent', border: 'none', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.ink, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0', marginBottom: 12 }}>
             <ArrowLeft size={14} strokeWidth={2.5} />Back to list
           </button>
         )}
 
-        <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
+        <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 18px', color: T.ink, fontVariationSettings: '"SOFT" 100' }}>Share this list</h2>
 
         <>
         {!embedded && (
         <PickerRow label="Source">
           {modeOptions.map((opt) => {
             const active = mode === opt.id;
-            return <button key={opt.id} onClick={() => setMode(opt.id)} style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '6px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, lineHeight: 1.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', maxWidth: '100%', textAlign: 'left' }}>{opt.label}</button>;
+            return <button key={opt.id} onClick={() => setMode(opt.id)} style={{ background: active ? T.ink : 'transparent', color: active ? T.surface : T.ink, border: `1.5px solid ${T.ink}`, padding: '6px 12px', fontFamily: 'DM Mono, monospace', fontSize: 10, lineHeight: 1.5, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', maxWidth: '100%', textAlign: 'left' }}>{opt.label}</button>;
           })}
         </PickerRow>
         )}
@@ -355,8 +355,8 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
             const active = colorScheme === key;
             return (
               <button key={key} onClick={() => setColorScheme(key)} title={scheme.label}
-                style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`, padding: '5px 10px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ display: 'inline-flex', width: 20, height: 14, borderRadius: 2, overflow: 'hidden', border: active ? `1px solid ${COLORS.cream}` : '1px solid #c8bdb0', flexShrink: 0 }}>
+                style={{ background: active ? T.ink : 'transparent', color: active ? T.surface : T.ink, border: `1.5px solid ${active ? T.ink : '#c8bdb0'}`, padding: '5px 10px', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ display: 'inline-flex', width: 20, height: 14, borderRadius: 2, overflow: 'hidden', border: active ? `1px solid ${T.surface}` : '1px solid #c8bdb0', flexShrink: 0 }}>
                   <span style={{ background: scheme.swatch[0], flex: 1 }} /><span style={{ background: scheme.swatch[1], flex: 1 }} />
                 </span>
                 {scheme.label}
@@ -370,13 +370,13 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
             const active = fontStyle === key;
             return (
               <button key={key} onClick={() => setFontStyle(key)}
-                style={{ background: active ? COLORS.ink : 'transparent', color: active ? COLORS.cream : COLORS.ink, border: `1.5px solid ${active ? COLORS.ink : '#c8bdb0'}`, padding: '6px 14px', fontFamily: fs.previewFont, fontStyle: fs.previewStyle, fontWeight: fs.previewWeight, fontSize: 12, cursor: 'pointer', letterSpacing: key === 'bold' ? '0.08em' : '0.01em', textTransform: key === 'bold' ? 'uppercase' : 'none' }}>
+                style={{ background: active ? T.ink : 'transparent', color: active ? T.surface : T.ink, border: `1.5px solid ${active ? T.ink : '#c8bdb0'}`, padding: '6px 14px', fontFamily: fs.previewFont, fontStyle: fs.previewStyle, fontWeight: fs.previewWeight, fontSize: 12, cursor: 'pointer', letterSpacing: key === 'bold' ? '0.08em' : '0.01em', textTransform: key === 'bold' ? 'uppercase' : 'none' }}>
                 {fs.label}
               </button>
             );
           })}
         </PickerRow>
-        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, margin: '-6px 0 14px' }}>
+        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.slate, margin: '-6px 0 14px' }}>
           Spotlight &amp; Showcase use the top-3 photos when the list has them.
         </p>
 
@@ -392,15 +392,15 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
           </PosterScaler>
         </div>
 
-        <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+        <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.slate, textAlign: 'center' }}>
           1080 × 1350 · Instagram / Pinterest portrait
         </p>
         </>
 
         {/* ─── Instagram automation image (server-rendered poster) ────── */}
-        <div style={{ marginTop: 52, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 28 }}>
-          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>Instagram image</h2>
-          <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 16px', maxWidth: 560 }}>
+        <div style={{ marginTop: 52, borderTop: `2px solid ${T.ink}`, paddingTop: 28 }}>
+          <h2 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontStyle: 'italic', fontSize: 24, margin: '0 0 6px', color: T.ink, fontVariationSettings: '"SOFT" 100' }}>Instagram image</h2>
+          <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.slate, margin: '0 0 16px', maxWidth: 560 }}>
             The ready-to-post 1080 × 1350 image the Instagram automation uses. Copy the image itself, or a direct link to it, to share anywhere.
           </p>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
@@ -411,7 +411,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`/list/${encodeURIComponent(listId)}/poster-image`} alt="Instagram poster" loading="lazy" style={{ width: '100%', maxWidth: POSTER_W * 0.5, height: 'auto', display: 'block' }} />
           </div>
-          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+          <p style={{ marginTop: 20, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.slate, textAlign: 'center' }}>
             1080 × 1350 · server-rendered · /list/{list.id}/poster-image
           </p>
         </div>
@@ -424,7 +424,7 @@ export default function SnapshotClient({ listId, embedded, list: listProp, voteD
 function PickerRow({ label, children }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: T.slate, marginBottom: 6, fontWeight: 600 }}>{label}</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{children}</div>
     </div>
   );
@@ -433,7 +433,7 @@ function PickerRow({ label, children }) {
 function ActionButton({ onClick, children, disabled, primary }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      style={{ background: primary ? COLORS.ink : 'transparent', color: primary ? COLORS.cream : COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 16px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, cursor: disabled ? 'wait' : 'pointer', boxShadow: primary ? `3px 3px 0 ${COLORS.ember}` : 'none', display: 'flex', alignItems: 'center', gap: 8, opacity: disabled ? 0.6 : 1 }}>
+      style={{ background: primary ? T.ink : 'transparent', color: primary ? T.surface : T.ink, border: `1.5px solid ${T.ink}`, padding: '10px 16px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, cursor: disabled ? 'wait' : 'pointer', boxShadow: primary ? `3px 3px 0 ${T.accent}` : 'none', display: 'flex', alignItems: 'center', gap: 8, opacity: disabled ? 0.6 : 1 }}>
       {children}
     </button>
   );

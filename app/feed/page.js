@@ -3,7 +3,7 @@ import SiteHeader from '../SiteHeader';
 import Footer from '../Footer';
 import FeedClient from './FeedClient';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { LISTS, COLORS } from '@/lib/data';
+import { LISTS } from '@/lib/data';
 import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
 import { T } from '@/lib/theme';
 

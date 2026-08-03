@@ -3,9 +3,9 @@
 import { useState, useRef, useMemo, useEffect, forwardRef } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Search, X, Download, Plus } from 'lucide-react';
-import { COLORS } from '@/lib/data';
 import { getSources, voteKey, dedupeByName } from '@/lib/helpers';
 import { fetchBootstrap } from '@/lib/api';
+import { T } from '@/lib/theme';
 
 // Mirror the homepage tile preview exactly — including live fan votes — so the
 // grid shows the same rows the main page does for each list.
@@ -148,7 +148,7 @@ export default function CreateClient({ lists }) {
       }
       const { toPng } = await import('html-to-image');
       const h = boardRef.current.offsetHeight;
-      const opts = { cacheBust: true, pixelRatio: 2, width: BOARD_W, height: h, backgroundColor: COLORS.cream };
+      const opts = { cacheBust: true, pixelRatio: 2, width: BOARD_W, height: h, backgroundColor: T.surface };
       // First pass warms Safari's image/font cache; the second is reliable.
       await toPng(boardRef.current, opts);
       const dataUrl = await toPng(boardRef.current, opts);
@@ -178,7 +178,7 @@ export default function CreateClient({ lists }) {
           fontSize: 11,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          color: COLORS.faded,
+          color: T.slate,
           textDecoration: 'none',
           marginBottom: 18,
         }}
@@ -199,7 +199,7 @@ export default function CreateClient({ lists }) {
       >
         Create Your Own Grid
       </h1>
-      <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 28px', maxWidth: 560 }}>
+      <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: T.slate, margin: '0 0 28px', maxWidth: 560 }}>
         Pick a format, add lists in order to fill the tiles, drop in a title if you like, then download a clean image to share.
       </p>
 
@@ -218,9 +218,9 @@ export default function CreateClient({ lists }) {
                 fontSize: 13,
                 letterSpacing: '0.12em',
                 padding: '10px 18px',
-                border: `1.5px solid ${COLORS.ink}`,
-                background: active ? COLORS.ink : 'transparent',
-                color: active ? COLORS.cream : COLORS.ink,
+                border: `1.5px solid ${T.ink}`,
+                background: active ? T.ink : 'transparent',
+                color: active ? T.surface : T.ink,
                 transition: 'all 0.15s ease',
               }}
             >
@@ -242,11 +242,11 @@ export default function CreateClient({ lists }) {
           width: '100%',
           boxSizing: 'border-box',
           padding: '14px 16px',
-          background: COLORS.paper,
-          border: `1.5px solid ${COLORS.ink}`,
+          background: T.surfaceAlt,
+          border: `1.5px solid ${T.ink}`,
           fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
           fontSize: 18,
-          color: COLORS.ink,
+          color: T.ink,
           outline: 'none',
           marginBottom: 28,
           fontVariationSettings: '"SOFT" 100',
@@ -256,28 +256,28 @@ export default function CreateClient({ lists }) {
       {/* Step 3 — add lists in order */}
       <SectionLabel>3 · Add lists ({filledCount} of {tiles.length})</SectionLabel>
       {gridFull ? (
-        <div style={{ padding: '14px 16px', border: `1.5px dashed ${COLORS.faded}`, marginBottom: 16, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.faded }}>
+        <div style={{ padding: '14px 16px', border: `1.5px dashed ${T.slate}`, marginBottom: 16, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.slate }}>
           All {tiles.length} tiles are filled. Remove one below to swap in a different list.
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', background: COLORS.paper, border: `1.5px solid ${COLORS.ink}`, marginBottom: filtered.length ? 0 : 16 }}>
-            <Search size={16} strokeWidth={2.5} style={{ color: COLORS.faded, flex: '0 0 auto' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', background: T.surfaceAlt, border: `1.5px solid ${T.ink}`, marginBottom: filtered.length ? 0 : 16 }}>
+            <Search size={16} strokeWidth={2.5} style={{ color: T.slate, flex: '0 0 auto' }} />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`Search lists to fill tile ${filledCount + 1}…`}
-              style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'Manrope, sans-serif', fontSize: 16, color: COLORS.ink }}
+              style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', outline: 'none', fontFamily: 'Manrope, sans-serif', fontSize: 16, color: T.ink }}
             />
             {query && (
-              <button onClick={() => setQuery('')} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: COLORS.faded, display: 'flex', flex: '0 0 auto' }}>
+              <button onClick={() => setQuery('')} style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: T.slate, display: 'flex', flex: '0 0 auto' }}>
                 <X size={18} strokeWidth={2.5} />
               </button>
             )}
           </div>
           {filtered.length > 0 && (
-            <div style={{ border: `1.5px solid ${COLORS.ink}`, borderTop: 'none', maxHeight: 320, overflowY: 'auto', marginBottom: 16 }}>
+            <div style={{ border: `1.5px solid ${T.ink}`, borderTop: 'none', maxHeight: 320, overflowY: 'auto', marginBottom: 16 }}>
               {filtered.map((l) => (
                 <button
                   key={l.id}
@@ -295,9 +295,9 @@ export default function CreateClient({ lists }) {
                     gap: 12,
                   }}
                 >
-                  <Plus size={16} strokeWidth={2.5} style={{ color: COLORS.ember, flex: '0 0 auto' }} />
+                  <Plus size={16} strokeWidth={2.5} style={{ color: T.accent, flex: '0 0 auto' }} />
                   <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>{l.category}</span>
+                    <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.slate }}>{l.category}</span>
                     <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 17, fontVariationSettings: '"SOFT" 100' }}>{l.title}</span>
                   </span>
                 </button>
@@ -317,20 +317,20 @@ export default function CreateClient({ lists }) {
               alignItems: 'center',
               gap: 12,
               padding: '11px 14px',
-              border: t ? `1.5px solid ${COLORS.ink}` : `1.5px dashed ${COLORS.faded}`,
-              background: t ? COLORS.paper : 'transparent',
+              border: t ? `1.5px solid ${T.ink}` : `1.5px dashed ${T.slate}`,
+              background: t ? T.surfaceAlt : 'transparent',
             }}
           >
-            <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 16, width: 22, flex: '0 0 auto', color: t ? COLORS.ink : COLORS.faded }}>{i + 1}</span>
+            <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 16, width: 22, flex: '0 0 auto', color: t ? T.ink : T.slate }}>{i + 1}</span>
             {t ? (
               <>
                 <span style={{ flex: 1, minWidth: 0, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 16, fontVariationSettings: '"SOFT" 100', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
-                <button onClick={() => removeSlot(i)} aria-label="Remove" style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: COLORS.faded, display: 'flex', flex: '0 0 auto' }}>
+                <button onClick={() => removeSlot(i)} aria-label="Remove" style={{ cursor: 'pointer', background: 'transparent', border: 'none', color: T.slate, display: 'flex', flex: '0 0 auto' }}>
                   <X size={18} strokeWidth={2.5} />
                 </button>
               </>
             ) : (
-              <span style={{ flex: 1, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded }}>Open tile</span>
+              <span style={{ flex: 1, fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.slate }}>Open tile</span>
             )}
           </div>
         ))}
@@ -345,7 +345,7 @@ export default function CreateClient({ lists }) {
           </div>
         </div>
       </div>
-      <p style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded, margin: '0 0 22px' }}>
+      <p style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.slate, margin: '0 0 22px' }}>
         {BOARD_W} × {Math.round(boardH)} · share-ready PNG
       </p>
 
@@ -363,17 +363,17 @@ export default function CreateClient({ lists }) {
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
             padding: '15px 26px',
-            border: `1.5px solid ${COLORS.ink}`,
-            background: filledCount === 0 ? 'transparent' : COLORS.ink,
-            color: filledCount === 0 ? COLORS.faded : COLORS.cream,
-            boxShadow: filledCount === 0 ? 'none' : `3px 3px 0 ${COLORS.ember}`,
+            border: `1.5px solid ${T.ink}`,
+            background: filledCount === 0 ? 'transparent' : T.ink,
+            color: filledCount === 0 ? T.slate : T.surface,
+            boxShadow: filledCount === 0 ? 'none' : `3px 3px 0 ${T.accent}`,
             opacity: downloading ? 0.6 : 1,
           }}
         >
           <Download size={16} strokeWidth={2.5} />
           {downloading ? 'Generating…' : 'Download image'}
         </button>
-        <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 13, color: COLORS.faded }}>
+        <span style={{ fontFamily: 'Manrope, sans-serif', fontSize: 13, color: T.slate }}>
           On a phone, press and hold the saved image to share it.
         </span>
       </div>
@@ -383,7 +383,7 @@ export default function CreateClient({ lists }) {
 
 function SectionLabel({ children }) {
   return (
-    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 10 }}>
+    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.slate, marginBottom: 10 }}>
       {children}
     </div>
   );
@@ -394,21 +394,21 @@ function SectionLabel({ children }) {
 // share image.
 const Board = forwardRef(function Board({ tiles, format, title, voteData, extrasMap }, ref) {
   return (
-      <div ref={ref} style={{ width: BOARD_W, boxSizing: 'border-box', background: COLORS.cream, border: `3px solid ${COLORS.ink}`, padding: 44 }}>
+      <div ref={ref} style={{ width: BOARD_W, boxSizing: 'border-box', background: T.surface, border: `3px solid ${T.ink}`, padding: 44 }}>
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr auto 1fr',
             alignItems: 'baseline',
             gap: 16,
-            borderBottom: `2px solid ${COLORS.ink}`,
+            borderBottom: `2px solid ${T.ink}`,
             paddingBottom: 20,
             marginBottom: 28,
             fontFamily: 'DM Mono, monospace',
             fontSize: 16,
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
-            color: COLORS.faded,
+            color: T.slate,
           }}
         >
           <span style={{ textAlign: 'left' }}>Source of Truths</span>
@@ -422,7 +422,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
               lineHeight: 1,
               letterSpacing: '-0.01em',
               textTransform: 'none',
-              color: COLORS.ink,
+              color: T.ink,
               fontVariationSettings: '"SOFT" 100',
             }}
           >
@@ -442,9 +442,9 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
                   height: '100%',
                   minWidth: 0,
                   minHeight: 230,
-                  background: t ? COLORS.paper : 'transparent',
-                  color: COLORS.ink,
-                  border: t ? `2px solid ${COLORS.ink}` : `2px dashed ${COLORS.faded}`,
+                  background: t ? T.surfaceAlt : 'transparent',
+                  color: T.ink,
+                  border: t ? `2px solid ${T.ink}` : `2px dashed ${T.slate}`,
                   padding: 26,
                   display: 'flex',
                   flexDirection: 'column',
@@ -461,14 +461,14 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
                     <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.6, marginBottom: 10 }}>{pv.label}</div>
                     <ol style={{ margin: 0, padding: 0, listStyle: 'none', fontFamily: 'Manrope, sans-serif', fontSize: 19 }}>
                       {pv.items.map((it, idx) => (
-                        <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: idx < 2 ? `1px dashed ${COLORS.faded}` : 'none' }}>
+                        <li key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: idx < 2 ? `1px dashed ${T.slate}` : 'none' }}>
                           {idx < 3 ? (
                             <span style={{ position: 'relative', width: 30, height: 30, flex: '0 0 auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                               <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: RANK_MEDALS[idx].fill, opacity: 0.3 }} />
                               <span style={{ position: 'relative', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, fontSize: 17, color: RANK_MEDALS[idx].num }}>{idx + 1}</span>
                             </span>
                           ) : (
-                            <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, width: 22, color: COLORS.faded }}>{idx + 1}</span>
+                            <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 600, width: 22, color: T.slate }}>{idx + 1}</span>
                           )}
                           <span style={{ flex: 1, minWidth: 0 }}>{it}</span>
                         </li>
@@ -476,7 +476,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
                     </ol>
                   </>
                 ) : (
-                  <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: COLORS.faded, fontFamily: 'DM Mono, monospace', fontSize: 15, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                  <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 8, color: T.slate, fontFamily: 'DM Mono, monospace', fontSize: 15, letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                     <Plus size={28} strokeWidth={2} />
                     Tile {i + 1}
                   </span>
@@ -486,7 +486,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
           })}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.2em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <div style={{ textAlign: 'center', marginTop: 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.2em', textTransform: 'uppercase', color: T.slate }}>
           mindloftdaily.com
         </div>
       </div>

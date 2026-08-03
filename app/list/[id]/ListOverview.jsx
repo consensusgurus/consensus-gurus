@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink, Play, Clock } from 'lucide-react';
-import { COLORS } from '@/lib/data';
 import { useSampledBg } from '@/lib/useSampledBg';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
@@ -111,9 +110,9 @@ function linkBtn(primary) {
     letterSpacing: '0.13em',
     textTransform: 'uppercase',
     padding: '7px 12px',
-    border: `1px solid ${COLORS.ink}`,
-    background: primary ? COLORS.ink : 'transparent',
-    color: primary ? COLORS.cream : COLORS.ink,
+    border: `1px solid ${T.ink}`,
+    background: primary ? T.ink : 'transparent',
+    color: primary ? T.surface : T.ink,
     textDecoration: 'none',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
@@ -122,8 +121,8 @@ function linkBtn(primary) {
 
 // Homepage-style tile chrome: own border, paper background, small gaps between.
 const tileChrome = {
-  background: COLORS.paper,
-  border: `1.5px solid ${COLORS.ink}`,
+  background: T.surfaceAlt,
+  border: `1.5px solid ${T.ink}`,
 };
 
 // Map(or Shop) / Website / pics chip row shared by all tile sizes. Location
@@ -150,7 +149,7 @@ function LinkRow({ links, pics, websiteLabel, list }) {
           {pics.links.map(([key, label]) =>
             links[key] ? (
               <a key={key} href={links[key]} target="_blank" rel="noopener noreferrer" title={`${pics.label} ${label}`} aria-label={`${pics.label} ${label}`} style={linkBtn(false)}>
-                <Camera size={9} strokeWidth={2.4} color={COLORS.ember} /> {label}
+                <Camera size={9} strokeWidth={2.4} color={T.accent} /> {label}
               </a>
             ) : null
           )}
@@ -163,9 +162,9 @@ function LinkRow({ links, pics, websiteLabel, list }) {
           href={links.video}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ ...linkBtn(false), background: COLORS.ember, color: COLORS.cream, border: `1px solid ${COLORS.ember}` }}
+          style={{ ...linkBtn(false), background: T.accent, color: T.surface, border: `1px solid ${T.accent}` }}
         >
-          <Play size={9} strokeWidth={2} fill={COLORS.cream} /> {list.itemVideoLabel || 'Video'}
+          <Play size={9} strokeWidth={2} fill={T.surface} /> {list.itemVideoLabel || 'Video'}
         </a>
       )}
       {/* Affiliate Rent / Buy CTA chips (digital purchase of a film or song).
@@ -389,7 +388,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
         ...tileChrome,
       }}
     >
-      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} fit={containHero ? 'contain' : 'cover'} bg={containHero ? COLORS.paper : undefined} pad={containHero ? 14 : 0} /> : <PhotoBox />}
+      {heroSrc ? <HeroPhoto photo={heroSrc} alt={displayName} poster={poster} href={href} rel={rel} fit={containHero ? 'contain' : 'cover'} bg={containHero ? T.surfaceAlt : undefined} pad={containHero ? 14 : 0} /> : <PhotoBox />}
       <div
         style={{
           padding: '20px 22px 18px',
@@ -406,7 +405,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
                 width: 24,
                 height: 24,
                 borderRadius: '50%',
-                border: `1.5px solid ${COLORS.ink}`,
+                border: `1.5px solid ${T.ink}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -418,7 +417,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
                   fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                   fontSize: 11,
                   fontWeight: 600,
-                  color: COLORS.ink,
+                  color: T.ink,
                 }}
               >
                 {rank}
@@ -431,7 +430,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
                   fontSize: 9,
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
-                  color: COLORS.faded,
+                  color: T.slate,
                 }}
               >
                 {locality}
@@ -447,7 +446,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
                 lineHeight: 1.15,
                 margin: '0 0 8px',
                 fontVariationSettings: '"SOFT" 100',
-                color: COLORS.ink,
+                color: T.ink,
               }}
             >
               {displayName}
@@ -458,7 +457,7 @@ function HeroTile({ item, rank, list, desc, pics, poster }) {
               style={{
                 fontFamily: 'Manrope, sans-serif',
                 fontSize: 14,
-                color: desc ? '#5a5045' : COLORS.faded,
+                color: desc ? '#5a5045' : T.slate,
                 fontStyle: desc ? 'normal' : 'italic',
                 lineHeight: 1.55,
                 margin: '0 0 4px',
@@ -495,7 +494,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
           style={{
             width: 22,
             height: 22,
-            border: `1.5px solid ${COLORS.faded}`,
+            border: `1.5px solid ${T.slate}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -507,7 +506,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
               fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
               fontSize: 10,
               fontWeight: 600,
-              color: COLORS.faded,
+              color: T.slate,
             }}
           >
             {rank}
@@ -520,7 +519,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
               fontSize: 8,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: COLORS.faded,
+              color: T.slate,
             }}
           >
             {locality}
@@ -536,7 +535,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
             lineHeight: 1.2,
             margin: '0 0 6px',
             fontVariationSettings: '"SOFT" 100',
-            color: COLORS.ink,
+            color: T.ink,
           }}
         >
           {displayName}
@@ -547,7 +546,7 @@ function SmallTile({ item, rank, list, desc, pics, poster }) {
           style={{
             fontFamily: 'Manrope, sans-serif',
             fontSize: 14,
-            color: desc ? '#5a5045' : COLORS.faded,
+            color: desc ? '#5a5045' : T.slate,
             fontStyle: desc ? 'normal' : 'italic',
             lineHeight: 1.5,
             margin: '0 0 10px',
@@ -577,11 +576,11 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
   if (poster && compact) {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: '52px minmax(0,1fr)', gap: 22, alignItems: 'center', padding: '12px 14px', borderBottom: '1px solid rgba(26,22,17,0.16)' }}>
-        <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 900, fontSize: 20, lineHeight: 1, color: COLORS.faded, textAlign: 'center' }}>{rank}</div>
+        <div style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 900, fontSize: 20, lineHeight: 1, color: T.slate, textAlign: 'center' }}>{rank}</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
-          <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 17, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+          <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 17, fontWeight: 700, color: T.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
           {locality && (
-            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
+            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.slate, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
           )}
         </div>
       </div>
@@ -610,9 +609,9 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
               gap: 22,
               alignItems: 'center',
               padding: '18px 14px',
-              borderBottom: heavyDivider ? `2px solid ${COLORS.ink}` : '1px solid rgba(26,22,17,0.16)',
+              borderBottom: heavyDivider ? `2px solid ${T.ink}` : '1px solid rgba(26,22,17,0.16)',
             }
-          : { borderBottom: heavyDivider ? `2px solid ${COLORS.ink}` : '1px solid rgba(26,22,17,0.16)' }
+          : { borderBottom: heavyDivider ? `2px solid ${T.ink}` : '1px solid rgba(26,22,17,0.16)' }
       }
     >
       <div
@@ -622,7 +621,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
           fontWeight: 900,
           fontSize: isTop ? 30 : 20,
           lineHeight: 1,
-          color: rank === 1 ? T.gold : rank === 2 ? '#b8bcc4' : rank === 3 ? '#c8814b' : COLORS.faded,
+          color: rank === 1 ? T.gold : rank === 2 ? '#b8bcc4' : rank === 3 ? '#c8814b' : T.slate,
           textAlign: 'center',
         }}
       >
@@ -638,7 +637,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
               href={href}
               rel={rel}
               fit={containHero ? 'contain' : 'cover'}
-              bg={containHero ? COLORS.paper : undefined}
+              bg={containHero ? T.surfaceAlt : undefined}
               pad={containHero ? 10 : 0}
               minH={200}
             />
@@ -658,7 +657,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
                 lineHeight: 1.15,
                 margin: 0,
                 fontVariationSettings: '"SOFT" 100',
-                color: COLORS.ink,
+                color: T.ink,
               }}
             >
               {displayName}
@@ -671,7 +670,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
                 fontSize: 9,
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
-                color: COLORS.faded,
+                color: T.slate,
               }}
             >
               {locality}
@@ -684,7 +683,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
               style={{
                 fontFamily: 'Manrope, sans-serif',
                 fontSize: 14,
-                color: desc ? '#5a5045' : COLORS.faded,
+                color: desc ? '#5a5045' : T.slate,
                 fontStyle: desc ? 'normal' : 'italic',
                 lineHeight: 1.55,
                 margin: '5px 0 0',
@@ -735,7 +734,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
                 fontWeight: 700,
                 letterSpacing: '0.13em',
                 textTransform: 'uppercase',
-                color: COLORS.ember,
+                color: T.accent,
                 whiteSpace: 'nowrap',
               }}
             >
@@ -752,7 +751,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
                   aria-label={`${pics.label} ${label}`}
                   style={{ ...linkBtn(false), flex: 1, justifyContent: 'center' }}
                 >
-                  <Camera size={9} strokeWidth={2.4} color={COLORS.ember} /> {label}
+                  <Camera size={9} strokeWidth={2.4} color={T.accent} /> {label}
                 </a>
               ) : null
             )}
@@ -763,9 +762,9 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
             href={links.video}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ ...linkBtn(false), justifyContent: 'center', background: COLORS.ember, color: COLORS.cream, border: `1px solid ${COLORS.ember}` }}
+            style={{ ...linkBtn(false), justifyContent: 'center', background: T.accent, color: T.surface, border: `1px solid ${T.accent}` }}
           >
-            <Play size={9} strokeWidth={2} fill={COLORS.cream} /> {list.itemVideoLabel || 'Video'}
+            <Play size={9} strokeWidth={2} fill={T.surface} /> {list.itemVideoLabel || 'Video'}
           </a>
         )}
       </div>
@@ -785,12 +784,12 @@ function CompactRow({ item, rank }) {
   const { displayName, locality } = parseItem(item);
   return (
     <div style={{ ...tileChrome, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: 22, height: 22, border: `1.5px solid ${COLORS.faded}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, fontWeight: 600, color: COLORS.faded }}>{rank}</span>
+      <div style={{ width: 22, height: 22, border: `1.5px solid ${T.slate}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, fontWeight: 600, color: T.slate }}>{rank}</span>
       </div>
-      <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 16, fontWeight: 700, color: COLORS.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
+      <span style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 16, fontWeight: 700, color: T.ink, fontVariationSettings: '"SOFT" 100', lineHeight: 1.15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</span>
       {locality && (
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 8, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.slate, marginLeft: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}>{locality}</span>
       )}
     </div>
   );
@@ -813,11 +812,11 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
   const hasMoreAfterTop3 = social ? compactItems.length > 0 : items.length > 3;
 
   return (
-    <div style={{ width: 1080, background: COLORS.cream, color: COLORS.ink, boxSizing: 'border-box', padding: compact ? '38px 48px 28px' : '52px 60px 40px', position: 'relative' }}>
+    <div style={{ width: 1080, background: T.surface, color: T.ink, boxSizing: 'border-box', padding: compact ? '38px 48px 28px' : '52px 60px 40px', position: 'relative' }}>
       {/* Masthead */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 14, marginBottom: compact ? 20 : 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: COLORS.ink }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${T.ink}`, paddingBottom: 14, marginBottom: compact ? 20 : 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: T.ink }}>
         <span style={{ fontWeight: 600 }}>Source of Truths</span>
-        <span style={{ color: COLORS.faded, fontSize: 11 }}>sourceoftruths.com</span>
+        <span style={{ color: T.slate, fontSize: 11 }}>sourceoftruths.com</span>
       </div>
 
       {/* Header (same composition as the live list page) */}
@@ -830,7 +829,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
             lineHeight: 1.02,
             letterSpacing: '-0.02em',
             margin: 0,
-            color: COLORS.ink,
+            color: T.ink,
             fontVariationSettings: '"SOFT" 100',
           }}
         >
@@ -843,15 +842,15 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
               fontSize: 11,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: COLORS.ember,
+              color: T.accent,
               textAlign: 'right',
               marginBottom: 8,
             }}
           >
             {list.category} · {top3 ? 'Top Three' : `Top ${Math.min(items.length, 10)}`}
           </div>
-          <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-          <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+          <div style={{ borderBottom: `1px solid ${T.ink}`, marginBottom: 4 }} />
+          <div style={{ borderBottom: `2px solid ${T.accent}` }} />
         </div>
       </div>
       {!compact && list.blurb && (
@@ -862,7 +861,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
             fontSize: 16,
             lineHeight: 1.45,
             margin: '12px 0 0',
-            color: COLORS.faded,
+            color: T.slate,
             maxWidth: 680,
           }}
         >
@@ -873,7 +872,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
       {/* Ledger rows (mirror the live list page): rank / hero photo on the
           top 3 / name + description / action column. No responsive classes in a
           static capture; the social share card adds compact rows for 4-10. */}
-      <div style={{ marginTop: compact ? 18 : 26, borderTop: `2px solid ${COLORS.ink}` }}>
+      <div style={{ marginTop: compact ? 18 : 26, borderTop: `2px solid ${T.ink}` }}>
         {fullItems.map((item, i) => (
           <LedgerRow
             key={item}
@@ -901,7 +900,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
       </div>
 
       {/* Footer */}
-      <div style={{ marginTop: compact ? 20 : 28, borderTop: `2px solid ${COLORS.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.faded }}>
+      <div style={{ marginTop: compact ? 20 : 28, borderTop: `2px solid ${T.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.slate }}>
         <span>Consensus · {top3 ? 'Top 3' : `Top ${Math.min(items.length, 10)}`}</span>
         <span>sourceoftruths.com/list/{list.id}</span>
       </div>
@@ -954,7 +953,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
   if (!items.length) return null;
 
   return (
-    <div style={{ position: 'relative', zIndex: 2, background: COLORS.cream }}>
+    <div style={{ position: 'relative', zIndex: 2, background: T.surface }}>
       <style>{`
         .lov-row{display:grid;grid-template-columns:52px minmax(0,1fr) 196px;gap:22px;align-items:center;padding:18px 14px;}
         .lov-row-top{grid-template-columns:52px 280px minmax(0,1fr) 196px;}
@@ -980,7 +979,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               fontSize: 11,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: COLORS.ink,
+              color: T.ink,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -1001,7 +1000,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               lineHeight: 1.02,
               letterSpacing: '-0.02em',
               margin: 0,
-              color: COLORS.ink,
+              color: T.ink,
               fontVariationSettings: '"SOFT" 100',
             }}
           >
@@ -1014,15 +1013,15 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                 fontSize: 'clamp(9px, 1.1vw, 11px)',
                 letterSpacing: '0.2em',
                 textTransform: 'uppercase',
-                color: COLORS.ember,
+                color: T.accent,
                 textAlign: 'right',
                 marginBottom: 8,
               }}
             >
               {list.category} · Top {Math.min(items.length, 10)}
             </div>
-            <div style={{ borderBottom: `1px solid ${COLORS.ink}`, marginBottom: 4 }} />
-            <div style={{ borderBottom: `2px solid ${COLORS.ember}` }} />
+            <div style={{ borderBottom: `1px solid ${T.ink}`, marginBottom: 4 }} />
+            <div style={{ borderBottom: `2px solid ${T.accent}` }} />
           </div>
         </div>
         {list.blurb && (
@@ -1033,7 +1032,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               fontSize: 16,
               lineHeight: 1.45,
               margin: '12px 0 0',
-              color: COLORS.faded,
+              color: T.slate,
               maxWidth: 640,
             }}
           >
@@ -1061,7 +1060,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               fontSize: 10,
               letterSpacing: '0.2em',
               textTransform: 'uppercase',
-              color: COLORS.faded,
+              color: T.slate,
             }}
           >
             <Eye size={11} strokeWidth={2} />
@@ -1072,8 +1071,8 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               onClick={onOpenSources}
               style={{
                 background: 'transparent',
-                color: COLORS.ember,
-                border: `1.5px solid ${COLORS.ember}`,
+                color: T.accent,
+                border: `1.5px solid ${T.accent}`,
                 padding: '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
@@ -1093,8 +1092,8 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                 onClick={onOpenVote}
                 style={{
                   background: 'transparent',
-                  color: COLORS.ember,
-                  border: `1.5px solid ${COLORS.ember}`,
+                  color: T.accent,
+                  border: `1.5px solid ${T.accent}`,
                   padding: '8px 14px',
                   fontFamily: 'DM Mono, monospace',
                   fontSize: 10,
@@ -1114,8 +1113,8 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               onClick={() => { setComplainSent(false); setComplainOpen(true); }}
               style={{
                 background: 'transparent',
-                color: COLORS.ink,
-                border: `1.5px solid ${COLORS.ink}`,
+                color: T.ink,
+                border: `1.5px solid ${T.ink}`,
                 padding: '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
@@ -1135,8 +1134,8 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
               href={`/snapshot/${encodeURIComponent(list.id)}`}
               style={{
                 background: 'transparent',
-                color: COLORS.ink,
-                border: `1.5px solid ${COLORS.ink}`,
+                color: T.ink,
+                border: `1.5px solid ${T.ink}`,
                 padding: '8px 14px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
@@ -1160,7 +1159,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
 
         {/* Ledger rows: rank / photo (ranks 1-3) / name + full description /
             action column. Top-3 block closes with a heavy rule. */}
-        <div style={{ marginTop: embedded ? 0 : 26, borderTop: `2px solid ${COLORS.ink}` }}>
+        <div style={{ marginTop: embedded ? 0 : 26, borderTop: `2px solid ${T.ink}` }}>
           {items.map((item, i) => (
             <LedgerRow
               key={item}
@@ -1182,16 +1181,16 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
           onClick={() => setComplainOpen(false)}
           style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(26,22,17,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6vh 16px' }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: COLORS.cream, border: `2px solid ${COLORS.ink}`, padding: 24 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: T.surface, border: `2px solid ${T.ink}`, padding: 24 }}>
             {complainSent ? (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 10px' }}>Thanks — noted.</h3>
-                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: COLORS.faded, margin: '0 0 20px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 15, color: T.slate, margin: '0 0 20px' }}>
                   Your note went to the editors' desk. Flagged lists get re-researched.
                 </p>
                 <button
                   onClick={() => { setComplainOpen(false); setComplainSent(false); setComplainMsg(''); setComplainName(''); setComplainEmail(''); }}
-                  style={{ cursor: 'pointer', background: COLORS.ink, color: COLORS.cream, border: `1.5px solid ${COLORS.ink}`, padding: '12px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
+                  style={{ cursor: 'pointer', background: T.ink, color: T.surface, border: `1.5px solid ${T.ink}`, padding: '12px 20px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
                 >
                   Close
                 </button>
@@ -1199,7 +1198,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
             ) : (
               <>
                 <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 22, margin: '0 0 6px' }}>Comments? Questions?</h3>
-                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.faded, margin: '0 0 14px' }}>
+                <p style={{ fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.slate, margin: '0 0 14px' }}>
                   Think this list is wrong or stale? Tell the editors what to re-research.
                 </p>
                 <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
@@ -1209,7 +1208,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                     onChange={(e) => setComplainName(e.target.value)}
                     maxLength={120}
                     placeholder="Name (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${T.ink}`, background: T.surfaceAlt, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.ink, outline: 'none' }}
                   />
                   <input
                     type="email"
@@ -1217,7 +1216,7 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                     onChange={(e) => setComplainEmail(e.target.value)}
                     maxLength={200}
                     placeholder="Email (optional)"
-                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none' }}
+                    style={{ flex: 1, minWidth: 140, boxSizing: 'border-box', padding: 12, border: `1.5px solid ${T.ink}`, background: T.surfaceAlt, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.ink, outline: 'none' }}
                   />
                 </div>
                 <textarea
@@ -1226,19 +1225,19 @@ export default function ListOverview({ list, voteData, extras, viewCount, onBack
                   maxLength={1000}
                   rows={4}
                   placeholder="What's off about this list? (optional)"
-                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${COLORS.ink}`, background: COLORS.paper, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: COLORS.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
+                  style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: `1.5px solid ${T.ink}`, background: T.surfaceAlt, fontFamily: 'Manrope, sans-serif', fontSize: 14, color: T.ink, outline: 'none', resize: 'vertical', marginBottom: 16 }}
                 />
                 <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                   <button
                     onClick={() => setComplainOpen(false)}
-                    style={{ cursor: 'pointer', background: 'transparent', color: COLORS.ink, border: `1.5px solid ${COLORS.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
+                    style={{ cursor: 'pointer', background: 'transparent', color: T.ink, border: `1.5px solid ${T.ink}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={submitComplaint}
                     disabled={complainBusy}
-                    style={{ cursor: 'pointer', background: COLORS.rust, color: COLORS.cream, border: `1.5px solid ${COLORS.rust}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: complainBusy ? 0.6 : 1 }}
+                    style={{ cursor: 'pointer', background: T.blueDeep, color: T.surface, border: `1.5px solid ${T.blueDeep}`, padding: '10px 18px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: complainBusy ? 0.6 : 1 }}
                   >
                     {complainBusy ? 'Sending…' : 'Send to editors'}
                   </button>

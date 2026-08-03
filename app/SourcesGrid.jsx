@@ -1,5 +1,4 @@
 'use client';
-import { COLORS } from '@/lib/data';
 import { T } from '@/lib/theme';
 
 // A clean grid of publication chips: logo (favicon) + name + consensus count.
@@ -14,7 +13,7 @@ import { T } from '@/lib/theme';
 export default function SourcesGrid({ sources = [], minColWidth = 190, linked = false, theme = 'paper' }) {
   const PAL = theme === 'site'
     ? { chipBg: T.white, chipBorder: 'rgba(20,22,28,0.10)', hoverBg: '#f3f5f8', hoverShadow: T.accent, logoBg: T.surface, logoBorder: 'rgba(20,22,28,0.08)', logoFont: "'Manrope',system-ui,sans-serif", logoColor: T.muted, nameFont: "'Manrope',system-ui,sans-serif", nameColor: T.ink, countColor: T.muted }
-    : { chipBg: COLORS.paper, chipBorder: 'rgba(26,22,17,0.16)', hoverBg: '#e4dbc8', hoverShadow: COLORS.ember, logoBg: COLORS.cream, logoBorder: 'rgba(26,22,17,0.10)', logoFont: "'Fraunces',serif", logoColor: COLORS.faded, nameFont: "'Manrope',sans-serif", nameColor: COLORS.ink, countColor: COLORS.faded };
+    : { chipBg: T.surfaceAlt, chipBorder: 'rgba(26,22,17,0.16)', hoverBg: '#e4dbc8', hoverShadow: T.accent, logoBg: T.surface, logoBorder: 'rgba(26,22,17,0.10)', logoFont: "'Fraunces',serif", logoColor: T.slate, nameFont: "'Manrope',sans-serif", nameColor: T.ink, countColor: T.slate };
   return (
     <div>
       <style>{`

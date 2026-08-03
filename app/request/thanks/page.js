@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Grain from '@/app/Grain';
 import Footer from '@/app/Footer';
-import { COLORS } from '@/lib/data';
+import { T } from '@/lib/theme';
 
 export const metadata = {
   title: 'Thanks for your request | Source of Truths',
@@ -12,8 +12,8 @@ export default function ThanksPage() {
     <div
       style={{
         minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
+        background: T.surface,
+        color: T.ink,
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -35,7 +35,7 @@ export default function ThanksPage() {
             fontSize: 11,
             letterSpacing: '0.25em',
             textTransform: 'uppercase',
-            color: COLORS.ember,
+            color: T.accent,
             marginBottom: 14,
           }}
         >
@@ -49,13 +49,13 @@ export default function ThanksPage() {
             lineHeight: 0.9,
             letterSpacing: '-0.015em',
             margin: 0,
-            color: COLORS.ink,
+            color: T.ink,
             fontVariationSettings: '"SOFT" 100',
           }}
         >
           Thanks for your
           <br />
-          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>request</span>
+          <span style={{ fontStyle: 'italic', color: T.accent }}>request</span>
         </h1>
         <p
           style={{
@@ -64,7 +64,7 @@ export default function ThanksPage() {
             fontSize: 19,
             lineHeight: 1.5,
             margin: '24px auto 0',
-            color: COLORS.faded,
+            color: T.slate,
             maxWidth: 520,
           }}
         >
@@ -74,9 +74,9 @@ export default function ThanksPage() {
           <Link
             href="/"
             style={{
-              background: COLORS.ink,
-              color: COLORS.cream,
-              border: `1.5px solid ${COLORS.ink}`,
+              background: T.ink,
+              color: T.surface,
+              border: `1.5px solid ${T.ink}`,
               padding: '12px 22px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
@@ -84,7 +84,7 @@ export default function ThanksPage() {
               textTransform: 'uppercase',
               fontWeight: 600,
               textDecoration: 'none',
-              boxShadow: `3px 3px 0 ${COLORS.ember}`,
+              boxShadow: `3px 3px 0 ${T.accent}`,
             }}
           >
             Back to all lists
@@ -93,8 +93,8 @@ export default function ThanksPage() {
             href="/request"
             style={{
               background: 'transparent',
-              color: COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
+              color: T.ink,
+              border: `1.5px solid ${T.ink}`,
               padding: '12px 22px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,

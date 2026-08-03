@@ -1,7 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { COLORS } from '@/lib/data';
 import { getAllSources } from '@/lib/sources';
 import SourcesGrid from './SourcesGrid';
 import { T } from '@/lib/theme';

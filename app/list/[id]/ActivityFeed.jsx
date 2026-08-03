@@ -10,7 +10,6 @@ import {
   ArrowDown,
   PenLine,
 } from 'lucide-react';
-import { COLORS } from '@/lib/data';
 import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
 import { T } from '@/lib/theme';
 
@@ -190,7 +189,7 @@ function Badge({ icon, color, children, live, date, extra }) {
         </span>
       )}
       {date && (
-        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.slate }}>
           {date}
         </span>
       )}
@@ -220,20 +219,20 @@ function SourceCard({ s, tag, note, strike, label }) {
     <div
       style={{
         background: T.white,
-        border: `1px solid ${COLORS.paper}`,
+        border: `1px solid ${T.surfaceAlt}`,
         borderRadius: 7,
         padding: '7px 11px',
         fontSize: 13,
-        color: COLORS.ink,
+        color: T.ink,
       }}
     >
-      <span style={strike ? { textDecoration: 'line-through', color: COLORS.faded } : undefined}>{label != null ? label : s.label}</span>
+      <span style={strike ? { textDecoration: 'line-through', color: T.slate } : undefined}>{label != null ? label : s.label}</span>
       {tag && (
         <span
           style={{
             fontSize: 10,
             background: '#e8e2d6',
-            color: COLORS.faded,
+            color: T.slate,
             padding: '1px 7px',
             borderRadius: 10,
             marginLeft: 6,
@@ -248,7 +247,7 @@ function SourceCard({ s, tag, note, strike, label }) {
           style={{
             fontSize: 10,
             background: '#f6e3cf',
-            color: COLORS.rust,
+            color: T.blueDeep,
             padding: '1px 7px',
             borderRadius: 10,
             marginLeft: 6,
@@ -259,7 +258,7 @@ function SourceCard({ s, tag, note, strike, label }) {
         </span>
       )}
       {note && (
-        <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{note}</div>
+        <div style={{ marginTop: 4, fontSize: 12, color: T.slate, lineHeight: 1.45 }}>{note}</div>
       )}
     </div>
   );
@@ -539,7 +538,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
   const newestVoteGroup = voteGroups.length ? voteGroups.reduce((a, b) => (b.ts > a.ts ? b : a)) : null;
 
   return (
-    <div style={{ fontFamily: SANS, color: COLORS.ink, maxWidth: 640 }}>
+    <div style={{ fontFamily: SANS, color: T.ink, maxWidth: 640 }}>
       <style>{`@keyframes sotpulse{0%,100%{opacity:1}50%{opacity:.25}}`}</style>
 
       <div>
@@ -597,7 +596,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     {collapseMoves(g.changes).map((ev, k) => {
                       const { item, tail } = researchLabel(ev);
                       return (
-                        <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>
+                        <div key={k} style={{ fontSize: 13, color: T.ink }}>
                           <RefreshCw size={11} strokeWidth={2.5} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5, color: KC.research }} />
                           <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
                         </div>
@@ -631,27 +630,27 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     return (
                       <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
                         {v.delta >= 0 ? (
-                          <ArrowUp size={14} strokeWidth={2.5} color={COLORS.forest} />
+                          <ArrowUp size={14} strokeWidth={2.5} color={T.successDeep} />
                         ) : (
-                          <ArrowDown size={14} strokeWidth={2.5} color={COLORS.ember} />
+                          <ArrowDown size={14} strokeWidth={2.5} color={T.accent} />
                         )}
                         <span>
                           Someone voted{' '}
                           <strong style={{ fontWeight: 500 }}>{v.itemName}</strong>
                           {rw && (
-                            <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.rust, marginLeft: 6 }}>
+                            <span style={{ fontFamily: MONO, fontSize: 10, color: T.blueDeep, marginLeft: 6 }}>
                               {rw} pick
                             </span>
                           )}
                         </span>
-                        <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginLeft: 'auto' }}>
+                        <span style={{ fontFamily: MONO, fontSize: 10, color: T.slate, marginLeft: 'auto' }}>
                           {fmtRelative(v.createdAt)}
                         </span>
                       </div>
                     );
                   })}
                   {g.votes.length > 8 && (
-                    <div style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>
+                    <div style={{ fontFamily: MONO, fontSize: 10, color: T.slate }}>
                       + {g.votes.length - 8} more {g.votes.length - 8 === 1 ? 'vote' : 'votes'}
                     </div>
                   )}
@@ -661,7 +660,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     {allChanges.map((ev, k) => {
                       const { item, tail } = researchLabel(ev);
                       return (
-                        <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>
+                        <div key={k} style={{ fontSize: 13, color: T.ink }}>
                           <RefreshCw size={11} strokeWidth={2.5} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5, color: KC.research }} />
                           <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
                         </div>
@@ -697,7 +696,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     Ranking change
                   </Badge>
                 )}
-                <div style={{ fontSize: 13, color: COLORS.ink, marginTop: 8 }}>
+                <div style={{ fontSize: 13, color: T.ink, marginTop: 8 }}>
                   <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
                 </div>
               </section>
@@ -723,14 +722,14 @@ export default function ActivityFeed({ list, voteData, extras }) {
             return (
               <section key={`te-${i}`} style={{ ...cardStyle(KC.review), ...(last ? { marginBottom: 0 } : {}) }}>
                 <Badge color={KC.review} icon={<MessageSquare size={11} strokeWidth={2.5} />} date={fmtDate(m.createdAt)}>Review request</Badge>
-                <div style={{ fontSize: 12, color: COLORS.faded, marginTop: 4, fontStyle: 'italic' }}>
+                <div style={{ fontSize: 12, color: T.slate, marginTop: 4, fontStyle: 'italic' }}>
                   Sent privately to the editors. No names or emails shown.
                 </div>
                 <div style={{ background: T.white, borderLeft: `3px solid ${KC.review}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, marginTop: 9 }}>
                   {m.message}
                   {m.editorResponse && (
-                    <div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}>
-                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {m.editorResponse}
+                    <div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${T.surfaceAlt}` }}>
+                      <strong style={{ fontWeight: 700, color: T.accent }}>Editor:</strong> {m.editorResponse}
                     </div>
                   )}
                 </div>
@@ -757,10 +756,10 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   {g.sources.map((s, k) => {
                     const note = s.id ? (list.sourceRevisions || {})[s.id] : undefined;
                     return (
-                      <div key={k} style={{ background: T.white, border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
-                        <span style={{ textDecoration: 'line-through', color: COLORS.faded }}>{s.label}</span>
+                      <div key={k} style={{ background: T.white, border: `1px solid ${T.surfaceAlt}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
+                        <span style={{ textDecoration: 'line-through', color: T.slate }}>{s.label}</span>
                         {note && (
-                          <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{note}</div>
+                          <div style={{ marginTop: 4, fontSize: 12, color: T.slate, lineHeight: 1.45 }}>{note}</div>
                         )}
                       </div>
                     );
@@ -771,7 +770,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     {collapseMoves(g.changes).map((ev, k) => {
                       const { item, tail } = researchLabel(ev);
                       return (
-                        <div key={k} style={{ fontSize: 13, color: COLORS.ink }}>
+                        <div key={k} style={{ fontSize: 13, color: T.ink }}>
                           <RefreshCw size={11} strokeWidth={2.5} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5, color: KC.research }} />
                           <strong style={{ fontWeight: 500, color: KC.research }}>{item}</strong> {tail}.
                         </div>
@@ -795,10 +794,10 @@ export default function ActivityFeed({ list, voteData, extras }) {
                 List created
               </Badge>
               <div style={{ fontFamily: SERIF, fontSize: 16, marginTop: 6 }}>Published the ranking</div>
-              <div style={{ fontSize: 13, color: COLORS.faded, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
+              <div style={{ fontSize: 13, color: T.slate, marginTop: 2 }}>Seeded from expert sources and live fan voting.</div>
               {launchSources.length > 0 && (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 6 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.slate, marginBottom: 6 }}>
                     {launchSources.length} {launchSources.length === 1 ? 'source' : 'sources'} at launch
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
@@ -814,15 +813,15 @@ export default function ActivityFeed({ list, voteData, extras }) {
       </div>
 
       {/* Public comments */}
-      <div style={{ borderTop: `2px solid ${COLORS.ink}`, marginTop: 28, paddingTop: 16 }}>
+      <div style={{ borderTop: `2px solid ${T.ink}`, marginTop: 28, paddingTop: 16 }}>
         <div style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 600 }}>Join the conversation</div>
-        <div style={{ fontSize: 12, color: COLORS.faded, marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: T.slate, marginBottom: 12 }}>
           Public comment. Name is optional, posts as "Guest" if left blank.
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 14 }}>
           {feed.comments.length === 0 && loaded && (
-            <div style={{ fontSize: 13, color: COLORS.faded }}>No comments yet. Start the conversation.</div>
+            <div style={{ fontSize: 13, color: T.slate }}>No comments yet. Start the conversation.</div>
           )}
           {feed.comments.map((c, i) => {
             const guest = !c.name;
@@ -834,7 +833,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     width: 32,
                     height: 32,
                     borderRadius: '50%',
-                    background: guest ? COLORS.faded : COLORS.ember,
+                    background: guest ? T.slate : T.accent,
                     color: T.white,
                     display: 'flex',
                     alignItems: 'center',
@@ -845,15 +844,15 @@ export default function ActivityFeed({ list, voteData, extras }) {
                 >
                   {guest ? '?' : initials(c.name)}
                 </div>
-                <div style={{ background: T.white, border: `1px solid ${COLORS.paper}`, borderRadius: 9, padding: '8px 12px', flex: 1 }}>
+                <div style={{ background: T.white, border: `1px solid ${T.surfaceAlt}`, borderRadius: 9, padding: '8px 12px', flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: 13, fontWeight: 500 }}>{c.name || 'Guest'}</span>
-                    <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{fmtRelative(c.createdAt)}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 10, color: T.slate }}>{fmtRelative(c.createdAt)}</span>
                   </div>
                   <div style={{ fontSize: 13, marginTop: 2, whiteSpace: 'pre-wrap' }}>{c.body}</div>
                   {c.editorResponse && (
-                    <div style={{ fontSize: 13, marginTop: 6, paddingTop: 6, borderTop: `1px solid ${COLORS.paper}` }}>
-                      <strong style={{ fontWeight: 700, color: COLORS.ember }}>Editor:</strong> {c.editorResponse}
+                    <div style={{ fontSize: 13, marginTop: 6, paddingTop: 6, borderTop: `1px solid ${T.surfaceAlt}` }}>
+                      <strong style={{ fontWeight: 700, color: T.accent }}>Editor:</strong> {c.editorResponse}
                     </div>
                   )}
                 </div>
@@ -862,13 +861,13 @@ export default function ActivityFeed({ list, voteData, extras }) {
           })}
         </div>
 
-        <div style={{ background: T.white, border: `1px solid ${COLORS.faded}`, borderRadius: 10, padding: 11 }}>
+        <div style={{ background: T.white, border: `1px solid ${T.slate}`, borderRadius: 10, padding: 11 }}>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
             maxLength={120}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${COLORS.paper}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8, outline: 'none', color: COLORS.ink }}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', borderBottom: `1px solid ${T.surfaceAlt}`, background: 'transparent', fontFamily: SANS, fontSize: 13, padding: '5px 2px', marginBottom: 8, outline: 'none', color: T.ink }}
           />
           <textarea
             value={body}
@@ -876,13 +875,13 @@ export default function ActivityFeed({ list, voteData, extras }) {
             placeholder="Add a comment…"
             rows={2}
             maxLength={1000}
-            style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', fontFamily: SANS, fontSize: 13, padding: 2, resize: 'vertical', outline: 'none', color: COLORS.ink }}
+            style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', fontFamily: SANS, fontSize: 13, padding: 2, resize: 'vertical', outline: 'none', color: T.ink }}
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
             <button
               onClick={postComment}
               disabled={posting || !body.trim()}
-              style={{ background: COLORS.ember, color: T.white, border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
+              style={{ background: T.accent, color: T.white, border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
             >
               {posting ? 'Posting…' : 'Post comment'}
             </button>

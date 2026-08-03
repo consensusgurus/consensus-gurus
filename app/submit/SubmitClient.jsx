@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, X, ChevronDown } from 'lucide-react';
-import { TYPES, COLORS } from '@/lib/data';
+import { TYPES } from '@/lib/data';
 import { postList } from '@/lib/api';
 import Grain from '../Grain';
 import Footer from '../Footer';
+import { T } from '@/lib/theme';
 
 function SubmitView({ mode = 'list', onBack, onSubmit }) {
   const isQuiz = mode === 'quiz';
@@ -105,7 +106,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
     fontSize: 10,
     letterSpacing: '0.2em',
     textTransform: 'uppercase',
-    color: COLORS.faded,
+    color: T.slate,
     marginBottom: 6,
     display: 'block',
   };
@@ -114,11 +115,11 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
     width: '100%',
     background: 'transparent',
     border: 'none',
-    borderBottom: `1.5px solid ${COLORS.ink}`,
+    borderBottom: `1.5px solid ${T.ink}`,
     padding: '8px 0',
     fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
     fontSize: 18,
-    color: COLORS.ink,
+    color: T.ink,
     outline: 'none',
     fontVariationSettings: '"SOFT" 100',
   };
@@ -153,7 +154,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
           fontSize: 11,
           letterSpacing: '0.2em',
           textTransform: 'uppercase',
-          color: COLORS.ink,
+          color: T.ink,
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -165,14 +166,14 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
         {COPY.back}
       </button>
 
-      <div style={{ borderBottom: `2px solid ${COLORS.ink}`, paddingBottom: 20, marginTop: 16, marginBottom: 32 }}>
+      <div style={{ borderBottom: `2px solid ${T.ink}`, paddingBottom: 20, marginTop: 16, marginBottom: 32 }}>
         <div
           style={{
             fontFamily: 'DM Mono, monospace',
             fontSize: 11,
             letterSpacing: '0.25em',
             textTransform: 'uppercase',
-            color: COLORS.ember,
+            color: T.accent,
             marginBottom: 10,
           }}
         >
@@ -186,13 +187,13 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
             lineHeight: 0.9,
             letterSpacing: '-0.015em',
             margin: 0,
-            color: COLORS.ink,
+            color: T.ink,
             fontVariationSettings: '"SOFT" 100',
           }}
         >
           {COPY.headLine1}
           <br />
-          <span style={{ fontStyle: 'italic', color: COLORS.ember }}>{COPY.headLine2}</span>
+          <span style={{ fontStyle: 'italic', color: T.accent }}>{COPY.headLine2}</span>
         </h1>
         <p
           style={{
@@ -201,7 +202,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
             fontSize: 17,
             lineHeight: 1.45,
             margin: '16px 0 0',
-            color: COLORS.faded,
+            color: T.slate,
             maxWidth: 560,
           }}
         >
@@ -246,7 +247,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
             <ChevronDown
               size={14}
               strokeWidth={2.5}
-              style={{ position: 'absolute', right: 4, bottom: 12, pointerEvents: 'none', color: COLORS.ink }}
+              style={{ position: 'absolute', right: 4, bottom: 12, pointerEvents: 'none', color: T.ink }}
             />
           </div>
         </div>
@@ -278,7 +279,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
         <div>
           <div
             style={{
-              borderTop: `1px solid ${COLORS.ink}`,
+              borderTop: `1px solid ${T.ink}`,
               paddingTop: 20,
               marginTop: 8,
               marginBottom: 16,
@@ -295,7 +296,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
                 fontStyle: 'italic',
                 fontSize: 22,
                 margin: 0,
-                color: COLORS.ink,
+                color: T.ink,
               }}
             >
               {COPY.picksHeading}
@@ -306,7 +307,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
                 fontSize: 10,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
-                color: COLORS.faded,
+                color: T.slate,
               }}
             >
               {filledCount} {COPY.picksHint}
@@ -321,8 +322,8 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 14,
-                  background: COLORS.paper,
-                  border: `1.5px solid ${COLORS.ink}`,
+                  background: T.surfaceAlt,
+                  border: `1.5px solid ${T.ink}`,
                   padding: '10px 14px',
                 }}
               >
@@ -331,7 +332,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
                     fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                     fontWeight: 900,
                     fontSize: 22,
-                    color: i === 0 ? COLORS.ember : COLORS.ink,
+                    color: i === 0 ? T.accent : T.ink,
                     minWidth: 28,
                     fontFeatureSettings: '"lnum" 1',
                     fontVariationSettings: '"SOFT" 100',
@@ -351,7 +352,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
                     border: 'none',
                     fontFamily: 'Manrope, system-ui, -apple-system, sans-serif',
                     fontSize: 17,
-                    color: COLORS.ink,
+                    color: T.ink,
                     outline: 'none',
                     padding: '4px 0',
                     fontVariationSettings: '"SOFT" 100',
@@ -364,7 +365,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: COLORS.faded,
+                      color: T.slate,
                       cursor: 'pointer',
                       padding: 4,
                       display: 'flex',
@@ -384,8 +385,8 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
               style={{
                 marginTop: 12,
                 background: 'transparent',
-                color: COLORS.ink,
-                border: `1.5px dashed ${COLORS.ink}`,
+                color: T.ink,
+                border: `1.5px dashed ${T.ink}`,
                 padding: '10px 16px',
                 fontFamily: 'DM Mono, monospace',
                 fontSize: 10,
@@ -410,11 +411,11 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
           <div
             style={{
               padding: 14,
-              border: `1.5px solid ${COLORS.ember}`,
+              border: `1.5px solid ${T.accent}`,
               background: 'rgba(192, 57, 43, 0.08)',
               fontFamily: 'Manrope, sans-serif',
               fontSize: 14,
-              color: COLORS.ember,
+              color: T.accent,
               display: 'flex',
               alignItems: 'center',
               gap: 8,
@@ -430,8 +431,8 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
             onClick={onBack}
             style={{
               background: 'transparent',
-              color: COLORS.ink,
-              border: `1.5px solid ${COLORS.ink}`,
+              color: T.ink,
+              border: `1.5px solid ${T.ink}`,
               padding: '14px 24px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
@@ -447,9 +448,9 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
             onClick={handleSubmit}
             disabled={submitting}
             style={{
-              background: COLORS.ink,
-              color: COLORS.cream,
-              border: `1.5px solid ${COLORS.ink}`,
+              background: T.ink,
+              color: T.surface,
+              border: `1.5px solid ${T.ink}`,
               padding: '14px 28px',
               fontFamily: 'DM Mono, monospace',
               fontSize: 11,
@@ -457,7 +458,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
               textTransform: 'uppercase',
               fontWeight: 600,
               cursor: submitting ? 'wait' : 'pointer',
-              boxShadow: `3px 3px 0 ${COLORS.ember}`,
+              boxShadow: `3px 3px 0 ${T.accent}`,
               opacity: submitting ? 0.6 : 1,
             }}
           >
@@ -471,7 +472,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
             fontSize: 10,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
-            color: COLORS.faded,
+            color: T.slate,
             textAlign: 'center',
             marginTop: 4,
           }}
@@ -513,8 +514,8 @@ export default function SubmitClient() {
     <div
       style={{
         minHeight: '100vh',
-        background: COLORS.cream,
-        color: COLORS.ink,
+        background: T.surface,
+        color: T.ink,
         position: 'relative',
         overflow: 'hidden',
       }}
