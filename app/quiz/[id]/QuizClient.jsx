@@ -1678,7 +1678,7 @@ export default function QuizClient({ quizId }) {
                 </button>
               )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                <button onClick={restartRound} style={{ ...stackBtn, background: T.gold, color: T.ink }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
+                <button onClick={restartRound} style={{ ...stackBtn, background: T.cta, color: T.ctaInk }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button>
                 <UpNextCard quiz={quiz} />
                 {/* Challenge + Share sit side by side on desktop and wrap to their own
                     lines on a phone (flex-wrap with a 190px basis), per Marshall.
@@ -1711,7 +1711,7 @@ export default function QuizClient({ quizId }) {
                     </p>
                     <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
                     <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
-                    <button onClick={submitClaim} disabled={claimBusy} style={{ ...stackBtn, marginTop: 12, background: T.gold, color: T.ink, opacity: claimBusy ? 0.6 : 1 }}>{claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}</button>
+                    <button onClick={submitClaim} disabled={claimBusy} style={{ ...stackBtn, marginTop: 12, background: T.cta, color: T.ctaInk, opacity: claimBusy ? 0.6 : 1 }}>{claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}</button>
                   </div>
                 )}
                 {claimMsg && (
@@ -1780,7 +1780,7 @@ export default function QuizClient({ quizId }) {
                 />
               )}
               {(started || ended) && !bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
-              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: T.gold, color: T.ink, cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: T.cta, color: T.ctaInk, cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
               {/* Correct/wrong verdict pops over the Play button (replaces the old
@@ -1825,7 +1825,7 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid ${COLORS.ink}`, borderRadius: 8, background: !started || ended ? COLORS.paper : T.paper, color: COLORS.ink, opacity: !started || ended ? 0.5 : 1 }}
                 />
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
-              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: T.gold, color: T.ink, cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: T.cta, color: T.ctaInk, cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
               {/* Correct/wrong verdict pops over the Play button (replaces the old
@@ -2081,7 +2081,7 @@ export default function QuizClient({ quizId }) {
 
             {started && !ended && (
               <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
-                <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 40px', border: 'none', background: T.gold, color: T.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <button onClick={() => endGame(false)} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, padding: '12px 40px', border: 'none', background: T.cta, color: T.ctaInk, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                   <Flag size={14} strokeWidth={2.5} color={T.ink} /> Give up
                 </button>
               </div>

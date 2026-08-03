@@ -18,7 +18,7 @@ import { T } from '@/lib/theme';
 // inside each board), and /quizzes/leaderboard is a redirect to the Stat Hub,
 // so linking anywhere here would dead-end the one action the tile is asking for.
 
-const C = { accent: T.accent, cta: T.gold, gold: '#ffd166' };
+const C = { accent: T.accent, cta: T.cta, gold: '#ffd166' };
 
 // The winner's name is the single most emphasised username on the page, so it is
 // set as large as will fit rather than at a fixed size: binary-search the largest

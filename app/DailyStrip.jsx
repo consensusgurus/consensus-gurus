@@ -713,7 +713,7 @@ export default function DailyStrip({ board = null }) {
            phone would query at ~366px. That mismatch no longer bites: the phone
            renders .dh-mcap instead and this row is hidden below 640px, which also
            makes the very narrow cutoffs unreachable. IQ leads and never drops. */
-        .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--gold);color:var(--ink);font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
+        .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:#d49a2a;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}

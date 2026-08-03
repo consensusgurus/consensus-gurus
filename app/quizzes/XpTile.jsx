@@ -20,7 +20,7 @@ import { T } from '@/lib/theme';
 // OUTSIDE the flip (shared by both faces), and the TOP SOT PLAYER tag stays on
 // the tile frame; only the body (name + podium) turns.
 
-const C = { accent: T.accent, cta: T.gold, gold: '#ffd166' };
+const C = { accent: T.accent, cta: T.cta, gold: '#ffd166' };
 // Gold / silver / bronze, matching the medal palette used on the ranking pages.
 const MEDAL = [T.gold, '#b8bcc4', '#c8814b', '#5f6f8f', '#5f6f8f'];
 

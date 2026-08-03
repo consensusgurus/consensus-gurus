@@ -15,7 +15,7 @@ import { T } from '@/lib/theme';
 
 const C = {
   bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
-  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent, cta: T.gold,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent, cta: T.cta,
 };
 const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";

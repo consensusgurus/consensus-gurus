@@ -63,7 +63,7 @@ const C = {
   bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
   soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
   accsoft: '#e8effb', live: T.success,
-  cta: T.gold, ctaInk: T.ink, ctaHover: '#d49a2a',
+  cta: T.cta, ctaInk: T.ink, ctaHover: T.ctaHover,
 };
 const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 // Leaderboard rail: the #1 name shrinks as it lengthens so a long handle keeps its
@@ -1626,7 +1626,7 @@ export default function QuizHomeClient() {
     .qzh .qz-toolbtn:hover svg{color:var(--ink);}
     /* One accent in the row: Share my day, the button we most want pressed
        (owner 2026-07-30). It leads the row, left of the search field. */
-    .qzh .qz-toolbtn-cta{background:var(--gold);border-color: var(--gold-ink);color:var(--ink);font-weight:800;}
+    .qzh .qz-toolbtn-cta{background:var(--cta);border-color: var(--cta-hover);color:var(--cta-ink);font-weight:800;}
     .qzh .qz-toolbtn-cta svg{color:var(--ink);}
     .qzh .qz-toolbtn-cta:hover{background:#f0c358;border-color:#f0c358;color:var(--ink);}
     .qzh .qz-toolbtn-cta:hover svg{color:var(--ink);}

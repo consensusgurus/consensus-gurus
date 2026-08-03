@@ -477,7 +477,7 @@ export default function DailyTilePanel({
         .dtp-donechip{display:inline-flex;align-items:center;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#116932;}
         .dtp-sharechip{display:inline-flex;align-items:center;gap:5px;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#8a5300;font-family:inherit;cursor:pointer;transition:background .12s,color .12s;}
         .dtp-sharechip svg{transition:color .12s;}
-        .dtp-sharechip:hover{background:var(--gold);color:var(--ink);}
+        .dtp-sharechip:hover{background:var(--cta);color:var(--cta-ink);}
         .dtp-sharechip:hover svg{color:var(--ink);}
         /* Pin chip. The panel is WHITE (.dtp above), so this takes the same ink
            treatment as the share chip beside it rather than the navy-panel
@@ -486,13 +486,13 @@ export default function DailyTilePanel({
            pin control a FINISHED game has, so it has to be plainly visible. */
         .dtp-pinchip{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#4d5872;font-family:inherit;cursor:pointer;transition:background .12s,color .12s,border-color .12s;}
         .dtp-pinchip:hover{background:rgba(232,180,58,0.16);border-color:rgba(232,180,58,0.55);color:#8a5300;}
-        .dtp-pinchip.on{background:var(--gold);border-color:var(--gold);color:var(--ink);}
+        .dtp-pinchip.on{background:var(--cta);border-color:var(--cta);color:var(--cta-ink);}
         .dtp-how{font-size:12.5px;line-height:1.4;color:var(--slate);font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
-        .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--gold);color:var(--ink);font-weight:800;font-size:15px;
+        .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:15px;
                   border-radius:10px;padding:12px 24px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
         .dtp-play:hover{background:#f0c358;transform:translateY(-1px);}
-        .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--gold);background:var(--gold);color:var(--ink);
+        .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--gold);background:var(--cta);color:var(--cta-ink);
                     font-weight:800;font-size:13px;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:background .12s,transform .12s;}
         .dtp-shrink:hover{background:#f0c358;border-color:#f0c358;transform:translateY(-1px);}
         /* THE THREE CARDS ARE ALWAYS THE SAME HEIGHT (owner rule, 2026-08-01).
@@ -586,7 +586,7 @@ export default function DailyTilePanel({
         .dtp-barw:hover{background:var(--surface);}
         .dtp-bar{display:block;width:100%;max-width:22px;background:var(--gc);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:opacity .12s;}
         .dtp-barw:hover .dtp-bar{opacity:1;}
-        .dtp-bar.today{background:var(--gold);opacity:1;}
+        .dtp-bar.today{background:var(--cta);opacity:1;}
         .dtp-bar.miss{height:5px;background:var(--surface);border-radius:2px;}
         .dtp-bx{display:flex;justify-content:space-between;margin-top:5px;padding-right:var(--agut);font-family:'DM Mono',ui-monospace,monospace;font-size:9px;color:var(--muted);}
         /* crowd answers (outwit / outrank / feud) — the default bottom view for
@@ -611,7 +611,7 @@ export default function DailyTilePanel({
         .dtp-crow{position:relative;display:flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;background:#f7f9fc;overflow:hidden;font-size:11px;}
         .dtp-crow .bar{position:absolute;left:0;top:0;bottom:0;background:var(--gc);opacity:.17;border-radius:5px;}
         .dtp-crow.you{background:#fdf4dd;}
-        .dtp-crow.you .bar{background:var(--gold);opacity:.34;}
+        .dtp-crow.you .bar{background:var(--cta);opacity:.34;}
         .dtp-crow .nm{position:relative;flex:1 1 auto;min-width:0;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dtp-crow.you .nm{color:#8a5300;}
         .dtp-crow .sub,.dtp-crow .tg{position:relative;flex:none;font-family:'DM Mono',ui-monospace,monospace;font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:#5b6577;white-space:nowrap;}

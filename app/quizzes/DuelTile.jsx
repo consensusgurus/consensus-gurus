@@ -125,7 +125,7 @@ export default function DuelTile() {
   const item = { display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '8px 10px', borderRadius: 7, cursor: 'pointer', fontFamily: FONT, fontSize: 13, color: T.ink };
   const clearBtn = { border: 'none', background: 'transparent', color: '#9fb0d4', cursor: 'pointer', display: 'flex', flex: 'none' };
   const picked = { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, color: '#eaf0fb', fontWeight: 700 };
-  const ctaBtn = { marginTop: 'auto', width: '100%', background: T.gold, color: T.ink, border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
+  const ctaBtn = { marginTop: 'auto', width: '100%', background: T.cta, color: T.ctaInk, border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
   const faceBase = { backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', display: 'flex', flexDirection: 'column' };
 
   return (

@@ -54,7 +54,7 @@ function SignupModal({ onClose }){
         {err&&<div style={{marginBottom:12,padding:10,borderRadius:8,background:'rgba(192,57,43,0.08)',border:'1px solid rgba(192,57,43,0.4)',color:T.danger,fontSize:13}}>{err}</div>}
         <input value={u} onChange={e=>setU(e.target.value)} placeholder="Display name" maxLength={15} autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp}/>
         <input value={em} onChange={e=>setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{...inp,marginTop:10}}/>
-        <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background:T.gold,color:T.ink,border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
+        <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background: T.cta, color: T.ctaInk,border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
       </div>
     </div>
   );

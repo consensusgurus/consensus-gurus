@@ -105,7 +105,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
         autoFocus={recover}
         style={recover ? { ...fieldStyle, borderColor: C.ember } : fieldStyle}
       />
-      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: T.gold, color: T.ink, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: T.cta, color: T.ctaInk, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
         {busy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
       </button>
       {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? C.ember : C.forest }}>{msg}</p>)}

@@ -91,7 +91,7 @@ export default function QuizResultModal({
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-        {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: T.gold, color: T.ink }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
+        {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: T.cta, color: T.ctaInk }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
         <UpNextCard quiz={quiz} />
         {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: C.ink, color: T.white }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
       </div>
