@@ -6,7 +6,7 @@
 :root {
   --ink: #0b0c0e;
   --muted: #3f4757;
-  --slate: #6b7280;
+  --slate: #646c7a;
   --accent: #1e3a8a;
   --white: #ffffff;
   --paper: #f4f6f9;
@@ -54,7 +54,7 @@ html {
 
 input::placeholder,
 textarea::placeholder {
-  color: #7a6f5e;
+  color: var(--slate);
   opacity: 0.55;
 }
 

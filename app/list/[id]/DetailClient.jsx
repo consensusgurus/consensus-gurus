@@ -694,7 +694,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
           {voteMessage && (
             <div
               style={{
-                background: hasVoted ? '#ebe2d0' : '#ebe2d0',
+                background: hasVoted ? T.surfaceAlt : T.surfaceAlt,
                 padding: 16,
                 border: `1.5px solid ${COLORS.ink}`,
                 marginBottom: 24,
@@ -773,7 +773,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
                           padding: '12px 12px',
                           minHeight: 92,
                           border: isActive ? `1.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.ink}`,
-                          background: val || isActive ? COLORS.ink : '#ebe2d0',
+                          background: val || isActive ? COLORS.ink : T.surfaceAlt,
                           color: val || isActive ? COLORS.cream : COLORS.ink,
                           cursor: locked ? 'default' : 'pointer',
                           opacity: locked ? 0.7 : 1,
