@@ -16,17 +16,17 @@ export const metadata = {
   metadataBase: new URL(SITE_URL),
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Mind Loft' },
   title: `Mind Loft | Elevate Your Thinking`,
-  description: `Elevate your thinking every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+  description: `Daily puzzles and quizzes to sharpen your brain. Word, number and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   openGraph: {
     title: `Mind Loft | Elevate Your Thinking`,
-    description: `Elevate your thinking every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+    description: `Daily puzzles and quizzes to sharpen your brain. Word, number and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
     url: `${SITE_URL}`,
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: `Mind Loft | Elevate Your Thinking`,
-    description: `Elevate your thinking every day: word, number, and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
+    description: `Daily puzzles and quizzes to sharpen your brain. Word, number and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
   },
 formatDetection: {
     telephone: false,
