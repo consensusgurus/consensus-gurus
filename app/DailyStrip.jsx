@@ -515,6 +515,64 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     );
   };
 
+  // The slate: one row per game, with the per-game panel opening as a drawer
+  // directly under its own row rather than as an overlay over the board.
+  const renderSlate = (arr) => {
+    const out = [];
+    arr.forEach((g, i) => {
+      const isDone = done.has(g.key);
+      const ip = !isDone && inprog.has(g.key);
+      const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
+      const pl = playsOf(g.key);
+      const bd = byKey[g.key];
+      const lead = hasBoard && bd && bd.board && bd.board[0] ? bd.board[0].username : null;
+      const row = isDone ? myRow(g.key) : null;
+      const sl = row ? todayScoreLine(row) : null;
+      const col = catCol(g.cat);
+      const cat = CAT_SHORT[g.cat] || g.cat;
+      const open = sel === g.key;
+      out.push(
+        <div key={g.key} className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}`}>
+          <span className="sl-rk">{i + 1}</span>
+          <a className="sl-ic" href={g.href} aria-label={g.name}><img src={g.img} alt="" aria-hidden="true" /></a>
+          <a className="sl-nm" href={g.href}>
+            <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
+            <span className="sl-sub">{g.tag}{pl != null ? ` \u00b7 ${fmtPlays(pl)} playing` : ''}</span>
+          </a>
+          <span className="sl-cat"><span style={{ background: `${col}1a`, color: col }}>{cat}</span></span>
+          <span className="sl-pl">{pl != null ? fmtPlays(pl) : '\u2014'}</span>
+          <span className={`sl-st${st ? '' : ' none'}`}>{st ? <><Flame size={10} strokeWidth={2.8} />{st}</> : '\u2013'}</span>
+          <span className="sl-ld">{lead
+            ? <><Crown size={10} strokeWidth={2.6} /><span>{lead}</span></>
+            : <span className="sl-nl">Be the first</span>}</span>
+          <span className="sl-status">
+            {isDone
+              ? <span className="sl-btn done">{sl || 'Done'}</span>
+              : ip
+                ? <a className="sl-btn prog" href={g.href} aria-label={`Resume ${g.name}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                  </a>
+                : <a className="sl-btn play" href={g.href}>Play</a>}
+          </span>
+          <span className="sl-arch">
+            <button
+              type="button"
+              className={`sl-ab${open ? ' on' : ''}`}
+              onClick={() => pick(g.key)}
+              aria-expanded={open}
+              aria-label={`${g.name} archive and stats`}
+            >
+              Archive
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+          </span>
+        </div>,
+      );
+      if (open) out.push(<div className="sl-drawer" key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
+    });
+    return out;
+  };
+
   // Renders one group of tiles. `dim` marks the games a filter did not match:
   // they still render (so the board keeps its full height) but recede.
   //
@@ -871,59 +929,62 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dsd-none{color:var(--muted);font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
         /* ── slate layout ──────────────────────────────────────────────
-           Same tiles, laid out as table rows: icon, name, category, status,
-           plays, score + streak, leader. Pure CSS on top of the tile markup, so
-           nothing about the tile's behaviour changes. */
-        .dh-boardwrap.slate{padding:0;border-radius:0 0 13px 13px;}
+           A real table of rows, not the tile card reflowed: the tile's parts are
+           absolutely positioned corner furniture and a finished tile swaps its
+           category chip for a CTA line, so columns could never line up. This is
+           its own markup (renderSlate) over the SAME data and the same pick(),
+           and the per-game panel opens as a drawer under its own row. */
+        .dh-boardwrap.slate{padding:0;}
+        .dh-boardwrap.slate.open{min-height:0;}
         .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;}
-        .dh-board.slate .dh-tile{flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;gap:10px;min-height:0;padding:7px 13px 7px 15px;border:none;border-bottom:1px solid #f0f2f6;border-radius:0;box-shadow:none;}
-        .dh-board.slate .dh-tile:last-child{border-bottom:none;}
-        .dh-board.slate .dh-tile:hover{transform:none;box-shadow:none;background:var(--surface);}
-        .dh-board.slate .dh-tile.done{background:#f4fbf6;}
-        .dh-board.slate .dh-tile.done:hover{background:#eaf7ef;}
-        .dh-board.slate .dh-tile.inprog{background:#fffaeb;}
-        .dh-board.slate .dh-acc{top:0;bottom:0;left:0;right:auto;width:3px;height:auto;border-radius:0;}
-        .dh-board.slate .dh-tdot{position:static;order:0;flex:none;margin-right:-4px;}
-        .dh-board.slate .dh-tic{order:1;margin:0;width:34px;height:28px;flex:none;}
-        .dh-board.slate .dh-tic img{height:24px;max-width:30px;}
-        .dh-board.slate .dh-tnm{order:2;flex:1 1 auto;min-width:0;font-size:14.5px;line-height:1.2;}
-        .dh-board.slate .dh-tcat{order:3;flex:none;width:104px;margin-top:0;text-align:center;}
-        .dh-board.slate .dh-tcta{order:4;flex:none;width:120px;margin:0;text-align:center;}
-        .dh-board.slate .dh-tile:not(.done) .dh-tcta{display:none;}
-        .dh-board.slate .dh-tcorner{position:static;order:5;flex:none;width:62px;justify-content:flex-end;max-width:none;}
-        .dh-board.slate .dh-tmeta{order:6;flex:none;width:auto;flex-direction:row;align-items:center;justify-content:flex-end;gap:12px;margin-top:0;}
-        .dh-board.slate .dh-mrow{justify-content:flex-end;width:96px;}
-        .dh-board.slate .dh-mlead{width:132px;justify-content:flex-start;padding:0 !important;}
-        .dh-board.slate .dh-tfav{position:static;order:7;flex:none;}
-        .dh-board.slate .dh-tfill{border-radius:0;}
-        /* The row is already a wide target, so the small stats button sits at
-           the end rather than floating over the corner. */
-        .dh-board.slate .dh-tstats{position:static;order:8;flex:none;margin-left:2px;}
-        /* Phone: the play count keeps its column and the leader moves UP onto
-           the title's line (owner, 2026-08-03). The leader lives inside the meta
-           stack, so that stack goes display:contents and its two children become
-           direct row items, letting the leader sit straight after the name while
-           the score and the play count push to the right. No DOM change. */
+        .sl-head,.sl-row{display:grid;grid-template-columns:26px 42px minmax(0,1fr) 104px 58px 50px 116px 78px 104px;align-items:center;gap:9px;padding:6px 13px;}
+        .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
+        .sl-head .r,.sl-row .r{text-align:right;}
+        .sl-row{border-bottom:1px solid #f0f2f6;font-size:13px;}
+        .sl-row:hover{background:var(--surface);}
+        .sl-row.done{background:#f6fbf8;}
+        .sl-row.inprog{background:#fffaeb;}
+        .sl-row.open{background:var(--accent-soft);}
+        .sl-rk{font-size:11px;font-weight:800;color:#9aa2b1;font-variant-numeric:tabular-nums;text-align:right;}
+        .sl-ic{display:flex;align-items:center;justify-content:center;height:34px;background:var(--surface-alt);border-radius:8px;}
+        .sl-ic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
+        .sl-nm{min-width:0;text-decoration:none;color:var(--ink);display:block;}
+        .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .sl-nm .sl-sub{display:block;font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .sl-cm{display:none;}
+        .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
+        .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);}
+        .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;color:#a16207;display:flex;align-items:center;justify-content:flex-end;gap:2px;}
+        .sl-st.none{color:#c3c8d1;}
+        .sl-ld{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
+        .sl-ld svg{flex:none;color:var(--gold-ink);}
+        .sl-ld span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .sl-nl{color:#8a93a3;}
+        .sl-status{display:flex;justify-content:flex-end;}
+        .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
+        .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
+        .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
+        .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
+        .sl-arch{display:flex;justify-content:flex-end;}
+        .sl-ab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:7px;padding:5px 9px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
+        .sl-ab:hover{background:var(--accent-soft);}
+        .sl-ab.on{background:var(--blue);border-color:var(--blue);color:var(--white);}
+        .sl-ab svg{flex:none;transition:transform .15s;}
+        .sl-ab.on svg{transform:rotate(180deg);}
+        .sl-ring{width:19px;height:19px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;}
+        .sl-ring i{width:13px;height:13px;border-radius:50%;background:var(--white);display:block;}
+        .sl-ab.on .sl-ring i{background:var(--blue);}
+        .sl-drawer{border-bottom:1px solid var(--border);background:#fbfcfe;}
+        /* Phone: no rank column, the category rides beside the name unbolded,
+           the play count moves into the subtitle, and only the status button
+           keeps the right edge (owner, 2026-08-03). */
         @media(max-width:900px){
-          .dh-board.slate .dh-tcat,.dh-board.slate .dh-tcta{display:none;}
-          .dh-board.slate .dh-tile{padding:8px 12px 8px 14px;gap:8px;}
-          .dh-board.slate .dh-tmeta{display:contents;}
-          .dh-board.slate .dh-tnm{flex:0 1 auto;}
-          .dh-board.slate .dh-mlead{order:2;flex:0 1 auto;width:auto;max-width:38vw;justify-content:flex-start;padding:0 !important;font-size:10px;}
-          .dh-board.slate .dh-mrow{order:3;width:auto;margin-left:auto;}
-          .dh-board.slate .dh-tcorner{order:4;width:auto;justify-content:flex-end;}
-        }
-        /* Phone: the slate runs edge to edge. A table gains more from the
-           gutter than the gutter gains from framing it, so the console breaks
-           out of the page padding with the standard 100vw centring trick and
-           drops its side borders and corners. */
-        @media(max-width:900px){
-          .dhome.slate{width:100vw;margin-left:50%;transform:translateX(-50%);max-width:100vw;}
-          .dhome.slate .dh-sbar,.dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
-          .dh-board.slate .dh-tile{padding-left:12px;padding-right:12px;}
-          /* and the strip bar locks under the site header on the way down. It
-             reads --ml-headh, published by the homepage command bar. */
-          .dhome.slate .dh-sbar{position:sticky;top:var(--ml-headh,0px);z-index:20;background:var(--white);}
+          .sl-head{display:none;}
+          .sl-row{grid-template-columns:40px minmax(0,1fr) auto;gap:10px;padding:8px 12px;}
+          .sl-rk,.sl-cat,.sl-pl,.sl-st,.sl-ld,.sl-arch{display:none;}
+          .sl-nm b{display:inline;font-size:14.5px;}
+          .sl-cm{display:inline;font-weight:600;font-size:12px;margin-left:6px;}
+          .sl-btn{width:64px;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}
@@ -1151,6 +1212,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
+          {slate ? (
+            <div className="sl-head" aria-hidden="true">
+              <span className="r">#</span><span /><span>Game</span><span>Category</span>
+              <span className="r">Players</span><span className="r">Streak</span><span>Leader</span>
+              <span className="r">Status</span><span className="r">Archive &amp; stats</span>
+            </div>
+          ) : null}
           <div
             ref={boardRef}
             className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '')}
@@ -1161,7 +1229,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
-            {renderTiles(list, false)}
+            {slate ? renderSlate(list) : renderTiles(list, false)}
           </div>
         </div>
         {metrics && metrics.maxOffset > 0 && !selGame ? (
@@ -1198,7 +1266,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       {/* The panel is a child of .dhome, not of the board, so it covers the
           stats bar as well as the grid: one expanded console, one Play button
           (owner, 2026-07-29). */}
-      {selGame ? renderPanel(selGame) : null}
+      {selGame && !slate ? renderPanel(selGame) : null}
     </div>
   );
 }
