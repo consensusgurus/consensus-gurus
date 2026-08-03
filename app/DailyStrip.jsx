@@ -646,7 +646,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   });
 
   return (
-    <div className={'dhome' + (selGame ? ' open' : '')}>
+    <div className={'dhome' + (selGame ? ' open' : '') + (slate ? ' slate' : '')}>
       <style>{`
         .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
@@ -912,6 +912,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dh-board.slate .dh-mlead{order:2;flex:0 1 auto;width:auto;max-width:38vw;justify-content:flex-start;padding:0 !important;font-size:10px;}
           .dh-board.slate .dh-mrow{order:3;width:auto;margin-left:auto;}
           .dh-board.slate .dh-tcorner{order:4;width:auto;justify-content:flex-end;}
+        }
+        /* Phone: the slate runs edge to edge. A table gains more from the
+           gutter than the gutter gains from framing it, so the console breaks
+           out of the page padding with the standard 100vw centring trick and
+           drops its side borders and corners. */
+        @media(max-width:900px){
+          .dhome.slate{width:100vw;margin-left:50%;transform:translateX(-50%);max-width:100vw;}
+          .dhome.slate .dh-sbar,.dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
+          .dh-board.slate .dh-tile{padding-left:12px;padding-right:12px;}
+          /* and the strip bar locks under the site header on the way down. It
+             reads --ml-headh, published by the homepage command bar. */
+          .dhome.slate .dh-sbar{position:sticky;top:var(--ml-headh,0px);z-index:20;background:var(--white);}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}

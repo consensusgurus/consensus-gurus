@@ -173,6 +173,22 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
   // shared with /quizzes and the daily pages, which keep the white bar until
   // the owner says otherwise. It is a separate branch rather than a restyle of
   // the bar below so none of that bar's tuned breakpoints move.
+  // Anything that wants to lock UNDER this bar needs its height, and the bar is
+  // two rows whose height moves with the breakpoint, so it publishes it as a
+  // custom property rather than every consumer hardcoding a guess.
+  useEffect(() => {
+    if (variant !== 'home' || typeof document === 'undefined') return undefined;
+    const el = document.querySelector('.qchm');
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const set = () => {
+      document.documentElement.style.setProperty('--ml-headh', `${Math.round(el.getBoundingClientRect().height)}px`);
+    };
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => { ro.disconnect(); document.documentElement.style.removeProperty('--ml-headh'); };
+  }, [variant, found]);
+
   if (variant === 'home') {
     const stat = (label, value, sub, subCls) => (
       <div className="qchm-cell">
