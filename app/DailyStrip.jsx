@@ -653,7 +653,12 @@ export default function DailyStrip({ board = null }) {
            left, Easiest leaderboard (fewest players today) on the right. Both
            halves are flex:1 1 0 so they hold exactly 50% each at every width,
            desktop and phone alike, rather than one growing to fit its text. */
-        .dh-cell{display:flex;align-items:center;gap:12px;flex:1 1 0;min-width:0;}
+        /* flex-basis 50%, not 0: with a 0 basis the right half's 14px padding
+           and 1.5px divider are added OUTSIDE the equal share, so it came out
+           ~15px wider than the left. A percentage basis is a border-box
+           measurement, so the two halves come out exactly equal (each
+           shrinking by half the gap), which is what the owner asked for. */
+        .dh-cell{display:flex;align-items:center;gap:12px;flex:1 1 50%;min-width:0;box-sizing:border-box;}
         .dh-cell + .dh-cell{padding-left:14px;border-left:1.5px solid var(--border);}
         .dh-cell .dh-play{flex:0 0 auto;margin-left:auto;min-width:92px;font-size:13.5px;padding:11px 18px;}
         .dh-cell>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
