@@ -38,15 +38,16 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { solve, applyOp, scoreFor } from './solver';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa', paper: '#eceef1', ink: '#1c1e24', ember: '#0e1d40',
-  rust: '#c0392b', faded: '#262b35',
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, faded: T.muted,
   accent: '#b45309',        // Crunch identity — chalk-on-slate amber
-  accentSoft: '#fdf3e3', green: '#15803d',
+  accentSoft: '#fdf3e3', green: T.successDeep,
 };
 const TILE_FACE = '#f6efdd';   // the physical tile
-const TILE_EDGE = '#1c1e24';
+const TILE_EDGE = T.ink;
 const TILE_MADE = '#efe4c8';   // a tile you made rather than were dealt
 const SLATE = '#22262e';       // the target board
 
@@ -537,20 +538,20 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
         : 'Now tap the second number.';
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="cr-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cr-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .cr-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .cr-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cr-btn:hover{background:${COLORS.paper};}
-          .cr-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .cr-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .cr-rack{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:76px;touch-action:manipulation;}
           .cr-tile{width:76px;height:76px;border-radius:10px;border:2px solid ${TILE_EDGE};background:${TILE_FACE};color:${COLORS.ink};font-family:${MONO};font-weight:500;font-size:27px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 -4px 0 rgba(28,30,36,0.13), 0 2px 0 rgba(28,30,36,0.22);transition:transform .12s ease;}
           .cr-tile:active{transform:translateY(1px);}
           .cr-tile.on{background:${COLORS.accentSoft};outline:3px solid ${COLORS.accent};outline-offset:2px;}
-          .cr-op{width:56px;height:52px;border-radius:9px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};font-family:${MONO};font-size:22px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-          .cr-op.on{background:${COLORS.ink};color:#fff;}
+          .cr-op{width:56px;height:52px;border-radius:9px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};font-family:${MONO};font-size:22px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+          .cr-op.on{background:${COLORS.ink};color:var(--white);}
           .cr-op:disabled{opacity:0.35;cursor:default;}
           .cr-rack.shake{animation:crshake .34s ease;}
           @keyframes crshake{0%,100%{transform:translateX(0);}22%{transform:translateX(-6px);}55%{transform:translateX(6px);}80%{transform:translateX(-3px);}}
@@ -563,9 +564,9 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
         <DailyMasthead
           slug="crunch" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Needs {need}</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Needs {need}</span>}
           blocks={'CRUNCH'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 5 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
 
@@ -578,7 +579,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="cr-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="cr-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -589,7 +590,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>steps <b style={{ color: COLORS.ink, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
@@ -599,7 +600,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           {/* the target board */}
           <div style={{ background: SLATE, borderRadius: 10, padding: '12px 14px 14px', textAlign: 'center', marginBottom: 14 }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.62)', fontWeight: 500 }}>Target</div>
-            <div style={{ fontFamily: MONO, fontSize: 52, lineHeight: 1.05, fontWeight: 500, color: '#fff', fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>{TARGET}</div>
+            <div style={{ fontFamily: MONO, fontSize: 52, lineHeight: 1.05, fontWeight: 500, color: T.white, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}>{TARGET}</div>
             <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', fontWeight: 500, marginTop: 2 }}>needs {need} of the six</div>
           </div>
 
@@ -670,7 +671,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           {playing && bestDiff != null && bestDiff > 0 && (
             <div style={{ textAlign: 'center', marginTop: 10 }}>
               <button className="cr-tool" onClick={() => { if (armLock) { setArmLock(false); lockIn(); } else { setArmLock(true); } }}
-                style={{ background: armLock ? COLORS.ink : '#fff', color: armLock ? '#fff' : COLORS.ink, borderColor: COLORS.ink }}>
+                style={{ background: armLock ? COLORS.ink : T.white, color: armLock ? T.white : COLORS.ink, borderColor: COLORS.ink }}>
                 {armLock
                   ? `Tap again to end the board at ${scoreFor(bestDiff)}/10`
                   : `Lock in my closest, ${bestDiff} off · ${scoreFor(bestDiff)}/10`}
@@ -753,14 +754,14 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
             boardSlot={<DailyBoardPanel self="crunch" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Crunch to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -771,7 +772,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
               ) : (
                 <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s board, every day.</p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -798,7 +799,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
       )}
 
       {showHelp && (
@@ -810,7 +811,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="cr-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="cr-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

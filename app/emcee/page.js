@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import EmceeClient from './EmceeClient';
 import { PUZZLES } from './puzzles';
+import { T } from '@/lib/theme';
 
 // Emcee launched 2026-07-16 as the eleventh daily (slotted right after Crux):
 // linked from the daily strip, the footer, the /daily archive, and the sitemap
@@ -77,15 +78,15 @@ function ComingSoon({ first }) {
   // Rendered only if no puzzle is live yet (before the first drop). Never crash
   // the route on an empty visible set — show a friendly placeholder instead.
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: T.surface, fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 18 }}>
           {'EMCEE'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 26, background: i === 1 || i === 2 ? '#c026d3' : '#1c1e24', color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 26, background: i === 1 || i === 2 ? '#c026d3' : T.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Emcee launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Emcee launches {first ? first.dateLabel : 'soon'}.</h1>
+        <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily mini crossword — everyday words, fair clues, a minute or two. Come back when the first grid drops.
         </p>
         <a href="/daily" style={{ color: '#c026d3', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

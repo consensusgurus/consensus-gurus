@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import PingClient from './PingClient';
 import { PUZZLES } from './puzzles';
+import { T } from '@/lib/theme';
 
 // Ping launched 2026-07-18 as the seventeenth daily: linked from the daily
 // strip, the /daily archive, and the sitemap (/ping is the canonical, evergreen
@@ -79,15 +80,15 @@ function ComingSoon({ first }) {
   // Rendered only before the first drop. Never crash the route on an empty
   // visible set — show a friendly placeholder instead.
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: T.surface, fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 18 }}>
           {'PING'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 26, background: i === 3 ? '#0284c7' : '#1c1e24', color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 26, background: i === 3 ? '#0284c7' : T.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Ping launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Ping launches {first ? first.dateLabel : 'soon'}.</h1>
+        <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily city hunt: one secret city, no clues, homing in by distance alone. Come back when the first city drops.
         </p>
         <a href="/daily" style={{ color: '#0284c7', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

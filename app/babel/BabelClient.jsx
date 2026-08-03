@@ -44,17 +44,18 @@ import {
   SIZE, PREMIUM, PTS, BAG, buildLexicon, rowsToBoard, boardToRows,
   applyMove, validatePlacement, bestReply, rackSum, BAG_SIZE,
 } from '@/lib/babel-engine';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
   accent: '#14532d',        // Babel identity — board-felt green
   accentSoft: '#e3efe6',
-  green: '#15803d',
+  green: T.successDeep,
   tile: '#f7edda',
   foe: '#7c2d12',
 };
@@ -65,9 +66,9 @@ const STATS_KEY = 'sot_babel_stats';
 
 // Premium square palette, in the order a tile player expects to read them.
 const PREM = {
-  T: { bg: '#e2725b', fg: '#ffffff', label: '3W' },
+  T: { bg: '#e2725b', fg: T.white, label: '3W' },
   D: { bg: '#f0b5ac', fg: '#7a2e20', label: '2W' },
-  t: { bg: '#4a90d9', fg: '#ffffff', label: '3L' },
+  t: { bg: '#4a90d9', fg: T.white, label: '3L' },
   d: { bg: '#b3d4ea', fg: '#1f4e6b', label: '2L' },
   '*': { bg: '#f0b5ac', fg: '#7a2e20', label: '★' },
 };
@@ -620,9 +621,9 @@ export default function BabelClient({ puzzles, forceNum }) {
       <Grain />
       <div style={{ position: 'relative', zIndex: 2, padding: '18px 16px 0' }}>
         <style>{`
-          .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${COLORS.ink};background:#fff;border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${COLORS.ink};background:var(--white);border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sc-btn:hover{background:${COLORS.paper};}
-          .sc-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
+          .sc-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sc-btn.primary:hover{background:#0f3d21;}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
           .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:#0d3b20;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
@@ -644,7 +645,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-tile.used{opacity:0.25;box-shadow:none;}
           .sc-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:2px;}
           .sc-bag{display:flex;flex-wrap:wrap;gap:3px;}
-          .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:#fff;border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 5px;color:${COLORS.faded};}
+          .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 5px;color:${COLORS.faded};}
           .sc-bag span b{color:${COLORS.ink};font-weight:800;margin-right:2px;}
           .sc-log{font-family:${MONO};font-size:11.5px;font-weight:500;line-height:1.75;}
         `}</style>
@@ -661,9 +662,9 @@ export default function BabelClient({ puzzles, forceNum }) {
           blockGap={5}
           helpTop={10}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; six tiles</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; six tiles</span>}
           blocks={'BABEL'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
 
@@ -676,7 +677,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>
+              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>
                 {ready ? 'Start' : dictErr ? 'Dictionary failed to load' : 'Loading the dictionary…'}
               </button>
               <div style={{ marginTop: 10 }}>
@@ -805,7 +806,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         {!playing && (
           <>
             <div style={{ maxWidth: 480, margin: '16px 0 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {won ? `Par was ${signed(PAR)}. You matched the book line.` : `Par was ${signed(PAR)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}
@@ -855,14 +856,14 @@ export default function BabelClient({ puzzles, forceNum }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Babel to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -875,7 +876,7 @@ export default function BabelClient({ puzzles, forceNum }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>).
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -904,7 +905,7 @@ export default function BabelClient({ puzzles, forceNum }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -918,7 +919,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="sc-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="sc-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

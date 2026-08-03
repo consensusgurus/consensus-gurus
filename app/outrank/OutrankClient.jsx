@@ -34,18 +34,19 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
   accent: '#4338ca',       // Outrank identity — indigo podium
   accentSoft: '#eef0fb',
-  gold: '#e8b43a',
-  green: '#15803d',
+  gold: T.gold,
+  green: T.successDeep,
   greenSoft: '#eefaf1',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -120,7 +121,7 @@ function OutrankLiveBoard({ board, total }) {
   const top = Array.isArray(board.top) ? board.top : [];
   const youShown = top.some((r) => r.you);
   return (
-    <div style={{ maxWidth: 472, margin: '0 auto 12px', background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px' }}>
+    <div style={{ maxWidth: 472, margin: '0 auto 12px', background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
         <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>Live standings</span>
         <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
@@ -564,7 +565,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   }
 
   const ptsChip = (pts) => (
-    <span style={{ flex: '0 0 auto', fontFamily: SANS, fontSize: 12, fontWeight: 800, borderRadius: 6, padding: '3px 9px', color: pts === 2 ? '#fff' : pts === 1 ? '#7c5a08' : COLORS.faded, background: pts === 2 ? COLORS.green : pts === 1 ? '#fdf0cd' : COLORS.paper }}>
+    <span style={{ flex: '0 0 auto', fontFamily: SANS, fontSize: 12, fontWeight: 800, borderRadius: 6, padding: '3px 9px', color: pts === 2 ? T.white : pts === 1 ? '#7c5a08' : COLORS.faded, background: pts === 2 ? COLORS.green : pts === 1 ? '#fdf0cd' : COLORS.paper }}>
       +{pts}
     </span>
   );
@@ -574,7 +575,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
     const rows = result.reveal || [];
     const maxV = Math.max(1, ...rows.map((r) => r.votes));
     return (
-      <div style={{ background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
+      <div style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 9 }}>
           <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>The crowd&rsquo;s order</span>
           <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(result.poolSize)} votes in</span>
@@ -621,18 +622,18 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="ork-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ork-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .ork-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ork-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ork-btn:hover{background:${COLORS.paper};}
-          .ork-item{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:#fff;color:${COLORS.ink};border-radius:9px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+          .ork-item{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${COLORS.ink};border-radius:9px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
           .ork-item:hover{border-color:${COLORS.accent};}
-          .ork-item-on{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
-          .ork-slot{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
-          .ork-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:#fff;border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
+          .ork-item-on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
+          .ork-slot{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .ork-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .ork-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
           .ork-face:disabled{opacity:.55;cursor:default;}
           .ork-face .ork-gold{color:${COLORS.gold};}
@@ -653,9 +654,9 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Seven items</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Seven items</span>}
           blocks={'OUTRANK'.split('').map((ch, i) => (
-              <div key={i} className="ork-mh-tile" style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i >= 3 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} className="ork-mh-tile" style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i >= 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
 
@@ -670,7 +671,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="ork-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="ork-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -695,10 +696,10 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           {playing ? (
             <>
               {/* step 1 — your vote */}
-              <div style={{ background: '#fff', border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
+              <div style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>1 &middot; Your vote</span>
-                  {g.fav != null && <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke="#15803d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>}
+                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>1 &middot; Your vote</span>
+                  {g.fav != null && <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>}
                 </div>
                 <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
                   Tap your honest favorite. Your vote helps build the crowd&rsquo;s real order.
@@ -713,9 +714,9 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
               </div>
 
               {/* step 2 — call the crowd */}
-              <div style={{ background: '#fff', border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
+              <div style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>2 &middot; Call the crowd</span>
+                  <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>2 &middot; Call the crowd</span>
                   <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded }}>placed {g.order.length}/{K}</span>
                 </div>
                 <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
@@ -759,7 +760,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
         {!playing && result && (
           <>
             <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {sharp ? 'You outranked the crowd.' : score >= TOTAL / 2 ? 'You read the room respectably.' : 'The crowd surprised you today.'}
@@ -811,14 +812,14 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Outrank to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -831,7 +832,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s crowd, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -866,7 +867,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -881,7 +882,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="ork-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="ork-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

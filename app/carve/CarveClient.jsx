@@ -33,17 +33,18 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
   accent: '#7c3aed',       // Carve identity — plum
   accentSoft: '#f5f0ff',
-  green: '#15803d',
+  green: T.successDeep,
   greenSoft: '#eefaf1',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -59,12 +60,12 @@ const REGION_HUES = [
   { soft: '#ede4ff', mid: '#d9c8fb', line: '#7c3aed' }, // plum
   { soft: '#dcefff', mid: '#bcdcfa', line: '#0a1730' }, // sky
   { soft: '#ffefd6', mid: '#fcd9a4', line: '#c2700a' }, // amber
-  { soft: '#ddf5e5', mid: '#b6e6c6', line: '#15803d' }, // green
+  { soft: '#ddf5e5', mid: '#b6e6c6', line: T.successDeep }, // green
   { soft: '#ffe3e0', mid: '#fac1bb', line: '#cc3527' }, // coral
   { soft: '#fde4f1', mid: '#f8c1dd', line: '#c02572' }, // pink
   { soft: '#e2f3f5', mid: '#bde3e8', line: '#0e7490' }, // teal
   { soft: '#f0ecd9', mid: '#e0d7ae', line: '#8a6d1a' }, // gold
-  { soft: '#e8e9ef', mid: '#cfd2de', line: '#262b35' }, // slate
+  { soft: '#e8e9ef', mid: '#cfd2de', line: T.muted }, // slate
 ];
 
 const isIosDevice = () =>
@@ -600,7 +601,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     const reg = assign[idx];
     const hue = reg >= 0 ? REGION_HUES[reg % REGION_HUES.length] : null;
     const isLocked = reg >= 0 && locked.includes(reg);
-    let bg = '#fff';
+    let bg = T.white;
     if (hue) bg = isLocked ? hue.mid : hue.soft;
     const edge = (j) => {
       if (j < 0) return true;
@@ -631,12 +632,12 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="cv-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cv-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .cv-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .cv-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cv-btn:hover{background:${COLORS.paper};}
           @keyframes cvfade{from{opacity:0;}}
           @keyframes cvstamp{from{opacity:0;transform:scale(.94);}}
@@ -647,11 +648,11 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
           .cv-cell.cv-wrongflash{background:#fdecec !important;animation:cvshake .32s ease;}
           .cv-cell.cv-bounce{animation:cvbounce .3s ease;}
           .cv-seed-ring{position:absolute;inset:14%;border-radius:99px;pointer-events:none;}
-          .cv-chip{position:relative;border:none;border-radius:9px;cursor:pointer;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:${MONO};background:#fff;box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);min-width:0;}
+          .cv-chip{position:relative;border:none;border-radius:9px;cursor:pointer;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:${MONO};background:var(--white);box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);min-width:0;}
           .cv-chip:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.35);}
           .cv-chip.on{border-width:2.5px;}
           .cv-chip.done{opacity:.55;box-shadow:none;cursor:default;}
-          .cv-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .cv-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -669,9 +670,9 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Big Board</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Big Board</span>}
           blocks={'CARVE'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 3 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
 
@@ -686,7 +687,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="cv-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="cv-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -698,7 +699,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>every block <b style={{ color: COLORS.accent, fontWeight: 500 }}>= {TARGET}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
@@ -735,7 +736,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                   return (
                     <button key={k} className={`cv-chip${on ? ' on' : ''}${done ? ' done' : ''}`} onClick={() => { if (!done) setCur(k); }}
                       aria-label={`carve block ${k + 1}`}
-                      style={{ borderColor: on ? hue.line : undefined, background: done ? hue.mid : (on ? hue.soft : '#fff') }}>
+                      style={{ borderColor: on ? hue.line : undefined, background: done ? hue.mid : (on ? hue.soft : T.white) }}>
                       <span style={{ width: 14, height: 14, borderRadius: 99, background: hue.line, display: 'inline-block' }} />
                       <span style={{ fontSize: 10.5, fontWeight: 500, color: done ? COLORS.faded : COLORS.ink, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                         {done ? '✓' : `${sums[k]}/${TARGET}`}
@@ -820,14 +821,14 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Carve to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -840,7 +841,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s board, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -877,7 +878,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -892,7 +893,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="cv-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="cv-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

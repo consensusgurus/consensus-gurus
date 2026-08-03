@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import ParkerClient from './ParkerClient';
 import { PUZZLES } from './puzzles';
+import { T } from '@/lib/theme';
 
 // Parker launched 2026-07-30 as the 34th daily (as "Park", briefly "Parker",
 // settled as "Parker" on 2026-07-31, with /park and /parker both 308ing here). It is linked from the hub puzzles row, the footer,
@@ -55,15 +56,15 @@ function etTodayServer() {
 
 function ComingSoon({ first }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: T.surface, fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 18 }}>
           {'PARKER'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 23, background: i === 5 ? '#7c5c2e' : '#1c1e24', color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 23, background: i === 5 ? '#7c5c2e' : T.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Parker launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Parker launches {first ? first.dateLabel : 'soon'}.</h1>
+        <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily sliding-block jam. You are in the red one, everybody has blocked you in, and there is one gap in the wall. Come back when the first board drops.
         </p>
         <a href="/daily" style={{ color: '#7c5c2e', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

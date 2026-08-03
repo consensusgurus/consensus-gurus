@@ -20,19 +20,20 @@ import React, { useState, useEffect, useMemo } from 'react';
 import useDailyOrder, { sortByDailyOrder } from '../useDailyOrder';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { postView } from '@/lib/api';
+import { T } from '@/lib/theme';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const INK = '#1c1e24';
-const FADED = '#262b35';
-const MUTED = '#46506a';
-const BG = '#f7f8fa';
+const INK = T.ink;
+const FADED = T.muted;
+const MUTED = T.slate;
+const BG = T.surface;
 const LINE = '#e7eaf1';
-const NAVY = '#0e1d40';
-const GOLD = '#e8b43a';
+const NAVY = T.accent;
+const GOLD = T.gold;
 const GOLD_B = '#b26b00';
 const GREEN = '#16a34a';
-const BLUE = '#2563eb';
+const BLUE = T.blue;
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -336,7 +337,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-kick{font-family:${MONO};font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};font-weight:500;}
         .dl-h1{margin:8px 0 7px;font-size:34px;font-weight:800;letter-spacing:-0.9px;color:${INK};line-height:1.0;}
         .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:620px;}
-        .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:center;background:#fff;color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
+        .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:center;background:var(--white);color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
         .dl-day-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
         .dl-day-idrow{display:flex;align-items:baseline;gap:8px;min-width:0;}
         .dl-day-name{font-size:14px;font-weight:800;letter-spacing:-.2px;color:${INK};line-height:1.1;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -362,11 +363,11 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-sec-h span{font-family:${MONO};font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};}
 
         .dl-rail{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;}
-        .dl-railcard{flex:0 0 auto;display:flex;align-items:center;gap:11px;border:1px solid ${LINE};border-radius:13px;background:#fff;padding:10px 15px 10px 11px;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
+        .dl-railcard{flex:0 0 auto;display:flex;align-items:center;gap:11px;border:1px solid ${LINE};border-radius:13px;background:var(--white);padding:10px 15px 10px 11px;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
         .dl-railcard:hover{border-color:#cdd6e6;box-shadow:0 4px 14px rgba(14,29,64,0.07);}
-        .dl-alldone{border:1px dashed #cfd6e2;border-radius:13px;background:#fff;padding:15px 18px;font-size:13.5px;font-weight:600;color:${MUTED};}
+        .dl-alldone{border:1px dashed #cfd6e2;border-radius:13px;background:var(--white);padding:15px 18px;font-size:13.5px;font-weight:600;color:${MUTED};}
         .dl-alldone b{color:${GREEN};}
-        .dl-stp{background:#fff;border:1px solid ${LINE};border-radius:16px;padding:15px 18px;margin-top:16px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:center;}
+        .dl-stp{background:var(--white);border:1px solid ${LINE};border-radius:16px;padding:15px 18px;margin-top:16px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:center;}
         .dl-stp-l{border-right:1px solid #eef1f7;padding-right:18px;}
         .dl-stp-l h2{margin:0 0 11px;font-size:15px;font-weight:800;letter-spacing:-.3px;color:${INK};}
         .dl-stp-count{font-family:${MONO};font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:${INK};margin-top:8px;}
@@ -380,14 +381,14 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cards{display:flex;flex-direction:column;gap:10px;}
 
         /* compact game ROW (owner rework 2026-07-23) */
-        .dl-row{border:1px solid ${LINE};border-radius:14px;background:#fff;transition:border-color .15s,box-shadow .15s;}
+        .dl-row{border:1px solid ${LINE};border-radius:14px;background:var(--white);transition:border-color .15s,box-shadow .15s;}
         .dl-row:hover{box-shadow:0 3px 12px rgba(14,29,64,0.06);}
         .dl-row.open{border-color:#c9d3e5;box-shadow:0 8px 26px rgba(14,29,64,0.09);}
         .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px auto auto;gap:16px;align-items:center;padding:13px 16px;cursor:pointer;}
         .dl-rid{display:flex;align-items:center;gap:12px;min-width:0;}
         .dl-ridtext{flex:1 1 auto;min-width:0;}
         .dl-rid .dl-rid-play{flex:0 0 auto;width:132px;box-sizing:border-box;text-align:center;}
-        .dl-stbtn{justify-self:start;width:132px;box-sizing:border-box;justify-content:center;display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-weight:800;font-size:12.5px;color:${MUTED};background:#fff;border:1px solid ${LINE};border-radius:10px;padding:9px 13px;white-space:nowrap;}
+        .dl-stbtn{justify-self:start;width:132px;box-sizing:border-box;justify-content:center;display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-weight:800;font-size:12.5px;color:${MUTED};background:var(--white);border:1px solid ${LINE};border-radius:10px;padding:9px 13px;white-space:nowrap;}
         .dl-stbtn .cx{font-size:10px;color:${MUTED};transition:transform .15s ease;}
         .dl-stbtn.on{border-color:${BLUE};color:${BLUE};}
         .dl-stbtn.on .cx{transform:rotate(180deg);color:${BLUE};}
@@ -444,11 +445,11 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         /* archive calendar (matches game-page / end-card calendar) */
         .dl-cal{border:none;border-radius:0;padding:0;background:transparent;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dl-cal-fadewrap{flex:1 1 0;min-height:0;overflow:hidden;position:relative;margin-top:2px;}
-        .dl-cal-fadewrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:52px;background:linear-gradient(rgba(255,255,255,0),#fff);pointer-events:none;}
+        .dl-cal-fadewrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:52px;background:linear-gradient(rgba(255,255,255,0),var(--white));pointer-events:none;}
         .dl-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
         .dl-cal-mo{font-size:14px;font-weight:800;color:${INK};}
         .dl-cal-nav{display:flex;gap:6px;}
-        .dl-cal-nav button{width:28px;height:28px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${LINE};background:#fff;color:${MUTED};cursor:pointer;}
+        .dl-cal-nav button{width:28px;height:28px;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${LINE};background:var(--white);color:${MUTED};cursor:pointer;}
         .dl-cal-nav button:disabled{opacity:.4;cursor:default;}
         .dl-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
         .dl-cal-wd{font-family:${MONO};font-size:9.5px;color:${FADED};text-align:center;padding-bottom:2px;}
@@ -456,16 +457,16 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cal-cell.empty{background:transparent;}
         .dl-cal-cell.none{color:#c9cdd6;}
         a.dl-cal-cell{text-decoration:none;}
-        a.dl-cal-cell.played{background:#e8f5ec;color:#15803d;border:1px solid #bfe3ca;}
-        a.dl-cal-cell.unplayed{background:#fff;color:${MUTED};border:1px solid ${LINE};}
+        a.dl-cal-cell.played{background:#e8f5ec;color:var(--success-deep);border:1px solid #bfe3ca;}
+        a.dl-cal-cell.unplayed{background:var(--white);color:${MUTED};border:1px solid ${LINE};}
         a.dl-cal-cell.unplayed:hover{border-color:${BLUE};color:${BLUE};}
         a.dl-cal-cell.today{box-shadow:0 0 0 2px ${BLUE};}
         .dl-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}
         .dl-cal-key span{display:inline-flex;align-items:center;gap:5px;}
         .dl-cal-key .sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
         .dl-cal-header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:13px;}
-        .dl-cal-header .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#262b35;font-weight:700;}
-        .dl-cal-header .s{font-size:11px;letter-spacing:.04em;color:#262b35;font-weight:600;white-space:nowrap;}
+        .dl-cal-header .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+        .dl-cal-header .s{font-size:11px;letter-spacing:.04em;color:var(--muted);font-weight:600;white-space:nowrap;}
         .dl-cal-mo2{font-size:12px;font-weight:800;color:${MUTED};margin:14px 0 8px;}
         .dl-cal-month.faded{opacity:.42;pointer-events:none;}
         .dl-cal-wd.sun{color:#b45309;font-weight:700;}
@@ -473,7 +474,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         a.dl-cal-cell.unplayed.sun{background:#fdf3e0;border-color:rgba(180,83,9,0.28);color:#9a6a12;}
         a.dl-cal-cell.played.sun{box-shadow:0 0 0 1.5px rgba(180,83,9,0.42);}
 
-        .dl-card{border:1px solid ${LINE};border-radius:16px;background:#fff;transition:border-color .15s,box-shadow .15s;}
+        .dl-card{border:1px solid ${LINE};border-radius:16px;background:var(--white);transition:border-color .15s,box-shadow .15s;}
         .dl-card:hover{box-shadow:0 4px 16px rgba(14,29,64,0.06);}
         .dl-card.open{border-color:#c9d3e5;box-shadow:0 10px 30px rgba(14,29,64,0.10);}
         .dl-chead{display:flex;align-items:center;gap:14px;padding:16px 18px 0;}
@@ -504,9 +505,9 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
 
         .dl-actions{display:flex;gap:8px;margin-top:15px;flex-wrap:wrap;}
         .dl-btn{flex:1 1 auto;text-align:center;font-family:${SANS};font-weight:700;font-size:12.5px;border-radius:10px;padding:10px 12px;cursor:pointer;text-decoration:none;transition:all .13s;white-space:nowrap;}
-        .dl-play{flex:1.35 1 auto;color:#1c1e24;font-weight:800;border:1px solid transparent;}
+        .dl-play{flex:1.35 1 auto;color:var(--ink);font-weight:800;border:1px solid transparent;}
         .dl-play:hover{filter:brightness(1.06);}
-        .dl-ghost{color:${MUTED};background:#fff;border:1px solid ${LINE};}
+        .dl-ghost{color:${MUTED};background:var(--white);border:1px solid ${LINE};}
         .dl-ghost:hover{border-color:#c9d3e5;color:${INK};}
         .dl-ghost.on{background:#eef1f7;border-color:#c9d3e5;color:${INK};}
         .dl-ghost .cnt{color:#9aa3b5;font-weight:500;}
@@ -516,37 +517,37 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-archpanel{background:${BG};border:1px solid ${LINE};border-radius:12px;padding:13px 14px;}
         .dl-archpanel .lab{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${FADED};margin-bottom:9px;}
         .dl-chips{display:flex;gap:7px;flex-wrap:wrap;}
-        .dl-chip{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-weight:600;font-size:12px;text-decoration:none;border-radius:8px;padding:6px 10px;border:1px solid ${LINE};color:${MUTED};background:#fff;}
+        .dl-chip{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-weight:600;font-size:12px;text-decoration:none;border-radius:8px;padding:6px 10px;border:1px solid ${LINE};color:${MUTED};background:var(--white);}
         .dl-chip:hover{border-color:#c9d3e5;color:${INK};}
         .dl-tick{font-size:11px;font-weight:900;line-height:1;}
-        .dl-today-tag{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:4px;padding:1px 5px;color:#1c1e24;}
+        .dl-today-tag{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;border-radius:4px;padding:1px 5px;color:var(--ink);}
         .dl-morechip{border-style:dashed;color:${FADED};font-family:${MONO};font-size:11px;cursor:pointer;}
 
         /* leaderboard panel (matches DailyCombinedLeaderboard navy/gold) */
-        .lb{background:#ffffff;border:1.5px solid #c3ccda;;border:1px solid rgba(232,180,58,0.26);border-radius:12px;padding:14px 15px 12px;}
+        .lb{background:var(--white);border:1.5px solid var(--border);;border:1px solid rgba(232,180,58,0.26);border-radius:12px;padding:14px 15px 12px;}
         .lb-tabs{display:flex;gap:6px;margin-bottom:12px;}
-        .lb-tab{font-family:${SANS};font-size:11.5px;font-weight:800;padding:6px 13px;border-radius:999px;cursor:pointer;border:1.5px solid #eef1f5;background:transparent;color:#262b35;}
+        .lb-tab{font-family:${SANS};font-size:11.5px;font-weight:800;padding:6px 13px;border-radius:999px;cursor:pointer;border:1.5px solid var(--surface-alt);background:transparent;color:var(--muted);}
         .lb-tab.on{background:${GOLD};color:#10203f;border-color:${GOLD};}
         .lb-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;}
         .lb-h a{font-size:12px;font-weight:800;text-decoration:none;}
-        .lb-h .plays{font-size:11px;color:#262b35;font-weight:500;white-space:nowrap;}
-        .lb-cols{display:grid;gap:8px;padding:0 12px 7px;font-family:${SANS};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#262b35;}
-        .lb-row{display:grid;gap:8px;align-items:center;padding:8px 12px;margin-bottom:5px;border-radius:10px;background:#f7f8fa;border:1px solid #f7f8fa;}
+        .lb-h .plays{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;}
+        .lb-cols{display:grid;gap:8px;padding:0 12px 7px;font-family:${SANS};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+        .lb-row{display:grid;gap:8px;align-items:center;padding:8px 12px;margin-bottom:5px;border-radius:10px;background:var(--surface);border:1px solid var(--surface);}
         .lb-row.top{background:rgba(232,180,58,0.08);border-color:rgba(232,180,58,0.22);}
         .lb-row.you{background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.55);}
         .lb-r{text-align:right;}
-        .lb-rk{font-family:${SANS};font-weight:800;font-size:15px;color:#262b35;font-variant-numeric:tabular-nums;}
+        .lb-rk{font-family:${SANS};font-weight:800;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums;}
         .lb-rk.gold{color:${GOLD_B};}
-        .lb-nm{min-width:0;font-family:${SANS};font-size:14px;font-weight:500;color:#1c1e24;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .lb-nm{min-width:0;font-family:${SANS};font-size:14px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .lb-nm a{color:inherit;text-decoration:none;border-bottom:1px dotted rgba(147,167,204,0.5);}
         .lb-nm .you{color:${GOLD};font-weight:700;}
-        .lb-num{font-family:${SANS};font-size:12.5px;font-weight:600;text-align:right;color:#262b35;font-variant-numeric:tabular-nums;}
+        .lb-num{font-family:${SANS};font-size:12.5px;font-weight:600;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;}
         .lb-pt{font-family:${SANS};font-size:13.5px;font-weight:800;text-align:right;color:${GOLD_B};font-variant-numeric:tabular-nums;}
-        .lb-pt small{font-size:9.5px;font-weight:600;color:#262b35;}
+        .lb-pt small{font-size:9.5px;font-weight:600;color:var(--muted);}
         .lb-more{width:100%;margin-top:4px;padding:8px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12px;font-weight:800;color:${GOLD_B};background:transparent;border:1.5px solid rgba(232,180,58,0.4);}
-        .lb-sep{margin-top:7px;padding-top:8px;border-top:1px dashed #eef1f5;}
-        .lb-note{font-size:10.5px;color:#262b35;margin:9px 2px 0;line-height:1.5;}
-        .lb-empty{font-family:${SANS};font-style:italic;font-size:14px;color:#262b35;padding:4px 2px;}
+        .lb-sep{margin-top:7px;padding-top:8px;border-top:1px dashed var(--surface-alt);}
+        .lb-note{font-size:10.5px;color:var(--muted);margin:9px 2px 0;line-height:1.5;}
+        .lb-empty{font-family:${SANS};font-style:italic;font-size:14px;color:var(--muted);padding:4px 2px;}
         .lb-g5{grid-template-columns:34px 1fr 48px 52px 54px;}
         .lb-g3{grid-template-columns:34px 1fr 62px;}
         @media(max-width:440px){.lb-g5{grid-template-columns:30px 1fr 44px 50px;}.lb-time{display:none;}}
@@ -554,12 +555,12 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         /* your-day extras: rival line + next-game CTA */
         .dl-rival{display:flex;align-items:center;gap:9px;background:${BG};border-left:3px solid ${GOLD};border-radius:0 9px 9px 0;padding:8px 11px;font-size:12.5px;font-weight:500;color:${MUTED};}
         .dl-rival b{color:${INK};font-weight:700;}
-        .dl-rival .av{width:22px;height:22px;border-radius:50%;background:${GOLD};color:#0e1d40;display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex:0 0 auto;}
+        .dl-rival .av{width:22px;height:22px;border-radius:50%;background:${GOLD};color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex:0 0 auto;}
         .dl-cta{display:block;text-align:center;background:${GOLD};color:#10203f;font-weight:800;font-size:13px;border-radius:10px;padding:11px 14px;text-decoration:none;}
         .dl-cta:hover{filter:brightness(1.05);}
         .dl-cta.done{background:rgba(232,180,58,0.16);color:#8a6d1f;cursor:default;}
         .dl-cattiles{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px;}
-        .dl-cattile{display:inline-flex;align-items:center;gap:9px;text-decoration:none;background:#fff;border:1px solid ${LINE};border-radius:11px;padding:9px 13px;transition:border-color .15s,box-shadow .15s;}
+        .dl-cattile{display:inline-flex;align-items:center;gap:9px;text-decoration:none;background:var(--white);border:1px solid ${LINE};border-radius:11px;padding:9px 13px;transition:border-color .15s,box-shadow .15s;}
         .dl-cattile:hover{border-color:#c9d3e5;box-shadow:0 4px 14px rgba(14,29,64,0.07);}
         .dl-cattile .dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto;}
         .dl-cattile .lbl{font-size:13.5px;font-weight:800;letter-spacing:-.2px;color:${INK};}
@@ -567,7 +568,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cattile .jmp{color:#c2c8d2;font-size:12px;}
 
         /* live activity ticker */
-        .dl-ticker{overflow:hidden;background:#fff;border:1px solid ${LINE};border-left:4px solid ${GOLD};border-radius:10px;padding:7px 0;margin-top:16px;}
+        .dl-ticker{overflow:hidden;background:var(--white);border:1px solid ${LINE};border-left:4px solid ${GOLD};border-radius:10px;padding:7px 0;margin-top:16px;}
         .dl-tickrow{display:flex;gap:34px;white-space:nowrap;width:max-content;animation:dlTick 30s linear infinite;font-size:12.5px;font-weight:500;color:${MUTED};padding-left:18px;align-items:center;}
         .dl-tickrow b{color:${INK};font-weight:700;}
         .dl-tickrow .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px;}
@@ -575,10 +576,10 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         @media (prefers-reduced-motion: reduce){.dl-tickrow{animation:none;}}
 
         /* gauntlet meter */
-        .dl-gaunt{background:#fff;border:1px solid ${LINE};border-radius:16px;padding:15px 18px;margin-top:14px;}
+        .dl-gaunt{background:var(--white);border:1px solid ${LINE};border-radius:16px;padding:15px 18px;margin-top:14px;}
         .dl-gaunt-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
         .dl-gaunt-h h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.3px;color:${INK};}
-        .dl-gaunt-h .tease{font-size:11.5px;font-weight:800;color:#1c1e24;background:${NAVY};border-radius:999px;padding:4px 12px;}
+        .dl-gaunt-h .tease{font-size:11.5px;font-weight:800;color:var(--ink);background:${NAVY};border-radius:999px;padding:4px 12px;}
         .dl-segs{display:flex;gap:3px;margin-bottom:9px;}
         .dl-seg{flex:1 1 auto;height:13px;border-radius:3px;background:#eef1f7;}
         .dl-seg.on{background:${GOLD};}
@@ -920,8 +921,8 @@ function ArchiveCalendar({ g, played, today }) {
       </div>
       <div className="dl-cal-key">
         <span><span className="sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
-        <span><span className="sw" style={{ background: '#fff', border: `1px solid ${LINE}` }} />Unplayed</span>
-        <span><span className="sw" style={{ background: '#fff', boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
+        <span><span className="sw" style={{ background: T.white, border: `1px solid ${LINE}` }} />Unplayed</span>
+        <span><span className="sw" style={{ background: T.white, boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
         <span><span className="sw" style={{ background: '#fdf3e0', border: '1px solid rgba(180,83,9,0.3)' }} />Sunday (bigger)</span>
       </div>
     </div>
@@ -1066,7 +1067,7 @@ function OverallBoard({ overall, me, myKey, maxTotal, gameCount, full, setFull }
   return (
     <div>
       <div className="lb-h">
-        <span style={{ fontSize: 12, fontWeight: 800, color: '#e8b43a' }}>Overall standings</span>
+        <span style={{ fontSize: 12, fontWeight: 800, color: T.gold }}>Overall standings</span>
         <span className="plays">{gameCount ? `best ${Math.min(10, gameCount)} of ${gameCount}` : ''} · {maxTotal} max</span>
       </div>
       <div className="lb-cols lb-g3"><span>#</span><span>Player</span><span className="lb-r">Total</span></div>

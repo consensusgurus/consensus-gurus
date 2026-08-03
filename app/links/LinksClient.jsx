@@ -29,14 +29,15 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -494,22 +495,22 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}><b>Sixteen words hide four threads</b> of four &mdash; a shared category each. Tap four words, then <b>Submit</b>.</p>
-      <p style={{ margin: '0 0 9px' }}>Right: the thread banks in its color, <span style={{ background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>yellow</span> easiest to <span style={{ background: CAT_COLORS[3].bg, color: '#fff', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>red</span> trickiest. Wrong: one of your <b>four mistakes</b> is gone &mdash; &ldquo;one away&rdquo; is the only hint you get.</p>
+      <p style={{ margin: '0 0 9px' }}>Right: the thread banks in its color, <span style={{ background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>yellow</span> easiest to <span style={{ background: CAT_COLORS[3].bg, color: T.white, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>red</span> trickiest. Wrong: one of your <b>four mistakes</b> is gone &mdash; &ldquo;one away&rdquo; is the only hint you get.</p>
       <p style={{ margin: 0 }}>The words that look like they belong together usually don&apos;t. That&apos;s the puzzle.</p>
     </div>
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="lk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.lk-wrap{padding-left:14px !important;padding-right:14px !important;}}
-          .lk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .lk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .lk-btn:hover{background:${COLORS.paper};}
-          .lk-tile{font-family:${SANS};font-weight:800;border-radius:8px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.42);background:#fff;color:${COLORS.ink};display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 3px;min-height:58px;user-select:none;touch-action:manipulation;transition:background .1s,transform .1s;box-shadow:inset 0 1px 2px rgba(28,30,36,0.07);overflow:hidden;}
+          .lk-tile{font-family:${SANS};font-weight:800;border-radius:8px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.42);background:var(--white);color:${COLORS.ink};display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 3px;min-height:58px;user-select:none;touch-action:manipulation;transition:background .1s,transform .1s;box-shadow:inset 0 1px 2px rgba(28,30,36,0.07);overflow:hidden;}
           .lk-tile:active{transform:scale(0.96);}
-          .lk-tile.on{background:${COLORS.ink};color:#fff;border-color:${COLORS.ink};box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
+          .lk-tile.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
           @keyframes lkshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-4px);}40%,80%{transform:translateX(4px);}}
           .lk-tile.shake{animation:lkshake .45s ease;}
           @keyframes lkbank{from{opacity:0;transform:scale(.9);}}
@@ -536,9 +537,9 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.ember, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; More traps</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.ember, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; More traps</span>}
           blocks={'LINKS'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
 
@@ -552,7 +553,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="lk-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="lk-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -590,7 +591,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         {lost && unsolvedCis.map((ci) => {
           const cc = CAT_COLORS[ci];
           return (
-            <div key={ci} style={{ background: '#fff', border: `1.5px dashed ${cc.bg}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8, textAlign: 'center' }}>
+            <div key={ci} style={{ background: T.white, border: `1.5px dashed ${cc.bg}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8, textAlign: 'center' }}>
               <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.04em', color: cc.tc }}>{PUZZLE.groups[ci].name}</div>
               <div style={{ fontWeight: 700, fontSize: 13.5, color: COLORS.faded, marginTop: 2 }}>{PUZZLE.groups[ci].words.join(', ')}</div>
             </div>
@@ -601,7 +602,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             <button className="lk-btn" onClick={submit} disabled={selWords.length !== 4}
-              style={selWords.length === 4 ? { background: COLORS.ember, color: '#fff', borderColor: COLORS.ember } : { opacity: 0.45, cursor: 'default' }}>
+              style={selWords.length === 4 ? { background: COLORS.ember, color: T.white, borderColor: COLORS.ember } : { opacity: 0.45, cursor: 'default' }}>
               Submit four
             </button>
             <button className="lk-btn" onClick={doShuffle} style={{ borderColor: '#c3c8cf', color: COLORS.faded }}><Shuffle size={14} /> Shuffle</button>
@@ -668,14 +669,14 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Links to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -688,7 +689,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The four-color tile opens today&apos;s puzzle, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -723,7 +724,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -738,7 +739,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="lk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="lk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

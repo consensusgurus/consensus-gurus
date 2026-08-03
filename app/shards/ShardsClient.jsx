@@ -40,25 +40,26 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
   accent: '#0d9488',       // Shards identity - teal
   accentDk: '#0b7c72',
   accentSoft: '#d7f0ec',
-  green: '#15803d',
+  green: T.successDeep,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_shards_help_seen';
 const STATS_KEY = 'sot_shards_stats';
 // Per-shard tray/board tints (spoiler-free, purely to tell pieces apart).
-const SHARD_TINTS = ['#0d9488', '#7c3aed', '#d97706', '#2563eb', '#c0392b', '#15803d', '#c026d3', '#0e7490', '#b45309', '#4338ca'];
+const SHARD_TINTS = ['#0d9488', '#7c3aed', '#d97706', T.blue, T.danger, T.successDeep, '#c026d3', '#0e7490', '#b45309', '#4338ca'];
 const SHARE_EMOJI = ['🟩', '🟪', '🟧', '🟦', '🟥', '🟫', '🟨', '⬛', '🟩', '🟪'];
 
 const isIosDevice = () =>
@@ -828,9 +829,9 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.sh-wrap{padding-left:10px !important;padding-right:10px !important;}}
           @media(max-width:560px){.sh-cols{gap:0 !important;}.sh-trayhead{display:none;}.sh-tray{margin-top:10px !important;}}
-          .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sh-btn:hover{background:${COLORS.paper};}
-          .sh-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:#fff;}
+          .sh-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sh-btn.primary:hover{background:${COLORS.accentDk};}
           .sh-btn:disabled{opacity:0.4;cursor:default;}
           .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
@@ -848,11 +849,11 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:${COLORS.accent};}
           .sh-tick{position:absolute;bottom:1px;right:2px;color:${COLORS.green};line-height:1;}
           .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:${TRAYMAX}px;}
-          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:#fff;border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
           .sh-piece:active{cursor:grabbing;}
           .sh-piece.dragging{opacity:0.3;}
           .sh-piece.armed{outline:3px solid ${COLORS.accent};outline-offset:1px;}
-          .sh-pc{touch-action:none;width:${TRAYCELL}px;height:${TRAYCELL}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(TRAYCELL * 0.5)}px;border-radius:4px;color:#fff;}
+          .sh-pc{touch-action:none;width:${TRAYCELL}px;height:${TRAYCELL}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(TRAYCELL * 0.5)}px;border-radius:4px;color:var(--white);}
           .sh-pc.empty{background:transparent;}
           .sh-ghost{position:fixed;z-index:200;pointer-events:none;display:grid;gap:2px;opacity:0.92;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));}
           .sh-status{font-size:12.5px;font-weight:700;min-height:18px;text-align:center;}
@@ -877,15 +878,15 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             blockGap={5}
             helpTop={10}
             onHelp={() => setShowHelp(true)}
-            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {N}x{N}</span>}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {N}x{N}</span>}
             blocks={'SHARDS'.split('').map((ch, i) => (
-                <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 21, background: i % 2 === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.55)', transform: `rotate(${(i % 2 ? 1.5 : -1.5)}deg)` }}>{ch}</div>
+                <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 21, background: i % 2 === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.55)', transform: `rotate(${(i % 2 ? 1.5 : -1.5)}deg)` }}>{ch}</div>
               ))}
           />
 
           {/* start tile */}
           {preStart && (
-            <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 452, margin: '0 auto 4px' }}>
+            <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 452, margin: '0 auto 4px' }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Shards is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -893,7 +894,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="sh-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="sh-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -1002,7 +1003,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                       <button type="button" className="sh-btn" onClick={undo} disabled={!histRef.current.length}><Undo2 size={14} /> Undo</button>
                       <button type="button" className="sh-btn" onClick={clearBoard} disabled={placedCount === 0}><Trash2 size={14} /> Clear</button>
                       {g.wet != null && (
-                        <button type="button" className="sh-btn" onClick={commitWet} style={{ background: COLORS.accent, color: '#fff', borderColor: COLORS.ink }}><CheckCircle2 size={14} /> Lock in</button>
+                        <button type="button" className="sh-btn" onClick={commitWet} style={{ background: COLORS.accent, color: T.white, borderColor: COLORS.ink }}><CheckCircle2 size={14} /> Lock in</button>
                       )}
                     </div>
                     <div className="sh-hintbar">
@@ -1023,7 +1024,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '18px auto 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                     Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
@@ -1060,7 +1061,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
               divider
             />
             {mobileUi && !standalone && (
-              <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
                 <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
               </button>
             )}
@@ -1086,7 +1087,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             {Array.from({ length: s.w * s.h }, (_, i) => {
               const dr = Math.floor(i / s.w), dc = i % s.w;
               const o = s.offs.find((x) => x.dr === dr && x.dc === dc);
-              return <div key={i} style={{ gridColumn: dc + 1, gridRow: dr + 1, width: gcell, height: gcell, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: Math.round(gcell * 0.44), color: '#fff', background: o ? tint : 'transparent', borderRadius: 4, border: o ? '1px solid rgba(0,0,0,0.15)' : 'none' }}>{o ? o.ch : ''}</div>;
+              return <div key={i} style={{ gridColumn: dc + 1, gridRow: dr + 1, width: gcell, height: gcell, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: Math.round(gcell * 0.44), color: T.white, background: o ? tint : 'transparent', borderRadius: 4, border: o ? '1px solid rgba(0,0,0,0.15)' : 'none' }}>{o ? o.ch : ''}</div>;
             })}
           </div>
         );
@@ -1104,7 +1105,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
       )}
 
       {showHelp && (
@@ -1115,14 +1116,14 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="sh-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="sh-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}
 
       {showA2hsHelp && (
         <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Shards to your Home Screen</div>
             {isIosDevice() ? (
               <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -1133,7 +1134,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             ) : (
               <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.</p>
             )}
-            <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
           </div>
         </div>
       )}

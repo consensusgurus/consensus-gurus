@@ -37,18 +37,19 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
   accent: '#7c2d92',        // Hearsay identity — parlour violet
   accentSoft: '#f5e8fb',
   accentDeep: '#5b1d6d',
-  green: '#15803d',
+  green: T.successDeep,
   greenSoft: '#dcfce7',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -472,7 +473,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
         <li>Hit <b>Name the {PUZZLE.noun}</b> and pick the last one standing.</li>
       </ol>
 
-      <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
+      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
         <b>The knack:</b> &ldquo;I don&rsquo;t know&rdquo; is the evidence. If the secret {PUZZLE.noun} were the only one with its {PUZZLE.attrs[0]}, {PUZZLE.who[0]} would have known straight away. {PUZZLE.who[0]} did not, so every {PUZZLE.attrs[0]} that appears just once is out. A line said <i>later</i> is sharper still: &ldquo;I still don&rsquo;t know&rdquo; is about the list as it stands after everything already said.
       </div>
 
@@ -483,14 +484,14 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="hs-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.hs-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .hs-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .hs-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .hs-btn:hover{background:${COLORS.paper};}
-          .hs-row{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:9px 12px;margin-bottom:7px;flex-wrap:wrap;}
+          .hs-row{display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:9px 12px;margin-bottom:7px;flex-wrap:wrap;}
           .hs-key{font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:${COLORS.accentDeep};flex:0 0 auto;min-width:86px;}
           .hs-card{font-family:${SANS};font-weight:800;font-size:13px;border-radius:8px;padding:8px 11px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.2);background:${COLORS.cream};color:${COLORS.ink};}
           .hs-card:hover:not(:disabled){border-color:${COLORS.accent};}
@@ -498,8 +499,8 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           .hs-card.wrong{background:#fee2e2;border-color:#b91c1c;color:#7f1d1d;text-decoration:line-through;}
           .hs-card.win{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .hs-card:disabled{cursor:default;}
-          .hs-say{display:flex;align-items:flex-start;gap:11px;background:#fff;border:1px solid rgba(28,30,36,0.14);border-radius:9px;padding:11px 13px;margin-bottom:7px;}
-          .hs-num{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:${COLORS.accent};color:#fff;font-family:${MONO};font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;}
+          .hs-say{display:flex;align-items:flex-start;gap:11px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:9px;padding:11px 13px;margin-bottom:7px;}
+          .hs-num{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:${COLORS.accent};color:var(--white);font-family:${MONO};font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -515,15 +516,15 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           helpTop={8}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? (
-            <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Three Voices</span>
+            <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Three Voices</span>
           ) : null}
           blocks={'HEARSAY'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
 
         {!preStart && (
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           One {PUZZLE.noun} on {PUZZLE.listLabel} is the secret one. {PUZZLE.who.map((w, i) => (
             <span key={w}><b style={{ fontStyle: 'normal' }}>{w}</b> has been told only its {PUZZLE.attrs[i]}{i === PUZZLE.who.length - 1 ? '. ' : i === PUZZLE.who.length - 2 ? ', and ' : ', '}</span>
           ))}
@@ -549,7 +550,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-              <button className="hs-btn" onClick={startRun} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Hear them out</button>
+              <button className="hs-btn" onClick={startRun} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Hear them out</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -608,7 +609,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
               type="button"
               className="hs-btn"
               onClick={() => setG((cur) => ({ ...cur, naming: !cur.naming }))}
-              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' } : { background: COLORS.accentSoft, borderColor: 'rgba(124,45,146,0.5)', color: COLORS.accentDeep }}
+              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: COLORS.accentSoft, borderColor: 'rgba(124,45,146,0.5)', color: COLORS.accentDeep }}
             >
               <Ear size={14} /> {g.naming ? `Pick the ${PUZZLE.noun}…` : `Name the ${PUZZLE.noun}`}
             </button>
@@ -623,7 +624,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <>
             <div style={{ maxWidth: 472, margin: '14px 0 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {g.status === 'done'
@@ -633,7 +634,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
                 </span>
               </div>
             </div>
-            <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderRadius: 10, padding: '12px 14px', margin: '0 0 12px', maxWidth: 472 }}>
+            <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 10, padding: '12px 14px', margin: '0 0 12px', maxWidth: 472 }}>
               <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>How the list collapsed</div>
               {PUZZLE.script.map((st, i) => (
                 <div key={i} style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.ink, lineHeight: 1.5, marginBottom: 4 }}>
@@ -683,14 +684,14 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Hearsay to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -703,7 +704,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s case, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -733,7 +734,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -747,7 +748,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="hs-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="hs-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

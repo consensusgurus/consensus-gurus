@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import WarmerClient from './WarmerClient';
 import { PUZZLES } from './puzzles';
+import { T } from '@/lib/theme';
 
 // Warmer launched 2026-07-18 as the seventeenth daily: linked from the daily
 // strip, the /daily archive, the puzzles grids, and the sitemap (/warmer is the
@@ -74,15 +75,15 @@ function etTodayServer() {
 
 function ComingSoon({ first }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: T.surface, fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 18 }}>
           {'WARMER'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 24, background: i === 5 ? '#dc2626' : '#1c1e24', color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 24, background: i === 5 ? '#dc2626' : T.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Warmer launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Warmer launches {first ? first.dateLabel : 'soon'}.</h1>
+        <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily hot-and-cold word hunt — one secret word, guessed by meaning. Come back when the first word drops.
         </p>
         <a href="/daily" style={{ color: '#dc2626', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

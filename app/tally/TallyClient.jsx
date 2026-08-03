@@ -33,15 +33,16 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
-  green: '#15803d',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
+  green: T.successDeep,
   greenSoft: '#eefaf1',
   amber: '#b45309',
 };
@@ -688,9 +689,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   function targetChip(i, isRow, key) {
     const st = lineState(i, isRow);
     const locked = lineMarked(i, isRow);
-    const bg = st.ok ? COLORS.green : locked ? '#eef1f8' : '#fff';
+    const bg = st.ok ? COLORS.green : locked ? '#eef1f8' : T.white;
     const bd = st.ok ? COLORS.green : locked ? COLORS.ember : st.full ? 'rgba(180,83,9,0.75)' : 'rgba(28,30,36,0.4)';
-    const tc = st.ok ? '#fff' : st.full ? COLORS.amber : COLORS.ink;
+    const tc = st.ok ? T.white : st.full ? COLORS.amber : COLORS.ink;
     const label = isRow ? 'row' : 'column';
     return (
       <div key={key} className={`tl-tgt${playing ? ' live' : ''}`} role={playing ? 'button' : undefined} tabIndex={playing ? 0 : undefined}
@@ -699,8 +700,8 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         title={playing ? `${locked ? 'Clear' : 'Mark'} every tile here as in the right ${label}` : undefined}
         aria-label={playing ? `${isRow ? 'Row' : 'Column'} ${i + 1} target ${isRow ? ROWT[i] : COLT[i]} — ${locked ? 'clear' : 'mark'} the right-${label} note on its tiles` : undefined}
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 13, border: `${locked && !st.ok ? 2 : 1.5}px solid ${bd}`, background: bg, fontFamily: MONO, lineHeight: 1.02, padding: '2px 0', minHeight: 34, boxSizing: 'border-box' }}>
-        <span style={{ fontSize: 15, fontWeight: 500, color: st.ok ? '#fff' : locked ? COLORS.ember : tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
-        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : locked ? COLORS.ember : '#262b35' }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
+        <span style={{ fontSize: 15, fontWeight: 500, color: st.ok ? T.white : locked ? COLORS.ember : tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
+        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : locked ? COLORS.ember : T.muted }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
       </div>
     );
   }
@@ -718,12 +719,12 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="tl-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.tl-wrap{padding-left:14px !important;padding-right:14px !important;}}
-          .tl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .tl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .tl-btn:hover{background:${COLORS.paper};}
           @keyframes tlshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-4px);}40%,80%{transform:translateX(4px);}}
           .tl-shake{animation:tlshake .4s ease;}
@@ -735,9 +736,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-blocked{background:${COLORS.ink};}
           .tl-given{background:#eef0f3;border:1.5px solid rgba(28,30,36,0.25);position:relative;}
           .tl-given::after{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:rgba(28,30,36,0.3);}
-          .tl-empty{background:#fff;border:1.5px dashed rgba(28,30,36,0.4);cursor:pointer;}
+          .tl-empty{background:var(--white);border:1.5px dashed rgba(28,30,36,0.4);cursor:pointer;}
           .tl-empty.hot{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.16);}
-          .tl-placed{background:#fff;border:1.5px solid rgba(28,30,36,0.55);cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);position:relative;}
+          .tl-placed{background:var(--white);border:1.5px solid rgba(28,30,36,0.55);cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);position:relative;}
           .tl-placed:active{transform:translateY(1px);}
           /* certainty marks, all navy — deliberately NOT the green used for a
              balanced line, since green means the board agrees and navy means the
@@ -749,7 +750,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-placed.mk-both{background:#eef1f8;border:2px solid ${COLORS.ember};box-shadow:0 2.5px 0 rgba(14,29,64,0.6), inset 0 -3px 0 rgba(14,29,64,0.09);}
           .tl-placed.mk-both::after{content:'\\2713';position:absolute;top:1px;right:4px;font-family:${SANS};font-size:10px;font-weight:800;line-height:1;color:${COLORS.ember};}
           /* legend swatches under the board reuse the same language at 22px */
-          .tl-key{width:22px;height:22px;border-radius:5px;border:1.5px solid rgba(28,30,36,0.55);background:#fff;flex:none;box-sizing:border-box;position:relative;}
+          .tl-key{width:22px;height:22px;border-radius:5px;border:1.5px solid rgba(28,30,36,0.55);background:var(--white);flex:none;box-sizing:border-box;position:relative;}
           .tl-key.mk-row{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-top:3px solid ${COLORS.ember};border-bottom:3px solid ${COLORS.ember};}
           .tl-key.mk-col{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.ember};border-right:3px solid ${COLORS.ember};}
           .tl-key.mk-both{background:#eef1f8;border:2px solid ${COLORS.ember};}
@@ -757,12 +758,12 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-legend{border-top:1px solid rgba(28,30,36,0.14);margin-top:14px;padding-top:11px;}
           .tl-legend li{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
           @media(max-width:560px){.tl-legend li{align-items:flex-start;}}
-          .tl-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.faded};border-radius:7px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+          .tl-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.faded};border-radius:7px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
           .tl-tool.on{border:1.5px solid ${COLORS.ember};background:#eef1f8;color:${COLORS.ember};}
           .tl-tgt{cursor:default;}
           .tl-tgt.live{cursor:pointer;}
           .tl-tgt.live:hover{box-shadow:0 0 0 2px rgba(14,29,64,0.18);}
-          .tl-rtile{width:42px;height:42px;border-radius:8px;border:1.5px solid rgba(28,30,36,0.55);background:#fff;font-family:${MONO};font-size:20px;font-weight:500;color:${COLORS.ink};cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
+          .tl-rtile{width:42px;height:42px;border-radius:8px;border:1.5px solid rgba(28,30,36,0.55);background:var(--white);font-family:${MONO};font-size:20px;font-weight:500;color:${COLORS.ink};cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
           .tl-rtile:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.5);}
           .tl-rtile.sel{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.2), 0 2.5px 0 rgba(28,30,36,0.5);}
           .tl-rtile.used{visibility:hidden;}
@@ -783,9 +784,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.green, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6&times;6</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.green, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6&times;6</span>}
           blocks={'TALLY'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.green : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.green : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
 
@@ -800,7 +801,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="tl-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="tl-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -812,7 +813,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
 
         {/* the ledger */}
         {!preStart && (
-        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.moves}</b> &middot; fewest <b style={{ color: COLORS.ink, fontWeight: 500 }}>{FEWEST}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>lines <b style={{ color: linesOk === 2 * N ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{linesOk}</b>/{2 * N}</span>
@@ -944,14 +945,14 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Tally to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -964,7 +965,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s ledger, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -1001,7 +1002,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -1016,7 +1017,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="tl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="tl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

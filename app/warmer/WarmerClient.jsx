@@ -35,16 +35,17 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  faded: '#262b35',
+  cream: T.surface,
+  ink: T.ink,
+  ember: T.accent,
+  faded: T.muted,
   accent: '#dc2626',        // Warmer identity — hot red
   accentSoft: '#fef2f2',
-  green: '#15803d',
-  rust: '#c0392b',
+  green: T.successDeep,
+  rust: T.danger,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -54,7 +55,7 @@ const N_WORDS = VOCAB.length;
 
 // Cold → hot temperature bands, keyed by proximity rank (1 = the answer).
 const BANDS = [
-  { name: 'Found it',  min: 1,    max: 1,    color: '#15803d', emoji: '✅' },
+  { name: 'Found it',  min: 1,    max: 1,    color: T.successDeep, emoji: '✅' },
   { name: 'Scorching', min: 2,    max: 15,   color: '#dc2626', emoji: '🟥' },
   { name: 'Hot',       min: 16,   max: 80,   color: '#ea580c', emoji: '🟧' },
   { name: 'Warm',      min: 81,   max: 400,  color: '#f59e0b', emoji: '🟨' },
@@ -400,23 +401,23 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       <div className="wm-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.wm-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .wm-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .wm-btn:hover{background:#eceef1;}
+          .wm-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .wm-btn:hover{background:var(--paper);}
           @media(max-width:560px){.wm-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.wm-ttl h1{font-size:21px;}.wm-ttl-dot{display:none;}}
           .wm-spectrum{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
           .wm-grad{height:14px;border-radius:99px;background:linear-gradient(90deg,#3b5bdb,#0ea5e9 24%,#84cc16 47%,#f59e0b 68%,#ea580c 84%,#dc2626);}
           .wm-scale{display:flex;justify-content:space-between;font-family:${MONO};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${COLORS.faded};}
           .wm-inputrow{display:flex;gap:8px;align-items:stretch;margin-bottom:6px;}
-          .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${COLORS.ink};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:#fff;}
+          .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${COLORS.ink};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:var(--white);}
           .wm-input:focus{border-color:${COLORS.accent};}
-          .wm-go{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:14.5px;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:#fff;border-radius:10px;padding:0 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .wm-go{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:14.5px;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .wm-go:disabled{opacity:.5;cursor:default;}
           .wm-meta{display:flex;align-items:center;gap:14px;font-family:${MONO};font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:${COLORS.faded};margin:2px 0 4px;flex-wrap:wrap;}
           .wm-meta b{font-weight:500;color:${COLORS.ink};font-variant-numeric:tabular-nums;}
           .wm-chip{font-family:${SANS};font-weight:800;font-size:12px;border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .wm-actions{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
           .wm-list{display:flex;flex-direction:column;gap:6px;}
-          .wm-row{display:grid;grid-template-columns:118px 1fr 74px 52px;gap:10px;align-items:center;background:#fff;border:1px solid rgba(28,30,36,0.12);border-radius:9px;padding:8px 12px;}
+          .wm-row{display:grid;grid-template-columns:118px 1fr 74px 52px;gap:10px;align-items:center;background:var(--white);border:1px solid rgba(28,30,36,0.12);border-radius:9px;padding:8px 12px;}
           .wm-row.pinned{border-width:2px;box-shadow:0 2px 0 rgba(28,30,36,0.06);}
           .wm-word{font-family:${SANS};font-weight:800;font-size:15px;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
           .wm-track{height:9px;border-radius:99px;background:#eef0f3;overflow:hidden;}
@@ -441,9 +442,9 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
             helpTop={13}
             marginBottom={16}
             onHelp={() => setShowHelp(true)}
-            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Rarer word</span>}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Rarer word</span>}
             blocks={'WARMER'.split('').map((ch, i) => (
-                <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 5 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+                <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
               ))}
           />
 
@@ -457,7 +458,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                 </div>
               )}
               <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-                <button className="wm-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="wm-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -468,7 +469,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           )}
           {/* the puzzle card */}
           {!preStart && (
-          <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 14 }}>
+          <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 14 }}>
             <div className="wm-spectrum">
               <div className="wm-grad" aria-hidden="true" />
               <div className="wm-scale"><span>Cold &middot; far</span><span>Cool</span><span>Warm</span><span>Hot &middot; close</span></div>
@@ -491,7 +492,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                       <Lightbulb size={13} /> Hint
                     </button>
                   )}
-                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the puzzle" style={{ marginLeft: 'auto', background: armGiveUp ? '#fbeaea' : '#fff', border: `1.5px solid ${armGiveUp ? COLORS.rust : 'rgba(28,30,36,0.3)'}`, color: armGiveUp ? COLORS.rust : COLORS.faded }}>
+                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the puzzle" style={{ marginLeft: 'auto', background: armGiveUp ? '#fbeaea' : T.white, border: `1.5px solid ${armGiveUp ? COLORS.rust : 'rgba(28,30,36,0.3)'}`, color: armGiveUp ? COLORS.rust : COLORS.faded }}>
                     <Flag size={13} /> {armGiveUp ? 'Tap again to reveal' : 'Give up'}
                   </button>
                 </div>
@@ -560,7 +561,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           <div style={{ margin: '30px auto 0', display: focusMode ? 'none' : 'block' }}>
             <DailyGamesGrid replay={!playing ? resetGame : null} self="warmer" maxWidth={620} challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light boardSlot={<DailyBoardPanel self="warmer" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />} divider />
             {mobileUi && !standalone && (
-              <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}>
+              <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}>
                 <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
               </button>
             )}
@@ -600,7 +601,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
       )}
 
       {showHelp && (
@@ -611,17 +612,17 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="wm-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} setTimeout(() => { try { inputRef.current && inputRef.current.focus(); } catch (e) {} }, 30); }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="wm-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} setTimeout(() => { try { inputRef.current && inputRef.current.focus(); } catch (e) {} }, 30); }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}
 
       {showA2hsHelp && (
         <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
             <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Warmer to your Home Screen</div>
             <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s word, every day.</p>
-            <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+            <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
           </div>
         </div>
       )}

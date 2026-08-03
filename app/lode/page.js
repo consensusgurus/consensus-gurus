@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import LodeClient from './LodeClient';
 import { PUZZLES } from './puzzles';
+import { T } from '@/lib/theme';
 
 // Lode launched 2026-07-25 as a daily puzzle: linked from the daily strip, the
 // footer, the /daily archive, and the sitemap (/lode is the canonical, evergreen
@@ -80,18 +81,18 @@ function ComingSoon({ first }) {
   // Rendered only if no board is live yet. Never crash the route on an empty
   // visible set — show a friendly placeholder instead.
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: T.surface, fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 18 }}>
           {'LODE'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 26, background: i === 0 ? '#a16207' : '#2b2f38', color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.6)' }}>{ch}</div>
+            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 26, background: i === 0 ? T.goldInk : '#2b2f38', color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.6)' }}>{ch}</div>
           ))}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Lode launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Lode launches {first ? first.dateLabel : 'soon'}.</h1>
+        <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily letter-mining word puzzle &mdash; seven letters, one core, and points that pay for the rare finds. Come back when the first seam opens.
         </p>
-        <a href="/daily" style={{ color: '#a16207', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
+        <a href="/daily" style={{ color: T.goldInk, fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
     </div>
   );

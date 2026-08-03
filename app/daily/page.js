@@ -42,6 +42,7 @@ import { PUZZLES as FIB_FULL } from '../fib/puzzles';
 import { PUZZLES as STREAK_FULL } from '../streak/puzzles';
 import { PUZZLES as FEUD_FULL } from '../feud/puzzles';
 import { PUZZLES as BABEL_FULL } from '../babel/puzzles';
+import { T } from '@/lib/theme';
 
 // Outwit's bank is server-only in a stronger sense than the others: its
 // `house` arrays and herd truths must never reach the client. This page only
@@ -122,20 +123,20 @@ function isSundayEdition(key, p) {
 
 // Accents mirror DailyGamesPromo so each game reads the same across surfaces.
 const GAMES = [
-  { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: '#2563eb', bg: '#eef4ff', border: 'rgba(37,99,235,0.35)', src: CRUX },
+  { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: T.blue, bg: '#eef4ff', border: 'rgba(37,99,235,0.35)', src: CRUX },
   { key: 'emcee', name: 'Emcee', path: '/emcee', tag: 'The daily mini crossword', accent: '#c026d3', bg: '#fbeefc', border: 'rgba(192,38,211,0.4)', src: EMCEE },
   { key: 'shards', name: 'Shards', path: '/shards', tag: 'Reassemble the shattered crossword', accent: '#0d9488', bg: '#d9f0ee', border: 'rgba(13,148,136,0.4)', src: SHARDS },
   { key: 'garble', name: 'Garble', path: '/garble', tag: 'Five garbled words, one clued finale', accent: '#8a6d1a', bg: '#fdf6e3', border: 'rgba(230,185,63,0.6)', src: GARBLE },
   { key: 'links', name: 'Links', path: '/links', tag: 'Sixteen words, four hidden threads', accent: '#166534', bg: '#eefaf1', border: 'rgba(90,169,106,0.5)', src: LINKS },
   { key: 'span', name: 'Span', path: '/span', tag: 'Cross the map, border by border', accent: '#9d174d', bg: '#fdf0f6', border: 'rgba(217,99,153,0.45)', src: SPAN },
   { key: 'dating', name: 'Dating', path: '/dating', tag: 'Put five moments in order', accent: '#6d28d9', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: DATING },
-  { key: 'tally', name: 'Tally', path: '/tally', tag: 'Balance every row and column', accent: '#15803d', bg: '#eefaf1', border: 'rgba(21,128,61,0.45)', src: TALLY },
+  { key: 'tally', name: 'Tally', path: '/tally', tag: 'Balance every row and column', accent: T.successDeep, bg: '#eefaf1', border: 'rgba(21,128,61,0.45)', src: TALLY },
   { key: 'suds', name: 'Suds', path: '/suds', tag: 'Fill the 9×9 grid, 1–9', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)', src: SUDS },
   { key: 'carve', name: 'Carve', path: '/carve', tag: 'Carve the grid into equal sums', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: CARVE },
   { key: 'circa', name: 'Circa', path: '/circa', tag: 'Pin the year of the moment', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)', src: CIRCA },
   { key: 'extra', name: 'Extra', path: '/extra', tag: 'Unredact the front page', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)', src: EXTRA },
   { key: 'stet', name: 'Stet', path: '/stet', tag: 'Spot the error, fix the copy', accent: '#0369a1', bg: '#e8f3fa', border: 'rgba(3,105,161,0.4)', src: STET },
-  { key: 'outwit', name: 'Outwit', path: '/outwit', tag: 'Five duels against the crowd', accent: '#1f2937', bg: '#eef1f5', border: 'rgba(31,41,55,0.35)', src: OUTWIT },
+  { key: 'outwit', name: 'Outwit', path: '/outwit', tag: 'Five duels against the crowd', accent: '#1f2937', bg: T.surfaceAlt, border: 'rgba(31,41,55,0.35)', src: OUTWIT },
   { key: 'outrank', name: 'Outrank', path: '/outrank', tag: "Call the crowd's order", accent: '#4338ca', bg: '#eef0fb', border: 'rgba(67,56,202,0.4)', src: OUTRANK },
   { key: 'tuck', name: 'Tuck', path: '/tuck', tag: 'Same letters, highest score wins', accent: '#92400e', bg: '#f5e9dc', border: 'rgba(146,64,14,0.35)', src: TUCK },
   { key: 'alibi', name: 'Alibi', path: '/alibi', tag: 'Solve the nightly whodunit', accent: '#8b1e2d', bg: '#f6e3e5', border: 'rgba(139,30,45,0.35)', src: ALIBI },
@@ -147,15 +148,15 @@ const GAMES = [
   { key: 'axiom', name: 'Axiom', path: '/axiom', tag: 'Find the hidden rule', accent: '#0f766e', bg: '#ccfbf1', border: 'rgba(15,118,110,0.35)', src: AXIOM },
   { key: 'hearsay', name: 'Hearsay', path: '/hearsay', tag: "Deduce what they don't know", accent: '#7c2d92', bg: '#f5e8fb', border: 'rgba(124,45,146,0.35)', src: HEARSAY },
   { key: 'venn', name: 'Venn', path: '/venn', tag: 'Sort the overlaps', accent: '#b45309', bg: '#fef3c7', border: 'rgba(180,83,9,0.35)', src: VENN },
-  { key: 'stands', name: 'Stands', path: '/stands', tag: 'Rebuild the results', accent: '#1d4ed8', bg: '#dbeafe', border: 'rgba(29,78,216,0.35)', src: STANDS },
+  { key: 'stands', name: 'Stands', path: '/stands', tag: 'Rebuild the results', accent: T.blueDeep, bg: '#dbeafe', border: 'rgba(29,78,216,0.35)', src: STANDS },
   { key: 'bracket', name: 'Bracket', path: '/bracket', tag: 'Name every winner', accent: '#c2410c', bg: '#ffedd5', border: 'rgba(194,65,12,0.35)', src: BRACKET },
-  { key: 'lode', name: 'Lode', path: '/lode', tag: 'Seven letters, rare words pay', accent: '#a16207', bg: '#fef7e0', border: 'rgba(161,98,7,0.35)', src: LODE },
+  { key: 'lode', name: 'Lode', path: '/lode', tag: 'Seven letters, rare words pay', accent: T.goldInk, bg: '#fef7e0', border: 'rgba(161,98,7,0.35)', src: LODE },
   { key: 'etch', name: 'Etch', path: '/etch', tag: 'A picture in the numbers', accent: '#4d7c0f', bg: '#f3f8e8', border: 'rgba(77,124,15,0.35)', src: ETCH },
   { key: 'glyph', name: 'Glyph', path: '/glyph', tag: 'A crossword with no clues', accent: '#334155', bg: '#eef2f7', border: 'rgba(51,65,85,0.35)', src: GLYPH },
   { key: 'hedge', name: 'Hedge', path: '/hedge', tag: 'Draw one closed loop', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)', src: HEDGE },
   { key: 'listed', name: 'Listed', path: '/listed', tag: 'Rank the list, top to bottom', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)', src: LISTED },
   { key: 'mate', name: 'Mate', path: '/mate', tag: 'White to play and mate', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)', src: MATE },
-  { key: 'four', name: 'Four', path: '/four', tag: 'One column wins', accent: '#1e3a8a', bg: '#e8eefc', border: 'rgba(30,58,138,0.35)', src: FOUR },
+  { key: 'four', name: 'Four', path: '/four', tag: 'One column wins', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(30,58,138,0.35)', src: FOUR },
   { key: 'park', name: 'Parker', path: '/parker', tag: 'Get the red one out', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)', src: PARK },
   { key: 'check', name: 'Check', path: '/check', tag: 'Give a piece, take them all', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)', src: CHECK },
   { key: 'rung', name: 'Rung', path: '/rung', tag: 'One letter at a time', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)', src: RUNG },

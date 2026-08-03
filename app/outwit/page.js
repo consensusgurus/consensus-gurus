@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import OutwitClient from './OutwitClient';
 import { PUZZLES } from './puzzles';
+import { T } from '@/lib/theme';
 
 // Outwit launched 2026-07-17 as the thirteenth daily: linked from the daily
 // strip, the footer, the /daily archive, and the sitemap (/outwit is the
@@ -99,15 +100,15 @@ function clientSafe(p) {
 
 function ComingSoon({ first }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <div style={{ minHeight: '100vh', background: T.surface, fontFamily: "'Manrope', system-ui, sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginBottom: 18 }}>
           {'OUTWIT'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 22, background: i >= 3 ? '#1f2937' : '#1c1e24', color: i >= 3 ? '#e8b43a' : '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 22, background: i >= 3 ? '#1f2937' : T.ink, color: i >= 3 ? T.gold : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1c1e24', margin: '0 0 8px' }}>Outwit launches {first ? first.dateLabel : 'soon'}.</h1>
-        <p style={{ fontSize: 15, color: '#262b35', fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Outwit launches {first ? first.dateLabel : 'soon'}.</h1>
+        <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
           The daily crowd puzzle — five prompts against everyone playing. Come back when the first crowd forms.
         </p>
         <a href="/daily" style={{ color: '#1f2937', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>

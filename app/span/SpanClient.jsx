@@ -45,15 +45,16 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
-  trail: '#15803d',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
+  trail: T.successDeep,
   trailSoft: '#eefaf1',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -206,8 +207,8 @@ function SpanMap({ chain, best, alts }) {
           const onBest = !onChain && showBest && bestSet.has(name);
           const onAlt = !onChain && !onBest && showBest && altSet.has(name);
           const ends = onChain && (name === chainArr[0] || (chainArr.length > 1 && name === chainArr[chainArr.length - 1]));
-          const fill = onChain ? (ends ? '#15803d' : '#8fdcab') : onBest ? '#a7cbf3' : onAlt ? '#d9e7fa' : '#dfe3e8';
-          return <path key={name} d={d} fill={fill} stroke="#fff" strokeWidth={k} />;
+          const fill = onChain ? (ends ? T.successDeep : '#8fdcab') : onBest ? '#a7cbf3' : onAlt ? '#d9e7fa' : '#dfe3e8';
+          return <path key={name} d={d} fill={fill} stroke={T.white} strokeWidth={k} />;
         })}
         {showRoad && (
           <polyline points={cA.map((p) => p.join(',')).join(' ')} fill="none" stroke="#14532d" strokeWidth={2.6 * k} strokeLinejoin="round" />
@@ -217,8 +218,8 @@ function SpanMap({ chain, best, alts }) {
           const ends = i === 0 || i === chainArr.length - 1;
           return (
             <g key={`d${i}`}>
-              <circle cx={x} cy={y} r={r} fill={ends ? '#14532d' : '#fff'} stroke="#14532d" strokeWidth={1.6 * k} />
-              <text x={x} y={y + r * 0.06} fontSize={r * 1.15} textAnchor="middle" dominantBaseline="central" fill={ends ? '#fff' : '#14532d'} fontFamily={SANS} fontWeight="700">{i + 1}</text>
+              <circle cx={x} cy={y} r={r} fill={ends ? '#14532d' : T.white} stroke="#14532d" strokeWidth={1.6 * k} />
+              <text x={x} y={y + r * 0.06} fontSize={r * 1.15} textAnchor="middle" dominantBaseline="central" fill={ends ? T.white : '#14532d'} fontFamily={SANS} fontWeight="700">{i + 1}</text>
             </g>
           );
         })}
@@ -703,12 +704,12 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
   function chip(name, kind, key) {
     const base = { display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, borderRadius: 8, padding: '7px 11px', border: '1.5px solid rgba(28,30,36,0.35)' };
-    if (kind === 'start') return <span key={key} style={{ ...base, background: COLORS.ink, color: '#fff' }}>{name}</span>;
-    if (kind === 'end') return <span key={key} style={{ ...base, background: '#fff', color: COLORS.ink, borderStyle: 'dashed' }}><Flag size={13} /> {name}</span>;
-    if (kind === 'goal') return <span key={key} style={{ ...base, background: COLORS.trail, color: '#fff', borderColor: COLORS.trail }}><Flag size={13} /> {name}</span>;
+    if (kind === 'start') return <span key={key} style={{ ...base, background: COLORS.ink, color: T.white }}>{name}</span>;
+    if (kind === 'end') return <span key={key} style={{ ...base, background: T.white, color: COLORS.ink, borderStyle: 'dashed' }}><Flag size={13} /> {name}</span>;
+    if (kind === 'goal') return <span key={key} style={{ ...base, background: COLORS.trail, color: T.white, borderColor: COLORS.trail }}><Flag size={13} /> {name}</span>;
     return <span key={key} style={{ ...base, background: COLORS.trailSoft, color: '#14532d', borderColor: 'rgba(21,128,61,0.45)' }}>{name}</span>;
   }
-  const arrow = (k) => <span key={k} style={{ color: '#262b35', fontWeight: 800 }}>&rarr;</span>;
+  const arrow = (k) => <span key={k} style={{ color: T.muted, fontWeight: 800 }}>&rarr;</span>;
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
@@ -723,18 +724,18 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="sp-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.sp-wrap{padding-left:14px !important;padding-right:14px !important;}}
-          .sp-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sp-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sp-btn:hover{background:${COLORS.paper};}
           @keyframes spshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
           .sp-shake{animation:spshake .45s ease;}
           @keyframes spfade{from{opacity:0;}}
           @keyframes spstamp{from{opacity:0;transform:scale(.94);}}
-          .sp-sug{display:block;width:100%;text-align:left;background:#fff;border:none;border-bottom:1px solid rgba(28,30,36,0.08);font-family:${SANS};font-weight:700;font-size:14px;color:${COLORS.ink};padding:9px 13px;cursor:pointer;}
+          .sp-sug{display:block;width:100%;text-align:left;background:var(--white);border:none;border-bottom:1px solid rgba(28,30,36,0.08);font-family:${SANS};font-weight:700;font-size:14px;color:${COLORS.ink};padding:9px 13px;cursor:pointer;}
           .sp-sug:hover{background:#eef4ff;}
           @media(max-width:520px){.sp-htp-f{display:none;}.sp-htp-s{display:inline;}}
           @media(max-width:560px){.sp-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.sp-ttl h1{font-size:21px;letter-spacing:0.02em;}.sp-ttl .sp-ttl-dt{font-size:15px;}.sp-ttl-dot{display:none;}}
@@ -757,7 +758,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
           blocks={'SPAN'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.trail : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.trail : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
 
@@ -772,7 +773,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="sp-btn" onClick={startGame} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="sp-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -784,7 +785,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
         {/* the assignment */}
         {!preStart && (
-        <div style={{ background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {isSundayEd && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#8a6d1a', background: '#fdf6e3', border: '1px solid rgba(230,185,63,0.6)', borderRadius: 7, padding: '6px 10px', marginBottom: 11, flexWrap: 'wrap' }}>
               <b style={{ fontWeight: 800, color: '#92400e', whiteSpace: 'nowrap' }}>Sunday Edition</b>
@@ -808,7 +809,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               if (i < chain.length - 1) parts.push(arrow(`a${i}`));
               return parts;
             })}
-            {!won && [arrow('af'), <span key="dots" style={{ color: '#262b35', fontWeight: 800, letterSpacing: 2 }}>&hellip;</span>, arrow('ae'), chip(PUZZLE.end, 'end', 'endchip')]}
+            {!won && [arrow('af'), <span key="dots" style={{ color: T.muted, fontWeight: 800, letterSpacing: 2 }}>&hellip;</span>, arrow('ae'), chip(PUZZLE.end, 'end', 'endchip')]}
           </div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.trail, fontWeight: 500, marginTop: 6 }}>Spanned in {chain.length - 1} hop{chain.length - 1 === 1 ? '' : 's'}.</div>}
         </div>
@@ -826,17 +827,17 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (suggestions.length === 1) addCountry(suggestions[0]); else addCountry(typed); } }}
                   placeholder={`Next stop from ${head}…`}
                   autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
-                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontWeight: 700, fontSize: 15, color: COLORS.ink, background: '#fff', border: `2px solid ${COLORS.ink}`, borderRadius: 9, padding: '11px 13px', outline: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontWeight: 700, fontSize: 15, color: COLORS.ink, background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 9, padding: '11px 13px', outline: 'none' }}
                 />
                 {suggestions.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: '#fff', border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 9, marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 20px rgba(20,22,28,0.14)' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: T.white, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 9, marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 20px rgba(20,22,28,0.14)' }}>
                     {suggestions.map((c) => (
                       <button key={c} className="sp-sug" onMouseDown={(e) => { e.preventDefault(); addCountry(c); }}>{c}</button>
                     ))}
                   </div>
                 )}
               </div>
-              <button className="sp-btn" onClick={() => { if (suggestions.length === 1) addCountry(suggestions[0]); else addCountry(typed); }} style={{ background: COLORS.trail, color: '#fff', borderColor: COLORS.trail }}>Go</button>
+              <button className="sp-btn" onClick={() => { if (suggestions.length === 1) addCountry(suggestions[0]); else addCountry(typed); }} style={{ background: COLORS.trail, color: T.white, borderColor: COLORS.trail }}>Go</button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 9, flexWrap: 'wrap' }}>
               {chain.length > 1 && (
@@ -921,14 +922,14 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Span to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -941,7 +942,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The green-route tile opens today&apos;s puzzle, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -978,7 +979,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -993,7 +994,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="sp-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="sp-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}

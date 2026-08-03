@@ -9,15 +9,39 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const CONVERTED = [
-  { dir: 'app', depth: 0 },        // batch A: shared chrome at the app/ root
-  { dir: 'app/quiz' },             // batch B
-  { dir: 'app/quizzes' },          // batch B
+// Inverted on purpose: every tree under app/ is guarded EXCEPT those still listed as
+// PENDING. Each batch that lands deletes lines from PENDING, so the guard tightens on its
+// own rather than going stale when someone forgets to add a directory.
+const PENDING = [
+  'app/admin',                    // 28 raw brand hexes left
+  'app/api',                      // 11 raw brand hexes left
+  'app/challenge',                // 17 raw brand hexes left
+  'app/duel',                     // 38 raw brand hexes left
+  'app/exams',                    // 20 raw brand hexes left
+  'app/experts-and-aggregators',  // 5 raw brand hexes left
+  'app/feed',                     // 11 raw brand hexes left
+  'app/geo',                      // 13 raw brand hexes left
+  'app/kids',                     // 74 raw brand hexes left
+  'app/list',                     // 52 raw brand hexes left
+  'app/player',                   // 31 raw brand hexes left
+  'app/quizzes',                  // 9 raw brand hexes left
+  'app/request',                  // 10 raw brand hexes left
+  'app/sitestats',                // 7 raw brand hexes left
+  'app/snapshot',                 // 13 raw brand hexes left
+  'app/sporcle-alternative',      // 7 raw brand hexes left
 ];
 // Excluded with cause, not silently: this route builds an SVG *string* for Satori, which
 // does not resolve CSS custom properties, and it binds its own `T`. Revisit in the brand
 // phase when the OG cards become brand-aware.
-const EXCLUDE = new Set(['app/quizzes/opengraph-image.js']);
+const EXCLUDE = new Set([
+  // Satori (next/og) renders these; it cannot resolve CSS custom properties, so they keep
+  // literal hexes until the OG cards are rebranded in the assets phase.
+  'app/quizzes/opengraph-image.js',
+  'app/list/[id]/poster-image/route.js',
+  'app/api/quiz/day-card/route.js',
+  'app/api/quiz/share-card/route.js',
+  'app/player/[name]/opengraph-image.js',
+]);
 
 const theme = readFileSync('lib/theme.js', 'utf8');
 const css = readFileSync('app/globals.css', 'utf8');
@@ -39,26 +63,24 @@ for (const v of Object.keys(R)) {
 }
 
 const HEXES = new Set(Object.values(T).flatMap(h => h === '#ffffff' ? [h, '#fff'] : [h]));
-const walk = (d, depth) => {
+const walk = (d) => {
   let out = [];
   for (const e of readdirSync(d)) {
-    const p = join(d, e);
-    if (statSync(p).isDirectory()) { if (depth !== 0) out = out.concat(walk(p, depth)); }
+    const p = join(d, e).split('\\').join('/');
+    if (PENDING.includes(p)) continue;
+    if (statSync(p).isDirectory()) out = out.concat(walk(p));
     else if (/\.(js|jsx|css)$/.test(e)) out.push(p);
   }
   return out;
 };
-for (const { dir, depth } of CONVERTED) {
-  for (const f of walk(dir, depth)) {
-    const rel = f.split('\\').join('/');
-    if (EXCLUDE.has(rel) || rel === 'app/globals.css') continue;
-    readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
-      if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;          // comments may cite a hex
-      const m = line.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
-      for (const h of m) if (HEXES.has(h.toLowerCase())) fail.push(`${rel}:${i + 1} raw brand hex ${h} (use T.* or var(--*))`);
-    });
-  }
+for (const f of walk('app')) {
+  if (EXCLUDE.has(f) || f === 'app/globals.css') continue;
+  readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+    if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
+    const m = line.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
+    for (const h of m) if (HEXES.has(h.toLowerCase())) fail.push(`${f}:${i + 1} raw brand hex ${h} (use T.* or var(--*))`);
+  });
 }
 
 if (fail.length) { console.error('theme check FAILED:\n' + fail.map(s => '  ' + s).join('\n')); process.exit(1); }
-console.log(`theme check OK: ${Object.keys(T).length} tokens, ${CONVERTED.length} converted trees clean`);
+console.log(`theme check OK: ${Object.keys(T).length} tokens; ${PENDING.length} trees still pending conversion`);

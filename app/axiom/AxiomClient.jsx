@@ -41,18 +41,19 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  faded: T.muted,
   accent: '#0f766e',        // Axiom identity — laboratory teal
   accentSoft: '#ccfbf1',
   accentDeep: '#115e59',
-  green: '#15803d',
+  green: T.successDeep,
   greenSoft: '#dcfce7',
   redSoft: '#fee2e2',
   redInk: '#b91c1c',
@@ -600,7 +601,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const legendChip = (word, kind) => (
     <span style={{
       fontFamily: SANS, fontWeight: 800, fontSize: 12, letterSpacing: '0.04em', borderRadius: 7, padding: '7px 10px',
-      background: kind === 'yes' ? COLORS.greenSoft : kind === 'no' ? COLORS.redSoft : '#fff',
+      background: kind === 'yes' ? COLORS.greenSoft : kind === 'no' ? COLORS.redSoft : T.white,
       border: `1.5px solid ${kind === 'yes' ? COLORS.green : kind === 'no' ? COLORS.redInk : 'rgba(28,30,36,0.2)'}`,
       color: kind === 'yes' ? '#14532d' : kind === 'no' ? '#7f1d1d' : COLORS.ink,
     }}>{word}</span>
@@ -623,11 +624,11 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         <li>Hit the <b>Name it</b> button and pick the one still standing.</li>
       </ol>
 
-      <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
+      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
         <b>The knack: only test words the surviving rules disagree about.</b> Work out what each live rule predicts for a tile before you spend on it. If they all predict the same colour, that tile teaches you nothing whichever way it flips. The useful tiles are the ones that split the field, and most tiles are not useful.
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.rust}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45, marginTop: 8 }}>
+      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.rust}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45, marginTop: 8 }}>
         <b>Naming the rule is a bet, and the button shows the odds.</b> It always reads what you would bank right now, so nothing is deducted after the fact. That number starts low and climbs as the words you uncover narrow the field. Name it early and you are guessing; wait until the evidence leaves one rule alive and it reads the full {TOTAL}.
         <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
           <li><b>What raises it:</b> uncovering words that rule other candidates out. Only revealed words count. Crossing rules off by hand is a free note and does nothing either way.</li>
@@ -642,16 +643,16 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <div className="ax-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ax-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .ax-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:#fff;color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ax-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ax-btn:hover{background:${COLORS.paper};}
           .ax-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
           @media(max-width:560px){.ax-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}}
-          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.16);background:#fff;color:${COLORS.ink};text-align:center;overflow:hidden;text-overflow:ellipsis;}
+          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.16);background:var(--white);color:${COLORS.ink};text-align:center;overflow:hidden;text-overflow:ellipsis;}
           .ax-tile:hover:not(:disabled){border-color:${COLORS.accent};}
           .ax-tile:disabled{cursor:default;}
           .ax-tile.yes{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
@@ -659,9 +660,9 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-tile.given{box-shadow:inset 0 0 0 2px rgba(28,30,36,0.28);}
           .ax-tile.marked{background:${COLORS.paper};border-style:dashed;border-color:rgba(28,30,36,0.32);color:${COLORS.faded};text-decoration:line-through;text-decoration-thickness:1.5px;opacity:0.7;}
           .ax-tile.marked:hover:not(:disabled){opacity:1;}
-          .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:#fff;color:${COLORS.ink};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
-          .ax-tool.on{background:${COLORS.ink};color:#fff;border-color:${COLORS.ink};}
-          .ax-rule{display:flex;align-items:flex-start;gap:10px;background:#fff;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
+          .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
+          .ax-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
+          .ax-rule{display:flex;align-items:flex-start;gap:10px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
           .ax-rule.struck{opacity:0.5;}
           .ax-rule.struck .ax-rule-t{text-decoration:line-through;}
           .ax-rule.dead{opacity:0.42;}
@@ -683,14 +684,14 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           blockGap={4}
           helpTop={8}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: '#fff', background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Wide Field</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Wide Field</span>}
           blocks={'AXIOM'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: '#fff', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
 
         {!preStart && (
-        <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: '#fff', border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
+        <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           <div style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 5 }}>Find the one rule that fits every word on the board.</div>
           <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. All {PUZZLE.tiles.length} words are already one or the other; grey just means you have not uncovered it yet. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
           <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate still standing when you name the answer costs you {UNPROVEN_COST} points, so cross them off before you commit.</div>
@@ -720,7 +721,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-              <button className="ax-btn" onClick={startRun} style={{ background: COLORS.ink, color: '#fff', fontSize: 15, padding: '11px 22px' }}>Uncover the board</button>
+              <button className="ax-btn" onClick={startRun} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Uncover the board</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -801,7 +802,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                     <span className="ax-rule-t" style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.4 }}>{ruleLabel(r)}</span>
                     {note && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: COLORS.faded, marginTop: 2 }}>{note}</span>}
                   </span>
-                  {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.green, background: '#fff', borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
+                  {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.green, background: T.white, borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
                 </button>
               );
             })}
@@ -814,7 +815,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
               type="button"
               className="ax-btn"
               onClick={() => { if (namesLeft <= 0) { say('No names left today.'); return; } setG((cur) => ({ ...cur, naming: !cur.naming })); }}
-              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' } : { background: COLORS.accentSoft, borderColor: 'rgba(15,118,110,0.5)', color: COLORS.accentDeep }}
+              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: COLORS.accentSoft, borderColor: 'rgba(15,118,110,0.5)', color: COLORS.accentDeep }}
             >
               <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : `Name it for ${liveScore} of ${TOTAL}`}{g.wrongPicks.length ? ` (${namesLeft} left)` : ''}
             </button>
@@ -829,7 +830,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <>
             <div style={{ maxWidth: 472, margin: '14px 0 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: '#fff', border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {g.status === 'done'
@@ -881,14 +882,14 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             divider
           />
           {mobileUi && !standalone && (
-            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
           )}
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Axiom to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
@@ -901,7 +902,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s board, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: '#fff', cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -931,7 +932,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: '#fff', fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
@@ -945,7 +946,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="ax-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: '#fff' }}>Play</button>
+            <button className="ax-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
           </div>
         </div>
       )}
