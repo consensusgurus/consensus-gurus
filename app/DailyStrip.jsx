@@ -565,6 +565,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
                   </a>
                 : <a className="sl-btn play" href={g.href}>Play</a>}
+          </span>
+          <span className="sl-arch">
             <button
               type="button"
               className={`sl-ab${open ? ' on' : ''}`}
@@ -999,7 +1001,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--ink);}
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
-        .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 118px 72px 64px 132px 152px;align-items:center;gap:10px;padding:6px 14px;}
+        .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 118px 72px 64px 132px 78px 96px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
         .sl-head .c{display:flex;align-items:center;justify-content:center;text-align:center;}
@@ -1024,7 +1026,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-ld svg{flex:none;color:var(--gold-ink);}
         .sl-ld span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .sl-nl{color:#8a93a3;}
-        .sl-status{display:flex;align-items:center;justify-content:center;gap:6px;}
+        .sl-status{display:flex;align-items:center;justify-content:center;}
+        .sl-arch{display:flex;align-items:center;justify-content:center;}
         .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:60px;padding:5px 0;border-radius:6px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
@@ -1044,7 +1047,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         @media(max-width:900px){
           .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;}
           .sl-head{display:none;}
-          .sl-row{grid-template-columns:40px minmax(0,1fr) auto;gap:9px;padding:8px 12px;}
+          .sl-row{grid-template-columns:40px minmax(0,1fr) auto auto;gap:9px;padding:8px 12px;}
           .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
           /* the expand button keeps its place beside the status button, so the
              stats and archive drawer stays reachable with the columns gone */
@@ -1316,7 +1319,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             <div className="sl-head" aria-hidden="true">
               <span /><span>Game</span><span>Category</span>
               <span className="c">Players</span><span className="c">Streak</span><span>Leader</span>
-              <span className="c">Status &amp; archive</span>
+              <span className="c">Status</span><span className="c">Archive &amp; stats</span>
             </div>
           ) : null}
           <div
