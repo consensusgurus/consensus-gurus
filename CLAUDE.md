@@ -3069,6 +3069,62 @@ across all 20 games on 2026-07-20.
 5. Update the game's own how-to-play copy and its `page.js` metadata description, which
    both describe the weekly cadence to players and to search engines.
 
+### Daily puzzle authoring standard (applies to EVERY game)
+
+Twelve games shipped banks with no checker at all, and every defect the 2026-08-02 audit
+turned up lived in one of them: Crunch storing a solution count above its own documented
+cap of 400 on 26 of 62 boards, two Glyph boards that admit two valid letter mappings, a
+Glyph board that is 15x14 on a 15x15 day, Rung opening with the same two words on 39% of
+its days, Listed running History 2:1 against its own promised alternation, Four spelling
+"defence" on 13 boards. None of it was exotic. All of it was mechanically checkable and
+nobody had written the check. These eleven rules are how that stops.
+
+1. **A rule that is not written down is not a rule.** Every game states its authoring
+   rules in the header comment of `app/<game>/puzzles.js`: what each field means, what
+   range it may take, what the Sunday Edition scales, and what makes a board good rather
+   than merely legal. An instruction that lives only in a chat thread does not count.
+
+2. **Every game has a verifier, and no bank change ships until it passes.** The gate is
+   `node scripts/verify-all.mjs`, which discovers checkers automatically and reports any
+   registered game whose bank has no checker as UNVERIFIED, failing the run. A new game
+   therefore cannot quietly ship without one. The full sweep takes a couple of minutes;
+   pass game names to run a subset while iterating.
+
+3. **The verifier recomputes, it never trusts a stored field.** Re-derive the answer, the
+   par, the solution count, the ladder, the winning line from the board state using your
+   own search or the game's own engine, then assert it matches what is stored. A checker
+   that reads `p.par` and prints it has verified nothing. Recomputation is what caught
+   Crunch's over-cap counts and its one wrong `need`.
+
+4. **Uniqueness is proved wherever the game claims it.** If the copy promises one
+   solution, count solutions with a cap of 2 and fail at 2. Two Glyph boards have two
+   valid mappings and shipped anyway.
+
+5. **The Sunday Edition proves its own scaling.** Assert that the knob which is supposed
+   to grow actually grew on every `sunday: true` board, and that the flag lands on a real
+   Sunday.
+
+6. **Every documented numeric field has a range, and the checker enforces it.**
+
+7. **Pool variety has a ceiling, checked across the WHOLE bank rather than per board.**
+   Count how often each answer, start word, subject, motif, theme or trap repeats, and
+   fail above a ceiling documented in the checker's header. Per-board legality checks pass
+   happily on a bank that says the same thing every day, which is exactly how Rung, Listed,
+   Mate, Four and Crux all degraded.
+
+8. **US spellings.** A generator drawing on an off-the-shelf word list imports British
+   forms; scan reader-facing strings and board words for them.
+
+9. **Reader-facing rules copy is checked against the data it describes.** Rung tells
+   players its ladder uses "1,846 common five-letter words"; the vocabulary is 1,292.
+
+10. **The past is frozen.** Never rewrite a board that has gone live. Scope both retrofits
+    and any newly added check to future boards with an explicit dated constant, and name
+    it in the checker's header (crux uses `CRUX_FLOOR_FROM = '2026-08-03'`).
+
+11. **A floor is not a target, and a rule retrofit sweeps to the last day of the bank.**
+    The full version is the next section.
+
 ### Extending a puzzle bank in bulk (the "bank to N days" job)
 
 Every mass bank extension so far has quietly degraded the game it extended, because a
