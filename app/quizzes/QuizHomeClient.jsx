@@ -1645,6 +1645,13 @@ export default function QuizHomeClient() {
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
     .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:var(--white);display:flex;flex-direction:column;padding-bottom:4px;}
+    /* Phone: the browse columns run edge to edge and stop being cards, matching
+       the slate and the rails above them (owner, 2026-08-03). */
+    @media(max-width:900px){
+      .qzh .mc-open{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;}
+      .qzh .catcard{border-left:none;border-right:none;border-radius:0;}
+      .qzh .mc-open .colhead{border-radius:0;}
+    }
     /* Hero height = 7 row-units (7 x 31px .qrow) so its bottom edge lands flush
    on a list-row gridline instead of ending mid-row; keeps quiz rows aligned
    across neighbouring columns with no ragged end gap. cover = crop, no stretch. */
