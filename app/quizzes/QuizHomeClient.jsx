@@ -2094,10 +2094,31 @@ export default function QuizHomeClient() {
               .qzh .dhx-lb-band{padding:14px 16px 13px !important;}
               .qzh .dhx-lb-body{padding:11px 16px 15px !important;}
               .qzh .dhx-rone .dhx-lp{flex:none !important;}
+              .qzh .dhx-rone > *:last-child{border-bottom:0 !important;}
               .qzh .dhx-rone .dhx-lp .dhx-lp-rows,.qzh .dhx-rone.cm-open .dhx-cm-bars{overflow:visible !important;max-height:none !important;}
               .qzh .dhx-rone.cm-open .dhx-lp{max-height:none !important;}
               .qzh .dhx-lpr{flex:none !important;}
               .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;}
+            }
+            /* 761-1200: the board goes full width on its own row, but the two rails
+               sit SIDE BY SIDE beneath it instead of each stretching to full width
+               (owner, 2026-08-03: a narrowed desktop rendered them as giant full-width
+               bands). Each column lands at ~360px+, i.e. wider than the 284/300 desktop
+               rails, so every rail card keeps its intended proportions. */
+            @media(min-width:761px) and (max-width:1200px){
+              .qzh .dhx{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;}
+              .qzh .dhx-center{grid-column:1 / -1;}
+              .qzh .dhx-left{grid-column:1;}
+              .qzh .dhx-right{grid-column:2;}
+              /* paired rails run to the SAME bottom edge: whichever card has less
+                 content stretches to the row height and shares the slack between its
+                 blocks, instead of stopping short and leaving a ragged column
+                 (owner, 2026-08-03: "the leaderboard side needs to stretch to match"). */
+              .qzh .dhx-rail{height:auto !important;align-self:stretch;}
+              .qzh .dhx-rail > *{flex:1 1 auto !important;}
+              .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;}
+              .qzh .dhx-lone > *{flex:1 1 auto !important;}
+              .qzh .dhx-rone .dhx-lp{flex:1 1 auto !important;}
             }
             @media(max-width:760px){
               /* rails stack full width on phones: the leaderboards stay a top 5 */
