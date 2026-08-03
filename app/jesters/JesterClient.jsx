@@ -56,7 +56,16 @@ const COLORS = {
   accentDeep: '#5b21b6',
   green: T.successDeep,
 };
-const REGION_FILLS = ['#fde2e2', '#fef3c7', '#dcfce7', '#dbeafe', '#f3e8ff', '#fce7f3', '#e0f2fe', '#ffedd5', '#e2e8f0'];
+const REGION_FILLS = ['#fde2e2', '#fef3c7', '#dcfce7', '#dbeafe', '#f3e8ff', '#fce7f3', '#e0f2fe', '#ffedd5', '#e2e8f0', '#d9f2ea'];
+// A court that already holds its quota washes out, so the eye skips it. On a
+// two-jester board this is the only "you finished something" signal left: one
+// seated jester no longer closes its row, so the old auto-✗ cascade is gone.
+const REGION_FILLS_DONE = REGION_FILLS.map((hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  const wash = (x) => Math.round(x + (250 - x) * 0.66);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map(wash);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+});
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_jester_help_seen';
@@ -255,6 +264,16 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const SEATS = N * STARS;
   const STORE_KEY = `sot_jester_${PUZZLE.num}`;
   const SOLUTION = useMemo(() => solveBoard(N, PUZZLE.regions, STARS), [N, PUZZLE, STARS]);
+
+  // Viewport width, measured on mount so the grid can be sized to fit. Null
+  // until hydrated, so SSR and first paint agree on the desktop size.
+  const [vw, setVw] = useState(null);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const [g, setG] = useState(() => freshState(N));
   const [autoX, setAutoX] = useState(true);
@@ -647,7 +666,46 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     setG(freshState(N)); setEndClosed(false); clearHist();
   }
 
-  const cellPx = N >= 10 ? 38 : N === 9 ? 42 : 46;
+  // Shrink to fit rather than scroll: a board you cannot see end to end makes
+  // row and column counting impossible, which is most of a two-jester solve.
+  // COUNTER_GUTTER is the margin the per-row remaining-seat numbers sit in.
+  const COUNTER_GUTTER = vw && vw <= 560 ? 17 : 22;
+  const cellPx = useMemo(() => {
+    const base = N >= 10 ? 38 : N === 9 ? 42 : 46;
+    if (!vw) return base;
+    const pagePad = vw <= 560 ? 20 : 76;      // .je-wrap left+right padding
+    const frame = 6 + COUNTER_GUTTER;         // board border + counter gutter
+    const avail = Math.min(vw - pagePad, 640) - frame;
+    return Math.max(30, Math.min(base, Math.floor(avail / N)));
+  }, [vw, N]);
+
+  // Seats still to fill in each row and column. This is the whole mental load
+  // on a two-jester board, where "does this row want one more or two?" is not
+  // answerable at a glance the way it is when the quota is one.
+  const { rowRemain, colRemain } = useMemo(() => {
+    const rr = Array(N).fill(STARS), cc = Array(N).fill(STARS);
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (g.cells[r][c] === 2) { rr[r]--; cc[c]--; }
+    }
+    return { rowRemain: rr, colRemain: cc };
+  }, [g.cells, N, STARS]);
+
+  // Courts that already hold their quota.
+  const doneRegions = useMemo(() => {
+    const tally = {};
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (g.cells[r][c] === 2) { const id = PUZZLE.regions[r][c]; tally[id] = (tally[id] || 0) + 1; }
+    }
+    const out = new Set();
+    for (const id in tally) if (tally[id] >= STARS) out.add(Number(id));
+    return out;
+  }, [g.cells, N, STARS, PUZZLE]);
+
+  const counterStyle = (v) => ({
+    fontFamily: MONO, fontSize: Math.max(10, Math.round(cellPx * 0.32)), fontWeight: 700,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: v < 0 ? COLORS.rust : v === 0 ? 'rgba(28,30,36,0.28)' : COLORS.ink,
+  });
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
@@ -655,7 +713,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Seat exactly <b>{STARS === 2 ? 'two jesters' : 'one jester'}</b> in every row, every column, and every colored court.</p>
       <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
       <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>✗</b> / <b>🃏</b> buttons. It starts on <b>✗</b> (rule a cell out), the mark you reach for most, and remembers your choice next time. Switch to <b>🃏</b> to seat jesters, or just <b>hold</b> a cell (right-click on a computer) to seat one directly in either mode. Tap a seated jester to lift it. Leave auto-✗ on and seating a jester pencils out its neighbours for you, plus its row, column or court as soon as that one is full; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
-      <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. Courts get harder as the week goes on, and Sunday seats <b>two</b> jesters per row, column and court on a bigger board.</p>
+      <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. Courts get harder as the week goes on, and Sunday seats <b>two</b> jesters per row, column and court on a bigger board, where a second jester in a row is correct and only a third quarrels.</p>
+      <p style={{ margin: '9px 0 0' }}>The numbers along the edges count the seats each row and column still owes, and a court fades once it is full.</p>
     </div>
   );
 
@@ -719,6 +778,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Seat {STARS === 2 ? 'two jesters' : 'one jester'} in every row, column and colored court, with none touching. The board stays covered until you begin.</p>
+                {STARS === 2 && (
+                  <p style={{ margin: '0 0 6px' }}>Sunday takes <b>two</b>, so a second jester in a row is correct here and only a third is a quarrel. The numbers around the edge count the seats each row and column still owes.</p>
+                )}
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -735,6 +797,8 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {/* the board */}
         {!preStart && (
         <div className="je-board-scroll" style={{ textAlign: 'center' }}>
+         <div style={{ display: 'inline-block' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <div style={{ display: 'inline-block', border: `3px solid ${T.ink}`, borderRadius: 10, overflow: 'hidden', background: T.ink, boxShadow: '0 2px 10px rgba(20,22,28,0.12)' }}>
             {PUZZLE.regions.map((row, r) => (
               <div key={r} style={{ display: 'flex' }}>
@@ -761,7 +825,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                       onTouchCancel={endPress}
                       role="button"
                       aria-label={`Row ${r + 1}, column ${c + 1}: ${v === 2 ? 'jester' : showX ? 'ruled out' : 'blank'}${conflict ? ', quarrelling' : ''}. Tap to place the ${tool === 'jester' ? 'jester' : '✗ mark'}; hold or right-click to seat a jester directly.`}
-                      style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : REGION_FILLS[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px ${COLORS.accent}` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
+                      style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : (doneRegions.has(id) ? REGION_FILLS_DONE : REGION_FILLS)[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px ${COLORS.accent}` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                     >
                       {v !== 2 && showX && <span className="je-x" style={autoMark ? { opacity: 0.6 } : undefined}>✗</span>}
                       {v === 2 && <JesterMark size={Math.round(cellPx * 0.6)} conflict={conflict} />}
@@ -771,6 +835,23 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
               </div>
             ))}
           </div>
+          {/* seats still to fill in each row */}
+          <div style={{ display: 'flex', flexDirection: 'column', paddingTop: 3 }}>
+            {rowRemain.map((v, r) => (
+              <div key={r} role="img" aria-label={v === 0 ? `Row ${r + 1} is full` : v < 0 ? `Row ${r + 1} has ${-v} too many` : `Row ${r + 1} needs ${v} more`}
+                style={{ ...counterStyle(v), width: COUNTER_GUTTER, height: cellPx }}>{v === 0 ? '✓' : v}</div>
+            ))}
+          </div>
+          </div>
+          {/* seats still to fill in each column */}
+          <div style={{ display: 'flex', paddingLeft: 3 }}>
+            {colRemain.map((v, c) => (
+              <div key={c} role="img" aria-label={v === 0 ? `Column ${c + 1} is full` : v < 0 ? `Column ${c + 1} has ${-v} too many` : `Column ${c + 1} needs ${v} more`}
+                style={{ ...counterStyle(v), width: cellPx, height: COUNTER_GUTTER }}>{v === 0 ? '✓' : v}</div>
+            ))}
+            <div style={{ width: COUNTER_GUTTER }} />
+          </div>
+         </div>
         </div>
         )}
 
