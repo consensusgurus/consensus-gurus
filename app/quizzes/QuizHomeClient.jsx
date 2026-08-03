@@ -17,6 +17,7 @@ import {
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
+import HomeRails from '../HomeRails';
 import XpTile from './XpTile';
 import shareDayCard from '../shareDayCard';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
@@ -2127,202 +2128,58 @@ export default function QuizHomeClient() {
             }
           `}</style>
           <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>
-            <div className="dhx-lone">
-            {/* 1. Top Community Member (rebuilt from /api/quiz/referrals) */}
-            {(() => {
-              const top = (refData && Array.isArray(refData.top)) ? refData.top : [];
-              const one = top[0];
-              const num = (n) => (n || 0).toLocaleString();
-              const nm = (one && one.username) || '';
-              return (
-                <div className="dhx-lb comm">
-                  <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag"><Crown size={13} style={{ verticalAlign: -1 }} /> TOP COMMUNITY MEMBER</span>
-                    <div className="dhx-lb-hero">
-                      {nm
-                        ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
-                        : <span className="dhx-lb-name" style={{ fontSize: 30 }}>&mdash;</span>}
-                      <span className="dhx-lb-stat"><b>{one ? num(one.credits) : '0'}</b><i className="wrap">NEW PLAYERS<br />BROUGHT IN &middot; 90D</i></span>
-                    </div>
-                  </div>
-                  <div className="dhx-lb-body">
-                    {top.length > 1 ? (
-                      <div className="dhx-lb-grid">
-                        {top.slice(1, 10).map((r, i) => (
-                          <Link key={i} href={`/player/${encodeURIComponent(r.username || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.username}</b><span className="sc">{num(r.credits)}</span></Link>
-                        ))}
-                      </div>
-                    ) : <span className="dhx-lb-none">{one ? 'Nobody else has brought in a player yet' : 'Nobody has brought in a player yet recently'}</span>}
-                    <span className="dhx-lb-links">
-                      <Link href="/quizzes/community" className="dhx-lb-more">Full community leaderboard &rarr;</Link>
-                      <button type="button" onClick={() => setCreditOpen(true)} className="dhx-lb-more dhx-lb-morebtn">Get credit &rarr;</button>
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-            {/* 2. Daily Puzzle Leaderboard — flips to today's top IQ gainers */}
-            {dailyBoard && Array.isArray(dailyBoard.overall) && dailyBoard.overall.length ? (() => {
-              const ov = dailyBoard.overall.slice(0, 10);
-              const mk = dailyBoard.me ? dailyBoard.me.userKey : null;
-              const gc = dailyBoard.gameCount || 30;
-              const num = (n) => (n || 0).toLocaleString();
-              // The second face only exists once somebody has banked IQ today,
-              // so an empty early-morning board never flips to a blank panel.
-              const canFlip = xpToday.length > 0;
-              const iqFace = canFlip && dailyFlip % 2 === 1;
-              const one = iqFace ? xpToday[0] : ov[0];
-              const nm = (iqFace ? (one && one.name) : (one && one.username)) || '';
-              return (
-                <div className="dhx-lb daily">
-                  <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag">
-                      {iqFace ? <Brain size={13} style={{ verticalAlign: -1 }} /> : <Crown size={13} style={{ verticalAlign: -1 }} />}
-                      {iqFace ? "TODAY'S TOP IQ GAINERS" : 'DAILY PUZZLE LEADERBOARD'}
-                      {canFlip ? <span className="dhx-lb-dots"><i className={iqFace ? '' : 'on'} /><i className={iqFace ? 'on' : ''} /></span> : null}
-                    </span>
-                    <div className="dhx-lb-hero">
-                      {nm
-                        ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
-                        : <span className="dhx-lb-name" style={{ fontSize: 30 }}>Player</span>}
-                      {iqFace
-                        ? <span className="dhx-lb-stat"><b>{one ? num(one.value) : '0'}</b><i>IQ &middot; TODAY</i></span>
-                        : <span className="dhx-lb-stat"><b>{one ? one.gamesPlayed : 0}<em>/{gc}</em></b><i>PUZZLES TODAY</i></span>}
-                    </div>
-                  </div>
-                  <div className="dhx-lb-body">
-                    <div className="dhx-lb-grid">
-                      {iqFace
-                        ? xpToday.slice(1, 10).map((r, i) => (
-                          <Link key={`iq${i}`} href={`/player/${encodeURIComponent(r.name || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b><span className="sc">{num(r.value)}</span></Link>
-                        ))
-                        : ov.slice(1, 10).map((r) => (
-                          <Link key={r.userKey} href={`/player/${encodeURIComponent(r.username || '')}`} className={`dhx-lb-gi${mk && r.userKey === mk ? ' me' : ''}`}><span className="rk">{r.rank}</span><b>{r.username || 'Player'}</b></Link>
-                        ))}
-                    </div>
-                    {iqFace
-                      ? <Link href="/quizzes/hub?tab=player" className="dhx-lb-more">Full IQ leaderboard &rarr;</Link>
-                      : <Link href="/quizzes/hub?tab=daily" className="dhx-lb-more">Full standings &amp; game boards &rarr;</Link>}
-                  </div>
-                </div>
-              );
-            })() : null}
-            {/* 3. Top SoT Player (rebuilt from /api/quiz/xp; flips 30-day <-> all-time) */}
-            {(() => {
-              const is30 = xpFlip % 2 === 0;
-              const top = (is30 ? (xp30.length ? xp30 : xpAll) : (xpAll.length ? xpAll : xp30)) || [];
-              const one = top[0];
-              const num = (n) => (n || 0).toLocaleString();
-              const nm = (one && one.name) || '';
-              return (
-                <div className="dhx-lb xp">
-                  <div className="dhx-lb-band">
-                    <span className="dhx-lb-tag"><Star size={13} style={{ verticalAlign: -1 }} fill="currentColor" /> TOP PLAYER:&nbsp;<span style={{ display: 'inline-block', minWidth: '8ch' }}>{is30 ? 'RECENT' : 'ALL TIME'}</span><span className="dhx-lb-dots"><i className={is30 ? 'on' : ''} /><i className={is30 ? '' : 'on'} /></span></span>
-                    <div className="dhx-lb-hero">
-                      {nm
-                        ? <Link href={`/player/${encodeURIComponent(nm)}`} className="dhx-lb-name" style={{ fontSize: lbNameSize(nm) }}>{nm}</Link>
-                        : <span className="dhx-lb-name" style={{ fontSize: 30 }}>&mdash;</span>}
-                      <span className="dhx-lb-stat"><b>{one ? num(one.value) : '0'}</b><i>IQ &middot; {is30 ? '30D' : 'ALL'}</i></span>
-                    </div>
-                  </div>
-                  <div className="dhx-lb-body">
-                    <div className="dhx-lb-grid">
-                      {top.slice(1, 10).map((r, i) => (
-                        <Link key={i} href={`/player/${encodeURIComponent(r.name || '')}`} className="dhx-lb-gi"><span className="rk">{i + 2}</span><b>{r.name}</b></Link>
-                      ))}
-                    </div>
-                    <Link href="/quizzes/hub?tab=player" className="dhx-lb-more">Full leaderboard &rarr;</Link>
-                  </div>
-                </div>
-              );
-            })()}
-            </div>
+            <HomeRails
+              side="left"
+              refData={refData}
+              dailyBoard={dailyBoard}
+              xpToday={xpToday}
+              xp30={xp30}
+              xpAll={xpAll}
+              onCredit={() => setCreditOpen(true)}
+            />
           </div>
           <div className="dhx-center" ref={centerRef}>
             <DailyStrip board={dailyBoard} />
           </div>
           <div className="dhx-rail dhx-right" style={{ height: railH || undefined }}>
-            <div className={`dhx-rone${cmOpen ? ' cm-open' : ''}`}>
-            {/* full Last Played (moved up from the browse row): rings + time + plays today */}
-            <div className="dhx-lp">
-              <div className="dhx-lp-top">
-                <span className="dhx-lp-ttl">Last Played</span>
-                <span className="dhx-live"><i />LIVE</span>
-                <button type="button" className="dhx-lp-all" onClick={() => setListMode('live')}>All ›</button>
-              </div>
-              <div className="dhx-lp-stats">
-                <div><b>{(playsToday || 0).toLocaleString()}</b><span>plays today</span></div>
-                <div><b>{(() => { const x = Math.round((totals && totals.todayTime) || 0); const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; })()}</b><span>played today</span></div>
-                {(() => {
-                  const nowMs = Date.now(); const HB = 11; const bars = new Array(HB).fill(0);
-                  for (const p of (recent || [])) { const tt = (p && p.playedAt) ? Date.parse(p.playedAt) : 0; if (!tt) continue; const hrsAgo = Math.floor((nowMs - tt) / 3600000); if (hrsAgo >= 0 && hrsAgo < HB) bars[HB - 1 - hrsAgo] += 1; }
-                  const maxBar = Math.max(1, ...bars);
-                  return (<div className="dhx-lp-bars" title="plays per hour (last 11h)">{bars.map((b, i) => (<span key={i} style={{ height: `${Math.max(9, Math.round((b / maxBar) * 100))}%`, background: i >= HB - 2 ? T.successDeep : T.border }} />))}</div>);
-                })()}
-              </div>
-              <div className="dhx-lp-rows">
-                {(lastPlayed || []).slice(0, 7).map((f, i) => {
-                  const frac = f.total ? f.score / f.total : 0;
-                  const pct = Math.min(100, Math.round(frac * 100));
-                  const ring = frac >= 0.8 ? '#16a34a' : (frac >= 0.4 ? T.gold : '#dc2626');
-                  const good = frac >= 0.8;
-                  const fam = gameFamily(f.quizId);
-                  const dgc = fam ? DG_CAT[fam] : null;
-                  const catLabel = dgc ? shortCat(dgc.name) : (fam ? 'Daily Puzzle' : (DEPT_LABEL[deptById[f.quizId]] || 'Quiz'));
-                  const catColor = dgc ? dgc.color : (fam ? '#5b6472' : (DEPT_COLOR[deptById[f.quizId]] || DEPT_COLOR.misc).c);
-                  return (
-                    <a key={i} href={playHref(f.quizId)} className="dhx-lpr" title={titleById[f.quizId] || f.quizId}>
-                      <span className="ring" style={{ background: `conic-gradient(${ring} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
-                      <span className="mid"><span className="t">{stripVerb(resolveTitle(f.quizId) || f.title || f.quizId)}</span><span className="c"><i style={{ background: catColor }} />{catLabel}{todayPlays(f.quizId) > 0 ? <span className="x"> · x{todayPlays(f.quizId).toLocaleString()} today</span> : null}</span></span>
-                      <span className="rt"><span className="s" style={{ color: good ? T.successDeep : T.ink }}>{f.score}/{f.total}</span><span className="when">{typeof f.pct === 'number' ? <span className="beat">beat {f.pct}%</span> : null}{relTime(f.playedAt) ? <span className="tm">{relTime(f.playedAt)} ago</span> : null}</span></span>
-                    </a>
-                  );
-                })}
-                {(!lastPlayed || lastPlayed.length === 0) ? <div className="dhx-lp-none">No recent plays yet.</div> : null}
-              </div>
-            </div>
-            {/* Quick play: Daily Challenge + Quiz of the Day + Start a Duel */}
-            <div className="dhx-quick">
-              {daily && DAILY_CHALLENGE_ON ? (
-                <Link href={dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl} className="dhx-qrow">
-                  <span className="qic" style={{ background: '#8a6d1a' }}><Target size={16} strokeWidth={2.4} /></span>
-                  <span className="qm"><span className="qt">Daily Challenge</span><span className="qs">{dailyCat || 'Today'}{dailyChLeader ? <span className="qlead"><Crown size={9} strokeWidth={2.6} />{dailyChLeader}</span> : null}</span></span>
-                  <span className="qa">›</span>
-                </Link>
-              ) : null}
-              {qotd ? (
-                <Link href={`/quiz/${qotd.id}`} className="dhx-qrow">
-                  <span className="qic" style={{ background: '#c2410c' }}><Play size={14} fill={T.white} strokeWidth={0} /></span>
-                  <span className="qm"><span className="qt">Quiz of the Day{qotdLeader ? <span className="qlead"><Crown size={9} strokeWidth={2.6} />{qotdLeader}</span> : null}</span><span className="qs">{stripVerb(qotd.title)}</span></span>
-                  <span className="qa">›</span>
-                </Link>
-              ) : null}
-              <Link href="/quizzes/hub?tab=duels" className="dhx-qrow">
-                <span className="qic" style={{ background: '#1f2937' }}><Swords size={15} /></span>
-                <span className="qm"><span className="qt">Start a Duel</span><span className="qs">Challenge someone 1 v 1</span></span>
-                <span className="qa">›</span>
-              </Link>
-            </div>
-            {/* Category Mastery (moved from the removed hub row) — collapses to its title by default */}
-            <div className={`dhx-cm${cmOpen ? ' open' : ''}`}>
-              <button type="button" className="dhx-cm-h" onClick={() => setCmOpen((v) => !v)} aria-expanded={cmOpen}>
-                <BarChart3 size={13} style={{ color: T.blue, flex: 'none' }} /><span>Category Mastery</span>
-                <ChevronDown size={15} strokeWidth={2.5} className="cmchev" />
-              </button>
-              {cmOpen ? (catMastery.length > 0 ? (
-                <div className="dhx-cm-bars">
-                  {catMastery.slice(0, 14).map((m) => (
-                    <button type="button" key={m.key} onClick={() => goCat(m.key)} className="dhx-cmbar" title={`${m.label} · ${m.acc}%`}>
-                      <span className="mtr" style={{ width: `${m.acc}%` }} aria-hidden="true" />
-                      <span className="nm">{m.label}</span><span className="p">{m.acc}%</span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="dhx-cm-empty">Play a few quizzes to build your category mastery.</div>
-              )) : null}
-            </div>
-            </div>
+            <HomeRails
+              side="right"
+              totals={totals}
+              lastPlayed={(lastPlayed || []).map((f) => ({ ...f, when: relTime(f.playedAt) ? `${relTime(f.playedAt)} ago` : '' }))}
+              titleFor={(id) => stripVerb(resolveTitle(id) || id)}
+              hrefFor={(id) => playHref(id)}
+              catFor={(id) => {
+                const fam = gameFamily(id);
+                const dgc = fam ? DG_CAT[fam] : null;
+                const color = dgc ? dgc.color : ((DEPT_COLOR[deptById[id]] || DEPT_COLOR.misc).c);
+                const label = dgc ? shortCat(dgc.name) : (fam ? 'Daily' : (DEPT_LABEL[deptById[id]] || 'Quiz'));
+                return { label, color, tint: (typeof color === 'string' && color.length === 7) ? `${color}18` : 'rgba(0,0,0,0.05)' };
+              }}
+              onAllLive={() => setListMode('live')}
+              featured={[
+                ...((daily && DAILY_CHALLENGE_ON) ? [{
+                  title: 'Daily Challenge',
+                  sub: dailyCat || 'Today',
+                  href: dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl,
+                  icon: <Target size={16} strokeWidth={2.4} />,
+                  color: '#8a6d1a', tint: '#fdf7e8',
+                }] : []),
+                ...(qotd ? [{
+                  title: 'Quiz of the Day',
+                  sub: stripVerb(qotd.title),
+                  href: `/quiz/${qotd.id}`,
+                  icon: <Play size={14} fill="currentColor" strokeWidth={0} />,
+                  color: '#c2410c', tint: '#fdf0e8',
+                }] : []),
+                {
+                  title: 'Start a duel',
+                  sub: 'Challenge someone 1 v 1',
+                  href: '/quizzes/hub?tab=duels',
+                  icon: <Crown size={15} strokeWidth={2.4} />,
+                  color: T.danger, tint: '#f7ecea',
+                },
+              ]}
+            />
           </div>
         </div>
 
