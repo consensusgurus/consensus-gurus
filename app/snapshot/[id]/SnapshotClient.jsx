@@ -8,18 +8,19 @@ import { HERO_IMAGES } from '@/lib/hero-images';
 import { fetchBootstrap } from '@/lib/api';
 import { ListOverviewPoster } from '../../list/[id]/ListOverview';
 import { withRef } from '@/lib/referrals';
+import { T } from '@/lib/theme';
 
 const POSTER_W = 1080;
 const POSTER_H = 1350;
 
 const COLOR_SCHEMES = {
-  classic:    { label: 'Classic',    bg: '#f4ede0', text: '#1a1a1a', accent: '#c0392b', faded: '#8a7a6a', swatch: ['#f4ede0', '#c0392b'] },
+  classic:    { label: 'Classic',    bg: '#f4ede0', text: '#1a1a1a', accent: T.danger, faded: '#8a7a6a', swatch: ['#f4ede0', T.danger] },
   midnight:   { label: 'Midnight',   bg: '#111118', text: '#f0eeea', accent: '#d4a944', faded: '#7070a0', swatch: ['#111118', '#d4a944'] },
   slate:      { label: 'Slate',      bg: '#1c2b3a', text: '#dce8f0', accent: '#4ea8de', faded: '#7090a8', swatch: ['#1c2b3a', '#4ea8de'] },
   forest:     { label: 'Forest',     bg: '#0e1e14', text: '#d8ead0', accent: '#6cbf5a', faded: '#5a8060', swatch: ['#0e1e14', '#6cbf5a'] },
   crimson:    { label: 'Crimson',    bg: '#b82c20', text: '#fdf4ec', accent: '#f5e050', faded: '#e8a090', swatch: ['#b82c20', '#f5e050'] },
-  neon:       { label: 'Neon',       bg: '#000000', text: '#ffffff', accent: '#00ff88', faded: '#666666', swatch: ['#000000', '#00ff88'] },
-  cobalt:     { label: 'Cobalt',     bg: '#1244c5', text: '#eef3ff', accent: '#ffde59', faded: '#8aaae0', swatch: ['#1244c5', '#ffde59'] },
+  neon:       { label: 'Neon',       bg: '#000000', text: T.white, accent: '#00ff88', faded: '#666666', swatch: ['#000000', '#00ff88'] },
+  cobalt:     { label: 'Cobalt',     bg: '#1244c5', text: T.accentSoft, accent: '#ffde59', faded: '#8aaae0', swatch: ['#1244c5', '#ffde59'] },
   tangerine:  { label: 'Tangerine',  bg: '#e84800', text: '#fff8f0', accent: '#ffe066', faded: '#f0a070', swatch: ['#e84800', '#ffe066'] },
   violet:     { label: 'Violet',     bg: '#3a0f88', text: '#ead4ff', accent: '#9dff6e', faded: '#9060c0', swatch: ['#3a0f88', '#9dff6e'] },
   rose:       { label: 'Rose',       bg: '#c2105a', text: '#fff0f5', accent: '#ffe066', faded: '#e880a8', swatch: ['#c2105a', '#ffe066'] },
@@ -28,13 +29,13 @@ const COLOR_SCHEMES = {
   sage:       { label: 'Sage',       bg: '#c8dcc0', text: '#1a2a15', accent: '#2a6020', faded: '#5a7852', swatch: ['#c8dcc0', '#2a6020'] },
   toxic:      { label: 'Toxic',      bg: '#0a0a0a', text: '#e8ff00', accent: '#ff00aa', faded: '#4a4a00', swatch: ['#0a0a0a', '#e8ff00'] },
   ocean:      { label: 'Ocean',      bg: '#001f3f', text: '#e0f4ff', accent: '#00d4ff', faded: '#305070', swatch: ['#001f3f', '#00d4ff'] },
-  bubblegum:  { label: 'Bubblegum', bg: '#ff6eb4', text: '#1a0010', accent: '#ffffff', faded: '#cc3088', swatch: ['#ff6eb4', '#ffffff'] },
+  bubblegum:  { label: 'Bubblegum', bg: '#ff6eb4', text: '#1a0010', accent: T.white, faded: '#cc3088', swatch: ['#ff6eb4', T.white] },
   lemon:      { label: 'Lemon',      bg: '#f7e900', text: '#1a1400', accent: '#ff2200', faded: '#8a8000', swatch: ['#f7e900', '#ff2200'] },
   denim:      { label: 'Denim',      bg: '#1b3a6b', text: '#f0f4ff', accent: '#ff7f00', faded: '#6080b0', swatch: ['#1b3a6b', '#ff7f00'] },
   aurora:     { label: 'Aurora',     bg: '#0d0d2b', text: '#e8f0ff', accent: '#ff4fd8', faded: '#4040a0', swatch: ['#0d0d2b', '#ff4fd8'] },
   matcha:     { label: 'Matcha',     bg: '#2d4a1e', text: '#f0f7e8', accent: '#c8f060', faded: '#5a7848', swatch: ['#2d4a1e', '#c8f060'] },
-  candy:      { label: 'Candy',      bg: '#ffffff', text: '#cc0022', accent: '#cc0022', faded: '#ff6688', swatch: ['#ffffff', '#cc0022'] },
-  ink:        { label: 'Ink',        bg: '#0a0a0a', text: '#ffffff', accent: '#ffffff', faded: '#555555', swatch: ['#0a0a0a', '#ffffff'] },
+  candy:      { label: 'Candy',      bg: T.white, text: '#cc0022', accent: '#cc0022', faded: '#ff6688', swatch: [T.white, '#cc0022'] },
+  ink:        { label: 'Ink',        bg: '#0a0a0a', text: T.white, accent: T.white, faded: '#555555', swatch: ['#0a0a0a', T.white] },
   copper:     { label: 'Copper',     bg: '#3d1800', text: '#ffe8cc', accent: '#ff8c00', faded: '#804020', swatch: ['#3d1800', '#ff8c00'] },
 };
 
@@ -629,7 +630,7 @@ function PosterSpotlight({ list, items, modeLabel, sourceNames, pal }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.82), rgba(0,0,0,0.18) 56%, rgba(0,0,0,0))' }} />
         <div style={{ position: 'absolute', left: 28, right: 28, bottom: 24, display: 'flex', alignItems: 'flex-end', gap: 18 }}>
           <span style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 900, fontSize: 78, lineHeight: 0.78, color: pal.accent, textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>01</span>
-          <span style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 40, lineHeight: 1.0, letterSpacing: '-0.02em', color: '#ffffff', flex: 1, paddingBottom: 6, wordBreak: 'break-word', textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>{top}</span>
+          <span style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: 40, lineHeight: 1.0, letterSpacing: '-0.02em', color: T.white, flex: 1, paddingBottom: 6, wordBreak: 'break-word', textShadow: '0 2px 10px rgba(0,0,0,0.6)' }}>{top}</span>
         </div>
       </div>
       <div style={{ flex: '3 0 0', display: 'flex', flexDirection: 'column', padding: '10px 56px 0' }}>
@@ -657,7 +658,7 @@ function PhotoCard({ item, rank, big, pal, list }) {
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.12) 60%, rgba(0,0,0,0))' }} />
       <div style={{ position: 'absolute', left: big ? 18 : 14, right: 12, bottom: big ? 16 : 11, display: 'flex', alignItems: 'flex-end', gap: 10 }}>
         <span style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 900, fontSize: big ? 34 : 22, lineHeight: 1, color: pal.bg, background: pal.accent, padding: big ? '5px 13px' : '3px 9px', flexShrink: 0 }}>{rank}</span>
-        <span style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: big ? 30 : 19, lineHeight: 1.0, letterSpacing: '-0.02em', color: '#ffffff', flex: 1, wordBreak: 'break-word', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{item || ''}</span>
+        <span style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: big ? 30 : 19, lineHeight: 1.0, letterSpacing: '-0.02em', color: T.white, flex: 1, wordBreak: 'break-word', textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>{item || ''}</span>
       </div>
     </div>
   );

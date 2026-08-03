@@ -32,6 +32,7 @@ import ActivityFeed from './ActivityFeed';
 import SnapshotClient from '../../snapshot/[id]/SnapshotClient';
 import { Tile as HomeTile, BrowseTile } from '../../HomeClient';
 import { savedIdentity } from '@/lib/saved-identity';
+import { T } from '@/lib/theme';
 
 // ── LIST-PAGE RIBBON V2 (June 2026 redesign) ────────────────────────────────
 // Flip to false to restore the previous outlined tab chips exactly. V2 renders
@@ -580,7 +581,7 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
             fontSize: 15,
             lineHeight: 1.55,
             margin: '10px 0 0',
-            color: '#262b35',
+            color: T.muted,
             maxWidth: 680,
           }}
         >
@@ -591,14 +592,14 @@ function ListDetail({ list, viewCount, voteData, userVotes, extras, relatedLists
       {!compact && (
         <div style={{ marginTop: 18 }}>
           <div style={{ display: 'flex', gap: 16, marginBottom: 10, justifyContent: 'flex-end' }}>
-            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? '#0e1d40' : '#262b35', display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
-            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: '#262b35', display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
+            <button onClick={() => setTab('share')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: tab === 'share' ? T.accent : T.muted, display: 'flex', alignItems: 'center', gap: 5 }}><Share2 size={13} strokeWidth={2.5} /> Share</button>
+            <button onClick={() => { setComplainSent(false); setComplainOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12.5, fontWeight: 600, color: T.muted, display: 'flex', alignItems: 'center', gap: 5 }}><PenLine size={13} strokeWidth={2.5} /> Disagree?</button>
           </div>
-          <div style={{ display: 'flex', gap: 6, background: '#eceef1', borderRadius: 10, padding: 4 }}>
+          <div style={{ display: 'flex', gap: 6, background: T.paper, borderRadius: 10, padding: 4 }}>
             {[['consensus', 'The Ranking'], ['source', 'Sources'], ['method', 'Methodology'], ['activity', 'Activity']]
               .filter(([id]) => id !== 'source' || showSourceTab)
               .map(([id, label]) => (
-                <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? '#fff' : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? '#1c1e24' : '#262b35', cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                <button key={id} onClick={() => setTab(id)} style={{ flex: 1, border: 'none', background: tab === id ? T.white : 'transparent', borderRadius: 7, padding: '9px', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 13, fontWeight: tab === id ? 700 : 500, color: tab === id ? T.ink : T.muted, cursor: 'pointer', boxShadow: tab === id ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
               ))}
           </div>
         </div>
@@ -1603,7 +1604,7 @@ export default function DetailClient({ listId }) {
     <div
       style={{
         minHeight: '100vh',
-        background: '#f7f8fa',
+        background: T.surface,
         color: COLORS.ink,
         position: 'relative',
         overflow: LIST_RIBBON_V2 ? 'clip' : 'hidden',
@@ -1615,7 +1616,7 @@ export default function DetailClient({ listId }) {
             position: 'relative',
             zIndex: 2,
             minHeight: '100vh',
-            background: '#f7f8fa',
+            background: T.surface,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -1626,9 +1627,9 @@ export default function DetailClient({ listId }) {
         >
           <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap');@keyframes sotpulse{0%,100%{opacity:.4;transform:scale(0.92)}50%{opacity:1;transform:scale(1)}}`}</style>
           <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#1e3a6b,#0a1730)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sotpulse 1.2s ease-in-out infinite' }}>
-            <div style={{ width: 17, height: 17, borderRadius: '50%', border: '2.5px solid #fff' }} />
+            <div style={{ width: 17, height: 17, borderRadius: '50%', border: `2.5px solid ${T.white}` }} />
           </div>
-          <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: '#262b35' }}>Loading the ranking…</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: T.muted }}>Loading the ranking…</div>
         </div>
       ) : list ? (
         <ListDetail
@@ -1646,7 +1647,7 @@ export default function DetailClient({ listId }) {
         />
       ) : (
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontWeight: 600, color: '#262b35' }}>
+          <p style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontWeight: 600, color: T.muted }}>
             That list seems to have wandered off.
           </p>
           <button

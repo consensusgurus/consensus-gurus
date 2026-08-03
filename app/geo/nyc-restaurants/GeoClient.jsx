@@ -18,15 +18,16 @@ import Footer from '../../Footer';
 import SiteHeader from '../../SiteHeader';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '@/app/ShareCreditPop';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  forest: '#10b981',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  forest: T.success,
+  faded: T.muted,
 };
 const MONO = "'Manrope', system-ui, -apple-system, sans-serif";
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -139,11 +140,11 @@ export default function GeoClient() {
     const map = mapRef.current;
     if (!L || !map) return;
     const actual = [spot.lat, spot.lng];
-    const aMark = L.circleMarker(actual, { radius: 9, color: '#fff', weight: 2.5, fillColor: COLORS.forest, fillOpacity: 1 })
+    const aMark = L.circleMarker(actual, { radius: 9, color: T.white, weight: 2.5, fillColor: COLORS.forest, fillOpacity: 1 })
       .addTo(map).bindPopup(`<b>${spot.name}</b><br>${spot.hood}`);
     layersRef.current.push(aMark);
     if (latlng) {
-      const g = L.circleMarker(latlng, { radius: 7, color: COLORS.ink, weight: 2, fillColor: '#fff', fillOpacity: 1 }).addTo(map);
+      const g = L.circleMarker(latlng, { radius: 7, color: COLORS.ink, weight: 2, fillColor: T.white, fillOpacity: 1 }).addTo(map);
       const line = L.polyline([latlng, actual], { color: COLORS.ember, weight: 2.5, dashArray: '5,7' }).addTo(map);
       layersRef.current.push(g, line);
       try { map.fitBounds(L.latLngBounds([latlng, actual]).pad(0.5)); } catch {}
@@ -314,7 +315,7 @@ export default function GeoClient() {
               {MAX_POINTS.toLocaleString()} points in play.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
-              <button onClick={startGame} disabled={!leafletReady} style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 40px', lineHeight: '52px', border: 'none', background: COLORS.ember, color: '#fff', cursor: leafletReady ? 'pointer' : 'default', opacity: leafletReady ? 1 : 0.5 }}>{leafletReady ? 'Start' : 'Loading map…'}</button>
+              <button onClick={startGame} disabled={!leafletReady} style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 40px', lineHeight: '52px', border: 'none', background: COLORS.ember, color: T.white, cursor: leafletReady ? 'pointer' : 'default', opacity: leafletReady ? 1 : 0.5 }}>{leafletReady ? 'Start' : 'Loading map…'}</button>
               <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '52px', border: `1.5px solid ${COLORS.ink}`, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Share2 size={14} strokeWidth={2.5} /> {copied ? 'Copied!' : 'Share'}
               </button>
@@ -346,7 +347,7 @@ export default function GeoClient() {
 
             <div style={{ marginTop: 10, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               {revealed ? (
-                <button onClick={nextRound} style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 36px', lineHeight: '50px', border: 'none', background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={nextRound} style={{ fontFamily: MONO, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 36px', lineHeight: '50px', border: 'none', background: COLORS.ember, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                   {idx < TOTAL - 1 ? <>Next round <ArrowRight size={15} strokeWidth={2.5} /></> : <>See results <ArrowRight size={15} strokeWidth={2.5} /></>}
                 </button>
               ) : (
@@ -378,7 +379,7 @@ export default function GeoClient() {
             {recap.length > 0 && (
               <ol style={{ margin: '18px 0 0', padding: 0, listStyle: 'none' }}>
                 {recap.map((row, i) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: `1px solid ${row.pts >= 700 ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: row.pts >= 700 ? '#fff' : COLORS.paper }}>
+                  <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: `1px solid ${row.pts >= 700 ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: row.pts >= 700 ? T.white : COLORS.paper }}>
                     <span style={{ flex: 1, fontFamily: SANS, fontSize: 15, fontWeight: 600 }}>{row.name}</span>
                     <span style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>{row.distM != null ? `${fmtDist(row.distM)} off` : 'no guess'}</span>
                     <span style={{ fontFamily: MONO, fontSize: 14, color: row.pts >= 700 ? COLORS.forest : COLORS.faded, minWidth: 52, textAlign: 'right' }}>+{row.pts}</span>
@@ -388,7 +389,7 @@ export default function GeoClient() {
             )}
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 18 }}>
-              <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', width: 210, padding: 0, background: COLORS.ember, color: '#fff', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <button onClick={playAgain} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', width: 210, padding: 0, background: COLORS.ember, color: T.white, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
                 <RotateCcw size={14} strokeWidth={2.5} /> Play again
               </button>
               <button onClick={share} style={{ fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', width: 210, padding: 0, background: COLORS.ink, color: COLORS.cream, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>

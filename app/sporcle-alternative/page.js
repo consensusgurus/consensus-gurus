@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import Footer from '@/app/Footer';
+import { T } from '@/lib/theme';
 
 export const metadata = {
   title: 'Sporcle Alternative: Free Trivia Quizzes, No Ads | Source of Truths',
@@ -17,7 +18,7 @@ export const metadata = {
   twitter: { card: 'summary_large_image', title: 'A Sporcle Alternative With No Ads', description: 'Fast, ad-free trivia quizzes with leaderboards and a modern interface.' },
 };
 
-const C = { bg: '#ffffff', card: '#ffffff', ink: '#1c1e24', blue: '#0e1d40', gold: '#fbb615', muted: '#262b35', border: '#e2e5ea', green: '#10b981' };
+const C = { bg: T.white, card: T.white, ink: T.ink, blue: T.accent, gold: '#fbb615', muted: T.muted, border: '#e2e5ea', green: T.success };
 const F = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function Prop({ title, body }) {
@@ -62,7 +63,7 @@ export default function SporcleAlternativePage() {
           <p style={{ fontFamily: F, fontSize: 18, lineHeight: 1.6, color: C.muted, maxWidth: 640, marginTop: 22 }}>
             If you came looking for Sporcle without the ads, you found it. Source of Truths has everything you liked about the classic quiz sites, name-them-all, beat-the-clock, climb-the-leaderboard, on a fast, clean page with zero ads in your way.
           </p>
-          <Link href="/quizzes" style={{ display: 'inline-flex', marginTop: 24, fontFamily: F, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '14px 28px', borderRadius: 10, background: C.blue, color: '#fff', textDecoration: 'none' }}>
+          <Link href="/quizzes" style={{ display: 'inline-flex', marginTop: 24, fontFamily: F, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '14px 28px', borderRadius: 10, background: C.blue, color: T.white, textDecoration: 'none' }}>
             Browse the quizzes
           </Link>
         </div>

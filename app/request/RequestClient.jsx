@@ -6,13 +6,14 @@ import { TYPES } from '@/lib/data';
 import { postList } from '@/lib/api';
 import SiteHeader from '../SiteHeader';
 import Footer from '../Footer';
+import { T } from '@/lib/theme';
 
 // Standard site theme (matches the homepage, list pages, and Stat Hub):
 // Manrope, light-gray canvas, white cards, blue accent.
 const C = {
-  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40',
-  accsoft: '#e8effb', danger: '#c0392b',
+  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
+  accsoft: '#e8effb', danger: T.danger,
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -65,7 +66,7 @@ function RequestView({ onSubmit }) {
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
     .req{font-family:${FONT};color:${C.ink};}
     .req .lbl{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${C.muted};margin-bottom:6px;}
-    .req .fld{width:100%;background:#fff;border:1px solid ${C.line};border-radius:10px;padding:11px 13px;font-family:${FONT};font-size:15px;color:${C.ink};outline:none;box-sizing:border-box;}
+    .req .fld{width:100%;background:var(--white);border:1px solid ${C.line};border-radius:10px;padding:11px 13px;font-family:${FONT};font-size:15px;color:${C.ink};outline:none;box-sizing:border-box;}
     .req .fld:focus{border-color:${C.accent};box-shadow:0 0 0 3px ${C.accsoft};}
     .req textarea.fld{resize:vertical;min-height:60px;}
     .req select.fld{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:34px;}
@@ -75,9 +76,9 @@ function RequestView({ onSubmit }) {
     .req .pickin{flex:1;min-width:0;background:transparent;border:none;outline:none;font-family:${FONT};font-size:15px;color:${C.ink};padding:4px 0;}
     .req .iconbtn{background:transparent;border:none;color:${C.soft};cursor:pointer;display:flex;align-items:center;padding:4px;}
     .req .iconbtn:hover{color:${C.danger};}
-    .req .addbtn{margin-top:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;background:#fff;color:${C.ink};border:1px dashed ${C.line};border-radius:10px;padding:11px 16px;font-family:${FONT};font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;}
+    .req .addbtn{margin-top:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--white);color:${C.ink};border:1px dashed ${C.line};border-radius:10px;padding:11px 16px;font-family:${FONT};font-size:12px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;}
     .req .addbtn:hover{border-color:${C.accent};color:${C.accent};}
-    .req .submit{width:100%;background:${C.accent};color:#fff;border:none;border-radius:10px;padding:14px 24px;font-family:${FONT};font-size:14px;font-weight:700;cursor:pointer;}
+    .req .submit{width:100%;background:${C.accent};color:var(--white);border:none;border-radius:10px;padding:14px 24px;font-family:${FONT};font-size:14px;font-weight:700;cursor:pointer;}
     .req .submit:hover{filter:brightness(1.05);}
     .req .submit:disabled{opacity:.6;cursor:wait;}
     .req .back{display:inline-flex;align-items:center;gap:6px;color:${C.muted};text-decoration:none;font-size:13px;font-weight:600;margin:14px 0 4px;}

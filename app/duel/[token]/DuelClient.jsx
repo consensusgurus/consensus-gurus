@@ -8,8 +8,9 @@ import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
 import { withRef } from '@/lib/referrals';
+import { T } from '@/lib/theme';
 
-const C = { bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb', gold: '#e8b43a', win: '#16a34a', lose: '#c0392b' };
+const C = { bg: T.white, surface: T.white, ink: T.ink, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.10)', accent: T.accent, accsoft: '#e8effb', gold: T.gold, win: '#16a34a', lose: T.danger };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function anonId() { if (typeof window === 'undefined') return null; try { return localStorage.getItem('sot_quiz_anon'); } catch { return null; } }
@@ -129,7 +130,7 @@ export default function DuelClient({ token }) {
   function Side({ who, name, score, total, time, winnerFlag, faded }) {
     const waiting = score == null;
     return (
-      <div style={{ flex: 1, minWidth: 0, background: winnerFlag ? C.accent : C.surface, color: winnerFlag ? '#fff' : C.ink, border: `1px solid ${winnerFlag ? C.accent : C.line}`, borderRadius: 14, padding: '18px 16px', textAlign: 'center', opacity: faded ? 0.55 : 1 }}>
+      <div style={{ flex: 1, minWidth: 0, background: winnerFlag ? C.accent : C.surface, color: winnerFlag ? T.white : C.ink, border: `1px solid ${winnerFlag ? C.accent : C.line}`, borderRadius: 14, padding: '18px 16px', textAlign: 'center', opacity: faded ? 0.55 : 1 }}>
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: winnerFlag ? 'rgba(255,255,255,0.8)' : C.soft }}>{who}</div>
         <div style={{ fontSize: 18, fontWeight: 800, margin: '4px 0 10px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name || (who === 'Opponent' ? 'Waiting…' : 'Player')}</div>
         <div style={{ fontSize: 40, fontWeight: 800, lineHeight: 1 }}>{waiting ? '—' : score}<span style={{ fontSize: 15, fontWeight: 700, color: winnerFlag ? 'rgba(255,255,255,0.75)' : C.soft }}>{waiting ? '' : `/${total}`}</span></div>
@@ -156,7 +157,7 @@ export default function DuelClient({ token }) {
             <div style={{ marginTop: 40, textAlign: 'center' }}>
               <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>{errCode === 'duels_not_ready' ? 'Duels are almost ready' : 'Duel not found'}</div>
               <div style={{ color: C.muted, marginBottom: 20 }}>{errCode === 'duels_not_ready' ? 'This feature is being switched on. Check back shortly.' : 'This duel link is invalid or has expired.'}</div>
-              <Link href="/duel/new" style={{ background: C.accent, color: '#fff', padding: '11px 18px', borderRadius: 10, fontWeight: 700, textDecoration: 'none' }}>Start a Duel</Link>
+              <Link href="/duel/new" style={{ background: C.accent, color: T.white, padding: '11px 18px', borderRadius: 10, fontWeight: 700, textDecoration: 'none' }}>Start a Duel</Link>
             </div>
           )}
 
@@ -164,7 +165,7 @@ export default function DuelClient({ token }) {
             <>
               <div style={{ marginTop: 16, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Duel</span>
-                {dev !== 'any' && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: '#fff', background: C.ink, borderRadius: 999, padding: '3px 9px' }}>{devLabel(dev)}</span>}
+                {dev !== 'any' && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: T.white, background: C.ink, borderRadius: 999, padding: '3px 9px' }}>{devLabel(dev)}</span>}
               </div>
               <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 18px' }}>{quizTitle}</h1>
 
@@ -198,10 +199,10 @@ export default function DuelClient({ token }) {
                       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{side === 'challenger' ? 'Play your round' : `${duel.challenger_name} challenged you`}</div>
                       <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the quiz{'"'}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'your phone' : 'a computer'} (this duel is ${dev} only)` : ''}. When you finish, your score is sent to this duel automatically.</div>
                       {!me.name && (
-                        <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: '#fff', color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '10px 12px', marginBottom: 12, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim your display name to play +</button>
+                        <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: T.white, color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '10px 12px', marginBottom: 12, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim your display name to play +</button>
                       )}
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <a href={`/quiz/${duel.quiz_id}?duel=${token}`} style={{ flex: '1 1 160px', textAlign: 'center', background: C.accent, color: '#fff', padding: '12px 16px', borderRadius: 10, fontWeight: 800, textDecoration: 'none' }}>Play the Quiz →</a>
+                        <a href={`/quiz/${duel.quiz_id}?duel=${token}`} style={{ flex: '1 1 160px', textAlign: 'center', background: C.accent, color: T.white, padding: '12px 16px', borderRadius: 10, fontWeight: 800, textDecoration: 'none' }}>Play the Quiz →</a>
                         <button onClick={submit} disabled={busy} style={{ flex: '1 1 160px', background: C.surface, color: C.accent, border: `1.5px solid ${C.accent}`, padding: '12px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{busy ? 'Working…' : "I've Played — Submit My Score"}</button>
                       </div>
                       {side !== 'challenger' && (
@@ -223,15 +224,15 @@ export default function DuelClient({ token }) {
                   <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.accent, marginBottom: 8 }}>Invite link</div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <input readOnly value={withRef((typeof window !== 'undefined' ? window.location.origin : '') + `/duel/${token}`)} onFocus={(e) => e.target.select()}
-                      style={{ flex: '1 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 13, background: '#fff', color: C.muted, outline: 'none' }} />
-                    <button onClick={copyLink} style={{ background: C.accent, color: '#fff', border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{copied ? 'Copied!' : 'Copy'}</button>
+                      style={{ flex: '1 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 13, background: T.white, color: C.muted, outline: 'none' }} />
+                    <button onClick={copyLink} style={{ background: C.accent, color: T.white, border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{copied ? 'Copied!' : 'Copy'}</button>
                   </div>
                   <div style={{ marginTop: 8, fontSize: 12, color: C.soft }}>Send this to whoever you want to duel. They open it, play the same quiz{dev !== 'any' ? ` on ${dev === 'mobile' ? 'mobile' : 'desktop'}` : ''}, and the winner is decided automatically.</div>
                 </div>
               )}
 
               <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
-                <Link href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: '#e8b43a', color: '#1c1e24', padding: '14px 30px', borderRadius: 12, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', textDecoration: 'none', boxShadow: '0 10px 26px rgba(14,29,64,0.38)' }}><Swords size={18} /> Start Another Duel</Link>
+                <Link href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: T.gold, color: T.ink, padding: '14px 30px', borderRadius: 12, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', textDecoration: 'none', boxShadow: '0 10px 26px rgba(14,29,64,0.38)' }}><Swords size={18} /> Start Another Duel</Link>
               </div>
             </>
           )}

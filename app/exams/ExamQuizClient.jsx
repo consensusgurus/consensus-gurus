@@ -20,15 +20,16 @@ import Footer from '../Footer';
 import { EXAMS, REACH_START } from './examData';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '@/app/ShareCreditPop';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  rust: '#c0392b',
-  forest: '#10b981',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  rust: T.danger,
+  forest: T.success,
+  faded: T.muted,
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -227,7 +228,7 @@ export default function ExamQuizClient({ examKey }) {
             <p style={{ fontSize: 12, letterSpacing: '0.06em', color: COLORS.faded, margin: '0 0 22px', fontWeight: 600 }}>
               Your number correct decides which {exam.payoffNoun} land in reach.
             </p>
-            <button onClick={startGame} style={{ fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 44px', lineHeight: '52px', border: 'none', borderRadius: 10, background: COLORS.ember, color: '#fff', cursor: 'pointer' }}>
+            <button onClick={startGame} style={{ fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, padding: '0 44px', lineHeight: '52px', border: 'none', borderRadius: 10, background: COLORS.ember, color: T.white, cursor: 'pointer' }}>
               Begin
             </button>
           </div>
@@ -251,7 +252,7 @@ export default function ExamQuizClient({ examKey }) {
                 const revealing = phase === 'reveal';
                 const isCorrect = ci === q.correct;
                 const isPicked = ci === picked;
-                let bg = '#fff', border = COLORS.ink, fg = COLORS.ink, mark = null;
+                let bg = T.white, border = COLORS.ink, fg = COLORS.ink, mark = null;
                 if (revealing) {
                   if (isCorrect) { bg = '#e7f3ec'; border = COLORS.forest; mark = <Check size={18} strokeWidth={3} style={{ color: COLORS.forest }} />; }
                   else if (isPicked) { bg = '#f7e7e3'; border = COLORS.rust; fg = COLORS.rust; mark = <X size={18} strokeWidth={3} style={{ color: COLORS.rust }} />; }
@@ -328,7 +329,7 @@ export default function ExamQuizClient({ examKey }) {
                     const rank = reachStart + i + 1;
                     const isReach = i === 0;
                     return (
-                      <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px', marginBottom: 8, borderRadius: 10, background: isReach ? '#e7f3ec' : '#fff', border: `1.5px solid ${isReach ? COLORS.forest : COLORS.faded + '33'}` }}>
+                      <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 16px', marginBottom: 8, borderRadius: 10, background: isReach ? '#e7f3ec' : T.white, border: `1.5px solid ${isReach ? COLORS.forest : COLORS.faded + '33'}` }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.faded, minWidth: 30 }}>#{rank}</span>
                         <span style={{ fontSize: 17, fontWeight: 600, flex: 1 }}>{s}</span>
                         {isReach && <span style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.forest }}>Target reach</span>}
@@ -343,7 +344,7 @@ export default function ExamQuizClient({ examKey }) {
             </p>
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 22 }}>
-              <button onClick={restart} style={{ fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '48px', border: 'none', borderRadius: 10, background: COLORS.ember, color: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <button onClick={restart} style={{ fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '48px', border: 'none', borderRadius: 10, background: COLORS.ember, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <RotateCcw size={14} strokeWidth={2.5} /> Take it again
               </button>
               <button onClick={() => router.push('/exams')} style={{ fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 28px', lineHeight: '48px', border: `1.5px solid ${COLORS.ink}`, borderRadius: 10, background: COLORS.cream, color: COLORS.ink, cursor: 'pointer' }}>
@@ -361,7 +362,7 @@ export default function ExamQuizClient({ examKey }) {
                 const r = results[i];
                 const good = r && r.correct;
                 return (
-                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '13px 16px', borderRadius: 10, border: `1px solid ${good ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: good ? '#fff' : COLORS.paper }}>
+                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '13px 16px', borderRadius: 10, border: `1px solid ${good ? COLORS.forest : COLORS.faded + '33'}`, marginBottom: 8, background: good ? T.white : COLORS.paper }}>
                     <span style={{ width: 20, flex: 'none', color: good ? COLORS.forest : COLORS.rust, marginTop: 2 }}>{good ? <Check size={17} strokeWidth={3} /> : <X size={17} strokeWidth={3} />}</span>
                     <span style={{ flex: 1, fontSize: 14, lineHeight: 1.45 }}>
                       <span style={{ color: '#2b2f37', fontWeight: 600 }}>{qq.prompt || qq.q}</span>

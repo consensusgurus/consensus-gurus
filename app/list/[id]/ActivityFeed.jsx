@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { COLORS } from '@/lib/data';
 import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
+import { T } from '@/lib/theme';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -141,7 +142,7 @@ const KC = {
   review: '#9a6a1f',   // amber  - review requests
   edit: '#8a3324',     // dark ember - deploy-side list edits
   created: '#1a1611',  // ink    - list created
-  comment: '#c0392b',  // ember  - public comments
+  comment: T.danger,  // ember  - public comments
 };
 
 // Tinted card with a colored left border, one per activity category.
@@ -218,7 +219,7 @@ function SourceCard({ s, tag, note, strike, label }) {
   return (
     <div
       style={{
-        background: '#fff',
+        background: T.white,
         border: `1px solid ${COLORS.paper}`,
         borderRadius: 7,
         padding: '7px 11px',
@@ -709,7 +710,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
             return (
               <section key={`te-${i}`} style={{ ...cardStyle(KC.comment), ...(last ? { marginBottom: 0 } : {}) }}>
                 <Badge color={KC.comment} icon={<PenLine size={11} strokeWidth={2.5} />} date={fmtDate(n.createdAt)}>Editor's Note</Badge>
-                <div style={{ background: '#fff', borderLeft: `3px solid ${KC.comment}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, whiteSpace: 'pre-wrap', marginTop: 9 }}>
+                <div style={{ background: T.white, borderLeft: `3px solid ${KC.comment}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, whiteSpace: 'pre-wrap', marginTop: 9 }}>
                   {n.note}
                 </div>
               </section>
@@ -725,7 +726,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                 <div style={{ fontSize: 12, color: COLORS.faded, marginTop: 4, fontStyle: 'italic' }}>
                   Sent privately to the editors. No names or emails shown.
                 </div>
-                <div style={{ background: '#fff', borderLeft: `3px solid ${KC.review}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, marginTop: 9 }}>
+                <div style={{ background: T.white, borderLeft: `3px solid ${KC.review}`, borderRadius: '0 7px 7px 0', padding: '8px 11px', fontSize: 13, marginTop: 9 }}>
                   {m.message}
                   {m.editorResponse && (
                     <div style={{ marginTop: 5, paddingTop: 5, borderTop: `1px solid ${COLORS.paper}` }}>
@@ -756,7 +757,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                   {g.sources.map((s, k) => {
                     const note = s.id ? (list.sourceRevisions || {})[s.id] : undefined;
                     return (
-                      <div key={k} style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
+                      <div key={k} style={{ background: T.white, border: `1px solid ${COLORS.paper}`, borderRadius: 7, padding: '7px 11px', fontSize: 13 }}>
                         <span style={{ textDecoration: 'line-through', color: COLORS.faded }}>{s.label}</span>
                         {note && (
                           <div style={{ marginTop: 4, fontSize: 12, color: COLORS.faded, lineHeight: 1.45 }}>{note}</div>
@@ -834,7 +835,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                     height: 32,
                     borderRadius: '50%',
                     background: guest ? COLORS.faded : COLORS.ember,
-                    color: '#fff',
+                    color: T.white,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -844,7 +845,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
                 >
                   {guest ? '?' : initials(c.name)}
                 </div>
-                <div style={{ background: '#fff', border: `1px solid ${COLORS.paper}`, borderRadius: 9, padding: '8px 12px', flex: 1 }}>
+                <div style={{ background: T.white, border: `1px solid ${COLORS.paper}`, borderRadius: 9, padding: '8px 12px', flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: 13, fontWeight: 500 }}>{c.name || 'Guest'}</span>
                     <span style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{fmtRelative(c.createdAt)}</span>
@@ -861,7 +862,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
           })}
         </div>
 
-        <div style={{ background: '#fff', border: `1px solid ${COLORS.faded}`, borderRadius: 10, padding: 11 }}>
+        <div style={{ background: T.white, border: `1px solid ${COLORS.faded}`, borderRadius: 10, padding: 11 }}>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -881,7 +882,7 @@ export default function ActivityFeed({ list, voteData, extras }) {
             <button
               onClick={postComment}
               disabled={posting || !body.trim()}
-              style={{ background: COLORS.ember, color: '#fff', border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
+              style={{ background: COLORS.ember, color: T.white, border: 'none', fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', padding: '7px 16px', borderRadius: 7, cursor: posting || !body.trim() ? 'default' : 'pointer', opacity: posting || !body.trim() ? 0.5 : 1 }}
             >
               {posting ? 'Posting…' : 'Post comment'}
             </button>

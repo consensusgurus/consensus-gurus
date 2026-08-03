@@ -2,6 +2,7 @@ import SiteHeader from '@/app/SiteHeader';
 import Footer from '@/app/Footer';
 import SourcesGrid from '@/app/SourcesGrid';
 import { getAllSources } from '@/lib/sources';
+import { T } from '@/lib/theme';
 
 export const metadata = {
   title: 'Experts and Aggregators | Source of Truths',
@@ -10,11 +11,11 @@ export const metadata = {
 };
 
 const C = {
-  bg: '#ffffff',
-  ink: '#1c1e24',
-  muted: '#262b35',
-  soft: '#262b35',
-  accent: '#0e1d40',
+  bg: T.white,
+  ink: T.ink,
+  muted: T.muted,
+  soft: T.muted,
+  accent: T.accent,
   line: 'rgba(20,22,28,0.30)',
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";

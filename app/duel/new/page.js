@@ -7,8 +7,9 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
+import { T } from '@/lib/theme';
 
-const C = { bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.10)', accent: '#0e1d40', accsoft: '#e8effb' };
+const C = { bg: T.white, surface: T.white, ink: T.ink, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.10)', accent: T.accent, accsoft: '#e8effb' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function ensureAnon() {
@@ -91,17 +92,17 @@ export default function NewDuelPage() {
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>YOUR NAME</label>
           {name ? (
-            <div style={{ background: C.accsoft, border: `1px solid #cddffb`, borderRadius: 10, padding: '11px 14px', marginBottom: 16, fontSize: 14, color: C.ink }}>Dueling as <span style={{ fontWeight: 800, color: C.accent }}>{name}</span></div>
+            <div style={{ background: C.accsoft, border: `1px solid ${T.accentBorder}`, borderRadius: 10, padding: '11px 14px', marginBottom: 16, fontSize: 14, color: C.ink }}>Dueling as <span style={{ fontWeight: 800, color: C.accent }}>{name}</span></div>
           ) : (
             <>
-              <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: '#fff', color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '11px 14px', marginBottom: 6, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim a display name to duel +</button>
+              <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: T.white, color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '11px 14px', marginBottom: 6, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim a display name to duel +</button>
               <p style={{ color: C.soft, fontSize: 12, margin: '0 0 16px' }}>Duels are not anonymous: claim a display name so no one can play under someone else{"'"}s name. Takes a moment, no password.</p>
             </>
           )}
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>CHALLENGE A SPECIFIC PLAYER (OPTIONAL)</label>
           {opp ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid #cddffb`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${T.accentBorder}`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>Challenging <span style={{ color: C.accent }}>{opp.name}</span> — they get a pop-up to play</span>
               <button onClick={() => { setOpp(null); setOppQ(''); }} style={{ border: 'none', background: 'transparent', color: C.accent, fontWeight: 800, cursor: 'pointer', fontFamily: FONT, fontSize: 13 }}>Clear</button>
             </div>
@@ -112,7 +113,7 @@ export default function NewDuelPage() {
                 <div style={{ marginTop: 6, border: `1px solid ${C.line}`, borderRadius: 10, overflow: 'hidden', maxHeight: 220, overflowY: 'auto' }}>
                   {oppResults.length === 0 && <div style={{ padding: '10px 14px', color: C.soft, fontSize: 13 }}>No players match. You can still share the invite link.</div>}
                   {oppResults.map((p) => (
-                    <button key={p.anon} onClick={() => setOpp(p)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderBottom: `1px solid ${C.line}`, background: '#fff', cursor: 'pointer', fontFamily: FONT, fontSize: 14, fontWeight: 600, color: C.ink }}>{p.name}</button>
+                    <button key={p.anon} onClick={() => setOpp(p)} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', border: 'none', borderBottom: `1px solid ${C.line}`, background: T.white, cursor: 'pointer', fontFamily: FONT, fontSize: 14, fontWeight: 600, color: C.ink }}>{p.name}</button>
                   ))}
                 </div>
               )}
@@ -122,7 +123,7 @@ export default function NewDuelPage() {
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>DEVICE (KEEP IT FAIR)</label>
           <div style={{ display: 'flex', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
             {devOpts.map((o) => (
-              <button key={o.v} onClick={() => setDevice(o.v)} style={{ flex: '1 1 120px', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${device === o.v ? C.accent : C.line}`, background: device === o.v ? C.accent : '#fff', color: device === o.v ? '#fff' : C.ink, fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>{o.l}</button>
+              <button key={o.v} onClick={() => setDevice(o.v)} style={{ flex: '1 1 120px', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${device === o.v ? C.accent : C.line}`, background: device === o.v ? C.accent : T.white, color: device === o.v ? T.white : C.ink, fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>{o.l}</button>
             ))}
           </div>
           <p style={{ color: C.soft, fontSize: 12, margin: '0 0 18px' }}>Playing on a computer is a big advantage on many quizzes. Require the same device so it{"'"}s a fair fight (for example, mobile vs mobile).</p>
@@ -137,7 +138,7 @@ export default function NewDuelPage() {
                   <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflowWrap: 'anywhere' }}>{x.title}</span>
                   <span style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{x.category || 'Quiz'}</span>
                 </span>
-                <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: '#fff', background: C.accent, padding: '6px 12px', borderRadius: 999 }}>Click to Challenge</span>
+                <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: T.white, background: C.accent, padding: '6px 12px', borderRadius: 999 }}>Click to Challenge</span>
               </button>
             ))}
             {results.length === 0 && <div style={{ color: C.soft, fontSize: 14, padding: '8px 2px' }}>No quizzes match that search.</div>}

@@ -1,11 +1,12 @@
 'use client';
 import React, { useState } from 'react';
+import { T } from '@/lib/theme';
 
 // Shared "claim your name" modal for the duel flow. A duel name is NOT free
 // text: signed-in players use their registered display name, and guests must
 // claim a name here first. /api/quiz/join rejects a name already taken by a
 // registered player, so this closes the impersonation gap.
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.12)' };
+const C = { ink: T.ink, accent: T.accent, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.12)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function DuelSignup({ anonId, onDone, onClose }) {
@@ -32,15 +33,15 @@ export default function DuelSignup({ anonId, onDone, onClose }) {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: '#fff', borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: T.white, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
         <div style={{ fontSize: 18, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Claim your name</div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick the display name you will duel under. It shows on the leaderboard and the duel card. Email is optional, only to recover your name on another device. No password needed.</p>
-        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: '#c0392b', fontSize: 13 }}>{err}</div>}
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <button onClick={onClose} style={{ flex: '0 0 auto', background: '#fff', color: C.muted, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
-          <button onClick={submit} disabled={busy} style={{ flex: '1 1 auto', background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Claiming...' : 'Claim name & continue'}</button>
+          <button onClick={onClose} style={{ flex: '0 0 auto', background: T.white, color: C.muted, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+          <button onClick={submit} disabled={busy} style={{ flex: '1 1 auto', background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Claiming...' : 'Claim name & continue'}</button>
         </div>
       </div>
     </div>

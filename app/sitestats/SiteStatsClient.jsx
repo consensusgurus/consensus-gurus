@@ -1,19 +1,20 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { T } from '@/lib/theme';
 
 // ---- Brand tokens (site navy/gold) ----
-const NAVY = '#0e1d40';
+const NAVY = T.accent;
 const NAVY_MID = '#1b2f5c';
 const NAVY_TRACK = '#dbe1ee';   // light navy: the "all viewers" outer bar / meter track
-const GOLD = '#e8b43a';
-const INK = '#1c1e24';
+const GOLD = T.gold;
+const INK = T.ink;
 const MUTED = '#8a92a1';
 const FAINT = '#b6bcc7';
 const SURFACE = '#f4f6fa';
-const CARD = '#ffffff';
-const UP = '#15803d';
-const DOWN = '#c0392b';
+const CARD = T.white;
+const UP = T.successDeep;
+const DOWN = T.danger;
 const LINE = 'rgba(20,22,28,0.30)';
 
 // Compact number formatting: 1,284 / 12.9K / 3.4M.
@@ -343,7 +344,7 @@ const CSS = `
 
 .ss-toprow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed ${LINE};}
 .ss-toprow:last-child{border-bottom:none;}
-.ss-rank{flex:none;width:20px;height:20px;border-radius:50%;background:${NAVY};color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.ss-rank{flex:none;width:20px;height:20px;border-radius:50%;background:${NAVY};color:var(--white);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;}
 .ss-topmid{flex:1 1 auto;min-width:0;}
 .ss-topname{font-size:13.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ss-topbar{height:5px;background:${SURFACE};border-radius:3px;margin-top:5px;overflow:hidden;}

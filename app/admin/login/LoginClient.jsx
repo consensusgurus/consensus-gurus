@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Grain from '@/app/Grain';
+import { T } from '@/lib/theme';
 
 // Local theme palette (live-site look), shadowing the magazine COLORS so the
 // public site is untouched.
 const COLORS = {
-  cream: '#f7f8fa', paper: '#ffffff', ink: '#1c1e24', faded: '#262b35',
-  ember: '#0e1d40', forest: '#10b981', rust: '#b45309', line: 'rgba(20,22,28,0.30)',
+  cream: T.surface, paper: T.white, ink: T.ink, faded: T.muted,
+  ember: T.accent, forest: T.success, rust: '#b45309', line: 'rgba(20,22,28,0.30)',
 };
 
 export default function LoginClient() {

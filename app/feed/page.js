@@ -5,6 +5,7 @@ import FeedClient from './FeedClient';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS, COLORS } from '@/lib/data';
 import { getSources, voteKey, autoSourceNote } from '@/lib/helpers';
+import { T } from '@/lib/theme';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -268,13 +269,13 @@ export default async function FeedPage() {
   const top = events.slice(0, 120);
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', color: '#1c1e24', fontFamily: "'Manrope', system-ui, -apple-system, sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: T.surface, color: T.ink, fontFamily: "'Manrope', system-ui, -apple-system, sans-serif" }}>
       <SiteHeader active="lists" />
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 70px' }}>
         <div style={{ borderBottom: '1px solid rgba(20,22,28,0.30)', paddingBottom: 22, marginBottom: 28 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: '#0e1d40', marginBottom: 12 }}>Live</div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: T.accent, marginBottom: 12 }}>Live</div>
           <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.04, margin: 0 }}>Activity log</h1>
-          <p style={{ fontSize: 15, lineHeight: 1.5, margin: '12px 0 0', color: '#262b35', maxWidth: 720 }}>
+          <p style={{ fontSize: 15, lineHeight: 1.5, margin: '12px 0 0', color: T.muted, maxWidth: 720 }}>
             Everything happening across Source of Truths: new lists, reader requests, votes, comments, review requests, and ranking changes. Names and emails are never shown.
           </p>
         </div>

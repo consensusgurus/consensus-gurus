@@ -4,6 +4,7 @@ import { isAdmin } from '@/lib/admin-auth';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
 import { getQuiz } from '@/lib/quizzes';
+import { T } from '@/lib/theme';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,12 +15,12 @@ export const metadata = {
 
 // Same admin palette as AdminClient.
 const C = {
-  cream: '#f7f8fa',
-  paper: '#ffffff',
-  ink: '#1c1e24',
-  faded: '#262b35',
-  ember: '#0e1d40',
-  forest: '#10b981',
+  cream: T.surface,
+  paper: T.white,
+  ink: T.ink,
+  faded: T.muted,
+  ember: T.accent,
+  forest: T.success,
   line: 'rgba(20,22,28,0.30)',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";

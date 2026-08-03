@@ -8,13 +8,14 @@ import { ArrowLeft, ArrowRight, GraduationCap } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import { EXAMS, EXAM_ORDER } from './examData';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  faded: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  faded: T.muted,
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -73,7 +74,7 @@ export default function ExamHubClient() {
               <a
                 key={key}
                 href={`/${key}`}
-                style={{ display: 'flex', alignItems: 'center', gap: 16, textDecoration: 'none', color: COLORS.ink, background: '#fff', border: `1.5px solid ${COLORS.faded}33`, borderLeft: `5px solid ${COLORS.ember}`, borderRadius: 10, padding: '18px 20px' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, textDecoration: 'none', color: COLORS.ink, background: T.white, border: `1.5px solid ${COLORS.faded}33`, borderLeft: `5px solid ${COLORS.ember}`, borderRadius: 10, padding: '18px 20px' }}
               >
                 <span style={{ flex: 1 }}>
                   <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.01em' }}>{e.label}</span>
@@ -94,7 +95,7 @@ export default function ExamHubClient() {
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(12,26,55,0.88) 0%, rgba(12,26,55,0.55) 44%, rgba(12,26,55,0.05) 100%)' }} />
             <div style={{ position: 'relative', padding: '22px 24px' }}>
               <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#bcd2ff' }}>School Tests</span>
-              <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 34px)', lineHeight: 1.05, letterSpacing: '-0.02em', margin: '7px 0 0', color: '#fff' }}>LSAT Logic Games</h2>
+              <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(24px, 4vw, 34px)', lineHeight: 1.05, letterSpacing: '-0.02em', margin: '7px 0 0', color: T.white }}>LSAT Logic Games</h2>
               <p style={{ fontFamily: FONT, fontSize: 14, lineHeight: 1.5, margin: '9px 0 0', color: '#dbe6fb', maxWidth: 440 }}>The LSAT's classic analytical reasoning puzzles: read the setup and rules, then answer. Ten original games, from sequencing to grouping.</p>
             </div>
           </div>
@@ -103,7 +104,7 @@ export default function ExamHubClient() {
               <a
                 key={g.id}
                 href={`/quiz/${g.id}`}
-                style={{ display: 'flex', alignItems: 'center', gap: 16, textDecoration: 'none', color: COLORS.ink, background: '#fff', border: `1.5px solid ${COLORS.faded}33`, borderLeft: `5px solid ${COLORS.ember}`, borderRadius: 10, padding: '15px 20px' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 16, textDecoration: 'none', color: COLORS.ink, background: T.white, border: `1.5px solid ${COLORS.faded}33`, borderLeft: `5px solid ${COLORS.ember}`, borderRadius: 10, padding: '15px 20px' }}
               >
                 <span style={{ flex: 1 }}>
                   <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.01em' }}>{g.name}</span>

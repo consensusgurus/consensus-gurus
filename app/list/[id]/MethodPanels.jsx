@@ -1,8 +1,9 @@
 'use client';
 import React from 'react';
 import { getSources } from '@/lib/helpers';
+import { T } from '@/lib/theme';
 
-const C = { ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40', bg: '#ffffff', live: '#10b981' };
+const C = { ink: T.ink, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent, bg: T.white, live: T.success };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const CROWD = /yelp|google|tripadvisor|amazon|beeradvocate|untappd|tabelog|openrice|naver|wongnai|zomato|foody|yandex|thefork|goodreads|imdb|rotten/i;
@@ -46,7 +47,7 @@ export function SourcesPanel({ list, extras }) {
         <Metric label="Crowd sources" value={crowd} />
         <Metric label="Ranked entries" value={items.length} />
       </div>
-      <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ background: T.white, border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, padding: '9px 14px', borderBottom: `1px solid ${C.line}`, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: C.muted }}>
           <span>Source</span><span>Type</span><span style={{ textAlign: 'right' }}>Coverage</span>
         </div>
@@ -69,7 +70,7 @@ export function MethodologyPanel({ list, extras }) {
       <span style={{ color: C.live, fontWeight: 800, flex: 'none' }}>✓</span><span>{children}</span>
     </div>
   );
-  const card = { background: '#fff', border: `1px solid ${C.line}`, borderRadius: 12, padding: '15px 17px' };
+  const card = { background: T.white, border: `1px solid ${C.line}`, borderRadius: 12, padding: '15px 17px' };
   return (
     <div style={{ fontFamily: FONT, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={card}>

@@ -18,11 +18,12 @@ import {
 } from 'lucide-react';
 import { dailyLabel } from '@/lib/daily-games';
 import { TROPHY_TIERS, TROPHY_GROUPS } from '@/lib/trophy-defs';
+import { T } from '@/lib/theme';
 
 export const C = {
-  bg: '#ffffff', surface: '#fff', ink: '#1c1e24', muted: '#262b35',
-  soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40',
-  accsoft: '#e8effb', live: '#047857', danger: '#c0392b',
+  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
+  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
+  accsoft: '#e8effb', live: '#047857', danger: T.danger,
 };
 export const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -38,7 +39,7 @@ export function Avatar({ name, size = 48, bg, fg }) {
   const s = String(name || '').trim();
   const parts = s.split(/[\s_-]+/).filter(Boolean);
   const init = !s ? '?' : parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : s.slice(0, 2).toUpperCase();
-  return <span style={{ width: size, height: size, borderRadius: '50%', background: bg || C.accent, color: fg || '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: Math.max(11, Math.round(size * 0.34)), flex: 'none' }}>{init}</span>;
+  return <span style={{ width: size, height: size, borderRadius: '50%', background: bg || C.accent, color: fg || T.white, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: Math.max(11, Math.round(size * 0.34)), flex: 'none' }}>{init}</span>;
 }
 
 export function RankChip({ rank, total }) {
@@ -158,7 +159,7 @@ export function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
               const first = (cr.rank || 0) === 1;
               return (
                 <div key={c.key} className="card" style={{ padding: '13px 14px', position: 'relative', ...(crowned ? { border: '1.5px solid #f0d9a8', background: '#fffdf5' } : {}) }}>
-                  {crowned ? <span style={{ position: 'absolute', top: 10, right: 12, color: '#a16207', display: 'flex' }} title={viewing ? 'Best category' : 'Your best category'}><Crown size={17} /></span> : null}
+                  {crowned ? <span style={{ position: 'absolute', top: 10, right: 12, color: T.goldInk, display: 'flex' }} title={viewing ? 'Best category' : 'Your best category'}><Crown size={17} /></span> : null}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                     <span className="dot" style={{ background: c.c, borderRadius: '50%', width: 9, height: 9 }} />
                     <span style={{ fontSize: 13, fontWeight: 800 }}>{c.label}</span>
@@ -252,7 +253,7 @@ export function ActivityFeed({ recent, titleById, viewing }) {
   const daysPlayed = counts.size;
   // Heatmap cells: the last 84 days, oldest first, filled column-major so each
   // column is a week and the newest week sits on the right.
-  const HM = ['#eef0f2', '#b5d4f4', '#85b7eb', '#0e1d40'];
+  const HM = ['#eef0f2', '#b5d4f4', '#85b7eb', T.accent];
   const cells = [];
   { const start = Date.now() - 83 * DAY;
     for (let i = 0; i < 84; i++) { const n = counts.get(keyOf(start + i * DAY)) || 0; cells.push(n === 0 ? 0 : n === 1 ? 1 : n <= 3 ? 2 : 3); } }
@@ -389,7 +390,7 @@ export function XpPanel({ me, titleById, viewing }) {
   const nextLevelAt = prog.levelNext;
   const bandPct = prog.stepSize > 0 ? Math.round(Math.max(4, Math.min(100, (prog.intoLevel / prog.stepSize) * 100))) : 100;
   const tierLabel = found && me.tier ? me.tier : 'Bronze Tier';
-  const tierBg = found && me.tierBg ? me.tierBg : '#eceef1';
+  const tierBg = found && me.tierBg ? me.tierBg : T.paper;
   const tierFg = found && me.tierFg ? me.tierFg : C.muted;
 
   const explainerCards = (
@@ -472,11 +473,11 @@ export function XpPanel({ me, titleById, viewing }) {
                   <path d={d} fill="none" stroke={C.accent} strokeWidth="2.25" strokeLinejoin="round" strokeLinecap="round" />
                   {goalY != null ? (
                     <g>
-                      <line x1={Lp} y1={goalY} x2={W - Rp} y2={goalY} stroke="#e8b43a" strokeWidth="1.5" strokeDasharray="5 5" />
+                      <line x1={Lp} y1={goalY} x2={W - Rp} y2={goalY} stroke={T.gold} strokeWidth="1.5" strokeDasharray="5 5" />
                       <text x={Lp + 2} y={Math.max(11, goalY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>Level {level + 1} at {nextLevelAt.toLocaleString()} IQ</text>
                     </g>
                   ) : null}
-                  <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke="#fff" strokeWidth="1.5" />
+                  <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke={T.white} strokeWidth="1.5" />
                 </svg>
               );
             })() : <div style={{ height: 150 }} />}
@@ -585,7 +586,7 @@ export function TrophyCase({ trophies, viewing }) {
                   <div key={t.id} style={{ border: `1.5px dashed ${C.line}`, borderRadius: 12, padding: '12px 13px', display: 'flex', gap: 11, alignItems: 'flex-start', minWidth: 0, opacity: 0.75 }}>
                     <span style={{ flex: 'none', width: 38, height: 38, borderRadius: '50%', background: '#f2f3f5', color: '#9aa1ad', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                       <Ic size={18} />
-                      <span style={{ position: 'absolute', right: -3, bottom: -3, width: 16, height: 16, borderRadius: '50%', background: '#fff', border: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa1ad' }}><Lock size={9} /></span>
+                      <span style={{ position: 'absolute', right: -3, bottom: -3, width: 16, height: 16, borderRadius: '50%', background: T.white, border: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa1ad' }}><Lock size={9} /></span>
                     </span>
                     <span style={{ minWidth: 0 }}>
                       <span style={{ fontSize: 13.5, fontWeight: 800, color: C.muted }}>{t.name}</span>
@@ -616,7 +617,7 @@ export const profileCss = `
   .qzhub .metric .v{font-size:21px;font-weight:700;}
   .qzhub .rankchip{font-size:10px;font-weight:700;color:${C.accent};background:${C.accsoft};border-radius:5px;padding:1px 6px;letter-spacing:0;text-transform:none;margin-left:6px;}
   .qzhub .pvbtn{border:none;background:transparent;border-radius:6px;padding:5px 11px;font:inherit;font-family:${FONT};font-size:12px;color:${C.muted};cursor:pointer;}
-  .qzhub .pvbtn.on{background:#fff;color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
+  .qzhub .pvbtn.on{background:var(--white);color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
   .qzhub .hrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(20,22,28,0.07);font-size:13px;}
   .qzhub .score{font-weight:700;color:${C.accent};font-variant-numeric:tabular-nums;}
   .qzhub table{width:100%;border-collapse:collapse;font-size:12.5px;}
@@ -625,9 +626,9 @@ export const profileCss = `
   .qzhub .formula{background:${C.bg};border:1px solid ${C.line};border-radius:10px;padding:14px 16px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.9;}
   .qzhub a.qlink{text-decoration:none;color:inherit;}
   .qzhub .dot{width:9px;height:9px;border-radius:3px;flex:none;}
-  .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(20,22,28,0.30);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
-  .qzhub .pill:hover{border-color:#cddffb;}
-  .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:#fff;font-weight:800;}
+  .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid rgba(20,22,28,0.30);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
+  .qzhub .pill:hover{border-color:var(--accent-border);}
+  .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:var(--white);font-weight:800;}
   .qzhub .flameon{animation:qzflame 1.4s ease-in-out infinite;}
   @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
   @media (prefers-reduced-motion: reduce){.qzhub .flameon{animation:none;}}

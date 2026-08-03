@@ -15,6 +15,7 @@ import { notifyShareCredit } from '../../ShareCreditPop';
 import {
   C, FONT, Avatar, RankChip, TrophyCase, CategoryView, ActivityFeed, XpPanel, profileCss,
 } from '../ProfileShared';
+import { T } from '@/lib/theme';
 
 function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); }
 function getIdentity() { if (typeof window === 'undefined') return null; try { return JSON.parse(localStorage.getItem('sot_quiz_identity')); } catch (e) { return null; } }
@@ -71,7 +72,7 @@ export default function PlayerProfileClient({ name }) {
   }, [prof, found]);
 
   const trophies = found ? prof.trophies : null;
-  const tierBg = found && prof.tierBg ? prof.tierBg : '#eceef1';
+  const tierBg = found && prof.tierBg ? prof.tierBg : T.paper;
   const tierFg = found && prof.tierFg ? prof.tierFg : C.muted;
 
   function share() {
@@ -102,7 +103,7 @@ export default function PlayerProfileClient({ name }) {
           <div className="card" style={{ marginTop: 14, padding: '34px 22px', textAlign: 'center' }}>
             <div style={{ fontSize: 19, fontWeight: 800 }}>No player named &ldquo;{name}&rdquo;</div>
             <p style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.6, margin: '10px auto 16px', maxWidth: 420 }}>Profiles exist for registered display names. The name may be spelled differently, or this player may not have claimed a name yet.</p>
-            <Link href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', borderRadius: 10, padding: '11px 18px', fontWeight: 700, fontSize: 13.5, textDecoration: 'none' }}><BarChart3 size={15} /> Open the Stat Hub</Link>
+            <Link href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: T.white, borderRadius: 10, padding: '11px 18px', fontWeight: 700, fontSize: 13.5, textDecoration: 'none' }}><BarChart3 size={15} /> Open the Stat Hub</Link>
           </div>
         ) : (
           <>
@@ -132,8 +133,8 @@ export default function PlayerProfileClient({ name }) {
                   <div style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>{prof.totalPlayers ? `of ${prof.totalPlayers.toLocaleString()} players` : ''}</div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 'none' }}>
-                  <button onClick={share} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: '#fff', border: 'none', borderRadius: 10, padding: '10px 15px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={14} /> {copied ? 'Copied!' : 'Share profile (for credit)'}</button>
-                  {mine ? <Link href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: '#fff', color: C.ink, borderRadius: 10, padding: '9px 15px', fontWeight: 700, fontSize: 12.5, textDecoration: 'none' }}><BarChart3 size={14} /> Open Stat Hub</Link> : null}
+                  <button onClick={share} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '10px 15px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={14} /> {copied ? 'Copied!' : 'Share profile (for credit)'}</button>
+                  {mine ? <Link href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: T.white, color: C.ink, borderRadius: 10, padding: '9px 15px', fontWeight: 700, fontSize: 12.5, textDecoration: 'none' }}><BarChart3 size={14} /> Open Stat Hub</Link> : null}
                 </div>
               </div>
             </div>

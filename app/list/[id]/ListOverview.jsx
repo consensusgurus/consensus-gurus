@@ -9,6 +9,7 @@ import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
 import Count from '@/app/Count';
 import { savedIdentity } from '@/lib/saved-identity';
+import { T } from '@/lib/theme';
 
 // Splits a "Name (Locality)" item into { displayName, locality }.
 function parseItem(fullName) {
@@ -226,7 +227,7 @@ function HeroPhoto({ photo, alt, poster, href, rel, fit = 'cover', bg, pad = 0, 
   const creditUrl = photo && typeof photo === 'object' ? photo.creditUrl : null;
   // contain-fit pad matches the image's own background (sampled live).
   const sampledBg = useSampledBg(src, fit === 'contain');
-  const padBg = fit === 'contain' ? (sampledBg || '#ffffff') : bg;
+  const padBg = fit === 'contain' ? (sampledBg || T.white) : bg;
   if (!src || failed) return <PhotoBox />;
   if (poster) {
     // Poster capture (share page): a plain eager <img> routed through the
@@ -621,7 +622,7 @@ function LedgerRow({ item, rank, list, desc, pics, isTop, heavyDivider, poster, 
           fontWeight: 900,
           fontSize: isTop ? 30 : 20,
           lineHeight: 1,
-          color: rank === 1 ? '#e8b43a' : rank === 2 ? '#b8bcc4' : rank === 3 ? '#c8814b' : COLORS.faded,
+          color: rank === 1 ? T.gold : rank === 2 ? '#b8bcc4' : rank === 3 ? '#c8814b' : COLORS.faded,
           textAlign: 'center',
         }}
       >

@@ -6,6 +6,7 @@ import SiteHeader from '../SiteHeader';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import { formatCount } from '../Count';
+import { T } from '@/lib/theme';
 
 // Generic Kids Corner matching (concentration) game engine.
 //
@@ -23,11 +24,11 @@ import { formatCount } from '../Count';
 // the default card size (so dense boards do not balloon on big screens). Players
 // (1-4) are chosen on a pre-game screen. Page views are recorded via the
 // quiz-view system (the given `quizId`).
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.30)' };
+const C = { ink: T.ink, accent: T.accent, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const Star = () => (
-  <svg viewBox="0 0 24 24" width="30" height="30" fill="#fff" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5 20.4l1.4-6.8L1.3 9l6.9-.7z" /></svg>
+  <svg viewBox="0 0 24 24" width="30" height="30" fill={T.white} aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5 20.4l1.4-6.8L1.3 9l6.9-.7z" /></svg>
 );
 const Refresh = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
@@ -170,29 +171,29 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', color: C.ink, position: 'relative', overflow: 'clip', fontFamily: FONT }}>
+    <div style={{ minHeight: '100vh', background: T.surface, color: C.ink, position: 'relative', overflow: 'clip', fontFamily: FONT }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2 }}>
         <SiteHeader active="" />
       </div>
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 22px 70px' }}>
         <style>{`
-          .mm-reset{display:inline-flex;align-items:center;gap:6px;border:1px solid ${C.line};background:#fff;color:${C.ink};font-family:${FONT};font-weight:700;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;}
+          .mm-reset{display:inline-flex;align-items:center;gap:6px;border:1px solid ${C.line};background:var(--white);color:${C.ink};font-family:${FONT};font-weight:700;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;}
           .mm-reset:hover{border-color:${C.accent};color:${C.accent};}
           .mm-textbtn{border:none;background:transparent;color:${C.muted};font-family:${FONT};font-weight:700;font-size:13.5px;padding:8px 6px;border-radius:8px;cursor:pointer;}
           .mm-textbtn:hover{color:${C.accent};}
           .mm-size{display:inline-flex;align-items:center;gap:8px;margin-left:auto;}
           .mm-size span{font-size:12.5px;font-weight:700;color:${C.soft};text-transform:uppercase;letter-spacing:.04em;}
           .mm-size input[type=range]{width:118px;accent-color:${C.accent};cursor:pointer;}
-          .mm-setup{background:#fff;border:1px solid ${C.line};border-radius:16px;padding:26px 22px;max-width:420px;margin:8px auto 0;text-align:center;}
+          .mm-setup{background:var(--white);border:1px solid ${C.line};border-radius:16px;padding:26px 22px;max-width:420px;margin:8px auto 0;text-align:center;}
           .mm-setup-q{font-size:16px;font-weight:700;color:${C.ink};margin:0 0 16px;}
           .mm-pnums{display:flex;gap:10px;justify-content:center;margin:0 0 20px;}
-          .mm-pnums button{width:54px;height:54px;border:1.5px solid ${C.line};background:#fff;border-radius:12px;font-family:${FONT};font-size:20px;font-weight:800;color:${C.ink};cursor:pointer;}
-          .mm-pnums button.on{background:${C.accent};border-color:${C.accent};color:#fff;}
-          .mm-start{border:none;background:${C.accent};color:#fff;font-family:${FONT};font-weight:800;font-size:16px;padding:12px 34px;border-radius:12px;cursor:pointer;}
+          .mm-pnums button{width:54px;height:54px;border:1.5px solid ${C.line};background:var(--white);border-radius:12px;font-family:${FONT};font-size:20px;font-weight:800;color:${C.ink};cursor:pointer;}
+          .mm-pnums button.on{background:${C.accent};border-color:${C.accent};color:var(--white);}
+          .mm-start{border:none;background:${C.accent};color:var(--white);font-family:${FONT};font-weight:800;font-size:16px;padding:12px 34px;border-radius:12px;cursor:pointer;}
           .mm-start:hover{background:#0a1730;}
           .mm-scores{display:flex;gap:10px;margin:0 0 16px;flex-wrap:wrap;}
-          .mm-pl{flex:1 1 120px;background:#fff;border:2px solid transparent;border-radius:12px;padding:9px 13px;}
+          .mm-pl{flex:1 1 120px;background:var(--white);border:2px solid transparent;border-radius:12px;padding:9px 13px;}
           .mm-pl.on{border-color:${C.accent};background:#eef3fe;}
           .mm-pl .l{font-size:12px;font-weight:700;color:${C.soft};margin:0;text-transform:uppercase;letter-spacing:.05em;}
           .mm-pl.on .l{color:${C.accent};}
@@ -204,7 +205,7 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           .mm-card.flip .mm-inner,.mm-card.done .mm-inner{transform:rotateY(180deg);}
           .mm-face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 1px 3px rgba(20,22,28,0.08);}
           .mm-front{background:${C.accent};}
-          .mm-back{background:#fff;border:2px solid ${C.line};transform:rotateY(180deg);}
+          .mm-back{background:var(--white);border:2px solid ${C.line};transform:rotateY(180deg);}
           .mm-card.done .mm-back{border-color:#1d9e75;background:#e7f6ef;}
           .mm-card.done{cursor:default;}
           .mm-back svg{width:80%;height:80%;}

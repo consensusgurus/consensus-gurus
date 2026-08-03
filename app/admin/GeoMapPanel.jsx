@@ -20,17 +20,18 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { WORLD } from '@/lib/admin-world-map';
 import { projectPoint } from '@/lib/geo-project';
 import { downloadCsvFile } from './csv-export';
+import { T } from '@/lib/theme';
 
 const C = {
-  paper: '#ffffff',
-  ink: '#1c1e24',
-  faded: '#262b35',
+  paper: T.white,
+  ink: T.ink,
+  faded: T.muted,
   line: 'rgba(20,22,28,0.30)',
   lineStrong: 'rgba(20,22,28,0.18)',
   land: '#e9edf3',
-  landLine: '#ffffff',
+  landLine: T.white,
   leader: '#9aa1ad',
-  users: '#0e1d40',
+  users: T.accent,
   plays: '#b45309',
 };
 const MONO = 'DM Mono, monospace';
@@ -408,7 +409,7 @@ function BubbleMap({ title, subtitle, accent, points, unitSingular, unitPlural, 
                 top: `${((hoverCluster.zy + view.y) / H) * 100}%`,
                 transform: 'translate(-50%, -118%)',
                 marginTop: -hoverCluster.r,
-                background: C.ink, color: '#f7f8fa', padding: '8px 11px',
+                background: C.ink, color: T.surface, padding: '8px 11px',
                 fontSize: 11.5, lineHeight: 1.5, pointerEvents: 'none',
                 whiteSpace: 'nowrap', zIndex: 5, boxShadow: '0 4px 14px rgba(20,22,28,0.25)',
               }}
@@ -443,7 +444,7 @@ function BubbleMap({ title, subtitle, accent, points, unitSingular, unitPlural, 
           ) : null}
         </div>
         <div style={{ flex: '1 1 240px', minWidth: 235, maxWidth: 360, border: `1px solid ${C.line}`, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', borderBottom: `1px solid ${C.line}`, background: '#f7f8fa' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 10px', borderBottom: `1px solid ${C.line}`, background: T.surface }}>
             <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, color: C.ink, flex: 1 }}>
               {fmt(points.length)} locations
             </span>
@@ -451,7 +452,7 @@ function BubbleMap({ title, subtitle, accent, points, unitSingular, unitPlural, 
               onClick={() => downloadLocationsCsv(points, unitPlural)}
               title={`Download all ${fmt(points.length)} locations as CSV (opens in Excel/Sheets)`}
               style={{
-                padding: '4px 9px', background: C.ink, border: `1px solid ${C.ink}`, color: '#f7f8fa',
+                padding: '4px 9px', background: C.ink, border: `1px solid ${C.ink}`, color: T.surface,
                 fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase',
                 fontWeight: 600, cursor: 'pointer',
               }}

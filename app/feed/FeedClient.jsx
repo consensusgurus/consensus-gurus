@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Flag, ListPlus, BarChart3, MessageSquare, PenLine, RefreshCw, BookMarked } from 'lucide-react';
+import { T } from '@/lib/theme';
 // Re-themed to the site's white/Manrope/blue design (was the cream COLORS from
 // lib/data). Same keys, new values, so every COLORS.* reference below picks up
 // the new palette with no other change.
-const COLORS = { ink: '#1c1e24', faded: '#262b35', ember: '#0e1d40', cream: '#ffffff', paper: 'rgba(20,22,28,0.12)', soft: '#262b35' };
+const COLORS = { ink: T.ink, faded: T.muted, ember: T.accent, cream: T.white, paper: 'rgba(20,22,28,0.12)', soft: T.muted };
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -90,11 +91,11 @@ const KIND = {
   list:     { color: '#2f4858', label: 'New list',       Icon: Flag },
   request:  { color: '#a44a26', label: 'List requested',  Icon: ListPlus },
   vote:     { color: '#3d4f2b', label: 'Vote',            Icon: BarChart3 },
-  comment:  { color: '#c0392b', label: 'Comment',         Icon: MessageSquare },
+  comment:  { color: T.danger, label: 'Comment',         Icon: MessageSquare },
   review:   { color: '#9a6a1f', label: 'Review request',  Icon: PenLine },
   research: { color: '#5a4a7a', label: 'Ranking change',  Icon: RefreshCw },
   source:   { color: '#2f4858', label: 'Source added',    Icon: BookMarked },
-  note:     { color: '#c0392b', label: "Editor's note",   Icon: PenLine },
+  note:     { color: T.danger, label: "Editor's note",   Icon: PenLine },
 };
 
 const CATEGORIES = [

@@ -7,17 +7,18 @@ import { LISTS } from '@/lib/data';
 import Grain from '@/app/Grain';
 import GeoMapPanel from './GeoMapPanel';
 import { exportUsersCsv, exportGamesCsv, downloadCsvFile } from './csv-export';
+import { T } from '@/lib/theme';
 
 // Local theme palette: the live-site look (Manrope + soft blue) applied to the
 // admin desk. Shadows the magazine COLORS from lib/data so the public site is
 // untouched; same keys the admin uses, remapped to the new theme.
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#ffffff',
-  ink: '#1c1e24',
-  faded: '#262b35',
-  ember: '#0e1d40',
-  forest: '#10b981',
+  cream: T.surface,
+  paper: T.white,
+  ink: T.ink,
+  faded: T.muted,
+  ember: T.accent,
+  forest: T.success,
   rust: '#b45309',
   line: 'rgba(20,22,28,0.30)',
 };
@@ -1599,9 +1600,9 @@ function NotesPanel({ notes, lists, busy, onAdd, onDelete }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ border: `1px solid ${COLORS.line}`, padding: 16, background: COLORS.paper }}>
         <h3 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 18, margin: '0 0 10px' }}>Post an editor's note</h3>
-        <input list="sot-all-lists" value={listId} onChange={(e) => setListId(e.target.value)} placeholder="List id (e.g. fast-food-fries)" style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1px solid ${COLORS.line}`, background: '#fff', fontFamily: 'DM Mono, monospace', fontSize: 13, marginBottom: 8 }} />
+        <input list="sot-all-lists" value={listId} onChange={(e) => setListId(e.target.value)} placeholder="List id (e.g. fast-food-fries)" style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1px solid ${COLORS.line}`, background: T.white, fontFamily: 'DM Mono, monospace', fontSize: 13, marginBottom: 8 }} />
         <datalist id="sot-all-lists">{lists.map((l) => <option key={l.id} value={l.id}>{l.title}</option>)}</datalist>
-        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} placeholder="Shown publicly as: Editor's Note: ..." style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1px solid ${COLORS.line}`, background: '#fff', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, resize: 'vertical', marginBottom: 8 }} />
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} placeholder="Shown publicly as: Editor's Note: ..." style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1px solid ${COLORS.line}`, background: T.white, fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 14, resize: 'vertical', marginBottom: 8 }} />
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={() => { onAdd(listId, note); setNote(''); }} disabled={!!busy['note-add']} style={{ cursor: 'pointer', background: COLORS.ember, color: COLORS.cream, border: `1.5px solid ${COLORS.ember}`, padding: '9px 16px', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>Post note</button>
         </div>

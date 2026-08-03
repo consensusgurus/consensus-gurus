@@ -8,18 +8,19 @@ import { getQuiz } from '@/lib/quizzes';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import QuizNavHeader from '../../quizzes/QuizNavHeader';
+import { T } from '@/lib/theme';
 
 const COLORS = {
-  cream: '#f7f8fa',
-  paper: '#eceef1',
-  ink: '#1c1e24',
-  ember: '#0e1d40',
-  soft: '#262b35',
+  cream: T.surface,
+  paper: T.paper,
+  ink: T.ink,
+  ember: T.accent,
+  soft: T.muted,
   line: 'rgba(20,22,28,0.30)',
-  accSoft: '#eef3ff',
-  accBorder: '#cddffb',
-  forest: '#10b981',
-  faded: '#262b35',
+  accSoft: T.accentSoft,
+  accBorder: T.accentBorder,
+  forest: T.success,
+  faded: T.muted,
 };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -62,7 +63,7 @@ export default function ChallengeClient({ id }) {
         <QuizNavHeader />
         <div style={{ position: 'relative', zIndex: 2, padding: 48, textAlign: 'center' }}>
           <p style={{ fontFamily: FONT, fontStyle: 'italic', color: COLORS.faded, margin: 0 }}>That challenge could not be found.</p>
-          <Link href="/quizzes" style={{ display: 'inline-block', marginTop: 16, fontFamily: FONT, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: '#fff', background: COLORS.ink, padding: '10px 20px', borderRadius: 10, textDecoration: 'none' }}>Back to all quizzes</Link>
+          <Link href="/quizzes" style={{ display: 'inline-block', marginTop: 16, fontFamily: FONT, fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: T.white, background: COLORS.ink, padding: '10px 20px', borderRadius: 10, textDecoration: 'none' }}>Back to all quizzes</Link>
         </div>
         <Footer />
       </div>
@@ -116,8 +117,8 @@ export default function ChallengeClient({ id }) {
         {/* Quiz rows */}
         <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {rows.map((r) => (
-            <div key={r.quizId} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 12, border: `1.5px solid ${r.done ? COLORS.accBorder : COLORS.line}`, background: r.done ? COLORS.accSoft : '#fff' }}>
-              <div style={{ width: 30, height: 30, flex: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: r.done ? COLORS.forest : COLORS.paper, color: r.done ? '#fff' : COLORS.soft, fontFamily: FONT, fontWeight: 800, fontSize: 14 }}>
+            <div key={r.quizId} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 12, border: `1.5px solid ${r.done ? COLORS.accBorder : COLORS.line}`, background: r.done ? COLORS.accSoft : T.white }}>
+              <div style={{ width: 30, height: 30, flex: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: r.done ? COLORS.forest : COLORS.paper, color: r.done ? T.white : COLORS.soft, fontFamily: FONT, fontWeight: 800, fontSize: 14 }}>
                 {r.done ? <Check size={16} strokeWidth={3} /> : r.index + 1}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -130,7 +131,7 @@ export default function ChallengeClient({ id }) {
                   {r.result.timeElapsed != null && <div style={{ fontFamily: FONT, fontSize: 12, color: COLORS.faded }}>{fmtTime(r.result.timeElapsed)}</div>}
                 </div>
               ) : (
-                <Link href={entryUrl(r.index)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, color: '#fff', background: COLORS.ember, padding: '9px 16px', borderRadius: 9, textDecoration: 'none' }}>
+                <Link href={entryUrl(r.index)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: FONT, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, color: T.white, background: COLORS.ember, padding: '9px 16px', borderRadius: 9, textDecoration: 'none' }}>
                   Play <ArrowRight size={14} strokeWidth={2.5} />
                 </Link>
               )}
@@ -140,7 +141,7 @@ export default function ChallengeClient({ id }) {
 
         {/* Total */}
         {allDone && (
-          <div style={{ marginTop: 16, padding: '16px 18px', borderRadius: 12, border: `2px solid ${COLORS.ink}`, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ marginTop: 16, padding: '16px 18px', borderRadius: 12, border: `2px solid ${COLORS.ink}`, background: T.white, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: FONT, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.faded }}>Challenge total</span>
             <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 22, color: COLORS.ink }}>
               {totalCorrect}<span style={{ fontSize: 15, color: COLORS.faded }}> / {totalPossible}</span>
@@ -152,15 +153,15 @@ export default function ChallengeClient({ id }) {
         {/* CTAs */}
         <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
           {!allDone ? (
-            <Link href={entryUrl(continueIdx)} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: '#fff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(14,29,64,0.32)' }}>
+            <Link href={entryUrl(continueIdx)} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: T.white, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(14,29,64,0.32)' }}>
               {anyStarted ? 'Continue' : 'Start'} <ArrowRight size={16} strokeWidth={2.5} />
             </Link>
           ) : (
-            <Link href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(id)}`} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: '#fff', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(14,29,64,0.32)' }}>
+            <Link href={`/quizzes/hub?tab=challenges&ch=${encodeURIComponent(id)}`} style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, padding: '15px 18px', borderRadius: 10, background: COLORS.ember, color: T.white, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 18px rgba(14,29,64,0.32)' }}>
               <Trophy size={15} strokeWidth={2.5} /> View standings
             </Link>
           )}
-          <Link href="/quizzes" style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: '#fff', color: COLORS.ink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <Link href="/quizzes" style={{ boxSizing: 'border-box', fontFamily: FONT, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '13px 18px', borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, background: T.white, color: COLORS.ink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             Back to all quizzes
           </Link>
         </div>

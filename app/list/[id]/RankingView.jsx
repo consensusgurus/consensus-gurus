@@ -4,12 +4,13 @@ import { getSources } from '@/lib/helpers';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { buildLinks, picsConfig } from './ListOverview';
+import { T } from '@/lib/theme';
 
-const C = { ink: '#1c1e24', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.30)', accent: '#0e1d40', accsoft: '#e8effb', bg: '#ffffff' };
-const MEDAL = ['#e8b43a', '#b8bcc4', '#c8814b'];
+const C = { ink: T.ink, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent, accsoft: '#e8effb', bg: T.white };
+const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
-const CHIP = [['#f3ddd8', '#c0392b'], ['#dbe4ee', '#34506e'], ['#e6dcf1', '#6b3fa0'], ['#d9ecdf', '#1f8a4c'], ['#f4e2cd', '#b5560f'], ['#eceef1', '#3a3f47']];
+const CHIP = [['#f3ddd8', T.danger], ['#dbe4ee', '#34506e'], ['#e6dcf1', '#6b3fa0'], ['#d9ecdf', '#1f8a4c'], ['#f4e2cd', '#b5560f'], [T.paper, '#3a3f47']];
 function chipColor(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return CHIP[h % CHIP.length]; }
 function grad(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return `linear-gradient(135deg,hsl(${h},42%,42%),hsl(${(h + 28) % 360},46%,30%))`; }
 function parseItem(full) {
@@ -40,8 +41,8 @@ function chipsFor(item, publications) {
   return out;
 }
 
-const BTN = { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, padding: '6px 11px', borderRadius: 8, border: `1px solid ${C.line}`, background: '#fff', color: C.ink, textDecoration: 'none', cursor: 'pointer', whiteSpace: 'nowrap' };
-const BTN_PRIMARY = { ...BTN, background: C.accent, borderColor: C.accent, color: '#fff' };
+const BTN = { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, padding: '6px 11px', borderRadius: 8, border: `1px solid ${C.line}`, background: T.white, color: C.ink, textDecoration: 'none', cursor: 'pointer', whiteSpace: 'nowrap' };
+const BTN_PRIMARY = { ...BTN, background: C.accent, borderColor: C.accent, color: T.white };
 
 function ActionRow({ item, list }) {
   const links = buildLinks(item, list);
@@ -70,7 +71,7 @@ function Chips({ names, light }) {
   return (
     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
       {names.slice(0, 5).map((n) => {
-        if (light) return <span key={n} style={{ fontSize: 9.5, fontWeight: 700, background: 'rgba(255,255,255,0.2)', color: '#fff', borderRadius: 5, padding: '2px 7px' }}>{n}</span>;
+        if (light) return <span key={n} style={{ fontSize: 9.5, fontWeight: 700, background: 'rgba(255,255,255,0.2)', color: T.white, borderRadius: 5, padding: '2px 7px' }}>{n}</span>;
         const [bg, fg] = chipColor(n);
         return <span key={n} style={{ fontSize: 9.5, fontWeight: 700, background: bg, color: fg, borderRadius: 5, padding: '2px 7px' }}>{n}</span>;
       })}
@@ -109,7 +110,7 @@ export default function RankingView({ list, voteData, extras }) {
 
   const Score = ({ item, dark }) => {
     if (!hasScores) return null;
-    if (dark) return <span style={{ position: 'absolute', top: 12, right: 14, zIndex: 2, color: '#fff', fontSize: 25, fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1, textShadow: '0 1px 4px rgba(0,0,0,.4)' }}>{score100(item)}<small style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, marginTop: 3 }}>consensus</small></span>;
+    if (dark) return <span style={{ position: 'absolute', top: 12, right: 14, zIndex: 2, color: T.white, fontSize: 25, fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1, textShadow: '0 1px 4px rgba(0,0,0,.4)' }}>{score100(item)}<small style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', opacity: 0.85, marginTop: 3 }}>consensus</small></span>;
     return <div style={{ flex: 'none', textAlign: 'right' }}><div style={{ fontSize: 19, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{score100(item)}</div><div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: C.soft }}>consensus</div></div>;
   };
 
@@ -122,9 +123,9 @@ export default function RankingView({ list, voteData, extras }) {
           const src = heroUrl(heroMap, item);
           const chips = chipsFor(item, publications);
           return (
-            <div key={item} className="rv-pcard" style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 14, overflow: 'hidden', display: 'flex' }}>
-              <div className="rv-pphoto" style={{ position: 'relative', flex: lead ? '0 0 42%' : '0 0 40%', minHeight: lead ? 212 : 152, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: src && containHero ? '#1c1e24' : undefined }}>
-                <span style={{ position: 'absolute', top: lead ? 12 : 10, left: lead ? 12 : 10, width: lead ? 30 : 27, height: lead ? 30 : 27, borderRadius: '50%', background: MEDAL[i] || MEDAL[2], color: '#1c1e24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: lead ? 15 : 14, zIndex: 2, boxShadow: '0 2px 6px rgba(0,0,0,.25)' }}>{i + 1}</span>
+            <div key={item} className="rv-pcard" style={{ background: T.white, border: `1px solid ${C.line}`, borderRadius: 14, overflow: 'hidden', display: 'flex' }}>
+              <div className="rv-pphoto" style={{ position: 'relative', flex: lead ? '0 0 42%' : '0 0 40%', minHeight: lead ? 212 : 152, backgroundImage: src ? `url("${src}")` : grad(name), backgroundSize: containHero ? 'contain' : 'cover', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundColor: src && containHero ? T.ink : undefined }}>
+                <span style={{ position: 'absolute', top: lead ? 12 : 10, left: lead ? 12 : 10, width: lead ? 30 : 27, height: lead ? 30 : 27, borderRadius: '50%', background: MEDAL[i] || MEDAL[2], color: T.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: lead ? 15 : 14, zIndex: 2, boxShadow: '0 2px 6px rgba(0,0,0,.25)' }}>{i + 1}</span>
               </div>
               <div style={{ flex: 1, padding: lead ? '16px 18px' : '13px 14px', minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: lead ? 12 : 8 }}>
@@ -156,7 +157,7 @@ export default function RankingView({ list, voteData, extras }) {
       {rest.length > 0 && (
         <>
           <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.soft, margin: '20px 2px 8px' }}>The Rest of the Ranking</div>
-          <div style={{ background: '#fff', border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ background: T.white, border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
             {rest.map((item, idx) => {
               const i = idx + 3;
               const { name, locality } = parseItem(item);

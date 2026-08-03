@@ -12,24 +12,7 @@ import { join } from 'node:path';
 // Inverted on purpose: every tree under app/ is guarded EXCEPT those still listed as
 // PENDING. Each batch that lands deletes lines from PENDING, so the guard tightens on its
 // own rather than going stale when someone forgets to add a directory.
-const PENDING = [
-  'app/admin',                    // 28 raw brand hexes left
-  'app/api',                      // 11 raw brand hexes left
-  'app/challenge',                // 17 raw brand hexes left
-  'app/duel',                     // 38 raw brand hexes left
-  'app/exams',                    // 20 raw brand hexes left
-  'app/experts-and-aggregators',  // 5 raw brand hexes left
-  'app/feed',                     // 11 raw brand hexes left
-  'app/geo',                      // 13 raw brand hexes left
-  'app/kids',                     // 74 raw brand hexes left
-  'app/list',                     // 52 raw brand hexes left
-  'app/player',                   // 31 raw brand hexes left
-  'app/quizzes',                  // 9 raw brand hexes left
-  'app/request',                  // 10 raw brand hexes left
-  'app/sitestats',                // 7 raw brand hexes left
-  'app/snapshot',                 // 13 raw brand hexes left
-  'app/sporcle-alternative',      // 7 raw brand hexes left
-];
+const PENDING = [];   // every tree under app/ is converted and guarded
 // Excluded with cause, not silently: this route builds an SVG *string* for Satori, which
 // does not resolve CSS custom properties, and it binds its own `T`. Revisit in the brand
 // phase when the OG cards become brand-aware.

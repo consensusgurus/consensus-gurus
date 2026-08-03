@@ -6,6 +6,7 @@ import SiteHeader from '../SiteHeader';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import { formatCount } from '../Count';
+import { T } from '@/lib/theme';
 
 const Eye = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -14,41 +15,41 @@ const Eye = () => (
 // Kids Corner hub. Lists the playable matching games as tiles; each runs on the
 // shared MatchGame engine. New games drop in as ACTIVITIES entries. Styled to
 // match the live site (Manrope, #f7f8fa surface, white cards, blue #0e1d40).
-const C = { ink: '#1c1e24', accent: '#0e1d40', muted: '#262b35', soft: '#262b35', line: 'rgba(20,22,28,0.30)' };
+const C = { ink: T.ink, accent: T.accent, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const PREVIEW = [
-  '<svg viewBox="0 0 100 100"><g><path d="M50 16 L78 78 H22 Z" fill="#f4d58a"/><path d="M22 78 H78 l-4 -9 H26 z" fill="#e0a85a"/><circle cx="44" cy="52" r="5" fill="#c0392b"/><circle cx="58" cy="60" r="5" fill="#c0392b"/><circle cx="50" cy="36" r="4" fill="#c0392b"/></g></svg>',
-  '<svg viewBox="0 0 100 100"><g><path d="M38 50 h24 l-12 34 z" fill="#e0b070"/><circle cx="50" cy="40" r="18" fill="#f7a6c4"/><circle cx="50" cy="22" r="4" fill="#c0392b"/></g></svg>',
-  '<svg viewBox="0 0 100 100"><g><rect x="16" y="40" width="68" height="22" rx="11" fill="#e7b96a"/><rect x="22" y="46" width="56" height="12" rx="6" fill="#c0392b"/><path d="M26 52 q6 -6 12 0 q6 6 12 0 q6 -6 12 0 q6 6 10 0" fill="none" stroke="#f2c14e" stroke-width="3" stroke-linecap="round"/></g></svg>',
+  '<svg viewBox="0 0 100 100"><g><path d="M50 16 L78 78 H22 Z" fill="#f4d58a"/><path d="M22 78 H78 l-4 -9 H26 z" fill="#e0a85a"/><circle cx="44" cy="52" r="5" fill={T.danger}/><circle cx="58" cy="60" r="5" fill={T.danger}/><circle cx="50" cy="36" r="4" fill={T.danger}/></g></svg>',
+  '<svg viewBox="0 0 100 100"><g><path d="M38 50 h24 l-12 34 z" fill="#e0b070"/><circle cx="50" cy="40" r="18" fill="#f7a6c4"/><circle cx="50" cy="22" r="4" fill={T.danger}/></g></svg>',
+  '<svg viewBox="0 0 100 100"><g><rect x="16" y="40" width="68" height="22" rx="11" fill="#e7b96a"/><rect x="22" y="46" width="56" height="12" rx="6" fill={T.danger}/><path d="M26 52 q6 -6 12 0 q6 6 12 0 q6 -6 12 0 q6 6 10 0" fill="none" stroke="#f2c14e" stroke-width="3" stroke-linecap="round"/></g></svg>',
 ];
 
 const PIZZA_PREVIEW = [
-  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#f4d58a"/><g fill="#c0392b"><circle cx="40" cy="40" r="5.5"/><circle cx="60" cy="42" r="5.5"/><circle cx="50" cy="54" r="5.5"/><circle cx="38" cy="60" r="5.5"/><circle cx="62" cy="60" r="5.5"/></g></svg>',
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#f4d58a"/><g fill={T.danger}><circle cx="40" cy="40" r="5.5"/><circle cx="60" cy="42" r="5.5"/><circle cx="50" cy="54" r="5.5"/><circle cx="38" cy="60" r="5.5"/><circle cx="62" cy="60" r="5.5"/></g></svg>',
   '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#f4d58a"/><g fill="#bda079"><ellipse cx="42" cy="44" rx="6" ry="4"/><rect x="40" y="46" width="4" height="5" rx="1"/><ellipse cx="60" cy="50" rx="6" ry="4"/><rect x="58" y="52" width="4" height="5" rx="1"/><ellipse cx="48" cy="62" rx="6" ry="4"/><rect x="46" y="64" width="4" height="5" rx="1"/></g></svg>',
-  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#7a9a4a"/><g fill="#e6dba0"><circle cx="42" cy="44" r="2.5"/><circle cx="58" cy="46" r="2.5"/><circle cx="48" cy="58" r="2.5"/><circle cx="61" cy="58" r="2.5"/></g><circle cx="52" cy="49" r="4.5" fill="#fff" opacity="0.85"/></svg>',
+  '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#e0a85a"/><circle cx="50" cy="50" r="33" fill="#7a9a4a"/><g fill="#e6dba0"><circle cx="42" cy="44" r="2.5"/><circle cx="58" cy="46" r="2.5"/><circle cx="48" cy="58" r="2.5"/><circle cx="61" cy="58" r="2.5"/></g><circle cx="52" cy="49" r="4.5" fill={T.white} opacity="0.85"/></svg>',
 ];
 
 const DOG_PREVIEW = [
   '<svg viewBox="0 0 100 100"><ellipse cx="28" cy="46" rx="10" ry="18" fill="#c8893a"/><ellipse cx="72" cy="46" rx="10" ry="18" fill="#c8893a"/><circle cx="50" cy="48" r="26" fill="#e0a24e"/><ellipse cx="50" cy="62" rx="13" ry="11" fill="#efc480"/><circle cx="50" cy="58" r="3.5" fill="#3a2a1a"/><circle cx="41" cy="44" r="3" fill="#3a2a1a"/><circle cx="59" cy="44" r="3" fill="#3a2a1a"/></svg>',
-  '<svg viewBox="0 0 100 100"><ellipse cx="26" cy="44" rx="9" ry="16" fill="#2a2a2a"/><ellipse cx="74" cy="44" rx="9" ry="16" fill="#cfcfcf"/><circle cx="50" cy="48" r="26" fill="#fafafa"/><ellipse cx="50" cy="62" rx="13" ry="11" fill="#fff"/><circle cx="50" cy="58" r="3.5" fill="#2a2a2a"/><circle cx="41" cy="44" r="3" fill="#2a2a2a"/><circle cx="59" cy="44" r="3" fill="#2a2a2a"/><g fill="#2a2a2a"><circle cx="38" cy="54" r="3"/><circle cx="62" cy="50" r="2.5"/><circle cx="58" cy="64" r="2.5"/></g></svg>',
+  '<svg viewBox="0 0 100 100"><ellipse cx="26" cy="44" rx="9" ry="16" fill="#2a2a2a"/><ellipse cx="74" cy="44" rx="9" ry="16" fill="#cfcfcf"/><circle cx="50" cy="48" r="26" fill="#fafafa"/><ellipse cx="50" cy="62" rx="13" ry="11" fill={T.white}/><circle cx="50" cy="58" r="3.5" fill="#2a2a2a"/><circle cx="41" cy="44" r="3" fill="#2a2a2a"/><circle cx="59" cy="44" r="3" fill="#2a2a2a"/><g fill="#2a2a2a"><circle cx="38" cy="54" r="3"/><circle cx="62" cy="50" r="2.5"/><circle cx="58" cy="64" r="2.5"/></g></svg>',
   '<svg viewBox="0 0 100 100"><path d="M30 32 l-7 -18 16 9z" fill="#5f6772"/><path d="M70 32 l7 -18 -16 9z" fill="#5f6772"/><circle cx="50" cy="50" r="26" fill="#8b95a0"/><path d="M50 28 q-9 8 -9 22 q0 8 9 14 q9 -6 9 -14 q0 -14 -9 -22z" fill="#f2f5f8"/><ellipse cx="50" cy="62" rx="8" ry="7" fill="#f2f5f8"/><circle cx="50" cy="58" r="3" fill="#2a2a2a"/><circle cx="42" cy="48" r="2.8" fill="#3a6a9a"/><circle cx="58" cy="48" r="2.8" fill="#3a6a9a"/></svg>',
 ];
 
 const ADD_PREVIEW = [
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">1+1</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="56" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">2</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">3+4</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill={T.ink}>1+1</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="56" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.accent}>2</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="30" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill={T.ink}>3+4</text></svg>',
 ];
 
 const LETTER_PREVIEW = [
-  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">A</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">a</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">B</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.ink}>A</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.accent}>a</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="56" font-size="62" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.ink}>B</text></svg>',
 ];
 
 const COLOR_PREVIEW = [
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="26" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Red</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="26" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.ink}>Red</text></svg>',
   '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#e23b3b"/></svg>',
   '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="33" fill="#14294d"/></svg>',
 ];
@@ -60,15 +61,15 @@ const FANTASY_PREVIEW = [
 ];
 
 const WORD_PREVIEW = [
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="26" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Dog</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="26" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.ink}>Dog</text></svg>',
   '<svg viewBox="0 0 100 100"><ellipse cx="30" cy="48" rx="9" ry="16" fill="#a06a2e"/><ellipse cx="70" cy="48" rx="9" ry="16" fill="#a06a2e"/><circle cx="50" cy="50" r="24" fill="#c8893a"/><ellipse cx="50" cy="62" rx="12" ry="10" fill="#e8c08a"/><circle cx="50" cy="58" r="3.5" fill="#2a1a0a"/><circle cx="42" cy="46" r="3" fill="#2a1a0a"/><circle cx="58" cy="46" r="3" fill="#2a1a0a"/></svg>',
   '<svg viewBox="0 0 100 100"><g stroke="#f5b800" stroke-width="4" stroke-linecap="round"><path d="M50 14 V24"/><path d="M50 76 V86"/><path d="M14 50 H24"/><path d="M76 50 H86"/><path d="M24 24 l7 7"/><path d="M69 69 l7 7"/><path d="M76 24 l-7 7"/><path d="M31 69 l-7 7"/></g><circle cx="50" cy="50" r="18" fill="#f5c518"/></svg>',
 ];
 
 const NUMBER_PREVIEW = [
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">7</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="22" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#1c1e24">Seven</text></svg>',
-  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#0e1d40">3</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.accent}>7</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="22" font-family="Manrope, system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill={T.ink}>Seven</text></svg>',
+  '<svg viewBox="0 0 100 100"><text x="50" y="55" font-size="54" font-family="Manrope, system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill={T.accent}>3</text></svg>',
 ];
 
 const ACTIVITIES = [
@@ -120,7 +121,7 @@ export default function KidsHubClient() {
     return () => { on = false; };
   }, []);
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', color: C.ink, position: 'relative', overflow: 'clip', fontFamily: FONT }}>
+    <div style={{ minHeight: '100vh', background: T.surface, color: C.ink, position: 'relative', overflow: 'clip', fontFamily: FONT }}>
       <Grain />
       <div style={{ position: 'relative', zIndex: 2 }}>
         <SiteHeader active="" />
@@ -129,17 +130,17 @@ export default function KidsHubClient() {
         <style>{`
           .kc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:22px;}
           .kc-link{text-decoration:none;color:inherit;display:block;}
-          .kc-tile{height:100%;background:#fff;border:1px solid ${C.line};border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s,border-color .15s;}
+          .kc-tile{height:100%;background:var(--white);border:1px solid ${C.line};border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,transform .15s,border-color .15s;}
           .kc-link:not(.kc-soft):hover .kc-tile{box-shadow:0 8px 24px rgba(20,22,28,0.10);transform:translateY(-2px);border-color:${C.accent};}
           .kc-soft{cursor:default;}
           .kc-soft .kc-tile{opacity:.72;}
           .kc-band{position:relative;height:128px;display:flex;align-items:center;justify-content:center;}
           .kc-prev{display:flex;gap:10px;}
-          .kc-prevcard{width:54px;height:54px;background:#fff;border:1px solid ${C.line};border-radius:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(20,22,28,0.08);}
+          .kc-prevcard{width:54px;height:54px;background:var(--white);border:1px solid ${C.line};border-radius:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(20,22,28,0.08);}
           .kc-prevcard svg{width:70%;height:70%;}
           .kc-icon{width:64px;height:64px;display:flex;}
           .kc-icon svg{width:100%;height:100%;}
-          .kc-pill{position:absolute;top:10px;right:10px;font-size:11px;font-weight:800;letter-spacing:.02em;padding:4px 10px;border-radius:999px;background:rgba(28,30,36,0.55);color:#fff;}
+          .kc-pill{position:absolute;top:10px;right:10px;font-size:11px;font-weight:800;letter-spacing:.02em;padding:4px 10px;border-radius:999px;background:rgba(28,30,36,0.55);color:var(--white);}
           .kc-pill.on{background:${C.accent};}
           .kc-body{padding:13px 15px 15px;display:flex;flex-direction:column;flex:1;}
           .kc-tag{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:${C.soft};}
