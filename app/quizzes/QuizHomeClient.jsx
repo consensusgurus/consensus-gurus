@@ -1807,7 +1807,7 @@ export default function QuizHomeClient() {
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
       <QuizCommandHeader me={me} onSignup={() => setSignupOpen(true)} ticker={[]} variant="home" onCredit={() => setCreditOpen(true)} />
-      <div className="qzh qzf-w" style={{ maxWidth: 1480, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style>
+      <div className="qzh qzf-w" style={{ maxWidth: 1560, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}`}</style>
 
         {(() => {
           if (duelMuteAll) return null;

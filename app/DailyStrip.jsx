@@ -169,6 +169,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
+  const [archive, setArchive] = useState({}); // per-game { played, total }, from the same payload
   // NOTE the day figures this component used to own (IQ Points earned today,
   // the day's move on the IQ board, the cross-game day streak) moved into the
   // page header on 2026-08-03 and are read there from useDayStats. Do not
@@ -284,6 +285,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       .then((data) => {
         if (!alive || !data) return;
         if (data.streaks && typeof data.streaks === 'object') setStreaks(data.streaks);
+        if (data.archive && typeof data.archive === 'object') setArchive(data.archive);
         const [Y, M, D] = etToday().split('-').map(Number);
         const yy = Y % 100;
         const completed = new Set(data.completed || []);
@@ -547,7 +549,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           <a className="sl-ic" href={g.href} aria-label={g.name}><img src={g.img} alt="" aria-hidden="true" /></a>
           <a className="sl-nm" href={g.href}>
             <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
-            <span className="sl-sub">{g.tag}{pl != null ? ` \u00b7 ${fmtPlays(pl)} playing` : ''}</span>
+            <span className="sl-sub">{g.tag}{pl != null ? <em className="sl-mpl">{` \u00b7 ${fmtPlays(pl)} playing`}</em> : null}</span>
           </a>
           <span className="sl-cat"><span style={{ background: `${col}1a`, color: col }}>{cat}</span></span>
           <span className="sl-pl">{pl != null ? fmtPlays(pl) : '\u2014'}</span>
@@ -572,7 +574,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               aria-expanded={open}
               aria-label={`${g.name} archive and stats`}
             >
-              Archive
+              {(() => {
+                const a = archive[g.key];
+                const pct = (a && a.total) ? Math.round((a.played / a.total) * 100) : null;
+                return pct == null ? 'Archive' : (
+                  <>
+                    <span className="sl-ring" style={{ background: `conic-gradient(currentColor ${pct}%, rgba(20,22,28,0.14) 0)` }}><i /></span>
+                    {`${pct}%`}
+                  </>
+                );
+              })()}
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
             </button>
           </span>
@@ -975,6 +986,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-nm .sl-sub{display:block;font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-cm{display:none;}
+        .sl-mpl{display:none;font-style:normal;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
         .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;color:#a16207;display:flex;align-items:center;justify-content:flex-end;gap:2px;}
@@ -1008,6 +1020,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-cat,.sl-pl,.sl-st,.sl-ld,.sl-arch{display:none;}
           .sl-nm b{display:inline;font-size:14.5px;}
           .sl-cm{display:inline;font-weight:600;font-size:12px;margin-left:6px;}
+          .sl-mpl{display:inline;}
           .sl-btn{width:64px;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}

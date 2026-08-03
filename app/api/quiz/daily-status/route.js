@@ -62,11 +62,22 @@ export async function GET(request) {
     const played = new Set();
     const completed = new Set();
     const abandonedOnly = new Set();
+    // Per-game archive progress, free from this same pass: how many of a game's
+    // days this player has played, over how many days that game has ever run.
+    // The denominator counts DISTINCT dated ids across every player's rows,
+    // which is the same set the per-game archive calendar draws from, so the
+    // closed row can show the figure without waiting on the drawer's own fetch.
+    const archiveAll = new Map();   // game key -> Set(dated quiz id)
+    const archiveMine = new Map();
+    const bump = (m, key, qid) => { let v = m.get(key); if (!v) { v = new Set(); m.set(key, v); } v.add(qid); };
     for (const r of (data || [])) {
       const qid = r && r.quiz_id;
       if (!qid || !DAILY_RE.test(qid)) continue;
+      const gkey = qid.slice(0, qid.indexOf('-'));
+      bump(archiveAll, gkey, qid);
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
       if (pk !== myKey) continue;
+      if (!r.abandoned) bump(archiveMine, gkey, qid);
       // An abandoned in-progress row (opened the board, made a move, then left
       // before finishing) is NOT a played game. It still counts as a play for
       // the leaderboard fallback in daily-combined, but here it is reported
@@ -140,7 +151,11 @@ export async function GET(request) {
         }
       }
     } catch (e) { console.error('daily-status todayXp', e); }
-    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp, rankChange }, { headers: CACHE_HEADERS });
+    const archive = {};
+    for (const [k, all] of archiveAll) {
+      archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
+    }
+    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp, rankChange, archive }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [] });
