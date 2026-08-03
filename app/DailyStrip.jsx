@@ -1001,10 +1001,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--ink);}
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
-        .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 118px 72px 64px 132px 78px 96px;align-items:center;gap:10px;padding:6px 14px;}
+        .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 118px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
-        .sl-head .c{display:flex;align-items:center;justify-content:center;text-align:center;}
+        .sl-head .c{text-align:center;}
         .sl-row{border-bottom:1px solid #f0f2f6;font-size:13px;}
         .sl-row:hover{background:var(--surface);}
         .sl-row.done{background:#f6fbf8;}
@@ -1026,19 +1026,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-ld svg{flex:none;color:var(--gold-ink);}
         .sl-ld span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .sl-nl{color:#8a93a3;}
-        .sl-status{display:flex;align-items:center;justify-content:center;}
-        .sl-arch{display:flex;align-items:center;justify-content:center;}
-        .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:60px;padding:5px 0;border-radius:6px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
+        .sl-status{display:flex;justify-content:center;}
+        .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
-        .sl-ab{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:6px;padding:5px 7px;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.03em;cursor:pointer;white-space:nowrap;}
+        .sl-arch{display:flex;justify-content:center;}
+        .sl-ab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:7px;padding:5px 9px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
         .sl-ab:hover{background:var(--accent-soft);}
         .sl-ab.on{background:var(--blue);border-color:var(--blue);color:var(--white);}
         .sl-ab svg{flex:none;transition:transform .15s;}
         .sl-ab.on svg{transform:rotate(180deg);}
-        .sl-ring{width:16px;height:16px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;}
-        .sl-ring i{width:11px;height:11px;border-radius:50%;background:var(--white);display:block;}
+        .sl-ring{width:19px;height:19px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;}
+        .sl-ring i{width:13px;height:13px;border-radius:50%;background:var(--white);display:block;}
         .sl-ab.on .sl-ring i{background:var(--blue);}
         .sl-drawer{border-bottom:1px solid var(--border);background:#fbfcfe;}
         /* Phone: no rank column, the category rides beside the name unbolded,
@@ -1049,11 +1049,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-head{display:none;}
           .sl-row{grid-template-columns:40px minmax(0,1fr) auto auto;gap:9px;padding:8px 12px;}
           .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
-          /* the expand button keeps its place beside the status button, so the
-             stats and archive drawer stays reachable with the columns gone */
-          .sl-ab{padding:5px 6px;gap:0;}
+          /* the archive control survives on a phone as an icon, so the stats and
+             archive drawer stays reachable with the columns gone */
+          .sl-arch{display:flex;}
+          .sl-ab{padding:6px 7px;gap:0;}
           .sl-ab .sl-ring,.sl-ab-pct{display:none;}
-          .sl-btn{width:56px;}
           .sl-nm b{display:inline;font-size:14.5px;}
           .sl-cm{display:inline;font-weight:600;font-size:12px;margin-left:6px;}
           .sl-mpl{display:inline;}
