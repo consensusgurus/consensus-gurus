@@ -160,7 +160,12 @@ function todayScoreLine(row) {
   return null;
 }
 
-export default function DailyStrip({ board = null }) {
+export default function DailyStrip({ board = null, layout = 'tiles' }) {
+  // 'slate' reflows the SAME tiles into a table of rows (owner-approved
+  // scoreboard redesign, 2026-08-03). It is a layout switch only: the data,
+  // the per-tile panel, the reset timer and every state flag are untouched,
+  // so reverting is a one-word prop change.
+  const slate = layout === 'slate';
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
@@ -549,14 +554,15 @@ export default function DailyStrip({ board = null }) {
         <span className="dh-tnm">{g.name}</span>
         {isDone ? (
           <span className="dh-tcta">Click for stats &amp; archive</span>
-        ) : (
+        ) : null}
+        {(!isDone || slate) ? (
           <>
             <span className="dh-tcat" style={{ background: catCol(g.cat), color: T.white }}>
               {CAT_SHORT[g.cat] || g.cat}
             </span>
             <span className="dh-tic"><img src={g.img} alt="" aria-hidden="true" /></span>
           </>
-        )}
+        ) : null}
         <span className="dh-tmeta">
           <span className="dh-mrow">
             {isDone ? (
@@ -864,6 +870,45 @@ export default function DailyStrip({ board = null }) {
         .dsd-p{color:var(--muted);font-variant-numeric:tabular-nums;font-weight:600;font-size:10.5px;}
         .dsd-none{color:var(--muted);font-size:10.5px;padding:2px 0;}
         /* ── responsive ── */
+        /* ── slate layout ──────────────────────────────────────────────
+           Same tiles, laid out as table rows: icon, name, category, status,
+           plays, score + streak, leader. Pure CSS on top of the tile markup, so
+           nothing about the tile's behaviour changes. */
+        .dh-boardwrap.slate{padding:0;border-radius:0 0 13px 13px;}
+        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;}
+        .dh-board.slate .dh-tile{flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;gap:10px;min-height:0;padding:7px 13px 7px 15px;border:none;border-bottom:1px solid #f0f2f6;border-radius:0;box-shadow:none;}
+        .dh-board.slate .dh-tile:last-child{border-bottom:none;}
+        .dh-board.slate .dh-tile:hover{transform:none;box-shadow:none;background:var(--surface);}
+        .dh-board.slate .dh-tile.done{background:#f4fbf6;}
+        .dh-board.slate .dh-tile.done:hover{background:#eaf7ef;}
+        .dh-board.slate .dh-tile.inprog{background:#fffaeb;}
+        .dh-board.slate .dh-acc{top:0;bottom:0;left:0;right:auto;width:3px;height:auto;border-radius:0;}
+        .dh-board.slate .dh-tdot{position:static;order:0;flex:none;margin-right:-4px;}
+        .dh-board.slate .dh-tic{order:1;margin:0;width:34px;height:28px;flex:none;}
+        .dh-board.slate .dh-tic img{height:24px;max-width:30px;}
+        .dh-board.slate .dh-tnm{order:2;flex:1 1 auto;min-width:0;font-size:14.5px;line-height:1.2;}
+        .dh-board.slate .dh-tcat{order:3;flex:none;width:104px;margin-top:0;text-align:center;}
+        .dh-board.slate .dh-tcta{order:4;flex:none;width:120px;margin:0;text-align:center;}
+        .dh-board.slate .dh-tile:not(.done) .dh-tcta{display:none;}
+        .dh-board.slate .dh-tcorner{position:static;order:5;flex:none;width:62px;justify-content:flex-end;max-width:none;}
+        .dh-board.slate .dh-tmeta{order:6;flex:none;width:auto;flex-direction:row;align-items:center;justify-content:flex-end;gap:12px;margin-top:0;}
+        .dh-board.slate .dh-mrow{justify-content:flex-end;width:96px;}
+        .dh-board.slate .dh-mlead{width:132px;justify-content:flex-start;padding:0 !important;}
+        .dh-board.slate .dh-tfav{position:static;order:7;flex:none;}
+        .dh-board.slate .dh-tfill{border-radius:0;}
+        /* The row is already a wide target, so the small stats button sits at
+           the end rather than floating over the corner. */
+        .dh-board.slate .dh-tstats{position:static;order:8;flex:none;margin-left:2px;}
+        /* Phone: there is room for ONE trailing column, and who is winning it
+           beats how many have played (owner, 2026-08-03), so the play count goes
+           and the leader stays. */
+        @media(max-width:900px){
+          .dh-board.slate .dh-tcat,.dh-board.slate .dh-tcta,.dh-board.slate .dh-tcorner{display:none;}
+          .dh-board.slate .dh-tmeta{gap:8px;}
+          .dh-board.slate .dh-mrow{width:auto;}
+          .dh-board.slate .dh-mlead{width:auto;max-width:112px;}
+          .dh-board.slate .dh-tile{padding:8px 12px 8px 14px;}
+        }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}
         @media(max-width:860px){.dh-board{grid-template-columns:repeat(4,minmax(0,1fr));}.dh-boardwrap.open{min-height:560px;}}
@@ -1080,23 +1125,23 @@ export default function DailyStrip({ board = null }) {
       {/* tile board. The expand panel is absolutely positioned over the whole
           console (see below), so opening a tile covers this rather than
           displacing it. */}
-      <div className={'dh-boardwrap' + (selGame ? ' open' : '')}>
+      <div className={'dh-boardwrap' + (selGame ? ' open' : '') + (slate ? ' slate' : '')}>
         <div className="dh-vpwrap">
         <div
           ref={vpRef}
-          className={'dh-vp' + (metrics && metrics.maxOffset > 0 ? ' on' : '')}
-          style={metrics && metrics.maxOffset > 0
+          className={'dh-vp' + (!slate && metrics && metrics.maxOffset > 0 ? ' on' : '')}
+          style={!slate && metrics && metrics.maxOffset > 0
             ? { height: metrics.windowH }
             : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
           <div
             ref={boardRef}
-            className={'dh-board' + (showAll ? '' : ' mcut')}
+            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '')}
             role="navigation"
             aria-label="Daily puzzles"
             aria-hidden={selGame ? 'true' : undefined}
-            style={metrics && metrics.maxOffset > 0
+            style={!slate && metrics && metrics.maxOffset > 0
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
