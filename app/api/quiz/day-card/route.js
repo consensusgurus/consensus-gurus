@@ -5,6 +5,7 @@ import { findQuizIdentity } from '@/lib/quiz-identity';
 import { rankPlayers } from '@/lib/quiz-xp';
 import { computeXpCached } from '@/lib/quiz-derived-cache';
 import { dailyGameName } from '@/lib/daily-games';
+import { SHARE_HOST } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -206,7 +207,7 @@ export async function GET(request) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${PAL.line}`, paddingTop: 26, marginTop: 10 }}>
-            <span style={{ display: 'flex', fontWeight: 800, fontSize: 28, color: PAL.navy }}>sourceoftruths.com</span>
+            <span style={{ display: 'flex', fontWeight: 800, fontSize: 28, color: PAL.navy }}>{SHARE_HOST}</span>
             <span style={{ display: 'flex', fontWeight: 800, fontSize: 24, color: '#ffffff', background: hero, borderRadius: 12, padding: '12px 22px' }}>Beat my score</span>
           </div>
         </div>

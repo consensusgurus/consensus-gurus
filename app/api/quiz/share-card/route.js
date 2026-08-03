@@ -4,6 +4,7 @@ import { loadQuizResults } from '@/lib/quiz-results-load';
 import { computeXpCached } from '@/lib/quiz-derived-cache';
 import { buildProfile } from '@/lib/quiz-profile';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
+import { SHARE_HOST } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -126,7 +127,7 @@ export async function GET(request) {
 
           <div style={{ display: 'flex', flexGrow: 1 }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${PAL.line}`, paddingTop: 26 }}>
-            <span style={{ display: 'flex', fontWeight: 700, fontSize: 24, color: PAL.faded }}>sourceoftruths.com/quizzes</span>
+            <span style={{ display: 'flex', fontWeight: 700, fontSize: 24, color: PAL.faded }}>{`${SHARE_HOST}/quizzes`}</span>
             <span style={{ display: 'flex', fontWeight: 600, fontSize: 24, color: PAL.soft }}>Can you out-rank me?</span>
           </div>
         </div>
