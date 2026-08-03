@@ -86,7 +86,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 // Brand mark (gradient ids suffixed per render so multiple instances stay unique).
 let __logoSeq = 0;
-function Logo( size = 22 ) {
+function Logo({ size = 22 }) {
   return <MindLoftMark size={size} />;
 }
 

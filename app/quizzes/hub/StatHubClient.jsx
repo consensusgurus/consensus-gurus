@@ -56,7 +56,7 @@ function fmtPlayTime(totalSec) {
   return parts.join(' ');
 }
 
-function Logo( size = 22 ) {
+function Logo({ size = 22 }) {
   return <MindLoftMark size={size} />;
 }
 

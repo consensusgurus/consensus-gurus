@@ -35,7 +35,7 @@ export const QUIZ_COUNT = (Array.isArray(QUIZZES) ? QUIZZES.length : 0)
   + (Array.isArray(KIDS_GAMES) ? KIDS_GAMES.length : 0)
   + (Array.isArray(EXAM_ORDER) ? EXAM_ORDER.length : 0);
 
-function Logo( size = 40 ) {
+function Logo({ size = 40 }) {
   return <MindLoftMark size={size} />;
 }
 
@@ -44,7 +44,7 @@ function Logo( size = 40 ) {
 // Logo variant for the full-bleed command bar: translucent-white tile so the
 // mark reads on the blue gradient (matches app/quizzes/QuizCommandHeader).
 let __shcLogoSeq = 0;
-function CommandLogo( size = 30 ) {
+function CommandLogo({ size = 30 }) {
   return <MindLoftMark size={size} />;
 }
 

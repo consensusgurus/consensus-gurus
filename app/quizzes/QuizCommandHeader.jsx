@@ -25,7 +25,7 @@ const SOURCE_COUNT = getAllSources().length;
 function fmtK(n) { return (typeof n === 'number' && n > 999) ? `${(n / 1000).toFixed(1)}k` : (n != null ? n.toLocaleString() : n); }
 
 let __qchLogoSeq = 0;
-function Logo( size = 30 ) {
+function Logo({ size = 30 }) {
   return <MindLoftMark size={size} />;
 }
 
