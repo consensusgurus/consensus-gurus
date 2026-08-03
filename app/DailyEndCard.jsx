@@ -175,9 +175,16 @@ export const CAT_META = {
   logic:     { name: 'Logic',     color: '#9f1239', Icon: Fingerprint },
   crowd:     { name: 'Crowd Psychology', color: T.goldInk, Icon: Users },
   trivia:    { name: 'Trivia',    color: '#0f766e', Icon: Brain },
+  // End Game (Check/Mate/Four/Taire/Babel) split out of Logic on 2026-08-02 but was
+  // never given a CAT_META row, so CAT_META[g.cat] came back null for all five: the
+  // Last Played / live feed labelled them the generic "Daily Puzzle", and the
+  // "more of today's games" grid below dropped them entirely (CAT_ORDER too).
+  // The colour is the muted navy those tiles already fall back to, so the badges
+  // are unchanged. (owner, 2026-08-03)
+  endgame:   { name: 'End Game',  color: T.muted,   Icon: Crown },
 };
 // Family render order for the "more games" grid.
-const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'history', 'geography'];
+const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'history', 'geography'];
 
 // ---- the daily slate (31 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
@@ -1718,7 +1725,7 @@ export default function DailyEndCard({
                   <span className="tr" aria-hidden="true"><Trophy size={12} strokeWidth={2.6} /></span>
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <div className="dec-eye" style={{ color: '#b7791f' }}>Easiest leaderboard today</div>
+                  <div className="dec-eye" style={{ color: T.blue }}>Easiest leaderboard today</div>
                   <div className="dec-ez-name">{grab.name}</div>
                   <div className="dec-ez-fam">
                     <span className="dec-dot" style={{ background: grabCat.color }} />

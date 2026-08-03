@@ -663,9 +663,10 @@ export default function DailyStrip({ board = null }) {
         .dh-cell .dh-play{flex:0 0 auto;margin-left:auto;min-width:92px;font-size:13.5px;padding:11px 18px;}
         .dh-cell>img{height:32px;width:auto;max-width:40px;object-fit:contain;flex:none;}
         .dh-bupt{min-width:0;}
-        .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        /* Up next reads blue against the gold the easiest board owns, the same
-           split the two eyebrows use on the end card. */
+        /* Both eyebrows read blue (owner, 2026-08-03). The easiest board used to
+           own gold against Up next's blue; the cap now sits on the brand blue like
+           the rest of the surface, so the .up modifier is a no-op kept for callers. */
+        .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dh-bue.up{color:var(--blue);}
         .dh-bshort{display:none;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -974,7 +975,9 @@ export default function DailyStrip({ board = null }) {
                 <div className="dh-bun">{easiest.game.name}</div>
                 <div className="dh-busub">
                   {easiest.players != null
-                    ? `Only ${easiest.players.toLocaleString()} ${easiest.players === 1 ? 'player' : 'players'} today`
+                    ? (easiest.players === 0
+                        ? 'No players today'
+                        : `Only ${easiest.players.toLocaleString()} ${easiest.players === 1 ? 'player' : 'players'} today`)
                     : easiest.game.tag}
                 </div>
               </div>

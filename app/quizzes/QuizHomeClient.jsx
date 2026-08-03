@@ -1967,7 +1967,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-qrow .qa{flex:none;color:var(--muted);font-weight:800;font-size:16px;}
             /* Category Mastery (collapsible) */
             .qzh .dhx-cm{background:var(--white);border:1px solid ${C.line};border-radius:14px;flex:none;overflow:hidden;}
-            .qzh .dhx-cm-h{width:100%;display:flex;align-items:center;gap:7px;padding:12px 14px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--gold-ink);}
+            .qzh .dhx-cm-h{width:100%;display:flex;align-items:center;gap:7px;padding:12px 14px;background:none;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--blue);}
             .qzh .dhx-cm-h .cmchev{margin-left:auto;color:var(--muted);transition:transform .2s;}
             .qzh .dhx-cm.open .dhx-cm-h .cmchev{transform:rotate(180deg);}
             .qzh .dhx-cm-bars{padding:0 13px 12px;display:flex;flex-direction:column;gap:5px;}
@@ -2055,7 +2055,7 @@ export default function QuizHomeClient() {
             .qzh .dhx-rone .dhx-qrow .qs{color:var(--muted) !important;}
             .qzh .dhx-rone .dhx-qrow .qa{color:#5b7099 !important;}
             .qzh .dhx-rone .dhx-cm{border-top:1.5px solid var(--border) !important;}
-            .qzh .dhx-rone .dhx-cm-h{color:#8a5300 !important;}
+            .qzh .dhx-rone .dhx-cm-h{color:var(--blue) !important;}
             .qzh .dhx-rone .dhx-cm-h .cmchev{color:var(--muted) !important;}
             .qzh .dhx-rone .dhx-cmbar{background:#f1f3f6 !important;}
             .qzh .dhx-rone .dhx-cmbar .mtr{background:#dbe6fb !important;}
