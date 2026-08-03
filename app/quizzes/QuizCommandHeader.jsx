@@ -143,6 +143,10 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+        /* The bar is position:fixed, so this wrapper reserves the height it no longer
+           occupies in flow. Kept on .qch, which wraps nothing but the bar, so there is
+           one rule to keep in sync instead of a separate spacer element. */
+        .qch{min-height:56px;}
         .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;position:fixed;top:0;left:0;right:0;z-index:90;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
         .qch-word em{font-style:normal;color:var(--blue);font-weight:800;}
