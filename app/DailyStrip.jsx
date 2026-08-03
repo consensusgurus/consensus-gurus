@@ -667,6 +667,7 @@ export default function DailyStrip({ board = null }) {
         /* Up next reads blue against the gold the easiest board owns, the same
            split the two eyebrows use on the end card. */
         .dh-bue.up{color:var(--blue);}
+        .dh-bshort{display:none;}
         .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dh-busub{font-size:11px;font-weight:600;color:var(--muted);line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         /* @container widths are the BAR's content box, not the viewport (.dh-sbar
@@ -916,10 +917,13 @@ export default function DailyStrip({ board = null }) {
           .dh-cell + .dh-cell{padding-left:8px;}
           .dh-cell>img{display:none;}
           .dh-busub{display:none;}
-          /* Halving the bar means the right eyebrow gets ~90px, where
-             "EASIEST LEADERBOARD" clipped to "EASIEST LEAD...". Dropping the
-             tracking and a half point buys the whole word back. */
-          .dh-bue{font-size:7px;letter-spacing:0;}
+          /* Halving the bar leaves the right eyebrow ~63px (the Resume button
+             takes 81 of the half's 160), where "EASIEST LEADERBOARD" clipped to
+             "EASIEST LEAD...". Type size was not the binding constraint, so the
+             LABEL shortens here instead: see .dh-bshort in the markup. */
+          .dh-bue{font-size:7.5px;letter-spacing:.02em;}
+          .dh-bwide{display:none;}
+          .dh-bshort{display:inline;}
           .dh-bun{font-size:14px;}
           .dh-cell .dh-play{margin-left:auto;flex:0 0 auto;min-width:0;font-size:11.5px;padding:8px 10px;gap:4px;}
         }
@@ -966,7 +970,7 @@ export default function DailyStrip({ board = null }) {
             <>
               <img src={easiest.game.img} alt="" aria-hidden="true" />
               <div className="dh-bupt">
-                <div className="dh-bue">Easiest leaderboard</div>
+                <div className="dh-bue"><span className="dh-bwide">Easiest leaderboard</span><span className="dh-bshort">Easiest board</span></div>
                 <div className="dh-bun">{easiest.game.name}</div>
                 <div className="dh-busub">
                   {easiest.players != null
