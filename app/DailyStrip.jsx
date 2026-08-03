@@ -422,7 +422,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // The slate filters for real (the tile board still dims rather than removes).
   const slateMatch = (g) => (filter === 'all' ? true : filter === 'todo' ? !done.has(g.key) : g.cat === filter);
   const slateList = list.filter(slateMatch);
-  const slateRest = filter === 'all' ? [] : list.filter((g) => !slateMatch(g));
   const slateCats = [];
   for (const g of games) if (!slateCats.includes(g.cat)) slateCats.push(g.cat);
   const slatePlays = games.reduce((n, g) => n + (playsOf(g.key) || 0), 0);
@@ -578,10 +577,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               {(() => {
                 const a = archive[g.key];
                 const pct = (a && a.total) ? Math.round((a.played / a.total) * 100) : null;
-                return pct == null ? 'Archive' : (
+                return pct == null ? <span className="sl-ab-pct">Archive</span> : (
                   <>
                     <span className="sl-ring" style={{ background: `conic-gradient(currentColor ${pct}%, rgba(20,22,28,0.14) 0)` }}><i /></span>
-                    {`${pct}%`}
+                    <span className="sl-ab-pct">{`${pct}%`}</span>
                   </>
                 );
               })()}
@@ -958,7 +957,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            and the per-game panel opens as a drawer under its own row. */
         .dh-boardwrap.slate{padding:0;}
         .dh-boardwrap.slate.open{min-height:0;}
-        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;max-height:calc(100vh - 300px);min-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
+        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;height:calc(100vh - 300px);min-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
         .dh-board.slate::-webkit-scrollbar{width:6px;}
         .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
         .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
@@ -1002,11 +1001,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--ink);}
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
-        .sl-row.dim{opacity:.42;}
-        .sl-row.dim:hover{opacity:.72;}
-        .sl-head,.sl-row{display:grid;grid-template-columns:42px minmax(0,1fr) 104px 58px 50px 116px 78px 104px;align-items:center;gap:9px;padding:6px 13px;}
+        .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 118px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
+        .sl-head .c{text-align:center;}
         .sl-row{border-bottom:1px solid #f0f2f6;font-size:13px;}
         .sl-row:hover{background:var(--surface);}
         .sl-row.done{background:#f6fbf8;}
@@ -1021,19 +1019,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-mpl{display:none;font-style:normal;}
         .sl-mld{display:none;font-style:normal;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
-        .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;color:var(--muted);}
-        .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;color:#a16207;display:flex;align-items:center;justify-content:flex-end;gap:2px;}
+        .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;color:var(--muted);}
+        .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
         .sl-st.none{color:#c3c8d1;}
         .sl-ld{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
         .sl-ld svg{flex:none;color:var(--gold-ink);}
         .sl-ld span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .sl-nl{color:#8a93a3;}
-        .sl-status{display:flex;justify-content:flex-end;}
+        .sl-status{display:flex;justify-content:center;}
         .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
-        .sl-arch{display:flex;justify-content:flex-end;}
+        .sl-arch{display:flex;justify-content:center;}
         .sl-ab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:7px;padding:5px 9px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
         .sl-ab:hover{background:var(--accent-soft);}
         .sl-ab.on{background:var(--blue);border-color:var(--blue);color:var(--white);}
@@ -1047,10 +1045,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            the play count moves into the subtitle, and only the status button
            keeps the right edge (owner, 2026-08-03). */
         @media(max-width:900px){
-          .dh-board.slate{max-height:none;min-height:0;overflow:visible;}
+          .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;}
           .sl-head{display:none;}
-          .sl-row{grid-template-columns:40px minmax(0,1fr) auto;gap:10px;padding:8px 12px;}
-          .sl-cat,.sl-pl,.sl-st,.sl-ld,.sl-arch{display:none;}
+          .sl-row{grid-template-columns:40px minmax(0,1fr) auto auto;gap:9px;padding:8px 12px;}
+          .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
+          /* the archive control survives on a phone as an icon, so the stats and
+             archive drawer stays reachable with the columns gone */
+          .sl-arch{display:flex;}
+          .sl-ab{padding:6px 7px;gap:0;}
+          .sl-ab .sl-ring,.sl-ab-pct{display:none;}
           .sl-nm b{display:inline;font-size:14.5px;}
           .sl-cm{display:inline;font-weight:600;font-size:12px;margin-left:6px;}
           .sl-mpl{display:inline;}
@@ -1080,6 +1083,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              columns leaves the bottom-right cell empty (owner, 2026-07-31). */
           .dh-board.mcut > .dh-tile:nth-child(n+9){display:none;}
           .dh-mall{display:flex;}
+          /* the slate lists every game already, so it needs neither the row cut
+             nor the show-all control */
+          .dhome.slate .dh-mall{display:none;}
+          .dh-board.slate.mcut > .sl-row{display:grid;}
         }
         @media(max-width:430px){
           .dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}
@@ -1311,8 +1318,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           {slate ? (
             <div className="sl-head" aria-hidden="true">
               <span /><span>Game</span><span>Category</span>
-              <span className="r">Players</span><span className="r">Streak</span><span>Leader</span>
-              <span className="r">Status</span><span className="r">Archive &amp; stats</span>
+              <span className="c">Players</span><span className="c">Streak</span><span>Leader</span>
+              <span className="c">Status</span><span className="c">Archive &amp; stats</span>
             </div>
           ) : null}
           <div
@@ -1325,9 +1332,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
-            {slate
-              ? [...renderSlate(slateList, false), ...renderSlate(slateRest, true)]
-              : renderTiles(list, false)}
+            {slate ? renderSlate(slateList, false) : renderTiles(list, false)}
           </div>
         </div>
         {metrics && metrics.maxOffset > 0 && !selGame ? (
