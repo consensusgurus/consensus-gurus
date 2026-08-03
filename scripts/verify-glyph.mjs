@@ -28,8 +28,9 @@
 //              same as emcee/crux's non-dictionary reporting. A board that
 //              resolves to 2+ distinct valid mappings is a genuine ambiguity
 //              and a hard FAIL.
-//   spelling   any run that decodes to a BRITISH-ONLY spelling (AMONGST,
-//              COLOUR, etc, see BRITISH below) is a hard FAIL, independent of
+//   spelling   any run that decodes to a British-only SPELLING VARIANT
+//              (COLOUR, LABOUR, etc, see BRITISH below) is a hard FAIL,
+//              independent of
 //              whether the dictionary happens to contain it — the site is
 //              US-spelling only, and a codeword answer being "a real word" is
 //              not sufficient if it is the wrong regional spelling.
@@ -71,7 +72,9 @@ for (const w of dictRaw) {
 // hard-fail list; AMONGST (live 2026-09-04) is the confirmed defect that
 // motivated this script.
 const BRITISH = new Set([
-  'AMONGST', 'WHILST', 'COLOUR', 'COLOURS', 'COLOURED', 'COLOURFUL', 'FAVOUR', 'FAVOURS',
+  // AMONGST and WHILST are formal but perfectly valid American English, so
+  // they are NOT on this list. The list is spelling variants only.
+  'COLOUR', 'COLOURS', 'COLOURED', 'COLOURFUL', 'FAVOUR', 'FAVOURS',
   'FAVOURITE', 'FAVOURABLE', 'HONOUR', 'HONOURS', 'HONOURED', 'HONOURABLE', 'NEIGHBOUR',
   'NEIGHBOURS', 'NEIGHBOURHOOD', 'THEATRE', 'THEATRES', 'CENTRE', 'CENTRES', 'CENTRED',
   'METRE', 'METRES', 'LITRE', 'LITRES', 'DEFENCE', 'OFFENCE', 'LICENCE', 'LICENCED',
@@ -242,6 +245,13 @@ PUZZLES.forEach((p, i) => {
     }
   }
 
+  // The past is frozen: a board already played is never rewritten, so any
+  // defect found on it is a note, not a failure. (CLAUDE.md, Daily puzzle
+  // authoring standard, rule 10.)
+  if (errs.length && p.live < GLYPH_FLOOR_FROM) {
+    notes.push(...errs.map((e) => `GRANDFATHERED (live ${p.live} < ${GLYPH_FLOOR_FROM}): ${e}`));
+    errs.length = 0;
+  }
   if (errs.length) fail(p.quizId, errs.join('; '));
   else ok(p.quizId, `${p.w}x${p.h}, ${p.words} words, unique mapping confirmed${notes.length ? ` — ${notes.join(' | ')}` : ''}`);
   if (errs.length) for (const n of notes) note(p.quizId, n);

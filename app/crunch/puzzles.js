@@ -7,8 +7,14 @@
 //   need       how many of the six the shortest exact solution uses. This is the
 //              difficulty dial: four is a glance, all six is a hunt. Weekdays 4
 //              or 5, Sundays always 6.
-//   solutions  how many distinct exact solutions exist, capped at 400. Sundays
-//              are picked for having very few.
+//   solutions  how many distinct exact solutions exist, i.e. min(true count, 400):
+//              the stored value IS the true count of distinct exact solutions,
+//              except that a board with more than 400 stores exactly 400 rather
+//              than the real (larger) number, the field saturates at the cap,
+//              it does not stop searching there. This is also the number shown
+//              to the player after the round ("One of N exact routes to it."),
+//              so a board can never claim more than 400 even if the truth is
+//              higher. Sundays are picked for having very few.
 //   example    one exact solution, as [a, op, b, result] steps, shown only after
 //              the round ends.
 //
@@ -110,7 +116,7 @@ export const PUZZLES = [
     numbers: [8, 7, 7, 5, 3, 3],
     target: 427,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[8, "x", 7, 56], [56, "+", 5, 61], [61, "x", 7, 427]],
   },
   {
@@ -122,7 +128,7 @@ export const PUZZLES = [
     numbers: [100, 75, 9, 5, 3, 1],
     target: 573,
     need: 5,
-    solutions: 401,
+    solutions: 400,
     example: [[100, "+", 5, 105], [75, "x", 9, 675], [105, "-", 3, 102], [675, "-", 102, 573]],
   },
   {
@@ -170,7 +176,7 @@ export const PUZZLES = [
     numbers: [75, 50, 9, 7, 4, 3],
     target: 273,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[75, "+", 9, 84], [84, "+", 7, 91], [91, "x", 3, 273]],
   },
   {
@@ -182,7 +188,7 @@ export const PUZZLES = [
     numbers: [50, 8, 8, 6, 2, 1],
     target: 193,
     need: 5,
-    solutions: 401,
+    solutions: 400,
     example: [[50, "x", 8, 400], [8, "+", 6, 14], [400, "-", 14, 386], [386, "/", 2, 193]],
   },
   {
@@ -194,7 +200,7 @@ export const PUZZLES = [
     numbers: [100, 8, 6, 6, 4, 2],
     target: 282,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[100, "-", 6, 94], [6, "/", 2, 3], [94, "x", 3, 282]],
   },
   {
@@ -218,7 +224,7 @@ export const PUZZLES = [
     numbers: [9, 7, 6, 4, 2, 1],
     target: 306,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[7, "x", 4, 28], [28, "+", 6, 34], [34, "x", 9, 306]],
   },
   {
@@ -254,7 +260,7 @@ export const PUZZLES = [
     numbers: [100, 75, 10, 9, 8, 7],
     target: 231,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[100, "+", 75, 175], [8, "x", 7, 56], [175, "+", 56, 231]],
   },
   {
@@ -266,7 +272,7 @@ export const PUZZLES = [
     numbers: [50, 10, 9, 8, 7, 4],
     target: 173,
     need: 5,
-    solutions: 401,
+    solutions: 400,
     example: [[50, "/", 10, 5], [9, "x", 4, 36], [36, "x", 5, 180], [180, "-", 7, 173]],
   },
   {
@@ -278,7 +284,7 @@ export const PUZZLES = [
     numbers: [100, 50, 5, 5, 3, 2],
     target: 335,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[100, "-", 5, 95], [95, "x", 3, 285], [285, "+", 50, 335]],
   },
   {
@@ -290,7 +296,7 @@ export const PUZZLES = [
     numbers: [50, 25, 9, 9, 5, 1],
     target: 342,
     need: 5,
-    solutions: 401,
+    solutions: 400,
     example: [[25, "+", 9, 34], [5, "-", 1, 4], [34, "+", 4, 38], [38, "x", 9, 342]],
   },
   {
@@ -302,7 +308,7 @@ export const PUZZLES = [
     numbers: [100, 6, 5, 3, 2, 2],
     target: 424,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[100, "+", 6, 106], [2, "+", 2, 4], [106, "x", 4, 424]],
   },
   {
@@ -362,7 +368,7 @@ export const PUZZLES = [
     numbers: [50, 25, 10, 7, 6, 1],
     target: 131,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[50, "x", 25, 1250], [1250, "/", 10, 125], [125, "+", 6, 131]],
   },
   {
@@ -374,7 +380,7 @@ export const PUZZLES = [
     numbers: [10, 7, 5, 4, 3, 1],
     target: 155,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[10, "x", 3, 30], [30, "+", 1, 31], [31, "x", 5, 155]],
   },
   {
@@ -386,7 +392,7 @@ export const PUZZLES = [
     numbers: [50, 8, 8, 5, 3, 1],
     target: 273,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[50, "+", 3, 53], [53, "x", 5, 265], [265, "+", 8, 273]],
   },
   {
@@ -446,7 +452,7 @@ export const PUZZLES = [
     numbers: [75, 25, 9, 8, 7, 2],
     target: 253,
     need: 5,
-    solutions: 401,
+    solutions: 400,
     example: [[75, "x", 7, 525], [25, "+", 9, 34], [34, "x", 8, 272], [525, "-", 272, 253]],
   },
   {
@@ -470,7 +476,7 @@ export const PUZZLES = [
     numbers: [100, 25, 7, 6, 3, 1],
     target: 218,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[100, "-", 25, 75], [75, "x", 3, 225], [225, "-", 7, 218]],
   },
   {
@@ -506,7 +512,7 @@ export const PUZZLES = [
     numbers: [10, 7, 4, 4, 3, 3],
     target: 480,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[10, "x", 4, 40], [4, "x", 3, 12], [40, "x", 12, 480]],
   },
   {
@@ -530,7 +536,7 @@ export const PUZZLES = [
     numbers: [75, 9, 8, 6, 2, 1],
     target: 437,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[75, "-", 2, 73], [73, "x", 6, 438], [438, "-", 1, 437]],
   },
   {
@@ -542,7 +548,7 @@ export const PUZZLES = [
     numbers: [100, 8, 7, 5, 4, 2],
     target: 131,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[100, "-", 4, 96], [7, "x", 5, 35], [96, "+", 35, 131]],
   },
   {
@@ -578,7 +584,7 @@ export const PUZZLES = [
     numbers: [75, 25, 10, 8, 6, 5],
     target: 212,
     need: 5,
-    solutions: 401,
+    solutions: 400,
     example: [[75, "+", 25, 100], [10, "-", 8, 2], [100, "+", 6, 106], [106, "x", 2, 212]],
   },
   {
@@ -662,7 +668,7 @@ export const PUZZLES = [
     numbers: [50, 25, 10, 9, 7, 2],
     target: 483,
     need: 4,
-    solutions: 401,
+    solutions: 400,
     example: [[50, "+", 10, 60], [60, "+", 9, 69], [69, "x", 7, 483]],
   },
   {
@@ -720,10 +726,10 @@ export const PUZZLES = [
     dateLabel: 'September 26, 2026',
     sunday: false,
     numbers: [50, 8, 6, 4, 3, 2],
-    target: 450,
+    target: 451,
     need: 4,
-    solutions: 402,
-    example: [[50, "+", 6, 56], [56, "x", 8, 448], [448, "+", 2, 450]],
+    solutions: 230,
+    example: [[50, "+", 6, 56], [56, "x", 8, 448], [448, "+", 3, 451]],
   },
   {
     num: 60,
@@ -758,7 +764,7 @@ export const PUZZLES = [
     numbers: [75, 10, 9, 4, 3, 2],
     target: 444,
     need: 5,
-    solutions: 401,
+    solutions: 400,
     example: [[75, "-", 10, 65], [65, "+", 9, 74], [4, "+", 2, 6], [74, "x", 6, 444]],
   },
 ];

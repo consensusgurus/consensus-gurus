@@ -14,7 +14,7 @@
 //   rootScore  the solver's exact score for the key, in the engine's own units
 //              (see app/four/c4.js): a win landing with S cells still empty
 //              scores S, so the win is on ply (empty - S + 1).
-//   winIn      how many of YOUR moves the forced win takes against best defence.
+//   winIn      how many of YOUR moves the forced win takes against best defense.
 //   motif      the idea, revealed only after the game ends.
 //
 // Every position was solved twice, by the shipping engine and by an independent
@@ -23,7 +23,7 @@
 // column. Each board was additionally checked to be legal and reachable (equal
 // disc counts, no floating discs, no line of four already on the board), to have
 // EXACTLY ONE winning column, and to force the win in exactly `winIn` moves
-// against the engine's stubbornest defence, never fewer.
+// against the engine's stubbornest defense, never fewer.
 export const PUZZLES = [
   {
     num: 1,
@@ -35,7 +35,7 @@ export const PUZZLES = [
     cells: '210000112200121220221210200000110000100000',
     key: 5,
     rootScore: 16,
-    motif: 'The key makes a threat that must be met, and meeting it costs the defence. It ends in a double threat: two finishing squares, one turn to stop them. Four on the diagonal.',
+    motif: 'The key makes a threat that must be met, and meeting it costs the defense. It ends in a double threat: two finishing squares, one turn to stop them. Four on the diagonal.',
   },
   {
     num: 2,
@@ -59,7 +59,7 @@ export const PUZZLES = [
     cells: '000000112120121200221000212000111221200000',
     key: 3,
     rootScore: 14,
-    motif: 'The key forces the answer, and the answer is what beats you. From there the defence simply runs out of squares. Four on the diagonal.',
+    motif: 'The key forces the answer, and the answer is what beats you. From there the defense simply runs out of squares. Four on the diagonal.',
   },
   {
     num: 4,
@@ -95,7 +95,7 @@ export const PUZZLES = [
     cells: '100000122110221000211122220000112122211120',
     key: 0,
     rootScore: 8,
-    motif: 'The key threatens nothing at all, which is exactly why it is easy to walk past. From there the defence simply runs out of squares. Four straight across.',
+    motif: 'The key threatens nothing at all, which is exactly why it is easy to walk past. From there the defense simply runs out of squares. Four straight across.',
   },
   {
     num: 7,
@@ -131,7 +131,7 @@ export const PUZZLES = [
     cells: '200000220000211211121220222111110000000000',
     key: 1,
     rootScore: 14,
-    motif: 'The key threatens nothing at all, which is exactly why it is easy to walk past. From there the defence simply runs out of squares. Four straight across.',
+    motif: 'The key move does not threaten anything. A tug-of-war breaks out over a different column first, and only after your last two moves both land in the same column does the row complete. Four straight across.',
   },
   {
     num: 10,
@@ -167,7 +167,7 @@ export const PUZZLES = [
     cells: '112000122122221100122211111200211000220000',
     key: 2,
     rootScore: 8,
-    motif: 'The key forces the answer, and the answer is what beats you. From there the defence simply runs out of squares. Four on the diagonal.',
+    motif: 'The key move threatens to complete its own column on the spot. Two moves later a single drop opens threats in two side-by-side columns at once, more than the defense can cover. Four on the diagonal.',
   },
   {
     num: 13,
@@ -179,7 +179,7 @@ export const PUZZLES = [
     cells: '121000120000212212122110200000120000100000',
     key: 0,
     rootScore: 16,
-    motif: 'The key makes a threat that must be met, and meeting it costs the defence. It ends in a double threat: two finishing squares, one turn to stop them. Four stacked in one column.',
+    motif: 'The key makes a threat that must be met, and meeting it costs the defense. It ends in a double threat: two finishing squares, one turn to stop them. Four stacked in one column.',
   },
   {
     num: 14,
@@ -203,7 +203,7 @@ export const PUZZLES = [
     cells: '000000212000222122111200122110211210100000',
     key: 3,
     rootScore: 12,
-    motif: 'The key forces the answer, and the answer is what beats you. From there the defence simply runs out of squares. Four straight across.',
+    motif: 'The key forces the answer, and the answer is what beats you. From there the defense simply runs out of squares. Four straight across.',
   },
   {
     num: 16,
@@ -215,7 +215,7 @@ export const PUZZLES = [
     cells: '210000122000111210222112111200121222000000',
     key: 4,
     rootScore: 10,
-    motif: 'A quiet drop. It makes no threat, so it looks like a wasted move. After that every reply loses to the same idea. Four on the diagonal.',
+    motif: 'The key move is quiet. Your first two moves both land in the key column, and your last two both land in a second column, each pair stacking before the diagonal completes.',
   },
   {
     num: 17,
@@ -239,7 +239,7 @@ export const PUZZLES = [
     cells: '200000121200111212122210212100210000120000',
     key: 4,
     rootScore: 10,
-    motif: 'The key forces the answer, and the answer is what beats you. From there the defence simply runs out of squares. Four on the diagonal.',
+    motif: 'The key move opens a threat in a completely different column, forcing an immediate answer far from where it landed. This is one of the longer forced wins, needing a full five moves, and it closes out on the diagonal.',
   },
   {
     num: 19,
@@ -251,7 +251,7 @@ export const PUZZLES = [
     cells: '000000122000210000121121111212220000200000',
     key: 5,
     rootScore: 16,
-    motif: 'The key makes a threat that must be met, and meeting it costs the defence. After that every reply loses to the same idea. Four straight across.',
+    motif: 'The key makes a threat that must be met, and meeting it costs the defense. After that every reply loses to the same idea. Four straight across.',
   },
   {
     num: 20,
@@ -263,7 +263,7 @@ export const PUZZLES = [
     cells: '100000220000111212121120210000222100210000',
     key: 1,
     rootScore: 14,
-    motif: 'Force the reply first. The reply is the problem. The rest is a squeeze, with no square left that holds. Four straight across.',
+    motif: 'The key move opens a threat in a different column than the one it lands in. Claiming that square next opens yet another threat one column over, and the finish arrives when your last two moves stack in the very same column. Four straight across.',
   },
   {
     num: 21,
@@ -275,7 +275,7 @@ export const PUZZLES = [
     cells: '200000111210221000122212112000210000000000',
     key: 2,
     rootScore: 16,
-    motif: 'The key forces the answer, and the answer is what beats you. From there the defence simply runs out of squares. Four straight across.',
+    motif: 'The key forces the answer, and the answer is what beats you. From there the defense simply runs out of squares. Four straight across.',
   },
   {
     num: 22,
@@ -287,7 +287,7 @@ export const PUZZLES = [
     cells: '100000000000211122122100121221221000000000',
     key: 3,
     rootScore: 16,
-    motif: 'A quiet drop. It makes no threat, so it looks like a wasted move. After that every reply loses to the same idea. Four on the diagonal.',
+    motif: 'The key move gives nothing away. Your last two moves both land in the same column, the second stacking straight on top of the first to complete the diagonal.',
   },
   {
     num: 23,
@@ -311,7 +311,7 @@ export const PUZZLES = [
     cells: '210000210000121112110000122100220000220000',
     key: 1,
     rootScore: 16,
-    motif: 'The key forces the answer, and the answer is what beats you. From there the defence simply runs out of squares. Four on the diagonal.',
+    motif: 'The key move threatens its own column immediately. By the third of your moves, two different columns are both one drop from winning, and the defense only gets to stop one. Four on the diagonal.',
   },
   {
     num: 25,
@@ -323,7 +323,7 @@ export const PUZZLES = [
     cells: '100000221212110000111222222110000000000000',
     key: 2,
     rootScore: 14,
-    motif: 'The key makes a threat that must be met, and meeting it costs the defence. After that every reply loses to the same idea. Four straight across.',
+    motif: 'The key makes a threat that must be met, and meeting it costs the defense. After that every reply loses to the same idea. Four straight across.',
   },
   {
     num: 26,
@@ -335,7 +335,7 @@ export const PUZZLES = [
     cells: '122000220000121200212200121112110000100000',
     key: 5,
     rootScore: 14,
-    motif: 'Force the reply first. The reply is the problem. The rest is a squeeze, with no square left that holds. Four straight across.',
+    motif: 'The key move threatens to complete its own column right away, though the block only delays it. Two moves later a single drop opens threats in two different columns at once, and the finish lands back in the column the key started in. Four straight across.',
   },
   {
     num: 27,
@@ -347,7 +347,7 @@ export const PUZZLES = [
     cells: '000000222120121121211211220000000000100000',
     key: 4,
     rootScore: 16,
-    motif: 'The key threatens nothing at all, which is exactly why it is easy to walk past. From there the defence simply runs out of squares. Four straight across.',
+    motif: 'The key gives nothing away. Three of your four moves land in the very same column, stacking up while the defense looks elsewhere, until the top disc slots into the row. Four straight across.',
   },
   {
     num: 28,
@@ -359,6 +359,6 @@ export const PUZZLES = [
     cells: '122000120000112200221112100000210000210000',
     key: 2,
     rootScore: 16,
-    motif: 'A quiet drop. It makes no threat, so it looks like a wasted move. After that every reply loses to the same idea. Four on the diagonal.',
+    motif: 'The key move is quiet too. Two moves later a drop opens a threat, and the very next move stacks right on top of it to complete the diagonal.',
   },
 ];

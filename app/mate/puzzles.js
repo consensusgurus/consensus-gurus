@@ -151,7 +151,7 @@ export const PUZZLES = [
     mateIn: 3,
     fen: '6Nk/4B2n/3Q3p/8/8/6K1/8/8 w - - 0 1',
     keySan: 'Qg6',
-    motif: 'Quiet queen move, then corner mate, the queen takes the last square herself, the bishop guards the square',
+    motif: 'A quiet queen move to g6 boxes in the knight with no check at all. Jump the knight to g5 and the bishop mates immediately; push the pawn instead and the king simply steps up, after which every remaining knight try ends in the same bishop mate on f6. The other two knight tries force a recapture first, and the queen finishes down the g-file instead.',
     solution: {"key": "d6g6", "lines": {"h7f8": {"move": "e7f8", "lines": {"h6h5": {"mate": "g6g7"}}}, "h7f6": {"move": "g8f6", "lines": {"h6h5": {"mate": "g6g8"}}}, "h7g5": {"mate": "e7f6"}, "h6h5": {"move": "g3h4", "lines": {"h7f8": {"mate": "e7f6"}, "h7f6": {"mate": "e7f6"}, "h7g5": {"mate": "e7f6"}}}}},
   },
   {
@@ -199,7 +199,7 @@ export const PUZZLES = [
     mateIn: 2,
     fen: 'k7/B5K1/b7/Q3p3/8/8/8/8 w - - 0 1',
     keySan: 'Qc7',
-    motif: 'Quiet queen move, then corner mate, the queen takes the last square herself, the bishop guards the square',
+    motif: 'A quiet queen move to c7 leaves Black eight different tries, every bishop retreat plus the lone pawn push, and all of them walk into the same finish. The queen jumps to b8 and covers both flight squares herself, with the bishop only in the way, not doing any of the guarding.',
     solution: {"key": "a5c7", "lines": {"a6c8": {"mate": "c7b8"}, "a6b7": {"mate": "c7b8"}, "a6b5": {"mate": "c7b8"}, "a6c4": {"mate": "c7b8"}, "a6d3": {"mate": "c7b8"}, "a6e2": {"mate": "c7b8"}, "a6f1": {"mate": "c7b8"}, "e5e4": {"mate": "c7b8"}}},
   },
   {
@@ -331,7 +331,7 @@ export const PUZZLES = [
     mateIn: 2,
     fen: '5nBk/8/4Q3/8/8/N5K1/8/8 w - - 0 1',
     keySan: 'Qf7',
-    motif: 'Quiet queen move, then corner mate, the queen takes the last square herself, the bishop guards the square',
+    motif: 'The bishop already parked beside the black king cuts off one escape before the queen even moves. Qf7 leaves the king with no legal move of its own, so the only piece that can shuffle is the knight, and wherever it goes the queen simply arrives on h7, capturing when it is sitting there, for mate.',
     solution: {"key": "e6f7", "lines": {"f8h7": {"mate": "f7h7"}, "f8d7": {"mate": "f7h7"}, "f8g6": {"mate": "f7h7"}, "f8e6": {"mate": "f7h7"}}},
   },
   {

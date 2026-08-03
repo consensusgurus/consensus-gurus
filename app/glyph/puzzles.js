@@ -358,7 +358,7 @@ export const PUZZLES = [
       't.n.q.b...b.wga',
       'i..vtfgtvag.g.u',
       'y....n..w.tdth.',
-      'j.p.jwpayr...a.',
+      'j.p.zwjbyx...a.',
       '.iwr.j..j..wlyw',
       'rajt.s...uwr.b.',
       '.rtiyktk...t.h.',
@@ -430,7 +430,7 @@ export const PUZZLES = [
     live: '2026-08-17',
     dateLabel: 'August 17, 2026',
     sunday: false,
-    w: 15, h: 15, words: 36,
+    w: 15, h: 15, words: 37,
     given: [5, 17, 20],
     key: 'XKANCBEVHWTYQJLOGMUIRDZFPS',
     rows: [
@@ -539,7 +539,7 @@ export const PUZZLES = [
     dateLabel: 'August 21, 2026',
     sunday: false,
     w: 15, h: 15, words: 36,
-    given: [11, 16, 19],
+    given: [11, 16, 4],
     key: 'ATFJZSMIQPNRLKXGWUOVECYBDH',
     rows: [
       'u..blhxu..hkbs.',
@@ -621,7 +621,7 @@ export const PUZZLES = [
     live: '2026-08-24',
     dateLabel: 'August 24, 2026',
     sunday: false,
-    w: 15, h: 14, words: 34,
+    w: 15, h: 15, words: 34,
     given: [3, 11, 15],
     key: 'GDAZSTFUVHCXQRWIJLKNOMBPYE',
     rows: [
@@ -639,6 +639,7 @@ export const PUZZLES = [
       'spbtzy.g.euwe.f',
       'z..c...r..o....',
       '.xjyepmhz.tcfcr',
+      '...............',
     ],
   },
   {
@@ -1194,7 +1195,7 @@ export const PUZZLES = [
     dateLabel: 'September 14, 2026',
     sunday: false,
     w: 15, h: 15, words: 33,
-    given: [19, 20, 26],
+    given: [19, 20, 18],
     key: 'OACKJLRVHQEYSNIUXBWTGDZFMP',
     rows: [
       '....ekbnm..m..r',
