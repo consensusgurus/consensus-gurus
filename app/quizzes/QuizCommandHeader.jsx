@@ -260,12 +260,12 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             <>
               <div className="qchm-cell qchm-hidem"><div className="qchm-k">Player</div><div className="qchm-v">{me.name}</div></div>
               {rank ? stat('Rank', <>{`#${fmtK(rank)}`}{totalPlayers ? <i>{` of ${totalPlayers.toLocaleString()}`}</i> : null}</>, moveTxt, moved ? (day.rankChange > 0 ? 'qchm-up' : 'qchm-down') : '') : null}
-              {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i className="qchm-day">{dayXp ? ` +${dayXp.toLocaleString()}` : ''}</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
+              {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i> IQ pts</i><i className="qchm-day">{dayXp ? ` +${dayXp.toLocaleString()}` : ''}</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
               {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '')}
             </>
           ) : (
             <>
-              {stat('IQ today', <>{dayXp ? `+${dayXp.toLocaleString()}` : '+0'}</>, 'sign up to keep it', '')}
+              {stat('IQ today', <>{dayXp ? `+${dayXp.toLocaleString()}` : '+0'}<i> IQ pts</i></>, 'sign up to keep it', '')}
               {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '')}
             </>
           )}
