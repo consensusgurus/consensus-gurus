@@ -1173,12 +1173,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               <div className="dh-bupt">
                 <div className="dh-bue"><span className="dh-bwide">Easiest leaderboard</span><span className="dh-bshort">Easiest board</span></div>
                 <div className="dh-bun">{easiest.game.name}</div>
+                {/* The game's own description leads, the same as Up next, and
+                    the field size follows it (owner, 2026-08-03). The count on
+                    its own said nothing about what the game IS. */}
                 <div className="dh-busub">
+                  {easiest.game.tag}
                   {easiest.players != null
-                    ? (easiest.players === 0
-                        ? 'No players today'
-                        : `Only ${easiest.players.toLocaleString()} ${easiest.players === 1 ? 'player' : 'players'} today`)
-                    : easiest.game.tag}
+                    ? ` \u00b7 ${easiest.players === 0
+                        ? 'no players today'
+                        : `${easiest.players.toLocaleString()} ${easiest.players === 1 ? 'player' : 'players'} today`}`
+                    : ''}
                 </div>
               </div>
               <a href={easiest.game.href} className="dh-play">
