@@ -116,22 +116,54 @@ function getAnonId() {
 const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
 
 // ─── Solver: re-derive THE unique placement from the regions (no answer wire)
-function solveBoard(n, regions) {
-  const usedCol = Array(n).fill(false);
-  const usedReg = Array(n).fill(false);
-  const cols = [];
+// Works for one OR two jesters per row: `stars` is the quota for every row,
+// column and court. Returns rows of column arrays, so a one-jester board comes
+// back as [[3],[1],[5]...] and a Sunday two-jester board as [[2,8],[0,4]...].
+function solveBoard(n, regions, stars = 1) {
+  // every legal way a single row can seat its jesters (never adjacent)
+  const rowCombos = [];
+  (function build(start, acc) {
+    if (acc.length === stars) { rowCombos.push(acc.slice()); return; }
+    for (let c = start; c < n; c++) {
+      if (acc.length && c - acc[acc.length - 1] < 2) continue;
+      acc.push(c); build(c + 1, acc); acc.pop();
+    }
+  })(0, []);
+
+  const colCount = Array(n).fill(0);
+  const regCount = Array(n).fill(0);
+  const rows = [];
   const walk = (r) => {
-    if (r === n) return true;
-    for (let c = 0; c < n; c++) {
-      if (usedCol[c] || usedReg[regions[r][c]]) continue;
-      if (r > 0 && Math.abs(cols[r - 1] - c) <= 1) continue;
-      usedCol[c] = true; usedReg[regions[r][c]] = true; cols.push(c);
-      if (walk(r + 1)) return true;
-      cols.pop(); usedCol[c] = false; usedReg[regions[r][c]] = false;
+    if (r === n) return colCount.every((x) => x === stars) && regCount.every((x) => x === stars);
+    for (const combo of rowCombos) {
+      let ok = true;
+      for (const c of combo) if (colCount[c] >= stars) { ok = false; break; }
+      if (ok && r > 0) {
+        for (const c of combo) {
+          for (const pc of rows[r - 1]) if (Math.abs(c - pc) <= 1) { ok = false; break; }
+          if (!ok) break;
+        }
+      }
+      if (!ok) continue;
+      const tally = {};
+      for (const c of combo) { const id = regions[r][c]; tally[id] = (tally[id] || 0) + 1; }
+      for (const id in tally) if (regCount[id] + tally[id] > stars) { ok = false; break; }
+      if (!ok) continue;
+      for (const c of combo) colCount[c]++;
+      for (const id in tally) regCount[id] += tally[id];
+      rows.push(combo);
+      // every column must still be able to reach its quota in the rows left
+      const left = n - r - 1;
+      let reachable = true;
+      for (let c = 0; c < n; c++) if (stars - colCount[c] > left * stars) { reachable = false; break; }
+      if (reachable && walk(r + 1)) return true;
+      rows.pop();
+      for (const c of combo) colCount[c]--;
+      for (const id in tally) regCount[id] -= tally[id];
     }
     return false;
   };
-  return walk(0) ? cols : null;
+  return walk(0) ? rows.map((x) => x.slice()) : null;
 }
 
 // ─── Personal stats + streak (localStorage), Circa/Suds pattern ─────────────
@@ -218,8 +250,11 @@ function JesterMark({ size = 22, color = COLORS.accentDeep, conflict = false }) 
 export default function JesterClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const N = PUZZLE.size;
+  // Sundays seat TWO jesters per row, column and court; every other day one.
+  const STARS = PUZZLE.stars || 1;
+  const SEATS = N * STARS;
   const STORE_KEY = `sot_jester_${PUZZLE.num}`;
-  const SOLUTION = useMemo(() => solveBoard(N, PUZZLE.regions), [N, PUZZLE]);
+  const SOLUTION = useMemo(() => solveBoard(N, PUZZLE.regions, STARS), [N, PUZZLE, STARS]);
 
   const [g, setG] = useState(() => freshState(N));
   const [autoX, setAutoX] = useState(true);
@@ -275,31 +310,41 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   // instead of stamping ✗ into storage, so lifting a jester makes its ✗'s
   // vanish on their own — while a cell still ruled out by another jester
   // (or ✗'d by hand) stays marked.
+  // A row / column / court only quarrels once it holds MORE than its quota, and
+  // a full unit is only pencilled out once it is FULL. On a two-jester board
+  // seating one jester therefore does NOT close its row, which is the whole game.
   const { jesters, conflictSet, seated, attackedSet } = useMemo(() => {
     const js = [];
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (g.cells[r][c] === 2) js.push([r, c]);
     const bad = new Set();
     for (let i = 0; i < js.length; i++) for (let j = i + 1; j < js.length; j++) {
       const [r1, c1] = js[i], [r2, c2] = js[j];
-      const clash = r1 === r2 || c1 === c2 ||
-        PUZZLE.regions[r1][c1] === PUZZLE.regions[r2][c2] ||
-        (Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1);
-      if (clash) { bad.add(r1 * N + c1); bad.add(r2 * N + c2); }
+      if (Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1) { bad.add(r1 * N + c1); bad.add(r2 * N + c2); }
+    }
+    const rowsHeld = Array.from({ length: N }, () => []);
+    const colsHeld = Array.from({ length: N }, () => []);
+    const regsHeld = Array.from({ length: N }, () => []);
+    for (const [r, c] of js) {
+      rowsHeld[r].push([r, c]); colsHeld[c].push([r, c]); regsHeld[PUZZLE.regions[r][c]].push([r, c]);
+    }
+    for (const held of [rowsHeld, colsHeld, regsHeld]) {
+      for (const unit of held) if (unit.length > STARS) for (const [r, c] of unit) bad.add(r * N + c);
     }
     const attacked = new Set();
     for (const [jr, jc] of js) {
-      const reg = PUZZLE.regions[jr][jc];
-      for (let k = 0; k < N; k++) { attacked.add(jr * N + k); attacked.add(k * N + jc); }
-      for (let r2 = 0; r2 < N; r2++) for (let c2 = 0; c2 < N; c2++) {
-        if (PUZZLE.regions[r2][c2] === reg) attacked.add(r2 * N + c2);
-      }
       for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
         const r2 = jr + dr, c2 = jc + dc;
         if (r2 >= 0 && r2 < N && c2 >= 0 && c2 < N) attacked.add(r2 * N + c2);
       }
     }
+    for (let r = 0; r < N; r++) if (rowsHeld[r].length >= STARS) for (let c = 0; c < N; c++) attacked.add(r * N + c);
+    for (let c = 0; c < N; c++) if (colsHeld[c].length >= STARS) for (let r = 0; r < N; r++) attacked.add(r * N + c);
+    for (let id = 0; id < N; id++) {
+      if (regsHeld[id].length < STARS) continue;
+      for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (PUZZLE.regions[r][c] === id) attacked.add(r * N + c);
+    }
     return { jesters: js, conflictSet: bad, seated: js.length, attackedSet: attacked };
-  }, [g.cells, N, PUZZLE]);
+  }, [g.cells, N, PUZZLE, STARS]);
 
   useEffect(() => {
     try {
@@ -463,7 +508,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   // auto-solve the instant the seating is legal and complete
   useEffect(() => {
     if (!hydrated || !playing || !SOLUTION) return;
-    if (seated === N && conflictSet.size === 0) {
+    if (seated === SEATS && conflictSet.size === 0) {
       setG((cur) => {
         if (cur.status !== 'playing') return cur;
         const g2 = { ...cur, status: 'done', tEnd: Date.now(), t0: cur.t0 || Date.now() };
@@ -473,7 +518,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       setEndClosed(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seated, conflictSet, hydrated, playing]);
+  }, [seated, conflictSet, hydrated, playing, SEATS]);
 
   // Undo: snapshot cells + placement count before each mutation so one press
   // rolls back a misplaced jester AND the auto-x cascade it stamped. In-memory
@@ -565,16 +610,16 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     if (!hintOk) return;
     if (!playing || g.hintUsed || !SOLUTION) return;
     setG((cur) => {
-      // prefer a row whose correct cell is not already seated
+      // prefer a seat the solution wants that is not filled yet
       let target = null;
-      for (let r = 0; r < N; r++) {
-        if (cur.cells[r][SOLUTION[r]] !== 2) { target = [r, SOLUTION[r]]; break; }
+      for (let r = 0; r < N && !target; r++) {
+        for (const c of SOLUTION[r]) if (cur.cells[r][c] !== 2) { target = [r, c]; break; }
       }
       if (!target) return { ...cur, hintUsed: true };
       const [r, c] = target;
       const cells = cur.cells.map((row) => row.slice());
-      // clear any misplaced jester in that row first
-      for (let c2 = 0; c2 < N; c2++) if (cells[r][c2] === 2) cells[r][c2] = 0;
+      // lift any jester in that row the solution does not want
+      for (let c2 = 0; c2 < N; c2++) if (cells[r][c2] === 2 && !SOLUTION[r].includes(c2)) cells[r][c2] = 0;
       cells[r][c] = 2;
       return { ...cur, cells, locked: [...cur.locked, [r, c]], hintUsed: true, placements: cur.placements + 1, t0: cur.t0 || Date.now() };
     });
@@ -588,7 +633,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     setG((cur) => {
       const cells = freshCells(N);
       for (let r = 0; r < N; r++) {
-        for (let c = 0; c < N; c++) cells[r][c] = SOLUTION[r] === c ? 2 : 1;
+        for (let c = 0; c < N; c++) cells[r][c] = SOLUTION[r].includes(c) ? 2 : 1;
       }
       const g2 = { ...cur, cells, status: 'lost', tEnd: Date.now(), t0: cur.t0 || Date.now() };
       postResult(g2, 0);
@@ -602,15 +647,15 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
     setG(freshState(N)); setEndClosed(false); clearHist();
   }
 
-  const cellPx = N === 9 ? 42 : 46;
+  const cellPx = N >= 10 ? 38 : N === 9 ? 42 : 46;
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Seat exactly <b>one jester</b> in every row, every column, and every colored court.</p>
+      <p style={{ margin: '0 0 9px' }}>Seat exactly <b>{STARS === 2 ? 'two jesters' : 'one jester'}</b> in every row, every column, and every colored court.</p>
       <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
-      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>✗</b> / <b>🃏</b> buttons. It starts on <b>✗</b> (rule a cell out), the mark you reach for most, and remembers your choice next time. Switch to <b>🃏</b> to seat jesters, or just <b>hold</b> a cell (right-click on a computer) to seat one directly in either mode. Tap a seated jester to lift it. Leave auto-✗ on and seating a jester pencils out its row, column, court and neighbours for you; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
-      <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. A bigger 9&times;9 Jubilee board runs on Sundays.</p>
+      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>✗</b> / <b>🃏</b> buttons. It starts on <b>✗</b> (rule a cell out), the mark you reach for most, and remembers your choice next time. Switch to <b>🃏</b> to seat jesters, or just <b>hold</b> a cell (right-click on a computer) to seat one directly in either mode. Tap a seated jester to lift it. Leave auto-✗ on and seating a jester pencils out its neighbours for you, plus its row, column or court as soon as that one is full; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
+      <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. Courts get harder as the week goes on, and Sunday seats <b>two</b> jesters per row, column and court on a bigger board.</p>
     </div>
   );
 
@@ -646,7 +691,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           helpTop={8}
           marginBottom={10}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Jubilee 9&times;9</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {STARS === 2 ? <>Double Court {N}&times;{N}</> : <>Jubilee {N}&times;{N}</>}</span>}
           blocks={'JESTERS'.split('').map((ch, i) => (
               <div key={i} style={{ width: 32, height: 32, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 18, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
@@ -655,7 +700,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {/* status bar */}
         {!preStart && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
-          <span>seated <b style={{ color: COLORS.ink, fontWeight: 500 }}>{seated}</b>/{N}</span>
+          <span>seated <b style={{ color: COLORS.ink, fontWeight: 500 }}>{seated}</b>/{SEATS}</span>
           <span>quarrels <b style={{ color: conflictSet.size ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{conflictSet.size ? conflictSet.size : 0}</b></span>
           {g.hintUsed && <span>&#128161; hint used</span>}
           {playing && (
@@ -904,7 +949,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction &mdash; rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new court convenes every day at midnight Eastern, with a bigger 9&times;9 Jubilee board on Sundays. Play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/sworn" style={{ color: COLORS.ink, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku.
+          A new court convenes every day at midnight Eastern, each one graded so the week climbs from a gentle Monday to a hard Saturday, and Sunday seats two jesters per row, column and court. Play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/sworn" style={{ color: COLORS.ink, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku.
         </p>
       </section>
 

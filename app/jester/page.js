@@ -17,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Jesters — Daily Logic Puzzle: Seat the Court | Mind Loft',
   description:
-    'A free daily placement puzzle in the Star Battle family — seat one jester in every row, column and colored court, with no two jesters touching. Exactly one solution, pure deduction. A new court every day, bigger on Sundays.',
+    'A free daily placement puzzle in the Star Battle family — seat a jester in every row, column and colored court, with no two jesters touching. Exactly one solution, pure deduction. A new court every day, harder as the week goes on, and two jesters per row on Sundays.',
   alternates: { canonical: '/jester' },
   manifest: '/jester.webmanifest',
   icons: {
@@ -28,7 +28,7 @@ export const metadata = {
   openGraph: {
     title: 'Jesters — Seat the Court, Every Day',
     description:
-      'One jester per row, per column, per colored court — and no two may touch. Every board is machine-verified to a single solution reachable by pure deduction. From Mind Loft.',
+      'One jester per row, per column, per colored court, and no two may touch. Two apiece on Sundays. Every board is machine-verified to a single solution reachable by pure deduction. From Mind Loft.',
     url: '/jester',
     type: 'website',
     siteName: 'Mind Loft',
@@ -37,7 +37,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Jesters — Seat the Court, Every Day',
     description:
-      'One jester per row, column and court. No touching. Exactly one solution — seat today’s court.',
+      'One jester per row, column and court, two on Sundays. No touching. Exactly one solution, seat today’s court.',
   },
 };
 
@@ -48,7 +48,7 @@ const gameJsonLd = {
   alternateName: 'Jesters — Daily Court-Placement Logic Puzzle',
   url: `${SITE_URL}/jester`,
   description:
-    'A free daily Star Battle-style logic puzzle: seat exactly one jester in every row, every column and every colored court, with no two jesters touching, even diagonally. Every board is machine-verified to have exactly one solution reachable by pure deduction — no guessing.',
+    'A free daily Star Battle-style logic puzzle: seat a jester in every row, every column and every colored court, with no two jesters touching, even diagonally. Boards are graded so the week climbs from a gentle Monday to a hard Saturday, and Sunday seats two jesters per row, column and court. Every board is machine-verified to have exactly one solution reachable by pure deduction — no guessing.',
   genre: ['Logic puzzle', 'Placement puzzle', 'Star Battle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
@@ -98,7 +98,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Jesters opens {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily court-placement puzzle &mdash; one jester per row, column and court, no touching, exactly one solution. Come back when the first court convenes.
+          The daily court-placement puzzle &mdash; a jester per row, column and court, no touching, exactly one solution. Come back when the first court convenes.
         </p>
         <a href="/daily" style={{ color: '#7c3aed', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
