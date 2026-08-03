@@ -44,6 +44,8 @@ function scoreTone(pct) {
     : { background: '#fdf1f0', color: '#a8362c', border: '1px solid #f2dcd9' };
 }
 
+function ringTone(pct) { return pct >= 70 ? T.successDeep : '#c0392b'; }
+
 function Rows({ rows, fmt, open, hrefFor }) {
   return (
     <table className="hr-tbl"><tbody>
@@ -236,6 +238,9 @@ export default function HomeRails({
       .hr-ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
       .hr-cat{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:4px;}
       .hr-s{display:block;font-size:11px;color:var(--slate);}
+      .hr-ring{width:32px;height:32px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center;}
+      .hr-ring .in{width:25px;height:25px;border-radius:999px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+      .hr-res-sc{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
       .hr-sc{font-family:var(--font-mono,ui-monospace,monospace);font-size:12.5px;font-weight:700;padding:4px 8px;border-radius:6px;flex:none;min-width:54px;text-align:center;font-variant-numeric:tabular-nums;}
       .hr-feat{flex:none;}
       .hr-frow{display:flex;align-items:center;gap:11px;padding:11px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
@@ -355,10 +360,11 @@ export default function HomeRails({
                       {cat ? <span className="hr-cat" style={{ background: cat.tint, color: cat.color }}>{cat.label}</span> : null}
                     </span>
                     <span className="hr-s">
-                      {typeof f.pct === 'number' ? `beat ${f.pct}% · ` : ''}{f.when || ''}
+                      <b className="hr-res-sc">{f.score}/{f.total}</b>
+                      {typeof f.pct === 'number' ? ` · beat ${f.pct}%` : ''}{f.when ? ` · ${f.when}` : ''}
                     </span>
                   </span>
-                  <span className="hr-sc" style={scoreTone(pct)}>{f.score}/{f.total}</span>
+                  <span className="hr-ring" style={{ background: `conic-gradient(${ringTone(pct)} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
                 </Link>
               );
             })

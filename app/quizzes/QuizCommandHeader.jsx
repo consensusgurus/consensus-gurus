@@ -79,7 +79,7 @@ function focusListSearch() {
   } catch {}
 }
 
-export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
+export default function QuizCommandHeader({ me, onSignup, ticker = [], variant = 'default', onCredit }) {
   const found = !!(me && me.found);
   // A signed-out visitor still gets a name: the same stable Guest-XXXX handle
   // the leaderboards already show them under, derived from this browser's anon
@@ -147,6 +147,115 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
     window.addEventListener('resize', fit);
     return () => { ro.disconnect(); window.removeEventListener('resize', fit); };
   }, [meName, found]);
+  // ── Homepage bar (owner-approved scoreboard redesign, 2026-08-03) ──
+  // Two rows on a navy ground: identity + nav up top, the day's figures and the
+  // two actions beneath. HOMEPAGE ONLY, via variant="home": this component is
+  // shared with /quizzes and the daily pages, which keep the white bar until
+  // the owner says otherwise. It is a separate branch rather than a restyle of
+  // the bar below so none of that bar's tuned breakpoints move.
+  if (variant === 'home') {
+    const stat = (label, value, sub, subCls) => (
+      <div className="qchm-cell">
+        <div className="qchm-k">{label}</div>
+        <div className="qchm-v">{value}</div>
+        <div className={`qchm-ch${subCls ? ` ${subCls}` : ''}`}>{sub}</div>
+      </div>
+    );
+    return (
+      <div className="qchm">
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+          .qchm{font-family:${FONT};}
+          .qchm-r1{background:var(--accent);color:var(--white);}
+          .qchm-in{max-width:1560px;margin:0 auto;padding:12px clamp(12px,2vw,20px);display:flex;align-items:center;gap:16px;}
+          .qchm-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;}
+          .qchm-wm{font-size:18px;font-weight:800;letter-spacing:-.025em;color:var(--white);line-height:1;white-space:nowrap;}
+          .qchm-wm em{font-style:normal;color:var(--blue-400);}
+          .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #33509b;padding-left:13px;font-weight:800;white-space:nowrap;}
+          .qchm-nav{margin-left:auto;display:flex;gap:8px;align-items:center;}
+          .qchm-nav a,.qchm-nav button{color:var(--white);background:#2c4fa8;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
+          .qchm-nav a:hover,.qchm-nav button:hover{background:#3a60c4;border-color:#7a99e0;}
+          .qchm-nav a.on{background:var(--white);border-color:var(--white);color:var(--accent);}
+          .qchm-user{display:none;margin-left:auto;align-items:center;gap:8px;}
+          .qchm-user .nm{font-size:13.5px;font-weight:800;color:var(--white);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;}
+          .qchm-pic{width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none;}
+          .qchm-r2{background:#16307a;color:var(--white);border-bottom:3px solid var(--blue);}
+          .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #2b4a99;white-space:nowrap;}
+          .qchm-cell:first-child{padding-left:0;}
+          .qchm-cell:last-of-type{border-right:none;}
+          .qchm-k{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#9fb8ee;font-weight:800;}
+          .qchm-v{font-size:18px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+          .qchm-v i{font-style:normal;font-size:11.5px;font-weight:600;color:#9fb8ee;}
+          .qchm-ch{display:none;font-size:10px;font-weight:700;color:#9fb8ee;margin-top:1px;}
+          .qchm-up{color:#6ee7b7;}
+          .qchm-down{color:#fca5a5;}
+          .qchm-acts{margin-left:auto;display:flex;gap:8px;padding-left:16px;}
+          .qchm-bt{border:1px solid #5b7fd4;background:#264aa0;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
+          .qchm-bt:hover{background:#3a60c4;border-color:#8aa8e8;color:var(--white);}
+          .qchm-signup{background:var(--blue);border-color:#7ea6ff;}
+          .qchm-signup:hover{background:#3b7bf5;}
+          @media(max-width:1100px){.qchm-tag{display:none;}}
+          @media(max-width:860px){
+            .qchm-in{padding:11px 12px;gap:10px;}
+            .qchm-nav{display:none;}
+            .qchm-user{display:flex;}
+            .qchm-r2 .qchm-in{padding:9px 4px;}
+            .qchm-cell{flex:1;padding:0 6px;text-align:center;}
+            .qchm-hidem{display:none;}
+            .qchm-k{display:none;}
+            .qchm-v{font-size:17px;}
+            .qchm-v .qchm-day{display:none;}
+            .qchm-ch{display:block;}
+            .qchm-acts{display:none;}
+          }
+          @media(max-width:560px){.qchm-r1{padding-top:env(safe-area-inset-top);}}
+        `}</style>
+        <div className="qchm-r1"><div className="qchm-in">
+          <Link href="/" className="qchm-brand" aria-label="Mind Loft home">
+            <MindLoftMark size={30} ink="#ffffff" accent={T.blue400} />
+            <span className="qchm-wm">Mind <em>Loft</em></span>
+          </Link>
+          <span className="qchm-tag">Elevate Your Thinking</span>
+          <nav className="qchm-nav">
+            <Link href="/" className="on">Today</Link>
+            <button type="button" onClick={focusListSearch}>Quizzes</button>
+            <Link href="/lists">Top 10 Lists</Link>
+          </nav>
+          <div className="qchm-user">
+            {found ? (
+              <>
+                <Link href="/quizzes/hub" className="nm" style={{ color: '#fff', textDecoration: 'none' }}>{me.name}</Link>
+                <span className="qchm-pic">{(me.name || '?').slice(0, 1).toUpperCase()}</span>
+              </>
+            ) : (
+              <button type="button" className="qchm-bt qchm-signup" onClick={onSignup}>Sign Up</button>
+            )}
+          </div>
+        </div></div>
+        <div className="qchm-r2"><div className="qchm-in">
+          {found ? (
+            <>
+              <div className="qchm-cell qchm-hidem"><div className="qchm-k">Player</div><div className="qchm-v">{me.name}</div></div>
+              {rank ? stat('Rank', <>{`#${fmtK(rank)}`}{totalPlayers ? <i>{` of ${totalPlayers.toLocaleString()}`}</i> : null}</>, moveTxt, moved ? (day.rankChange > 0 ? 'qchm-up' : 'qchm-down') : '') : null}
+              {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i className="qchm-day">{dayXp ? ` +${dayXp.toLocaleString()}` : ''}</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
+              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '')}
+            </>
+          ) : (
+            <>
+              {stat('IQ today', <>{dayXp ? `+${dayXp.toLocaleString()}` : '+0'}</>, 'sign up to keep it', '')}
+              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '')}
+            </>
+          )}
+          <div className="qchm-acts">
+            <Link href="/quizzes/hub" className="qchm-bt">Stat Hub</Link>
+            {onCredit ? <button type="button" className="qchm-bt" onClick={onCredit}>Share for credit</button> : null}
+            {!found ? <button type="button" className="qchm-bt qchm-signup" onClick={onSignup}>Sign Up</button> : null}
+          </div>
+        </div></div>
+      </div>
+    );
+  }
+
   return (
     <div className="qch" style={{ fontFamily: FONT }}>
       <style>{`
