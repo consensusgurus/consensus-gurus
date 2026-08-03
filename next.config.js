@@ -7,6 +7,22 @@ const nextConfig = {
     // optimized/cached by the built-in image optimizer at request time.
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
   },
+  // mindloftdaily.com is live so the rebrand can be seen on a real domain, but it serves the
+  // SAME content as sourceoftruths.com. Two hosts returning identical 200s is duplicate
+  // content, and letting Google index both would split signals and undercut the Change of
+  // Address filed at cutover. So the new host is noindexed until it becomes canonical.
+  //
+  // DELETE THIS BLOCK AT CUTOVER, in the same change that flips the 301s to point AT
+  // mindloftdaily.com. Leaving it in place would silently deindex the live site.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: '(www\\.)?mindloftdaily\\.com' }],
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+    ];
+  },
   async redirects() {
     return [
       // 2026-07-18: the Quizzes hub is now the site root (sourceoftruths.com).
