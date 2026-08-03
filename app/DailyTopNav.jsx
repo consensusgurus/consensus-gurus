@@ -13,6 +13,10 @@
 // again at <=370px so all three elements clear a 360px viewport. Do NOT
 // reintroduce flexWrap here — a wrapped strip shoves the masthead down the page.
 //
+// PINNED (owner, 2026-08-03): the strip is position:sticky at the top of the viewport, so
+// the nav and the rank chip stay reachable while a board scrolls. It carries its own
+// background for that reason; a transparent sticky strip lets content scroll through it.
+//
 // One component so all daily clients share the exact same strip and compact
 // behavior. Used by every daily game client.
 
@@ -31,7 +35,13 @@ export default function DailyTopNav({ player, compact = false }) {
   };
   return (
     <div className="dtn-row"
-      style={{ display: 'flex', alignItems: 'center', gap: compact ? 11 : 15, marginBottom: compact ? 11 : 20, flexWrap: 'nowrap', minWidth: 0 }}>
+      style={{ display: 'flex', alignItems: 'center', gap: compact ? 11 : 15, marginBottom: compact ? 11 : 20, flexWrap: 'nowrap', minWidth: 0,
+        // Pinned so the nav and the player's rank chip stay reachable while a board
+        // scrolls. surface, not white: that is what is actually painted behind the strip
+        // on a game page, so the sticky band is invisible until content passes under it.
+        // z-index 90 clears page content but stays under the modal layer at 200.
+        position: 'sticky', top: 0, zIndex: 90, background: T.surface,
+        paddingTop: compact ? 8 : 12, paddingBottom: compact ? 6 : 8 }}>
       <style>{'\
         @media(max-width:560px){\
           .dtn-row{gap:9px !important;}\
