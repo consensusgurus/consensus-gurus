@@ -25,7 +25,7 @@ export const dynamic = 'force-dynamic';
 
 const SZ = 1080;
 const PAL = {
-  bg: '#ffffff', text: '#1c1e24', navy: '#0e1d40', slate: '#46506a',
+  bg: '#ffffff', text: '#0b0c0e', navy: '#1e3a8a', slate: '#646c7a',
   soft: '#6b7280', cell: '#f1f3f6', line: 'rgba(20,22,28,0.10)',
   blue: '#2563eb', green: '#15803d', gold: '#b7791f', goldBg: '#fdf6e4',
 };

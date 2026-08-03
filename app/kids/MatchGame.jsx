@@ -191,7 +191,7 @@ export default function MatchGame({ items, pairs, title, intro, quizId, cols = 5
           .mm-pnums button{width:54px;height:54px;border:1.5px solid ${C.line};background:var(--white);border-radius:12px;font-family:${FONT};font-size:20px;font-weight:800;color:${C.ink};cursor:pointer;}
           .mm-pnums button.on{background:${C.accent};border-color:${C.accent};color:var(--white);}
           .mm-start{border:none;background:${C.accent};color:var(--white);font-family:${FONT};font-weight:800;font-size:16px;padding:12px 34px;border-radius:12px;cursor:pointer;}
-          .mm-start:hover{background:#0a1730;}
+          .mm-start:hover{background:var(--accent);}
           .mm-scores{display:flex;gap:10px;margin:0 0 16px;flex-wrap:wrap;}
           .mm-pl{flex:1 1 120px;background:var(--white);border:2px solid transparent;border-radius:12px;padding:9px 13px;}
           .mm-pl.on{border-color:${C.accent};background:#eef3fe;}

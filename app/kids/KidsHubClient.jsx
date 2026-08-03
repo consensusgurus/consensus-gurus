@@ -14,7 +14,7 @@ const Eye = () => (
 
 // Kids Corner hub. Lists the playable matching games as tiles; each runs on the
 // shared MatchGame engine. New games drop in as ACTIVITIES entries. Styled to
-// match the live site (Manrope, #f7f8fa surface, white cards, blue #0e1d40).
+// match the live site (Manrope, #f7f8fa surface, white cards, accent #1e3a8a).
 const C = { ink: T.ink, accent: T.accent, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.30)' };
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 

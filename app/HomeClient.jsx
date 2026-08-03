@@ -1633,26 +1633,6 @@ function ntPreview(list, voteData, extras, limit) {
   return { label: 'Current Consensus', items: (list.sources?.ai?.items || []).slice(0, limit) };
 }
 
-// Brand mark (concentric-target logo from the June 2026 rebrand): blue tile,
-// two white rings, gold star. Inlined as SVG so it needs no asset/CDN.
-function NTLogo({ size = 38 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mind Loft" style={{ flex: 'none' }}>
-      <defs>
-        <linearGradient id="sotLogoBlue" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#1e3a6b" /><stop offset="1" stopColor="#0a1730" />
-        </linearGradient>
-        <radialGradient id="sotLogoGold" cx="0.5" cy="0.42" r="0.7">
-          <stop offset="0" stopColor="#ffe24d" /><stop offset="0.55" stopColor="#fbb615" /><stop offset="1" stopColor="#f59008" />
-        </radialGradient>
-      </defs>
-      <rect x="3" y="3" width="58" height="58" rx="17.5" fill="url(#sotLogoBlue)" />
-      <circle cx="32" cy="32.5" r="16.4" fill={T.white} /><circle cx="32" cy="32.5" r="12.2" fill="#112446" />
-      <circle cx="32" cy="32.5" r="9.6" fill="#e8eaed" />
-      <path d="M 32 25.1 L 33.77 30.73 L 36.1 32.5 L 33.77 34.27 L 32 39.9 L 30.23 34.27 L 27.9 32.5 L 30.23 30.73 Z" stroke={T.accent} strokeWidth="0.4" strokeLinejoin="round" fill="url(#sotLogoGold)" />
-    </svg>
-  );
-}
 
 // New-theme browse tile (matches lists-browse mockup, adapted to real data).
 export function BrowseTile({ list, views, voteData, extras, onClick, featured, relatedLists, onOpenRelated }) {
