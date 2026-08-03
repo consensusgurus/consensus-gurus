@@ -1004,7 +1004,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 118px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
-        .sl-head .c{text-align:center;}
+        .sl-head .c{display:flex;align-items:center;justify-content:flex-start;text-align:left;}
         .sl-row{border-bottom:1px solid #f0f2f6;font-size:13px;}
         .sl-row:hover{background:var(--surface);}
         .sl-row.done{background:#f6fbf8;}
@@ -1026,12 +1026,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-ld svg{flex:none;color:var(--gold-ink);}
         .sl-ld span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .sl-nl{color:#8a93a3;}
-        .sl-status{display:flex;justify-content:center;}
+        .sl-status{display:flex;justify-content:flex-start;}
         .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
-        .sl-arch{display:flex;justify-content:center;}
+        .sl-arch{display:flex;justify-content:flex-start;}
         .sl-ab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:7px;padding:5px 9px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
         .sl-ab:hover{background:var(--accent-soft);}
         .sl-ab.on{background:var(--blue);border-color:var(--blue);color:var(--white);}
@@ -1104,8 +1104,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            scrolls normally wherever you drag. */
         @media(max-width:980px){
           .dh-boardwrap.open{min-height:0;}
-          .dhome.open .dh-sbar{display:none;}
-          .dhome.open .dh-boardwrap{display:none;}
+          .dhome.open:not(.slate) .dh-sbar{display:none;}
+          .dhome.open:not(.slate) .dh-boardwrap{display:none;}
         }
         /* Phone cap (owner 2026-08-03). Both halves survive here, unlike the old
            bar where the Easiest CTA was hidden below 640px to make room for the
@@ -1327,7 +1327,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '')}
             role="navigation"
             aria-label="Daily puzzles"
-            aria-hidden={selGame ? 'true' : undefined}
+            aria-hidden={selGame && !slate ? 'true' : undefined}
             style={!slate && metrics && metrics.maxOffset > 0
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
