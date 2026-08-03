@@ -117,7 +117,7 @@ export const PUZZLES = [
     items: [
       'ALPHA', 'ALLY', 'SHINING', 'SHIP',
       'ACCUSE', 'LUNG', 'EYES', 'BEARS',
-      'EARLIER', 'HANDS', 'ANYWAY', 'IMPOSING',
+      'EARLIER', 'GRASP', 'ANYWAY', 'IMPOSING',
     ],
   },
   {

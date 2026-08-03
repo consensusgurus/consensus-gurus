@@ -20,7 +20,7 @@ const VOW = new Set(['A','E','I','O','U']);
 const nv = (w) => [...w].filter((c) => VOW.has(c)).length;
 const HIDDEN = {
   animal: ['CAT','DOG','COW','OWL','BAT','APE','RAT','PIG','HEN','FOX','ANT','BEE','ELK','EWE','SOW','RAM'],
-  body: ['EAR','RIB','HIP','ARM','LIP','GUM','JAW','TOE','EYE','SHIN','HEEL','CHIN','LUNG','SKIN','NECK','BONE'],
+  body: ['EAR','RIB','HIP','ARM','LIP','GUM','JAW','TOE','EYE','LEG','SHIN','HEEL','CHIN','LUNG','SKIN','NECK','BONE','HAND','FOOT','KNEE','HAIR','HEAD','FACE','NOSE','BACK','PALM','NAIL','CHEST','THIGH','SPINE','WRIST','ANKLE','ELBOW','CHEEK','THUMB','TOOTH','BRAIN','HEART'],
   number: ['ONE','TWO','SIX','TEN','NINE','FOUR','FIVE'],
 };
 // kept byte-identical to RULES in app/venn/VennClient.jsx
