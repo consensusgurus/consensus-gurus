@@ -79,6 +79,26 @@ function focusListSearch() {
   } catch {}
 }
 
+// The homepage's Quizzes button does not just focus the browse field, it parks
+// that whole row at the TOP of the viewport (owner, 2026-08-03), so the quiz
+// catalogue starts at the fold rather than sitting mid-screen. scrollIntoView
+// with block:'center' cannot express that, hence the explicit scrollTo.
+function jumpToQuizzes() {
+  try {
+    const el = document.getElementById('qz-main-search');
+    if (!el) return;
+    // Focus first, synchronously inside the click gesture, or mobile keyboards
+    // never open (same reason as focusListSearch above).
+    try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+    const box = el.closest('.qz-browserow') || el.closest('.qz-searchwrap') || el;
+    // The bar is sticky, so "top of screen" means below it, not under it.
+    const bar = document.querySelector('.qchm');
+    const off = (bar ? bar.getBoundingClientRect().height : 0) + 8;
+    const y = box.getBoundingClientRect().top + window.scrollY - off;
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  } catch (e) {}
+}
+
 export default function QuizCommandHeader({ me, onSignup, ticker = [], variant = 'default', onCredit }) {
   const found = !!(me && me.found);
   // A signed-out visitor still gets a name: the same stable Guest-XXXX handle
@@ -165,7 +185,10 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
       <div className="qchm">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-          .qchm{font-family:${FONT};}
+          /* Locked to the top (owner, 2026-08-03). sticky rather than fixed so it
+             keeps its own space in flow and needs no spacer element the way the
+             white bar below does. */
+          .qchm{font-family:${FONT};position:sticky;top:0;z-index:90;}
           .qchm-r1{background:var(--accent);color:var(--white);}
           .qchm-in{max-width:1560px;margin:0 auto;padding:12px clamp(12px,2vw,20px);display:flex;align-items:center;gap:16px;}
           .qchm-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;}
@@ -218,7 +241,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           <span className="qchm-tag">Elevate Your Thinking</span>
           <nav className="qchm-nav">
             <Link href="/" className="on">Today</Link>
-            <button type="button" onClick={focusListSearch}>Quizzes</button>
+            <button type="button" onClick={jumpToQuizzes}>Quizzes</button>
             <Link href="/lists">Top 10 Lists</Link>
           </nav>
           <div className="qchm-user">
