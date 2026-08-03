@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import ShardsClient from './ShardsClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Shards launched 2026-07-24 as a daily puzzle: linked from the daily strip, the
 // footer, the /daily archive, and the sitemap (/shards is the canonical,
@@ -36,7 +37,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Shards',
   alternateName: 'Shards - Daily Jigsaw Crossword',
-  url: 'https://sourceoftruths.com/shards',
+  url: `${SITE_URL}/shards`,
   description:
     'A free daily word puzzle and jigsaw crossword: a filled mini crossword is shattered into rigid lettered polyomino pieces, and the player reassembles it so every across and down run of two or more letters is a dictionary word. Each day has exactly one verified reassembly.',
   genre: ['Word puzzle', 'Puzzle', 'Crossword'],
@@ -44,11 +45,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/shards.png',
+  image: `${SITE_URL}/quiz-heroes/shards.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -56,8 +57,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Shards' },
   ],
 };

@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import DatingClient from './DatingClient';
 import { PUZZLES } from './puzzles';
+import { SITE_URL } from '@/lib/site';
 
 // Dating launched 2026-07-14 alongside Crux/Garble/Links/Span: linked from
 // the hub puzzles row, the footer, and the sitemap (/dating is the canonical,
@@ -38,7 +39,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Dating',
   alternateName: 'Dating — Daily History Ordering Puzzle',
-  url: 'https://sourceoftruths.com/dating',
+  url: `${SITE_URL}/dating`,
   description:
     'A free daily history puzzle: five events, shuffled. Arrange them in chronological order — each of your three checks locks the events you placed correctly and reveals their years.',
   genre: ['History puzzle', 'Puzzle'],
@@ -46,11 +47,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/dating.png',
+  image: `${SITE_URL}/quiz-heroes/dating.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -58,8 +59,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Dating' },
   ],
 };

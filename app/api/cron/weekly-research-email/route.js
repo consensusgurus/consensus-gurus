@@ -11,6 +11,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { LISTS } from '@/lib/data';
 import { DESCRIPTIONS } from '@/lib/descriptions';
 import { HERO_IMAGES } from '@/lib/hero-images';
+import { SITE_URL } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -72,7 +73,7 @@ export async function GET(request) {
         .join('');
       html = `<p><strong>${recent.length}</strong> consensus change${recent.length === 1 ? '' : 's'} in the past 7 days:</p>${sections}`;
     }
-    html += `<p style="margin-top:18px">Unresolved research backlog: <strong>${all.length}</strong> alert${all.length === 1 ? '' : 's'}. Manage them in the <a href="https://sourceoftruths.com/admin">Research tab</a>.</p>`;
+    html += `<p style="margin-top:18px">Unresolved research backlog: <strong>${all.length}</strong> alert${all.length === 1 ? '' : 's'}. Manage them in the <a href="${SITE_URL}/admin">Research tab</a>.</p>`;
 
     const dateStr = new Date().toISOString().slice(0, 10);
     const fnUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-notification-email`;

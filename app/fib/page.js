@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import FibClient from './FibClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Fib launched 2026-07-31 as the 39th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/fib is the canonical,
@@ -34,7 +35,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Fib',
   alternateName: 'Fib — Daily Logic Puzzle',
-  url: 'https://sourceoftruths.com/fib',
+  url: `${SITE_URL}/fib`,
   description:
     'A free daily logic puzzle: fill an n by n grid so every row and column holds each number once, guided by inequality signs between neighbouring squares whose open end points at the larger number. Exactly one sign is false, so a contradiction may be your own mistake or may be the lie. Solve the grid and accuse the lying sign. Each board admits exactly one grid and exactly one lying clue, so the answer is provable with no guessing. A clean solve earns a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Latin square', 'Futoshiki', 'Deduction', 'Puzzle'],
@@ -45,7 +46,7 @@ const gameJsonLd = {
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -53,8 +54,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Fib' },
   ],
 };

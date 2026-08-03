@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import EmceeClient from './EmceeClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Emcee launched 2026-07-16 as the eleventh daily (slotted right after Crux):
 // linked from the daily strip, the footer, the /daily archive, and the sitemap
@@ -41,7 +42,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Emcee',
   alternateName: 'Emcee — Daily Mini Crossword',
-  url: 'https://sourceoftruths.com/emcee',
+  url: `${SITE_URL}/emcee`,
   description:
     'A free daily mini crossword: a 5×5 grid of everyday words with numbered Across and Down clues, solvable in a minute or two. The grid checks itself the moment the last square is filled — a clean, fast solve tops the daily leaderboard, and Sundays step up to a 7×7 pinwheel.',
   genre: ['Word puzzle', 'Crossword', 'Puzzle'],
@@ -49,11 +50,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/emcee.png',
+  image: `${SITE_URL}/quiz-heroes/emcee.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -61,8 +62,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Emcee' },
   ],
 };

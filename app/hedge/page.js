@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import HedgeClient from './HedgeClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Hedge launched 2026-07-27 as the 30th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/hedge is the canonical,
@@ -34,7 +35,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Hedge',
   alternateName: 'Hedge — Daily Slitherlink',
-  url: 'https://sourceoftruths.com/hedge',
+  url: `${SITE_URL}/hedge`,
   description:
     'A free daily slitherlink (loop the loop): draw one single closed loop along the grid lines so that each numbered cell has exactly that many of its four sides used by the loop. The loop never branches or crosses itself, and every board has exactly one solution. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Slitherlink', 'Loop puzzle', 'Puzzle'],
@@ -45,7 +46,7 @@ const gameJsonLd = {
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -53,8 +54,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Hedge' },
   ],
 };

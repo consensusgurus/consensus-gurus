@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import PingClient from './PingClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Ping launched 2026-07-18 as the seventeenth daily: linked from the daily
 // strip, the /daily archive, and the sitemap (/ping is the canonical, evergreen
@@ -43,7 +44,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Ping',
   alternateName: 'Ping — Daily City Puzzle',
-  url: 'https://sourceoftruths.com/ping',
+  url: `${SITE_URL}/ping`,
   description:
     'A free daily geography puzzle: one secret world city, no clues. Guess any city and each guess returns the great-circle distance in miles to the target. Keep guessing until you find it — the fewer guesses, the better.',
   genre: ['Geography puzzle', 'Trivia puzzle', 'Guessing puzzle', 'Puzzle'],
@@ -51,11 +52,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/ping.png',
+  image: `${SITE_URL}/quiz-heroes/ping.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -63,8 +64,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Ping' },
   ],
 };

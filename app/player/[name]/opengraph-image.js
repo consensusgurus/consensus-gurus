@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import React from 'react';
+import { SITE_URL } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const alt = 'Mind Loft player profile';
@@ -30,7 +31,7 @@ async function fetchProfile(name) {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 4500);
-    const r = await fetch(`https://sourceoftruths.com/api/quiz/player?username=${encodeURIComponent(name)}`, { signal: ctrl.signal });
+    const r = await fetch(`${SITE_URL}/api/quiz/player?username=${encodeURIComponent(name)}`, { signal: ctrl.signal });
     clearTimeout(t);
     if (!r.ok) return null;
     const d = await r.json();

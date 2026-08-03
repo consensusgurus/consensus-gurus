@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import FeudClient from './FeudClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Feud launched 2026-08-01 as a daily crowd-survey game: five everyday
 // prompts, up to three free-text answers each, and a LIVE answer key — the key
@@ -46,7 +47,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Feud',
   alternateName: 'Feud — Daily Crowd-Survey Game',
-  url: 'https://sourceoftruths.com/feud',
+  url: `${SITE_URL}/feud`,
   description:
     'A free daily crowd game: five everyday survey prompts, up to three answers each, and a live answer key built from every player’s answers. Match the crowd, bank the percentages, and watch the key move all day.',
   genre: ['Game theory', 'Party puzzle', 'Trivia puzzle', 'Puzzle'],
@@ -54,11 +55,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/feud.png',
+  image: `${SITE_URL}/quiz-heroes/feud.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -66,8 +67,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Feud' },
   ],
 };

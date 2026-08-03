@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import CruxClient from './CruxClient';
 import { PUZZLES } from './puzzles';
+import { SITE_URL } from '@/lib/site';
 
 // Crux is fully launched: linked from the hub (dated catalog entries), the
 // footer, and the sitemap (/crux is the canonical, evergreen URL — the dated
@@ -38,7 +39,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Crux',
   alternateName: 'Crux — Daily Word Puzzle',
-  url: 'https://sourceoftruths.com/crux',
+  url: `${SITE_URL}/crux`,
   description:
     'A clueless crossword and a free daily word puzzle. Four categories are the only hints: guess real words on a shared budget, lock letters into the grid, then file each solved word under its category.',
   genre: ['Word puzzle', 'Puzzle'],
@@ -46,11 +47,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/crux.png',
+  image: `${SITE_URL}/quiz-heroes/crux.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -58,8 +59,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Crux' },
   ],
 };

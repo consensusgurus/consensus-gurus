@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import CrunchClient from './CrunchClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Crunch launched 2026-07-30 as the 37th daily. Weekday rounds can be solved with four or
 // five of the six numbers; Sundays need all six. Puzzles are gated by Eastern
@@ -22,19 +23,19 @@ export const metadata = {
 
 const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Crunch',
-  alternateName: 'Rung — Daily Word Ladder', url: 'https://sourceoftruths.com/crunch',
+  alternateName: 'Rung — Daily Word Ladder', url: `${SITE_URL}/crunch`,
   description:
     'A free daily numbers game in the Countdown mould. Six numbers, the four operations, and a three-digit target. Every intermediate value must be a positive whole number, and you need not use all six. Every round is proved to have an exact solution by two independent solvers before it ships, and the difficulty is set by how many of the six the shortest solution needs: four or five on weekdays, all six on Sundays. Hitting the target exactly scores ten, within five scores seven, within ten scores five.',
   genre: ['Numbers game', 'Arithmetic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Crunch' },
   ],
 };

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import AlibiClient from './AlibiClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Alibi launched 2026-07-18 as one of the daily puzzles: linked from
 // the daily strip, the footer, the /daily archive, and the sitemap (/alibi is
@@ -44,7 +45,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Alibi',
   alternateName: 'Alibi — Daily Logic Deduction Puzzle',
-  url: 'https://sourceoftruths.com/alibi',
+  url: `${SITE_URL}/alibi`,
   description:
     'A free daily Einstein-style logic puzzle dressed as a whodunit: four suspects, four rooms, four departure times, four items, with a five-suspect Sunday Edition. Every witness statement is true, and each case is machine-verified to have exactly one solution — pure deduction closes it.',
   genre: ['Logic puzzle', 'Deduction puzzle', 'Mystery puzzle', 'Puzzle'],
@@ -52,11 +53,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/alibi.png',
+  image: `${SITE_URL}/quiz-heroes/alibi.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -64,8 +65,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Alibi' },
   ],
 };

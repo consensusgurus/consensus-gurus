@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import FourClient from './FourClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Four launched 2026-07-30 as the 33rd daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/four is the canonical,
@@ -34,7 +35,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Four',
   alternateName: 'Four — Daily Connect Four Puzzle',
-  url: 'https://sourceoftruths.com/four',
+  url: `${SITE_URL}/four`,
   description:
     'A free daily Connect Four puzzle. Each position is a real, reachable board with you to move and a forced win, with exactly one column that keeps it and every other drop losing it. A wrong drop is not refused: a perfect solver plays the rest of the game, so the win is gone for good and you play on for a draw. The win scores ten, a draw four, a loss one, and ties break on fewest wrong drops then fastest time. Weekdays are a win in four and Sundays a win in five.',
   genre: ['Connect Four puzzle', 'Logic puzzle', 'Puzzle'],
@@ -45,7 +46,7 @@ const gameJsonLd = {
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -53,8 +54,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Four' },
   ],
 };

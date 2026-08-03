@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import LinksClient from './LinksClient';
 import { PUZZLES } from './puzzles';
+import { SITE_URL } from '@/lib/site';
 
 // Links launched 2026-07-12 alongside Span: linked from the hub puzzles row,
 // the footer, and the sitemap (/links is the canonical, evergreen URL — the
@@ -38,7 +39,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Links',
   alternateName: 'Links — Daily Word Grouping Puzzle',
-  url: 'https://sourceoftruths.com/links',
+  url: `${SITE_URL}/links`,
   description:
     'A free daily word grouping puzzle: sixteen words hide four threads of four. Bank each thread in its color, easiest yellow to trickiest red — four mistakes and the board wins.',
   genre: ['Word puzzle', 'Puzzle'],
@@ -46,11 +47,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/links.png',
+  image: `${SITE_URL}/quiz-heroes/links.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -58,8 +59,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Links' },
   ],
 };

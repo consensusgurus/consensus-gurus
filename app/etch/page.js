@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import EtchClient from './EtchClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Etch launched 2026-07-27 as the 29th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/etch is the canonical,
@@ -34,7 +35,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Etch',
   alternateName: 'Etch — Daily Nonogram',
-  url: 'https://sourceoftruths.com/etch',
+  url: `${SITE_URL}/etch`,
   description:
     'A free daily nonogram (picross): the numbers beside each row and above each column give the lengths of the filled runs in that line, in order. Fill every square the clues force and a hidden picture appears. Each board has exactly one solution and is solvable by pure line logic, with no guessing. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Nonogram', 'Picross', 'Puzzle'],
@@ -45,7 +46,7 @@ const gameJsonLd = {
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -53,8 +54,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Etch' },
   ],
 };

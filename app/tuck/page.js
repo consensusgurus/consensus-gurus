@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import TuckClient from './TuckClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Tuck launched 2026-07-18 as one of the daily puzzles: linked from the daily
 // strip, the footer, the /daily archive, and the sitemap (/tuck is the
@@ -41,7 +42,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Tuck',
   alternateName: 'Tuck — Daily Tile-Tucking Word Puzzle',
-  url: 'https://sourceoftruths.com/tuck',
+  url: `${SITE_URL}/tuck`,
   description:
     'A free daily word puzzle: everyone gets the same 14 standard-weighted letters and builds their own interlocking crossword on a 9×9 board. Every run of letters must be a dictionary word, intersections score in both words, and each day carries a solver-verified par to beat.',
   genre: ['Word puzzle', 'Puzzle', 'Strategy puzzle'],
@@ -49,11 +50,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/tuck.png',
+  image: `${SITE_URL}/quiz-heroes/tuck.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -61,8 +62,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Tuck' },
   ],
 };

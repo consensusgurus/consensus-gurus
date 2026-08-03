@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import TaireClient from './TaireClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Taire launched 2026-07-31 as the 38th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/taire is the canonical,
@@ -33,19 +34,19 @@ export const metadata = {
 const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Taire',
   alternateName: 'Taire — Daily Solitaire Puzzle',
-  url: 'https://sourceoftruths.com/taire',
+  url: `${SITE_URL}/taire`,
   description:
     'A free daily solitaire puzzle. Two suits are dealt face up into columns of four beside one or two free cells, and every card must be sent home to its foundation. Nothing is hidden and nothing is shuffled mid-game, so the deal carries no luck and is always winnable. Every deal is machine generated and solved exactly, so the perfect line is the true minimum number of moves rather than an estimate, confirmed by a second independent solver. Par sits a cushion above perfect and is beatable. Perfect scores ten and par scores eight. The week climbs on a different dial each rung: Monday to Wednesday are short sixteen-card deals with a perfect line of 18 to 24, Thursday to Saturday run the full twenty cards at 28 to 34, and the Sunday Edition keeps twenty cards but allows a single free cell.',
   genre: ['Solitaire', 'Card puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Taire' },
   ],
 };

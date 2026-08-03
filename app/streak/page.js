@@ -3,6 +3,7 @@ import StreakClient from './StreakClient';
 import { PUZZLES } from './puzzles';
 import { QUESTION_MAP } from './questions';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Streak launched 2026-07-31. Forty questions a day in five tiers of eight,
 // one life, twenty seconds a question. The question bank is resolved HERE, on
@@ -24,19 +25,19 @@ export const metadata = {
 
 const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Streak',
-  alternateName: 'Streak — Daily Trivia Survival', url: 'https://sourceoftruths.com/streak',
+  alternateName: 'Streak — Daily Trivia Survival', url: `${SITE_URL}/streak`,
   description:
     'A free daily trivia survival game. Forty multiple-choice questions climb from easy to brutal in five rounds of eight, cycling eight categories. One wrong answer, or a twenty-second clock at zero, ends the run, and every question cleared is a point. Everyone plays the same forty questions in the same order each day, and the daily leaderboard ranks the deepest runs with ties broken by time.',
   genre: ['Trivia', 'Quiz', 'Survival'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Streak' },
   ],
 };

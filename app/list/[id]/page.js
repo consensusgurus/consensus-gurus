@@ -4,6 +4,7 @@ import DetailClient from './DetailClient';
 import { LISTS } from '@/lib/data';
 import { getSources } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
+import { SITE_URL } from '@/lib/site';
 
 // Re-render each list page (and its metadata) at most hourly so the SEO
 // description and JSON-LD track the live, vote-inclusive consensus instead
@@ -170,7 +171,7 @@ export default async function ListPage({ params }) {
   const id = decodeURIComponent(params.id);
   const list = LISTS.find((l) => l.id === id);
   if (!list) notFound();
-  const baseUrl = 'https://sourceoftruths.com';
+  const baseUrl = `${SITE_URL}`;
   const consensusItems = list ? await getConsensusItems(id) : [];
   const jsonLd = list ? buildStructuredData(list, baseUrl, consensusItems) : null;
 

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import OutwitClient from './OutwitClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Outwit launched 2026-07-17 as the thirteenth daily: linked from the daily
 // strip, the footer, the /daily archive, and the sitemap (/outwit is the
@@ -45,7 +46,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Outwit',
   alternateName: 'Outwit — Daily Crowd Puzzle',
-  url: 'https://sourceoftruths.com/outwit',
+  url: `${SITE_URL}/outwit`,
   description:
     'A free daily game-theory puzzle: five prompts against every other player. Pick what the fewest pick, guess the crowd median, match the crowd favorite, make the rarest pick, then undercut the average by the day\u2019s fraction, which changes daily. Scored against the real player pool.',
   genre: ['Game theory', 'Trivia puzzle', 'Party puzzle', 'Puzzle'],
@@ -53,11 +54,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/outwit.png',
+  image: `${SITE_URL}/quiz-heroes/outwit.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -65,8 +66,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Outwit' },
   ],
 };

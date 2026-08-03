@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import ListedClient from './ListedClient';
 import { PUZZLES } from './puzzles';
+import { SITE_URL } from '@/lib/site';
 
 // Listed launched 2026-07-27 as the 30th daily: linked from the hub puzzles row,
 // the daily strip, the archive, the footer, and the sitemap (/listed is the
@@ -38,7 +39,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Listed',
   alternateName: 'Listed: Daily Ranking Puzzle',
-  url: 'https://sourceoftruths.com/listed',
+  url: `${SITE_URL}/listed`,
   description:
     'A free daily history and geography puzzle: eight real things and one measurable quantity, shuffled. Arrange them highest to lowest. Each of your five submits grades every row, green for exactly right, amber for off by one place, and every green locks in with its real figure revealed.',
   genre: ['Puzzle', 'Trivia puzzle', 'Educational puzzle'],
@@ -46,11 +47,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/listed.png',
+  image: `${SITE_URL}/quiz-heroes/listed.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -58,8 +59,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Listed' },
   ],
 };

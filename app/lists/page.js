@@ -1,5 +1,6 @@
 import HomeClient from '../HomeClient';
 import { getAllSources } from '@/lib/sources';
+import { SITE_URL } from '@/lib/site';
 
 const SOURCE_COUNT = getAllSources().length;
 
@@ -30,13 +31,13 @@ const collectionJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
   name: 'Source of Truths — Top 10 Lists',
-  url: 'https://sourceoftruths.com/lists',
+  url: `${SITE_URL}/lists`,
   description:
     'Curated ranked lists built from expert sources and reader consensus. Browse the best in dining, travel, entertainment, and products across categories including restaurants, bars, hotels, books, films, and curated products.',
   publisher: {
     '@type': 'Organization',
     name: 'Source of Truths',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
     description:
       'Ranked lists determined by expert consensus and reader votes using Borda scoring methodology.',
   },

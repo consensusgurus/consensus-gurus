@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import BabelClient from './BabelClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Babel launched 2026-08-02 as one of the daily puzzles: linked from the daily
 // strip, the footer, the /daily archive, and the sitemap (/babel is the
@@ -34,7 +35,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Babel',
   alternateName: 'Babel — Daily Word Tile Endgame Puzzle',
-  url: 'https://sourceoftruths.com/babel',
+  url: `${SITE_URL}/babel`,
   description:
     'A free daily word puzzle: a word tile game picked up at the very end. The bag is empty, the player holds five tiles (six in the Sunday Edition) and the opponent holds the rest, so the opponent’s rack can be deduced exactly from the bag, the board and your own rack. Scoring is by spread, and every position ships with a par achieved by the same solver that plays the defence.',
   genre: ['Word puzzle', 'Puzzle', 'Strategy puzzle'],
@@ -42,11 +43,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/games/hero/babel.png',
+  image: `${SITE_URL}/games/hero/babel.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -54,8 +55,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Babel' },
   ],
 };

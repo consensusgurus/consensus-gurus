@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import MateClient from './MateClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Mate launched 2026-07-30 as the 32nd daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/mate is the canonical,
@@ -34,7 +35,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Mate',
   alternateName: 'Mate — Daily Chess Puzzle',
-  url: 'https://sourceoftruths.com/mate',
+  url: `${SITE_URL}/mate`,
   description:
     'A free daily chess mate puzzle. Each position has White to move and a forced checkmate in a fixed number of moves, with exactly one first move that works and every alternative refuted. Tap a piece to see its legal squares, then play the whole line: Black answers with its best defence and you deliver the mate. A clean solve earns a perfect score, and ties break on fewest misses then fastest time. Weekdays are mate in two and Sundays are mate in three.',
   genre: ['Chess puzzle', 'Logic puzzle', 'Puzzle'],
@@ -45,7 +46,7 @@ const gameJsonLd = {
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -53,8 +54,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Mate' },
   ],
 };

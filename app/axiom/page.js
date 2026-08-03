@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import AxiomClient from './AxiomClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Axiom launched 2026-07-25 as one of the daily puzzles: linked from the daily
 // strip, the /daily archive, and the sitemap (/axiom is the canonical,
@@ -44,7 +45,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Axiom',
   alternateName: 'Axiom — Daily Rule-Induction Puzzle',
-  url: 'https://sourceoftruths.com/axiom',
+  url: `${SITE_URL}/axiom`,
   description:
     'A free daily logic puzzle: a hidden rule splits a board of words into green and red, five candidate rules are listed, and a small budget of tests decides which one fits. Every board is machine-verified to have exactly one consistent rule.',
   genre: ['Logic puzzle', 'Deduction puzzle', 'Word puzzle', 'Puzzle'],
@@ -52,11 +53,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/axiom.png',
+  image: `${SITE_URL}/quiz-heroes/axiom.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -64,8 +65,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Axiom' },
   ],
 };

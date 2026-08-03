@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import HearsayClient from './HearsayClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Hearsay launched 2026-07-25 as one of the daily puzzles: linked from the daily
 // strip, the /daily archive, and the sitemap (/hearsay is the canonical,
@@ -44,7 +45,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Hearsay',
   alternateName: 'Hearsay — Daily Epistemic Logic Puzzle',
-  url: 'https://sourceoftruths.com/hearsay',
+  url: `${SITE_URL}/hearsay`,
   description:
     'A free daily logic puzzle in the Cheryl’s Birthday tradition: each character is privately told one attribute of a secret card, and their statements about what they can and cannot deduce narrow a public shortlist to exactly one answer.',
   genre: ['Logic puzzle', 'Deduction puzzle', 'Puzzle'],
@@ -52,11 +53,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/hearsay.png',
+  image: `${SITE_URL}/quiz-heroes/hearsay.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -64,8 +65,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Hearsay' },
   ],
 };

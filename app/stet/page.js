@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import StetClient from './StetClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Stet launched 2026-07-17 as the twelfth daily: linked from the daily strip,
 // the footer, the /daily archive, and the sitemap (/stet is the canonical,
@@ -41,7 +42,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Stet',
   alternateName: 'Stet — Daily Copy-Desk Word Puzzle',
-  url: 'https://sourceoftruths.com/stet',
+  url: `${SITE_URL}/stet`,
   description:
     'A free daily word puzzle: a short news brief where almost every sentence hides one wrong word — an eggcorn, a swapped homophone, a malaprop, a grammar slip. Every error is a real word, so a spellchecker sails past it. Tap the word, type the fix — or stamp clean copy stet.',
   genre: ['Word puzzle', 'Language puzzle', 'Puzzle'],
@@ -49,11 +50,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/stet.png',
+  image: `${SITE_URL}/quiz-heroes/stet.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -61,8 +62,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Stet' },
   ],
 };

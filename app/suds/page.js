@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import SudsClient from './SudsClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Suds launched 2026-07-15 as the seventh daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/suds is the canonical,
@@ -40,7 +41,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Suds',
   alternateName: 'Suds — Daily Sudoku',
-  url: 'https://sourceoftruths.com/suds',
+  url: `${SITE_URL}/suds`,
   description:
     'A free daily sudoku: fill a 9×9 grid so that every row, column, and 3×3 box contains the digits 1–9 exactly once. Each board has one logical solution — solve it with no errors for a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Sudoku', 'Number puzzle', 'Puzzle'],
@@ -48,11 +49,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/suds.png',
+  image: `${SITE_URL}/quiz-heroes/suds.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -60,8 +61,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Suds' },
   ],
 };

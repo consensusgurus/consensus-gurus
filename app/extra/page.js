@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import ExtraClient from './ExtraClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Extra launched 2026-07-16 as the ninth daily: linked from the daily strip,
 // the footer, the /daily archive, and the sitemap (/extra is the canonical,
@@ -41,7 +42,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Extra',
   alternateName: 'Extra — Daily History Puzzle',
-  url: 'https://sourceoftruths.com/extra',
+  url: `${SITE_URL}/extra`,
   description:
     'A free daily history puzzle: a historic newspaper front page with the giveaway words blacked out. Name the story — a wrong guess or a tear reveals one more word, and naming it with zero tears is a perfect cold read.',
   genre: ['History puzzle', 'Trivia puzzle', 'Word puzzle', 'Puzzle'],
@@ -49,11 +50,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/extra.png',
+  image: `${SITE_URL}/quiz-heroes/extra.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -61,8 +62,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Extra' },
   ],
 };

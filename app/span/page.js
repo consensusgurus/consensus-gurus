@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import SpanClient from './SpanClient';
 import { PUZZLES } from './puzzles';
+import { SITE_URL } from '@/lib/site';
 
 // Span launched 2026-07-12 alongside Links: linked from the hub puzzles row,
 // the footer, and the sitemap (/span is the canonical, evergreen URL — the
@@ -38,7 +39,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Span',
   alternateName: 'Span — Daily Geography Border Puzzle',
-  url: 'https://sourceoftruths.com/span',
+  url: `${SITE_URL}/span`,
   description:
     'A free daily geography puzzle: connect a start country to a destination with a chain of land borders. Par is the shortest possible road — every extra move costs a point, and misses break ties.',
   genre: ['Geography puzzle', 'Puzzle'],
@@ -46,11 +47,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/span.png',
+  image: `${SITE_URL}/quiz-heroes/span.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -58,8 +59,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Span' },
   ],
 };

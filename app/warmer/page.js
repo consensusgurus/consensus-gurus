@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import WarmerClient from './WarmerClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Warmer launched 2026-07-18 as the seventeenth daily: linked from the daily
 // strip, the /daily archive, the puzzles grids, and the sitemap (/warmer is the
@@ -44,7 +45,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Warmer',
   alternateName: 'Warmer — Daily Hot-and-Cold Word Puzzle',
-  url: 'https://sourceoftruths.com/warmer',
+  url: `${SITE_URL}/warmer`,
   description:
     'A free daily word puzzle: one secret word, and every guess is scored by how close it is in meaning on a cold-to-hot spectrum. Unlimited guesses — the daily leaderboard ranks players on fewest guesses, fastest time breaking ties.',
   genre: ['Word puzzle', 'Guessing puzzle', 'Vocabulary puzzle', 'Puzzle'],
@@ -52,16 +53,16 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/warmer.png',
-  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
+  image: `${SITE_URL}/quiz-heroes/warmer.png`,
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Warmer' },
   ],
 };

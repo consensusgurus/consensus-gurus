@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import TallyClient from './TallyClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Tally launched 2026-07-15 as the sixth daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/tally is the canonical,
@@ -40,7 +41,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Tally',
   alternateName: 'Tally — Daily Number Puzzle',
-  url: 'https://sourceoftruths.com/tally',
+  url: `${SITE_URL}/tally`,
   description:
     'A free daily logic puzzle in the sudoku family: fill an N×N grid from a fixed rack of number tiles so every row and column adds up to its printed target. Each board has one solution — solve it in the fewest moves for a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Number puzzle', 'Puzzle'],
@@ -48,11 +49,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/tally.png',
+  image: `${SITE_URL}/quiz-heroes/tally.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -60,8 +61,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Tally' },
   ],
 };

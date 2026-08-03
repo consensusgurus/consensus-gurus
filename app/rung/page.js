@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import RungClient from './RungClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Rung launched 2026-07-30 as the 36th daily. Weekday ladders are 10 to 12
 // rungs and Sundays 15 or more. Puzzles are gated by Eastern date here, so
@@ -22,19 +23,19 @@ export const metadata = {
 
 const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Rung',
-  alternateName: 'Rung — Daily Word Ladder', url: 'https://sourceoftruths.com/rung',
+  alternateName: 'Rung — Daily Word Ladder', url: `${SITE_URL}/rung`,
   description:
     'A free daily word ladder puzzle. Climb from a start word to a target word changing one letter at a time, with every rung a real five-letter word. The perfect line is the exact shortest ladder, found by breadth-first search and confirmed by an independent bidirectional search, and most boards have only one shortest route. Par sits a cushion above perfect and is beatable. Perfect scores ten and par scores eight. Weekday perfect lines run 10 to 12 rungs and Sundays 15 or more.',
   genre: ['Word ladder', 'Word puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Rung' },
   ],
 };

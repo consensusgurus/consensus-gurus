@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import JesterClient from './JesterClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Jester launched 2026-07-18 as one of the daily puzzles: linked from
 // the daily strip, the footer, the /daily archive, and the sitemap (/jester is
@@ -45,7 +46,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Jesters',
   alternateName: 'Jesters — Daily Court-Placement Logic Puzzle',
-  url: 'https://sourceoftruths.com/jester',
+  url: `${SITE_URL}/jester`,
   description:
     'A free daily Star Battle-style logic puzzle: seat exactly one jester in every row, every column and every colored court, with no two jesters touching, even diagonally. Every board is machine-verified to have exactly one solution reachable by pure deduction — no guessing.',
   genre: ['Logic puzzle', 'Placement puzzle', 'Star Battle', 'Puzzle'],
@@ -53,11 +54,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/jester.png',
+  image: `${SITE_URL}/quiz-heroes/jester.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -65,8 +66,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Jesters' },
   ],
 };

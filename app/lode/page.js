@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import LodeClient from './LodeClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Lode launched 2026-07-25 as a daily puzzle: linked from the daily strip, the
 // footer, the /daily archive, and the sitemap (/lode is the canonical, evergreen
@@ -44,7 +45,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Lode',
   alternateName: 'Lode — Daily Letter-Mining Word Puzzle',
-  url: 'https://sourceoftruths.com/lode',
+  url: `${SITE_URL}/lode`,
   description:
     'A free daily word puzzle: everyone gets the same seven letters and one core letter that every word must contain. Words are four letters or longer and letters may be reused. Points scale with how rare a word is rather than how long it is, a pangram uses every letter, and each day carries a vein to strike and a Mother Lode to chase.',
   genre: ['Word puzzle', 'Puzzle'],
@@ -52,11 +53,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/lode.png',
+  image: `${SITE_URL}/quiz-heroes/lode.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -64,8 +65,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Lode' },
   ],
 };

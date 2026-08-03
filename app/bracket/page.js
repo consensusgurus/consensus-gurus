@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import BracketClient from './BracketClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Bracket launched 2026-07-24: the puzzle specced in puzzle-spec-seeded.md. Sixteen
 // real things, one comparison metric a day, fifteen picks that propagate, and no
@@ -35,19 +36,19 @@ export const metadata = {
 
 const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Bracket',
-  url: 'https://sourceoftruths.com/bracket',
+  url: `${SITE_URL}/bracket`,
   description: 'A free daily bracket puzzle: sixteen real things seeded into a single-elimination draw, one comparison question for the day, and picks that propagate like a real pool sheet.',
   genre: ['Trivia puzzle', 'Bracket puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/bracket.png',
-  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
+  image: `${SITE_URL}/quiz-heroes/bracket.png`,
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Bracket' },
   ],
 };

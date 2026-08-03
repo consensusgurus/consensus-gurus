@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import GlyphClient from './GlyphClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Glyph launched 2026-08-02 as the 42nd daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/glyph is the canonical,
@@ -34,7 +35,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Glyph',
   alternateName: 'Glyph — Daily Codeword',
-  url: 'https://sourceoftruths.com/glyph',
+  url: `${SITE_URL}/glyph`,
   description:
     'A free daily codeword puzzle: a filled crossword grid where every letter has been replaced by a number from 1 to 26, consistently across the board. There are no clues. Working from two or three given letters, letter frequency, word shapes and the crossings, you deduce what every number stands for. All 26 letters appear in every key, each board uses only common dictionary words, and each has exactly one consistent solution, so it is always solvable by deduction and never by guesswork. A clean solve with no checks earns a perfect score, and ties break on fewest checks then fastest time.',
   genre: ['Word puzzle', 'Codeword', 'Cipher', 'Puzzle'],
@@ -45,7 +46,7 @@ const gameJsonLd = {
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -53,8 +54,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Glyph' },
   ],
 };

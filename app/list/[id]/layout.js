@@ -1,6 +1,7 @@
 // app/list/[id]/layout.js - LIST DETAIL LAYOUT WITH UPDATED PREVIEW
 
 import { LISTS } from '@/lib/data';
+import { SITE_URL } from '@/lib/site';
 
 export async function generateMetadata({ params }) {
   const list = LISTS.find((l) => l.id === params.id);
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: `${list.title} | Source of Truths`,
       description: `6-10 of Consensus: ${previewItems}`,
-      url: `https://sourceoftruths.com/list/${list.id}`,
+      url: `${SITE_URL}/list/${list.id}`,
       type: 'website',
     },
     twitter: {

@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import CheckClient from './CheckClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Check launched 2026-07-30 as the 35th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/check is the canonical,
@@ -28,19 +29,19 @@ export const metadata = {
 const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Check',
   alternateName: 'Check — Daily Checkers Puzzle',
-  url: 'https://sourceoftruths.com/check',
+  url: `${SITE_URL}/check`,
   description:
     'A free daily checkers puzzle. Each board is red to play with a forced sweep: capture every black piece within a fixed number of moves, three on weekdays and four on Sundays, with exactly one first move that works. Captures are compulsory in checkers, so the winning move is a sacrifice that forces the reply. A wrong move is not refused: the engine answers and you finish the board knowing the sweep has gone.',
   genre: ['Checkers puzzle', 'Draughts puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  publisher: { '@type': 'Organization', name: 'Mind Loft', url: 'https://sourceoftruths.com' },
+  publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Check' },
   ],
 };

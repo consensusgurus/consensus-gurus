@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import CarveClient from './CarveClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Carve launched 2026-07-16 as the eighth daily: linked from the daily strip,
 // the footer, the /daily archive, and the sitemap (/carve is the canonical,
@@ -40,7 +41,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Carve',
   alternateName: 'Carve — Daily Equal-Sum Puzzle',
-  url: 'https://sourceoftruths.com/carve',
+  url: `${SITE_URL}/carve`,
   description:
     'A free daily number puzzle: carve a digit grid into connected blocks, one grown from each colored anchor, so every block sums to the same target. Each board has exactly one valid carving — solve it with no errors for a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Number puzzle', 'Puzzle'],
@@ -48,11 +49,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/carve.png',
+  image: `${SITE_URL}/quiz-heroes/carve.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -60,8 +61,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Carve' },
   ],
 };

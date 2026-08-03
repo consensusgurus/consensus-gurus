@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import QuizClient from './QuizClient';
 import CruxRedirect from './CruxRedirect';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
+import { SITE_URL } from '@/lib/site';
 
 export const revalidate = 3600;
 
@@ -91,7 +92,7 @@ export default function QuizPage({ params }) {
         '@type': 'Quiz',
         name: quiz.title,
         about: quiz.blurb,
-        url: `https://sourceoftruths.com/quiz/${quiz.id}`,
+        url: `${SITE_URL}/quiz/${quiz.id}`,
       }
     : null;
 

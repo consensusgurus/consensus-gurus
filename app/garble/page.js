@@ -1,5 +1,6 @@
 import GarbleClient from './GarbleClient';
 import { PUZZLES } from './puzzles';
+import { SITE_URL } from '@/lib/site';
 
 // Garble is fully launched: linked from the hub (dated catalog entries), the
 // footer, and the sitemap (/garble is the canonical, evergreen URL — the dated
@@ -36,7 +37,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Garble',
   alternateName: 'Garble — Daily Word Scramble',
-  url: 'https://sourceoftruths.com/garble',
+  url: `${SITE_URL}/garble`,
   description:
     'A free daily word scramble puzzle: untangle five garbled words using exactly the letters shown. Each solution donates its gold letters to a clued finale — solve the finale any time to end the puzzle. Fewest misses wins the tiebreak.',
   genre: ['Word puzzle', 'Puzzle'],
@@ -44,11 +45,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/garble.png',
+  image: `${SITE_URL}/quiz-heroes/garble.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -56,8 +57,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Garble' },
   ],
 };

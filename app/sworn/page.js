@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import SwornClient from './SwornClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
+import { SITE_URL } from '@/lib/site';
 
 // Sworn launched 2026-07-18 as one of the daily puzzles: linked from
 // the daily strip, the footer, the /daily archive, and the sitemap (/sworn is
@@ -46,7 +47,7 @@ const gameJsonLd = {
   '@type': 'Game',
   name: 'Sworn',
   alternateName: 'Sworn — Daily Liars Puzzle',
-  url: 'https://sourceoftruths.com/sworn',
+  url: `${SITE_URL}/sworn`,
   description:
     'A free daily Knights-and-Knaves style logic puzzle: suspects give sworn statements, an exact number of them are lying, and one is the thief. Every case is machine-verified to have exactly one consistent world — pure deduction names the culprit.',
   genre: ['Logic puzzle', 'Deduction puzzle', 'Liars puzzle', 'Puzzle'],
@@ -54,11 +55,11 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: 'https://sourceoftruths.com/quiz-heroes/sworn.png',
+  image: `${SITE_URL}/quiz-heroes/sworn.png`,
   publisher: {
     '@type': 'Organization',
     name: 'Mind Loft',
-    url: 'https://sourceoftruths.com',
+    url: `${SITE_URL}`,
   },
 };
 
@@ -66,8 +67,8 @@ const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://sourceoftruths.com' },
-    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: 'https://sourceoftruths.com/quizzes' },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+    { '@type': 'ListItem', position: 2, name: 'Quizzes', item: `${SITE_URL}/quizzes` },
     { '@type': 'ListItem', position: 3, name: 'Sworn' },
   ],
 };
