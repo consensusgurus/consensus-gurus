@@ -322,7 +322,14 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [] }) {
              column allowed to shrink (min-width:0) and ellipsis rather than
              overflow when it runs out of room. */
           .qch-bar.is-guest .qch-burger{display:none !important;}
-          .qch-bar.is-guest .qch-me{position:static;transform:none;margin:0 0 0 auto;max-width:none;min-width:0;flex:1 1 auto;}
+          /* With the hamburger gone the chip + button group is the last thing
+             in the bar, so it right-ALIGNS rather than centring in the leftover
+             space, and the bar's right gutter widens 12 -> 14px to match the
+             page gutter below it. Net effect: the Sign Up button's right edge
+             lands exactly on the right edge of the tiles underneath (verified
+             flush at 320 / 360 / 390 / 430). */
+          .qch-bar.is-guest{padding-right:14px;}
+          .qch-bar.is-guest .qch-me{position:static;transform:none;margin:0 0 0 auto;max-width:none;min-width:0;flex:1 1 auto;justify-content:flex-end;}
           .qch-bar.is-guest .qch-melink{gap:9px;justify-content:flex-end;min-width:0;}
           /* The two text lines CENTRE on each other (owner, Aug 2026): the
              guest handle sits centred over the nudge beneath it, not flush to
