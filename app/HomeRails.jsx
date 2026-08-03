@@ -217,7 +217,7 @@ export default function HomeRails({
       .hr-link{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep);text-decoration:none;white-space:nowrap;flex:none;}
       .hr-link:hover{text-decoration:underline;}
       .hr-tabs{display:flex;background:var(--accent-soft);border-bottom:2px solid var(--accent);flex:none;}
-      .hr-tabs button{flex:1;border:0;background:transparent;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#5a6b90;padding:11px 6px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;}
+      .hr-tabs button{flex:1;border:0;border-radius:9px 9px 0 0;background:transparent;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#5a6b90;padding:11px 6px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;}
       .hr-tabs button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:var(--white);}
       .hr-stats{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex:none;}
       .hr-stats > div{flex:1;padding:10px 13px;border-right:1px solid var(--border);}
