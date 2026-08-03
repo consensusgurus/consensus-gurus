@@ -683,7 +683,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
         {/* masthead */}
         <DailyMasthead
-          slug="jester"
+          slug="jesters"
           num={PUZZLE.num}
           dateLabel={PUZZLE.dateLabel}
           accent={COLORS.accent}
