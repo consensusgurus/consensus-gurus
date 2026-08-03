@@ -962,7 +962,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
         .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
         .dh-board.slate:hover::-webkit-scrollbar-thumb{background:#c9d1dd;}
-        .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border-bottom:2px solid var(--accent);}
+        .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border:1.5px solid var(--border);border-bottom:2px solid var(--accent);border-radius:13px 13px 0 0;}
+        .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);}
         .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5a6b90;}
         .sl-filt{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
@@ -1100,6 +1101,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           no margin), split into two equal halves: Up next on the left, Easiest
           leaderboard on the right. The Your-day stats that used to live here
           moved into the page header on 2026-08-03. */}
+      {slate ? (
+        <div className="sl-bar">
+          <span className="sl-ttl">Today&rsquo;s slate</span>
+          <span className="sl-count">{games.length} games &middot; {slatePlays.toLocaleString()} plays</span>
+        </div>
+      ) : null}
       <div className="dh-sbar">
         <div className="dh-cell">
           {nextGame ? (
@@ -1249,12 +1256,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
-          {slate ? (
-            <div className="sl-bar">
-              <span className="sl-ttl">Today&rsquo;s slate</span>
-              <span className="sl-count">{games.length} games &middot; {slatePlays.toLocaleString()} plays</span>
-            </div>
-          ) : null}
           {slate ? (
             <div className="sl-filt" role="tablist" aria-label="Filter the slate">
               {[['all', 'All'], ['todo', 'Unplayed']].concat(slateCats.map((c) => [c, CAT_SHORT[c] || c])).map(([k, label]) => (
