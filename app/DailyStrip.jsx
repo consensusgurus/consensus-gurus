@@ -916,7 +916,10 @@ export default function DailyStrip({ board = null }) {
           .dh-cell + .dh-cell{padding-left:8px;}
           .dh-cell>img{display:none;}
           .dh-busub{display:none;}
-          .dh-bue{font-size:7.5px;letter-spacing:.02em;}
+          /* Halving the bar means the right eyebrow gets ~90px, where
+             "EASIEST LEADERBOARD" clipped to "EASIEST LEAD...". Dropping the
+             tracking and a half point buys the whole word back. */
+          .dh-bue{font-size:7px;letter-spacing:0;}
           .dh-bun{font-size:14px;}
           .dh-cell .dh-play{margin-left:auto;flex:0 0 auto;min-width:0;font-size:11.5px;padding:8px 10px;gap:4px;}
         }
