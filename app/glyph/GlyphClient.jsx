@@ -503,7 +503,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
       <Grain />
       <div style={{ position: 'relative', zIndex: 2, padding: '14px 16px 8px' }}>
         <style>{`
-          .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .gl-btn:disabled{opacity:0.4;cursor:default;}
           .gl-cell{box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;min-height:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1px solid rgba(28,30,36,0.16);background:var(--white);}
           .gl-cell.blk{background:${COLORS.ink};border-color:${COLORS.ink};cursor:default;}
@@ -562,7 +562,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="gl-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="gl-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}

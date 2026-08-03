@@ -829,8 +829,8 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.sh-wrap{padding-left:10px !important;padding-right:10px !important;}}
           @media(max-width:560px){.sh-cols{gap:0 !important;}.sh-trayhead{display:none;}.sh-tray{margin-top:10px !important;}}
-          .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .sh-btn:hover{background:${COLORS.paper};}
+          .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sh-btn:hover{background:var(--accent-soft);}
           .sh-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sh-btn.primary:hover{background:${COLORS.accentDk};}
           .sh-btn:disabled{opacity:0.4;cursor:default;}
@@ -894,7 +894,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="sh-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="sh-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}

@@ -502,8 +502,8 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
       <div className="cc-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cc-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .cc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .cc-btn:hover{background:${COLORS.paper};}
+          .cc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .cc-btn:hover{background:var(--accent-soft);}
           @keyframes ccfade{from{opacity:0;}}
           @keyframes ccstamp{from{opacity:0;transform:scale(.94);}}
           @keyframes ccrow{from{opacity:0;transform:translateY(-4px);}}

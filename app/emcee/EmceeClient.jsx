@@ -637,8 +637,8 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
       <div className="mc-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.mc-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .mc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .mc-btn:hover{background:${COLORS.paper};}
+          .mc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .mc-btn:hover{background:var(--accent-soft);}
           @keyframes mcshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
           @media(max-width:560px){.mc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.mc-ttl h1{font-size:21px;letter-spacing:0.02em;}.mc-ttl .mc-ttl-dt{font-size:15px;}.mc-ttl-dot{display:none;}}
           .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:var(--white);}
@@ -689,7 +689,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="mc-btn" onClick={startGame} style={{ background: COLORS.ink, color: THEME.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="mc-btn" onClick={startGame} style={{ background: THEME.cta, color: THEME.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}

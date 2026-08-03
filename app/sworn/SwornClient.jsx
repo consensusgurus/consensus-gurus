@@ -499,8 +499,8 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
       <div className="sw-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.sw-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .sw-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .sw-btn:hover{background:${COLORS.paper};}
+          .sw-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sw-btn:hover{background:var(--accent-soft);}
           .sw-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sw-btn.primary:hover{background:${COLORS.accentDeep};}
           .sw-card{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:8px;}
@@ -560,7 +560,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-              <button className="sw-btn" onClick={startInquest} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start the inquest</button>
+              <button className="sw-btn" onClick={startInquest} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start the inquest</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}

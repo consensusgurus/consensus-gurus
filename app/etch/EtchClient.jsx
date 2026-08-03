@@ -592,8 +592,8 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       <div className="et-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.et-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .et-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.ink};background:var(--white);color:${COLORS.ink};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .et-btn:hover{background:${COLORS.paper};}
+          .et-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .et-btn:hover{background:var(--accent-soft);}
           @media(max-width:560px){.et-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.et-ttl h1{font-size:21px;}.et-ttl-dot{display:none;}}
           .et-cell{box-sizing:border-box;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;position:relative;}
           .et-clue{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;color:${COLORS.ink};min-width:0;min-height:0;line-height:1;}
@@ -630,7 +630,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="et-btn" onClick={startGame} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="et-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}

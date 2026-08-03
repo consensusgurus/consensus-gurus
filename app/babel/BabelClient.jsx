@@ -677,7 +677,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: COLORS.ink, color: T.white, fontSize: 15, padding: '11px 22px' }}>
+              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>
                 {ready ? 'Start' : dictErr ? 'Dictionary failed to load' : 'Loading the dictionary…'}
               </button>
               <div style={{ marginTop: 10 }}>
