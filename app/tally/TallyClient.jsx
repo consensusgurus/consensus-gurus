@@ -725,7 +725,12 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
 
   function selectTile(j) {
     if (!playing || used[j]) return;
-    setSel((cur) => (cur === j ? -1 : j));
+    const next = sel === j ? -1 : j;
+    setSel(next);
+    // Reaching for the rack IS placing. Leaving the player in Mark mode with a
+    // tile in hand means their next tap cycles a note instead of placing it, so
+    // picking a tile up drops the tool back to Place on its own.
+    if (next >= 0 && mode !== 'place') setMode('place');
   }
 
   // one free hint: place a correct tile in an empty cell whose value is still
