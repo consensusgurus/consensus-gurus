@@ -1067,10 +1067,11 @@ export default function DailyEndCard({
         /* Quick replay: a quiet full-width bar directly under the share bar
            (owner 2026-08-04). Some games invite an immediate second run, and
            the old "Try again" chip was buried in the footer below the whole
-           game grid. Deliberately white-on-border so it reads as secondary to
-           the dark share bar it sits beneath. */
-        .dec-replay{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;box-sizing:border-box;font-family:${SANS};font-weight:800;font-size:13.5px;color:${INK};background:var(--white);border:1px solid ${BORD};border-radius:12px;padding:11px 14px;margin-bottom:10px;cursor:pointer;transition:background .12s ease;}
-        .dec-replay:hover{background:var(--surface);}
+           game grid. Carries the same 2px border, gradient fill and shadow as
+           the Up next / Easiest cards below it, in a neutral key so it reads
+           as their peer without competing with the blue and gold. */
+        .dec-replay{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;box-sizing:border-box;font-family:${SANS};font-weight:800;font-size:13.5px;color:${INK};background:linear-gradient(180deg,#ffffff 0%,#f3f5f9 100%);border:2px solid #d8dee9;box-shadow:0 3px 14px rgba(15,23,42,.07);border-radius:16px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:filter .12s ease;}
+        .dec-replay:hover{filter:brightness(0.985);}
         .dec-replay .rs{font-weight:600;font-size:11.5px;color:#8a92a6;}
         /* Guest claim banner: the loudest element on the card by design. */
         .dec-claim{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:${NAVY};background:linear-gradient(180deg,#f3f7ff,#e4edff);border:2px solid ${BLUE};border-radius:13px;padding:11px 13px;margin-bottom:10px;cursor:pointer;animation:dec-claimpulse 1.8s ease-in-out infinite;}
@@ -1401,7 +1402,7 @@ export default function DailyEndCard({
           .dec-sharebar{gap:11px;padding:11px 12px;}
           .dec-sharebar .t{font-size:13px;}
           .dec-sharebar .s{font-size:11px;}
-          .dec-replay{font-size:12.5px;padding:10px 12px;gap:7px;}
+          .dec-replay{font-size:12.5px;padding:11px 12px;gap:7px;}
           .dec-replay .rs{display:none;}
           .dec-claim{gap:10px;padding:10px 11px;}
           .dec-claim .t{font-size:12.5px;}
