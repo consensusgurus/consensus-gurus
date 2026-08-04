@@ -488,7 +488,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = won
       ? `Parker #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves, ${vs} · ${elapsed}${hintBit}${streakBit}`
-      : `Parker #${PUZZLE.num} · left it parked · par was ${par}`;
+      : `Parker #${PUZZLE.num} · left it parked`;
     return `${head}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {

@@ -642,7 +642,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const ruleBit = VIA ? ` via ${VIA}` : AVOID ? ` (${AVOID} closed)` : '';
     const head2 = won
-      ? `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end}${ruleBit} · ${hops} hops (shortest ${PUZZLE.par}) · ${elapsed}${hintBit}${streakBit}`
+      ? `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end}${ruleBit} · ${hops} hops · ${elapsed}${hintBit}${streakBit}`
       : `Span #${PUZZLE.num} · ${PUZZLE.start} → ${PUZZLE.end}${ruleBit} · gave up at ${hops} hop${hops === 1 ? '' : 's'}${hintBit}`;
     return `${head2}\n${squares}\n${shareUrl()}`;
   }

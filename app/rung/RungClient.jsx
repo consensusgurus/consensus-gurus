@@ -510,7 +510,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = won
       ? `Rung #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${PUZZLE.start} to ${PUZZLE.target} in ${used}, ${vs} · ${elapsed}${hintBit}${streakBit}`
-      : `Rung #${PUZZLE.num} · gave up · par was ${par}`;
+      : `Rung #${PUZZLE.num} · gave up`;
     return `${head}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {

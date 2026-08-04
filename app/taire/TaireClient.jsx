@@ -520,7 +520,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = won
       ? `Taire #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · ${used} moves, ${vs} · ${elapsed}${hintBit}${streakBit}`
-      : `Taire #${PUZZLE.num} · gave up · par was ${par}`;
+      : `Taire #${PUZZLE.num} · gave up`;
     return `${head}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {

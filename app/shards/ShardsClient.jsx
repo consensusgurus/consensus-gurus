@@ -60,7 +60,6 @@ const HELP_KEY = 'sot_shards_help_seen';
 const STATS_KEY = 'sot_shards_stats';
 // Per-shard tray/board tints (spoiler-free, purely to tell pieces apart).
 const SHARD_TINTS = ['#0d9488', '#7c3aed', '#d97706', T.blue, T.danger, T.successDeep, '#c026d3', '#0e7490', '#b45309', '#4338ca'];
-const SHARE_EMOJI = ['🟩', '🟪', '🟧', '🟦', '🟥', '🟫', '🟨', '⬛', '🟩', '🟪'];
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -769,18 +768,14 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const finalScore = g.status === 'done' ? Math.max(FLOOR, START - 5 * g.misplaced - hintsCost(g.hintsUsed, HINTS)) : liveScore;
   const won = g.status === 'done';
 
-  // ---- spoiler-free share art: the shatter mosaic, colored by shard, no letters ----
+  // ---- share art: a five-square score bar, the house pattern (Etch, Mate, Tally) ----
+  // It deliberately carries NO grid information. The old mosaic painted every
+  // cell with the colour of the shard that owns it IN THE SOLUTION, plus the
+  // block pattern, so a share was a readable answer key: it showed exactly where
+  // every piece goes. Never reintroduce grid-shaped share art here.
   function shareArt() {
-    let art = '';
-    for (let r = 0; r < N; r++) {
-      for (let c = 0; c < N; c++) {
-        if (blockSet.has(r * 100 + c)) { art += '⬛'; continue; }
-        const owner = SHARDS.find((s) => s.offs.some((o) => s.minR + o.dr === r && s.minC + o.dc === c));
-        art += SHARE_EMOJI[(owner ? owner.id : 0) % SHARE_EMOJI.length];
-      }
-      art += '\n';
-    }
-    return art;
+    const g5 = Math.max(1, Math.min(5, Math.round((finalScore / START) * 5)));
+    return '🟩'.repeat(g5) + '⬜'.repeat(5 - g5) + '\n';
   }
   function copyShare() {
     const url = withRef(`mindloftdaily.com/shards${isTodays ? '' : `?p=${PUZZLE.num}`}`);

@@ -571,13 +571,13 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const finalScore = g.submitted ? g.submitted.score : 0;
   const won = g.status === 'done' && finalScore >= PAR;
 
+  // ---- share art: a five-square score bar against par, no board shape ----
+  // The old version printed the finished board's footprint. Everyone plays the
+  // same rack and the day's high score wins, so that handed anyone who had not
+  // played yet the geometry that scored. Never share the board shape here.
   function shareArt() {
-    let minR = SIZE, maxR = -1, minC = SIZE, maxC = -1;
-    for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) if (grid[r][c]) { minR = Math.min(minR, r); maxR = Math.max(maxR, r); minC = Math.min(minC, c); maxC = Math.max(maxC, c); }
-    if (maxR < 0) return '';
-    let art = '';
-    for (let r = minR; r <= maxR; r++) { for (let c = minC; c <= maxC; c++) art += grid[r][c] ? '🟨' : '⬜'; art += '\n'; }
-    return art;
+    const g5 = finalScore <= 0 ? 0 : Math.max(1, Math.min(5, Math.round((finalScore / PAR) * 5)));
+    return '🟨'.repeat(g5) + '⬜'.repeat(5 - g5) + '\n';
   }
   function copyShare() {
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
