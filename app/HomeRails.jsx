@@ -252,6 +252,8 @@ export default function HomeRails({
       .hr-t{display:flex;align-items:baseline;gap:7px;min-width:0;font-size:12.5px;font-weight:800;}
       .hr-ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
       .hr-cat{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:4px;}
+      /* "(x25)": how many times this game has been played today, site-wide. */
+      .hr-x{flex:none;font-size:10.5px;font-weight:700;color:#8b90a0;font-variant-numeric:tabular-nums;}
       .hr-s{display:block;font-size:11px;color:var(--slate);}
       .hr-ring{width:32px;height:32px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center;}
       .hr-ring .in{width:25px;height:25px;border-radius:999px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
@@ -383,6 +385,7 @@ export default function HomeRails({
                   <span className="hr-mid">
                     <span className="hr-t">
                       <span className="hr-ttl">{titleFor ? titleFor(f.quizId) : f.quizId}</span>
+                      {f.dayCount > 0 ? <span className="hr-x" title={`${f.dayCount} play${f.dayCount === 1 ? '' : 's'} today`}>(x{f.dayCount})</span> : null}
                       {cat ? <span className="hr-cat" style={{ background: cat.tint, color: cat.color }}>{cat.label}</span> : null}
                     </span>
                     <span className="hr-s">
