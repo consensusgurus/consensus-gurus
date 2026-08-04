@@ -1048,7 +1048,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            stacking, and is untouched. */
         @media(min-width:901px){
           .dhome.slate .dh-sbar{padding:0;gap:0;background:transparent;border-bottom:none;}
-          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:var(--accent);color:var(--white);}
+          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:#2c4fa8;color:var(--white);}
           .dhome.slate .dh-cell + .dh-cell{padding-left:26px;border-left:none;background:var(--blue-deep);}
           /* a white rule replaces the game icon, which is unreadable at 32px on
              a saturated ground */
@@ -1067,7 +1067,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* edge to edge. Negative margins, NOT the 50%/translateX trick: a
              transform makes the console a containing block and kills the sticky
              strip bar and column header inside it. */
-          .dhome.slate{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;}
+          .dhome.slate{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-radius:0;box-shadow:none;}
           .dhome.slate .sl-bar{border-left:none;border-right:none;border-radius:0;border-top:none;margin-top:0;}
           .dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
           /* the two lead-in bars come FIRST on a phone, above the slate's own
@@ -1087,10 +1087,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;line-height:1.35;padding-bottom:1px;}
           .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:98px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 0;border-radius:8px;}
         }
-        .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border:1.5px solid var(--border);border-bottom:2px solid var(--accent);border-radius:13px 13px 0 0;}
+        .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent);border:1.5px solid var(--accent);border-bottom:none;border-radius:13px 13px 0 0;}
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
-        .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);}
-        .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#5a6b90;}
+        .dhome.slate{border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
+        .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);}
+        .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);}
         .sl-filt{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
         .sl-filt::-webkit-scrollbar{display:none;}
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}

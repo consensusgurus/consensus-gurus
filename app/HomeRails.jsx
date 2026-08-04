@@ -242,9 +242,10 @@ export default function HomeRails({
       .hr-link{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep);text-decoration:none;white-space:nowrap;flex:none;}
       .hr-link:hover{text-decoration:underline;}
       .hr-tabs{display:flex;background:var(--accent);flex:none;}
-      .hr-tabs button{flex:1;border:0;border-radius:9px 9px 0 0;background:transparent;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.7);padding:11px 6px;cursor:pointer;}
-      .hr-tabs button:hover{color:var(--white);}
-      .hr-tabs button.on{color:var(--accent);background:var(--white);}
+      .hr-tabs button{flex:1;border:0;border-radius:0;background:#2c4fa8;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#c3d5f4;padding:11px 6px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(255,255,255,0);}
+      .hr-tabs button + button{border-left:1px solid rgba(255,255,255,.16);}
+      .hr-tabs button:hover{color:var(--white);background:#3559b4;}
+      .hr-tabs button.on{color:var(--white);background:var(--accent);box-shadow:inset 0 -3px 0 var(--blue);}
       .hr-stats{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex:none;}
       .hr-stats > div{flex:1;padding:10px 13px;border-right:1px solid var(--border);}
       .hr-stats > div:last-child{border-right:none;}
