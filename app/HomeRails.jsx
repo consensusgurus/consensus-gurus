@@ -30,6 +30,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { T } from '@/lib/theme';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { COMPLETION_MAX } from '@/lib/daily-combined';
 import { fetchDayStatus } from './useDayStats';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
@@ -390,8 +391,13 @@ export default function HomeRails({
             })
           ) : (
             myRows.map((g) => {
+              // `completion` on the daily-combined payload is POINTS on the
+              // 0..COMPLETION_MAX (5) scale, NOT a percentage: a perfect 10/10
+              // carries completion 5, which rendered as a red "5%" ring on a
+              // flawless run (owner, 2026-08-03). Scale it back to a real
+              // percentage so this ring reads exactly like the Live feed tab's.
               const pct = (g.completion != null)
-                ? Math.round(g.completion)
+                ? Math.max(0, Math.min(100, Math.round((g.completion / COMPLETION_MAX) * 100)))
                 : (g.total ? Math.round((g.score / g.total) * 100) : 0);
               return (
                 <Link key={g.key} href={`/${g.key}`} className="hr-res">
