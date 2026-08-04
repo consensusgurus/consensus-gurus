@@ -1665,7 +1665,7 @@ export default function DailyEndCard({
       {onReplay ? (
         <button type="button" className="dec-replay" onClick={goReplay}>
           <RefreshCw size={15} strokeWidth={2.2} />
-          <span>Play {selfName} again</span>
+          <span>Replay today’s {selfGame ? selfGame.name : 'puzzle'}</span>
           <span className="rs">Practice run. Your recorded score stands.</span>
         </button>
       ) : null}
