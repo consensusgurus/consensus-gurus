@@ -16,7 +16,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, Share2, RotateCcw, X, Lightbulb, Eye, Smartphone, Pencil, Eraser } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, Lightbulb, Eye, Smartphone, Pencil, Eraser, Trash2 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
@@ -202,6 +202,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
+  const [armClear, setArmClear] = useState(false);   // Clear board is a two-tap: arm, then confirm
   const [justWon, setJustWon] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -343,6 +344,13 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // the Clear confirm never sits armed: it falls back on its own after 4s
+  useEffect(() => {
+    if (!armClear) return;
+    const t = setTimeout(() => setArmClear(false), 4000);
+    return () => clearTimeout(t);
+  }, [armClear]);
+
   function say(msg) {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -369,6 +377,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   }, [cells, givenFlat]);
 
   const filledCount = useMemo(() => FREE.reduce((n, i) => n + (cells[i] ? 1 : 0), 0), [cells, FREE]);
+  // anything the player has put down (digits or pencil marks) — gates Clear
+  const hasEntries = useMemo(() => cells.some((v) => v) || notes.some((v) => v), [cells, notes]);
 
   function isSolved(cs) {
     for (const i of FREE) if (cs[i] !== solFlat[i]) return false;
@@ -514,6 +524,21 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     nextCells[idx] = 0;
     nextNotes[idx] = 0;
     setG({ ...g, cells: nextCells, notes: nextNotes });
+  }
+
+  // Clear the whole board: every digit and pencil mark the player put down goes
+  // away and the printed clues stay. This sits between Erase (one square) and
+  // Replay (a brand new game): the clock, the hint, and the save slot are all
+  // untouched, so it is a fresh grid inside the same run. Undoable like any move.
+  function clearBoard() {
+    if (!playing || !hasEntries) return;
+    if (!armClear) { setArmClear(true); return; }   // first tap arms, second wipes
+    setArmClear(false);
+    pushUndo();
+    setSel(-1);
+    setArmed(0);
+    setG((cur) => ({ ...cur, cells: Array(81).fill(0), notes: Array(81).fill(0) }));
+    say('Board cleared, back to the printed clues. Undo brings it back.');
   }
 
   function cellClick(idx) {
@@ -687,7 +712,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Fill every empty square so that each <b>row</b>, each <b>column</b>, and each <b>3×3 box</b> contains the digits <b>1–9</b> with no repeats. Every board has exactly one solution.</p>
       <p style={{ margin: '0 0 9px' }}>Two ways to place a number: tap a square then tap a number, or pick a number first and tap every square it goes in. Wrong entries are not flagged, so it is on you to spot them, just like paper sudoku. On desktop you can also use the arrow keys and number keys.</p>
-      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b>, on your first ever play, fills a correct number.</p>
+      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it. <b>Undo</b> (or Ctrl+Z) takes back your last move, <b>Clear</b> wipes every number you have entered and leaves the printed clues, and one free <b>hint</b>, on your first ever play, fills a correct number.</p>
       <p style={{ margin: 0 }}>Solve the whole grid and you score a perfect 10. The faster you finish, the higher you place on the daily leaderboard. Sundays are a harder Edition with fewer clues.</p>
     </div>
   );
@@ -823,6 +848,15 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
                 </button>
                 <button className="sd-tool" onClick={() => eraseCell(sel)} title="Erase selected cell (Backspace)">
                   <Eraser size={14} /> Erase
+                </button>
+                <button className="sd-tool" onClick={clearBoard} disabled={!hasEntries}
+                  title="Clear every number you have entered and start the grid over on the same clock"
+                  style={hasEntries
+                    ? (armClear
+                      ? { background: '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
+                      : undefined)
+                    : { opacity: 0.4, cursor: 'default' }}>
+                  <Trash2 size={14} /> {armClear ? 'Tap again to clear' : 'Clear'}
                 </button>
                 {hintOk && !g.hintUsed && (
                   <button className="sd-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(234,88,12,0.5)', color: '#9a3d0c' }}>
