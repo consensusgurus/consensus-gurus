@@ -51,7 +51,8 @@
 //      rendered only when the caller passes onReplay. Moved up out of the
 //      footer 2026-08-04 (owner) because some games invite an immediate
 //      second run and the footer sits below the whole game grid;
-//   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
+//   5. a two-card row — "Up next" (25s auto-advance, counted down in a chip
+//      beside the game name since 2026-08-04) and "Easiest leaderboard"
 //      (the thinnest field, a podium is easiest there). Both cards lead with the
 //      game's own icon in its brand accent, then its family and its one-liner.
 //      The DAILY_GAMES `blurb` sentence was dropped 2026-08-04 (owner) to keep
@@ -778,7 +779,6 @@ export default function DailyEndCard({
   };
 
   const RING_C = 150.8; // 2*pi*24
-  const ringOffset = autoRun ? (RING_C * (AUTO_SECONDS - secs)) / AUTO_SECONDS : 0;
 
   // Identity chip, shown INSIDE the IQ hero directly above the three figures
   // (owner 2026-08-01) so the ranks are visibly the viewer's own: a link to the
@@ -1295,7 +1295,7 @@ export default function DailyEndCard({
         .dec-sk{position:relative;overflow:hidden;background:#dfe6f1;border-radius:6px;}
         .dec-sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dec-shim 1.15s ease-in-out infinite;}
         @keyframes dec-shim{100%{transform:translateX(100%);}}
-        .dec-sk-ring{width:56px;height:56px;border-radius:50%;flex-shrink:0;}
+        .dec-sk-ring{width:56px;height:56px;border-radius:16px;flex-shrink:0;}
         .dec-sk-line{height:11px;}
         .dec-sk-btn{height:34px;border-radius:10px;}
         .dec-fadein{animation:dec-fadein .32s ease both;}
@@ -1318,15 +1318,15 @@ export default function DailyEndCard({
            step quieter on purpose: it is the secondary offer. */
         .dec-nx{border:2px solid #bcd6fb;background:linear-gradient(180deg,#f2f7ff 0%,#e6effd 100%);box-shadow:0 3px 14px rgba(37,99,235,.10);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
         .dec-nx-top{flex:1 1 auto;display:flex;align-items:center;gap:13px;min-width:0;}
-        .dec-ring{position:relative;width:60px;height:60px;flex-shrink:0;}
-        .dec-ring svg{display:block;width:100%;height:100%;}
-        /* Hard cap on the glyph: lucide draws to the full 24px box and the wide
-           icons (Car, Table2, Calculator) touched the ring stroke at size 24,
-           so the SVG is pinned to 21px whatever the component asks for. */
-        .dec-ring .ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-        .dec-ring .ic svg{width:21px;height:21px;}
+        /* The icon takes the same square tile as the Easiest card (owner
+           2026-08-04): the countdown ring that used to wrap it made this one
+           icon a circle and reshaped the card. The countdown now rides beside
+           the game name instead. */
+        .dec-nx-ico{width:60px;height:60px;border-radius:16px;background:var(--white);border:1px solid #bcd6fb;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-nx-ico > svg{width:22px;height:22px;}
         .dec-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
-        .dec-nx-name{font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
+        .dec-nx-name{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
+        .dec-nx-cd{font-family:${MONO};font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#2b5bb5;background:rgba(37,99,235,.10);border:1px solid #bcd6fb;border-radius:999px;padding:3px 8px;white-space:nowrap;}
         .dec-nx-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:${SLATE};margin-top:3px;min-width:0;}
         .dec-nx-fam,.dec-ez-fam{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dec-nx-btns{display:flex;gap:7px;}
@@ -1334,7 +1334,6 @@ export default function DailyEndCard({
         .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:var(--white);box-shadow:0 3px 10px rgba(37,99,235,.30);}
         .dec-nx-btns .b.primary:hover{background:var(--blue-deep);filter:none;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
-        .dec-nx-auto{font-family:${MONO};font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#5d7cae;text-align:center;margin-top:-4px;}
 
         /* Same weight as Up next, in the gold key: 2px border, gradient fill,
            shadow, 60px icon and a taller shadowed button (owner 2026-08-01). */
@@ -1438,7 +1437,7 @@ export default function DailyEndCard({
           .dec-iqhero-rays{width:300px;height:300px;margin:-150px 0 0 -150px;}
           .dec-duo{grid-template-columns:1fr;}
           .dec-nx-name,.dec-ez-name{font-size:21px;}
-          .dec-ring,.dec-ring svg,.dec-ez-ico{width:54px;height:54px;}
+          .dec-nx-ico,.dec-ez-ico{width:54px;height:54px;}
           .dec-nx-btns .b,.dec-ez-btn{font-size:14px;padding:12px 10px;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
           .dec-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
@@ -1692,22 +1691,17 @@ export default function DailyEndCard({
           ) : nextReal ? (
             <div className="dec-nx dec-fadein">
               <div className="dec-nx-top">
-                {/* The game's own icon sits inside the auto-advance ring, so the
-                    countdown reads as a timer around the game rather than a
-                    bare number beside it. */}
-                <div className="dec-ring">
-                  <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
-                    <circle cx="28" cy="28" r="24" fill="none" stroke="#dbe6f7" strokeWidth="4" />
-                    {autoRun ? (
-                      <circle cx="28" cy="28" r="24" fill="none" stroke={T.blue} strokeWidth="4" strokeLinecap="round"
-                        transform="rotate(-90 28 28)" strokeDasharray={RING_C} strokeDashoffset={ringOffset} />
-                    ) : null}
-                  </svg>
-                  <span className="ic" style={{ color: nextMeta.accent }}><NextIcon size={24} strokeWidth={2} /></span>
+                <div className="dec-nx-ico" style={{ color: nextMeta.accent }}>
+                  <NextIcon size={24} strokeWidth={2} />
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="dec-eye" style={{ color: BLUE }}>Up next &middot; most similar unplayed</div>
-                  <div className="dec-nx-name">{nextTarget.name}</div>
+                  <div className="dec-nx-name">
+                    {nextTarget.name}
+                    {autoRun ? (
+                      <span className="dec-nx-cd">{secs > 0 ? <>Opens in {secs}s</> : <>Opening&hellip;</>}</span>
+                    ) : null}
+                  </div>
                   <div className="dec-nx-fam">
                     <span className="dec-dot" style={{ background: nextCat.color }} />
                     {nextCat.name} &middot; {nextTarget.tag}
@@ -1718,9 +1712,6 @@ export default function DailyEndCard({
                 <a className="b primary" href={nextTarget.href}>Play {nextTarget.name} <ArrowRight size={14} strokeWidth={2.6} /></a>
                 {autoRun ? <button type="button" className="b" onClick={() => setAutoCancel(true)}>Not now</button> : null}
               </div>
-              {autoRun ? (
-                <div className="dec-nx-auto">{secs > 0 ? <>Opens automatically in {secs}s</> : <>Opening…</>}</div>
-              ) : null}
             </div>
           ) : null}
           {grabSkel ? (
