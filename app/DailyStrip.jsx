@@ -803,8 +803,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-bue{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .dh-bue.up{color:var(--blue);}
         .dh-bshort{display:none;}
-        .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .dh-busub{font-size:11px;font-weight:600;color:var(--muted);line-height:1.2;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dh-bun{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.3;padding-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .dh-busub{font-size:11px;font-weight:600;color:var(--muted);line-height:1.35;padding-bottom:1px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         /* @container widths are the BAR's content box, not the viewport (.dh-sbar
            is border-box with 12px side padding), so a 390px phone queries at
            ~366px. Both halves shed furniture at the same width so neither wraps. */
@@ -1034,8 +1034,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-cell > img{display:none;}
           .dhome.slate .dh-cell::before{content:'';position:absolute;left:13px;top:14px;bottom:14px;width:4px;border-radius:2px;background:rgba(255,255,255,.9);}
           .dhome.slate .dh-bue,.dhome.slate .dh-bue.up{color:var(--blue-200);font-size:9.5px;letter-spacing:.11em;}
-          .dhome.slate .dh-bun{color:var(--white);font-size:20px;}
-          .dhome.slate .dh-busub{display:block;color:var(--blue-200);font-weight:600;}
+          /* line-height 1.3 + a pixel of pad, NOT the shared 1.1: these lines
+             are overflow:hidden for the ellipsis, so a 1.1 box clips the
+             descender off a g/p/y in a game name or its tagline. */
+          .dhome.slate .dh-bun{color:var(--white);font-size:20px;line-height:1.3;padding-bottom:1px;}
+          .dhome.slate .dh-busub{display:block;color:var(--blue-200);font-weight:600;line-height:1.35;padding-bottom:1px;}
           .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:104px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:11px 0;border-radius:8px;}
           .dhome.slate .dh-cell .dh-play:hover{background:var(--blue-200);}
         }
@@ -1059,8 +1062,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              size on a saturated ground */
           .dhome.slate .dh-cell::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.9);}
           .dhome.slate .dh-bue{color:#dbe8ff;font-size:9.5px;letter-spacing:.11em;}
-          .dhome.slate .dh-bun{color:var(--white);font-size:19px;}
-          .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;}
+          .dhome.slate .dh-bun{color:var(--white);font-size:19px;line-height:1.3;padding-bottom:1px;}
+          .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;line-height:1.35;padding-bottom:1px;}
           .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:98px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 0;border-radius:8px;}
         }
         .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border:1.5px solid var(--border);border-bottom:2px solid var(--accent);border-radius:13px 13px 0 0;}
