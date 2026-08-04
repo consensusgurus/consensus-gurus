@@ -5,7 +5,7 @@
 //
 // It replaces the three stacked hero-name leaderboard cards on the left and the
 // Last Played / Quick play / Category Mastery stack on the right with a single
-// consistent panel system: a tinted header band, a top-5 table, and a footer
+// consistent panel system: a solid navy header band, a top-5 table, and a footer
 // carrying the expander and the real "Full leaderboard" link.
 //
 // It is deliberately a PRESENTATION component. Every figure it renders is
@@ -209,17 +209,17 @@ export default function HomeRails({
 
   const CSS = (
     <style>{`
-      .hr-panel{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+      .hr-panel{background:var(--white);border:1px solid #d9dfe9;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
       .hr-flex{flex:1 1 auto;min-height:0;}
-      .hr-ph{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent-soft);border-bottom:2px solid var(--accent);flex:none;}
-      .hr-ph h2{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin:0;}
-      .hr-pi{width:24px;height:24px;border-radius:7px;background:var(--white);border:1px solid var(--accent-border);color:var(--blue-deep);display:flex;align-items:center;justify-content:center;flex:none;}
+      .hr-ph{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent);flex:none;}
+      .hr-ph h2{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);margin:0;}
+      .hr-pi{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);color:var(--white);display:flex;align-items:center;justify-content:center;flex:none;}
       .hr-flip{margin-left:auto;display:flex;align-items:center;gap:7px;}
-      .hr-lbl{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue-deep);background:var(--white);border:1px solid var(--accent-border);padding:3px 9px;border-radius:999px;white-space:nowrap;}
+      .hr-lbl{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);padding:3px 9px;border-radius:999px;white-space:nowrap;}
       .hr-dots{display:flex;gap:4px;}
-      .hr-dots i{width:6px;height:6px;border-radius:50%;background:#c3d1ea;cursor:pointer;display:block;}
-      .hr-dots i.on{background:var(--blue);}
-      .hr-sub{font-size:11px;color:var(--slate);padding:6px 13px 0;flex:none;}
+      .hr-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.38);cursor:pointer;display:block;}
+      .hr-dots i.on{background:var(--white);}
+      .hr-sub{font-size:11px;color:var(--slate);padding:7px 13px;background:var(--surface);border-bottom:1px solid var(--border);flex:none;}
       .hr-scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
       .hr-scroll::-webkit-scrollbar{width:6px;}
       .hr-scroll::-webkit-scrollbar-track{background:transparent;}
@@ -231,6 +231,7 @@ export default function HomeRails({
       .hr-tbl td.r{text-align:right;}
       .hr-tbl td.rk{font-size:11px;font-weight:800;width:24px;color:#9aa2b1;font-variant-numeric:tabular-nums;}
       .hr-tbl tr.lead1 td{background:#fdf7e8;}
+      .hr-tbl tr.lead1 td:first-child{box-shadow:inset 3px 0 0 var(--gold);}
       .hr-nm{color:var(--ink);text-decoration:none;}
       .hr-nm:hover{text-decoration:underline;}
       .hr-v{font-weight:700;font-variant-numeric:tabular-nums;}
@@ -240,9 +241,10 @@ export default function HomeRails({
       .hr-exp:hover{color:var(--blue-deep);}
       .hr-link{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep);text-decoration:none;white-space:nowrap;flex:none;}
       .hr-link:hover{text-decoration:underline;}
-      .hr-tabs{display:flex;background:var(--accent-soft);border-bottom:2px solid var(--accent);flex:none;}
-      .hr-tabs button{flex:1;border:0;border-radius:9px 9px 0 0;background:transparent;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#5a6b90;padding:11px 6px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;}
-      .hr-tabs button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:var(--white);}
+      .hr-tabs{display:flex;background:var(--accent);flex:none;}
+      .hr-tabs button{flex:1;border:0;border-radius:9px 9px 0 0;background:transparent;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.7);padding:11px 6px;cursor:pointer;}
+      .hr-tabs button:hover{color:var(--white);}
+      .hr-tabs button.on{color:var(--accent);background:var(--white);}
       .hr-stats{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex:none;}
       .hr-stats > div{flex:1;padding:10px 13px;border-right:1px solid var(--border);}
       .hr-stats > div:last-child{border-right:none;}
@@ -283,7 +285,7 @@ export default function HomeRails({
       /* Phone: the rail panels run edge to edge like the slate, rather than
          sitting as tiles inside the page gutter (owner, 2026-08-03). */
       @media(max-width:900px){
-        .hr-panel{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-left:none;border-right:none;border-radius:0;}
+        .hr-panel{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-left:none;border-right:none;border-radius:0;box-shadow:none;}
       }
     `}</style>
   );
