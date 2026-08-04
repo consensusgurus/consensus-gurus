@@ -14,7 +14,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { HelpCircle, Share2, RotateCcw, X, Trophy, Eye, Smartphone } from 'lucide-react';
 import Grain from '../Grain';
 import DailyGamesPromo from '../DailyGamesPromo';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import Footer from '../Footer';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -177,6 +177,9 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
+  // eslint-disable-next-line no-unused-vars -- the player chip moved into
+  // DailyChrome (QuizNavHeader fetches its own identity); the fetch below
+  // stays for the cross-device stats merge.
   const [player, setPlayer] = useState(null);
   const [stats, setStats] = useState(null);
   const toastTimer = useRef(null);
@@ -477,6 +480,10 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="garble" name="Garble" collapsed={started} />
       <div className="gb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && started ? '18px 38px calc(185px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <style>{`
@@ -492,7 +499,6 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             @media(max-width:560px){.gb-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.gb-ttl h1{font-size:21px;letter-spacing:0.02em;}.gb-ttl .gb-ttl-dt{font-size:15px;}.gb-ttl-dot{display:none;}}
           `}</style>
 
-          <DailyTopNav player={player} />
 
           {/* masthead: pressed GARBLE tiles with No./date inline, one rule beneath */}
           <DailyMasthead

@@ -28,7 +28,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -240,6 +240,9 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
+  // eslint-disable-next-line no-unused-vars -- the player chip moved into
+  // DailyChrome (QuizNavHeader fetches its own identity); the fetch below
+  // stays for the cross-device stats merge.
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -714,6 +717,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="outwit" name="Outwit" collapsed={started} />
       <div className="ow-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ow-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -733,7 +740,6 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
 
-        <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed OUTWIT tiles with No./date inline */}
         <DailyMasthead

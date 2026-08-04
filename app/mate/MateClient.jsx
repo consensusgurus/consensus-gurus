@@ -33,7 +33,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -659,6 +659,10 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="mate" name="Mate" collapsed={started} />
       <div className="mt-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.mt-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -676,7 +680,6 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
-        <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         <DailyMasthead
           slug="mate"

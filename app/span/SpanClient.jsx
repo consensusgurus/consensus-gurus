@@ -35,7 +35,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -726,6 +726,10 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="span" name="Span" collapsed={started} />
       <div className="sp-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.sp-wrap{padding-left:14px !important;padding-right:14px !important;}}
@@ -745,7 +749,6 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
         {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
-        <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         {/* masthead: pressed SPAN tiles with No./date inline, one rule beneath */}
         <DailyMasthead

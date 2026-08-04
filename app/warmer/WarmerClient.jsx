@@ -25,7 +25,7 @@ import Grain from '../Grain';
 import Footer from '../Footer';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
@@ -153,6 +153,9 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   const [hintOk, setHintOk] = useState(false);
   useEffect(() => { if (stats) setHintOk(hintAllowed('warmer', stats)); }, [stats]);
   useEffect(() => { if (g.hintUsed) spendHint('warmer'); }, [g.hintUsed]);
+  // eslint-disable-next-line no-unused-vars -- the player chip moved into
+  // DailyChrome (QuizNavHeader fetches its own identity); the fetch below
+  // stays for the cross-device stats merge.
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -398,6 +401,10 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="warmer" name="Warmer" collapsed={started} />
       <div className="wm-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.wm-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -430,7 +437,6 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
-          <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
           {/* masthead */}
           <DailyMasthead

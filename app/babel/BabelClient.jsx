@@ -35,7 +35,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -212,6 +212,9 @@ export default function BabelClient({ puzzles, forceNum }) {
   const [stats, setStats] = useState(null);
   const [board, setBoardData] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
+  // eslint-disable-next-line no-unused-vars -- the player chip moved into
+  // DailyChrome (QuizNavHeader fetches its own identity); the fetch below
+  // stays for the cross-device stats merge.
   const [player, setPlayer] = useState(null);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -623,6 +626,10 @@ export default function BabelClient({ puzzles, forceNum }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, fontFamily: SANS, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="babel" name="Babel" collapsed={playing} />
       <div style={{ position: 'relative', zIndex: 2, padding: '18px 16px 0' }}>
         <style>{`
           .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${COLORS.ink};background:var(--white);border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
@@ -656,7 +663,6 @@ export default function BabelClient({ puzzles, forceNum }) {
 
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
 
-        <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         <DailyMasthead
           slug="babel"

@@ -57,7 +57,12 @@ export default function DailySlateRail({ current = null }) {
     ? new Set(Object.keys(perGame).filter((k) => !(perGame[k] && perGame[k].abandoned)))
     : new Set();
 
-  const games = SLATE_KEYS.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
+  // lib/daily-games derives a row's href from its key when the row has none,
+  // but the jester row's route is /jesters (the directory was pluralised, the
+  // key never was), so the derived /jester would 404. Corrected here rather
+  // than in the shared registry, where the derived href has other consumers.
+  const games = SLATE_KEYS.map((k) => DAILY_GAME_MAP[k]).filter(Boolean)
+    .map((g) => (g.key === 'jester' ? { ...g, href: '/jesters' } : g));
   const played = games.filter((g) => done.has(g.key)).length;
 
   // Park the current game near the left edge so the games either side of it are

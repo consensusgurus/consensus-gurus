@@ -26,7 +26,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -501,6 +501,10 @@ export default function GlyphClient({ puzzles, forceNum }) {
   return (
     <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative', fontFamily: SANS }}>
       <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="glyph" name="Glyph" collapsed={playing} />
       <div style={{ position: 'relative', zIndex: 2, padding: '14px 16px 8px' }}>
         <style>{`
           .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -536,7 +540,6 @@ export default function GlyphClient({ puzzles, forceNum }) {
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
-          <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
           <DailyMasthead
             slug="glyph"
