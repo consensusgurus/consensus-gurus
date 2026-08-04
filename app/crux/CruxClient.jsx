@@ -21,7 +21,7 @@ import { HelpCircle, Share2, RotateCcw, X, ChevronLeft, ChevronRight, Swords, Sm
 import Grain from '../Grain';
 import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
@@ -336,7 +336,10 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const [hintOk, setHintOk] = useState(false);
   useEffect(() => { if (stats) setHintOk(hintAllowed('crux', stats)); }, [stats]);
   useEffect(() => { if (g.hintUsed) spendHint('crux'); }, [g.hintUsed]);
-  const [player, setPlayer] = useState(null); // { name, rank } for the top-strip chip
+  // eslint-disable-next-line no-unused-vars -- the chip moved into DailyChrome
+  // (QuizNavHeader fetches its own identity); the fetch below is kept so the
+  // cross-device stats merge it triggers still runs.
+  const [player, setPlayer] = useState(null);
   const [anim, setAnim] = useState(null);        // { id, flip: {key->i}, pulse: {key->true} } for the last guess
   const [endAnim, setEndAnim] = useState(false); // category cascade, only on the live end transition
   const [countdown, setCountdown] = useState('');
@@ -1015,6 +1018,13 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome: home's #1e3a8a masthead + #16307a stat bar +
+          the #eef3ff slate rail, collapsing to one line once the clock runs
+          (owner mockup, 2026-08-04). Outside cx-wrap so the bands run full
+          bleed; nothing here is pinned. */}
+      <DailyChrome slug="crux" name="Crux" collapsed={started}
+        stats={[{ k: 'Guesses', v: g.left },
+                { k: 'Words', v: `${PUZZLE.slots.filter((s) => g.solved[s.id]).length}/${PUZZLE.slots.length}` }]} />
       <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           .cx-a{margin:0 auto;}
@@ -1054,7 +1064,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             sizes to the board (Option A single-column layout) */}
         <div style={{ maxWidth: COLW, margin: '0 auto' }}>
 
-        <DailyTopNav player={player} />
 
         {/* masthead: pressed CRUX tiles with the issue no. + date on the same
             line, a single rule beneath (they stack on mobile) */}

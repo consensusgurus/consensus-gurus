@@ -31,7 +31,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
-import DailyTopNav from '../DailyTopNav';
+import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -190,6 +190,8 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   const [hintOk, setHintOk] = useState(false);
   useEffect(() => { if (stats) setHintOk(hintAllowed('rung', stats)); }, [stats]);
   useEffect(() => { if (g.hintUsed) spendHint('rung'); }, [g.hintUsed]);
+  // eslint-disable-next-line no-unused-vars -- see the note in CruxClient: the
+  // player chip now lives in DailyChrome, the fetch stays for the stats merge.
   const [player, setPlayer] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [installEvt, setInstallEvt] = useState(null);
@@ -554,6 +556,10 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   return (
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
+      {/* Shared daily chrome — see app/DailyChrome.jsx. Second test game for
+          the 2026-08-04 header rollout (Crux is the other). */}
+      <DailyChrome slug="rung" name="Rung" collapsed={started}
+        stats={[{ k: 'Rungs', v: used }]} />
       <div className="rg-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.rg-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -568,7 +574,6 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
         `}</style>
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
-        <div style={{ display: 'block' }}><DailyTopNav player={player} compact={playing} /></div>
 
         <DailyMasthead
           slug="rung" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}

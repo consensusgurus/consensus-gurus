@@ -1,0 +1,116 @@
+'use client';
+
+// DailySlateRail — today's slate, as a sliding rail of game NAMES, sitting
+// directly under the navy masthead on a daily game page (owner-approved
+// mockup, 2026-08-04, "Direction C").
+//
+// WHY IT EXISTS: a game page used to be a dead end. You finished Crux and the
+// only way to the next daily was back to the home board. The rail puts all 42
+// dailies one tap away from inside any game, marks the ones you have already
+// finished today, and highlights the one you are on.
+//
+// COLOUR: #eef3ff on #cddffb (accentSoft / accentBorder) — NOT a new blue. It
+// is the exact shade the home page already uses for its own "Today's Slate"
+// panel header, so the page reads as three layers of one header: #1e3a8a
+// masthead, #16307a stat bar, #eef3ff slate. Do not retint it in isolation.
+//
+// NOTHING HERE IS PINNED. The rail scrolls away with the rest of the chrome:
+// the board must be able to own the viewport (owner rule, 2026-08-04).
+//
+// The roster is a copy of DailyStrip's GAMES key order (the home slate order),
+// resolved through DAILY_GAME_MAP so names and hrefs can never drift from
+// lib/daily-games. Add a game there and to this list to have it appear here.
+
+import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
+
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+
+const SLATE_KEYS = [
+  'crux', 'emcee', 'shards', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'carve',
+  'extra', 'stet', 'outwit', 'outrank', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester',
+  'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'glyph', 'hedge',
+  'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib', 'streak',
+  'feud', 'babel',
+];
+
+export default function DailySlateRail({ current = null }) {
+  const railRef = useRef(null);
+  const [perGame, setPerGame] = useState(null);
+
+  // Same completion source as DailyGamesGrid: /api/quiz/daily-me without a
+  // `game`, which is its cheapest form (row counts only). A signed-out visitor
+  // has no identity to ask about, so the rail simply shows no ticks.
+  useEffect(() => {
+    const { anonId, email } = dailyMeIdentity();
+    if (!anonId && !email) return undefined;
+    let alive = true;
+    fetchDailyMe(dailyMeQuery({ anonId, email }))
+      .then((d) => { if (alive && d && d.perGame) setPerGame(d.perGame); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  const done = perGame
+    ? new Set(Object.keys(perGame).filter((k) => !(perGame[k] && perGame[k].abandoned)))
+    : new Set();
+
+  const games = SLATE_KEYS.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
+  const played = games.filter((g) => done.has(g.key)).length;
+
+  // Park the current game near the left edge so the games either side of it are
+  // in view on arrival. Runs on mount and again if the rail re-renders with a
+  // different current game.
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const el = rail.querySelector('[data-now="1"]');
+    if (el) rail.scrollLeft = Math.max(0, el.offsetLeft - 96);
+  }, [current]);
+
+  const nudge = (dx) => { const r = railRef.current; if (r) r.scrollBy({ left: dx, behavior: 'smooth' }); };
+
+  return (
+    <div className="dsr">
+      <style>{`
+        .dsr{background:var(--accent-soft);border-bottom:1px solid var(--accent-border);position:relative;z-index:2;}
+        .dsr-in{max-width:1560px;margin:0 auto;padding:7px clamp(14px,2.5vw,34px);display:flex;align-items:center;gap:11px;}
+        .dsr-k{font-family:${MONO};font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#4a63a8;white-space:nowrap;flex:none;}
+        .dsr-btn{width:24px;height:24px;border-radius:50%;background:var(--white);border:1px solid var(--accent-border);color:var(--accent);display:flex;align-items:center;justify-content:center;font:inherit;font-size:13px;font-weight:800;line-height:1;cursor:pointer;flex:none;padding:0;}
+        .dsr-btn:hover{background:#dfe9ff;}
+        .dsr-rail{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;}
+        .dsr-rail::-webkit-scrollbar{display:none;}
+        .dsr-row{display:flex;gap:6px;width:max-content;padding:1px 0;}
+        .dsr-g{background:var(--white);border:1px solid var(--accent-border);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;color:var(--accent);white-space:nowrap;text-decoration:none;flex:none;}
+        .dsr-g:hover{background:#dfe9ff;}
+        .dsr-g.is-done{background:#e3f4ec;border-color:#bfe4d2;color:#12805a;}
+        .dsr-g.is-now{background:var(--blue);border-color:var(--blue);color:var(--white);box-shadow:0 1px 3px rgba(37,99,235,.35);}
+        .dsr-n{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;flex:none;}
+        @media(max-width:860px){.dsr-btn{display:none;}.dsr-in{gap:9px;padding-left:12px;padding-right:12px;}}
+        @media(max-width:520px){.dsr-k{display:none;}}
+      `}</style>
+      <div className="dsr-in">
+        <span className="dsr-k">Today&rsquo;s slate</span>
+        <button type="button" className="dsr-btn" aria-label="Scroll slate left" onClick={() => nudge(-240)}>&lsaquo;</button>
+        <div className="dsr-rail" ref={railRef}>
+          <div className="dsr-row">
+            {games.map((g) => {
+              const now = g.key === current;
+              const cls = `dsr-g${now ? ' is-now' : (done.has(g.key) ? ' is-done' : '')}`;
+              return (
+                <Link key={g.key} href={g.href} className={cls} data-now={now ? '1' : undefined}
+                  aria-current={now ? 'page' : undefined} title={g.tag || g.name}>
+                  {done.has(g.key) && !now ? '✓ ' : ''}{g.name}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+        <button type="button" className="dsr-btn" aria-label="Scroll slate right" onClick={() => nudge(240)}>&rsaquo;</button>
+        <span className="dsr-n">{played}/{games.length}</span>
+      </div>
+    </div>
+  );
+}
