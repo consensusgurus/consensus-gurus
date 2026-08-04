@@ -2203,6 +2203,7 @@ export default function QuizHomeClient() {
                 ...((daily && DAILY_CHALLENGE_ON) ? [{
                   title: 'Daily Challenge',
                   sub: dailyCat || 'Today',
+                  leader: (dailyRows[0] && !dailyRows[0].isAnon) ? (dailyRows[0].username || '') : '',
                   href: dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl,
                   icon: <Target size={16} strokeWidth={2.4} />,
                   color: '#8a6d1a', tint: '#fdf7e8',
@@ -2210,6 +2211,7 @@ export default function QuizHomeClient() {
                 ...(qotd ? [{
                   title: 'Quiz of the Day',
                   sub: stripVerb(qotd.title),
+                  leader: qotdLeader,
                   href: `/quiz/${qotd.id}`,
                   icon: <Play size={14} fill="currentColor" strokeWidth={0} />,
                   color: '#c2410c', tint: '#fdf0e8',

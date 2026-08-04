@@ -263,7 +263,12 @@ export default function HomeRails({
       .hr-frow:hover{background:var(--surface);}
       .hr-fic{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:9px;flex:none;}
       .hr-fm{flex:1;min-width:0;}
-      .hr-ft{display:block;font-size:13px;font-weight:800;}
+      .hr-ft{display:flex;align-items:center;gap:6px;min-width:0;font-size:13px;font-weight:800;}
+      /* Current leader, beside the title (owner, 2026-08-04). Only the two rows
+         that HAVE a live board carry one (Daily Challenge, Quiz of the Day);
+         the duel row passes no leader and simply renders without it. */
+      .hr-fl{display:inline-flex;align-items:center;gap:3px;min-width:0;font-size:10.5px;font-weight:800;color:var(--gold-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-fl svg{flex:none;}
       .hr-fs{display:block;font-size:11px;color:var(--slate);}
       .hr-fa{margin-left:auto;color:#9aa2b1;font-size:18px;line-height:1;}
       /* The rails stack at natural height on a phone, but the activity list is
@@ -430,7 +435,7 @@ export default function HomeRails({
         {featured.map((f) => (
           <Link key={f.title} href={f.href} className="hr-frow">
             <span className="hr-fic" style={{ background: f.tint, color: f.color }}>{f.icon}</span>
-            <span className="hr-fm"><span className="hr-ft">{f.title}</span><span className="hr-fs">{f.sub}</span></span>
+            <span className="hr-fm"><span className="hr-ft">{f.title}{f.leader ? <span className="hr-fl"><CrownIcon />{f.leader}</span> : null}</span><span className="hr-fs">{f.sub}</span></span>
             <span className="hr-fa">&rsaquo;</span>
           </Link>
         ))}

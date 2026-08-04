@@ -1023,6 +1023,28 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            other, the way the mockup has them. */
         .dhome.slate .dh-cell{flex:1 1 50%;}
         .dhome.slate .dh-cell .dh-play{width:112px;}
+        /* Desktop slate cap (owner, 2026-08-04): the phone's solid slabs, run
+           side by side. The white bar carried five competing accents at once
+           (two blue eyebrows, two blue button fills, a grey icon plate and a
+           divider rule), so nothing led the eye. Each half now takes its own
+           tone off the brand ramp, deep navy on the left and blue on the
+           right, with white type and a white button: MORE pop from LESS colour
+           variety. The phone block below (<=900px) keeps its own tones and its
+           stacking, and is untouched. */
+        @media(min-width:901px){
+          .dhome.slate .dh-sbar{padding:0;gap:0;background:transparent;border-bottom:none;}
+          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:var(--accent);color:var(--white);}
+          .dhome.slate .dh-cell + .dh-cell{padding-left:26px;border-left:none;background:var(--blue-deep);}
+          /* a white rule replaces the game icon, which is unreadable at 32px on
+             a saturated ground */
+          .dhome.slate .dh-cell > img{display:none;}
+          .dhome.slate .dh-cell::before{content:'';position:absolute;left:13px;top:14px;bottom:14px;width:4px;border-radius:2px;background:rgba(255,255,255,.9);}
+          .dhome.slate .dh-bue,.dhome.slate .dh-bue.up{color:var(--blue-200);font-size:9.5px;letter-spacing:.11em;}
+          .dhome.slate .dh-bun{color:var(--white);font-size:20px;}
+          .dhome.slate .dh-busub{display:block;color:var(--blue-200);font-weight:600;}
+          .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:104px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:11px 0;border-radius:8px;}
+          .dhome.slate .dh-cell .dh-play:hover{background:var(--blue-200);}
+        }
         @media(max-width:900px){
           /* edge to edge. Negative margins, NOT the 50%/translateX trick: a
              transform makes the console a containing block and kills the sticky
