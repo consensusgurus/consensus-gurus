@@ -7,12 +7,16 @@
 // "founded" or "oldest" board that means the year values ASCEND down the array,
 // which is correct: `hi`/`lo` carry the direction, not the numbers.
 //
-// DOMAIN (`cat`), owner ruling 2026-07-27: every board is either History or
-// Geography, and the running order alternates so the domain rotates through the
-// week. Box office, sports records, company milestones and award counts all
-// count as HISTORY, because the thing being ranked is something that happened.
-// Only genuinely spatial boards are GEOGRAPHY. A board that is neither (planet
-// diameters, melting points, fast food calories) does not belong in the bank.
+// DOMAIN (`cat`), owner ruling 2026-08-04 (supersedes the 2026-07-27 ruling that
+// every board had to be History or Geography): a board is HISTORY only when the
+// thing being ranked is a dated event, so chronologies and "oldest" boards
+// (founding years, independence dates, order of completion, oldest still
+// running) qualify. Genuinely spatial boards stay GEOGRAPHY. Everything else,
+// meaning records, best-sellers, career totals, revenue, capacities and award
+// counts, is TRIVIA, which is also the game-level category for Listed and
+// Bracket. The running order alternates so the domain rotates through the week.
+// A board in none of the three (planet diameters, melting points, fast food
+// calories) does not belong in the bank.
 //
 // Authoring rules:
 //   - the answer key must be a NUMBER from a citable source, never an opinion,
@@ -29,7 +33,7 @@ export const PUZZLES = [
     quizId: "listed-7-27-26",
     live: "2026-07-27",
     dateLabel: "July 27, 2026",
-    cat: "History",
+    cat: "Trivia",
     title: "Highest-grossing films worldwide, not adjusted for inflation",
     metric: "Gross",
     hi: "Biggest",
@@ -51,7 +55,7 @@ export const PUZZLES = [
     quizId: "listed-7-28-26",
     live: "2026-07-28",
     dateLabel: "July 28, 2026",
-    cat: "History",
+    cat: "Trivia",
     title: "Most career points in NBA regular-season history",
     metric: "Points",
     hi: "Most",
@@ -117,7 +121,7 @@ export const PUZZLES = [
     quizId: "listed-7-31-26",
     live: "2026-07-31",
     dateLabel: "July 31, 2026",
-    cat: "History",
+    cat: "Trivia",
     title: "Best-selling book series of all time",
     metric: "Copies",
     hi: "Most",
@@ -162,7 +166,7 @@ export const PUZZLES = [
     live: "2026-08-02",
     dateLabel: "August 2, 2026",
     sunday: true,
-    cat: "History",
+    cat: "Trivia",
     title: "Longest-running Broadway shows, by total performances",
     metric: "Performances",
     hi: "Most",
@@ -185,7 +189,7 @@ export const PUZZLES = [
     quizId: "listed-8-3-26",
     live: "2026-08-03",
     dateLabel: "August 3, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Most Formula One race wins by a driver",
     metric: "Wins",
     hi: "Most",
@@ -229,7 +233,7 @@ export const PUZZLES = [
     quizId: "listed-8-5-26",
     live: "2026-08-05",
     dateLabel: "August 5, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Best-selling video games of all time, by copies sold",
     metric: "Copies",
     hi: "Most",
@@ -251,7 +255,7 @@ export const PUZZLES = [
     quizId: "listed-8-6-26",
     live: "2026-08-06",
     dateLabel: "August 6, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Most career home runs in Major League Baseball",
     metric: "Home runs",
     hi: "Most",
@@ -318,7 +322,7 @@ export const PUZZLES = [
     live: "2026-08-09",
     dateLabel: "August 9, 2026",
     sunday: true,
-        cat: "History",
+        cat: "Trivia",
     title: "Largest sports stadiums in the world, by capacity",
     metric: "Capacity",
     hi: "Biggest",
@@ -363,7 +367,7 @@ export const PUZZLES = [
     quizId: "listed-8-11-26",
     live: "2026-08-11",
     dateLabel: "August 11, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "American scripted TV series with the most episodes",
     metric: "Episodes",
     hi: "Most",
@@ -429,7 +433,7 @@ export const PUZZLES = [
     quizId: "listed-8-14-26",
     live: "2026-08-14",
     dateLabel: "August 14, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Most career goals in NHL history",
     metric: "Goals",
     hi: "Most",
@@ -451,7 +455,7 @@ export const PUZZLES = [
     quizId: "listed-8-15-26",
     live: "2026-08-15",
     dateLabel: "August 15, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Films with the most competitive Academy Award wins",
     metric: "Oscars",
     hi: "Most",
@@ -497,7 +501,7 @@ export const PUZZLES = [
     quizId: "listed-8-17-26",
     live: "2026-08-17",
     dateLabel: "August 17, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Most men's major golf championships won",
     metric: "Majors",
     hi: "Most",
@@ -563,7 +567,7 @@ export const PUZZLES = [
     quizId: "listed-8-20-26",
     live: "2026-08-20",
     dateLabel: "August 20, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Largest companies by 2024 revenue",
     metric: "Revenue",
     hi: "Most",
@@ -585,7 +589,7 @@ export const PUZZLES = [
     quizId: "listed-8-21-26",
     live: "2026-08-21",
     dateLabel: "August 21, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Highest-grossing concert tours of all time",
     metric: "Gross",
     hi: "Biggest",
@@ -697,7 +701,7 @@ export const PUZZLES = [
     quizId: "listed-8-26-26",
     live: "2026-08-26",
     dateLabel: "August 26, 2026",
-        cat: "History",
+        cat: "Trivia",
     title: "Most career passing yards by a retired NFL quarterback",
     metric: "Pass yards",
     hi: "Most",
