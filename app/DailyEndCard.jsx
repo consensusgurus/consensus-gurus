@@ -228,7 +228,7 @@ export const DAILY_GAMES = [
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          blurb: 'A logic grid where exactly one clue is false. Find the lie, then solve the rest.', href: '/fib' },
   { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  blurb: 'Forty trivia questions, sudden death. One wrong answer ends the run for the day.', href: '/streak' },
   { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            blurb: 'Name the answers real players gave most often. The most popular answers pay the most.', href: '/feud' },
-  { key: 'babel',  cat: 'endgame',   name: 'Babel',  tag: 'The bag is empty',           blurb: 'A Babelble game at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
+  { key: 'babel',  cat: 'endgame',   name: 'Babel',  tag: 'The bag is empty',           blurb: 'A word tile game picked up at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       blurb: 'Test examples against a secret rule and name the rule before your guesses run out.', href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", blurb: 'Work out the answer purely from what each player admits they cannot yet tell.', href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          blurb: 'Drop every item into the right slice of the overlapping circles, overlaps included.', href: '/venn' },
