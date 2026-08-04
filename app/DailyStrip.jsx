@@ -276,9 +276,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     mq.addListener(on); return () => mq.removeListener(on);
   }, []);
   const capIcon = !(slate && phone);
-  // Board filter: 'all' | 'todo' | a category name. The phone default below has
-  // called setFilter since the board was built, but the state was never
-  // declared, so the call threw inside its own try/catch and did nothing.
+  // Board filter: 'all' | 'todo' | a category name. Defaults to 'all' on
+  // every viewport; the phone-only Unplayed default was removed (owner rule).
   const [filter, setFilter] = useState('all');
   // Slate sort: null keeps the board's own order (unplayed first, then done).
   // Text columns default to A-Z, number columns to biggest first, because that
@@ -286,11 +285,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [sort, setSort] = useState(null);
   const vpRef = useRef(null);
   const boardRef = useRef(null);
-
-  // On a phone, default the board to the Unplayed filter (owner mockup).
-  useEffect(() => {
-    try { if (typeof window !== 'undefined' && window.innerWidth <= 560) setFilter('todo'); } catch (e) {}
-  }, []);
 
   // cross-device: the signed-in player's finished-today set from the server.
   // Goes through the shared fetchDayStatus (app/useDayStats.js) rather than its
