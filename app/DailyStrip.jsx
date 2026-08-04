@@ -109,6 +109,18 @@ const ACCENTS = { crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '
 // (the "one saturated color per game" system used on the live game pages).
 const TCOL = { crux: T.blue, emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: T.successDeep, suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: T.blueDeep, bracket: '#c2410c', lode: T.goldInk, etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f', mate: '#6b4423', four: T.blueDark, park: '#7c5c2e', check: '#166e5a', rung: '#155e75', crunch: '#b45309', fib: '#4c1d95', streak: '#e11d48', feud: '#9f1239', babel: '#14532d', glyph: '#334155' };
 const tcol = (k) => TCOL[k] || T.blue;
+
+// Homepage-only blue tile art. The slate rows and the two cap tiles use a
+// recolored copy of each game's button art (same drawing, mapped onto the
+// brand blue ramp) so the table reads as one palette instead of forty-four.
+// The original full-color PNGs stay in /games and are what every game page,
+// end card, and share image still uses. A missing blue file falls back to the
+// original rather than showing a broken image (owner, 2026-08-04).
+const blueTile = (p) => (typeof p === 'string' ? p.replace('/games/btn-', '/games/blue/btn-') : p);
+const tileFallback = (e) => {
+  const el = e && e.currentTarget;
+  if (el && el.src && el.src.indexOf('/games/blue/') !== -1) el.src = el.src.replace('/games/blue/btn-', '/games/btn-');
+};
 // Today's play count, rendered in the tile's top-left corner. The badge has
 // roughly 30px before it reaches a long game name, so four figures collapse to
 // "1.2k" rather than running under the title.
@@ -594,7 +606,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const open = sel === g.key;
       out.push(
         <div key={g.key} className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}`}>
-          <a className="sl-ic" href={g.href} aria-label={g.name}><img src={g.img} alt="" aria-hidden="true" /></a>
+          <a className="sl-ic" href={g.href} aria-label={g.name}><img src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} /></a>
           <a className="sl-nm" href={g.href}>
             <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
             <i className="sl-mld">{lead ? <><Crown size={9} strokeWidth={2.6} />{lead}</> : 'Be the first'}</i>
@@ -1233,7 +1245,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         <div className="dh-cell">
           {nextGame ? (
             <>
-              {capIcon ? <img src={nextGame.img} alt="" aria-hidden="true" /> : null}
+              {capIcon ? <img src={blueTile(nextGame.img)} alt="" aria-hidden="true" onError={tileFallback} /> : null}
               <div className="dh-bupt">
                 <div className="dh-bue up">Up next</div>
                 <div className="dh-bun">{nextGame.name}</div>
@@ -1257,7 +1269,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         <div className="dh-cell">
           {easiest ? (
             <>
-              {capIcon ? <img src={easiest.game.img} alt="" aria-hidden="true" /> : null}
+              {capIcon ? <img src={blueTile(easiest.game.img)} alt="" aria-hidden="true" onError={tileFallback} /> : null}
               <div className="dh-bupt">
                 <div className="dh-bue"><span className="dh-bwide">Easiest leaderboard</span><span className="dh-bshort">Easiest board</span></div>
                 <div className="dh-bun">{easiest.game.name}</div>
