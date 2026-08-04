@@ -66,13 +66,18 @@ export default function DailySlateRail({ current = null }) {
   const played = games.filter((g) => done.has(g.key)).length;
 
   // Park the current game near the left edge so the games either side of it are
-  // in view on arrival. Runs on mount and again if the rail re-renders with a
-  // different current game.
+  // in view on arrival. Measured with getBoundingClientRect, NOT offsetLeft:
+  // .dsr is position:relative (it has to be, to sit above the fixed Grain
+  // overlay), so it becomes the offsetParent and offsetLeft would include the
+  // label and arrow gutters, over-scrolling the rail by ~200px and pushing the
+  // current game off the left edge (seen live on /garble, 2026-08-04).
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
     const el = rail.querySelector('[data-now="1"]');
-    if (el) rail.scrollLeft = Math.max(0, el.offsetLeft - 96);
+    if (!el) return;
+    const delta = el.getBoundingClientRect().left - rail.getBoundingClientRect().left;
+    rail.scrollLeft = Math.max(0, rail.scrollLeft + delta - 96);
   }, [current]);
 
   const nudge = (dx) => { const r = railRef.current; if (r) r.scrollBy({ left: dx, behavior: 'smooth' }); };
