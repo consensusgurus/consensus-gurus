@@ -1,0 +1,701 @@
+'use client';
+
+// Hands — the daily poker solitaire.
+//
+// Twenty six cards off a standard deck, dealt one at a time. Twenty five of
+// them land on a five by five grid, which is read as ten poker hands: five rows
+// and five columns, every card serving one of each. A placed card never moves.
+//
+// The reason this works as a DAILY and ordinary poker does not: the shuffle is
+// fixed. Everybody in the world gets the same 26 cards in the same order, so
+// nobody is dealt a better night than anybody else and the leaderboard is
+// ranking decisions rather than luck. What remains is a real decision every
+// turn, because each card serves two hands at once and you commit before you
+// know what is coming.
+//
+// One muck a day is the only lever, and it is blind: it discards the card on
+// offer and takes the next one sight unseen. So the finished board is always
+// these 26 cards minus exactly one, and when to spend it is the skill.
+//
+// Two targets, both REAL PLAYOUTS rather than formulas (see puzzles.js and
+// rules.js). PAR is the median of four hundred blind solver runs on this exact
+// deal and scores 8. ACE is the best of those runs and scores 10, so the top of
+// the scale is something a person can actually reach. The CEILING quoted at the
+// end is a third number and deliberately not a target: it is the best any
+// arrangement of these cards can score, which needs you to have seen the whole
+// deal coming.
+//
+// Same daily plumbing as Taire/Parker/Four: banked deals gated by Eastern date
+// on the server (app/hands/page.js), per-puzzle localStorage saves, /hands?p=N
+// archive pinning, streaks + stats, and the shared /api/quiz/* board flow.
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { X, Undo2 } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import useEndHold from '../useEndHold';
+import DailyChrome from '../DailyChrome';
+import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
+import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
+import DailyMasthead from '../DailyMasthead';
+import { T } from '@/lib/theme';
+import {
+  RANK_LABEL, SUIT_PIP, rankOf, suitOf, isRed, cardName,
+  lineScores, totalOf, bustsOf, scoreForPoints, rowCells, colCells,
+} from './rules';
+
+const COLORS = {
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, faded: T.muted,
+  accent: '#7f1d1d',        // Hands identity, card table wine
+  accentSoft: '#f6eaea',
+  green: T.successDeep,
+};
+const FELT = '#7c2230';
+const FELT_EDGE = '#511018';
+const CARD_FACE = '#fdfcf9';
+const CARD_EDGE = 'rgba(20,22,28,0.30)';
+const RED_PIP = '#c8282e';
+const BLACK_PIP = T.ink;
+
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_hands_help_seen';
+const STATS_KEY = 'sot_hands_stats';
+
+function pickPuzzle(puzzles, forceNum) {
+  if (!puzzles.length) return null;
+  if (forceNum) {
+    const hit = puzzles.find((p) => p.num === forceNum);
+    if (hit) return hit;
+  }
+  return puzzles[puzzles.length - 1];
+}
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const beat = nums.filter((n) => rec[n].won).length;
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, beat, cur, max };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const sc = Math.max(0, Math.min(10, Math.round(((m.scorePct || 0) / 100) * 10)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t: 10, g: null, won: sc >= 8 };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+const HAPT = { ok: [7], big: [10, 30, 16], win: [10, 40, 20, 40, 20, 60] };
+function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+const freshState = () => ({ v: 1, placed: [], muckAt: -1, status: 'playing', t0: null, tEnd: null });
+
+function CardFace({ card, size = 'md', dim = false }) {
+  const red = isRed(card);
+  const big = size === 'lg';
+  return (
+    <div style={{
+      width: '100%', height: '100%', borderRadius: big ? 8 : 6, background: CARD_FACE,
+      border: `1px solid ${CARD_EDGE}`,
+      boxShadow: big ? '0 3px 8px rgba(20,22,28,0.34)' : '0 1px 3px rgba(20,22,28,0.28)',
+      color: red ? RED_PIP : BLACK_PIP, fontFamily: SANS, fontWeight: 800,
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      lineHeight: 1, userSelect: 'none', opacity: dim ? 0.55 : 1,
+    }}>
+      <span style={{ fontSize: big ? 30 : 'clamp(14px,4.4vw,17px)', letterSpacing: '-0.04em' }}>{RANK_LABEL[rankOf(card)]}</span>
+      <span style={{ fontSize: big ? 26 : 'clamp(12px,3.6vw,15px)', marginTop: big ? 3 : 1 }}>{SUIT_PIP[suitOf(card)]}</span>
+    </div>
+  );
+}
+
+// A line's score chip. `pending` lines show a dot rather than a zero, because a
+// line that is still filling has not busted, it just is not a hand yet.
+function ScoreChip({ value, complete, small }) {
+  const premium = complete && value >= 10;
+  const made = complete && value > 0;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: premium ? '#f7e2b0' : made ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.14)',
+      border: `1px solid ${premium ? '#c99a2e' : made ? 'rgba(20,22,28,0.18)' : 'rgba(255,255,255,0.22)'}`,
+      borderRadius: 5, fontFamily: MONO, fontWeight: 500,
+      fontSize: small ? 11 : 12,
+      color: premium ? '#7a5305' : made ? COLORS.ink : 'rgba(255,255,255,0.62)',
+      width: '100%', height: '100%',
+    }}>{complete ? value : '·'}</div>
+  );
+}
+
+export default function HandsClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const STORE_KEY = `sot_hands_${PUZZLE.num}`;
+  const searchParams = useSearchParams();
+
+  const [g, setG] = useState(freshState);
+  const gRef = useRef(g);
+  const [stats, setStats] = useState({ v: 1, rec: {} });
+  const [identity, setIdentity] = useState(null);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [copied, setCopied] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  const [countdown, setCountdown] = useState('');
+  const [showBest, setShowBest] = useState(false);
+  const toastTimer = useRef(null);
+  const endHold = useEndHold();
+
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+
+  const grid = useMemo(() => {
+    const out = new Array(25).fill(null);
+    for (const [card, idx] of g.placed) out[idx] = card;
+    return out;
+  }, [g.placed]);
+
+  const scores = useMemo(() => lineScores(grid), [grid]);
+  const rowFull = useMemo(() => [0, 1, 2, 3, 4].map((i) => rowCells(grid, i).every((c) => c != null)), [grid]);
+  const colFull = useMemo(() => [0, 1, 2, 3, 4].map((j) => colCells(grid, j).every((c) => c != null)), [grid]);
+
+  const consumed = g.placed.length + (g.muckAt >= 0 ? 1 : 0);
+  const current = consumed < PUZZLE.deck.length ? PUZZLE.deck[consumed] : null;
+  const muckLeft = g.muckAt < 0;
+  const playing = g.status === 'playing';
+  const started = !!g.t0;
+  const preStart = !started && playing;
+  const done = g.status === 'done';
+  const total = useMemo(() => totalOf(grid), [grid]);
+  const par = PUZZLE.par;
+  const ace = PUZZLE.ace;
+  const won = done && total >= par;
+  const finalScore = done ? scoreForPoints(total, par, ace) : 0;
+  const busts = done ? bustsOf(grid) : 0;
+
+  useEffect(() => { gRef.current = g; }, [g]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.placed)) { setG(saved); gRef.current = saved; }
+      }
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    try { setGateRules(!localStorage.getItem(HELP_KEY)); } catch (e) {}
+  }, [STORE_KEY]);
+
+  useEffect(() => {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        if (g.status !== 'playing' || g.t0) localStorage.setItem('sot_hands_day', JSON.stringify({ d: etToday(), done: g.status !== 'playing' }));
+        else localStorage.removeItem('sot_hands_day');
+      }
+    } catch (e) {}
+  }, [g, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (!g.t0 || g.tEnd) return;
+    const t = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [g.t0, g.tEnd]);
+
+  useEffect(() => {
+    if (playing) return;
+    const t = setInterval(() => setCountdown(fmtCountdown(msToMidnightET())), 1000);
+    setCountdown(fmtCountdown(msToMidnightET()));
+    return () => clearInterval(t);
+  }, [playing]);
+
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => {
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    try {
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    } catch (e) {}
+  }, [PUZZLE.quizId]);
+
+  useEffect(() => {
+    const em = identity && identity.email;
+    if (!em) return;
+    fetch(`/api/quiz/daily-game?game=hands&email=${encodeURIComponent(em)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && Array.isArray(d.recent)) setStats((s) => mergeServerStats(s, d.recent, puzzles)); })
+      .catch(() => {});
+  }, [identity, puzzles]);
+
+  const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+
+  const REC_KEY = `sot_hands_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    const cur = gRef.current;
+    if (!cur.placed.length || cur.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (cur.t0 || Date.now())) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
+  function postResult(g2, finalGrid) {
+    abandon.markFlushed();
+    const tot = totalOf(finalGrid);
+    const score = scoreForPoints(tot, par, ace);
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: tot, won: tot >= par })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: tot >= par ? 1 : 0, guessesUsed: bustsOf(finalGrid), timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  function commit(next) { gRef.current = next; setG(next); }
+  function startGame() {
+    const cur = gRef.current;
+    if (cur.t0) return;
+    commit({ ...cur, t0: Date.now() });
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
+  function say(msg) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  }
+
+  function place(idx) {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || current == null) return;
+    if (grid[idx] != null) return;
+    if (!cur.t0) { startGame(); return; }
+    const placed = [...cur.placed, [current, idx]];
+    const g2 = { ...cur, placed };
+    const nextGrid = new Array(25).fill(null);
+    for (const [card, at] of placed) nextGrid[at] = card;
+    // Did this card just complete a line worth something? Worth a nudge.
+    const r = Math.floor(idx / 5), c = idx % 5;
+    const nextScores = lineScores(nextGrid);
+    const rDone = rowCells(nextGrid, r).every((x) => x != null);
+    const cDone = colCells(nextGrid, c).every((x) => x != null);
+    const gained = (rDone ? nextScores[r] : 0) + (cDone ? nextScores[5 + c] : 0);
+    if (placed.length === 25) {
+      const finished = { ...g2, status: 'done', tEnd: Date.now() };
+      vibrate(HAPT.win);
+      postResult(finished, nextGrid);
+      endHold.hold(1400);
+      commit(finished);
+      return;
+    }
+    if (gained >= 10) vibrate(HAPT.big); else vibrate(HAPT.ok);
+    commit(g2);
+  }
+
+  function muck() {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || cur.muckAt >= 0) return;
+    if (!cur.t0) { startGame(); return; }
+    if (consumed >= PUZZLE.deck.length - 1) { say('Too late to muck, this is the last card.'); return; }
+    commit({ ...cur, muckAt: consumed });
+    vibrate(HAPT.big);
+    say('Mucked. The next card is already on offer.');
+  }
+
+  function resetGame() {
+    endHold.release();
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    commit(freshState());
+    setEndClosed(false); setShowBest(false);
+  }
+
+  function shareUrl() { return withRef(`mindloftdaily.com/hands${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareText() {
+    // Ten chips, one per hand, gold for a premium hand and hollow for a bust.
+    // Deliberately a single row rather than a five by five block: a grid-shaped
+    // strip would hand somebody else the shape of a good board.
+    const chips = scores.map((v) => (v >= 10 ? '\u{1F7E8}' : v > 0 ? '\u{1F7E6}' : '⬜')).join('');
+    const vs = total >= ace ? 'ace'
+      : total > par ? `${total - par} over par`
+      : total === par ? 'level par'
+      : `${par - total} under par`;
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const head = `Hands #${PUZZLE.num} · ${total} pts, ${vs} · ${elapsed}${streakBit}`;
+    return `${head}\n${chips}\n${shareUrl()}`;
+  }
+  function copyShare() {
+    const text = playing
+      ? `Hands #${PUZZLE.num} — the daily poker solitaire from Mind Loft. Par ${par}.\n${shareUrl()}`
+      : shareText();
+    if (notifyShareCredit(text)) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); });
+    } catch (e) {}
+  }
+
+  const rulesBody = (
+    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+      <p style={{ margin: '0 0 9px' }}>Cards come one at a time. <b>Tap any empty square</b> to put the card on offer there. It never moves again, and there is no undo.</p>
+      <p style={{ margin: '0 0 9px' }}>When the grid is full you have made <b>ten poker hands</b>: five across and five down. Every card counts in two of them at once, which is the whole puzzle.</p>
+      <p style={{ margin: '0 0 9px' }}>Hands pay <b>pair 1, two pair 3, flush 5, three of a kind 6, full house 10, straight 12, four of a kind 16, straight flush 25, royal flush 30</b>. A straight beats a flush here, because on a five by five grid flushes are the easy ones.</p>
+      <p style={{ margin: '0 0 9px' }}>You get <b>one muck</b> a day. It throws away the card on offer and deals the next one, and you do not get to see it first. Spend it well: there is only one.</p>
+      <p style={{ margin: 0 }}><b>Par is {par}</b> on this deal, what an ordinary round comes home with, and it scores 8. <b>Ace is {ace}</b>, the best our solver managed playing blind, and it scores 10. Both are real rounds somebody played, not formulas. Everybody today gets this same deal in this same order, so nothing here is luck.</p>
+    </div>
+  );
+
+  const cellStyle = (filled, live) => ({
+    aspectRatio: '0.78', borderRadius: 6,
+    border: filled ? 'none' : `1.5px dashed ${live ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.24)'}`,
+    background: filled ? 'transparent' : live ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)',
+    cursor: live ? 'pointer' : 'default',
+    padding: 0, WebkitTapHighlightColor: 'transparent',
+  });
+
+  return (
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+      <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="hands" name="Hands" collapsed={started}
+        stats={started ? [{ k: 'Points', v: total }, { k: 'Par', v: par }] : null} />
+      <div className="hd-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.hd-wrap{padding-left:10px !important;padding-right:10px !important;}}
+          .hd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .hd-btn:hover{background:var(--accent-soft);}
+          .hd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .hd-tool:disabled{opacity:0.4;cursor:default;}
+          .hd-felt{background:${FELT};border:10px solid ${FELT_EDGE};border-radius:12px;padding:13px 12px 15px;touch-action:manipulation;}
+          .hd-board{display:grid;grid-template-columns:repeat(5,1fr) 0.62fr;gap:6px;}
+          .hd-cell{transition:transform .1s ease;}
+          .hd-cell:active{transform:translateY(1px);}
+          .hd-offer{animation:hdpop .18s ease;}
+          @keyframes hdpop{from{transform:scale(0.9);opacity:0.4;}to{transform:scale(1);opacity:1;}}
+        `}</style>
+
+        <div style={{ maxWidth: 660, margin: '0 auto' }}>
+
+        <DailyMasthead
+          slug="hands" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
+          blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
+          blocks={'HANDS'.split('').map((ch, i) => (
+            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+          ))}
+        />
+
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Hands is ready'}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Twenty five cards, one at a time, into a five by five grid. Every row and column is a poker hand, so each card counts twice. One muck, no undo. Par is {par} and ace is {ace}.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="hd-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!preStart && (
+        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>points <b style={{ color: total >= par ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{total}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b> &middot; ace <b style={{ color: COLORS.ink, fontWeight: 500 }}>{ace}</b></span>
+          </div>
+
+          <div style={{ maxWidth: 430, margin: '0 auto' }}>
+            <div className="hd-felt">
+              {/* the card on offer, and the muck */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 13 }}>
+                <div>
+                  <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 5 }}>on offer</div>
+                  <div key={consumed} className="hd-offer" style={{ width: 58, height: 76 }}>
+                    {current != null ? <CardFace card={current} size="lg" /> : (
+                      <div style={{ width: '100%', height: '100%', borderRadius: 8, border: '1.5px dashed rgba(255,255,255,0.34)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontFamily: MONO, fontSize: 11 }}>done</div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: 'rgba(255,255,255,0.86)', lineHeight: 1.45 }}>
+                    {done ? 'Board full. That is the round.'
+                      : current != null ? `${cardName(current)}. Tap a square.`
+                      : ''}
+                  </div>
+                  <button className="hd-tool" onClick={muck} disabled={!muckLeft || !playing}
+                    title="Throw this card away and take the next one, sight unseen. One a day."
+                    style={{ marginTop: 8, background: muckLeft && playing ? COLORS.accentSoft : 'rgba(255,255,255,0.55)', borderColor: 'rgba(127,29,29,0.5)', color: '#6d1a1a' }}>
+                    <Undo2 size={14} /> {muckLeft ? 'Muck (1 left)' : 'Muck used'}
+                  </button>
+                  <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>
+                    {25 - g.placed.length} square{25 - g.placed.length === 1 ? '' : 's'} left
+                  </div>
+                </div>
+              </div>
+
+              {/* the grid, with row scores down the right and column scores along the bottom */}
+              <div className="hd-board">
+                {Array.from({ length: 5 }).map((_, r) => (
+                  <React.Fragment key={`r${r}`}>
+                    {Array.from({ length: 5 }).map((_, c) => {
+                      const idx = r * 5 + c;
+                      const card = grid[idx];
+                      const live = playing && card == null && current != null && !!g.t0;
+                      return (
+                        <button key={idx} className="hd-cell" onClick={() => place(idx)} disabled={!live}
+                          aria-label={card != null ? cardName(card) : `empty square, row ${r + 1} column ${c + 1}`}
+                          style={cellStyle(card != null, live)}>
+                          {card != null ? <CardFace card={card} /> : null}
+                        </button>
+                      );
+                    })}
+                    <div style={{ aspectRatio: '0.78' }}><ScoreChip value={scores[r]} complete={rowFull[r]} /></div>
+                  </React.Fragment>
+                ))}
+                {Array.from({ length: 5 }).map((_, c) => (
+                  <div key={`c${c}`} style={{ height: 24 }}><ScoreChip value={scores[5 + c]} complete={colFull[c]} small /></div>
+                ))}
+                <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 12, fontWeight: 500, color: T.white }}>{total}</div>
+              </div>
+            </div>
+          </div>
+
+          {done && (
+            <div style={{ marginTop: 12, textAlign: 'center' }}>
+              <button type="button" onClick={() => setShowBest((v) => !v)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                {showBest ? 'Hide the best arrangement' : `The best board found on these cards was ${PUZZLE.ceiling}. See it`}
+              </button>
+              {showBest && (
+                <div style={{ marginTop: 10, maxWidth: 430, margin: '10px auto 0' }}>
+                  <div className="hd-felt" style={{ borderColor: '#3d3d46', background: '#4a4a55' }}>
+                    <div className="hd-board">
+                      {Array.from({ length: 5 }).map((_, r) => (
+                        <React.Fragment key={`br${r}`}>
+                          {Array.from({ length: 5 }).map((_, c) => (
+                            <div key={`b${r}${c}`} style={{ aspectRatio: '0.78' }}><CardFace card={PUZZLE.best[r * 5 + c]} dim /></div>
+                          ))}
+                          <div style={{ aspectRatio: '0.78' }}><ScoreChip value={lineScores(PUZZLE.best)[r]} complete /></div>
+                        </React.Fragment>
+                      ))}
+                      {Array.from({ length: 5 }).map((_, c) => (
+                        <div key={`bc${c}`} style={{ height: 24 }}><ScoreChip value={lineScores(PUZZLE.best)[5 + c]} complete small /></div>
+                      ))}
+                      <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 12, fontWeight: 500, color: T.white }}>{PUZZLE.ceiling}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, marginTop: 8, lineHeight: 1.5 }}>
+                    The best arrangement of these 26 cards our search could find. It is not a target and not a proven maximum: you would have to have seen the whole deal coming to build it, which is exactly why the round is scored against par and ace, both of which are rounds played blind.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        )}
+
+        {done && (
+          <div style={{ maxWidth: 472, margin: '0 auto' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+              You scored <span style={{ color: COLORS.accent }}>{total} points</span>. Par was {par}, ace was {ace}.
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>
+              {total >= ace ? 'You matched or beat the best round our solver found playing blind on this deal. That is as good as it gets without seeing the cards coming.'
+                : total > par ? `That is ${total - par} over par, with ${busts === 0 ? 'not a single hand wasted' : `${busts} of the ten hands worth nothing`}.`
+                : total === par ? 'Level par, exactly what an ordinary round comes home with.'
+                : `That is ${par - total} under par. ${busts >= 4 ? 'Too many dead lines: a card that helps nothing is still costing you a square.' : 'Close enough that one or two placements were the difference.'}`}
+            </div>
+            {isTodays && myStats.cur >= 2 && (
+              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+              </div>
+            )}
+            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              {isTodays ? (
+                <>
+                  {countdown ? <>Next Hands in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new deal drops at midnight Eastern.'}
+                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/hands?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Hands &rarr;</a></>)}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/hands" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Hands &rarr;</a>
+                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        <div style={{ margin: '30px auto 0' }}>
+          <DailyGamesGrid replay={done ? resetGame : null} self="hands" maxWidth={620}
+            challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+            share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light
+            boardSlot={<DailyBoardPanel self="hands" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
+            divider />
+        </div>
+        {!identity && (
+          <div id="daily-join" style={{ margin: '18px auto 0' }}>
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => setIdentity(id)} />
+          </div>
+        )}
+        </div>
+      </div>
+
+      {/* `won` here means beat par, and `completed` is always true because a
+          full board is the end of the round: there is no losing position in
+          Hands, only a worse one. Falling short of par therefore reads "Not
+          perfect." rather than "Defeated.", which is why hands stays OUT of
+          DEFEAT_GAMES in DailyEndCard, exactly like Babel. headline/subline are
+          deprecated on that component; `score` is the live prop. */}
+      {done && !endClosed && !endHold.held && (
+        <DailyEndCard modal self="hands" won={won} completed
+          score={<>{total} pts &middot; par {par}</>}
+          onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame} onClose={() => setEndClosed(true)} />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {toast && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>{toast}</div>
+      )}
+
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            {rulesBody}
+            <button className="hd-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      <section style={{ position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Hands</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Hands is a free daily poker puzzle from Mind Loft. Twenty five cards arrive one at a time and you place each one on a five by five grid, which is read as ten poker hands: five rows and five columns, with every card counting in two of them. A card you have placed never moves, so the whole game is deciding where it goes while the rest of the deal is still hidden.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Poker is usually a game of luck, and a daily leaderboard cannot rank luck. So the shuffle is fixed: every player in the world gets the same 26 cards in the same order, which turns the whole thing into a decision game. The one lever you have is a single muck, which throws the current card away and takes the next one without showing it to you first. Both of the numbers you play against are real rounds rather than formulas: par is the middle of four hundred blind solver runs on your exact deal, and ace is the best of them, so the top of the scale is genuinely reachable.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/taire" style={{ color: COLORS.ink, fontWeight: 800 }}>Taire</a>, our daily two-suit solitaire, <a href="/babel" style={{ color: COLORS.ink, fontWeight: 800 }}>Babel</a>, the word tile endgame, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish.
+        </p>
+      </section>
+
+      <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
+    </div>
+  );
+}

@@ -54,6 +54,7 @@ export const DAILY_GAMES = [
   { key: 'streak', href: '/streak', name: 'Streak', tag: 'forty questions, one life', store: 'sot_streak_day', accent: '#e11d48', bg: '#fdecef', border: 'rgba(225,29,72,0.35)' },
   { key: 'feud', href: '/feud', name: 'Feud', tag: 'match the crowd', store: 'sot_feud_day', accent: '#9f1239', bg: '#fdf0f3', border: 'rgba(159,18,57,0.4)' },
   { key: 'babel', href: '/babel', name: 'Babel', tag: 'the bag is empty', store: 'sot_babel_day', accent: '#14532d', bg: '#e9f2ec', border: 'rgba(20,83,45,0.4)' },
+  { key: 'hands', href: '/hands', name: 'Hands', tag: 'the daily poker solitaire', store: 'sot_hands_day', accent: '#7f1d1d', bg: '#f6eaea', border: 'rgba(127,29,29,0.4)' },
 ];
 
 function etToday() {

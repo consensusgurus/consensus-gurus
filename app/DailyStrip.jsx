@@ -87,11 +87,12 @@ const GAMES = [
   { key: 'check', href: '/check', name: 'Check', img: '/games/btn-check.png', store: 'sot_check_day', tag: "Give a piece, take them all" , cat: 'End Game' },
   { key: 'rung', href: '/rung', name: 'Rung', img: '/games/btn-rung.png', store: 'sot_rung_day', tag: "One letter at a time" , cat: 'Word' },
   { key: 'crunch', href: '/crunch', name: 'Crunch', img: '/games/btn-crunch.png', store: 'sot_crunch_day', tag: "Six numbers, one target" , cat: 'Numbers' },
-  { key: 'taire', href: '/taire', name: 'Taire', img: '/games/btn-taire.png', store: 'sot_taire_day', tag: "The daily solitaire" , cat: 'End Game' },
+  { key: 'taire', href: '/taire', name: 'Taire', img: '/games/btn-taire.png', store: 'sot_taire_day', tag: "The daily solitaire" , cat: 'Cards' },
   { key: 'fib', href: '/fib', name: 'Fib', img: '/games/btn-fib.png', store: 'sot_fib_day', tag: "One clue is lying" , cat: 'Logic' },
   { key: 'streak', href: '/streak', name: 'Streak', img: '/games/btn-streak.png', store: 'sot_streak_day', tag: "Forty questions, one life" , cat: 'Trivia' },
   { key: 'feud', href: '/feud', name: 'Feud', img: '/games/btn-feud.png', store: 'sot_feud_day', tag: "Match the crowd" , cat: 'Crowd Psychology' },
   { key: 'babel', href: '/babel', name: 'Babel', img: '/games/btn-babel.png', store: 'sot_babel_day', tag: "The bag is empty" , cat: 'End Game' },
+  { key: 'hands', href: '/hands', name: 'Hands', img: '/games/btn-hands.png', store: 'sot_hands_day', tag: "The daily poker solitaire" , cat: 'Cards' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
@@ -151,7 +152,7 @@ const CAT_COLOR = {
   Word: catBlue('word'), Numbers: catBlue('numbers'), Logic: catBlue('logic'),
   History: catBlue('history'), Geography: catBlue('geography'),
   'Crowd Psychology': catBlue('crowd'), Trivia: catBlue('trivia'),
-  'End Game': catBlue('end game'),
+  'End Game': catBlue('end game'), Cards: catBlue('cards'),
 };
 const CAT_CHIP_BG = {}, CAT_BD = {};
 for (const [k, v] of Object.entries(CAT_COLOR)) {

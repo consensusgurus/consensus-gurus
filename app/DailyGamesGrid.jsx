@@ -103,7 +103,8 @@ const CATEGORIES = [
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['streak', 'bracket', 'listed'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'park', 'fib'] },
-  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'taire', 'babel'] },
+  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'babel'] },
+  { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
 ];
 
 // `challengeHref` is DEPRECATED and ignored (see the header note); it stays on

@@ -95,18 +95,19 @@ import { T } from '@/lib/theme';
 const RUST = T.danger;
 const AMBER = '#b45309';
 
-// End Game titles where a loss is a defeat against a live opponent, not a
-// puzzle the player walked away from, so the card reads "Defeated." rather than
-// "Incomplete." (owner, 2026-08-02). Babel sits in the End Game family too but
-// is scored against par, so falling short there is "Not perfect." like any
-// other par game, and it is deliberately NOT in this set.
+// Titles where a loss is a defeat against a live opponent, not a puzzle the
+// player walked away from, so the card reads "Defeated." rather than
+// "Incomplete." (owner, 2026-08-02). This set is keyed by GAME, not by category,
+// which is why Taire stays in it after moving to Cards on 2026-08-04. Babel and
+// Hands are scored against par, so falling short there is "Not perfect." like
+// any other par game, and both are deliberately NOT in this set.
 const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire']);
 
 // LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily puzzles lead the
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['glyph', 'babel', 'feud', 'streak', 'fib'], until: '2026-09-15' };
+const LAUNCH_PIN = { keys: ['hands', 'glyph', 'babel', 'feud', 'streak', 'fib'], until: '2026-09-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -186,9 +187,10 @@ export const CAT_META = {
   // The colour is the muted navy those tiles already fall back to, so the badges
   // are unchanged. (owner, 2026-08-03)
   endgame:   { name: 'End Game',  color: T.muted,   Icon: Crown },
+  cards:     { name: 'Cards',     color: '#7f1d1d', Icon: Club },
 };
 // Family render order for the "more games" grid.
-const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'history', 'geography'];
+const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'history', 'geography'];
 
 // ---- the daily slate (31 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
@@ -225,11 +227,12 @@ export const DAILY_GAMES = [
   { key: 'check',  cat: 'endgame',     name: 'Check',  tag: 'Give a piece, take them all', blurb: 'A checkers position where one sacrifice sets off a chain that clears the whole board.', href: '/check' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    blurb: 'Six numbers, four operations, one target. Hit it exactly or get as close as you can.', href: '/crunch' },
-  { key: 'taire',  cat: 'endgame',     name: 'Taire',  tag: 'The daily solitaire',        blurb: 'A trimmed solitaire deal that always has a finish in it. Clear the board and beat par.', href: '/taire' },
+  { key: 'taire',  cat: 'cards',       name: 'Taire',  tag: 'The daily solitaire',        blurb: 'A trimmed solitaire deal that always has a finish in it. Clear the board and beat par.', href: '/taire' },
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          blurb: 'A logic grid where exactly one clue is false. Find the lie, then solve the rest.', href: '/fib' },
   { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  blurb: 'Forty trivia questions, sudden death. One wrong answer ends the run for the day.', href: '/streak' },
   { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            blurb: 'Name the answers real players gave most often. The most popular answers pay the most.', href: '/feud' },
   { key: 'babel',  cat: 'endgame',   name: 'Babel',  tag: 'The bag is empty',           blurb: 'A word tile game picked up at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
+  { key: 'hands',  cat: 'cards',     name: 'Hands',  tag: 'The daily poker solitaire', blurb: 'Cards come one at a time into a grid where every row and column scores as a poker hand. Same deal for everybody, so it is decisions and not luck.', href: '/hands' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       blurb: 'Test examples against a secret rule and name the rule before your guesses run out.', href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", blurb: 'Work out the answer purely from what each player admits they cannot yet tell.', href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          blurb: 'Drop every item into the right slice of the overlapping circles, overlaps included.', href: '/venn' },
@@ -299,7 +302,7 @@ function useCountUp(target, ms = 1000) {
  *                       won). With won=false this reads "Not perfect." rather
  *                       than "Incomplete."
  * @param defeat         bool; the loss was to an opponent => "Defeated." (default:
- *                       on for the End Game titles four/mate/check/taire)
+ *                       on for four/mate/check/taire, see DEFEAT_GAMES)
  * @param score          node; a clean score shown at top for variable-score games only
  * @param headline       DEPRECATED, no longer rendered
  * @param subline        DEPRECATED, no longer rendered
