@@ -8,6 +8,18 @@
 // scripts/verify-cipher.mjs). Tap a letter, tap a digit — or just type. The
 // digit pad shows which letter owns each digit; shared digits flag red.
 //
+// The board carries the scratch work so the player doesn't have to (owner,
+// 2026-08-04, "too much guess and check if you don't make hand notes"):
+//   • a carry/borrow row above the columns, derived automatically as far as the
+//     assignment allows and pencil-editable beyond that frontier;
+//   • a free per-column ✓/✗ under the equation, so a wrong digit is caught at
+//     the column that broke instead of by one all-or-nothing check;
+//   • a letter key rack with candidate digits, auto-eliminating digits already
+//     taken and 0 on leading letters, plus a Notes mode to cross off more.
+// Column marks are FREE and never cost a point — only the scored Check does.
+// They are also sound: a column is marked correct only when its carry-in is
+// derived, and marked wrong only when no legal carry-in could satisfy it.
+//
 // Scoring mirrors Suds: solve it and the day scores max(1, 10 - failed
 // checks) out of 10. Ties on the daily board break by fewest failed checks,
 // then fastest time. Revealing the solution ends the day at 0.
@@ -19,7 +31,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Lock, Delete } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Lock, Delete, Pencil } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -141,6 +153,71 @@ function solveCipher(op, lhs, rhs) {
   return solveLinear([...lhs, rhs], [...lhs.map(() => 1), -1]);
 }
 
+// ─── Column model: the scaffolding that replaces hand-written notes ────────
+// Cryptarithms are solved column by column, right to left, carrying (addition)
+// or borrowing (subtraction) into the next. buildColumns turns the displayed
+// equation into that column view; deriveColumns walks it from the right as far
+// as the current assignment allows.
+function buildColumns(op, lhs, rhs) {
+  const W = op === 'sub' ? lhs[0].length : rhs.length;
+  const cols = [];
+  for (let i = 0; i < W; i++) {
+    const at = (w) => (i < w.length ? w[w.length - 1 - i] : null);
+    cols.push({
+      top: op === 'sub' ? [at(lhs[0])].filter(Boolean) : lhs.map(at).filter(Boolean),
+      sub: op === 'sub' ? lhs.slice(1).map(at).filter(Boolean) : [],
+      res: at(rhs),
+    });
+  }
+  return cols;
+}
+// One column's arithmetic. Addition carries out 0-2 (three addends max);
+// subtraction borrows 0-2 (two subtrahends max).
+function stepColumn(c, carryIn, op) {
+  const val = (ch) => (ch === null ? 0 : c._a[ch]);
+  if (op === 'sub') {
+    const t = val(c.top[0]) - c.sub.reduce((a, ch) => a + val(ch), 0) - carryIn;
+    const borrow = t < 0 ? Math.ceil(-t / 10) : 0;
+    return { digit: t + 10 * borrow, carryOut: borrow };
+  }
+  const s = c.top.reduce((a, ch) => a + val(ch), 0) + carryIn;
+  return { digit: s % 10, carryOut: Math.floor(s / 10) };
+}
+// Per column: { carryIn, ok }. carryIn is the derived carry/borrow, or null
+// where the chain has not reached that column. ok is true only for a column
+// whose carry-in is derived and whose arithmetic lands; false either there or,
+// past the frontier, when NO legal carry-in (0-2) could satisfy the column.
+// Never guesses, so a ✓ is always earned and a ✗ is always real.
+function deriveColumns(cols, assign, op) {
+  const out = cols.map(() => ({ carryIn: null, ok: null }));
+  const test = (c, k) => {
+    const { digit, carryOut } = stepColumn(c, k, op);
+    return { hit: digit === (c.res === null ? 0 : assign[c.res]), carryOut };
+  };
+  let carry = 0, live = true;
+  for (let i = 0; i < cols.length; i++) {
+    const c = { ...cols[i], _a: assign };
+    const last = i === cols.length - 1;
+    const full = [...c.top, ...c.sub, c.res].every((ch) => ch === null || assign[ch] !== undefined);
+    if (live) {
+      out[i].carryIn = carry;
+      if (!full) { live = false; continue; }
+      const r = test(c, carry);
+      out[i].ok = r.hit && (!last || r.carryOut === 0);
+      if (!out[i].ok) { live = false; continue; }
+      carry = r.carryOut;
+    } else if (full) {
+      let any = false;
+      for (let k = 0; k <= 2 && !any; k++) {
+        const r = test(c, k);
+        if (r.hit && (!last || r.carryOut === 0)) any = true;
+      }
+      if (!any) out[i].ok = false;
+    }
+  }
+  return out;
+}
+
 // ─── Personal stats + streak (localStorage), Circa/Suds pattern ─────────────
 function getStats() {
   try {
@@ -194,6 +271,8 @@ function freshState() {
   return {
     v: 1,
     assign: {},               // letter -> digit
+    excl: {},                 // letter -> [digits crossed off in Notes mode]
+    carry: {},                // column index -> penciled carry/borrow (scratch only)
     status: 'playing',        // playing | done | lost
     fails: 0,
     t0: null,
@@ -210,9 +289,13 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const OP = PUZZLE.op || 'add';
   const opGlyph = OP === 'sub' ? '−' : '+';
   const opWord = OP === 'sub' ? 'subtraction' : 'addition';
+  const carryWord = OP === 'sub' ? 'borrow' : 'carry';
   const eqnText = `${PUZZLE.lhs.join(` ${opGlyph} `)} = ${PUZZLE.rhs}`;
 
+  const COLS = useMemo(() => buildColumns(OP, PUZZLE.lhs, PUZZLE.rhs), [OP, PUZZLE]);
+
   const [g, setG] = useState(freshState);
+  const [noteMode, setNoteMode] = useState(false);
   const [selected, setSelected] = useState(null);
   const [verdict, setVerdict] = useState(null);   // { good, msg }
   const [clearArmed, setClearArmed] = useState(false);
@@ -353,6 +436,11 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
+  // Live column read-out. Free, and recomputed on every assignment.
+  const colInfo = useMemo(() => deriveColumns(COLS, g.assign, OP), [COLS, g.assign, OP]);
+  const colsSolved = colInfo.every((c) => c.ok === true);
+  const badCol = colInfo.some((c) => c.ok === false);
+
   const REC_KEY = `sot_cipher_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     // A play counts only once the player actually acts (assigns a digit or fails a
@@ -409,16 +497,44 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     }
     setSelected((s) => (s === ch ? null : ch));
   }
-  function setDigit(d) {
+  // Assign a digit to a named letter, then jump to the next unassigned one.
+  function assignTo(ch, d) {
     if (!playing) return;
-    if (selected === null) { say('Pick a letter first, then a digit.'); return; }
-    const cur = selected;
-    setG((prev) => ({ ...prev, assign: { ...prev.assign, [cur]: d }, t0: prev.t0 || Date.now() }));
-    // advance to the next unassigned letter (using this event's assign view)
-    const after = { ...g.assign, [cur]: d };
+    setG((prev) => ({ ...prev, assign: { ...prev.assign, [ch]: d }, t0: prev.t0 || Date.now() }));
+    const after = { ...g.assign, [ch]: d };
     const next = LETTERS.find((l) => after[l] === undefined);
     setSelected(next !== undefined ? next : null);
     setVerdict(null);
+  }
+  // Notes mode: cross a candidate off a letter instead of assigning it. Purely
+  // the player's bookkeeping, so it never costs a point and never blocks a move.
+  function toggleExcl(ch, d) {
+    if (!playing) return;
+    setG((prev) => {
+      const cur = prev.excl[ch] || [];
+      const next = cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d];
+      return { ...prev, excl: { ...prev.excl, [ch]: next }, t0: prev.t0 || Date.now() };
+    });
+  }
+  function setDigit(d) {
+    if (!playing) return;
+    if (selected === null) { say('Pick a letter first, then a digit.'); return; }
+    if (noteMode) { toggleExcl(selected, d); return; }
+    assignTo(selected, d);
+  }
+  // Pencil a carry the board cannot derive yet: blank -> 0 -> 1 -> 2 -> blank.
+  // Scratch only, exactly like writing it above the column on paper: it is never
+  // used to judge a column, so it can never mislead.
+  function cycleCarry(i) {
+    if (!playing) return;
+    setG((prev) => {
+      const cur = prev.carry[i];
+      const carry = { ...prev.carry };
+      if (cur === undefined) carry[i] = 0;
+      else if (cur >= 2) delete carry[i];
+      else carry[i] = cur + 1;
+      return { ...prev, carry, t0: prev.t0 || Date.now() };
+    });
   }
   function eraseSelected() {
     if (!playing || selected === null) return;
@@ -483,7 +599,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     if (Object.keys(g.assign).length === 0) { setClearArmed(false); return; }
     if (!clearArmed) { setClearArmed(true); setTimeout(() => setClearArmed(false), 3000); return; }
     setClearArmed(false);
-    setG((cur) => ({ ...cur, assign: {} }));
+    setG((cur) => ({ ...cur, assign: {}, excl: {}, carry: {} }));
     setSelected(null);
     setVerdict(null);
   }
@@ -526,6 +642,61 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const digitOwners = {};
   for (const [l, d] of Object.entries(g.assign)) { (digitOwners[d] = digitOwners[d] || []).push(l); }
 
+  // The carry (addition) / borrow (subtraction) written above each column.
+  // A derived value is shown solid and locked; beyond the derived frontier the
+  // cell is an empty pencil slot the player can cycle through 0/1/2.
+  function renderCarryRow() {
+    const cells = [];
+    for (let k = 0; k < maxLen; k++) {
+      const i = maxLen - 1 - k;
+      const usable = i >= 1 && i < COLS.length;
+      const derived = usable && colInfo[i] && colInfo[i].carryIn !== null ? colInfo[i].carryIn : null;
+      const penciled = g.carry[i];
+      const shown = derived !== null ? derived : (penciled !== undefined ? penciled : '');
+      cells.push(
+        <button
+          key={`k${k}`}
+          type="button"
+          className={`cf-carry${derived !== null ? ' fixed' : ''}${usable && playing ? '' : ' off'}`}
+          disabled={!usable || derived !== null || !playing}
+          onClick={() => cycleCarry(i)}
+          aria-label={usable ? `${carryWord} into column ${i + 1}${shown === '' ? ', not set' : `, ${shown}`}` : undefined}
+        >
+          {shown}
+        </button>
+      );
+    }
+    return <div className="cf-row cf-carrow" key="carry"><span className="cf-op" />{cells}</div>;
+  }
+  // One free mark per column: ✓ when the column is fully determined and lands,
+  // ✗ when it cannot land under any legal carry. Costs nothing.
+  function renderMarkRow() {
+    const cells = [];
+    for (let k = 0; k < maxLen; k++) {
+      const i = maxLen - 1 - k;
+      const ok = i < COLS.length && colInfo[i] ? colInfo[i].ok : null;
+      cells.push(
+        <span key={`m${k}`} className={`cf-mk${ok === true ? ' good' : ok === false ? ' bad' : ''}`} aria-hidden={ok === null}>
+          {ok === true ? '✓' : ok === false ? '✗' : ''}
+        </span>
+      );
+    }
+    return <div className="cf-row cf-mkrow" key="marks"><span className="cf-op" />{cells}</div>;
+  }
+  // Digits still open to a letter: everything not taken by another letter, minus
+  // 0 on a leading letter. Player-crossed candidates stay visible but struck, so
+  // a wrong elimination can be undone.
+  function candidatesFor(ch) {
+    const taken = new Set(Object.entries(g.assign).filter(([l]) => l !== ch).map(([, d]) => d));
+    const out = [];
+    for (let d = 0; d < 10; d++) {
+      if (taken.has(d)) continue;
+      if (d === 0 && FIRSTS.has(ch)) continue;
+      out.push(d);
+    }
+    return out;
+  }
+
   function renderRow(word, op, key) {
     const cells = [];
     for (let i = 0; i < maxLen - word.length; i++) cells.push(<span key={`sp${i}`} className="cf-cell" style={{ visibility: 'hidden' }} />);
@@ -560,6 +731,8 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Today&rsquo;s equation is a <b>cryptarithm</b>: every letter stands for a different digit, 0&ndash;9, and the {opWord} must work out. Letters that start a word are never zero.</p>
       <p style={{ margin: '0 0 9px' }}>Tap a letter, then tap a digit (or just type). Tap a filled letter again to clear it. The pad shows which letter owns each digit; if two letters share one, both flag red.</p>
+      <p style={{ margin: '0 0 9px' }}>The board keeps the scratch work for you. The <b>key rack</b> lists the digits still open to each letter, dropping any digit taken elsewhere; hit <b>Notes</b> to cross off more. The <b>{carryWord} row</b> above the equation fills itself in as far as your digits allow, and you can pencil the rest. Under each column, a <b>✓ or ✗</b> tells you exactly which column works, so a wrong digit turns up where it happened.</p>
+      <p style={{ margin: '0 0 9px' }}>Those column marks are <b>free</b>. Only the Check button is scored.</p>
       <p style={{ margin: '0 0 9px' }}>{strategyLine}</p>
       <p style={{ margin: 0 }}>Solve it for up to <b>10 points</b>: a clean first check is a perfect 10, and every failed check costs one. Ties on the daily board break by fewest failed checks, then fastest time.</p>
     </div>
@@ -579,6 +752,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-btn:hover{background:var(--accent-soft);}
           .cf-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .cf-btn.primary:hover{background:#0c5f59;}
+          .cf-btn.primary.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.22);}
           .cf-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin:3px 0;}
           .cf-op{width:26px;font-size:22px;font-weight:800;color:${COLORS.faded};text-align:center;flex:0 0 auto;}
           .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.14);background:var(--white);padding:0;font-family:${SANS};}
@@ -588,12 +762,35 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-cell .cf-dg{font-size:14px;font-weight:800;color:${COLORS.accent};height:17px;line-height:1.2;font-variant-numeric:tabular-nums;}
           .cf-cell.bad .cf-dg{color:${COLORS.rust};}
           .cf-rule{border-top:3px solid ${COLORS.ink};margin:7px 0 6px;}
+          .cf-carrow,.cf-mkrow{margin:0;}
+          .cf-carry{width:46px;height:20px;flex:0 0 auto;border-radius:5px;border:1px dashed rgba(28,30,36,0.22);background:transparent;font-family:${MONO};font-size:12px;font-weight:500;color:${COLORS.faded};cursor:pointer;padding:0;line-height:1;}
+          .cf-carry:hover:not(:disabled){background:${COLORS.accentSoft};border-color:${COLORS.accent};}
+          .cf-carry.fixed{border:1px solid transparent;color:${COLORS.accent};font-weight:700;cursor:default;}
+          .cf-carry.off{border-color:transparent;cursor:default;}
+          .cf-mk{width:46px;height:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;line-height:1;color:transparent;}
+          .cf-mk.good{color:${COLORS.green};}
+          .cf-mk.bad{color:${COLORS.rust};}
+          .cf-rack{display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));gap:6px;margin:0 0 12px;}
+          .cf-chip{display:flex;align-items:center;gap:7px;border:1.5px solid rgba(28,30,36,0.14);border-radius:8px;background:var(--white);padding:5px 7px;cursor:pointer;min-height:34px;}
+          .cf-chip:hover{border-color:${COLORS.accent};}
+          .cf-chip.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};}
+          .cf-chip.lone{border-color:${COLORS.green};}
+          .cf-chl{font-size:15px;font-weight:800;color:${COLORS.ink};width:14px;text-align:center;flex:0 0 auto;}
+          .cf-chd{font-family:${MONO};font-size:16px;font-weight:500;color:${COLORS.accent};font-variant-numeric:tabular-nums;}
+          .cf-cands{display:flex;flex-wrap:wrap;gap:1px;}
+          .cf-cd{font-family:${MONO};font-size:11.5px;font-weight:500;line-height:1;color:${COLORS.faded};background:none;border:none;border-radius:3px;padding:3px 2.5px;cursor:pointer;font-variant-numeric:tabular-nums;}
+          .cf-cd:hover{background:${COLORS.accentSoft};color:${COLORS.accent};}
+          .cf-cd.out{color:rgba(28,30,36,0.24);text-decoration:line-through;}
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
           .cf-pk{position:relative;height:50px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${COLORS.ink};}
           .cf-pk:hover{background:${COLORS.accentSoft};}
           .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:${COLORS.accent};font-weight:800;letter-spacing:0.02em;}
-          .cf-pk.erase{grid-column:span 5;height:38px;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:${COLORS.faded};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
-          @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}}
+          .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${COLORS.faded};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+          .cf-pk.note{grid-column:span 2;}
+          .cf-pk.foot:not(.note){grid-column:span 3;}
+          .cf-pk.note.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .cf-pad.notes .cf-pk:not(.foot){border-style:dashed;border-color:${COLORS.accent};}
+          @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}.cf-carry,.cf-mk{width:40px;}.cf-rack{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}}
         `}</style>
 
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
@@ -644,22 +841,73 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>failed checks <b style={{ color: g.fails ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.fails}</b></span>
           </div>
           <div style={{ maxWidth: (maxLen + 1) * 50, margin: '0 auto' }}>
+            {renderCarryRow()}
             {PUZZLE.lhs.map((w, i) => renderRow(w, (OP === 'sub' ? i > 0 : i === PUZZLE.lhs.length - 1) ? opGlyph : '', `l${i}`))}
             <div className="cf-rule" />
             {renderRow(PUZZLE.rhs, '', 'r')}
-          </div>
-          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, textAlign: 'center', margin: '10px 0 8px', minHeight: 16 }}>
-            {playing ? (selected !== null ? <>Assigning a digit to <b style={{ color: COLORS.accent }}>{selected}</b>{g.assign[selected] !== undefined ? <> · tap {selected} again to clear</> : null}</> : 'Tap a letter, then a digit — or just type.') : null}
+            {renderMarkRow()}
           </div>
           {playing && (
-            <div className="cf-pad">
+            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 2 }}>
+              {carryWord}s on top · column checks below · both free
+            </div>
+          )}
+          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, textAlign: 'center', margin: '10px 0 8px', minHeight: 16 }}>
+            {playing
+              ? (noteMode
+                  ? (selected !== null
+                      ? <>Notes on: crossing candidates off <b style={{ color: COLORS.accent }}>{selected}</b></>
+                      : 'Notes on: pick a letter, then tap digits to cross them off.')
+                  : (selected !== null
+                      ? <>Assigning a digit to <b style={{ color: COLORS.accent }}>{selected}</b>{g.assign[selected] !== undefined ? <> · tap {selected} again to clear</> : null}</>
+                      : 'Tap a letter, then a digit — or just type.'))
+              : null}
+          </div>
+
+          {/* The key rack: every letter, its digit, and the digits still open to
+              it. Digits taken elsewhere and 0 on a leading letter drop out on
+              their own, which is the bookkeeping players were doing on paper. */}
+          {playing && (
+            <div className="cf-rack">
+              {LETTERS.map((ch) => {
+                const d = g.assign[ch];
+                const ex = g.excl[ch] || [];
+                const cands = candidatesFor(ch);
+                const lone = d === undefined && cands.filter((n) => !ex.includes(n)).length === 1;
+                return (
+                  <div key={ch} className={`cf-chip${selected === ch ? ' on' : ''}${lone ? ' lone' : ''}`} onClick={() => tapLetter(ch)}>
+                    <span className="cf-chl">{ch}</span>
+                    {d !== undefined ? (
+                      <span className="cf-chd">{d}</span>
+                    ) : (
+                      <span className="cf-cands">
+                        {cands.map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            className={`cf-cd${ex.includes(n) ? ' out' : ''}`}
+                            onClick={(e) => { e.stopPropagation(); if (noteMode) toggleExcl(ch, n); else assignTo(ch, n); }}
+                            aria-label={`${noteMode ? 'Cross off' : 'Set'} ${ch} = ${n}`}
+                          >{n}</button>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {playing && (
+            <div className={`cf-pad${noteMode ? ' notes' : ''}`}>
               {Array.from({ length: 10 }, (_, d) => (
                 <button key={d} type="button" className="cf-pk" onClick={() => setDigit(d)}>
                   {d}
                   {digitOwners[d] && digitOwners[d].length ? <span className="who">{digitOwners[d].join('')}</span> : null}
                 </button>
               ))}
-              <button type="button" className="cf-pk erase" onClick={eraseSelected}><Delete size={13} /> erase selected letter</button>
+              <button type="button" className={`cf-pk foot note${noteMode ? ' on' : ''}`} onClick={() => setNoteMode((v) => !v)} aria-pressed={noteMode}><Pencil size={13} /> notes {noteMode ? 'on' : 'off'}</button>
+              <button type="button" className="cf-pk foot" onClick={eraseSelected}><Delete size={13} /> erase letter</button>
             </div>
           )}
           {verdict && (
@@ -669,11 +917,18 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           )}
           {playing && (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
-              <button type="button" className="cf-btn primary" onClick={check}><Lock size={14} strokeWidth={2.6} /> Check solution</button>
+              <button type="button" className={`cf-btn primary${colsSolved ? ' ready' : ''}`} onClick={check}><Lock size={14} strokeWidth={2.6} /> Check solution</button>
               <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: COLORS.rust } : undefined}>{clearArmed ? 'Clear all — tap again' : 'Clear'}</button>
               {g.fails >= 3 && (
                 <button type="button" className="cf-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
               )}
+            </div>
+          )}
+          {playing && (badCol || colsSolved) && (
+            <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, textAlign: 'center', marginTop: 8, color: badCol ? COLORS.rust : COLORS.green }}>
+              {badCol
+                ? `A column is marked ✗ — checking now costs a point.`
+                : `Every column checks out. Lock it in.`}
             </div>
           )}
         </div>
@@ -818,7 +1073,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           Cipher is a free daily cryptarithm puzzle from Mind Loft. Each day serves one alphametic equation &mdash; the classic puzzle form where SEND + MORE = MONEY and every letter hides a digit. Assign a different digit to each letter so the arithmetic works, and know that the puzzle is machine-verified to have exactly one solution: if your logic is sound, you never have to guess.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The craft is in the columns. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. A clean solve on the first check is a perfect 10 &mdash; every failed check costs a point, and the daily leaderboard breaks ties by fewer failed checks, then time.
+          The craft is in the columns, and Cipher hands you the tools instead of asking you to reach for paper. A key rack tracks the digits still open to every letter, the carry row above the equation fills itself in as far as your digits reach, and each column carries its own &#10003; or &#10007; the moment it is decided &mdash; all of it free. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. A clean solve on the first check is a perfect 10 &mdash; every failed check costs a point, and the daily leaderboard breaks ties by fewer failed checks, then time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new equation drops every day at midnight Eastern, and the operation rotates so no two days repeat: addition and subtraction, with a bigger three-term equation in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
