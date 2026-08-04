@@ -26,6 +26,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
+import useEndHold from '../useEndHold';
 import DailyTopNav from '../DailyTopNav';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -190,6 +191,8 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // Hold the end card back so the move that ended the game is visible first.
+  const endHold = useEndHold(1100);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -397,6 +400,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     if (!done.t0) done.t0 = Date.now();
     vibrate(status === 'won' ? HAPT.win : HAPT.wrong);
     postResult(done, score);
+    endHold.hold();
     commit(done);
   }
 
@@ -493,11 +497,13 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     const g2 = { ...cur, status: 'gaveup', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0);
+    endHold.hold();
     commit(g2);
     setSel(null);
   }
 
   function resetGame() {
+    endHold.release();
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     if (replyTimer.current) clearTimeout(replyTimer.current);
     setThinking(false);
@@ -747,7 +753,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !endHold.held && (
         <DailyEndCard modal self="check" won={won}
           headline={won ? <>Swept.</> : g.status === 'gaveup' ? <>You scored 0%</> : <>Out of moves.</>}
           subline={won

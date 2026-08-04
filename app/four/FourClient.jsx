@@ -31,6 +31,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
+import useEndHold from '../useEndHold';
 import DailyTopNav from '../DailyTopNav';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -211,6 +212,8 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // Hold the end card back so the move that ended the game is visible first.
+  const endHold = useEndHold(1100);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -428,6 +431,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
     if (!done.t0) done.t0 = Date.now();
     vibrate(status === 'won' ? HAPT.win : HAPT.wrong);
     postResult(done, status === 'won' ? 10 : status === 'drawn' ? 4 : status === 'lost' ? 1 : 0);
+    endHold.hold();
     commit(done);
   }
 
@@ -537,10 +541,12 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
     const g2 = { ...cur, moves: ms, status: 'gaveup', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0);
+    endHold.hold();
     commit(g2);
   }
 
   function resetGame() {
+    endHold.release();
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     if (replyTimer.current) clearTimeout(replyTimer.current);
     setThinking(false);
@@ -852,7 +858,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !endHold.held && (
         <DailyEndCard
           modal
           self="four"

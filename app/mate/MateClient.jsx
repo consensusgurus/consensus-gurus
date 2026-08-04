@@ -32,6 +32,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
+import useEndHold from '../useEndHold';
 import DailyTopNav from '../DailyTopNav';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -256,6 +257,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // Hold the end card back so the move that ended the game is visible first.
+  const endHold = useEndHold(1200);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -524,6 +527,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
       g2.tEnd = Date.now();
       vibrate(HAPT.win);
       postResult(g2, Math.max(1, Math.min(10, 10 - g2.errors * 2)));
+      endHold.hold();
       commit(g2);
       return;
     }
@@ -586,6 +590,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     const g2 = { ...cur, moves: ms, status: 'revealed', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0);
+    endHold.hold();
     commit(g2);
     setSel(null);
   }
@@ -601,6 +606,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   }
 
   function resetGame() {
+    endHold.release();
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     if (replyTimer.current) clearTimeout(replyTimer.current);
     commit(freshState());
@@ -894,7 +900,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !endHold.held && (
         <DailyEndCard
           modal
           self="mate"

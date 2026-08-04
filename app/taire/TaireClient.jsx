@@ -33,6 +33,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
+import useEndHold from '../useEndHold';
 import DailyTopNav from '../DailyTopNav';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -225,6 +226,8 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // Hold the end card back so the move that ended the game is visible first.
+  const endHold = useEndHold(1100);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -434,6 +437,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
       const done = { ...g2, moves, status: 'won', tEnd: Date.now() };
       vibrate(HAPT.win);
       postResult(done, scoreFor(done.moves.length, perfect));
+      endHold.hold();
       commit(done);
       return;
     }
@@ -492,11 +496,13 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
     const g2 = { ...cur, status: 'gaveup', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0);
+    endHold.hold();
     commit(g2);
     setSel(null);
   }
 
   function resetGame() {
+    endHold.release();
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     commit(freshState());
     setSel(null); setHintCards(null); setEndClosed(false);
@@ -784,7 +790,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !endHold.held && (
         <DailyEndCard modal self="taire" won={won}
           headline={won ? (used === perfect ? <>Perfect. Nothing wasted.</> : used < par ? <>Under par.</> : <>All home.</>) : <>You scored 0%</>}
           subline={won

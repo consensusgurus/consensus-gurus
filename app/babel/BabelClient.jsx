@@ -34,6 +34,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
+import useEndHold from '../useEndHold';
 import DailyTopNav from '../DailyTopNav';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -218,6 +219,8 @@ export default function BabelClient({ puzzles, forceNum }) {
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // Hold the end card back so the move that ended the game is visible first.
+  const endHold = useEndHold(1500);
   const [installEvt, setInstallEvt] = useState(null);
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
@@ -484,7 +487,7 @@ export default function BabelClient({ puzzles, forceNum }) {
     const log = g.log.concat([{ who: 'you', word: res.words.map((w) => w.word).join(' / '), score: res.score }]);
     const next = { ...g, rows, rack, my: g.my + res.score, log, passes: 0, foeCells: [], t0: g.t0 || Date.now() };
     setPending([]); setArmed(null); setSel(null);
-    if (!rack.length) { const done = finish(next, 'you-out'); setG(done); setEndClosed(false); postResult(done); return; }
+    if (!rack.length) { const done = finish(next, 'you-out'); setG(done); setEndClosed(false); endHold.hold(); postResult(done); return; }
     setG(next);
     setThinking(true);
   }
@@ -493,7 +496,7 @@ export default function BabelClient({ puzzles, forceNum }) {
     if (!playing || thinking || !ready) return;
     const next = { ...g, log: g.log.concat([{ who: 'you', word: 'pass', score: 0 }]), passes: g.passes + 1, t0: g.t0 || Date.now() };
     setPending([]); setArmed(null);
-    if (next.passes >= 2) { const done = finish(next, 'passes'); setG(done); setEndClosed(false); postResult(done); return; }
+    if (next.passes >= 2) { const done = finish(next, 'passes'); setG(done); setEndClosed(false); endHold.hold(); postResult(done); return; }
     setG(next);
     setThinking(true);
   }
@@ -535,7 +538,7 @@ export default function BabelClient({ puzzles, forceNum }) {
       }
       setG(out);
       setThinking(false);
-      if (out.status === 'done') { setEndClosed(false); postResult(out); }
+      if (out.status === 'done') { setEndClosed(false); endHold.hold(); postResult(out); }
     }, 90);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -576,6 +579,7 @@ export default function BabelClient({ puzzles, forceNum }) {
   }
 
   function resetGame() {
+    endHold.release();
     try { localStorage.removeItem(STORE_KEY); localStorage.removeItem(REC_KEY); } catch (e) {}
     setG(freshState()); setPending([]); setArmed(null); setSel(null); setEndClosed(false);
   }
@@ -888,7 +892,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !endHold.held && (
         <DailyEndCard
           modal
           self="babel"
