@@ -1661,12 +1661,12 @@ export default function DailyEndCard({
       {/* ---- 4b. quick replay ---- */}
       {/* Only for callers that pass onReplay. A replay is free practice: the
           first completed attempt is what the leaderboard and streak keep, so
-          the subline says so rather than leaving the player guessing. */}
+          a second run never overwrites the recorded score. */}
       {onReplay ? (
         <button type="button" className="dec-replay" onClick={goReplay}>
           <RefreshCw size={15} strokeWidth={2.2} />
           <span>Replay today’s {selfGame ? selfGame.name : 'puzzle'}</span>
-          <span className="rs">Practice run. Your recorded score stands.</span>
+          <span className="rs">Practice run</span>
         </button>
       ) : null}
 
