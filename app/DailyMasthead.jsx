@@ -15,14 +15,19 @@
 //                    No. # + date                   (all three below as a two-row box)
 //                    mindloftdaily.com/x
 //
-// ink/faded/MONO are identical across every game's COLORS, so they are baked in
+// ink/faded are identical across every game's COLORS, so they are baked in
 // here; only the accent (URL color) is passed per game.
 
 import React, { useRef, useState, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { T } from '@/lib/theme';
 
-const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+// TYPE (owner, 2026-08-04): this meta line is Manrope, NOT DM Mono. The navy
+// header it sits under carries no mono at all, so the typewriter texture read
+// as a different product. tabular-nums does the one useful job mono was doing
+// here: the issue number and date keep a fixed digit width as they change day
+// to day, so nothing shifts under them. Do not reintroduce mono in this row.
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const INK = T.ink;
 const FADED = T.muted;
 
@@ -97,13 +102,13 @@ export default function DailyMasthead({
   }, [num, dateLabel, slug, accent, !!sunday]);
 
   const noEl = (
-    <h1 ref={noRef} style={{ margin: 0, fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.05em', fontWeight: 500, color: INK, whiteSpace: 'nowrap' }}>No. {num}</h1>
+    <h1 ref={noRef} style={{ margin: 0, fontFamily: SANS, fontSize: 14, letterSpacing: '-0.005em', fontWeight: 800, color: INK, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>No. {num}</h1>
   );
   const dateEl = (
-    <span ref={dateRef} style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.03em', color: FADED, whiteSpace: 'nowrap' }}>{dateLabel}</span>
+    <span ref={dateRef} style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, color: FADED, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{dateLabel}</span>
   );
   const urlEl = (
-    <span ref={urlRef} style={{ fontFamily: MONO, fontSize: 12.5, letterSpacing: '0.02em', color: accent, whiteSpace: 'nowrap' }}>mindloftdaily.com/{slug}</span>
+    <span ref={urlRef} style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: accent, whiteSpace: 'nowrap' }}>mindloftdaily.com/{slug}</span>
   );
   // Wrapped so its width is measurable; inline-flex keeps the chip on the same
   // baseline it sat on when it was rendered bare.

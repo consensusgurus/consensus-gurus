@@ -26,7 +26,9 @@ import Link from 'next/link';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
-const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+// Manrope, matching the header's own micro-labels (PLAYER / RANK / IQ POINTS).
+// Owner ruling 2026-08-04: no mono anywhere in the daily chrome.
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const SLATE_KEYS = [
   'crux', 'emcee', 'shards', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'carve',
@@ -87,7 +89,7 @@ export default function DailySlateRail({ current = null }) {
       <style>{`
         .dsr{background:var(--accent-soft);border-bottom:1px solid var(--accent-border);position:relative;z-index:2;}
         .dsr-in{max-width:1560px;margin:0 auto;padding:7px clamp(14px,2.5vw,34px);display:flex;align-items:center;gap:11px;}
-        .dsr-k{font-family:${MONO};font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#4a63a8;white-space:nowrap;flex:none;}
+        .dsr-k{font-family:${SANS};font-size:9px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#4a63a8;white-space:nowrap;flex:none;}
         .dsr-btn{width:24px;height:24px;border-radius:50%;background:var(--white);border:1px solid var(--accent-border);color:var(--accent);display:flex;align-items:center;justify-content:center;font:inherit;font-size:13px;font-weight:800;line-height:1;cursor:pointer;flex:none;padding:0;}
         .dsr-btn:hover{background:#dfe9ff;}
         .dsr-rail{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;}
