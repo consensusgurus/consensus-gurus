@@ -32,6 +32,7 @@ import { T } from '@/lib/theme';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { COMPLETION_MAX } from '@/lib/daily-combined';
 import { fetchDayStatus } from './useDayStats';
+import { ringBlue } from '@/lib/home-blues';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
 
@@ -45,7 +46,10 @@ function scoreTone(pct) {
     : { background: '#fdf1f0', color: '#a8362c', border: '1px solid #f2dcd9' };
 }
 
-function ringTone(pct) { return pct >= 70 ? T.successDeep : '#c0392b'; }
+// The green/red traffic light was retired 2026-08-04: the ring now steps down a
+// blue ramp, deep navy for a strong run through pale for a weak one. The arc
+// length and the printed percentage were always the actual readout.
+function ringTone(pct) { return ringBlue(pct); }
 
 // m:ss, or h:mm:ss on the rare long one. Seconds in, never a bare float.
 function fmtTime(sec) {

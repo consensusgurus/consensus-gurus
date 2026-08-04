@@ -47,6 +47,7 @@ import useMyGames, { sortByMyGames } from './useMyGames';
 import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
 import { fetchDayStatus } from './useDayStats';
+import { catBlue } from '@/lib/home-blues';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -142,9 +143,15 @@ function mixHex(hex, pct, base) {
 // so every Word chip matches every other Word chip and the grid gains a second,
 // consistent layer of grouping. Navy-legible hues, one clearly distinct per
 // category.
+// Recolored to the homepage blue family 2026-08-04. Each category still gets
+// its OWN shade so the column stays scannable, they are just all blues now.
+// Values live in lib/home-blues so the slate chips and the live feed chips
+// cannot drift apart.
 const CAT_COLOR = {
-  Word: T.blueDeep, Numbers: '#9a3412', Logic: '#9f0f31',
-  History: '#6b21a8', Geography: '#166534', 'Crowd Psychology': '#854d0e',
+  Word: catBlue('word'), Numbers: catBlue('numbers'), Logic: catBlue('logic'),
+  History: catBlue('history'), Geography: catBlue('geography'),
+  'Crowd Psychology': catBlue('crowd'), Trivia: catBlue('trivia'),
+  'End Game': catBlue('end game'),
 };
 const CAT_CHIP_BG = {}, CAT_BD = {};
 for (const [k, v] of Object.entries(CAT_COLOR)) {

@@ -33,6 +33,7 @@ import Footer from '../Footer';
 import { withRef } from '@/lib/referrals';
 import { savedIdentity } from '@/lib/saved-identity';
 import { T } from '@/lib/theme';
+import { catBlue, deptBlue } from '@/lib/home-blues';
 import MindLoftMark from '../MindLoftMark';
 
 // Brand mark (gradient ids suffixed per render so multiple instances stay unique).
@@ -2194,7 +2195,7 @@ export default function QuizHomeClient() {
               catFor={(id) => {
                 const fam = gameFamily(id);
                 const dgc = fam ? DG_CAT[fam] : null;
-                const color = dgc ? dgc.color : ((DEPT_COLOR[deptById[id]] || DEPT_COLOR.misc).c);
+                const color = dgc ? catBlue(dgc.name) : deptBlue(deptById[id]);
                 const label = dgc ? shortCat(dgc.name) : (fam ? 'Daily' : (DEPT_LABEL[deptById[id]] || 'Quiz'));
                 return { label, color, tint: (typeof color === 'string' && color.length === 7) ? `${color}18` : 'rgba(0,0,0,0.05)' };
               }}
@@ -2206,7 +2207,7 @@ export default function QuizHomeClient() {
                   leader: (dailyRows[0] && !dailyRows[0].isAnon) ? (dailyRows[0].username || '') : '',
                   href: dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl,
                   icon: <Target size={16} strokeWidth={2.4} />,
-                  color: '#8a6d1a', tint: '#fdf7e8',
+                  color: '#1e3a8a', tint: '#e9effc',
                 }] : []),
                 ...(qotd ? [{
                   title: 'Quiz of the Day',
@@ -2214,14 +2215,14 @@ export default function QuizHomeClient() {
                   leader: qotdLeader,
                   href: `/quiz/${qotd.id}`,
                   icon: <Play size={14} fill="currentColor" strokeWidth={0} />,
-                  color: '#c2410c', tint: '#fdf0e8',
+                  color: '#1d4ed8', tint: '#e6edfd',
                 }] : []),
                 {
                   title: 'Start a duel',
                   sub: 'Challenge someone 1 v 1',
                   href: '/quizzes/hub?tab=duels',
                   icon: <Crown size={15} strokeWidth={2.4} />,
-                  color: T.danger, tint: '#f7ecea',
+                  color: '#3730a3', tint: '#eceafb',
                 },
               ]}
             />
