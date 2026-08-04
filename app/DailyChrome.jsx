@@ -45,7 +45,16 @@ export default function DailyChrome({ slug, name, collapsed = false, stats = nul
 
   if (full) {
     return (
-      <>
+      <div className="dch-wrap">
+        {/* STACKING: the wrapper caps the whole header group at z-index 5. The
+            shared navy bar carries z-index 90 for the quiz surfaces, which on a
+            daily page paints OVER the end-of-game card (its backdrop is 85) and
+            over the help and install modals (70 and 90). The wrapper makes its
+            own stacking context, so those numbers stay contained and every
+            overlay on the page lands above the header, while 5 still clears the
+            fixed Grain wash at z-index 1 and the page column at 2. Do not raise
+            this without checking dec-backdrop in DailyEndCard. */}
+        <style>{'.dch-wrap{position:relative;z-index:5;}'}</style>
         <QuizNavHeader />
         <DailySlateRail current={slug} />
         {collapsed ? (
@@ -56,14 +65,14 @@ export default function DailyChrome({ slug, name, collapsed = false, stats = nul
             </button>
           </div>
         ) : null}
-      </>
+      </div>
     );
   }
 
   return (
     <div className="dch">
       <style>{`
-        .dch{background:var(--accent);color:var(--white);position:relative;z-index:2;font-family:${FONT};}
+        .dch{background:var(--accent);color:var(--white);position:relative;z-index:5;font-family:${FONT};}
         .dch-in{max-width:1560px;margin:0 auto;padding:6px clamp(14px,2.5vw,34px);display:flex;align-items:center;gap:11px;}
         .dch-brand{display:flex;align-items:center;gap:8px;text-decoration:none;flex:none;}
         .dch-wm{font-size:12.5px;font-weight:800;letter-spacing:-.02em;color:var(--white);white-space:nowrap;}
