@@ -564,6 +564,9 @@ export default function QuizHomeClient() {
   const [xpScope, setXpScope] = useState('all');
   const [catBoards, setCatBoards] = useState({}); // { dept: [{rank,name,isAnon,userKey,rating}] } for the "Top Rated <Category>" slides
   const [recent, setRecent] = useState([]); // [{quizId,username,score,total,playedAt,isAnon,attempt}]
+  // Plays since Eastern midnight, per quiz id, from the same /api/quiz/recent
+  // payload. Drives the "(x25)" day-count chip on each live feed row.
+  const [dayPlays, setDayPlays] = useState({});
   const [me, setMe] = useState(null);
   const [lbIdx, setLbIdx] = useState(0); // which leaderboard stat is showing
   const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
@@ -735,6 +738,7 @@ export default function QuizHomeClient() {
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.plays)) setRecent(d.plays);
+      if (d && d.todayByQuiz) setDayPlays(d.todayByQuiz);
     }).catch(() => {});
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.quizzes)) setStatsById(Object.fromEntries(d.quizzes.map((q) => [q.quizId, q])));
@@ -996,10 +1000,10 @@ export default function QuizHomeClient() {
 
   // ── live feed (scoped by quiz department) ──
   const liveRows = useMemo(() => {
-    const rows = recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: resolveTitle(p.quizId) }));
+    const rows = recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, dept: deptOf({ id: p.quizId }), title: resolveTitle(p.quizId), dayCount: dayPlays[p.quizId] || 0 }));
     const scoped = scope === 'all' ? rows : rows.filter((r) => r.dept === scope);
     return scoped.slice(0, boardsExpanded ? 10 : 4);
-  }, [recent, scope, titleById, boardsExpanded]);
+  }, [recent, scope, titleById, boardsExpanded, dayPlays]);
 
   const playsToday = totals.today || 0;
 
@@ -1231,7 +1235,7 @@ export default function QuizHomeClient() {
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
-  const liveAll = useMemo(() => recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, title: resolveTitle(p.quizId) })), [recent, titleById]);
+  const liveAll = useMemo(() => recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, title: resolveTitle(p.quizId), dayCount: dayPlays[p.quizId] || 0 })), [recent, titleById, dayPlays]);
   // "Last Played" browse column: most recent plays, deduped to distinct quizzes
   // (the live feed relocated into the browse grid as the first column).
   const lastPlayed = useMemo(() => {
@@ -1452,6 +1456,8 @@ export default function QuizHomeClient() {
     .qzh .head .lbl{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;}
     .qzh .head .qlink{flex:none;white-space:nowrap;}
     .qzh .lrow{display:flex;align-items:center;gap:9px;padding:5.5px 13px;font-size:12.5px;}
+    /* "(x25)": that game's play count since Eastern midnight, beside the title. */
+    .qzh .lf-day{flex:none;font-size:10.5px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;}
     .qzh .qtitle{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .qzh .att{font-size:9.5px;font-weight:700;color:${C.soft};}
     .qzh .score{flex:none;font-weight:700;color:${C.accent};font-variant-numeric:tabular-nums;}
@@ -1813,6 +1819,7 @@ export default function QuizHomeClient() {
                   <div className="lrow" style={{ gap: 4, flexDirection: 'column', alignItems: 'stretch', padding: '7px 13px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                       <span className="qtitle" style={{ fontWeight: 600 }}>{f.title}</span>
+                      {f.dayCount > 0 ? <span className="lf-day" title={`${f.dayCount} play${f.dayCount === 1 ? '' : 's'} today`}>(x{f.dayCount})</span> : null}
                       {dailyIds.includes(f.quizId) ? <span style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9, fontWeight: 800, letterSpacing: '.03em', textTransform: 'uppercase', color: C.accent, background: C.accsoft, padding: '1px 6px', borderRadius: 6 }}><Flame size={10} />Daily</span> : null}
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 10.5, color: C.soft }}>
@@ -2409,6 +2416,7 @@ export default function QuizHomeClient() {
             ) : liveAll.map((f, i) => (
               <Link href={playHref(f.quizId)} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
+                {f.dayCount > 0 ? <span className="lf-day" title={`${f.dayCount} play${f.dayCount === 1 ? '' : 's'} today`}>(x{f.dayCount})</span> : null}
                 <span className="qmeta" style={{ gap: 8 }}>
                   <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? T.successDeep : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>

@@ -10,8 +10,25 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=90' };
 
+// Midnight "today" in US Eastern (handles EST/EDT) as a UTC epoch ms. Mirrors
+// the helper in /api/quiz/today: Eastern midnight is 05:00Z under EST and
+// 04:00Z under EDT, so pick whichever candidate renders as 00:00 Eastern.
+function startOfEasternTodayUTC() {
+  const tz = 'America/New_York';
+  const now = new Date();
+  const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+  for (const offH of [4, 5]) {
+    const guess = Date.parse(`${ymd}T00:00:00.000Z`) + offH * 3600 * 1000;
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false })
+      .formatToParts(new Date(guess))
+      .reduce((acc, x) => { acc[x.type] = x.value; return acc; }, {});
+    if (`${p.year}-${p.month}-${p.day}` === ymd && p.hour === '00') return guess;
+  }
+  return Date.parse(`${ymd}T04:00:00.000Z`);
+}
+
 // GET /api/quiz/recent -> { plays: [{quizId, username, score, total, playedAt,
-//   isAnon, attempt}] }
+//   isAnon, attempt}], todayByQuiz: { <quizId>: <plays since ET midnight> } }
 // The 1000 most recent completed games, newest first (a deep window so the
 // Last Played board can still surface 5 distinct quizzes when the newest plays
 // are dominated by a single quiz). Powers the /quizzes live
@@ -35,6 +52,23 @@ export async function GET() {
       .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
       .slice(0, 1000);
     const recent = data.filter((r) => !HIDDEN_QUIZ_IDS.has(r.quiz_id));
+
+    // Today's play count per quiz id, so the live feed can show "(x25)" beside
+    // each game (owner, 2026-08-04). Cached rows are in id (insertion) order,
+    // which tracks created_at, so walk backwards and stop at the Eastern
+    // midnight cutoff instead of scanning the whole table. A daily game's id
+    // already carries today's date (<key>-M-D-YY), so the raw quiz_id count IS
+    // that game's count for the day, with no rollup needed.
+    const dayCutoff = startOfEasternTodayUTC();
+    const todayByQuiz = {};
+    for (let i = (cached || []).length - 1; i >= 0; i -= 1) {
+      const r = cached[i];
+      const t = r && r.created_at ? Date.parse(r.created_at) : 0;
+      if (!t) continue;
+      if (t < dayCutoff) break;
+      if (!r.quiz_id || HIDDEN_QUIZ_IDS.has(r.quiz_id)) continue;
+      todayByQuiz[r.quiz_id] = (todayByQuiz[r.quiz_id] || 0) + 1;
+    }
 
     // Compute the per-(player, quiz) attempt number for each recent row by
     // counting that player's earlier rows for the same quiz, over the full
@@ -96,7 +130,7 @@ export async function GET() {
         pct: (Number(r.total) > 0) ? pctOf(r.quiz_id, Math.min(1, (Number(r.score) || 0) / Number(r.total))) : null,
       };
     });
-    return NextResponse.json({ plays }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ plays, todayByQuiz }, { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ plays: [] });
   }
