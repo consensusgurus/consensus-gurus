@@ -47,16 +47,19 @@
 //      for a registered sharer, sign-up view for a guest);
 //      the archive control is the third rank tile, expanding to a month
 //      calendar of this game's past drops;
+//   4b. quick replay bar — a quiet white bar directly under the share bar,
+//      rendered only when the caller passes onReplay. Moved up out of the
+//      footer 2026-08-04 (owner) because some games invite an immediate
+//      second run and the footer sits below the whole game grid;
 //   5. a two-card row — "Up next" (25s auto-advance) and "Easiest leaderboard"
 //      (the thinnest field, a podium is easiest there). Both cards lead with the
-//      game's own icon in its brand accent, then its family, its one-liner and a
-//      full sentence describing the game (DAILY_GAMES `blurb`). Deliberately no
-//      play counts or field sizes: these cards sell the next game, not numbers
-//      (owner 2026-08-01);
+//      game's own icon in its brand accent, then its family and its one-liner.
+//      The DAILY_GAMES `blurb` sentence was dropped 2026-08-04 (owner) to keep
+//      the pair compact. Deliberately no play counts or field sizes: these cards
+//      sell the next game, not numbers (owner 2026-08-01);
 //   6. "More of today's games" — the still-to-play games grouped by family;
-//   7. a bottom actions row — Leaderboards, Try again (replays TODAY's drop via
-//      the caller's onReplay; restored 2026-07-31 after the rework dropped it),
-//      Play a past <Game>, and a right-hand "Daily puzzle landing page" link.
+//   7. a bottom actions row — Leaderboards, Play a past <Game>, and a right-hand
+//      "Daily puzzle landing page" link. (Try again moved to 4b, 2026-08-04.)
 //
 // Each client passes only its result strings + handlers (unchanged API):
 //   <DailyEndCard modal self="tuck" completed
@@ -300,7 +303,7 @@ function useCountUp(target, ms = 1000) {
  * @param headline       DEPRECATED, no longer rendered
  * @param subline        DEPRECATED, no longer rendered
  * @param onShare / shareLabel   share handler + label
- * @param onReplay      replay handler; renders the "Try again" button in the foot.
+ * @param onReplay      replay handler; renders the quick replay bar under the share bar.
  *                       The board's FIRST completed attempt is what the daily
  *                       leaderboard and the local streak keep (see the first-
  *                       completion selection in /api/quiz/daily-game and the
@@ -1061,6 +1064,14 @@ export default function DailyEndCard({
         .dec-sharebar .t{font-size:14px;font-weight:800;letter-spacing:-.01em;}
         .dec-sharebar .s{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.66);}
         .dec-sharebar .cv{flex-shrink:0;opacity:.6;}
+        /* Quick replay: a quiet full-width bar directly under the share bar
+           (owner 2026-08-04). Some games invite an immediate second run, and
+           the old "Try again" chip was buried in the footer below the whole
+           game grid. Deliberately white-on-border so it reads as secondary to
+           the dark share bar it sits beneath. */
+        .dec-replay{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;box-sizing:border-box;font-family:${SANS};font-weight:800;font-size:13.5px;color:${INK};background:var(--white);border:1px solid ${BORD};border-radius:12px;padding:11px 14px;margin-bottom:10px;cursor:pointer;transition:background .12s ease;}
+        .dec-replay:hover{background:var(--surface);}
+        .dec-replay .rs{font-weight:600;font-size:11.5px;color:#8a92a6;}
         /* Guest claim banner: the loudest element on the card by design. */
         .dec-claim{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:${NAVY};background:linear-gradient(180deg,#f3f7ff,#e4edff);border:2px solid ${BLUE};border-radius:13px;padding:11px 13px;margin-bottom:10px;cursor:pointer;animation:dec-claimpulse 1.8s ease-in-out infinite;}
         .dec-claim:hover{filter:brightness(1.03);}
@@ -1305,7 +1316,7 @@ export default function DailyEndCard({
            shadowed primary button (owner 2026-08-01). The Easiest card stays a
            step quieter on purpose: it is the secondary offer. */
         .dec-nx{border:2px solid #bcd6fb;background:linear-gradient(180deg,#f2f7ff 0%,#e6effd 100%);box-shadow:0 3px 14px rgba(37,99,235,.10);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
-        .dec-nx-top{display:flex;align-items:center;gap:13px;min-width:0;}
+        .dec-nx-top{flex:1 1 auto;display:flex;align-items:center;gap:13px;min-width:0;}
         .dec-ring{position:relative;width:60px;height:60px;flex-shrink:0;}
         .dec-ring svg{display:block;width:100%;height:100%;}
         /* Hard cap on the glyph: lucide draws to the full 24px box and the wide
@@ -1317,10 +1328,6 @@ export default function DailyEndCard({
         .dec-nx-name{font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
         .dec-nx-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:${SLATE};margin-top:3px;min-width:0;}
         .dec-nx-fam,.dec-ez-fam{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        /* The description line carries the card's height, so it grows and the two
-           cards stay level however long the copy is. */
-        .dec-blurb{flex:1 1 auto;font-size:13px;line-height:1.45;color:${SLATE};background:rgba(255,255,255,.72);border-radius:10px;padding:10px 12px;}
-        .dec-blurb.ez{color:#7a6114;background:rgba(255,255,255,.62);}
         .dec-nx-btns{display:flex;gap:7px;}
         .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:14.5px;border-radius:11px;padding:13px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid #ccd8ea;background:var(--white);color:${SLATE};}
         .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:var(--white);box-shadow:0 3px 10px rgba(37,99,235,.30);}
@@ -1331,7 +1338,7 @@ export default function DailyEndCard({
         /* Same weight as Up next, in the gold key: 2px border, gradient fill,
            shadow, 60px icon and a taller shadowed button (owner 2026-08-01). */
         .dec-ez{border:2px solid #eed79c;background:linear-gradient(180deg,#fffaee 0%,#fdf2d9 100%);box-shadow:0 3px 14px rgba(184,138,20,.12);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
-        .dec-ez-top{display:flex;align-items:center;gap:13px;min-width:0;}
+        .dec-ez-top{flex:1 1 auto;display:flex;align-items:center;gap:13px;min-width:0;}
         .dec-ez-ico{position:relative;width:60px;height:60px;border-radius:16px;background:var(--white);border:1px solid #eed79c;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-ez-ico > svg{width:22px;height:22px;}
         .dec-ez-ico .tr{position:absolute;right:-5px;bottom:-5px;width:22px;height:22px;border-radius:50%;background:${GOLD};color:#5c4a06;display:flex;align-items:center;justify-content:center;border:2px solid #fdf6e4;}
@@ -1394,6 +1401,8 @@ export default function DailyEndCard({
           .dec-sharebar{gap:11px;padding:11px 12px;}
           .dec-sharebar .t{font-size:13px;}
           .dec-sharebar .s{font-size:11px;}
+          .dec-replay{font-size:12.5px;padding:10px 12px;gap:7px;}
+          .dec-replay .rs{display:none;}
           .dec-claim{gap:10px;padding:10px 11px;}
           .dec-claim .t{font-size:12.5px;}
           .dec-claim .s{font-size:11px;}
@@ -1428,7 +1437,6 @@ export default function DailyEndCard({
           .dec-iqhero-rays{width:300px;height:300px;margin:-150px 0 0 -150px;}
           .dec-duo{grid-template-columns:1fr;}
           .dec-nx-name,.dec-ez-name{font-size:21px;}
-          .dec-blurb{font-size:12.5px;padding:9px 11px;}
           .dec-ring,.dec-ring svg,.dec-ez-ico{width:54px;height:54px;}
           .dec-nx-btns .b,.dec-ez-btn{font-size:14px;padding:12px 10px;}
           .dec-grid,.dec-grid.cols-1,.dec-grid.cols-2,.dec-grid.cols-3{grid-template-columns:1fr;}
@@ -1650,6 +1658,18 @@ export default function DailyEndCard({
         <ChevronRight size={17} strokeWidth={2.4} className="cv" />
       </button>
 
+      {/* ---- 4b. quick replay ---- */}
+      {/* Only for callers that pass onReplay. A replay is free practice: the
+          first completed attempt is what the leaderboard and streak keep, so
+          the subline says so rather than leaving the player guessing. */}
+      {onReplay ? (
+        <button type="button" className="dec-replay" onClick={goReplay}>
+          <RefreshCw size={15} strokeWidth={2.2} />
+          <span>Play {selfName} again</span>
+          <span className="rs">Practice run. Your recorded score stands.</span>
+        </button>
+      ) : null}
+
       {/* ---- 5. up next + easiest leaderboard ---- */}
       {/* Both cards are completion-derived, so each shows a shimmer skeleton until
           its data lands (never a guessed game), fades the real card in on arrival,
@@ -1666,7 +1686,6 @@ export default function DailyEndCard({
                   <div className="dec-sk dec-sk-line" style={{ width: '66%' }} />
                 </div>
               </div>
-              <div className="dec-sk" style={{ height: 54, borderRadius: 10 }} />
               <div className="dec-nx-btns"><div className="dec-sk dec-sk-btn" style={{ flex: 1 }} /></div>
             </div>
           ) : nextReal ? (
@@ -1694,7 +1713,6 @@ export default function DailyEndCard({
                   </div>
                 </div>
               </div>
-              {nextTarget.blurb ? <div className="dec-blurb">{nextTarget.blurb}</div> : null}
               <div className="dec-nx-btns">
                 <a className="b primary" href={nextTarget.href}>Play {nextTarget.name} <ArrowRight size={14} strokeWidth={2.6} /></a>
                 {autoRun ? <button type="button" className="b" onClick={() => setAutoCancel(true)}>Not now</button> : null}
@@ -1714,7 +1732,6 @@ export default function DailyEndCard({
                   <div className="dec-sk dec-sk-line" style={{ width: '72%' }} />
                 </div>
               </div>
-              <div className="dec-sk" style={{ height: 54, borderRadius: 10 }} />
               <div className="dec-sk dec-sk-btn" style={{ width: '100%' }} />
             </div>
           ) : grab ? (
@@ -1733,7 +1750,6 @@ export default function DailyEndCard({
                   </div>
                 </div>
               </div>
-              {grab.blurb ? <div className="dec-blurb ez">{grab.blurb}</div> : null}
               <a className="dec-ez-btn" href={grab.href}>Play {grab.name} <ArrowRight size={14} strokeWidth={2.6} /></a>
             </div>
           ) : null}
@@ -1832,11 +1848,6 @@ export default function DailyEndCard({
         <button type="button" className="dec-btn" onClick={() => openPanel('today')}>
           <BarChart3 size={15} strokeWidth={2} /> Leaderboards
         </button>
-        {onReplay ? (
-          <button type="button" className="dec-btn" onClick={goReplay}>
-            <RefreshCw size={15} strokeWidth={2} /> Try again
-          </button>
-        ) : null}
         {pastHref ? (
           <a className="dec-btn ink" href={pastHref}>
             <RotateCcw size={15} strokeWidth={2} /> Play a past {selfName}
