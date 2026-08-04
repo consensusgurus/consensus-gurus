@@ -20,8 +20,11 @@
 //   emcee  — across/down slot lists exactly tile the grid's runs; crossings
 //            are consistent by construction; non-dictionary answers are
 //            REPORTED for eyeball review (proper nouns are legal in crosswords).
-//   links  — 4 groups × 4 words, all 16 distinct (semantic double-solution
-//            audits stay manual per §7a — this is the mechanical layer).
+//   links  — 4 groups × 4 words, all 16 distinct; declared collisions must
+//            yield EXACTLY ONE valid grouping, and every one-way collision
+//            flow (>= 2 words of A read as B, nothing in B reads back) must be
+//            signed off in `reverseChecked` — the proof only sees what you
+//            declare, so an unacknowledged one-way flow is a failure.
 //   crux   — every category word is placed in exactly one slot; slot geometry
 //            fits the board; crossing letters agree; non-dictionary words
 //            reported. PLUS the collision floor (owner rule, see the header of
@@ -372,6 +375,45 @@ if (RUN('links')) {
           ? 'no valid grouping — a collision annotation contradicts the board'
           : 'TWO OR MORE valid groupings — the board is ambiguous');
       }
+
+      // ── ONE-WAY FLOW ACKNOWLEDGEMENT (owner rule, 2026-08-04) ───────────
+      // The proof above is only as honest as the declared collisions. Its
+      // blind spot: declare that words of A read as B, omit that something in
+      // B reads back as A, and the arithmetic pins A's words for a reason
+      // that is not true. #24 shipped that way — MARS/VENUS/SATURN were
+      // declared to read as Roman gods and the gods group looked full, but
+      // JUPITER sitting in it is itself a planet, so the board had five valid
+      // groupings and the proof never saw it.
+      //
+      // So when >= 2 words of A read as B and nothing in B reads back, the
+      // author is making a real claim: no member of B could belong to A.
+      // Require it in writing as `reverseChecked: ['A -> B']`. Undeclared is
+      // a failure, not a warning — a silent omission is exactly the bug.
+      const flow = new Map();
+      for (const c of p.collisions) {
+        if (!homeOf.has(c.word) || !byName.has(c.reads)) continue;
+        const k = `${homeOf.get(c.word)} -> ${c.reads}`;
+        flow.set(k, (flow.get(k) || 0) + 1);
+      }
+      const signed = new Set(p.reverseChecked || []);
+      for (const [k, n] of flow) {
+        const [from, to] = k.split(' -> ');
+        if (n < 2 || flow.has(`${to} -> ${from}`)) continue;
+        if (!signed.has(k)) {
+          errs.push(`one-way collision flow "${k}" (${n} words) is unacknowledged — `
+            + `confirm no "${to}" on this board could read as "${from}", then add it to reverseChecked`);
+        }
+      }
+      for (const k of signed) {
+        const [from, to] = (k.split(' -> ').length === 2 ? k.split(' -> ') : [null, null]);
+        if (!from || !byName.has(from) || !byName.has(to)) {
+          errs.push(`reverseChecked "${k}" does not name two groups on this board`);
+        } else if (!flow.has(k) || flow.get(k) < 2 || flow.has(`${to} -> ${from}`)) {
+          errs.push(`reverseChecked "${k}" is stale — that is no longer a one-way flow`);
+        }
+      }
+    } else if (p.reverseChecked) {
+      errs.push('reverseChecked without collisions');
     } else if (p.sunday) {
       errs.push('Sunday Edition must declare its collisions');
     }

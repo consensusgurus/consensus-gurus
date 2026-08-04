@@ -12,6 +12,14 @@
 // OWNER RULE (2026-07-15): every puzzle also needs AT LEAST TWO cross-
 // category collisions — words that plausibly read as another group on the
 // same board — ideally more, while keeping exactly ONE valid grouping.
+// OWNER RULE (2026-08-04): the uniqueness proof only sees the collisions you
+// DECLARE, so an incomplete list proves nothing. When two or more words of
+// group A read as group B and nothing in B is declared to read back, you are
+// asserting that NO member of B could belong to A. State it: list the pair in
+// `reverseChecked` as "A -> B". The verifier fails an unacknowledged one-way
+// flow. This is the check that #24 needed: three planets were declared to read
+// as Roman gods while JUPITER, sitting in the gods group, is itself a planet,
+// so the board had five valid groupings and shipped anyway.
 export const PUZZLES = [
   {
     num: 1,
@@ -211,6 +219,9 @@ export const PUZZLES = [
       { name: 'Roman gods', words: ['VULCAN', 'JANUS', 'CUPID', 'MINERVA'] }, // was MERCURY (also a planet) -> MINERVA: kills the 4-way ambiguity
       { name: 'Famous sculptures', words: ['DAVID', 'PIETA', 'THINKER', 'VENUS'] },
     ],
+    reverseChecked: [
+      "Planets -> Roman gods",
+    ],
     collisions: [
       { word: 'NEPTUNE', reads: 'Roman gods' },
       { word: 'SATURN', reads: 'Roman gods' },
@@ -239,6 +250,9 @@ export const PUZZLES = [
       { name: 'Corvids', words: ['RAVEN', 'MAGPIE', 'JACKDAW', 'ROOK'] },
       { name: 'Deck of cards', words: ['ACE', 'JOKER', 'KING', 'QUEEN'] },
       { name: 'Chess pieces', words: ['BISHOP', 'KNIGHT', 'PAWN', 'CASTLE'] },
+    ],
+    reverseChecked: [
+      "Deck of cards -> Chess pieces",
     ],
     collisions: [
       { word: 'ROOK', reads: 'Chess pieces' },
@@ -278,6 +292,9 @@ export const PUZZLES = [
       { name: 'Playground fixtures', words: ['SLIDE', 'SEESAW', 'SANDBOX', 'SWING'] },
       { name: 'Baseball moves', words: ['BUNT', 'STEAL', 'PITCH', 'STRIKE'] },
     ],
+    reverseChecked: [
+      "Playground fixtures -> Baseball moves",
+    ],
     collisions: [
       { word: 'SALSA', reads: 'Party dips' },
       { word: 'SLIDE', reads: 'Baseball moves' },
@@ -296,6 +313,10 @@ export const PUZZLES = [
       { name: 'Shades of green', words: ['OLIVE', 'LIME', 'FOREST', 'JADE'] },
       { name: 'Herbs', words: ['BASIL', 'MINT', 'SAGE', 'DILL'] },
       { name: 'Yearn for', words: ['PINE', 'ACHE', 'LONG', 'CRAVE'] },
+    ],
+    reverseChecked: [
+      "Shades of green -> Fruits",
+      "Herbs -> Shades of green",
     ],
     collisions: [
       { word: 'LIME', reads: 'Fruits' },
@@ -379,6 +400,9 @@ export const PUZZLES = [
       { name: 'Shades of green', words: ['OLIVE', 'JADE', 'EMERALD', 'MINT'] },
       { name: 'Gemstones', words: ['RUBY', 'SAPPHIRE', 'TOPAZ', 'OPAL'] },
     ],
+    reverseChecked: [
+      "Shades of green -> Gemstones",
+    ],
     collisions: [
       { word: 'EMERALD', reads: 'Gemstones' },
       { word: 'JADE', reads: 'Gemstones' },
@@ -399,6 +423,9 @@ export const PUZZLES = [
       { name: 'Programming languages', words: ['RUBY', 'JAVA', 'SWIFT', 'RUST'] },
       { name: 'Muscle cars', words: ['MUSTANG', 'CORVETTE', 'CAMARO', 'CHARGER'] },
     ],
+    reverseChecked: [
+      "Snakes -> Muscle cars",
+    ],
     collisions: [
       { word: 'PYTHON', reads: 'Programming languages' },
       { word: 'COBRA', reads: 'Muscle cars' },
@@ -410,18 +437,26 @@ export const PUZZLES = [
     quizId: 'links-8-4-26',
     live: '2026-08-04',
     dateLabel: 'August 4, 2026',
-    // collisions: MARS, VENUS, SATURN all read Roman gods, but that group is
-    // full of its own members (JUPITER/APOLLO/JUNO/DIANA), so all stay planets.
+    // collisions: all four planets also read Roman gods, but the gods group is
+    // full of gods that are NOT planets (MINERVA/APOLLO/JUNO/DIANA), so every
+    // planet stays put. JUPITER was here and broke that: it is itself a planet,
+    // which left the fourth god slot open to any of the five and gave the board
+    // five valid groupings. Never seat a planet-named god in this group.
     groups: [
       { name: 'Planets', words: ['MARS', 'VENUS', 'SATURN', 'NEPTUNE'] },
-      { name: 'Roman gods', words: ['JUPITER', 'APOLLO', 'JUNO', 'DIANA'] },
+      { name: 'Roman gods', words: ['MINERVA', 'APOLLO', 'JUNO', 'DIANA'] },
       { name: 'Car brands', words: ['HONDA', 'TOYOTA', 'FORD', 'TESLA'] },
       { name: 'Continents', words: ['ASIA', 'AFRICA', 'EUROPE', 'ANTARCTICA'] },
+    ],
+    reverseChecked: [
+      "Planets -> Roman gods",
     ],
     collisions: [
       { word: 'MARS', reads: 'Roman gods' },
       { word: 'VENUS', reads: 'Roman gods' },
       { word: 'SATURN', reads: 'Roman gods' },
+      { word: 'NEPTUNE', reads: 'Roman gods' },
+      { word: 'SATURN', reads: 'Car brands' },
     ],
   },
   {
@@ -436,6 +471,9 @@ export const PUZZLES = [
       { name: 'Gemstones', words: ['EMERALD', 'SAPPHIRE', 'DIAMOND', 'OPAL'] },
       { name: 'Programming languages', words: ['PYTHON', 'JAVA', 'SWIFT', 'RUST'] },
       { name: 'Snakes', words: ['COBRA', 'VIPER', 'MAMBA', 'ADDER'] },
+    ],
+    reverseChecked: [
+      "Shades of red -> Gemstones",
     ],
     collisions: [
       { word: 'RUBY', reads: 'Gemstones' },
@@ -455,6 +493,9 @@ export const PUZZLES = [
       { name: 'Colors', words: ['VIOLET', 'INDIGO', 'MAGENTA', 'CYAN'] },
       { name: 'Types of guitar', words: ['ACOUSTIC', 'ELECTRIC', 'BASS', 'CLASSICAL'] },
       { name: 'Fish', words: ['TROUT', 'SALMON', 'TUNA', 'COD'] },
+    ],
+    reverseChecked: [
+      "Citrus fruits -> Colors",
     ],
     collisions: [
       { word: 'ORANGE', reads: 'Colors' },
@@ -493,6 +534,9 @@ export const PUZZLES = [
       { name: 'Ice cream flavors', words: ['VANILLA', 'CHOCOLATE', 'STRAWBERRY', 'PISTACHIO'] },
       { name: 'Emotions', words: ['JOY', 'FEAR', 'ANGER', 'LOVE'] },
     ],
+    reverseChecked: [
+      "Seven deadly sins -> Emotions",
+    ],
     collisions: [
       { word: 'SLOTH', reads: 'Seven deadly sins' },
       { word: 'PRIDE', reads: 'Emotions' },
@@ -516,6 +560,9 @@ export const PUZZLES = [
       { name: 'Fish', words: ['TUNA', 'TROUT', 'BASS', 'COD'] },
       { name: 'Snakes', words: ['COBRA', 'VIPER', 'MAMBA', 'ADDER'] },
       { name: 'Makeup products', words: ['MASCARA', 'BRONZER', 'LINER', 'CONCEALER'] },
+    ],
+    reverseChecked: [
+      "Shades of pink -> Makeup products",
     ],
     collisions: [
       { word: 'SALMON', reads: 'Fish' },
@@ -612,15 +659,22 @@ export const PUZZLES = [
     live: '2026-08-15',
     dateLabel: 'August 15, 2026',
     groups: [
+      // Roman gods must contain NO planet name, or the planet slots float:
+      // JUPITER/MARS here left six planet-gods for four planet slots.
       { name: "Planets", words: ['MERCURY', 'VENUS', 'SATURN', 'NEPTUNE'] },
-      { name: "Roman gods", words: ['JUPITER', 'MARS', 'VULCAN', 'JANUS'] },
+      { name: "Roman gods", words: ['MINERVA', 'BACCHUS', 'VULCAN', 'JANUS'] },
       { name: "Elements", words: ['CARBON', 'ARGON', 'COBALT', 'ZINC'] },
       { name: "Car models", words: ['CORSA', 'PASSAT', 'ASTRA', 'MONDEO'] },
+    ],
+    reverseChecked: [
+      "Planets -> Roman gods",
     ],
     collisions: [
       { word: 'MERCURY', reads: "Roman gods" },
       { word: 'VENUS', reads: "Roman gods" },
       { word: 'SATURN', reads: "Roman gods" },
+      { word: 'NEPTUNE', reads: "Roman gods" },
+      { word: 'MERCURY', reads: "Elements" },
     ],
   },
   {
@@ -632,14 +686,21 @@ export const PUZZLES = [
     groups: [
       { name: "Shades of green", words: ['OLIVE', 'JADE', 'FERN', 'SAGE'] },
       { name: "Pizza toppings", words: ['PEPPERONI', 'ANCHOVY', 'CAPERS', 'SALAMI'] },
-      { name: "Gemstones", words: ['OPAL', 'GARNET', 'TOPAZ', 'PERIDOT'] },
+      // PERIDOT was here and is itself a shade of green, which opened a second
+      // grouping against the Shades of green column. AMETHYST is not green.
+      { name: "Gemstones", words: ['OPAL', 'GARNET', 'TOPAZ', 'AMETHYST'] },
       { name: "Girls' names", words: ['IRIS', 'RUBY', 'HAZEL', 'DAISY'] },
+    ],
+    reverseChecked: [
+      "Shades of green -> Girls' names",
     ],
     collisions: [
       { word: 'OLIVE', reads: "Pizza toppings" },
       { word: 'JADE', reads: "Gemstones" },
       { word: 'FERN', reads: "Girls' names" },
       { word: 'SAGE', reads: "Girls' names" },
+      { word: 'OLIVE', reads: "Girls' names" },
+      { word: 'JADE', reads: "Girls' names" },
     ],
   },
   {
@@ -734,6 +795,9 @@ export const PUZZLES = [
       { name: "Sewing words", words: ['HEM', 'SEAM', 'BASTE', 'PLEAT'] },
       { name: "Darts terms", words: ['OCHE', 'BULL', 'TREBLE', 'LEG'] },
     ],
+    reverseChecked: [
+      "Boxing punches -> Sewing words",
+    ],
     collisions: [
       { word: 'HOOK', reads: "Sewing words" },
       { word: 'CROSS', reads: "Sewing words" },
@@ -750,6 +814,9 @@ export const PUZZLES = [
       { name: "Halo words", words: ['AURA', 'CORONA', 'GLORY', 'RADIANCE'] },
       { name: "Beers", words: ['STELLA', 'PERONI', 'TIGER', 'ASAHI'] },
       { name: "Wild cats", words: ['LEOPARD', 'CARACAL', 'SERVAL', 'MARGAY'] },
+    ],
+    reverseChecked: [
+      "Types of cloud -> Halo words",
     ],
     collisions: [
       { word: 'NIMBUS', reads: "Halo words" },
@@ -801,6 +868,9 @@ export const PUZZLES = [
       { name: "Irish counties", words: ['CLARE', 'KERRY', 'MAYO', 'SLIGO'] },
       { name: "Sandwich fillings", words: ['TUNA', 'HAM', 'PICKLE', 'CORNED BEEF'] },
       { name: "Girls' names", words: ['IRIS', 'RUBY', 'HAZEL', 'DAISY'] },
+    ],
+    reverseChecked: [
+      "Irish counties -> Girls' names",
     ],
     collisions: [
       { word: 'MAYO', reads: "Sandwich fillings" },
@@ -866,7 +936,12 @@ export const PUZZLES = [
       { name: "Trees", words: ['ASH', 'LIME', 'PLANE', 'WILLOW'] },
       { name: "Citrus fruit", words: ['YUZU', 'POMELO', 'CITRON', 'BERGAMOT'] },
       { name: "Aircraft", words: ['GLIDER', 'BIPLANE', 'AIRSHIP', 'SEAPLANE'] },
-      { name: "Girls' names", words: ['IRIS', 'HAZEL', 'DAISY', 'HOLLY'] },
+      // HAZEL and HOLLY were here and are both trees, which let the Trees
+      // column take any two of ASH/WILLOW/HAZEL/HOLLY: six valid groupings.
+      { name: "Girls' names", words: ['IRIS', 'DAISY', 'POPPY', 'PEARL'] },
+    ],
+    reverseChecked: [
+      "Trees -> Girls' names",
     ],
     collisions: [
       { word: 'LIME', reads: "Citrus fruit" },
@@ -919,6 +994,9 @@ export const PUZZLES = [
       { name: "Basketball verbs", words: ['DUNK', 'ASSIST', 'REBOUND', 'BLOCK'] },
       { name: "Cinema words", words: ['SCREEN', 'USHER', 'TRAILER', 'MATINEE'] },
     ],
+    reverseChecked: [
+      "Golf scores -> Seabirds",
+    ],
     collisions: [
       { word: 'ALBATROSS', reads: "Seabirds" },
       { word: 'EAGLE', reads: "Seabirds" },
@@ -967,6 +1045,9 @@ export const PUZZLES = [
       { name: "Carpet types", words: ['PILE', 'BERBER', 'SISAL', 'AXMINSTER'] },
       { name: "Small fairies", words: ['SPRITE', 'ELF', 'IMP', 'BROWNIE'] },
     ],
+    reverseChecked: [
+      "Hair styles -> Small fairies",
+    ],
     collisions: [
       { word: 'SHAG', reads: "Carpet types" },
       { word: 'PIXIE', reads: "Small fairies" },
@@ -983,11 +1064,17 @@ export const PUZZLES = [
       { name: "Mountain ranges", words: ['ANDES', 'ATLAS', 'URALS', 'ROCKIES'] },
       { name: "Reference books", words: ['MEMOIR', 'THESAURUS', 'ALMANAC', 'GAZETTEER'] },
       { name: "Greek titans", words: ['CRONUS', 'RHEA', 'THEIA', 'HYPERION'] },
-      { name: "Moons of Saturn", words: ['TITAN', 'DIONE', 'MIMAS', 'ENCELADUS'] },
+      // DIONE was here and is also a Titaness, which opened a third titan
+      // candidate and gave the board three groupings. PANDORA is not a titan.
+      { name: "Moons of Saturn", words: ['TITAN', 'PANDORA', 'MIMAS', 'ENCELADUS'] },
+    ],
+    reverseChecked: [
+      "Greek titans -> Moons of Saturn",
     ],
     collisions: [
       { word: 'ATLAS', reads: "Reference books" },
       { word: 'ATLAS', reads: "Greek titans" },
+      { word: 'ATLAS', reads: "Moons of Saturn" },
       { word: 'RHEA', reads: "Moons of Saturn" },
       { word: 'HYPERION', reads: "Moons of Saturn" },
     ],
@@ -1101,6 +1188,9 @@ export const PUZZLES = [
       { name: "Small valleys", words: ['RAVINE', 'GLEN', 'COOMBE', 'DELL'] },
       { name: "Body parts", words: ['SHIN', 'LOBE', 'SHOULDER', 'TEMPLE'] },
     ],
+    reverseChecked: [
+      "Cricket fielding spots -> Small valleys",
+    ],
     collisions: [
       { word: 'COVER', reads: "Book jacket parts" },
       { word: 'GULLY', reads: "Small valleys" },
@@ -1135,6 +1225,9 @@ export const PUZZLES = [
       { name: "Seasons", words: ['SUMMER', 'AUTUMN', 'WINTER', 'MONSOON'] },
       { name: "Mattress parts", words: ['FOAM', 'TOPPER', 'SLAT', 'VALANCE'] },
       { name: "Disasters", words: ['FAMINE', 'DROUGHT', 'PLAGUE', 'WILDFIRE'] },
+    ],
+    reverseChecked: [
+      "Types of tide -> Disasters",
     ],
     collisions: [
       { word: 'SPRING', reads: "Seasons" },
@@ -1220,6 +1313,9 @@ export const PUZZLES = [
       { name: "Body organs", words: ['LIVER', 'KIDNEY', 'LUNG', 'SPLEEN'] },
       { name: "Garden tools", words: ['TROWEL', 'RAKE', 'HOE', 'DIBBER'] },
       { name: "Gemstones", words: ['OPAL', 'GARNET', 'TOPAZ', 'PERIDOT'] },
+    ],
+    reverseChecked: [
+      "Card suits -> Gemstones",
     ],
     collisions: [
       { word: 'HEARTS', reads: "Body organs" },
@@ -1340,6 +1436,9 @@ export const PUZZLES = [
       { name: "Castle parts", words: ['KEEP', 'MOAT', 'BAILEY', 'PORTCULLIS'] },
       { name: "Power stations", words: ['DIDCOT', 'DRAX', 'SIZEWELL', 'RATCLIFFE'] },
       { name: "Prince consorts", words: ['PHILIP', 'FERDINAND', 'CLAUS', 'HENDRIK'] },
+    ],
+    reverseChecked: [
+      "Thames bridges -> Castle parts",
     ],
     collisions: [
       { word: 'TOWER', reads: "Castle parts" },
