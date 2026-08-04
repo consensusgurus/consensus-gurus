@@ -504,7 +504,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="glyph" name="Glyph" collapsed={playing} />
+      <DailyChrome slug="glyph" name="Glyph" collapsed={playing && !!g.t0} />
       <div style={{ position: 'relative', zIndex: 2, padding: '14px 16px 8px' }}>
         <style>{`
           .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}

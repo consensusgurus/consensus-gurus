@@ -603,7 +603,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="feud" name="Feud" collapsed={playing} />
+      <DailyChrome slug="feud" name="Feud" collapsed={playing && !!g.t0} />
       <div className="fd-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.fd-wrap{padding-left:12px !important;padding-right:12px !important;}}

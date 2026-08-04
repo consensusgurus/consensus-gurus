@@ -629,7 +629,7 @@ export default function BabelClient({ puzzles, forceNum }) {
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="babel" name="Babel" collapsed={playing} />
+      <DailyChrome slug="babel" name="Babel" collapsed={playing && !!g.t0} />
       <div style={{ position: 'relative', zIndex: 2, padding: '18px 16px 0' }}>
         <style>{`
           .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${COLORS.ink};background:var(--white);border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}

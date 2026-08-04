@@ -828,7 +828,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="shards" name="Shards" collapsed={playing} />
+      <DailyChrome slug="shards" name="Shards" collapsed={playing && !!g.t0} />
       <div className="sh-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.sh-wrap{padding-left:10px !important;padding-right:10px !important;}}
