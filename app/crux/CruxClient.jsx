@@ -276,7 +276,8 @@ function freshState(puzzle) {
     present: {},         // slotId -> "ABC" letters known in word
     presentN: {},        // slotId -> { L: known minimum count of L in the word }
     absent: {},          // slotId -> "XYZ" letters known absent
-    lastGuess: {},       // slotId -> { word, marks[] }
+    lastGuess: {},       // slotId -> { word, marks[] } (latest entry of guessLog)
+    guessLog: {},        // slotId -> [{ word, marks[] }], every try on that word, oldest first
     assigned: {},        // WORD -> category index (correct filings only)
     order: [],           // slotIds in solve order
     filedRight: null,    // set by the single Lock-it-in: words correctly categorized
@@ -345,7 +346,16 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const wordSetRef = useRef(null);
+  const triesRef = useRef(null);
   const viewedRef = useRef(false);
+
+  // The tries list is height-capped so the board and keyboard still fit on one
+  // screen, so pin it to the newest try whenever one lands or the slot changes.
+  const triesCount = ((g.guessLog || {})[sel] || []).length;
+  useEffect(() => {
+    const el = triesRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [triesCount, sel]);
 
   // ---- persistence ----
   useEffect(() => {
@@ -353,7 +363,16 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1) setG({ ...freshState(PUZZLE), ...saved });
+        if (saved && saved.v === 1) {
+          const st = { ...freshState(PUZZLE), ...saved };
+          // saves written before the guess history existed carry only lastGuess
+          if (!st.guessLog || !Object.keys(st.guessLog).length) {
+            st.guessLog = Object.fromEntries(
+              Object.entries(st.lastGuess || {}).filter(([, v]) => v && v.word).map(([k, v]) => [k, [v]])
+            );
+          }
+          setG(st);
+        }
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
@@ -544,7 +563,13 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     g2.present = { ...g.present, [sel]: [...pres].join('') };
     g2.presentN = { ...(g.presentN || {}), [sel]: pn };
     g2.absent = { ...g.absent, [sel]: [...abs].join('') };
-    g2.lastGuess = { ...g.lastGuess, [sel]: { word: guess, marks } };
+    // Every try on a word stays on screen. A yellow proves the letter is in the
+    // word but NOT in that square, and that positional read is destroyed the
+    // moment an older guess is overwritten by a newer one, so the log keeps them
+    // all rather than showing only the most recent try.
+    const tryRec = { word: guess, marks };
+    g2.lastGuess = { ...g.lastGuess, [sel]: tryRec };
+    g2.guessLog = { ...(g.guessLog || {}), [sel]: [...((g.guessLog || {})[sel] || []), tryRec] };
 
     // reveal animation: every cell of the guessed slot flips in sequence, and
     // newly locked letters that also sit in an unsolved crossing slot pulse —
@@ -974,6 +999,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const kbColors = { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: T.muted } };
 
   const lastG = g.lastGuess[sel];
+  const tries = (g.guessLog || {})[sel] || (lastG ? [lastG] : []);
   const markColor = { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };
 
   // Shared rules body — rendered in both the how-to-play modal and the start tile.
@@ -1008,6 +1034,8 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
           .cl-key{border:none;font-family:${SANS};font-weight:800;cursor:pointer;border-radius:6px;padding:0;touch-action:manipulation;}
           .cl-grid > div{touch-action:manipulation;}
           .cl-key:active{transform:scale(0.94);}
+          .cx-tries{display:flex;flex-direction:column;gap:4px;max-height:126px;overflow-y:auto;scrollbar-width:thin;}
+          @media(max-width:560px){.cx-tries{max-height:96px;}}
           .cl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cl-btn:hover{background:var(--accent-soft);}
           .cx-cur{position:relative;}
@@ -1159,17 +1187,29 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
 
-          {/* last guess feedback for this slot */}
-          {started && lastG && !g.solved[sel] && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded, marginRight: 4 }}>Last try</span>
-              {lastG.word.split('').map((ch, i) => {
-                const mc = markColor[lastG.marks[i]];
-                return <span key={i} style={{ width: 26, height: 26, borderRadius: 5, background: mc.bg, color: mc.fg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>{ch}</span>;
-              })}
-              <span style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 700, marginLeft: 6 }}>
-                {presentUnplaced ? <>in word: <b style={{ color: '#8a6d1a' }}>{presentUnplaced.split('').join(' ')}</b></> : null}
-              </span>
+          {/* every try on this slot, oldest first — see the guessLog note in submit() */}
+          {started && tries.length > 0 && !g.solved[sel] && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded }}>
+                  {tries.length === 1 ? 'Your try' : `Your ${tries.length} tries`}
+                </span>
+                {presentUnplaced ? (
+                  <span style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 700 }}>
+                    in word: <b style={{ color: '#8a6d1a' }}>{presentUnplaced.split('').join(' ')}</b>
+                  </span>
+                ) : null}
+              </div>
+              <div className="cx-tries" ref={triesRef}>
+                {tries.map((t, ti) => (
+                  <div key={ti} style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', opacity: ti === tries.length - 1 ? 1 : 0.66 }}>
+                    {t.word.split('').map((ch, i) => {
+                      const mc = markColor[t.marks[i]] || markColor.x;
+                      return <span key={i} style={{ width: 26, height: 26, borderRadius: 5, background: mc.bg, color: mc.fg, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>{ch}</span>;
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
