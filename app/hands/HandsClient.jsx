@@ -189,22 +189,36 @@ function CardFace({ card, size = 'md', dim = false }) {
   );
 }
 
-// A line's score chip. `pending` lines show a dot rather than a zero, because a
-// line that is still filling has not busted, it just is not a hand yet.
-function ScoreChip({ value, complete, small }) {
+// Every counter on the board is the SAME square, whether it totals a row, a
+// column, or the whole grid. They used to inherit their track's size, which made
+// the row counters tall cards and the column counters short bars: two different
+// shapes for one identical job, and the tall column pushed the board out past
+// the felt. CHIP is the one number that governs them.
+const CHIP = 26;
+
+// A line's counter. A line that is still filling shows a dot rather than a zero,
+// because it has not busted yet, it just is not a hand yet.
+function ScoreChip({ value, complete, total }) {
   const premium = complete && value >= 10;
   const made = complete && value > 0;
+  const bg = total ? 'rgba(255,255,255,0.9)' : premium ? '#f7e2b0' : made ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.14)';
+  const bd = total ? 'rgba(255,255,255,0.9)' : premium ? '#c99a2e' : made ? 'rgba(20,22,28,0.18)' : 'rgba(255,255,255,0.22)';
+  const fg = total ? COLORS.accent : premium ? '#7a5305' : made ? COLORS.ink : 'rgba(255,255,255,0.62)';
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: premium ? '#f7e2b0' : made ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.14)',
-      border: `1px solid ${premium ? '#c99a2e' : made ? 'rgba(20,22,28,0.18)' : 'rgba(255,255,255,0.22)'}`,
-      borderRadius: 5, fontFamily: MONO, fontWeight: 500,
-      fontSize: small ? 11 : 12,
-      color: premium ? '#7a5305' : made ? COLORS.ink : 'rgba(255,255,255,0.62)',
-      width: '100%', height: '100%',
+      background: bg, border: `1px solid ${bd}`, borderRadius: 5,
+      fontFamily: MONO, fontWeight: total ? 700 : 500, fontSize: 12, color: fg,
+      width: CHIP, height: CHIP, flex: 'none',
     }}>{complete ? value : '·'}</div>
   );
+}
+
+// Centers a counter inside whatever track it lands in, so the column counters
+// under a full-width cell and the row counters in the narrow last track are the
+// same box in the same place.
+function ChipCell({ children }) {
+  return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{children}</div>;
 }
 
 export default function HandsClient({ puzzles = [], forceNum = null }) {
@@ -237,6 +251,9 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
   }, [g.placed]);
 
   const scores = useMemo(() => lineScores(grid), [grid]);
+  // The reveal board is fixed for the day, so score it once rather than on every
+  // tick of the clock.
+  const bestScores = useMemo(() => lineScores(PUZZLE.best), [PUZZLE]);
   const rowFull = useMemo(() => [0, 1, 2, 3, 4].map((i) => rowCells(grid, i).every((c) => c != null)), [grid]);
   const colFull = useMemo(() => [0, 1, 2, 3, 4].map((j) => colCells(grid, j).every((c) => c != null)), [grid]);
 
@@ -467,7 +484,11 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           .hd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .hd-tool:disabled{opacity:0.4;cursor:default;}
           .hd-felt{background:${FELT};border:10px solid ${FELT_EDGE};border-radius:12px;padding:13px 12px 15px;touch-action:manipulation;}
-          .hd-board{display:grid;grid-template-columns:repeat(5,1fr) 0.62fr;gap:6px;}
+          /* minmax(0,1fr) on the card tracks, NOT 1fr: a bare 1fr floors at the
+             cell's min-content width, so the five card columns refused to shrink
+             and pushed the counter track out through the felt's right border.
+             The counter track is a fixed CHIP px, so it never competes for space. */
+          .hd-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) ${CHIP}px;gap:6px;align-items:center;width:100%;}
           .hd-cell{transition:transform .1s ease;}
           .hd-cell:active{transform:translateY(1px);}
           .hd-offer{animation:hdpop .18s ease;}
@@ -556,13 +577,13 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
                         </button>
                       );
                     })}
-                    <div style={{ aspectRatio: '0.78' }}><ScoreChip value={scores[r]} complete={rowFull[r]} /></div>
+                    <ChipCell><ScoreChip value={scores[r]} complete={rowFull[r]} /></ChipCell>
                   </React.Fragment>
                 ))}
                 {Array.from({ length: 5 }).map((_, c) => (
-                  <div key={`c${c}`} style={{ height: 24 }}><ScoreChip value={scores[5 + c]} complete={colFull[c]} small /></div>
+                  <ChipCell key={`c${c}`}><ScoreChip value={scores[5 + c]} complete={colFull[c]} /></ChipCell>
                 ))}
-                <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 12, fontWeight: 500, color: T.white }}>{total}</div>
+                <ChipCell><ScoreChip value={total} complete total /></ChipCell>
               </div>
             </div>
           </div>
@@ -582,13 +603,13 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
                           {Array.from({ length: 5 }).map((_, c) => (
                             <div key={`b${r}${c}`} style={{ aspectRatio: '0.78' }}><CardFace card={PUZZLE.best[r * 5 + c]} dim /></div>
                           ))}
-                          <div style={{ aspectRatio: '0.78' }}><ScoreChip value={lineScores(PUZZLE.best)[r]} complete /></div>
+                          <ChipCell><ScoreChip value={bestScores[r]} complete /></ChipCell>
                         </React.Fragment>
                       ))}
                       {Array.from({ length: 5 }).map((_, c) => (
-                        <div key={`bc${c}`} style={{ height: 24 }}><ScoreChip value={lineScores(PUZZLE.best)[5 + c]} complete small /></div>
+                        <ChipCell key={`bc${c}`}><ScoreChip value={bestScores[5 + c]} complete /></ChipCell>
                       ))}
-                      <div style={{ height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 12, fontWeight: 500, color: T.white }}>{PUZZLE.ceiling}</div>
+                      <ChipCell><ScoreChip value={PUZZLE.ceiling} complete total /></ChipCell>
                     </div>
                   </div>
                   <div style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, marginTop: 8, lineHeight: 1.5 }}>

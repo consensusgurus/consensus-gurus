@@ -3077,7 +3077,7 @@ cap of 400 on 26 of 62 boards, two Glyph boards that admit two valid letter mapp
 Glyph board that is 15x14 on a 15x15 day, Rung opening with the same two words on 39% of
 its days, Listed running History 2:1 against its own promised alternation, Four spelling
 "defence" on 13 boards. None of it was exotic. All of it was mechanically checkable and
-nobody had written the check. These eleven rules are how that stops.
+nobody had written the check. These twelve rules are how that stops.
 
 1. **A rule that is not written down is not a rule.** Every game states its authoring
    rules in the header comment of `app/<game>/puzzles.js`: what each field means, what
@@ -3124,6 +3124,36 @@ nobody had written the check. These eleven rules are how that stops.
 
 11. **A floor is not a target, and a rule retrofit sweeps to the last day of the bank.**
     The full version is the next section.
+
+12. **A new game ships BOTH pieces of tile art, because the missing one fails
+    silently.** Every daily needs `public/games/btn-<key>.png` (76x76 RGBA, the
+    full-colour drawing) AND `public/games/blue/btn-<key>.png`, the same drawing
+    remapped onto the brand blue ramp. The blue copy is what the HOMEPAGE uses:
+    `blueTile()` in `app/DailyStrip.jsx` rewrites `/games/btn-` to
+    `/games/blue/btn-` for the slate rows and both cap tiles, so the home surface
+    reads as one palette instead of forty-four. **`tileFallback` then quietly
+    swaps a missing blue file back to the full-colour original, so there is no
+    broken image and no error: the only symptom is one garish tile in a blue
+    table, which is exactly how Hands shipped on 2026-08-04.** Do not rely on
+    noticing it. Ship both files, and check the homepage after deploying, not
+    just the game page.
+
+    Making the blue copy: keep the drawing identical and remap the palette, do
+    not re-draw. The family in use runs the whole blue ramp rather than one
+    value, so each game stays tellable apart: a deep navy ground (`#16306e`,
+    `#182f71`) or a mid blue (`#214bb2`, `#245edf`) or a pale ground
+    (`#c2ddfe`, `#cbe2fe`), with the drawing's light parts going to
+    `#dbe9ff`/`#e8f2ff` and its dark parts to `#0f1f4d`/`#10214f`. Where the
+    original uses two accent colours to carry meaning, map them to two DIFFERENT
+    blue steps rather than collapsing both (Hands keeps its black suits at
+    `#0f1f4d` and its red suits at `#4a8cf0` so the pips still read as two
+    colours). Pick a ground that is not already worn by a game sitting next to it
+    in the same category on the slate.
+
+    The same "silent fallback" reasoning applies to `/games/tile/<key>.png`, the
+    archive art in `app/daily/DailyArchiveClient.jsx`, which falls back to the
+    button PNG and then to a letter. That one is genuinely optional; the blue
+    tile is not.
 
 ### Extending a puzzle bank in bulk (the "bank to N days" job)
 
