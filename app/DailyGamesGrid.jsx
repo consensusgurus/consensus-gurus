@@ -88,6 +88,7 @@ const GAMES = [
   { key: 'streak', href: '/streak', name: 'Streak', tag: 'Forty questions, one life', img: '/games/btn-streak.png' },
   { key: 'feud', href: '/feud', name: 'Feud', tag: 'Match the crowd', img: '/games/btn-feud.png' },
   { key: 'babel', href: '/babel', name: 'Babel', tag: 'The bag is empty', img: '/games/btn-babel.png' },
+  { key: 'chain', href: '/chain', name: 'Chain', tag: 'Take them, or leave them', img: '/games/btn-chain.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -103,7 +104,7 @@ const CATEGORIES = [
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['streak', 'bracket', 'listed'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'park', 'fib'] },
-  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'babel'] },
+  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'babel', 'chain'] },
   { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
 ];
 

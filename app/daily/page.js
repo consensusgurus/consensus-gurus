@@ -42,6 +42,7 @@ import { PUZZLES as FIB_FULL } from '../fib/puzzles';
 import { PUZZLES as STREAK_FULL } from '../streak/puzzles';
 import { PUZZLES as FEUD_FULL } from '../feud/puzzles';
 import { PUZZLES as BABEL_FULL } from '../babel/puzzles';
+import { PUZZLES as CHAIN_FULL } from '../chain/puzzles';
 import { PUZZLES as HANDS_FULL } from '../hands/puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -82,6 +83,7 @@ const STREAK = STREAK_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 // Feud's bank carries the canonical buckets + house pools — same strip.
 const FEUD = FEUD_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BABEL = BABEL_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const CHAIN = CHAIN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HANDS = HANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
@@ -170,6 +172,7 @@ const GAMES = [
   { key: 'feud', name: 'Feud', path: '/feud', tag: 'Match the crowd', accent: '#9f1239', bg: '#fdf0f3', border: 'rgba(159,18,57,0.4)', src: FEUD },
   { key: 'babel', name: 'Babel', path: '/babel', tag: 'The bag is empty', accent: '#14532d', bg: '#e9f2ec', border: 'rgba(20,83,45,0.4)', src: BABEL },
   { key: 'hands', name: 'Hands', path: '/hands', tag: 'The daily poker solitaire', accent: '#7f1d1d', bg: '#f6eaea', border: 'rgba(127,29,29,0.4)', src: HANDS },
+  { key: 'chain', name: 'Chain', path: '/chain', tag: 'Take them, or leave them', accent: '#4a044e', bg: '#f6ecf8', border: 'rgba(74,4,78,0.4)', src: CHAIN },
 ];
 
 const breadcrumbJsonLd = {
