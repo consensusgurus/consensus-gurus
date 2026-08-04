@@ -1098,7 +1098,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         .sl-head .r,.sl-row .r{text-align:right;}
-        .sl-head .c{display:flex;align-items:center;justify-content:flex-start;text-align:left;}
+        .sl-head .c{display:flex;align-items:center;justify-content:center;text-align:center;}
         .sl-sort{display:inline-flex;align-items:center;gap:4px;border:0;border-radius:0;background:transparent;padding:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;white-space:nowrap;}
         .sl-sort svg{opacity:0;transition:opacity .12s;flex:none;}
         .sl-sort:hover{color:var(--accent);}
@@ -1118,21 +1118,21 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-cm{display:none;}
         .sl-mpl{display:none;font-style:normal;}
         .sl-mld{display:none;font-style:normal;}
-        .sl-cat{display:flex;}
+        .sl-cat{display:flex;justify-content:center;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
         .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;color:var(--muted);}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
         .sl-st.none{color:#c3c8d1;}
-        .sl-ld{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
+        .sl-ld{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
         .sl-ld svg{flex:none;color:var(--gold-ink);}
         .sl-ld span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .sl-nl{color:#8a93a3;}
-        .sl-status{display:flex;justify-content:flex-start;}
+        .sl-status{display:flex;justify-content:center;}
         .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
-        .sl-arch{display:flex;justify-content:flex-start;}
+        .sl-arch{display:flex;justify-content:center;}
         .sl-ab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:7px;padding:5px 9px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
         .sl-ab:hover{background:var(--accent-soft);}
         .sl-ab.on{background:var(--blue);border-color:var(--blue);color:var(--white);}
@@ -1429,8 +1429,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             {slate ? (
               <div className="sl-head" role="row">
                 <span />
-                {[['game', 'Game', ''], ['cat', 'Category', ''], ['players', 'Players', 'c'],
-                  ['streak', 'Streak', 'c'], ['leader', 'Leader', ''], ['status', 'Status', 'c'],
+                {[['game', 'Game', ''], ['cat', 'Category', 'c'], ['players', 'Players', 'c'],
+                  ['streak', 'Streak', 'c'], ['leader', 'Leader', 'c'], ['status', 'Status', 'c'],
                   ['archive', 'Archive & stats', 'c']].map(([key, label, cls]) => {
                   const on = sort && sort.key === key;
                   return (
