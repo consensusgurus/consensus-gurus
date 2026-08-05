@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
   ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays, Award,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
-import { DAILY_GAMES, dailyLabel } from '@/lib/daily-games';
+import { DAILY_GAMES, DAILY_DATED_RE, dailyLabel, dailyDept } from '@/lib/daily-games';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
 import QuizNavHeader from '../QuizNavHeader';
@@ -556,9 +556,27 @@ export default function StatHubClient() {
     fetch('/api/quiz/daily-combined?' + qs.toString()).then((r) => r.json()).then((d) => { if (d && Array.isArray(d.overall)) setDailyToday(d); }).catch(() => {});
   }, []);
 
-  const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
+  const staticCatalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
     id: q.id, title: q.navTitle || cleanTitle(q.title) || q.id, dept: deptOf(q),
   })), []);
+  // Daily puzzles publish a fresh dated instance ('<key>-M-D-YY') each day. Those
+  // days were hand-seeded into QUIZZES, and every game's seed eventually ran out
+  // (crux stopped at 8/2/26, links at 7/25, and 15 games were never seeded at all).
+  // Because this table joins FROM the catalog, a day past its cutoff vanished from
+  // All Quizzes even though its plays were in /api/quiz/stats the whole time. So
+  // derive any dated daily the catalog is missing from the stats payload instead:
+  // each day keeps its own row, and the bank can never expire again.
+  const catalog = useMemo(() => {
+    const seen = new Set(staticCatalog.map((q) => q.id));
+    const extra = [];
+    for (const s of stats) {
+      const id = s && s.quizId;
+      if (!id || seen.has(id) || !DAILY_DATED_RE.test(id)) continue;
+      seen.add(id);
+      extra.push({ id, title: dailyLabel(id) || id, dept: dailyDept(id) });
+    }
+    return extra.length ? staticCatalog.concat(extra) : staticCatalog;
+  }, [staticCatalog, stats]);
   const titleById = useMemo(() => Object.fromEntries(catalog.map((q) => [q.id, q.title])), [catalog]);
 
   const cats = useMemo(() => {

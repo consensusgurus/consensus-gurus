@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { quizDept as deptOf, DEPT_LABEL } from '@/lib/quiz-departments';
+import { DAILY_DATED_RE, dailyLabel, dailyDept } from '@/lib/daily-games';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import Count from '../../Count';
@@ -51,10 +52,21 @@ export default function QuizStatsClient() {
     return m;
   }, []);
 
+  // A daily puzzle publishes a fresh dated instance ('<key>-M-D-YY') each day, and
+  // those days only exist in QUIZZES up to a per-game hand-seeded cutoff. Past the
+  // cutoff there is no entry, so the plain metaById lookup dropped the row entirely.
+  // Fall back to the daily roster so every day keeps its own row.
+  const metaFor = (id) => {
+    const m = metaById[id];
+    if (m) return m;
+    if (!DAILY_DATED_RE.test(id || '')) return null;
+    return { title: dailyLabel(id) || id, dept: DEPT_LABEL[dailyDept(id)] || 'Quiz' };
+  };
+
   const rows = useMemo(() => {
     const withMeta = stats
-      .filter((s) => metaById[s.quizId]) // only quizzes that still exist
-      .map((s) => ({ ...s, title: metaById[s.quizId].title, dept: metaById[s.quizId].dept }));
+      .map((s) => { const m = metaFor(s.quizId); return m ? { ...s, title: m.title, dept: m.dept } : null; })
+      .filter(Boolean); // drop ids that are neither a live quiz nor a dated daily
     const sign = dir === 'asc' ? 1 : -1;
     return withMeta.sort((a, b) => {
       const av = a[sortBy] == null ? -1 : a[sortBy];
