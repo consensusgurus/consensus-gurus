@@ -120,26 +120,56 @@ export default function ContestBoard() {
       <div style={card}>
         <h2 style={{ fontSize: 17, fontWeight: 800, margin: '0 0 2px', letterSpacing: '-.01em', color: T.ink }}>Leaderboard</h2>
         <p style={{ fontSize: 12.5, color: T.slate, margin: '0 0 12px' }}>{COPY.formulaLine}</p>
-        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        {/* Responsive via CSS, not a JS breakpoint hook: the table must be
+            correct in the very first paint, and a hook would render the desktop
+            layout once before correcting itself.
+
+            The bug this fixes: tableLayout:'fixed' with five fixed columns
+            (38+74+84+64+74 = 334px) left about 5px for the name on a 375px
+            phone, so the username was invisible. Under 640px the three
+            breakdown columns are dropped from the row and reappear as a line
+            under the name, which is also how the community page shows them. */}
+        <style>{`
+          .cb-tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+          .cb-tbl td,.cb-tbl th{padding:9px 0;}
+          .cb-rk{width:38px;font-size:13px;font-weight:800;}
+          .cb-nm{font-size:13.5px;font-weight:600;color:${T.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+          .cb-tbl tr.lead .cb-nm{font-weight:800;}
+          .cb-n{width:74px;font-size:13px;color:${T.muted};text-align:right;}
+          .cb-n.wide{width:84px;}
+          .cb-n.narrow{width:64px;}
+          .cb-sc{width:74px;font-size:13.5px;font-weight:800;color:${T.ink};text-align:right;}
+          .cb-sub{display:none;margin-top:2px;font-size:11.5px;font-weight:600;color:${T.slate};white-space:normal;}
+          @media(max-width:640px){
+            .cb-hide{display:none;}
+            .cb-nm{white-space:normal;}
+            .cb-sub{display:block;}
+            .cb-sc{width:64px;}
+          }
+        `}</style>
+        <table className="cb-tbl">
           <thead>
             <tr>
-              <th style={{ ...th, textAlign: 'left', width: 38 }}>#</th>
+              <th className="cb-rk" style={{ ...th, textAlign: 'left' }}>#</th>
               <th style={{ ...th, textAlign: 'left' }}>Player</th>
-              <th style={{ ...th, width: 74 }}>Players</th>
-              <th style={{ ...th, width: 84 }}>Sessions</th>
-              <th style={{ ...th, width: 64 }}>Plays</th>
-              <th style={{ ...th, width: 74 }}>Score</th>
+              <th className="cb-n cb-hide" style={th}>Players</th>
+              <th className="cb-n wide cb-hide" style={th}>Sessions</th>
+              <th className="cb-n narrow cb-hide" style={th}>Plays</th>
+              <th className="cb-sc" style={th}>Score</th>
             </tr>
           </thead>
           <tbody>
             {board.map((r, i) => (
-              <tr key={r.refCode || i} style={{ borderTop: '1px solid #eef1f5' }}>
-                <td style={{ padding: '9px 0', fontSize: 13, fontWeight: 800, color: i < 3 ? MEDAL[i] : T.slate }}>{i + 1}</td>
-                <td style={{ padding: '9px 0', fontSize: 13.5, fontWeight: i === 0 ? 800 : 600, color: T.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.username}</td>
-                <td style={{ padding: '9px 0', fontSize: 13, color: T.muted, textAlign: 'right' }}>{r.users}</td>
-                <td style={{ padding: '9px 0', fontSize: 13, color: T.muted, textAlign: 'right' }}>{r.sessions}</td>
-                <td style={{ padding: '9px 0', fontSize: 13, color: T.muted, textAlign: 'right' }}>{r.plays}</td>
-                <td style={{ padding: '9px 0', fontSize: 13.5, fontWeight: 800, color: T.ink, textAlign: 'right' }}>{formatScore(r.score)}</td>
+              <tr key={r.refCode || i} className={i === 0 ? 'lead' : undefined} style={{ borderTop: '1px solid #eef1f5' }}>
+                <td className="cb-rk" style={{ color: i < 3 ? MEDAL[i] : T.slate }}>{i + 1}</td>
+                <td>
+                  <div className="cb-nm">{r.username}</div>
+                  <div className="cb-sub">{r.users} players · {r.sessions} sessions · {r.plays} plays</div>
+                </td>
+                <td className="cb-n cb-hide">{r.users}</td>
+                <td className="cb-n wide cb-hide">{r.sessions}</td>
+                <td className="cb-n narrow cb-hide">{r.plays}</td>
+                <td className="cb-sc">{formatScore(r.score)}</td>
               </tr>
             ))}
             {!board.length ? (
