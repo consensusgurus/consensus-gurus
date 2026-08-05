@@ -149,7 +149,30 @@ export async function POST(request) {
       return NextResponse.json({ error: 'db error moving results' }, { status: 500 });
     }
 
-    // 2. The step that actually gives the player their account back.
+    // 2. FREE THE anon_id BEFORE CLAIMING IT. quiz_users.anon_id is unique, so
+    //    assigning the duplicate's anon_id to the kept account while the duplicate
+    //    still holds it violates the constraint. Doing this in the other order is
+    //    what failed on the first live run: the results had already moved, so the
+    //    history was safe, but the player stayed locked out.
+    let removed = false;
+    const { error: dErr } = await supabaseAdmin.from('quiz_users').delete().eq('id', from.id);
+    if (dErr) {
+      console.error('quiz-user-merge delete error', dErr);
+      warnings.push(`Could not delete the absorbed row (${dErr.message}); clearing its anon_id instead.`);
+      const { error: cErr } = await supabaseAdmin.from('quiz_users').update({ anon_id: null }).eq('id', from.id);
+      if (cErr) {
+        console.error('quiz-user-merge anon clear error', cErr);
+        return NextResponse.json({
+          error: 'db error freeing the duplicate anon_id; results were moved but access is NOT restored',
+          movedResults: (moved || []).length,
+        }, { status: 500 });
+      }
+    } else {
+      removed = true;
+    }
+
+    // 3. Now the kept account can take it. This is the step that actually gives
+    //    the player their account back: resolveQuizIdentity looks up by anon_id.
     const patch = {};
     if (from.anon_id) patch.anon_id = from.anon_id;
     if (!into.email && from.email) patch.email = from.email;
@@ -157,11 +180,17 @@ export async function POST(request) {
       const { error: pErr } = await supabaseAdmin.from('quiz_users').update(patch).eq('id', into.id);
       if (pErr) {
         console.error('quiz-user-merge kept-account patch error', pErr);
-        return NextResponse.json({ error: 'db error updating the kept account', movedResults: (moved || []).length }, { status: 500 });
+        // The duplicate is already gone, so say plainly what still needs doing.
+        return NextResponse.json({
+          error: 'db error updating the kept account. Results moved and the duplicate is gone, but the anon_id was NOT reassigned.',
+          setThisAnonIdOnKeptAccountManually: from.anon_id,
+          keptAccountId: into.id,
+          movedResults: (moved || []).length,
+        }, { status: 500 });
       }
     }
 
-    // 3. Duels keep their own copy of each side's display name.
+    // 4. Duels keep their own copy of each side's display name.
     let duelsRenamed = 0;
     for (const nameCol of ['challenger_name', 'opponent_name']) {
       const { data: sel } = await supabaseAdmin.from('quiz_duels').select(`id, ${nameCol}`).ilike(nameCol, from.username || '');
@@ -171,19 +200,6 @@ export async function POST(request) {
         .from('quiz_duels').update({ [nameCol]: into.username }).in('id', ids).select('id');
       if (error) console.error('quiz-user-merge duel rename error', nameCol, error);
       else duelsRenamed += (data || []).length;
-    }
-
-    // 4. Remove the duplicate so its display name is free and it can never
-    //    capture the browser again. If a constraint blocks the delete, at least
-    //    strip the anon_id so the player still resolves to the kept account.
-    let removed = false;
-    const { error: dErr } = await supabaseAdmin.from('quiz_users').delete().eq('id', from.id);
-    if (dErr) {
-      console.error('quiz-user-merge delete error', dErr);
-      warnings.push(`Could not delete the absorbed row (${dErr.message}); cleared its anon_id instead.`);
-      await supabaseAdmin.from('quiz_users').update({ anon_id: null }).eq('id', from.id);
-    } else {
-      removed = true;
     }
 
     // 5. The gzipped cross-instance row cache embeds usernames, and an in-place
