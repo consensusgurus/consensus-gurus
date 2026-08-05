@@ -1,7 +1,9 @@
-// Draw the 76x76 daily tile art for Chain and Hold, in both the full-colour and
-// the brand-blue palette, and write them straight to public/games.
+// Draw the 76x76 daily tile art for Chain, Hold and Turn, in both the
+// full-colour and the brand-blue palette, and write them straight to
+// public/games.
 //
-// Both games are geometric (a dots-and-boxes fragment, a chessboard corner), so
+// All three are geometric (a dots-and-boxes fragment, a chessboard corner, an
+// Othello board fragment), so
 // the drawing is done procedurally at 4x and box-filtered down rather than
 // exported from a design tool. That keeps the two palettes pixel-identical in
 // shape, which is exactly what rule 12 of the daily puzzle authoring standard
@@ -178,6 +180,35 @@ function drawHold(p) {
   return c;
 }
 
+// TURN: a 4x4 corner of an Othello board, discs on most of it, one empty square
+// carrying the small marker that means "you can play here". The two disc
+// colours are the whole game, so they map to two different steps in both
+// palettes rather than collapsing into one.
+function drawTurn(p) {
+  const c = canvas();
+  roundRect(c, 0, 0, S, S, 16, hex(p.ground));
+  const o = 13, cell = 12.5, gap = 1.4;
+  // 1 = your disc, 2 = the engine's, 0 = empty, 9 = empty with a marker.
+  const GRID = [
+    [2, 1, 1, 1],
+    [1, 1, 2, 1],
+    [1, 2, 2, 9],
+    [0, 1, 2, 2],
+  ];
+  for (let r = 0; r < 4; r++) {
+    for (let f = 0; f < 4; f++) {
+      const x = o + f * cell, y = o + r * cell;
+      roundRect(c, x, y, cell - gap, cell - gap, 1.5, hex(p.felt));
+      const cx = x + (cell - gap) / 2, cy = y + (cell - gap) / 2;
+      const v = GRID[r][f];
+      if (v === 1) disc(c, cx, cy, (cell - gap) * 0.36, hex(p.dark));
+      else if (v === 2) disc(c, cx, cy, (cell - gap) * 0.36, hex(p.light));
+      else if (v === 9) disc(c, cx, cy, (cell - gap) * 0.15, hex(p.light), 150);
+    }
+  }
+  return c;
+}
+
 const PALETTES = {
   chain: {
     colour: { ground: '#4a044e', line: '#f6eef8', claim: '#c084fc', ghost: '#f6eef8' },
@@ -187,8 +218,15 @@ const PALETTES = {
     colour: { ground: '#0c4a6e', line: '#e8f2ff', claim: '#7dd3fc', ghost: '#e8f2ff' },
     blue: { ground: '#214bb2', line: '#e8f2ff', claim: '#0f1f4d', ghost: '#e8f2ff' },
   },
+  // Turn's roles are the board and its two disc colours. The blue copy takes a
+  // PALE ground on purpose: Chain sits beside it in the End Game category and
+  // wears the deep navy, so the two tiles have to be tellable apart at 76px.
+  turn: {
+    colour: { ground: '#226218', felt: '#4c8a41', dark: '#12140f', light: '#f2efe4' },
+    blue: { ground: '#c2ddfe', felt: '#245edf', dark: '#0f1f4d', light: '#e8f2ff' },
+  },
 };
-const DRAW = { chain: drawChain, hold: drawHold };
+const DRAW = { chain: drawChain, hold: drawHold, turn: drawTurn };
 
 mkdirSync('public/games/blue', { recursive: true });
 for (const key of Object.keys(DRAW)) {

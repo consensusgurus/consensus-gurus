@@ -2942,6 +2942,7 @@ archive and hub chips use the short form `Sun`.
 | Alibi | five suspects instead of four, 15 facts to confirm (from 2026-07-26) |
 | Warmer | a rarer secret word, deeper in the frequency-ordered vocab (from 2026-07-26) |
 | Links | four cross-category collisions instead of two (from 2026-07-26) |
+| Turn | twelve empty squares instead of ten (from 2026-08-05) |
 
 **All twenty dailies now run a Sunday Edition.** A new daily game should decide at launch
 whether it has one (see "Adding a BRAND NEW daily game" below).
@@ -3131,7 +3132,7 @@ nobody had written the check. These twelve rules are how that stops.
     remapped onto the brand blue ramp. The blue copy is what the HOMEPAGE uses:
     `blueTile()` in `app/DailyStrip.jsx` rewrites `/games/btn-` to
     `/games/blue/btn-` for the slate rows and both cap tiles, so the home surface
-    reads as one palette instead of forty-four. **`tileFallback` then quietly
+    reads as one palette instead of forty-five. **`tileFallback` then quietly
     swaps a missing blue file back to the full-colour original, so there is no
     broken image and no error: the only symptom is one garish tile in a blue
     table, which is exactly how Hands shipped on 2026-08-04.** Do not rely on
