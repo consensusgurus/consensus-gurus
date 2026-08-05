@@ -33,6 +33,7 @@ import Footer from '../Footer';
 import { withRef } from '@/lib/referrals';
 import { savedIdentity } from '@/lib/saved-identity';
 import { T } from '@/lib/theme';
+import SigninHelp, { isLockedOut } from '../SigninHelp';
 import { catBlue, deptBlue } from '@/lib/home-blues';
 import MindLoftMark from '../MindLoftMark';
 
@@ -354,6 +355,7 @@ function SignupModal({ onClose }) {
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+        <SigninHelp name={u} email={em} prominent={isLockedOut(err)} />
       </div>
     </div>
   );

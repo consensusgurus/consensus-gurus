@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { T } from '@/lib/theme';
+import SigninHelp, { isLockedOut } from '../SigninHelp';
 
 // Shared "claim your name" modal for the duel flow. A duel name is NOT free
 // text: signed-in players use their registered display name, and guests must
@@ -42,6 +43,7 @@ export default function DuelSignup({ anonId, onDone, onClose }) {
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
           <button onClick={onClose} style={{ flex: '0 0 auto', background: T.white, color: C.muted, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
           <button onClick={submit} disabled={busy} style={{ flex: '1 1 auto', background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Claiming...' : 'Claim name & continue'}</button>
+          <SigninHelp name={u} email={em} prominent={isLockedOut(err)} />
         </div>
       </div>
     </div>

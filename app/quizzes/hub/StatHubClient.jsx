@@ -14,6 +14,7 @@ import Footer from '../../Footer';
 import { withRef } from '@/lib/referrals';
 import { Metric, CategoryView, ActivityFeed, XpPanel, TrophyCase } from '../../player/ProfileShared';
 import { T } from '@/lib/theme';
+import SigninHelp, { isLockedOut } from '../../SigninHelp';
 import MindLoftMark from '../../MindLoftMark';
 
 const C = {
@@ -105,6 +106,7 @@ function SignupModal({ onClose }) {
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+        <SigninHelp name={u} email={em} prominent={isLockedOut(err)} />
       </div>
     </div>
   );

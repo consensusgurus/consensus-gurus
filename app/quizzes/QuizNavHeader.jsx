@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import QuizCommandHeader from './QuizCommandHeader';
 import { T } from '@/lib/theme';
+import SigninHelp, { isLockedOut } from '../SigninHelp';
 
 // Self-contained command-bar header for the inner quiz surfaces (individual
 // quiz boards, Challenge, Duel, Business News, Community, Stat Hub, player
@@ -69,6 +70,7 @@ function SignupModal({ onClose }) {
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: ACCENT, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: 'inherit', fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+        <SigninHelp name={u} email={em} prominent={isLockedOut(err)} />
       </div>
     </div>
   );

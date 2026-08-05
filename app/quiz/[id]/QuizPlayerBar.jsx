@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BadgeCheck, UserPlus, ChevronDown, ArrowRight, X, Crown, Medal } from 'lucide-react';
 import { DEPT_LABEL } from '@/lib/quiz-departments';
 import { T } from '@/lib/theme';
+import SigninHelp, { isLockedOut } from '../../SigninHelp';
 
 const ACCENT=T.accent, INK=T.ink, MUTED=T.muted, SOFT=T.silver, LINE='rgba(20,22,28,0.30)';
 const BARBG='#1e3a8a', ONBLUE=T.white, ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
@@ -55,6 +56,7 @@ function SignupModal({ onClose }){
         <input value={u} onChange={e=>setU(e.target.value)} placeholder="Display name" maxLength={15} autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp}/>
         <input value={em} onChange={e=>setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{...inp,marginTop:10}}/>
         <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background: T.cta, color: T.ctaInk,border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>
+        <SigninHelp name={u} email={em} prominent={isLockedOut(err)} />
       </div>
     </div>
   );
