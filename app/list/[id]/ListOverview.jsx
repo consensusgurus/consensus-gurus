@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { MapPin, Globe, Camera, ArrowLeft, Eye, PenLine, Share2, ShoppingBag, ExternalLink, Play, Clock } from 'lucide-react';
 import { useSampledBg } from '@/lib/useSampledBg';
 import { DESCRIPTIONS } from '@/lib/descriptions';
+import { SITE_HOST } from '@/lib/site';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources, buildItemLink } from '@/lib/helpers';
 import Count from '@/app/Count';
@@ -816,7 +817,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
       {/* Masthead */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${T.ink}`, paddingBottom: 14, marginBottom: compact ? 20 : 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: T.ink }}>
         <span style={{ fontWeight: 600 }}>Source of Truths</span>
-        <span style={{ color: T.slate, fontSize: 11 }}>sourceoftruths.com</span>
+        <span style={{ color: T.slate, fontSize: 11 }}>{SITE_HOST}</span>
       </div>
 
       {/* Header (same composition as the live list page) */}
@@ -902,7 +903,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
       {/* Footer */}
       <div style={{ marginTop: compact ? 20 : 28, borderTop: `2px solid ${T.ink}`, paddingTop: 14, display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.slate }}>
         <span>Consensus · {top3 ? 'Top 3' : `Top ${Math.min(items.length, 10)}`}</span>
-        <span>sourceoftruths.com/list/{list.id}</span>
+        <span>{SITE_HOST}/list/{list.id}</span>
       </div>
     </div>
   );

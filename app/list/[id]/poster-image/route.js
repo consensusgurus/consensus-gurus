@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { LISTS } from '@/lib/data';
+import { SITE_HOST } from '@/lib/site';
 import { HERO_IMAGES } from '@/lib/hero-images';
 import { getSources } from '@/lib/helpers';
 
@@ -163,7 +164,7 @@ function renderFallback(list, items, sans, mono, fonts) {
             ))}
           </div>
           <div style={{ display: 'flex', marginTop: 18, justifyContent: 'flex-end', fontFamily: mono, fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>
-            {`sourceoftruths.com/list/${list.id}`}
+            {`${SITE_HOST}/list/${list.id}`}
           </div>
         </div>
       ),
@@ -302,7 +303,7 @@ export async function GET(request, { params }) {
           </div>
           <div style={{ display: 'flex', flexShrink: 0, padding: '10px 56px 24px', justifyContent: 'space-between', fontFamily: mono, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.faded }}>
             <span style={{ maxWidth: 560, overflow: 'hidden', marginRight: 28 }}>{sourcesLine}</span>
-            <span>{`sourceoftruths.com/list/${list.id}`}</span>
+            <span>{`${SITE_HOST}/list/${list.id}`}</span>
           </div>
         </div>
       ),
