@@ -198,7 +198,7 @@ export default function ContestPop() {
 
           <div style={{ borderTop: `1px solid ${BORD}`, paddingTop: 13 }}>
             {row(Mail, BLUE, <><b style={{ color: INK, fontWeight: 800 }}>An email on your account is required</b> to be eligible and to get paid.</>)}
-            {row(Globe, BLUE, <>Open worldwide. Winners pick <b style={{ color: INK, fontWeight: 800 }}>Venmo, PayPal, bank transfer or gift card</b>.</>)}
+            {row(Globe, BLUE, <>Open worldwide. Winners <b style={{ color: INK, fontWeight: 800 }}>choose how to get paid</b> from the options available in their country.</>)}
             {row(Clock, BLUE, <>Ends <b style={{ color: INK, fontWeight: 800 }}>{CONTEST.deadlineLabel}</b>.</>)}
             {row(AlertTriangle, T.danger, <>Fake or spoofed accounts mean <b style={{ color: INK, fontWeight: 800 }}>disqualification</b>. Referrals are reviewed before payout.</>)}
           </div>
