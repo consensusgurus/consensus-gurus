@@ -9,10 +9,11 @@
 // rather than trying things.
 //
 // You play the whole line, not just the key: after your first move Black
-// answers with its stiffest defence and you have to finish the job. A move that
-// is not the winning one is refused and costs an error, so the board never
-// leaves the solution. Score is 10 minus two per error, floor 1, so a clean
-// solve is a perfect 10 and ties break on fewest errors then fastest time.
+// answers with its stiffest defence and you have to finish the job. ANY legal
+// move can be played and none of them are taken back: a move that is not the
+// key lands on the board and ends the puzzle there, because off the solution
+// tree there is no scripted defence left to answer with. Score is the outcome,
+// 10 for the mate and nothing otherwise, and ties break on fastest time.
 //
 // All chess rules live in ./chess.js, a small engine that skips castling, en
 // passant and promotion because the bank guarantees none is ever legal (that
@@ -290,7 +291,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const errors = g.errors;
-  const finalScore = won ? Math.max(1, Math.min(10, 10 - errors * 2)) : 0;
+  const finalScore = won ? 10 : 0;
   // Black's reply is appended a beat after White's move, so an odd move count
   // means the reply is still in flight and the board is not yours to touch.
   const awaitingReply = moves.length % 2 === 1;
@@ -460,7 +461,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   function postResult(g2, score) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.errors, won: g2.status === 'won' && g2.errors === 0 })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.errors, won: g2.status === 'won' })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
@@ -511,28 +512,33 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     const move = uci(from, to);
     const n = nodeAfter(PUZZLE.solution, cur.moves);
     const want = expectedWhite(n);
-    if (move !== want) {
-      // Refused: the board does not move, because every position after a losing
-      // move is off the solution tree and there would be nothing to play against.
-      const g2 = { ...cur, errors: cur.errors + 1 };
-      if (!g2.t0) g2.t0 = Date.now();
-      commit(g2);
-      setSel(null);
-      setShake((k) => k + 1);
-      vibrate(HAPT.wrong);
-      say(n && n.mate ? 'Not mate. Look for the move that ends it now.' : 'Black escapes that one. Try another move.');
-      return;
-    }
     const nextMoves = [...cur.moves, move];
     const g2 = { ...cur, moves: nextMoves };
     if (!g2.t0) g2.t0 = Date.now();
     setSel(null);
     setHintPiece(null);
+    if (move !== want) {
+      // Not the key. The move is played rather than refused, so you see what you
+      // did, and the puzzle ends right there: off the solution tree there is no
+      // scripted defence left to answer with, and missing the key is how this
+      // puzzle is lost. mateDistance/nodeAfter both return safely for the null
+      // node the off-book position produces, and the deferred Black reply is
+      // gated on `playing`, so nothing fires after the loss lands.
+      g2.status = 'lost';
+      g2.errors = cur.errors + 1;
+      g2.tEnd = Date.now();
+      vibrate(HAPT.wrong);
+      setShake((k) => k + 1);
+      postResult(g2, 0);
+      endHold.hold();
+      commit(g2);
+      return;
+    }
     if (n.mate) {
       g2.status = 'won';
       g2.tEnd = Date.now();
       vibrate(HAPT.win);
-      postResult(g2, Math.max(1, Math.min(10, 10 - g2.errors * 2)));
+      postResult(g2, 10);
       endHold.hold();
       commit(g2);
       return;
@@ -601,16 +607,6 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     setSel(null);
   }
 
-  function takeBack() {
-    const cur = gRef.current;
-    if (cur.status !== 'playing' || !cur.moves.length) return;
-    if (replyTimer.current) clearTimeout(replyTimer.current);
-    // Step back a whole move pair, so it is always White to move again.
-    const keep = cur.moves.length - (cur.moves.length % 2 === 1 ? 1 : 2);
-    commit({ ...cur, moves: cur.moves.slice(0, Math.max(0, keep)) });
-    setSel(null);
-  }
-
   // A replay deals the same board again with the clock already running. The start
   // tile exists to keep the FIRST attempt's timer honest; a replay never becomes
   // the recorded result, so re-reading the directions is pure friction.
@@ -648,7 +644,9 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head2 = won
       ? `Mate #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · mate in ${PUZZLE.mateIn} · ${errors === 0 ? 'first try' : `${errors} miss${errors === 1 ? '' : 'es'}`} · ${elapsed}${hintBit}${streakBit}`
-      : `Mate #${PUZZLE.num} · gave up`;
+      : g.status === 'lost'
+        ? `Mate #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · missed the key · ${elapsed}`
+        : `Mate #${PUZZLE.num} · gave up`;
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
   function copyShare() {
@@ -673,9 +671,9 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>You are <b>White</b>, and you move first. There is a forced <b>checkmate in {PUZZLE.mateIn}</b> moves on the board. <b>Tap one of your pieces</b>, and the squares it can legally reach light up. <b>Tap one</b> to play the move.</p>
-      <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> first move forces mate. Every other move on the board, however forcing it looks, lets Black wriggle out, so the puzzle is finding the key rather than trying things. A move that is not the winning one is <b>refused</b>, the board stays put, and it costs you an error.</p>
+      <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> first move forces mate. Every other move on the board, however forcing it looks, lets Black wriggle out. You may play <b>any legal move</b>, and there is <b>no take-back</b>: a move that does not force mate is played, and the puzzle ends there.</p>
       <p style={{ margin: '0 0 9px' }}>Play the whole line, not just the key. After your move Black answers with its best defence, and you have to <b>finish the job</b>{PUZZLE.mateIn > 2 ? ', twice over on a Sunday' : ''}. One free <b>hint</b>, on your first ever play, tells you which piece moves, never where it goes.</p>
-      <p style={{ margin: 0 }}>A <b>clean solve scores 10</b>, and every miss costs two, down to a floor of one. Ties break on fewest misses, then fastest time. Weekdays are mate in two, and <b>Sundays</b> step up to mate in three.</p>
+      <p style={{ margin: 0 }}>The <b>mate scores 10</b>, and missing it scores nothing, the same as giving up. Ties break on fastest time. Weekdays are mate in two, and <b>Sundays</b> step up to mate in three.</p>
     </div>
   );
 
@@ -726,7 +724,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Mate is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>White to play and force checkmate in {PUZZLE.mateIn}. Tap a piece, tap where it goes. Only one first move works.</p>
+                <p style={{ margin: '0 0 6px' }}>White to play and force checkmate in {PUZZLE.mateIn}. Tap a piece, tap where it goes. Only one first move works, and a wrong one ends it.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -799,7 +797,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
               {!playing
-                ? (won ? 'Checkmate.' : 'The solution is on the board.')
+                ? (won ? 'Checkmate.' : g.status === 'lost' ? `Not the move. ${PUZZLE.keySan} was the one.` : 'The solution is on the board.')
                 : awaitingReply
                   ? 'Black is thinking...'
                   : movesLeft <= 1
@@ -815,9 +813,6 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
 
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              <button className="mt-tool" onClick={takeBack} disabled={!moves.length} title="Step back to the start of the line" style={{ opacity: moves.length ? 1 : 0.4, cursor: moves.length ? 'pointer' : 'default' }}>
-                <RotateCcw size={14} /> Take back
-              </button>
               {hintOk && !g.hintUsed && (
                 <button className="mt-tool" onClick={useHint} title="Name the piece that moves (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(107,68,35,0.5)', color: '#5c3a1e' }}>
                   <Lightbulb size={14} /> Hint
@@ -831,7 +826,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-              Tap a white piece, then tap where it goes. Only one move forces mate.
+              Tap a white piece, then tap where it goes. There is no take-back.
             </span>
             <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
@@ -939,9 +934,10 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           modal
           self="mate"
           won={won}
-          headline={won ? <>Checkmate!</> : <>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
+          headline={won ? <>Checkmate!</> : g.status === 'lost' ? <>You missed it.</> : <>You scored 0%</>}
           subline={won
-            ? <>{finalScore}/10 &middot; {errors === 0 ? 'found it first try' : `${errors} miss${errors === 1 ? '' : 'es'}`} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            ? <>10/10 &middot; found the key &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            : g.status === 'lost' ? <>0/10 &middot; {PUZZLE.keySan} was the move</>
             : <>0/10 &middot; the winning line is on the board</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
@@ -978,7 +974,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           Mate is a free daily chess puzzle from Mind Loft. Every position has White to play and a forced checkmate, and your job is to find it. Tap a piece and its legal squares light up, so you never need to know chess notation to play.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Each board has exactly one first move that works, verified by two independent solvers, and the mate is in exactly the stated number of moves, never fewer. You play the line out to the end: Black answers your key move with its best defence and you have to finish. A move that does not force mate is refused rather than punished with a lost position, so the puzzle stays a puzzle.
+          Each board has exactly one first move that works, verified by two independent solvers, and the mate is in exactly the stated number of moves, never fewer. You play the line out to the end: Black answers your key move with its best defence and you have to finish. Any legal move can be played and none of them are taken back, so a move that does not force mate ends the puzzle then and there.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new position drops every day at midnight Eastern, and Sundays step up to a mate in three. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/etch" style={{ color: COLORS.ink, fontWeight: 800 }}>Etch</a>, our daily nonogram, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.

@@ -380,7 +380,8 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
-  const SCORE = { won: 10, lost: 1, gaveup: 0 };
+  // A loss scores nothing, the same as giving up: you either kept the win or you did not.
+  const SCORE = { won: 10, lost: 0, gaveup: 0 };
   function finish(g2, status) {
     const done = { ...g2, status, tEnd: Date.now() };
     if (!done.t0) done.t0 = Date.now();
@@ -558,7 +559,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>Boxes, picked up at the end. <b>Tap an edge</b> to draw it. Draw the fourth side of a box and you claim it and <b>go again</b>, so a good run keeps going. There are {PUZZLE.rows * PUZZLE.cols} boxes, an odd number, so somebody has to win.</p>
       <p style={{ margin: '0 0 9px' }}>You are already ahead on this board and exactly <b>one</b> edge keeps it. Here is the sting: a wrong edge is <b>not taken back</b>. The engine plays on and it is perfect, so once the win is gone it never comes back.</p>
       <p style={{ margin: '0 0 9px' }}>The trap is the free box. Taking every box in front of you is usually how you lose control, because whoever runs out of safe edges first has to open the next chain. Some days the right move is to hand two boxes back. Some days it is to take what is there. Read the board, not the habit. One free <b>hint</b>, on your first ever play, marks three edges, one of which wins.</p>
-      <p style={{ margin: 0 }}>Winning scores <b>10</b>, losing <b>1</b>, giving up nothing. Ties break on fewest errors, then fastest time. Weekdays are a {PUZZLE.sunday ? '3 by 5' : `${PUZZLE.rows} by ${PUZZLE.cols}`} board, and <b>Sundays</b> step up to 5 by 5.</p>
+      <p style={{ margin: 0 }}>Winning scores <b>10</b>. Losing scores nothing, and so does giving up. Ties break on fewest errors, then fastest time. Weekdays are a {PUZZLE.sunday ? '3 by 5' : `${PUZZLE.rows} by ${PUZZLE.cols}`} board, and <b>Sundays</b> step up to 5 by 5.</p>
     </div>
   );
 

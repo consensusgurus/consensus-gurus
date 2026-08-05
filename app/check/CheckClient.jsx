@@ -231,7 +231,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
   const taken = blkStart - blkLeft;
   const awaitingReply = !redToMove && playing;
   const myTurn = playing && started && redToMove && !thinking;
-  const finalScore = won ? 10 : Math.max(1, Math.min(6, taken * 2));
+  const finalScore = won ? 10 : 0;
 
   const myMoves = useMemo(() => (myTurn ? legalMoves(pos, true) : []), [pos, myTurn]);
   // One tap target per legal move: the square the piece finishes on. Two chains
@@ -423,16 +423,17 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
       const redLeft = Math.max(0, BUDGET - Math.ceil(cur.moves.length / 2));
       const rep = blackReply(b, redLeft + 1, PUZZLE.quizId);
       setThinking(false);
-      const scoreNow = (bd) => Math.max(1, Math.min(6, (PUZZLE.blk - countPieces(bd, false)) * 2));
       // Black stuck with pieces still on the board is not a sweep, so the
-      // objective has failed even though the game itself would be won.
-      if (!rep) { finish(cur, 'lost', scoreNow(b)); return; }
+      // objective has failed even though the game itself would be won. Falling
+      // short scores nothing: the sweep is the whole puzzle, and a near miss is
+      // still a miss (owner ruling, aligning Check with Four, Chain and Mate).
+      if (!rep) { finish(cur, 'lost', 0); return; }
       const next = { ...cur, moves: [...cur.moves, rep.path.join('.')] };
       const after = rep.board;
       // The blunder was already counted when the move was played; black only
       // ever picks the best defence that was there anyway.
-      if (redLeft === 0) { finish(next, 'lost', scoreNow(after)); return; }
-      if (!legalMoves(after, true).length) { finish(next, 'lost', scoreNow(after)); return; }
+      if (redLeft === 0) { finish(next, 'lost', 0); return; }
+      if (!legalMoves(after, true).length) { finish(next, 'lost', 0); return; }
       commit(next);
       vibrate(HAPT.ok);
     }, 430);
@@ -566,7 +567,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>You are <b>red</b>, moving up the board. Capture <b>every black piece</b> within <b>{BUDGET} of your moves</b>. Tap one of your pieces and its legal squares light up, then tap one to play it.</p>
       <p style={{ margin: '0 0 9px' }}>Standard checkers: men step one square diagonally forward, kings go both ways, and reaching the far row crowns you and ends the turn. <b>Captures are compulsory</b>, and a jump must be carried on for as long as the same piece can keep jumping. That rule is the whole puzzle: the winning move is nearly always a <b>sacrifice</b> that forces black to jump into a sweep.</p>
       <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> first move clears the board in time. A wrong one is <b>not taken back</b>: black answers, your budget still runs down, and you finish the board knowing the sweep has gone.</p>
-      <p style={{ margin: 0 }}>Clearing the board scores <b>10</b>. Falling short scores by how many pieces you took. One free <b>hint</b>, on your first ever play, names the piece to move. <b>Sundays</b> give you four moves instead of three, and need them.</p>
+      <p style={{ margin: 0 }}>Clearing the board scores <b>10</b>. Falling short scores nothing, the same as giving up: the sweep is the whole puzzle. One free <b>hint</b>, on your first ever play, names the piece to move. <b>Sundays</b> give you four moves instead of three, and need them.</p>
     </div>
   );
 
@@ -574,7 +575,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     if (!playing) {
       if (won) return 'Board swept. Every piece.';
       if (g.status === 'gaveup') return 'You walked away.';
-      return `Out of moves. You took ${taken} of ${blkStart}.`;
+      return `You missed it. You took ${taken} of ${blkStart}.`;
     }
     if (thinking || awaitingReply) return 'Black is forced to answer...';
     if (sel != null) return 'Now tap where it goes.';
@@ -789,11 +790,11 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
 
       {!playing && !endClosed && !endHold.held && (
         <DailyEndCard modal self="check" won={won}
-          headline={won ? <>Swept.</> : g.status === 'gaveup' ? <>You scored 0%</> : <>Out of moves.</>}
+          headline={won ? <>Swept.</> : g.status === 'gaveup' ? <>You scored 0%</> : <>You missed it.</>}
           subline={won
             ? <>10/10 &middot; every piece in {BUDGET} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : g.status === 'gaveup' ? <>0/10 &middot; the sweep was there</>
-            : <>{finalScore}/10 &middot; you took {taken} of {blkStart}</>}
+            : <>{finalScore}/10 &middot; you took {taken} of {blkStart}, the sweep needed them all</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame} onClose={() => setEndClosed(true)} />
       )}

@@ -15,8 +15,8 @@
 // derived from the puzzle id, so every player faces the same game and the
 // leaderboard compares like with like.
 //
-// Score is the outcome: 10 for the win, 4 for a draw, 1 for a loss, 0 for
-// giving up. Ties break on fewest wrong drops, then fastest time.
+// Score is the outcome: 10 for the win, 4 for a draw, and nothing at all for a
+// loss or for giving up. Ties break on fewest wrong drops, then fastest time.
 //
 // Same daily plumbing as Mate/Etch/Hedge: banked boards gated by Eastern date on
 // the server (app/four/page.js), per-puzzle localStorage saves, /four?p=N
@@ -246,7 +246,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   const won = g.status === 'won';
   const drawn = g.status === 'drawn';
   const errors = g.errors;
-  const finalScore = won ? 10 : drawn ? 4 : g.status === 'lost' ? 1 : 0;
+  const finalScore = won ? 10 : drawn ? 4 : 0;
   // An odd move count means the engine's reply is still in flight.
   const awaitingReply = moves.length % 2 === 1;
 
@@ -436,7 +436,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
     const done = { ...g2, status, tEnd: Date.now() };
     if (!done.t0) done.t0 = Date.now();
     vibrate(status === 'won' ? HAPT.win : HAPT.wrong);
-    postResult(done, status === 'won' ? 10 : status === 'drawn' ? 4 : status === 'lost' ? 1 : 0);
+    postResult(done, status === 'won' ? 10 : status === 'drawn' ? 4 : 0);
     endHold.hold();
     commit(done);
   }
@@ -615,7 +615,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
       <p style={{ margin: '0 0 9px' }}>You are <b>red</b> and you drop first. The position is already won for you: there is a forced <b>win in {PUZZLE.winIn}</b> of your moves. <b>Tap a column</b> to drop a disc.</p>
       <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> column wins. Every other drop throws it away, and here is the sting: a wrong drop is <b>not taken back</b>. The engine plays on and it is perfect, so once the win is gone it never comes back and you are playing for a draw.</p>
       <p style={{ margin: '0 0 9px' }}>The engine always answers with its most stubborn defence, and the same one for everybody, so the game you play is the game everyone else plays. One free <b>hint</b>, on your first ever play, greys out two columns that do not win.</p>
-      <p style={{ margin: 0 }}>The win scores <b>10</b>, a draw <b>4</b>, a loss <b>1</b>, and giving up nothing. Ties break on fewest wrong drops, then fastest time. Weekdays are a win in four, and <b>Sundays</b> step up to a win in five.</p>
+      <p style={{ margin: 0 }}>The win scores <b>10</b> and a draw <b>4</b>. Losing the win scores nothing, and neither does giving up. Ties break on fewest wrong drops, then fastest time. Weekdays are a win in four, and <b>Sundays</b> step up to a win in five.</p>
     </div>
   );
 
@@ -903,7 +903,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
             : drawn
               ? <>4/10 &middot; the win went, you held the draw</>
               : g.status === 'lost'
-                ? <>1/10 &middot; column {PUZZLE.key + 1} was the one</>
+                ? <>0/10 &middot; column {PUZZLE.key + 1} was the one</>
                 : <>0/10 &middot; the winning line is on the board</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
