@@ -2373,6 +2373,66 @@ function tbdBucketize(series, gran) {
   return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key));
 }
 
+// ---- In-progress bucket projection --------------------------------------------
+// The final bucket is nearly always still running (today, this week, this
+// month), so its bar reads as a collapse next to the completed period beside
+// it. These helpers work out how much of that period has already elapsed in US
+// Eastern (the zone the server buckets in) and extrapolate where the bucket
+// lands at the pace set so far. The chart draws that as a dotted outline on top
+// of the solid bar, so the real number stays visually distinct from the guess.
+
+// Below this much of the period elapsed the extrapolation is multiplying noise,
+// so no projection is drawn at all.
+const TBD_MIN_ELAPSED = 0.1;
+
+// Current wall clock in US Eastern: the day key it falls on, plus how many
+// seconds into that day we are.
+function tbdEasternNow() {
+  const parts = {};
+  for (const p of new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).formatToParts(new Date())) parts[p.type] = p.value;
+  return {
+    day: `${parts.year}-${parts.month}-${parts.day}`,
+    secondsIntoDay: Number(parts.hour) * 3600 + Number(parts.minute) * 60 + Number(parts.second),
+  };
+}
+
+// Fraction (0-1] of the bucket that has elapsed, or 0 when the bucket is a
+// finished past period. Bucket keys match the ones tbdBucketize builds.
+function tbdElapsedFraction(bucketKey, gran) {
+  const now = tbdEasternNow();
+  const dayFrac = Math.min(1, now.secondsIntoDay / 86400);
+  const d = tbdParseDay(now.day);
+  if (gran === 'day') return bucketKey === now.day ? dayFrac : 0;
+  if (gran === 'week') {
+    const start = new Date(d.getTime());
+    start.setUTCDate(start.getUTCDate() - start.getUTCDay()); // back to Sunday
+    const key = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}-${String(start.getUTCDate()).padStart(2, '0')}`;
+    return bucketKey === key ? (d.getUTCDay() + dayFrac) / 7 : 0;
+  }
+  const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+  if (bucketKey !== key) return 0;
+  const daysInMonth = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  return (d.getUTCDate() - 1 + dayFrac) / daysInMonth;
+}
+
+// Straight-line extrapolation of the trailing bucket: seconds so far divided by
+// the fraction of the period elapsed. Returns null for a bucket that is already
+// complete, empty, or too early in the period to be worth projecting.
+function tbdProjectLastBucket(buckets, gran) {
+  const last = buckets && buckets.length ? buckets[buckets.length - 1] : null;
+  if (!last || !(last.seconds > 0)) return null;
+  const fraction = tbdElapsedFraction(last.key, gran);
+  if (!(fraction >= TBD_MIN_ELAPSED) || fraction >= 0.999) return null;
+  const seconds = last.seconds / fraction;
+  if (!Number.isFinite(seconds) || seconds <= last.seconds) return null;
+  return { key: last.key, seconds, fraction, actual: last.seconds };
+}
+
 function TimeByDayStat({ value, unit, label, accent }) {
   return (
     <div style={{ flex: '1 1 150px', minWidth: 140, background: COLORS.paper, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: '14px 16px' }}>
@@ -2390,7 +2450,13 @@ function TimeByDayPanel({ data }) {
   const totals = (data && data.totals) || {};
   const [gran, setGran] = useState('day');
   const buckets = useMemo(() => tbdBucketize(series, gran), [series, gran]);
-  const maxSeconds = useMemo(() => buckets.reduce((m, b) => Math.max(m, b.seconds), 0), [buckets]);
+  // The trailing bucket is usually still running, so project where it lands and
+  // let the y-scale include that projection so the dotted top always fits.
+  const projection = useMemo(() => tbdProjectLastBucket(buckets, gran), [buckets, gran]);
+  const maxSeconds = useMemo(
+    () => Math.max(buckets.reduce((m, b) => Math.max(m, b.seconds), 0), projection ? projection.seconds : 0),
+    [buckets, projection]
+  );
 
   if (!series.length) {
     return <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, fontStyle: 'italic' }}>No completed quiz games recorded yet.</p>;
@@ -2461,13 +2527,27 @@ function TimeByDayPanel({ data }) {
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: buckets.length > 60 ? 1 : 2, height: 190 }}>
           {buckets.map((b) => {
             const h = maxSeconds ? Math.max(b.seconds > 0 ? 2 : 0, Math.round((b.seconds / maxSeconds) * 178)) : 0;
+            const proj = projection && projection.key === b.key ? projection : null;
+            const projH = proj && maxSeconds ? Math.round((proj.seconds / maxSeconds) * 178) : 0;
             return (
               <div
                 key={b.key}
-                title={`${b.full}\n${tbdDur(b.seconds)} · ${b.plays.toLocaleString()} game${b.plays === 1 ? '' : 's'}`}
+                title={`${b.full}\n${tbdDur(b.seconds)} \u00b7 ${b.plays.toLocaleString()} game${b.plays === 1 ? '' : 's'}${proj ? `\nOn pace for ${tbdDur(proj.seconds)} (${Math.round(proj.fraction * 100)}% of the ${gran} elapsed)` : ''}`}
                 style={{ flex: '1 1 0', minWidth: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
               >
-                <div style={{ height: h, background: COLORS.ember, opacity: 0.85, borderRadius: '3px 3px 0 0' }} />
+                {proj ? (
+                  <div
+                    style={{
+                      height: Math.max(3, projH - h),
+                      boxSizing: 'border-box',
+                      border: `1px dashed ${COLORS.ember}`,
+                      borderBottom: 'none',
+                      borderRadius: '3px 3px 0 0',
+                      background: `${COLORS.ember}14`,
+                    }}
+                  />
+                ) : null}
+                <div style={{ height: h, background: COLORS.ember, opacity: 0.85, borderRadius: proj ? 0 : '3px 3px 0 0' }} />
               </div>
             );
           })}
@@ -2481,6 +2561,16 @@ function TimeByDayPanel({ data }) {
             </div>
           ))}
         </div>
+        {projection ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.line}` }}>
+            <span style={{ flex: '0 0 auto', width: 16, height: 10, boxSizing: 'border-box', border: `1px dashed ${COLORS.ember}`, borderBottom: 'none', borderRadius: '2px 2px 0 0', background: `${COLORS.ember}14`, display: 'inline-block' }} />
+            <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, lineHeight: 1.5 }}>
+              Dotted outline projects where the current {gran} finishes at the pace set so far:{' '}
+              <span style={{ color: COLORS.ink }}>{tbdHoursValue(projection.seconds).value} {tbdHoursValue(projection.seconds).unit}</span>
+              {' '}({tbdHoursValue(projection.actual).value} {tbdHoursValue(projection.actual).unit} banked, {Math.round(projection.fraction * 100)}% of the {gran} elapsed)
+            </span>
+          </div>
+        ) : null}
       </div>
     </div>
   );
