@@ -17,7 +17,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, Share2, RotateCcw, X, Lightbulb, Eye, Smartphone } from 'lucide-react';
+import { HelpCircle, Share2, RotateCcw, X, Lightbulb, Eye, Smartphone, Undo2, Eraser } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
@@ -217,6 +217,14 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   }, [N, BLOCK, GIVEN]);
 
   const [g, setG] = useState(() => freshState(N));
+  // Undo history: board arrangements only (the digits and their notes), newest
+  // last. Deliberately NOT part of the saved game, since it is a convenience
+  // within a sitting rather than part of the result. Note what it does not
+  // hold: `moves`. Undo walks the grid back, never the score, exactly as
+  // lifting a tile has never refunded the placement that put it there. So the
+  // player can take back an arrangement freely and still cannot buy a clean
+  // solve by placing, checking the line, and undoing.
+  const [hist, setHist] = useState([]);
   const [sel, setSel] = useState(-1);        // selected rack tile index (into BANK), -1 = none
   const [mode, setMode] = useState('place'); // 'place' | 'sure' — remembered across days
   const [showHelp, setShowHelp] = useState(false);
@@ -334,6 +342,24 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     return () => clearInterval(iv);
   }, [g.status, g.t0, g.tEnd]);
 
+  // Ctrl/Cmd+Z walks the board back one step, the shortcut every player's
+  // hands already know. Re-bound whenever the history changes so it always
+  // pops the newest entry.
+  useEffect(() => {
+    if (!started) return undefined;
+    const onKey = (e) => {
+      if (e.key !== 'z' && e.key !== 'Z') return;
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      e.preventDefault();
+      undo();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, playing, hist]);
+
   useEffect(() => {
     if (g.status === 'playing') return;
     const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
@@ -389,6 +415,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const errors = g.moves > FEWEST ? g.moves - FEWEST : 0;
+  const anyPlaced = FREE.some(([r, c]) => !!cells[r * N + c]);
   const finalScore = won ? Math.max(1, Math.min(10, 10 - Math.ceil(errors / 2))) : 0;
 
   // per-rack-tile "used" flags: first usedCount[d] tiles of each value read used
@@ -466,7 +493,41 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
   }
 
+  // Snapshot the board BEFORE a change, so undo has somewhere to step back to.
+  // Capped so a long session cannot grow without bound.
+  function pushHist(cs, mk) {
+    setHist((h) => {
+      const next = h.length >= 60 ? h.slice(h.length - 59) : h.slice();
+      next.push({ cells: cs.slice(), mark: mk.slice() });
+      return next;
+    });
+  }
+
+  function undo() {
+    if (!playing || !hist.length) return;
+    const prev = hist[hist.length - 1];
+    setHist((h) => h.slice(0, -1));
+    // cells and notes only: moves stand, and the clock keeps running
+    setG((cur) => ({ ...cur, cells: prev.cells.slice(), mark: prev.mark.slice() }));
+    setSel(-1);
+    try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(8); } catch (e) {}
+  }
+
+  // Lift every placed tile back to the rack at once. Lifting one tile is free,
+  // so lifting them all is too, and a single undo puts the whole board back.
+  function clearBoard() {
+    if (!playing) return;
+    if (!anyPlaced) { say('Nothing on the board to clear'); return; }
+    pushHist(cells, mark);
+    const nc = cells.slice(), nm = mark.slice();
+    for (const [r, c] of FREE) { const i = r * N + c; nc[i] = 0; nm[i] = 0; }
+    setG((cur) => ({ ...cur, cells: nc, mark: nm }));
+    setSel(-1);
+    say('Board cleared. Your moves stand, and Undo puts it back.');
+  }
+
   function commit(nextCells, extraMove, nextMark) {
+    pushHist(g.cells, mark);
     const g2 = { ...g, cells: nextCells };
     if (nextMark) g2.mark = nextMark;
     if (extraMove) { g2.moves = g.moves + 1; if (!g2.t0) g2.t0 = Date.now(); }
@@ -485,6 +546,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   // ── certainty marks ──────────────────────────────────────────────────────
   // A note, not a move: marking costs nothing and is never scored.
   function writeMark(next) {
+    pushHist(cells, mark);
     setG((cur) => ({ ...cur, mark: next }));
     try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(8); } catch (e) {}
   }
@@ -696,6 +758,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       // be free to slide along the line it is sure of
       if (mark[i] === M_BOTH) {
         const nm = mark.slice(); nm[i] = 0;
+        pushHist(cells, mark);
         setG((cur) => ({ ...cur, mark: nm }));
         say('Unlocked — tap again to lift it');
         return;
@@ -750,6 +813,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         const nm = mark.slice(); nm[i] = M_BOTH;
         const g2 = { ...g, cells: next, mark: nm, moves: g.moves + 1, hintUsed: true };
         if (!g2.t0) g2.t0 = Date.now();
+        pushHist(cells, mark);
         if (isSolved(next)) {
           g2.status = 'won'; g2.tEnd = Date.now();
           const errs = g2.moves > FEWEST ? g2.moves - FEWEST : 0;
@@ -777,7 +841,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState(N)); setSel(-1); setJustWon(false); setEndClosed(false);
+    setG(freshState(N)); setSel(-1); setJustWon(false); setEndClosed(false); setHist([]);
   }
 
   function shareText() {
@@ -857,6 +921,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}>Fill every open square so each <b>row and column adds up to the target</b> at its end.</p>
       <p style={{ margin: '0 0 9px' }}>You may only use the <b>tiles on your rack</b>, and you must use <b>every one</b>. Digits repeat &mdash; the rack tells you how many of each you have. That supply is the trick: when the sums leave two ways to fill a line, the tiles left leave one.</p>
+      <p style={{ margin: '0 0 9px' }}><b>Undo</b> steps the board back one change, and <b>Clear board</b> lifts every tile at once. Both are free, and neither refunds a move: they restore the grid, not the score.</p>
       <p style={{ margin: '0 0 9px' }}>Tap a tile, then a square. Tap a placed tile to <b>lift it back</b> &mdash; lifting is free. Dotted squares are yours; a square with a corner dot is a printed given; dark squares are out of play.</p>
       <p style={{ margin: '0 0 9px' }}>Certainty arrives in halves, so the <b>notes</b> do too. Often the rack proves a digit belongs somewhere in a <b>row</b> before you can say which square: mark it <b>right row</b> and it keeps a navy rail top and bottom, still free to slide. <b>Right column</b> rails the sides. A tile carrying <b>both</b> is <b>certain</b> and locks, since two proven lines meet at one square; tap once to unlock.</p>
       <p style={{ margin: '0 0 9px' }}><b>Drag a half-marked tile along its line</b> to move it without lifting it, so the note survives the move. Tiles in the way shuffle one square toward the one it left, however many of them there are. It costs one move, the same as lifting and re-placing. A tile that has proven the crossing line will not be pushed out of it, so it blocks the slide there.</p>
@@ -918,6 +983,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.tl-legend li{align-items:flex-start;}}
           .tl-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.faded};border-radius:7px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
           .tl-tool.on{border:1.5px solid ${COLORS.ember};background:#eef1f8;color:${COLORS.ember};}
+          .tl-act{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:7px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+          .tl-act:hover:not(:disabled){border-color:${COLORS.ember};color:${COLORS.ember};}
+          .tl-act:disabled{opacity:0.38;cursor:default;}
           .tl-tgt{cursor:default;}
           .tl-tgt.live{cursor:pointer;}
           .tl-tgt.live:hover{box-shadow:0 0 0 2px rgba(14,29,64,0.18);}
@@ -1063,9 +1131,19 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         )}
 
         {/* controls — the tool toggle moved up into the ledger with the rack, so
-            this row is only Hint / Reveal and should not render empty */}
-        {started && ((hintOk && !g.hintUsed) || (identity && g.moves > 0)) && (
+            this row is Undo / Clear board plus the situational Hint and Reveal.
+            Undo and Clear are always there once the clock runs, so the row can
+            no longer render empty. */}
+        {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <button className="tl-act" onClick={undo} disabled={!hist.length}
+              title="Step the board back one change (Ctrl+Z). Your move count stands: undo restores the grid, not the score.">
+              <Undo2 size={14} /> Undo
+            </button>
+            <button className="tl-act" onClick={clearBoard} disabled={!anyPlaced}
+              title="Lift every tile back to the rack. Free, exactly like lifting them one at a time, and Undo puts the board back.">
+              <Eraser size={14} /> Clear board
+            </button>
             {hintOk && !g.hintUsed && (
               <button className="tl-btn" onClick={useHint} title="Fill one correct square (one hint, first play only)"
                 style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
