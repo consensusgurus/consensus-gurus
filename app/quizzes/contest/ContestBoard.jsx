@@ -19,6 +19,7 @@ export default function ContestBoard() {
   const [data, setData] = useState(null);
   const [copied, setCopied] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [tab, setTab] = useState('board');
 
   const load = useCallback(() => {
     const qs = new URLSearchParams({ limit: '50' });
@@ -37,6 +38,11 @@ export default function ContestBoard() {
   useEffect(() => { load(); }, [load]);
 
   const board = (data && data.board) || [];
+  const unclaimed = (data && data.unclaimed) || [];
+  // The rows the table renders. Unclaimed rows already carry the rank they
+  // would hold in the real field, so the table must print r.rank rather than
+  // the array index, which would renumber them 1..n among themselves.
+  const shown = tab === 'unclaimed' ? unclaimed : board;
   const me = data && data.me;
   const meta = (data && data.contest) || {};
 
@@ -118,8 +124,28 @@ export default function ContestBoard() {
       </div>
 
       <div style={card}>
-        <h2 style={{ fontSize: 17, fontWeight: 800, margin: '0 0 2px', letterSpacing: '-.01em', color: T.ink }}>Leaderboard</h2>
-        <p style={{ fontSize: 12.5, color: T.slate, margin: '0 0 12px' }}>{COPY.formulaLine}</p>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+          {[['board', 'Leaderboard'], ...(unclaimed.length ? [['unclaimed', `Unclaimed · ${unclaimed.length}`]] : [])].map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setTab(k)}
+              style={{
+                fontSize: 12.5, fontWeight: 800, cursor: 'pointer', padding: '7px 13px', borderRadius: 999,
+                border: `1px solid ${tab === k ? T.accent : T.border}`,
+                background: tab === k ? T.accent : T.white,
+                color: tab === k ? T.white : T.muted,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p style={{ fontSize: 12.5, color: T.slate, margin: '0 0 12px', lineHeight: 1.5 }}>
+          {tab === 'unclaimed'
+            ? <>These players earned a place but have no email on their account, so they cannot be contacted or paid and are not ranked. The position shown is where they <b style={{ color: T.ink }}>would</b> sit. Adding an email claims it, and existing referrals still count.</>
+            : COPY.formulaLine}
+        </p>
         {/* Responsive via CSS, not a JS breakpoint hook: the table must be
             correct in the very first paint, and a hook would render the desktop
             layout once before correcting itself.
@@ -159,9 +185,9 @@ export default function ContestBoard() {
             </tr>
           </thead>
           <tbody>
-            {board.map((r, i) => (
+            {shown.map((r, i) => (
               <tr key={r.refCode || i} className={i === 0 ? 'lead' : undefined} style={{ borderTop: '1px solid #eef1f5' }}>
-                <td className="cb-rk" style={{ color: i < 3 ? MEDAL[i] : T.slate }}>{i + 1}</td>
+                <td className="cb-rk" style={{ color: (r.rank || i + 1) <= 3 ? MEDAL[(r.rank || i + 1) - 1] : T.slate }}>{r.rank || i + 1}</td>
                 <td>
                   <div className="cb-nm">{r.username}</div>
                   <div className="cb-sub">{r.users} players · {r.sessions} sessions · {r.plays} plays</div>
@@ -172,9 +198,9 @@ export default function ContestBoard() {
                 <td className="cb-sc">{formatScore(r.score)}</td>
               </tr>
             ))}
-            {!board.length ? (
+            {!shown.length ? (
               <tr><td colSpan={6} style={{ padding: '16px 0', fontSize: 13, color: T.slate }}>
-                No entries yet. Share your link and you are in first place.
+                {tab === 'unclaimed' ? 'Everyone with a place has an email on file.' : 'No entries yet. Share your link and you are in first place.'}
               </td></tr>
             ) : null}
           </tbody>

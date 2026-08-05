@@ -4,7 +4,7 @@ import { findQuizIdentity } from '@/lib/quiz-identity';
 import { ensureRefCode } from '@/lib/referrals-server';
 import { refShareUrl } from '@/lib/referrals';
 import { CONTEST, contestIsLive, contestHasEnded, daysLeft } from '@/lib/contest';
-import { contestBoard, contestStanding, winEligibility } from '@/lib/contest-server';
+import { contestBoard, contestStanding, winEligibility, contestFullField } from '@/lib/contest-server';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -78,6 +78,15 @@ export async function GET(request) {
 
     const { rows, ready } = await contestBoard(supabaseAdmin, { limit });
 
+    // Referrers who would place but have no email on file, each carrying the
+    // rank they WOULD hold in the real field. Best-effort: this depends on
+    // migration 47, and an empty list simply hides the tab.
+    let unclaimed = [];
+    try {
+      const full = await contestFullField(supabaseAdmin);
+      unclaimed = (full.unclaimed || []).slice(0, limit);
+    } catch { /* pre-migration-47: no unclaimed view */ }
+
     let me = null;
     if (anonId || email) {
       const user = await findViewer(supabaseAdmin, { anonId: anonId || null, email });
@@ -105,7 +114,7 @@ export async function GET(request) {
       }
     }
 
-    return NextResponse.json({ contest: meta, board: rows, me, ready });
+    return NextResponse.json({ contest: meta, board: rows, unclaimed, me, ready });
   } catch {
     return NextResponse.json({
       contest: { id: CONTEST.id, live: false, ended: false, daysLeft: 0 },
