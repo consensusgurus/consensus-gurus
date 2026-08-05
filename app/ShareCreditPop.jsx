@@ -21,6 +21,7 @@ import { X, Check, Copy } from 'lucide-react';
 import { myRefCode, withRef, ensureMyRefCode } from '@/lib/referrals';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { T } from '@/lib/theme';
+import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
 
 export const SHARE_CREDIT_EVENT = 'sot:share-credit';
 
@@ -46,8 +47,39 @@ const PAPER = '#f4f6fa';
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 
+// The contest banner shown at the top of both views while the promo is live.
+// This is what makes the end-card teaser ("Share for your chance at $5*")
+// honest: the player taps a button promising a prize and lands somewhere that
+// states the terms, rather than on a bare copy box.
+function ContestBanner() {
+  return (
+    <div style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}`, borderRadius: 12, padding: '12px 14px', margin: '0 0 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+        <span style={{ fontSize: 15, fontWeight: 800, color: T.accent, letterSpacing: '-.01em' }}>
+          {COPY.headline}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: SLATE }}>
+          {COPY.prizeLine}
+        </span>
+      </div>
+      <div style={{ fontSize: 12.5, fontWeight: 800, color: INK, lineHeight: 1.45, marginBottom: 5 }}>
+        {COPY.formulaLine}
+      </div>
+      <div style={{ fontSize: 11.5, color: SLATE, lineHeight: 1.45 }}>
+        Ends {CONTEST.deadlineLabel}. An email on your account is required to be
+        eligible and to get paid. Spoofed accounts are disqualified.{' '}
+        <a href="/quizzes/contest" style={{ color: BLUE, fontWeight: 700, textDecoration: 'none' }}>Rules</a>
+      </div>
+    </div>
+  );
+}
+
 export default function ShareCreditPop() {
   const [open, setOpen] = useState(false);
+  // Resolved after mount, not at render: contestIsLive() reads the clock, and
+  // this component is mounted in the root layout on every page.
+  const [promo, setPromo] = useState(false);
+  useEffect(() => { setPromo(contestIsLive()); }, []);
   const [mode, setMode] = useState('credit'); // 'credit' | 'signup'
   const [link, setLink] = useState('');
   const [result, setResult] = useState('');
@@ -122,7 +154,10 @@ export default function ShareCreditPop() {
       <div onClick={() => setOpen(false)} style={backdrop}>
         <div onClick={(e) => e.stopPropagation()} style={card}>
           {closeBtn}
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.02em', marginBottom: 8, paddingRight: 28 }}>Share for credit</div>
+          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.02em', marginBottom: 8, paddingRight: 28 }}>
+            {promo ? `Share for your chance at ${CONTEST.prizeLabel}` : 'Share for credit'}
+          </div>
+          {promo ? <ContestBanner /> : null}
           <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.5, color: SLATE }}>
             Sign up (no password) to get your own share link. Anyone who opens it and finishes a game or quiz credits <b style={{ color: INK }}>you</b> on the community leaderboard.
           </p>
@@ -151,6 +186,7 @@ export default function ShareCreditPop() {
       <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Your share link" style={card}>
         {closeBtn}
         <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.02em', marginBottom: 8, paddingRight: 28 }}>Your share link</div>
+        {promo ? <ContestBanner /> : null}
         <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.5, color: SLATE }}>
           This link is yours. Anyone who opens it and finishes a game or quiz credits <b style={{ color: INK }}>you</b> on the community leaderboard, once.
           {' '}<b style={{ color: INK }}>I&rsquo;m a one person startup! Please help us grow!</b>

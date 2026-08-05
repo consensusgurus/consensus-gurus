@@ -91,6 +91,7 @@ import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { T } from '@/lib/theme';
+import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
 
 const RUST = T.danger;
 const AMBER = '#b45309';
@@ -358,6 +359,13 @@ export default function DailyEndCard({
   const [autoCancel, setAutoCancel] = useState(false);
   const [combinedResolved, setCombinedResolved] = useState(false); // daily-me answered => completion set is known
   const [skelTimedOut, setSkelTimedOut] = useState(false);          // collapse loading skeletons if the fetch is very slow
+  // Contest teaser on the share button. Resolved AFTER mount rather than at
+  // render: contestIsLive() reads the clock, so evaluating it during SSR and
+  // again on the client can disagree across the window boundary and trip a
+  // hydration mismatch. Off for the first paint, which is correct anyway once
+  // the contest has ended.
+  const [contestLive, setContestLive] = useState(false);
+  useEffect(() => { setContestLive(contestIsLive()); }, []);
   const [popularCats, setPopularCats] = useState(null);             // popular quiz per category, once every daily is done
   const [pastHref, setPastHref] = useState(null);     // most-recent unplayed PAST drop of this game
   const [iq, setIq] = useState(null);                 // { gained, todayGained, rank, total, xp, level, window, provisional }
@@ -1064,13 +1072,27 @@ export default function DailyEndCard({
            (owner 2026-08-01), sized to be the second thing a finisher reaches
            for after their score. Opens the shared ShareCreditPop through the
            caller's own share handler. */
-        .dec-sharebar{display:flex;align-items:center;gap:13px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:var(--white);background:${INK};border:1px solid ${INK};border-radius:13px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:filter .12s ease;}
-        .dec-sharebar:hover{filter:brightness(1.16);}
-        .dec-sharebar .ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.13);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        /* Action row: share + back, side by side (owner 2026-08-05). Replaces
+           the full-width black share bar. Neither button is black now: share
+           carries the promo so it takes brand blue, and Back to Main reuses the
+           exact treatment of the replay bar below it so the two read as peers
+           rather than as a third visual language on an already busy card.
+           1.55 / 1 split gives share the emphasis, since it is the one with
+           money attached. */
+        .dec-actions{display:grid;grid-template-columns:1.55fr 1fr;gap:10px;margin-bottom:7px;}
+        .dec-sharebar{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:var(--white);background:${BLUE};border:2px solid ${BLUE};border-radius:14px;padding:12px 13px;cursor:pointer;transition:filter .12s ease;}
+        .dec-sharebar:hover{filter:brightness(1.08);}
+        .dec-sharebar .ic{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-sharebar .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
-        .dec-sharebar .t{font-size:14px;font-weight:800;letter-spacing:-.01em;}
-        .dec-sharebar .s{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.66);}
-        .dec-sharebar .cv{flex-shrink:0;opacity:.6;}
+        .dec-sharebar .t{font-size:13.5px;font-weight:800;letter-spacing:-.01em;line-height:1.25;}
+        .dec-sharebar .s{font-size:11px;font-weight:600;color:rgba(255,255,255,.72);}
+        .dec-back{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;font-family:${SANS};font-weight:800;font-size:13.5px;color:${INK};text-decoration:none;background:linear-gradient(180deg,#ffffff 0%,#f3f5f9 100%);border:2px solid #d8dee9;border-radius:14px;padding:12px 13px;cursor:pointer;transition:filter .12s ease;}
+        .dec-back:hover{filter:brightness(0.985);}
+        .dec-back .bi{color:${SLATE};flex-shrink:0;}
+        /* Contest footnote: carries the asterisk on the share label. Tappable,
+           opening the same rules page the pop-up links to. */
+        .dec-fine{font-size:10.5px;line-height:1.45;color:#8a92a6;margin:0 2px 11px;}
+        .dec-fine a{color:#8a92a6;text-decoration:underline;}
         /* Quick replay: a quiet full-width bar directly under the share bar
            (owner 2026-08-04). Some games invite an immediate second run, and
            the old "Try again" chip was buried in the footer below the whole
@@ -1405,9 +1427,16 @@ export default function DailyEndCard({
           .dec-topid button.dec-idbox{padding:6px 11px;}
           .dec-idbox .lg{display:none;}
           .dec-idbox .sm{display:inline;}
+          /* Phone: stack the action row. A 1.55/1 split squeezes "Share for
+             your chance at $5*" into three ragged lines at this width, and
+             shortening the label would leave the asterisk carrying the whole
+             offer. Share stays on top, as the primary action. */
+          .dec-actions{grid-template-columns:1fr;gap:8px;}
           .dec-sharebar{gap:11px;padding:11px 12px;}
           .dec-sharebar .t{font-size:13px;}
           .dec-sharebar .s{font-size:11px;}
+          .dec-back{padding:11px 12px;font-size:13px;}
+          .dec-fine{font-size:10px;}
           .dec-replay{font-size:12.5px;padding:11px 12px;gap:7px;}
           .dec-replay .rs{display:none;}
           .dec-claim{gap:10px;padding:10px 11px;}
@@ -1656,14 +1685,31 @@ export default function DailyEndCard({
           caller's own share handler, which is what opens the shared
           ShareCreditPop (result + ref-stamped link, or the sign-up view for a
           guest), so a shared link and a challenge are the same action here. */}
-      <button type="button" className="dec-sharebar" onClick={onShare}>
-        <span className="ic"><Share2 size={17} strokeWidth={2.3} /></span>
-        <span className="tx">
-          <span className="t">{/copied/i.test(shareLabel || '') ? shareLabel : 'Share result or challenge a friend for site credit'}</span>
-          <span className="s">Send your link. You get the credit when they play.</span>
-        </span>
-        <ChevronRight size={17} strokeWidth={2.4} className="cv" />
-      </button>
+      <div className="dec-actions">
+        <button type="button" className="dec-sharebar" onClick={onShare}>
+          <span className="ic"><Share2 size={16} strokeWidth={2.3} /></span>
+          <span className="tx">
+            <span className="t">
+              {/copied/i.test(shareLabel || '')
+                ? shareLabel
+                : (contestLive ? COPY.teaser : 'Share result or challenge a friend')}
+            </span>
+            <span className="s">
+              {contestLive ? `Top ${CONTEST.winners} referrers win` : 'You get the credit when they play.'}
+            </span>
+          </span>
+        </button>
+        <a className="dec-back" href="/quizzes">
+          <LayoutGrid size={16} strokeWidth={2.2} className="bi" />
+          <span>Back to Main</span>
+        </a>
+      </div>
+      {contestLive ? (
+        <p className="dec-fine">
+          *Contest ends {CONTEST.deadlineLabel}. Email on your account required.{' '}
+          <a href="/quizzes/contest">See rules</a>.
+        </p>
+      ) : null}
 
       {/* ---- 4b. quick replay ---- */}
       {/* Only for callers that pass onReplay. A replay is free practice: the

@@ -33,6 +33,7 @@ import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { COMPLETION_MAX } from '@/lib/daily-combined';
 import { fetchDayStatus } from './useDayStats';
 import { ringBlue } from '@/lib/home-blues';
+import { COPY, contestIsLive, formatScore } from '@/lib/contest';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
 
@@ -157,6 +158,42 @@ export default function HomeRails({
     return top.map((r) => ({ name: r.username || 'Player', value: r.credits }));
   }, [refData]);
 
+  // Contest board for the top-left slot. Resolved after mount (contestIsLive
+  // reads the clock, so evaluating it during SSR risks a hydration mismatch at
+  // the window boundary), and fetched only while the contest is running, so a
+  // finished contest costs nothing. A failed fetch leaves contestRows empty and
+  // the panel falls back to the normal community board.
+  const [contestLive, setContestLive] = useState(false);
+  const [contest, setContest] = useState(null);
+  useEffect(() => { if (side === 'left') setContestLive(contestIsLive()); }, [side]);
+  useEffect(() => {
+    if (!contestLive) return undefined;
+    let alive = true;
+    const qs = new URLSearchParams();
+    try {
+      const anon = localStorage.getItem('sot_quiz_anon') || '';
+      if (anon) qs.set('anonId', anon);
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+      if (id && id.email) qs.set('email', id.email);
+    } catch { /* private mode */ }
+    fetch(`/api/quiz/contest${qs.toString() ? `?${qs}` : ''}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (alive && d) setContest(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [contestLive]);
+
+  const contestRows = useMemo(() => {
+    const b = (contest && Array.isArray(contest.board)) ? contest.board : [];
+    return b.map((r) => ({ name: r.username || 'Player', value: r.score }));
+  }, [contest]);
+
+  const contestDays = contest && contest.contest ? contest.contest.daysLeft : 0;
+  // Only take over the slot once there is actually something to show; an empty
+  // contest board would otherwise blank a panel that had real content in it.
+  const showContest = contestLive && contestRows.length > 0;
+  const communityRows = showContest ? contestRows : community;
+
   // The combined daily-games score (best-N total), NOT games played: "29/42"
   // read as a fraction of the slate and told you nothing about how well anyone
   // did (owner, 2026-08-03).
@@ -214,6 +251,9 @@ export default function HomeRails({
       .hr-ph{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent);flex:none;}
       .hr-ph h2{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);margin:0;}
       .hr-pi{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);color:var(--white);display:flex;align-items:center;justify-content:center;flex:none;}
+      /* Countdown chip in the panel header, contest only. Sits where the flip
+         pill sits on the rotating panels, so the header keeps one shape. */
+      .hr-chip{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.06em;color:#bfdbfe;background:rgba(255,255,255,.14);border-radius:999px;padding:3px 8px;}
       .hr-flip{margin-left:auto;display:flex;align-items:center;gap:7px;}
       .hr-lbl{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);padding:3px 9px;border-radius:999px;white-space:nowrap;}
       .hr-dots{display:flex;gap:4px;}
@@ -295,24 +335,44 @@ export default function HomeRails({
     return (
       <>
         {CSS}
+        {/* Top-left panel. While the referral contest is live this slot shows
+            the CONTEST board instead of the rolling 90-day community board, and
+            reverts on its own the moment the contest ends (owner, 2026-08-05).
+            A swap rather than a second panel: both answer "who is bringing
+            people in", and side by side they would show two different rankings
+            of the same thing (rolling credits vs fixed-window weighted score)
+            with no way for a reader to tell which one counted. */}
         <section className="hr-panel hr-flex">
           <div className="hr-ph">
             <span className="hr-pi"><CrownIcon /></span>
-            <h2>Top community member</h2>
+            {/* Keeps the Community Leaderboard name while the contest runs,
+                with a ($) marking that there is prize money on it (owner,
+                2026-08-05). Renaming the panel outright would have read as a
+                different board appearing, when it is the same question with
+                stakes attached. The /quizzes/community PAGE is unaffected and
+                keeps its rolling 90-day board. */}
+            <h2>{showContest ? 'Community Leaderboard ($)' : 'Top community member'}</h2>
+            {showContest && contestDays ? <span className="hr-chip">{contestDays}d left</span> : null}
           </div>
-          <div className="hr-sub">New players brought in, last 90 days</div>
+          <div className="hr-sub">
+            {showContest
+              ? `${COPY.prizeLine} · ${COPY.formulaLine}`
+              : 'New players brought in, last 90 days'}
+          </div>
           <div className="hr-scroll hr-flex">
             <Rows
-              rows={open.com ? community : community.slice(0, 5)}
-              fmt={(v) => `+${num(v)}`}
+              rows={open.com ? communityRows : communityRows.slice(0, 5)}
+              fmt={showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`}
               hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
             />
           </div>
           <div className="hr-foot">
-            {community.length > 5
-              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? 'Show top 5' : `Show all ${community.length}`}</button>
+            {communityRows.length > 5
+              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? 'Show top 5' : `Show all ${communityRows.length}`}</button>
               : <button type="button" className="hr-exp" onClick={onCredit}>Get credit</button>}
-            <Link href="/quizzes/community" className="hr-link">Full leaderboard &rarr;</Link>
+            <Link href={showContest ? '/quizzes/contest' : '/quizzes/community'} className="hr-link">
+              {showContest ? 'Board and rules' : 'Full leaderboard'} &rarr;
+            </Link>
           </div>
         </section>
 

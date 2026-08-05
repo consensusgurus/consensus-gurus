@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next';
 import VisitorBeacon from './VisitorBeacon';
 import ResultQueue from './ResultQueue';
 import ShareCreditPop from './ShareCreditPop';
+import ContestPop from './ContestPop';
 import TrophyPop from './TrophyPop';
 import { getAllSources } from '@/lib/sources';
 import { T } from '@/lib/theme';
@@ -108,6 +109,11 @@ export default function RootLayout({ children }) {
         <VisitorBeacon />
         <ResultQueue />
         <ShareCreditPop />
+        {/* Mounted AFTER ShareCreditPop: its CTA dispatches the share-credit
+            event, and the listener must already exist. Renders null on every
+            page except a live contest on a promo path with an undismissed
+            browser, so the cost elsewhere is one localStorage read. */}
+        <ContestPop />
         <TrophyPop />
         <Analytics />
       </body>

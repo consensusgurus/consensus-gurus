@@ -8,6 +8,7 @@ import JoinLeaderboardForm from '../../quiz/[id]/JoinLeaderboardForm';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { T } from '@/lib/theme';
+import { CONTEST, contestIsLive, formatScore } from '@/lib/contest';
 
 // Public referral board. The Top Community Member tile on the home hub shows only
 // the winner and the two runners-up; this is the full ranking behind it, plus the
@@ -52,6 +53,29 @@ export default function CommunityLeaderboardClient() {
   }, []);
 
   useEffect(() => { load(days); }, [days, load]);
+
+  // Contest breakdown, shown per row while the contest runs (owner, 2026-08-05):
+  // this page is where someone comes to understand WHY they are ranked where
+  // they are, so it shows the three inputs to the score rather than only the
+  // result. The home tile deliberately does not, it has one narrow column.
+  // Keyed by ref_code, which is stable across a username change.
+  const [contestLive, setContestLive] = useState(false);
+  const [contestByCode, setContestByCode] = useState(null);
+  useEffect(() => { setContestLive(contestIsLive()); }, []);
+  useEffect(() => {
+    if (!contestLive) return undefined;
+    let alive = true;
+    fetch('/api/quiz/contest?limit=100')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!alive || !d || !Array.isArray(d.board)) return;
+        const m = new Map();
+        for (const r of d.board) if (r.refCode) m.set(String(r.refCode).toLowerCase(), r);
+        setContestByCode(m);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [contestLive]);
   useEffect(() => {
     try {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
@@ -153,6 +177,9 @@ export default function CommunityLeaderboardClient() {
           ) : rows.length ? (
             rows.map((r, i) => {
               const mine = me && me.code && r.refCode === me.code;
+              const cx = contestByCode && r.refCode
+                ? contestByCode.get(String(r.refCode).toLowerCase())
+                : null;
               return (
                 <div
                   key={r.refCode || r.username || i}
@@ -170,13 +197,34 @@ export default function CommunityLeaderboardClient() {
                     color: i < 3 ? '#1a1408' : C.muted,
                   }}>{i + 1}</span>
                   {i === 0 ? <Crown size={16} style={{ flex: 'none', color: MEDAL[0] }} /> : null}
-                  <span style={{ flex: '1 1 auto', minWidth: 0, fontWeight: 700, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {r.username}{mine ? <span style={{ color: C.soft, fontWeight: 700, fontSize: 12 }}> · you</span> : null}
+                  <span style={{ flex: '1 1 auto', minWidth: 0 }}>
+                    <span style={{ display: 'block', fontWeight: 700, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {r.username}{mine ? <span style={{ color: C.soft, fontWeight: 700, fontSize: 12 }}> · you</span> : null}
+                    </span>
+                    {/* The three inputs to the contest score, in formula order,
+                        so a player can see which part is carrying their total.
+                        Absent for a referrer with no contest-window rows. */}
+                    {cx ? (
+                      <span style={{ display: 'block', marginTop: 2, fontSize: 11.5, color: C.soft, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                        {cx.users} player{cx.users === 1 ? '' : 's'} <span style={{ opacity: .5 }}>&times;1</span>
+                        {' · '}{cx.sessions} session{cx.sessions === 1 ? '' : 's'} <span style={{ opacity: .5 }}>&times;{CONTEST.SESSION_WEIGHT}</span>
+                        {' · '}{cx.plays} play{cx.plays === 1 ? '' : 's'} <span style={{ opacity: .5 }}>&times;{CONTEST.PLAY_WEIGHT}</span>
+                      </span>
+                    ) : null}
                   </span>
-                  <span style={{ flex: 'none', fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{r.credits}</span>
-                  <span style={{ flex: 'none', fontSize: 11.5, color: C.soft, fontWeight: 700 }}>
-                    {r.credits === 1 ? 'player' : 'players'}
-                  </span>
+                  {cx ? (
+                    <span style={{ flex: 'none', textAlign: 'right' }}>
+                      <span style={{ display: 'block', fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{formatScore(cx.score)}</span>
+                      <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 700 }}>score</span>
+                    </span>
+                  ) : (
+                    <>
+                      <span style={{ flex: 'none', fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{r.credits}</span>
+                      <span style={{ flex: 'none', fontSize: 11.5, color: C.soft, fontWeight: 700 }}>
+                        {r.credits === 1 ? 'player' : 'players'}
+                      </span>
+                    </>
+                  )}
                 </div>
               );
             })
