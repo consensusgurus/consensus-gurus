@@ -43,6 +43,44 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
   // let a player silently rename themselves BACK by opening the form and
   // pressing the button. The server value always wins.
   const [srvName, setSrvName] = useState(null);
+  // "Trouble signing back in" reporter. The domain move left registered players
+  // signed out (localStorage is per-origin) and, for anyone whose account has no
+  // email, the username_taken path has no self-service way back. This routes them
+  // to a human instead of a dead end. Posts to the same complaints table the
+  // Notices tab already reads.
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpMsg, setHelpMsg] = useState('');
+  const [helpBusy, setHelpBusy] = useState(false);
+  const [helpSent, setHelpSent] = useState(false);
+
+  async function sendHelp() {
+    if (helpBusy) return;
+    setHelpBusy(true);
+    // Attach what actually makes the report actionable: the name they tried and
+    // this browser's anon id, which is the key an editor needs to relink the
+    // account. Without it a report is just "it does not work".
+    let ctx = '';
+    try {
+      const anon = getAnonId();
+      const path = window.location.pathname;
+      ctx = `\n\n---\nTried display name: ${jName.trim() || '(blank)'}\nEmail given: ${jEmail.trim() || '(none)'}\nBrowser id: ${anon || '(none)'}\nPage: ${path}`;
+    } catch (e) { /* context is a bonus, never a blocker */ }
+    try {
+      await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listId: 'signin-help',
+          listTitle: `[Sign-in] ${jName.trim() || 'unknown player'}`.slice(0, 200),
+          message: (helpMsg.trim() || 'Cannot sign back in.') + ctx,
+          name: jName.trim(),
+          email: jEmail.trim(),
+        }),
+      });
+    } catch (e) { /* best effort: still acknowledge */ }
+    setHelpSent(true);
+    setHelpBusy(false);
+  }
   useEffect(() => {
     // Only overwrite from the identity cache while the server has not answered.
     if (identity && !srvName) { setJName(identity.username || ''); setJEmail(identity.email || ''); }
@@ -150,6 +188,44 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
       </button>
       {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? C.ember : C.forest }}>{msg}</p>)}
       {identity && !msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: C.faded }}>You're signed up as "{srvName || identity.username}". Finish a game to post your score.</p>)}
+      <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${T.border}` }}>
+        {helpSent ? (
+          <p style={{ fontFamily: FONT, fontSize: 12.5, color: C.forest, margin: 0, fontWeight: 700 }}>
+            Thanks. That went to the editors with your details, and someone will get your account reconnected.
+          </p>
+        ) : helpOpen ? (
+          <div>
+            <p style={{ fontFamily: FONT, fontSize: 12.5, color: C.ink, margin: '0 0 8px' }}>
+              Tell us what happens when you try. Your display name and browser details are attached automatically.
+            </p>
+            <textarea
+              value={helpMsg}
+              onChange={(e) => setHelpMsg(e.target.value)}
+              rows={3}
+              placeholder="e.g. it says my display name is already registered"
+              style={{ ...fieldStyle, fontSize: 14, resize: 'vertical', borderColor: T.border }}
+            />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+              <button onClick={() => setHelpOpen(false)} style={{ fontFamily: FONT, fontSize: 12.5, fontWeight: 700, background: 'transparent', border: 'none', color: C.faded, cursor: 'pointer', padding: '8px 10px' }}>Cancel</button>
+              <button onClick={sendHelp} disabled={helpBusy} style={{ fontFamily: FONT, fontSize: 12.5, fontWeight: 800, background: T.cta, color: T.ctaInk, border: 'none', borderRadius: 8, padding: '9px 16px', cursor: helpBusy ? 'default' : 'pointer', opacity: helpBusy ? 0.6 : 1 }}>
+                {helpBusy ? 'Sending…' : 'Send to the editors'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setHelpOpen(true)}
+            style={{
+              background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', fontFamily: FONT,
+              fontSize: recover ? 13 : 12, textDecoration: 'underline',
+              fontWeight: recover ? 800 : 600,
+              color: recover ? C.ember : C.faded,
+            }}
+          >
+            {recover ? 'This is my account and I cannot get back in. Report it →' : 'Trouble signing back in? Report an issue'}
+          </button>
+        )}
+      </div>
       {onViewLeaderboard && (
         <button onClick={onViewLeaderboard} style={{ marginTop: 18, background: 'transparent', border: 'none', color: C.faded, cursor: 'pointer', fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>
           View the leaderboard →
