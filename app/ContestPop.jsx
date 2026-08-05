@@ -43,8 +43,14 @@ const SEEN_KEY = `sot_contest_seen_${CONTEST.id}`;
 const SEEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Surfaces the promo belongs on. The pop-up is for players, so it stays off the
-// editorial list pages and off admin entirely.
-const PROMO_PATHS = [/^\/quizzes/, /^\/quiz\//, /^\/daily/, /^\/player\//];
+// editorial list pages (/list/...) and off admin entirely.
+//
+// The HOMEPAGE (/) is the single most important entry point and was missing
+// from this list on first ship, which silently suppressed the pop-up for every
+// first-time visitor landing on the root, i.e. exactly the audience the promo
+// exists to reach. Anchored as /^\/$/ so it matches the root ONLY and does not
+// turn into a match-everything rule.
+const PROMO_PATHS = [/^\/$/, /^\/quizzes/, /^\/quiz\//, /^\/daily/, /^\/player\//];
 
 function onPromoPath(path) {
   return PROMO_PATHS.some((re) => re.test(path || ''));
