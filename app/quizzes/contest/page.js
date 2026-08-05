@@ -9,9 +9,30 @@ import ContestBoard from './ContestBoard';
 // in the HTML for anyone who needs to read or cite them, with only the live
 // board hydrated on the client.
 
+// An explicit openGraph block is REQUIRED here, not optional. Without one the
+// page inherits the root layout's card, and the sibling app/quizzes/opengraph-image
+// route, so sharing the contest link previewed as "Name the NYC Pizzeria from
+// the Pizza Photo" with the generic site description. A promo link that
+// advertises an unrelated quiz is worse than no preview at all.
+const OG_TITLE = `${COPY.headline}: bring the most new players to Mind Loft`;
+const OG_DESC = `${COPY.prizeLine}. Free to enter, open worldwide, ends ${CONTEST.deadlineLabel}.`;
+
 export const metadata = {
   title: `${COPY.headline}: Mind Loft referral contest`,
   description: `${COPY.prizeLine}. ${COPY.deadlineLine} ${COPY.legal}`,
+  alternates: { canonical: '/quizzes/contest' },
+  openGraph: {
+    title: OG_TITLE,
+    description: OG_DESC,
+    url: '/quizzes/contest',
+    type: 'website',
+    siteName: 'Mind Loft',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: OG_TITLE,
+    description: OG_DESC,
+  },
 };
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
