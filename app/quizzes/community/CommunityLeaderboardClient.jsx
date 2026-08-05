@@ -8,7 +8,7 @@ import JoinLeaderboardForm from '../../quiz/[id]/JoinLeaderboardForm';
 import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { T } from '@/lib/theme';
-import { CONTEST, contestIsLive, formatScore } from '@/lib/contest';
+import { CONTEST, COPY, contestIsLive, formatScore } from '@/lib/contest';
 
 // Public referral board. The Top Community Member tile on the home hub shows only
 // the winner and the two runners-up; this is the full ranking behind it, plus the
@@ -21,6 +21,16 @@ const C = {
 const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
+// Three views (owner, 2026-08-05). CONTEST is its own view rather than a
+// decoration on the 90-day board, because the two are ordered by different
+// things: the contest ranks by weighted SCORE, the others by raw referral
+// count. Overlaying contest numbers onto the 90-day ordering (the first
+// attempt) produced a list whose numbers descended out of order.
+//
+// Only the contest view shows points; the other two show players, which is what
+// they actually measure. The contest tab hides itself once the contest ends, so
+// this page reverts to exactly what it was with no follow-up deploy.
+const CONTEST_VIEW = 'contest';
 const WINDOWS = [
   { key: 90, label: 'Last 90 days' },
   { key: 36500, label: 'All time' },
@@ -28,6 +38,10 @@ const WINDOWS = [
 
 export default function CommunityLeaderboardClient() {
   const [days, setDays] = useState(90);
+  // 'contest' | 90 | 36500. Starts on 90 so a server render and the pre-contest
+  // state both show the familiar board; the mount effect switches to the
+  // contest view when one is running.
+  const [view, setView] = useState(90);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -60,19 +74,20 @@ export default function CommunityLeaderboardClient() {
   // result. The home tile deliberately does not, it has one narrow column.
   // Keyed by ref_code, which is stable across a username change.
   const [contestLive, setContestLive] = useState(false);
-  const [contestByCode, setContestByCode] = useState(null);
-  useEffect(() => { setContestLive(contestIsLive()); }, []);
+  const [contestRows, setContestRows] = useState(null);
+  useEffect(() => {
+    const live = contestIsLive();
+    setContestLive(live);
+    // Land on the contest board while it is running: it is the view with money
+    // attached and the one people are arriving to check.
+    if (live) setView(CONTEST_VIEW);
+  }, []);
   useEffect(() => {
     if (!contestLive) return undefined;
     let alive = true;
     fetch('/api/quiz/contest?limit=100')
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!alive || !d || !Array.isArray(d.board)) return;
-        const m = new Map();
-        for (const r of d.board) if (r.refCode) m.set(String(r.refCode).toLowerCase(), r);
-        setContestByCode(m);
-      })
+      .then((d) => { if (alive && d && Array.isArray(d.board)) setContestRows(d.board); })
       .catch(() => {});
     return () => { alive = false; };
   }, [contestLive]);
@@ -84,7 +99,29 @@ export default function CommunityLeaderboardClient() {
   }, []);
 
   const me = data?.me || null;
-  const rows = data?.top || [];
+  const onContest = view === CONTEST_VIEW && contestLive;
+  // One shape for both sources so the row renderer stays single-branch:
+  //   value      the number in the right-hand column
+  //   unit       what that number IS, and the whole point of the owner's rule
+  //   breakdown  formula inputs, contest only
+  const rows = onContest
+    ? (contestRows || []).map((r) => ({
+        username: r.username,
+        refCode: r.refCode,
+        value: formatScore(r.score),
+        unit: 'points',
+        breakdown: { users: r.users, sessions: r.sessions, plays: r.plays },
+      }))
+    : (data?.top || []).map((r) => ({
+        username: r.username,
+        refCode: r.refCode,
+        value: r.credits,
+        unit: r.credits === 1 ? 'player' : 'players',
+        breakdown: null,
+      }));
+  // The contest board is a separate fetch, so it has its own pending state; the
+  // 90-day/all-time board keeps using `loading` from the referrals fetch.
+  const pending = onContest ? contestRows === null : (loading && !rows.length);
   const myRank = me ? rows.findIndex((r) => r.refCode && me.code && r.refCode === me.code) : -1;
 
   const copy = useCallback(async () => {
@@ -150,36 +187,46 @@ export default function CommunityLeaderboardClient() {
           )}
         </div>
 
-        {/* Window toggle */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          {WINDOWS.map((w) => (
-            <button
-              key={w.key}
-              type="button"
-              onClick={() => setDays(w.key)}
-              style={{
-                fontFamily: FONT, fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
-                padding: '7px 13px', borderRadius: 999,
-                border: `1px solid ${days === w.key ? C.accent : C.line}`,
-                background: days === w.key ? C.accent : C.surface,
-                color: days === w.key ? T.white : C.muted,
-              }}
-            >
-              {w.label}
-            </button>
-          ))}
+        {/* View toggle: Contest (while live) / Last 90 days / All time */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+          {(contestLive ? [{ key: CONTEST_VIEW, label: `Contest · ${CONTEST.prizeLabel}` }] : []).concat(WINDOWS).map((w) => {
+            const on = view === w.key;
+            return (
+              <button
+                key={w.key}
+                type="button"
+                onClick={() => { setView(w.key); if (w.key !== CONTEST_VIEW) setDays(w.key); }}
+                style={{
+                  fontFamily: FONT, fontSize: 12.5, fontWeight: 800, cursor: 'pointer',
+                  padding: '7px 13px', borderRadius: 999,
+                  border: `1px solid ${on ? C.accent : C.line}`,
+                  background: on ? C.accent : C.surface,
+                  color: on ? T.white : C.muted,
+                }}
+              >
+                {w.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* What the selected view measures. The contest view ranks by a weighted
+            score, the others by headcount, and saying so prevents the two being
+            read as the same list disagreeing with itself. */}
+        <div style={{ fontSize: 12, color: C.soft, marginBottom: 12, lineHeight: 1.5 }}>
+          {onContest
+            ? <>Ranked by contest points. {COPY.formulaLine}. Ends {CONTEST.deadlineLabel}. An email on your account is required to be eligible.</>
+            : <>Ranked by new players brought in{view === 90 ? ' over the last 90 days' : ', all time'}.</>}
         </div>
 
         {/* The board */}
         <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, overflow: 'hidden' }}>
-          {loading && !rows.length ? (
+          {pending ? (
             <div style={{ padding: 26, textAlign: 'center', color: C.soft, fontSize: 14 }}>Loading…</div>
           ) : rows.length ? (
             rows.map((r, i) => {
               const mine = me && me.code && r.refCode === me.code;
-              const cx = contestByCode && r.refCode
-                ? contestByCode.get(String(r.refCode).toLowerCase())
-                : null;
+              const cx = r.breakdown;
               return (
                 <div
                   key={r.refCode || r.username || i}
@@ -212,25 +259,16 @@ export default function CommunityLeaderboardClient() {
                       </span>
                     ) : null}
                   </span>
-                  {cx ? (
-                    <span style={{ flex: 'none', textAlign: 'right' }}>
-                      <span style={{ display: 'block', fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{formatScore(cx.score)}</span>
-                      <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 700 }}>score</span>
-                    </span>
-                  ) : (
-                    <>
-                      <span style={{ flex: 'none', fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{r.credits}</span>
-                      <span style={{ flex: 'none', fontSize: 11.5, color: C.soft, fontWeight: 700 }}>
-                        {r.credits === 1 ? 'player' : 'players'}
-                      </span>
-                    </>
-                  )}
+                  <span style={{ flex: 'none', textAlign: 'right', minWidth: 54 }}>
+                    <span style={{ display: 'block', fontWeight: 800, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{r.value}</span>
+                    <span style={{ display: 'block', fontSize: 11.5, color: C.soft, fontWeight: 700 }}>{r.unit}</span>
+                  </span>
                 </div>
               );
             })
           ) : (
             <div style={{ padding: 26, textAlign: 'center', color: C.soft, fontSize: 14 }}>
-              Nobody has brought in a player yet in this window. The top spot is open.
+              {onContest ? 'No qualifying entries yet. Share your link and you are in first place.' : 'Nobody has brought in a player yet in this window. The top spot is open.'}
             </div>
           )}
         </div>
