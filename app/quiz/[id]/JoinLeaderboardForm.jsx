@@ -36,7 +36,47 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
   // the name may well be the player's own, claimed on another device, and the
   // email is the only thing that can reconnect it here.
   const [recover, setRecover] = useState(false);
-  useEffect(() => { if (identity) { setJName(identity.username || ''); setJEmail(identity.email || ''); } }, [identity]);
+  // The display name as the SERVER knows it. localStorage is a cache written at
+  // join time and never revised, so after an admin rename it still holds the old
+  // name. Submitting this form patches whatever name it is given straight onto
+  // quiz_users (resolveQuizIdentity), so seeding the field from that stale cache
+  // let a player silently rename themselves BACK by opening the form and
+  // pressing the button. The server value always wins.
+  const [srvName, setSrvName] = useState(null);
+  useEffect(() => {
+    // Only overwrite from the identity cache while the server has not answered.
+    if (identity && !srvName) { setJName(identity.username || ''); setJEmail(identity.email || ''); }
+  }, [identity, srvName]);
+  useEffect(() => {
+    let live = true;
+    try {
+      const params = new URLSearchParams();
+      const anonId = getAnonId();
+      if (anonId) params.set('anonId', anonId);
+      let mail = '';
+      try { const s = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); mail = (s && s.email) || ''; } catch (e) {}
+      if (mail) params.set('email', mail);
+      if (!anonId && !mail) return undefined;
+      params.set('light', '1');
+      fetch(`/api/quiz/me?${params.toString()}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!live || !d || !d.signed) return;
+          const real = d.name || d.username || '';
+          if (!real) return;
+          setSrvName(real);
+          setJName(real);
+          // Heal the cache so every other surface reading it (the player chip,
+          // the duel name posted by /api/duel/create) stops showing the old name.
+          try {
+            const s = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+            if (s && s.username !== real) localStorage.setItem('sot_quiz_identity', JSON.stringify({ ...s, username: real }));
+          } catch (e) {}
+        })
+        .catch(() => {});
+    } catch (e) {}
+    return () => { live = false; };
+  }, []);
 
   async function submit() {
     setErr(false);
@@ -109,7 +149,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
         {busy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
       </button>
       {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? C.ember : C.forest }}>{msg}</p>)}
-      {identity && !msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: C.faded }}>You're signed up as "{identity.username}". Finish a game to post your score.</p>)}
+      {identity && !msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: C.faded }}>You're signed up as "{srvName || identity.username}". Finish a game to post your score.</p>)}
       {onViewLeaderboard && (
         <button onClick={onViewLeaderboard} style={{ marginTop: 18, background: 'transparent', border: 'none', color: C.faded, cursor: 'pointer', fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>
           View the leaderboard →
