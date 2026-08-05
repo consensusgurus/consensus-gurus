@@ -256,6 +256,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
+  const [armRestart, setArmRestart] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   // Hold the end card back so the move that ended the game is visible first.
   const endHold = useEndHold(1200);
@@ -330,6 +331,11 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     const t = setTimeout(() => setArmReveal(false), 3500);
     return () => clearTimeout(t);
   }, [armReveal]);
+  useEffect(() => {
+    if (!armRestart) return undefined;
+    const t = setTimeout(() => setArmRestart(false), 3500);
+    return () => clearTimeout(t);
+  }, [armRestart]);
   useEffect(() => {
     try {
       setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
@@ -605,12 +611,31 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     setSel(null);
   }
 
+  // A replay deals the same board again with the clock already running. The start
+  // tile exists to keep the FIRST attempt's timer honest; a replay never becomes
+  // the recorded result, so re-reading the directions is pure friction.
   function resetGame() {
     endHold.release();
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     if (replyTimer.current) clearTimeout(replyTimer.current);
-    commit(freshState());
+    setArmReveal(false);
+    setArmRestart(false);
+    commit({ ...freshState(), t0: Date.now() });
     setSel(null); setHintPiece(null); setEndClosed(false);
+  }
+
+  // Restart deals the same board again mid-game. The abandoned run is recorded
+  // exactly as giving up records it, because this control only appears once the
+  // player has pressed Start and walking away from a losing board cannot be
+  // free. Unlike giving up it does NOT play the answer out: the player is about
+  // to replay this very board.
+  function restartGame() {
+    const cur = gRef.current;
+    if (cur.status === 'playing' && cur.t0) {
+      if (replyTimer.current) clearTimeout(replyTimer.current);
+      postResult({ ...cur, status: 'revealed', tEnd: Date.now() }, 0);
+    }
+    resetGame();
   }
 
   function shareUrl() {
@@ -808,10 +833,16 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
               Tap a white piece, then tap where it goes. Only one move forces mate.
             </span>
-            <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and plays the answer' : 'Reveal & end'}
-            </button>
+            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and plays the answer' : 'Reveal & end'}
+              </button>
+              <button onClick={() => { if (armRestart) { setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(true); } }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <RotateCcw size={13} /> {armRestart ? 'Tap again — records a 0 and resets the board' : 'Restart'}
+              </button>
+            </span>
           </div>
         )}
 

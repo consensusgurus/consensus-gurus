@@ -19,7 +19,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { X, Lightbulb, Eye, Smartphone } from 'lucide-react';
+import { X, Lightbulb, Eye, RotateCcw, Smartphone } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -190,6 +190,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
+  const [armRestart, setArmRestart] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   // Hold the end card back so the move that ended the game is visible first.
   const endHold = useEndHold(1100);
@@ -255,6 +256,11 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     const t = setTimeout(() => setArmReveal(false), 3500);
     return () => clearTimeout(t);
   }, [armReveal]);
+  useEffect(() => {
+    if (!armRestart) return undefined;
+    const t = setTimeout(() => setArmRestart(false), 3500);
+    return () => clearTimeout(t);
+  }, [armRestart]);
   useEffect(() => {
     try {
       setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
@@ -502,13 +508,32 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     setSel(null);
   }
 
+  // A replay deals the same board again with the clock already running. The start
+  // tile exists to keep the FIRST attempt's timer honest; a replay never becomes
+  // the recorded result, so re-reading the directions is pure friction.
   function resetGame() {
     endHold.release();
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     if (replyTimer.current) clearTimeout(replyTimer.current);
     setThinking(false);
-    commit(freshState());
+    setArmReveal(false);
+    setArmRestart(false);
+    commit({ ...freshState(), t0: Date.now() });
     setSel(null); setHintSq(null); setEndClosed(false);
+  }
+
+  // Restart deals the same board again mid-game. The abandoned run is recorded
+  // exactly as giving up records it, because this control only appears once the
+  // player has pressed Start and walking away from a losing board cannot be
+  // free. Unlike giving up it does NOT play the answer out: the player is about
+  // to replay this very board.
+  function restartGame() {
+    const cur = gRef.current;
+    if (cur.status === 'playing' && cur.t0) {
+      if (replyTimer.current) clearTimeout(replyTimer.current);
+      postResult({ ...cur, status: 'gaveup', tEnd: Date.now() }, 0);
+    }
+    resetGame();
   }
 
   function shareUrl() { return withRef(`mindloftdaily.com/check${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
@@ -673,10 +698,16 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>Tap a red piece, then tap where it goes. No take-back.</span>
-            <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Eye size={13} /> {armReveal ? 'Tap again — ends the board and scores nothing' : 'Give up'}
-            </button>
+            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Eye size={13} /> {armReveal ? 'Tap again — ends the board and scores nothing' : 'Give up'}
+              </button>
+              <button onClick={() => { if (armRestart) { setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(true); } }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <RotateCcw size={13} /> {armRestart ? 'Tap again — records a loss and deals a fresh board' : 'Restart'}
+              </button>
+            </span>
           </div>
         )}
 

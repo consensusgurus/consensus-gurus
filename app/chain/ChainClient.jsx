@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { X, Lightbulb, Eye, Smartphone } from 'lucide-react';
+import { X, Lightbulb, Eye, RotateCcw, Smartphone } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -173,6 +173,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
+  const [armRestart, setArmRestart] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   const endHold = useEndHold(1100);
   const [hydrated, setHydrated] = useState(false);
@@ -470,6 +471,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
   function revealEnd() {
     if (!armReveal) {
+      setArmRestart(false);
       setArmReveal(true);
       setTimeout(() => setArmReveal(false), 3500);
       return;
@@ -478,15 +480,39 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
     finish(gRef.current, 'gaveup');
   }
 
+  // A replay deals the same board again with the clock already running. The start
+  // tile exists to keep the FIRST attempt's timer honest; a replay never becomes
+  // the recorded result, so re-reading the directions is pure friction.
   function resetGame() {
     endHold.release();
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     if (replyTimer.current) clearTimeout(replyTimer.current);
     setThinking(false);
-    commit(freshState());
+    commit({ ...freshState(), t0: Date.now() });
     setEndClosed(false);
     setHoverEdge(null);
     setArmReveal(false);
+    setArmRestart(false);
+  }
+
+  // Restart deals the same board again mid-game. The abandoned run is recorded
+  // exactly as giving up records it, because this control only appears once the
+  // player has pressed Start and walking away from a losing board cannot be
+  // free. Unlike giving up it does NOT play the answer out: the player is about
+  // to replay this very board.
+  function restartGame() {
+    if (!armRestart) {
+      setArmReveal(false);
+      setArmRestart(true);
+      setTimeout(() => setArmRestart(false), 3500);
+      return;
+    }
+    setArmRestart(false);
+    const cur = gRef.current;
+    if (cur.status === 'playing' && cur.t0) {
+      postResult({ ...cur, status: 'gaveup', tEnd: Date.now() }, SCORE.gaveup);
+    }
+    resetGame();
   }
 
   async function a2hsClick() {
@@ -724,9 +750,14 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.faded }}>No take-back. Every edge you draw is played.</div>
-              <button className="ch-tool" onClick={revealEnd} style={{ marginLeft: 'auto', borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
-                <Eye size={14} /> {armReveal ? 'Tap again to end' : 'Give up'}
-              </button>
+              <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <button className="ch-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
+                  <Eye size={14} /> {armReveal ? 'Tap again to end' : 'Give up'}
+                </button>
+                <button className="ch-tool" onClick={restartGame} title="Record this as a loss and deal the same board again" style={{ borderColor: armRestart ? COLORS.rust : undefined, color: armRestart ? COLORS.rust : undefined }}>
+                  <RotateCcw size={14} /> {armRestart ? 'Tap again to restart' : 'Restart'}
+                </button>
+              </span>
             </div>
           )}
 
