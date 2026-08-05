@@ -229,7 +229,14 @@ function mateDistance(node) {
 // id rather than at random. Replies are sorted first so the choice never depends
 // on object key order.
 function pickReply(node, quizId) {
-  const replies = Object.keys(node.lines).sort();
+  // Black plays its STIFFEST defence: only the replies that hold out longest are
+  // eligible, and the hash breaks ties among those. Hashing over every legal
+  // reply meant a Sunday mate in three could finish in two whenever the hash
+  // landed on a reply that walks into the mate early. Every Sunday board in the
+  // bank has at least one such reply (owner report, 2026-08-05).
+  const all = Object.keys(node.lines).sort();
+  const deepest = Math.max(...all.map((k) => mateDistance(node.lines[k])));
+  const replies = all.filter((k) => mateDistance(node.lines[k]) === deepest);
   let h = 2166136261;
   for (let i = 0; i < quizId.length; i++) { h ^= quizId.charCodeAt(i); h = Math.imul(h, 16777619); }
   return replies[Math.abs(h) % replies.length];

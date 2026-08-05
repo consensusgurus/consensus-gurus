@@ -298,15 +298,50 @@ export function idOrder(quizId) {
   return out;
 }
 
-// The engine's reply: the highest-scoring column, ties broken by the puzzle's
-// own deterministic order.
+// How much a move LOOKS like a defence, used only to break ties between moves
+// the solver already rates identically:
+//
+//   0  after the move the opponent has no immediate win
+//   1  a threat remains, but this move took one away
+//   2  a threat remains, untouched by this move
+//   3  the move hands the opponent the square directly above it
+//
+// A solved engine is genuinely indifferent once the game is decided: every reply
+// scores the same, so the pick fell to `idOrder` and could be the single most
+// self-destructive drop on the board. On four-8-5-26 that put a disc directly
+// under the player's winning square on the last move of the puzzle, which reads
+// as the engine throwing it away (owner report, 2026-08-05).
+function resistRank(b, c) {
+  const opp = b.turn === 1 ? 2 : 1;
+  const r = b.heights[c];
+  const blocks = winsAt(b, c, r, opp);
+  play(b, c);
+  const suicide = r + 1 < ROWS && winsAt(b, c, r + 1, opp);
+  let live = false;
+  for (let k = 0; k < COLS; k++) {
+    if (b.heights[k] < ROWS && winsAt(b, k, b.heights[k], opp)) { live = true; break; }
+  }
+  undo(b, c);
+  if (suicide) return 3;
+  if (!live) return 0;
+  return blocks ? 1 : 2;
+}
+
+// The engine's reply: the highest-scoring column, ties broken first by the
+// resistance rank above and then by the puzzle's own deterministic order. This
+// only ever reorders moves the solver rates equally, so it can never change who
+// wins or how fast, and every player still faces the same defence.
 export function engineMove(b, quizId, tt = new Map()) {
   const scored = scoreMoves(b, tt);
   if (!scored.length) return null;
   const order = idOrder(quizId);
+  const rank = new Map(scored.map((s) => [s.col, resistRank(b, s.col)]));
   let best = null;
   for (const s of scored) {
-    if (!best || s.score > best.score || (s.score === best.score && order.indexOf(s.col) < order.indexOf(best.col))) best = s;
+    if (!best) { best = s; continue; }
+    if (s.score !== best.score) { if (s.score > best.score) best = s; continue; }
+    const dr = rank.get(s.col) - rank.get(best.col);
+    if (dr < 0 || (dr === 0 && order.indexOf(s.col) < order.indexOf(best.col))) best = s;
   }
   return best;
 }
