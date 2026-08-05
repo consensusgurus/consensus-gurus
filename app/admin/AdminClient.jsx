@@ -2500,6 +2500,16 @@ function TimeByDayPanel({ data }) {
   // The trailing bucket is usually still running, so project where it lands and
   // let the y-scale include that projection so the dotted top always fits.
   const projection = useMemo(() => tbdProjectLastBucket(buckets, gran, shape), [buckets, gran, shape]);
+  // Put the measured curve behind a hover on the legend, so a projection that
+  // looks wrong can be checked against the shape it came from without going to
+  // the data.
+  const shapeTip = useMemo(() => {
+    const cum = shape && Array.isArray(shape.hourCum) && shape.hourCum.length === 24 ? shape.hourCum : null;
+    if (!cum) return '';
+    const rows = [];
+    for (let h = 2; h < 24; h += 3) rows.push(`${String((h + 1) % 24).padStart(2, '0')}:00  ${(cum[h] * 100).toFixed(0)}%`);
+    return `Share of a typical day's play banked by each ET hour.\nMedian of the last ${shape.basisDays} complete days (${shape.firstDay} to ${shape.lastDay}):\n\n${rows.join('\n')}`;
+  }, [shape]);
   const maxSeconds = useMemo(
     () => Math.max(buckets.reduce((m, b) => Math.max(m, b.seconds), 0), projection ? projection.seconds : 0),
     [buckets, projection]
@@ -2609,7 +2619,7 @@ function TimeByDayPanel({ data }) {
           ))}
         </div>
         {projection ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.line}` }}>
+          <div title={shapeTip} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: `1px solid ${COLORS.line}`, cursor: shapeTip ? 'help' : 'default' }}>
             <span style={{ flex: '0 0 auto', width: 16, height: 10, boxSizing: 'border-box', border: `1px dashed ${COLORS.ember}`, borderBottom: 'none', borderRadius: '2px 2px 0 0', background: `${COLORS.ember}14`, display: 'inline-block' }} />
             <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, lineHeight: 1.5 }}>
               Dotted outline projects where the current {gran} finishes at the pace set so far:{' '}

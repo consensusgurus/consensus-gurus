@@ -319,19 +319,41 @@ function buildPlayShape(byDay, todayKey) {
     .slice(-SHAPE_WINDOW_DAYS);
   if (complete.length < SHAPE_MIN_DAYS) return null;
 
-  // Hour curve: raw sum across the window. Every day contributes all 24 hours,
-  // so there is no ordering bias, and summing raw simply lets the busiest recent
-  // days dominate the shape, which is what we want while traffic is growing.
-  const hours = new Array(24).fill(0);
+  // Drop the window's near-empty days before measuring anything. Their shape is
+  // one or two games' worth of noise, not a curve.
+  const secsSorted = complete.map(([, v]) => v.seconds).sort((a, b) => a - b);
+  const medSec = secsSorted[secsSorted.length >> 1] || 0;
+  let keep = complete.filter(([, v]) => v.seconds >= medSec * 0.1);
+  if (keep.length < SHAPE_MIN_DAYS) keep = complete;
+
+  // Hour curve: normalize EACH day to its own total first, then take the
+  // pointwise MEDIAN across days. Summing raw seconds instead would let the
+  // single busiest day dictate the curve (across a window with heavy growth the
+  // last few days carry most of the weight), so one front-loaded outlier would
+  // drag every projection down with it. Equal say per day, and a median rather
+  // than a mean, keeps one odd day from moving the whole shape.
+  const dayCums = [];
   let total = 0;
-  for (const [, v] of complete) {
-    for (let h = 0; h < 24; h++) hours[h] += v.hours[h];
+  for (const [, v] of keep) {
+    if (!(v.seconds > 0)) continue;
+    const cum = [];
+    let run = 0;
+    for (let h = 0; h < 24; h++) { run += v.hours[h]; cum.push(run / v.seconds); }
+    cum[23] = 1;
+    dayCums.push(cum);
     total += v.seconds;
   }
-  if (!(total > 0)) return null;
+  if (dayCums.length < SHAPE_MIN_DAYS || !(total > 0)) return null;
+  const median = (xs) => {
+    const s = xs.slice().sort((a, b) => a - b);
+    const m = s.length >> 1;
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
   const hourCum = [];
-  let run = 0;
-  for (let h = 0; h < 24; h++) { run += hours[h]; hourCum.push(run / total); }
+  for (let h = 0; h < 24; h++) hourCum.push(median(dayCums.map((cum) => cum[h])));
+  // Pointwise medians of monotone series are themselves monotone, but a float
+  // wobble should never let the curve tick backwards.
+  for (let h = 1; h < 24; h++) hourCum[h] = Math.max(hourCum[h], hourCum[h - 1]);
   hourCum[23] = 1;
 
   // Weekday curve has to survive a growth trend: raw weekday sums would mostly
@@ -339,16 +361,16 @@ function buildPlayShape(byDay, todayKey) {
   // a ratio to the centered 7-day average around it (which cancels the trend),
   // then average those ratios per weekday.
   let dow = new Array(7).fill(1 / 7);
-  if (complete.length >= SHAPE_MIN_DOW_DAYS) {
-    const vals = complete.map(([, v]) => v.seconds);
+  if (keep.length >= SHAPE_MIN_DOW_DAYS) {
+    const vals = keep.map(([, v]) => v.seconds);
     const ratios = new Array(7).fill(null).map(() => []);
-    for (let i = 0; i < complete.length; i++) {
+    for (let i = 0; i < keep.length; i++) {
       const lo = Math.max(0, i - 3);
       const hi = Math.min(vals.length - 1, i + 3);
       let sum = 0;
       for (let j = lo; j <= hi; j++) sum += vals[j];
       const local = sum / (hi - lo + 1);
-      if (local > 0) ratios[complete[i][1].dow].push(vals[i] / local);
+      if (local > 0) ratios[keep[i][1].dow].push(vals[i] / local);
     }
     const avg = ratios.map((xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0));
     const sum = avg.reduce((a, b) => a + b, 0);
@@ -359,10 +381,10 @@ function buildPlayShape(byDay, todayKey) {
   return {
     hourCum,
     dow,
-    basisDays: complete.length,
+    basisDays: dayCums.length,
     basisSeconds: Math.round(total),
-    firstDay: complete[0][0],
-    lastDay: complete[complete.length - 1][0],
+    firstDay: keep[0][0],
+    lastDay: keep[keep.length - 1][0],
   };
 }
 
