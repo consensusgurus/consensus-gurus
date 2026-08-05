@@ -314,6 +314,25 @@ if (RUN('emcee')) {
 // ─── LINKS ──────────────────────────────────────────────────────────────────
 if (RUN('links')) {
   const { PUZZLES } = await import('../app/links/puzzles.js');
+
+  // ─── CATEGORY REUSE ──────────────────────────────────────────────────────
+  // A links board is only as fresh as its categories, and the bank had drifted
+  // hard toward reruns: 29 group names repeat, with "Gemstones" five times and
+  // "Herbs", "Shades of green" and "Snakes" four each. Same rule shape as the
+  // crux collision-pool check: boards live before the cutoff are frozen
+  // history and only earn a review note, but from the cutoff a name that has
+  // already been used twice anywhere in the bank cannot be used again.
+  const REUSE_FROM = '2026-09-30';
+  const REUSE_CAP = 2;
+  const normName = (n) => n.toLowerCase().replace(/\s+/g, ' ').trim();
+  const nameCount = new Map();
+  for (const p of PUZZLES) for (const g of p.groups) {
+    const k = normName(g.name);
+    nameCount.set(k, (nameCount.get(k) || 0) + 1);
+  }
+  const staleNames = [...nameCount].filter(([, n]) => n > REUSE_CAP).map(([k, n]) => `${k} (${n}x)`);
+  if (staleNames.length) note('links-bank', `category names over ${REUSE_CAP} uses: ${staleNames.join(', ')}`);
+
   for (const p of PUZZLES) {
     const errs = [];
     if (p.groups.length !== 4) errs.push(`${p.groups.length} groups`);
@@ -321,6 +340,14 @@ if (RUN('links')) {
     if (all.length !== 16) errs.push(`${all.length} words`);
     if (new Set(all).size !== all.length) errs.push('duplicate word across groups');
     for (const g of p.groups) if (g.words.length !== 4) errs.push(`group "${g.name}" has ${g.words.length}`);
+    if (p.live >= REUSE_FROM) {
+      for (const g of p.groups) {
+        const k = normName(g.name);
+        if (nameCount.get(k) > REUSE_CAP) {
+          errs.push(`category "${g.name}" is used ${nameCount.get(k)}x across the bank (cap ${REUSE_CAP}) — pick a fresher angle`);
+        }
+      }
+    }
 
     // ── COLLISIONS + EXACT UNIQUENESS ────────────────────────────────────
     // A collision is a word that plausibly reads as a DIFFERENT group on the

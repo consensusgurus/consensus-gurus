@@ -8,56 +8,56 @@
 //   - no item falls outside all three circles
 //   - hidden counts appear only on Sundays, exactly two of them, never the
 //     triple overlap
+//   - KNOWLEDGE BOARDS: the declared domain exists, every item is a row in it,
+//     and every fact rule names a property that domain declares
+//   - the domain tables themselves are internally consistent (no tag used that
+//     is not declared, no property declared that is never true)
 // The board carries no answer: an item's region is recomputed here from the
-// rules, exactly as the client recomputes it.
+// rules, exactly as the client recomputes it. Both sides now import the one
+// engine in lib/venn-rules.js rather than keeping hand-synced copies.
 // Run: node scripts/verify-venn.mjs
 import { PUZZLES } from '../app/venn/puzzles.js';
+import { ruleFn, HIDDEN, hides } from '../lib/venn-rules.js';
+import { DOMAINS } from '../lib/venn-facts.js';
 
 let fails = 0;
 const fail = (m) => { console.error('FAIL:', m); fails++; };
 
-const VOW = new Set(['A','E','I','O','U']);
-const nv = (w) => [...w].filter((c) => VOW.has(c)).length;
-const HIDDEN = {
-  animal: ['CAT','DOG','COW','OWL','BAT','APE','RAT','PIG','HEN','FOX','ANT','BEE','ELK','EWE','SOW','RAM'],
-  body: ['EAR','RIB','HIP','ARM','LIP','GUM','JAW','TOE','EYE','LEG','SHIN','HEEL','CHIN','LUNG','SKIN','NECK','BONE','HAND','FOOT','KNEE','HAIR','HEAD','FACE','NOSE','BACK','PALM','NAIL','CHEST','THIGH','SPINE','WRIST','ANKLE','ELBOW','CHEEK','THUMB','TOOTH','BRAIN','HEART'],
-  number: ['ONE','TWO','SIX','TEN','NINE','FOUR','FIVE'],
-};
 // Words a solver would fairly read as a member of the circle but that the
-// rule does not recognise, because HIDDEN above is a closed list. FEELING
-// hides an EEL and CARPET hides a CARP, yet neither scored as an animal, so
-// the item read as misfiled while the region counts said otherwise. A board
-// carrying one of these is unfair and fails, whatever the counts say.
+// rule does not recognise, because HIDDEN is a closed list. FEELING hides an
+// EEL and CARPET hides a CARP, yet neither scored as an animal, so the item
+// read as misfiled while the region counts said otherwise. A board carrying
+// one of these is unfair and fails, whatever the counts say.
+//
+// The knowledge rules have no equivalent list and need none: a domain table
+// carries every property of every row it holds, and an item that is not a row
+// fails outright, so a knowledge board cannot assert something false by
+// omission the way a member list can.
 const DECOY = {
   animal: ['EEL','ASS','COD','DOE','CUB','KID','PUP','GNU','YAK','EMU','RAY','CROW','DOVE','DUCK','SWAN','WREN','LARK','HAWK','BOAR','BULL','CALF','COLT','FOAL','LAMB','MARE','MULE','GOAT','DEER','HARE','MOLE','SEAL','BEAR','LION','WOLF','MOTH','WORM','TOAD','FROG','CRAB','CLAM','SLUG','SOLE','CARP','PIKE','TUNA','BASS','ORCA','STOAT','OTTER','SHEEP','HORSE','MOUSE','SNAKE','TIGER','ZEBRA','WHALE','SHARK','ROBIN','RAVEN','GOOSE','SKUNK','SLOTH','MOOSE','BISON','CAMEL','LLAMA','PANDA','KOALA','HYENA','RHINO','SQUID','TROUT','SNAIL','LOCUST','WEASEL','BADGER','RABBIT','MONKEY','FERRET','BEAVER','TURTLE','SALMON','SPIDER'],
   body: ['GUT','LIVER','TORSO','SCALP','VEIN','WAIST','TONGUE','KIDNEY','MUSCLE','THROAT','TEMPLE','PELVIS','FINGER','EYELID','SHOULDER','STOMACH'],
   number: ['THREE','SEVEN','EIGHT','ZERO','ELEVEN','TWELVE','TWENTY','FORTY','FIFTY','SIXTY','NINETY','HUNDRED','MILLION'],
 };
-const hides = (w, h) => w.includes(h) && w !== h && w !== h + 'S' && w !== h + 'ES';
-// kept byte-identical to RULES in app/venn/VennClient.jsx
-function ruleFn(r) {
-  switch (r.k) {
-    case 'alpha': return (w) => [...w].every((c,i) => i === 0 || c >= w[i-1]);
-    case 'norepeat': return (w) => new Set(w).size === w.length;
-    case 'dbl': return (w) => /(.)\1/.test(w);
-    case 'len': return (w) => w.length === r.n;
-    case 'lenGte': return (w) => w.length >= r.n;
-    case 'vowels': return (w) => nv(w) === r.n;
-    case 'onevowel': return (w) => new Set([...w].filter((c) => VOW.has(c))).size === 1;
-    case 'sameends': return (w) => w[0] === w[w.length-1];
-    case 'startvowel': return (w) => VOW.has(w[0]);
-    case 'endvowel': return (w) => VOW.has(w[w.length-1]);
-    case 'altvc': return (w) => [...w].every((c,i) => i === 0 || VOW.has(c) !== VOW.has(w[i-1]));
-    case 'twinvowel': return (w) => [...w].some((c,i) => i > 0 && VOW.has(c) && VOW.has(w[i-1]));
-    case 'nolet': return (w) => !w.includes(r.c);
-    // A word only HIDES something when the smaller word sits inside a
-    // LONGER one. LUNG does not hide a lung and EYES does not hide an eye:
-    // an item that IS the hidden word, or merely its plural, hides nothing.
-    // HEART still qualifies, because a heart hides an EAR.
-    case 'hides': return (w) => HIDDEN[r.set].some((h) => hides(w, h));
-    default: return null;
+
+// ─── domain table integrity, once, before any board is read ────────────────
+// A mistyped tag is the one way a knowledge board can quietly lie:
+// 'landlockd' simply reads as false and the item lands in the wrong region
+// with nothing to catch it. Both halves of this check exist to stop that.
+for (const [name, d] of Object.entries(DOMAINS)) {
+  const declared = new Set(Object.keys(d.props));
+  const used = new Set();
+  for (const [row, tags] of Object.entries(d.rows)) {
+    if (!Array.isArray(tags)) { fail(`domain ${name}: row ${row} is not an array`); continue; }
+    if (!/^[A-Z]{2,}(?: [A-Z]{2,})*$/.test(row)) fail(`domain ${name}: row "${row}" is not plain uppercase`);
+    if (new Set(tags).size !== tags.length) fail(`domain ${name}: row ${row} repeats a tag`);
+    for (const t of tags) {
+      if (!declared.has(t)) fail(`domain ${name}: row ${row} uses undeclared property "${t}"`);
+      used.add(t);
+    }
   }
+  for (const p of declared) if (!used.has(p)) fail(`domain ${name}: property "${p}" is never true of any row`);
 }
+
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const REGIONS = [1,2,4,3,5,6,7];
 const seen = new Set();
@@ -73,14 +73,50 @@ PUZZLES.forEach((p, i) => {
   if (!!p.sunday !== (new Date(Date.UTC(y, m-1, d)).getUTCDay() === 0)) fail(`${tag}: sunday flag wrong`);
 
   if (p.rules.length !== 3) { fail(`${tag}: ${p.rules.length} rules (want 3)`); return; }
-  const fns = p.rules.map(ruleFn);
+
+  // ─── knowledge board wiring ──────────────────────────────────────────────
+  const factRules = p.rules.filter((r) => r.k === 'fact');
+  const dom = p.domain ? DOMAINS[p.domain] : null;
+  if (factRules.length && !p.domain) { fail(`${tag}: uses a fact rule but declares no domain`); return; }
+  if (p.domain && !dom) { fail(`${tag}: unknown domain "${p.domain}"`); return; }
+  if (p.domain && !factRules.length) fail(`${tag}: declares a domain but no rule uses it`);
+  if (dom) {
+    for (const r of factRules) {
+      if (!dom.props[r.p]) fail(`${tag}: fact rule names "${r.p}", not a property of ${p.domain}`);
+    }
+    // The anti-decoy guarantee: an item off the table has no declared truth,
+    // so it could score wrongly with nothing to catch it.
+    for (const w of p.items) {
+      if (!Object.prototype.hasOwnProperty.call(dom.rows, w)) fail(`${tag}: ${w} is not in the ${p.domain} table`);
+    }
+    // Three knowledge rules is a pub quiz, not a Venn: at least one circle has
+    // to be checkable off the item itself, so a player who does not know the
+    // subject cold still has a way in.
+    if (factRules.length === 3) fail(`${tag}: all three rules are knowledge rules (keep one readable off the item)`);
+  }
+
+  const fns = p.rules.map((r) => ruleFn(r, p.domain));
   if (fns.some((f) => !f)) { fail(`${tag}: unknown rule spec`); return; }
   if (new Set(p.rules.map((r) => JSON.stringify(r))).size !== 3) fail(`${tag}: two circles carry the same rule`);
 
   const want = p.sunday ? 15 : 12;
   if (p.items.length !== want) fail(`${tag}: ${p.items.length} items (want ${want})`);
   if (new Set(p.items).size !== p.items.length) fail(`${tag}: duplicate item`);
-  if (p.items.some((w) => !/^[A-Z]{3,9}$/.test(w))) fail(`${tag}: an item is not plain uppercase letters`);
+  // One internal space is allowed so two-word entities (NEW YORK, VAN BUREN)
+  // can play; nine characters total is what a filed item can still be read at
+  // in the 76px region tray.
+  if (p.items.some((w) => !/^[A-Z]{2,}(?: [A-Z]{2,})?$/.test(w) || w.length < 3 || w.length > 9)) {
+    fail(`${tag}: an item is not plain uppercase, or runs past nine characters`);
+  }
+
+  // A two-word item and a length rule cannot share a board. Letter rules strip
+  // the space, so NEW YORK is seven letters to the engine and eight to a player
+  // counting characters, and on "eight letters or more" those disagree about
+  // the answer. Same for `alpha`, where the space breaks the run. Every other
+  // rule reads the same either way.
+  if (p.items.some((w) => w.includes(' ')) && p.rules.some((r) => ['len','lenGte','alpha'].includes(r.k))) {
+    fail(`${tag}: a two-word item shares the board with a length rule, so the space is ambiguous`);
+  }
 
   const region = (w) => (fns[0](w) ? 1 : 0) | (fns[1](w) ? 2 : 0) | (fns[2](w) ? 4 : 0);
   const counts = {}; REGIONS.forEach((r) => { counts[r] = 0; });
@@ -121,5 +157,6 @@ PUZZLES.forEach((p, i) => {
   if (hid.some((r) => !REGIONS.includes(r))) fail(`${tag}: hidden count names a region that does not exist`);
 });
 
+const known = PUZZLES.filter((p) => p.domain).length;
 if (fails) { console.error(`\nverify-venn: ${fails} FAILURE(S)`); process.exit(1); }
-console.log(`verify-venn: all ${PUZZLES.length} boards pass (regions all used, overlap sane, membership recomputed)`);
+console.log(`verify-venn: all ${PUZZLES.length} boards pass (${known} knowledge boards; regions all used, overlap sane, membership recomputed)`);

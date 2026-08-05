@@ -20,6 +20,25 @@
 // flow. This is the check that #24 needed: three planets were declared to read
 // as Roman gods while JUPITER, sitting in the gods group, is itself a planet,
 // so the board had five valid groupings and shipped anyway.
+// OWNER RULE (2026-08-05): VARY THE MECHANIC, not just the topic. An audit of
+// the first 80 puzzles found 312 of the 320 groups were flat "list of nouns in
+// a taxonomy" categories and only 8 used a wordplay mechanic, while 29 group
+// names repeated (Gemstones five times, Herbs / Shades of green / Snakes four
+// each). A board of four taxonomies is the least interesting board this game
+// can produce. Aim for at least one non-taxonomy group per puzzle, drawing on:
+// compound blanks (___ board, Fire ___), homophones (sounds like a letter, a
+// number, a country, a body part), hidden words, anagrams, reversals, silent
+// letters, words spelled only in Roman numerals, and sets whose members all
+// also belong to a neighbouring set (every zodiac sign is a constellation).
+// The verifier now enforces the other half: from 2026-09-30 a category name
+// already used twice anywhere in the bank is a hard failure, and the ten names
+// already past that are reported as a standing review note.
+//
+// SAFE-BOARD PATTERN for uniqueness: give every group four members that belong
+// nowhere else, and let the deliberate collisions point at groups that are
+// already full. A MUTUAL swap is the trap to avoid: if A's word reads as B and
+// B's word reads as A, both groups still total four after the swap, so the
+// board has two valid groupings and the proof will (correctly) reject it.
 export const PUZZLES = [
   {
     num: 1,
@@ -1477,6 +1496,218 @@ export const PUZZLES = [
     collisions: [
       { word: 'RIDGE', reads: "Mountain features" },
       { word: 'HOOD', reads: "Roof parts" },
+    ],
+  },
+  {
+    num: 81,
+    quizId: 'links-9-30-26',
+    live: '2026-09-30',
+    dateLabel: 'September 30, 2026',
+    groups: [
+      { name: "___ board", words: ['KEY', 'SURF', 'CARD', 'DASH'] },
+      { name: "___ light", words: ['SPOT', 'MOON', 'HIGH', 'FLASH'] },
+      { name: "___ work", words: ['NET', 'HOME', 'FIRE', 'GUESS'] },
+      { name: "___ house", words: ['GREEN', 'LIGHT', 'FARM', 'WARE'] },
+    ],
+    collisions: [
+      { word: 'KEY', reads: "___ light" },
+      { word: 'FIRE', reads: "___ light" },
+      { word: 'FIRE', reads: "___ house" },
+      { word: 'GREEN', reads: "___ light" },
+    ],
+  },
+  {
+    num: 82,
+    quizId: 'links-10-1-26',
+    live: '2026-10-01',
+    dateLabel: 'October 1, 2026',
+    groups: [
+      { name: "Sounds like a letter", words: ['QUEUE', 'WHY', 'SEA', 'EWE'] },
+      { name: "Sounds like a number", words: ['WON', 'TOO', 'ATE', 'FORE'] },
+      { name: "Bodies of water", words: ['GULF', 'SOUND', 'STRAIT', 'INLET'] },
+      { name: "Sheep and goats", words: ['RAM', 'KID', 'NANNY', 'BILLY'] },
+    ],
+    collisions: [
+      { word: 'SEA', reads: "Bodies of water" },
+      { word: 'EWE', reads: "Sheep and goats" },
+    ],
+  },
+  {
+    num: 83,
+    quizId: 'links-10-2-26',
+    live: '2026-10-02',
+    dateLabel: 'October 2, 2026',
+    groups: [
+      { name: "Hides a body part", words: ['SHINE', 'BEARD', 'CHIPS', 'CHINA'] },
+      { name: "Hides an animal", words: ['CRATE', 'SCOWL', 'BATCH', 'SPIGOT'] },
+      { name: "Card games", words: ['BRIDGE', 'HEARTS', 'RUMMY', 'CANASTA'] },
+      { name: "Poker terms", words: ['FLOP', 'RIVER', 'BLIND', 'ANTE'] },
+    ],
+    collisions: [
+      { word: 'HEARTS', reads: "Hides a body part" },
+      { word: 'BEARD', reads: "Hides an animal" },
+      { word: 'ANTE', reads: "Hides an animal" },
+      { word: 'CHIPS', reads: "Poker terms" },
+    ],
+  },
+  {
+    num: 84,
+    quizId: 'links-10-3-26',
+    live: '2026-10-03',
+    dateLabel: 'October 3, 2026',
+    groups: [
+      { name: "Another word backwards", words: ['STRAW', 'DRAWER', 'DESSERTS', 'SPOOL'] },
+      { name: "Parts of a shoe", words: ['TONGUE', 'SOLE', 'WELT', 'EYELET'] },
+      { name: "Cuts of beef", words: ['RIB', 'FLANK', 'CHUCK', 'SKIRT'] },
+      { name: "Parts of a loaf", words: ['CRUST', 'HEEL', 'CRUMB', 'END'] },
+    ],
+    collisions: [
+      { word: 'TONGUE', reads: "Cuts of beef" },
+      { word: 'HEEL', reads: "Parts of a shoe" },
+    ],
+  },
+  {
+    num: 85,
+    quizId: 'links-10-4-26',
+    live: '2026-10-04',
+    dateLabel: 'October 4, 2026',
+    sunday: true,
+    groups: [
+      { name: "Greek letters", words: ['ALPHA', 'DELTA', 'SIGMA', 'OMEGA'] },
+      { name: "NATO alphabet", words: ['BRAVO', 'TANGO', 'FOXTROT', 'WHISKEY'] },
+      { name: "River features", words: ['MOUTH', 'BANK', 'BED', 'MEANDER'] },
+      { name: "Ballroom dances", words: ['WALTZ', 'RUMBA', 'SAMBA', 'QUICKSTEP'] },
+    ],
+    reverseChecked: [
+      "NATO alphabet -> Ballroom dances",
+    ],
+    collisions: [
+      { word: 'ALPHA', reads: "NATO alphabet" },
+      { word: 'DELTA', reads: "River features" },
+      { word: 'TANGO', reads: "Ballroom dances" },
+      { word: 'FOXTROT', reads: "Ballroom dances" },
+    ],
+  },
+  {
+    num: 86,
+    quizId: 'links-10-5-26',
+    live: '2026-10-05',
+    dateLabel: 'October 5, 2026',
+    groups: [
+      { name: "Anagrams of animals", words: ['SHORE', 'SNEAK', 'LOIN', 'TOGA'] },
+      { name: "Cuts of pork", words: ['BELLY', 'HOCK', 'CHOP', 'SHOULDER'] },
+      { name: "Move stealthily", words: ['CREEP', 'SLINK', 'PROWL', 'TIPTOE'] },
+      { name: "Roman dress", words: ['TUNIC', 'STOLA', 'SANDALS', 'LAUREL'] },
+    ],
+    collisions: [
+      { word: 'LOIN', reads: "Cuts of pork" },
+      { word: 'SNEAK', reads: "Move stealthily" },
+      { word: 'TOGA', reads: "Roman dress" },
+    ],
+  },
+  {
+    num: 87,
+    quizId: 'links-10-6-26',
+    live: '2026-10-06',
+    dateLabel: 'October 6, 2026',
+    groups: [
+      { name: "Fire ___", words: ['FLY', 'PROOF', 'PLACE', 'WORKS'] },
+      { name: "Snow ___", words: ['BALL', 'FLAKE', 'DRIFT', 'PLOUGH'] },
+      { name: "Book ___", words: ['SHELF', 'MARK', 'WORM', 'END'] },
+      { name: "Card ___", words: ['SHARK', 'BOARD', 'HOLDER', 'TABLE'] },
+    ],
+    collisions: [
+      { word: 'BALL', reads: "Fire ___" },
+      { word: 'BOARD', reads: "Snow ___" },
+    ],
+  },
+  {
+    num: 88,
+    quizId: 'links-10-7-26',
+    live: '2026-10-07',
+    dateLabel: 'October 7, 2026',
+    groups: [
+      { name: "Silent first letter", words: ['KNIFE', 'GNOME', 'WRIST', 'PSALM'] },
+      { name: "Kitchen drawer", words: ['WHISK', 'PEELER', 'GRATER', 'SPATULA'] },
+      { name: "Joints", words: ['ANKLE', 'ELBOW', 'HIP', 'SHOULDER'] },
+      { name: "Money owed", words: ['ARREARS', 'DUES', 'TAB', 'LIABILITY'] },
+    ],
+    collisions: [
+      { word: 'KNIFE', reads: "Kitchen drawer" },
+      { word: 'WRIST', reads: "Joints" },
+    ],
+  },
+  {
+    num: 89,
+    quizId: 'links-10-8-26',
+    live: '2026-10-08',
+    dateLabel: 'October 8, 2026',
+    groups: [
+      { name: "Written in Roman numerals", words: ['MIX', 'DIM', 'CIVIL', 'MILL'] },
+      { name: "Bartender verbs", words: ['SHAKE', 'STIR', 'MUDDLE', 'STRAIN'] },
+      { name: "Fade away", words: ['WANE', 'DULL', 'EBB', 'PALE'] },
+      { name: "Courteous", words: ['POLITE', 'GENTEEL', 'GRACIOUS', 'CORDIAL'] },
+    ],
+    collisions: [
+      { word: 'MIX', reads: "Bartender verbs" },
+      { word: 'DIM', reads: "Fade away" },
+      { word: 'CIVIL', reads: "Courteous" },
+    ],
+  },
+  {
+    num: 90,
+    quizId: 'links-10-9-26',
+    live: '2026-10-09',
+    dateLabel: 'October 9, 2026',
+    groups: [
+      { name: "Sounds like a body part", words: ['MUSSEL', 'WASTE', 'HARE', 'NAVAL'] },
+      { name: "Rabbit words", words: ['BUCK', 'DOE', 'WARREN', 'KIT'] },
+      { name: "Navy ranks", words: ['ENSIGN', 'ADMIRAL', 'COMMODORE', 'MIDSHIPMAN'] },
+      { name: "Rubbish", words: ['REFUSE', 'LITTER', 'DEBRIS', 'DROSS'] },
+    ],
+    collisions: [
+      { word: 'HARE', reads: "Rabbit words" },
+      { word: 'NAVAL', reads: "Navy ranks" },
+      { word: 'WASTE', reads: "Rubbish" },
+    ],
+  },
+  {
+    num: 91,
+    quizId: 'links-10-10-26',
+    live: '2026-10-10',
+    dateLabel: 'October 10, 2026',
+    groups: [
+      { name: "Sounds like a country", words: ['CHILLY', 'GREASE', 'HUNGRY', 'WHALES'] },
+      { name: "Cold", words: ['FRIGID', 'NIPPY', 'BITTER', 'RAW'] },
+      { name: "Lubricants", words: ['OIL', 'WAX', 'GRAPHITE', 'SILICONE'] },
+      { name: "Giants of the sea", words: ['ORCAS', 'MANTAS', 'SHARKS', 'SQUIDS'] },
+    ],
+    collisions: [
+      { word: 'CHILLY', reads: "Cold" },
+      { word: 'GREASE', reads: "Lubricants" },
+      { word: 'WHALES', reads: "Giants of the sea" },
+    ],
+  },
+  {
+    num: 92,
+    quizId: 'links-10-11-26',
+    live: '2026-10-11',
+    dateLabel: 'October 11, 2026',
+    sunday: true,
+    groups: [
+      { name: "Zodiac signs", words: ['LIBRA', 'ARIES', 'LEO', 'CANCER'] },
+      { name: "Constellations", words: ['ORION', 'LYRA', 'DRACO', 'CYGNUS'] },
+      { name: "___ cut", words: ['CREW', 'SHORT', 'BUZZ', 'PIXIE'] },
+      { name: "Shapes of pasta", words: ['PENNE', 'ORZO', 'FUSILLI', 'RIGATONI'] },
+    ],
+    reverseChecked: [
+      "Zodiac signs -> Constellations",
+    ],
+    collisions: [
+      { word: 'LIBRA', reads: "Constellations" },
+      { word: 'ARIES', reads: "Constellations" },
+      { word: 'LEO', reads: "Constellations" },
+      { word: 'CANCER', reads: "Constellations" },
     ],
   },
 ];

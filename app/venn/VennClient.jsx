@@ -33,6 +33,8 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { T } from '@/lib/theme';
+import { ruleFn, ruleLabel, usesFacts } from '@/lib/venn-rules';
+import { domainNote } from '@/lib/venn-facts';
 
 const COLORS = {
   cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent, rust: T.danger, faded: T.muted,
@@ -45,57 +47,10 @@ const HELP_KEY = 'sot_venn_help_seen';
 const STATS_KEY = 'sot_venn_stats';
 const TOTAL = 12;
 
-const VOW = new Set(['A','E','I','O','U']);
-const nv = (w) => [...w].filter((c) => VOW.has(c)).length;
-const HIDDEN = {
-  animal: ['CAT','DOG','COW','OWL','BAT','APE','RAT','PIG','HEN','FOX','ANT','BEE','ELK','EWE','SOW','RAM'],
-  body: ['EAR','RIB','HIP','ARM','LIP','GUM','JAW','TOE','EYE','LEG','SHIN','HEEL','CHIN','LUNG','SKIN','NECK','BONE','HAND','FOOT','KNEE','HAIR','HEAD','FACE','NOSE','BACK','PALM','NAIL','CHEST','THIGH','SPINE','WRIST','ANKLE','ELBOW','CHEEK','THUMB','TOOTH','BRAIN','HEART'],
-  number: ['ONE','TWO','SIX','TEN','NINE','FOUR','FIVE'],
-};
-const HIDDEN_NAME = { animal: 'an animal', body: 'a body part', number: 'a number' };
-const NUMWORD = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
-function ruleFn(r) {
-  switch (r.k) {
-    case 'alpha': return (w) => [...w].every((c,i) => i === 0 || c >= w[i-1]);
-    case 'norepeat': return (w) => new Set(w).size === w.length;
-    case 'dbl': return (w) => /(.)\1/.test(w);
-    case 'len': return (w) => w.length === r.n;
-    case 'lenGte': return (w) => w.length >= r.n;
-    case 'vowels': return (w) => nv(w) === r.n;
-    case 'onevowel': return (w) => new Set([...w].filter((c) => VOW.has(c))).size === 1;
-    case 'sameends': return (w) => w[0] === w[w.length-1];
-    case 'startvowel': return (w) => VOW.has(w[0]);
-    case 'endvowel': return (w) => VOW.has(w[w.length-1]);
-    case 'altvc': return (w) => [...w].every((c,i) => i === 0 || VOW.has(c) !== VOW.has(w[i-1]));
-    case 'twinvowel': return (w) => [...w].some((c,i) => i > 0 && VOW.has(c) && VOW.has(w[i-1]));
-    case 'nolet': return (w) => !w.includes(r.c);
-    // A word only HIDES something when the smaller word sits inside a
-    // LONGER one. LUNG does not hide a lung and EYES does not hide an eye:
-    // an item that IS the hidden word, or merely its plural, hides nothing.
-    // HEART still qualifies, because a heart hides an EAR.
-    case 'hides': return (w) => HIDDEN[r.set].some((h) => w.includes(h) && w !== h && w !== h + 'S' && w !== h + 'ES');
-    default: return () => false;
-  }
-}
-function ruleLabel(r) {
-  switch (r.k) {
-    case 'alpha': return 'letters never go backwards';
-    case 'norepeat': return 'no repeated letter';
-    case 'dbl': return 'has a double letter';
-    case 'len': return `exactly ${NUMWORD[r.n]} letters`;
-    case 'lenGte': return `${NUMWORD[r.n]} letters or more`;
-    case 'vowels': return `exactly ${NUMWORD[r.n]} vowels`;
-    case 'onevowel': return 'only one distinct vowel';
-    case 'sameends': return 'starts and ends alike';
-    case 'startvowel': return 'starts with a vowel';
-    case 'endvowel': return 'ends with a vowel';
-    case 'altvc': return 'vowels and consonants alternate';
-    case 'twinvowel': return 'two vowels side by side';
-    case 'nolet': return `no letter ${r.c}`;
-    case 'hides': return `hides ${HIDDEN_NAME[r.set]}`;
-    default: return 'unknown';
-  }
-}
+// The rule engine lives in lib/venn-rules.js so this file and
+// scripts/verify-venn.mjs share one definition instead of two hand-synced
+// copies. `ruleFn`/`ruleLabel` take the board's `domain` as a second argument;
+// only the knowledge rule (`fact`) reads it.
 
 // region bits: 1 = in the first circle, 2 = the second, 4 = the third
 const REGIONS = [1, 2, 4, 3, 5, 6, 7];
@@ -171,7 +126,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
   // the truth, recomputed rather than shipped
   const TRUTH = useMemo(() => {
-    const fns = PUZZLE.rules.map(ruleFn);
+    const fns = PUZZLE.rules.map((r) => ruleFn(r, PUZZLE.domain));
     return PUZZLE.items.map((w) => (fns[0](w) ? 1 : 0) | (fns[1](w) ? 2 : 0) | (fns[2](w) ? 4 : 0));
   }, [PUZZLE]);
   const COUNTS = useMemo(() => {
@@ -364,18 +319,25 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
   const VOWEL_RULES = ['vowels', 'onevowel', 'startvowel', 'endvowel', 'altvc', 'twinvowel'];
   const showVowelNote = PUZZLE.rules.some((r) => VOWEL_RULES.includes(r.k));
   const showHidesNote = PUZZLE.rules.some((r) => r.k === 'hides');
+  // A knowledge board announces its subject up front. Without it a player can
+  // spend the first minute working out that the twelve items are all
+  // countries, which is not the puzzle.
+  const factNote = usesFacts(PUZZLE.rules) ? domainNote(PUZZLE.domain) : '';
+  const noun = PUZZLE.domain ? 'item' : 'word';
+  const tightItems = PUZZLE.items.some((w) => w.length > 8);
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>File every word where it belongs.</p>
+      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>File every {noun} where it belongs.</p>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
         {PUZZLE.rules.map((r, i) => (
           <span key={i} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 800, borderRadius: 7, padding: '6px 10px', background: T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] }}>
-            {String.fromCharCode(65 + i)}: {ruleLabel(r)}
+            {String.fromCharCode(65 + i)}: {ruleLabel(r, PUZZLE.domain)}
           </span>
         ))}
       </div>
-      {(showVowelNote || showHidesNote) && (
+      {(showVowelNote || showHidesNote || factNote) && (
         <div style={{ fontSize: 12.5, lineHeight: 1.5, color: COLORS.faded, fontWeight: 600, marginBottom: 12 }}>
+          {factNote && <div><b>{factNote}</b></div>}
           {showVowelNote && <div>The vowels are A, E, I, O and U. Y never counts as one.</div>}
           {showHidesNote && <div>A word hides something only when the smaller word sits inside a longer one. SHIP hides a hip, but LUNG does not hide a lung.</div>}
         </div>
@@ -422,6 +384,14 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           .vn-zone .w .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
           .vn-zone .w .x{flex:0 0 auto;width:13px;height:13px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:4px;background:rgba(28,30,36,0.08);color:${COLORS.faded};font-family:${SANS};font-size:11px;font-weight:800;line-height:1;cursor:pointer;}
           .vn-zone .w .x:hover{background:${COLORS.rust};color:${T.white};}
+          /* A filed item gets about 48px of the 76px tray once the padding and
+             the send-back button are taken out, which is ~9 characters at
+             8.5px. Knowledge boards run longer names than the letter boards
+             ever did (ARGENTINA, TENNESSEE, EISENHOWER), so a board whose
+             longest item passes 8 characters drops a step in size rather than
+             ellipsising a name the player then cannot read back. */
+          .vn-zone.tight .w{font-size:7.8px;letter-spacing:-0.005em;}
+          .vn-zone.tight .w .x{width:12px;height:12px;font-size:10px;}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -465,13 +435,16 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
               <span>on the board <b style={{ color: g.rejected ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: factNote ? 6 : 10 }}>
               {PUZZLE.rules.map((r, i) => (
                 <span key={i} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 800, borderRadius: 7, padding: '6px 10px', background: T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] }}>
-                  {String.fromCharCode(65 + i)}: {ruleLabel(r)}
+                  {String.fromCharCode(65 + i)}: {ruleLabel(r, PUZZLE.domain)}
                 </span>
               ))}
             </div>
+            {factNote && (
+              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginBottom: 10 }}>{factNote}</div>
+            )}
 
             <div style={{ position: 'relative', width: 320, height: 300, margin: '0 auto 12px' }}>
               <svg viewBox="0 0 320 300" width="320" height="300" style={{ position: 'absolute', inset: 0 }}>
@@ -488,7 +461,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
                 const ready = !hiddenSet.has(r) && words.length === COUNTS[r];
                 const over = !hiddenSet.has(r) && words.length > COUNTS[r];
                 return (
-                  <div key={r} className={`vn-zone${ready ? ' ready' : ''}${over ? ' over' : ''}`} style={{ left: ZONE[r].x, top: ZONE[r].y }} onClick={() => dropInto(r)} title={ZONE[r].label}>
+                  <div key={r} className={`vn-zone${ready ? ' ready' : ''}${over ? ' over' : ''}${tightItems ? ' tight' : ''}`} style={{ left: ZONE[r].x, top: ZONE[r].y }} onClick={() => dropInto(r)} title={ZONE[r].label}>
                     <span className="n">{words.length}/{need}</span>
                     {words.map(({ w, i }) => (
                       <span key={w} className="w" title={playing ? 'Tap to pick this word back up' : undefined} onClick={(e) => { if (held != null) { dropInto(r); e.stopPropagation(); return; } e.stopPropagation(); liftFrom(i); }} style={{ color: !playing ? (TRUTH[i] === g.place[i] ? COLORS.green : COLORS.rust) : COLORS.ink }}>
