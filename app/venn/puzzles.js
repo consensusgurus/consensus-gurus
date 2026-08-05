@@ -133,7 +133,7 @@ export const PUZZLES = [
     num: 13, quizId: 'venn-8-5-26', live: '2026-08-05', dateLabel: 'August 5, 2026', sunday: false,
     rules: [{ k: 'len', n: 6 }, { k: 'hides', set: 'animal' }, { k: 'nolet', c: 'S' }],
     items: [
-      'SYMBOL', 'SERVANTS', 'FEELING', 'WHENEVER',
+      'SYMBOL', 'SERVANTS', 'MEANING', 'WHENEVER',
       'DEBATE', 'ANTIQUE', 'ESCAPE', 'CONSTANT',
       'HONEST', 'GRANTS', 'PLANTS', 'FILMED',
     ],
@@ -281,7 +281,7 @@ export const PUZZLES = [
     num: 29, quizId: 'venn-8-21-26', live: '2026-08-21', dateLabel: 'August 21, 2026', sunday: false,
     rules: [{ k: 'hides', set: 'animal' }, { k: 'nolet', c: 'S' }, { k: 'lenGte', n: 7 }],
     items: [
-      'BEEF', 'PLANTS', 'CARPET', 'EDUCATED',
+      'BEEF', 'PLANTS', 'MARKET', 'EDUCATED',
       'BATTLES', 'CONCRETE', 'FILE', 'STRATEGY',
       'MEANT', 'VERSIONS', 'ALONG', 'PANTS',
     ],

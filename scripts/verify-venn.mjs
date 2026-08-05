@@ -23,6 +23,17 @@ const HIDDEN = {
   body: ['EAR','RIB','HIP','ARM','LIP','GUM','JAW','TOE','EYE','LEG','SHIN','HEEL','CHIN','LUNG','SKIN','NECK','BONE','HAND','FOOT','KNEE','HAIR','HEAD','FACE','NOSE','BACK','PALM','NAIL','CHEST','THIGH','SPINE','WRIST','ANKLE','ELBOW','CHEEK','THUMB','TOOTH','BRAIN','HEART'],
   number: ['ONE','TWO','SIX','TEN','NINE','FOUR','FIVE'],
 };
+// Words a solver would fairly read as a member of the circle but that the
+// rule does not recognise, because HIDDEN above is a closed list. FEELING
+// hides an EEL and CARPET hides a CARP, yet neither scored as an animal, so
+// the item read as misfiled while the region counts said otherwise. A board
+// carrying one of these is unfair and fails, whatever the counts say.
+const DECOY = {
+  animal: ['EEL','ASS','COD','DOE','CUB','KID','PUP','GNU','YAK','EMU','RAY','CROW','DOVE','DUCK','SWAN','WREN','LARK','HAWK','BOAR','BULL','CALF','COLT','FOAL','LAMB','MARE','MULE','GOAT','DEER','HARE','MOLE','SEAL','BEAR','LION','WOLF','MOTH','WORM','TOAD','FROG','CRAB','CLAM','SLUG','SOLE','CARP','PIKE','TUNA','BASS','ORCA','STOAT','OTTER','SHEEP','HORSE','MOUSE','SNAKE','TIGER','ZEBRA','WHALE','SHARK','ROBIN','RAVEN','GOOSE','SKUNK','SLOTH','MOOSE','BISON','CAMEL','LLAMA','PANDA','KOALA','HYENA','RHINO','SQUID','TROUT','SNAIL','LOCUST','WEASEL','BADGER','RABBIT','MONKEY','FERRET','BEAVER','TURTLE','SALMON','SPIDER'],
+  body: ['GUT','LIVER','TORSO','SCALP','VEIN','WAIST','TONGUE','KIDNEY','MUSCLE','THROAT','TEMPLE','PELVIS','FINGER','EYELID','SHOULDER','STOMACH'],
+  number: ['THREE','SEVEN','EIGHT','ZERO','ELEVEN','TWELVE','TWENTY','FORTY','FIFTY','SIXTY','NINETY','HUNDRED','MILLION'],
+};
+const hides = (w, h) => w.includes(h) && w !== h && w !== h + 'S' && w !== h + 'ES';
 // kept byte-identical to RULES in app/venn/VennClient.jsx
 function ruleFn(r) {
   switch (r.k) {
@@ -43,7 +54,7 @@ function ruleFn(r) {
     // LONGER one. LUNG does not hide a lung and EYES does not hide an eye:
     // an item that IS the hidden word, or merely its plural, hides nothing.
     // HEART still qualifies, because a heart hides an EAR.
-    case 'hides': return (w) => HIDDEN[r.set].some((h) => w.includes(h) && w !== h && w !== h + 'S' && w !== h + 'ES');
+    case 'hides': return (w) => HIDDEN[r.set].some((h) => hides(w, h));
     default: return null;
   }
 }
@@ -88,6 +99,13 @@ PUZZLES.forEach((p, i) => {
       const hits = HIDDEN[hr.set].filter((h) => w.includes(h));
       if (hits.length && !hits.some((h) => w !== h && w !== h + 'S' && w !== h + 'ES')) {
         fail(`${tag}: ${w} reads as hiding ${hits.join('/')} but only IS that word`);
+      }
+      // ... and no item may hide a REAL member of the category that the
+      // closed list happens to omit, unless it also qualifies for real.
+      const real = HIDDEN[hr.set].some((h) => hides(w, h));
+      const fakes = DECOY[hr.set].filter((h) => hides(w, h));
+      if (!real && fakes.length) {
+        fail(`${tag}: ${w} hides ${fakes.join('/')} but scores outside the circle`);
       }
     });
   }
