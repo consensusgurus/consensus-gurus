@@ -2401,36 +2401,82 @@ function tbdEasternNow() {
   };
 }
 
-// Fraction (0-1] of the bucket that has elapsed, or 0 when the bucket is a
-// finished past period. Bucket keys match the ones tbdBucketize builds.
-function tbdElapsedFraction(bucketKey, gran) {
+// Share of a typical day's play that has landed by the current moment. The
+// server ships a measured intraday curve (buildPlayShape): hourCum[h] is the
+// cumulative share of a day's seconds banked by the END of ET hour h. We
+// interpolate inside the current hour so the number advances smoothly. Without
+// a curve this degrades to plain clock time, which is the old behavior.
+function tbdDayShare(now, shape) {
+  const clock = Math.min(1, now.secondsIntoDay / 86400);
+  const cum = shape && Array.isArray(shape.hourCum) && shape.hourCum.length === 24 ? shape.hourCum : null;
+  if (!cum) return clock;
+  const h = Math.min(23, Math.floor(now.secondsIntoDay / 3600));
+  const within = Math.min(1, (now.secondsIntoDay - h * 3600) / 3600);
+  const prev = h === 0 ? 0 : cum[h - 1];
+  return Math.max(0, Math.min(1, prev + (cum[h] - prev) * within));
+}
+
+// The weekday curve, or null when the server could not measure one.
+function tbdDowShape(shape) {
+  const d = shape && Array.isArray(shape.dow) && shape.dow.length === 7 ? shape.dow : null;
+  return d && d.every((x) => typeof x === 'number' && x > 0) ? d : null;
+}
+
+// Fraction (0-1] of the bucket's EXPECTED VOLUME that has already landed, or 0
+// when the bucket is a finished past period. This is deliberately not "how much
+// clock time has passed": dividing by demand-so-far is what makes the projection
+// hold up at 8am as well as at 8pm. Bucket keys match the ones tbdBucketize builds.
+function tbdElapsedFraction(bucketKey, gran, shape) {
   const now = tbdEasternNow();
-  const dayFrac = Math.min(1, now.secondsIntoDay / 86400);
+  const dayFrac = tbdDayShare(now, shape);
   const d = tbdParseDay(now.day);
+  const dow = tbdDowShape(shape);
+
   if (gran === 'day') return bucketKey === now.day ? dayFrac : 0;
+
   if (gran === 'week') {
     const start = new Date(d.getTime());
     start.setUTCDate(start.getUTCDate() - start.getUTCDay()); // back to Sunday
     const key = `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}-${String(start.getUTCDate()).padStart(2, '0')}`;
-    return bucketKey === key ? (d.getUTCDay() + dayFrac) / 7 : 0;
+    if (bucketKey !== key) return 0;
+    const today = d.getUTCDay();
+    if (!dow) return (today + dayFrac) / 7;
+    // Completed weekdays at their full share, plus today's share scaled by how
+    // far into today's own curve we are.
+    let done = 0;
+    for (let i = 0; i < today; i++) done += dow[i];
+    return Math.max(0, Math.min(1, done + dow[today] * dayFrac));
   }
+
   const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
   if (bucketKey !== key) return 0;
   const daysInMonth = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
-  return (d.getUTCDate() - 1 + dayFrac) / daysInMonth;
+  if (!dow) return (d.getUTCDate() - 1 + dayFrac) / daysInMonth;
+  // Weight every calendar day of the month by its weekday share, so a month
+  // carrying an extra weekend is not treated as if its days were interchangeable.
+  const firstDow = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).getUTCDay();
+  let done = 0, all = 0;
+  for (let i = 0; i < daysInMonth; i++) {
+    const w = dow[(firstDow + i) % 7];
+    all += w;
+    if (i < d.getUTCDate() - 1) done += w;
+    else if (i === d.getUTCDate() - 1) done += w * dayFrac;
+  }
+  return all > 0 ? Math.max(0, Math.min(1, done / all)) : (d.getUTCDate() - 1 + dayFrac) / daysInMonth;
 }
 
-// Straight-line extrapolation of the trailing bucket: seconds so far divided by
-// the fraction of the period elapsed. Returns null for a bucket that is already
-// complete, empty, or too early in the period to be worth projecting.
-function tbdProjectLastBucket(buckets, gran) {
+// Extrapolation of the trailing bucket: seconds so far divided by the share of
+// the period's expected volume that has already landed. Returns null for a
+// bucket that is complete, empty, or too early in the period to project.
+function tbdProjectLastBucket(buckets, gran, shape) {
   const last = buckets && buckets.length ? buckets[buckets.length - 1] : null;
   if (!last || !(last.seconds > 0)) return null;
-  const fraction = tbdElapsedFraction(last.key, gran);
+  const fraction = tbdElapsedFraction(last.key, gran, shape);
   if (!(fraction >= TBD_MIN_ELAPSED) || fraction >= 0.999) return null;
   const seconds = last.seconds / fraction;
   if (!Number.isFinite(seconds) || seconds <= last.seconds) return null;
-  return { key: last.key, seconds, fraction, actual: last.seconds };
+  const curve = gran === 'day' ? !!(shape && shape.hourCum) : !!(shape && tbdDowShape(shape));
+  return { key: last.key, seconds, fraction, actual: last.seconds, curve, basisDays: (shape && shape.basisDays) || 0 };
 }
 
 function TimeByDayStat({ value, unit, label, accent }) {
@@ -2448,11 +2494,12 @@ function TimeByDayStat({ value, unit, label, accent }) {
 function TimeByDayPanel({ data }) {
   const series = (data && data.series) || [];
   const totals = (data && data.totals) || {};
+  const shape = (data && data.shape) || null; // measured intraday / weekday curve
   const [gran, setGran] = useState('day');
   const buckets = useMemo(() => tbdBucketize(series, gran), [series, gran]);
   // The trailing bucket is usually still running, so project where it lands and
   // let the y-scale include that projection so the dotted top always fits.
-  const projection = useMemo(() => tbdProjectLastBucket(buckets, gran), [buckets, gran]);
+  const projection = useMemo(() => tbdProjectLastBucket(buckets, gran, shape), [buckets, gran, shape]);
   const maxSeconds = useMemo(
     () => Math.max(buckets.reduce((m, b) => Math.max(m, b.seconds), 0), projection ? projection.seconds : 0),
     [buckets, projection]
@@ -2532,7 +2579,7 @@ function TimeByDayPanel({ data }) {
             return (
               <div
                 key={b.key}
-                title={`${b.full}\n${tbdDur(b.seconds)} \u00b7 ${b.plays.toLocaleString()} game${b.plays === 1 ? '' : 's'}${proj ? `\nOn pace for ${tbdDur(proj.seconds)} (${Math.round(proj.fraction * 100)}% of the ${gran} elapsed)` : ''}`}
+                title={`${b.full}\n${tbdDur(b.seconds)} \u00b7 ${b.plays.toLocaleString()} game${b.plays === 1 ? '' : 's'}${proj ? `\nOn pace for ${tbdDur(proj.seconds)} (${proj.curve ? `${Math.round(proj.fraction * 100)}% of a typical ${gran} of play is in by now` : `${Math.round(proj.fraction * 100)}% of the ${gran} elapsed`})` : ''}`}
                 style={{ flex: '1 1 0', minWidth: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}
               >
                 {proj ? (
@@ -2567,7 +2614,10 @@ function TimeByDayPanel({ data }) {
             <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, lineHeight: 1.5 }}>
               Dotted outline projects where the current {gran} finishes at the pace set so far:{' '}
               <span style={{ color: COLORS.ink }}>{tbdHoursValue(projection.seconds).value} {tbdHoursValue(projection.seconds).unit}</span>
-              {' '}({tbdHoursValue(projection.actual).value} {tbdHoursValue(projection.actual).unit} banked, {Math.round(projection.fraction * 100)}% of the {gran} elapsed)
+              {' '}({tbdHoursValue(projection.actual).value} {tbdHoursValue(projection.actual).unit} banked &middot;{' '}
+              {projection.curve
+                ? `${Math.round(projection.fraction * 100)}% of a typical ${gran}'s play lands by this point, measured over the last ${projection.basisDays} days`
+                : `${Math.round(projection.fraction * 100)}% of the ${gran} elapsed, clock time`})
             </span>
           </div>
         ) : null}

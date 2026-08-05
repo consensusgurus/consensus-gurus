@@ -297,6 +297,75 @@ function buildNewUsersByDay(results, users) {
   };
 }
 
+// The measured SHAPE of play, used by the admin's Time Played chart to project
+// the still-running bucket (today / this week / this month). Straight clock-time
+// extrapolation assumes play is spread evenly through a period, which it is not:
+// the overnight hours are near dead and the evening carries the load, so a
+// linear projection reads far too low at breakfast and too high after midnight.
+// Two curves fix that. hourCum says what share of a typical day's seconds has
+// landed by the end of each ET hour; dow says what share of a typical week lands
+// on each weekday (Sun=0).
+//
+// Both are built from the SHAPE_WINDOW_DAYS most recent COMPLETE days. Today is
+// excluded because it is partial, and folding it in would bend the curve toward
+// whatever hour it currently happens to be.
+const SHAPE_WINDOW_DAYS = 28;
+const SHAPE_MIN_DAYS = 5;
+const SHAPE_MIN_DOW_DAYS = 7;
+function buildPlayShape(byDay, todayKey) {
+  const complete = Array.from(byDay.entries())
+    .filter(([day, v]) => day !== todayKey && v.seconds > 0 && Array.isArray(v.hours))
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-SHAPE_WINDOW_DAYS);
+  if (complete.length < SHAPE_MIN_DAYS) return null;
+
+  // Hour curve: raw sum across the window. Every day contributes all 24 hours,
+  // so there is no ordering bias, and summing raw simply lets the busiest recent
+  // days dominate the shape, which is what we want while traffic is growing.
+  const hours = new Array(24).fill(0);
+  let total = 0;
+  for (const [, v] of complete) {
+    for (let h = 0; h < 24; h++) hours[h] += v.hours[h];
+    total += v.seconds;
+  }
+  if (!(total > 0)) return null;
+  const hourCum = [];
+  let run = 0;
+  for (let h = 0; h < 24; h++) { run += hours[h]; hourCum.push(run / total); }
+  hourCum[23] = 1;
+
+  // Weekday curve has to survive a growth trend: raw weekday sums would mostly
+  // rank the weekdays by how recently each last occurred. So express each day as
+  // a ratio to the centered 7-day average around it (which cancels the trend),
+  // then average those ratios per weekday.
+  let dow = new Array(7).fill(1 / 7);
+  if (complete.length >= SHAPE_MIN_DOW_DAYS) {
+    const vals = complete.map(([, v]) => v.seconds);
+    const ratios = new Array(7).fill(null).map(() => []);
+    for (let i = 0; i < complete.length; i++) {
+      const lo = Math.max(0, i - 3);
+      const hi = Math.min(vals.length - 1, i + 3);
+      let sum = 0;
+      for (let j = lo; j <= hi; j++) sum += vals[j];
+      const local = sum / (hi - lo + 1);
+      if (local > 0) ratios[complete[i][1].dow].push(vals[i] / local);
+    }
+    const avg = ratios.map((xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0));
+    const sum = avg.reduce((a, b) => a + b, 0);
+    // Every weekday must have been observed, else the shares are not comparable.
+    if (sum > 0 && avg.every((x) => x > 0)) dow = avg.map((x) => x / sum);
+  }
+
+  return {
+    hourCum,
+    dow,
+    basisDays: complete.length,
+    basisSeconds: Math.round(total),
+    firstDay: complete[0][0],
+    lastDay: complete[complete.length - 1][0],
+  };
+}
+
 // Analytics -> Time Played. Total wall-clock time players spent COMPLETING
 // quizzes, bucketed by calendar day in US Eastern (matching the rest of the
 // admin's clock), across the FULL quiz_results history — this is the earliest
@@ -307,17 +376,18 @@ function buildNewUsersByDay(results, users) {
 // play to the last is present (zeros included) so quiet days still plot on the
 // chart. Rows with no/blank time (or unparseable timestamps) are skipped.
 function buildTimeByDay(rows) {
-  const byDay = new Map(); // 'YYYY-MM-DD' (ET) -> { seconds, plays }
+  const byDay = new Map(); // 'YYYY-MM-DD' (ET) -> { seconds, plays, dow, hours[24] }
   for (const r of rows || []) {
     const t = r.time_elapsed;
     if (!r.created_at || typeof t !== 'number' || !(t >= 0)) continue;
     const d = new Date(r.created_at);
     if (Number.isNaN(d.getTime())) continue;
-    const day = etParts(d).day; // YYYY-MM-DD in America/New_York
-    const cur = byDay.get(day) || { seconds: 0, plays: 0 };
+    const p = etParts(d); // hour / dow / YYYY-MM-DD in America/New_York
+    const cur = byDay.get(p.day) || { seconds: 0, plays: 0, dow: p.dow, hours: new Array(24).fill(0) };
     cur.seconds += t;
     cur.plays += 1;
-    byDay.set(day, cur);
+    cur.hours[p.hour] += t;
+    byDay.set(p.day, cur);
   }
   const keys = Array.from(byDay.keys()).sort();
   const series = [];
@@ -341,6 +411,7 @@ function buildTimeByDay(rows) {
   const activeDays = keys.length;
   return {
     series,
+    shape: buildPlayShape(byDay, etParts(new Date()).day),
     totals: {
       totalSeconds,
       totalPlays,
