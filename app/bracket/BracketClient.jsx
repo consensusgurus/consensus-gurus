@@ -60,6 +60,10 @@ function fmtValue(v, unit) {
   if (unit === 'km') return v.toLocaleString('en-US') + ' km';
   if (unit === 'people') return v.toLocaleString('en-US');
   if (unit === 'seats') return v.toLocaleString('en-US') + ' seats';
+  if (unit === 'hr') return v.toLocaleString('en-US') + ' HR';
+  if (unit === 'k') return v.toLocaleString('en-US') + ' K';
+  if (unit === 'yards') return v.toLocaleString('en-US') + ' yds';
+  if (unit === 'golds') return v.toLocaleString('en-US') + ' golds';
   return String(v);
 }
 
@@ -325,6 +329,9 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
       <div style={{ background: COLORS.accentSoft, border: `1.5px solid ${COLORS.accent}`, borderRadius: 8, padding: '9px 11px', marginBottom: 12, fontSize: 14, fontWeight: 800, color: COLORS.accentDeep }}>
         {PUZZLE.metric}
       </div>
+      {PUZZLE.asOf && (
+        <p style={{ margin: '-6px 0 12px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500 }}>Figures as of {PUZZLE.asOf}</p>
+      )}
       <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
         <li style={{ marginBottom: 5 }}>Every matchup asks the same question. Tap the one you think wins.</li>
         <li style={{ marginBottom: 5 }}>Your winners <b>carry forward</b>, so later rounds are made of your own picks.</li>
@@ -407,6 +414,9 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
                 picked <b style={{ color: COLORS.ink, fontWeight: 500 }}>{filled}</b> of {MATCHES}
                 {!playing && <> &nbsp;&middot;&nbsp; scored <b style={{ color: COLORS.ink, fontWeight: 500 }}>{score}</b>/{TOTAL}</>}
               </span>
+              {PUZZLE.asOf && (
+                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded }}>figures as of {PUZZLE.asOf}</span>
+              )}
             </div>
 
             <div className="bk-rounds">
