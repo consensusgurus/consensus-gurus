@@ -95,6 +95,7 @@ const GAMES = [
   { key: 'hands', href: '/hands', name: 'Hands', img: '/games/btn-hands.png', store: 'sot_hands_day', tag: "The daily poker solitaire" , cat: 'Cards' },
   { key: 'chain', href: '/chain', name: 'Chain', img: '/games/btn-chain.png', store: 'sot_chain_day', tag: "Take them, or leave them" , cat: 'End Game' },
   { key: 'turn', href: '/turn', name: 'Turn', img: '/games/btn-turn.png', store: 'sot_turn_day', tag: "Ten squares left" , cat: 'End Game' },
+  { key: 'suffice', href: '/suffice', name: 'Suffice', img: '/games/btn-suffice.png', store: 'sot_suffice_day', tag: "Decide what is enough" , cat: 'Logic' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});

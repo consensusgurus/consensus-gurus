@@ -108,7 +108,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn']
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['turn', 'chain', 'hands', 'glyph', 'babel', 'feud'], until: '2026-09-15' };
+const LAUNCH_PIN = { keys: ['suffice', 'turn', 'chain', 'hands', 'glyph', 'babel', 'feud'], until: '2026-09-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -172,6 +172,7 @@ export const GAME_META = {
   babel: { accent: '#14532d', badgeBg: '#14532d', badgeInk: T.white, Fin: Blocks },
   chain: { accent: '#4a044e', badgeBg: '#4a044e', badgeInk: T.white, Fin: Frame },
   turn: { accent: '#226218', badgeBg: '#226218', badgeInk: T.white, Fin: Contrast },
+  suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -229,6 +230,7 @@ export const DAILY_GAMES = [
   { key: 'park',   cat: 'logic',     name: 'Parker', tag: 'Get the red one out',         blurb: 'A jammed parking lot. Slide the other cars aside and drive the red one free in as few moves as you can.', href: '/parker' },
   { key: 'check',  cat: 'endgame',     name: 'Check',  tag: 'Give a piece, take them all', blurb: 'A checkers position where one sacrifice sets off a chain that clears the whole board.', href: '/check' },
   { key: 'chain',  cat: 'endgame',     name: 'Chain',  tag: 'Take them, or leave them',    blurb: 'A dots and boxes endgame you are already winning. One edge keeps it, and the free box is usually bait.', href: '/chain' },
+  { key: 'suffice', cat: 'logic',      name: 'Suffice', tag: 'Decide what is enough',      blurb: 'Eight questions you never answer. For each one, decide whether the two statements are enough to settle it.', href: '/suffice' },
   { key: 'turn',   cat: 'endgame',     name: 'Turn',   tag: 'Ten squares left',            blurb: 'An Othello endgame you are already winning. One square keeps it, and the careful little move is not always it.', href: '/turn' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    blurb: 'Six numbers, four operations, one target. Hit it exactly or get as close as you can.', href: '/crunch' },
