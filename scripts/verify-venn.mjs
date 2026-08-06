@@ -8,6 +8,8 @@
 //   - no item falls outside all three circles
 //   - hidden counts appear only on Sundays, exactly two of them, never the
 //     triple overlap
+//   - HIDES BOARDS: every real English word hidden inside an item is either a
+//     scoring member or a reviewed non-member; an unclassified word fails
 //   - KNOWLEDGE BOARDS: the declared domain exists, every item is a row in it,
 //     and every fact rule names a property that domain declares
 //   - the domain tables themselves are internally consistent (no tag used that
@@ -16,28 +18,54 @@
 // rules, exactly as the client recomputes it. Both sides now import the one
 // engine in lib/venn-rules.js rather than keeping hand-synced copies.
 // Run: node scripts/verify-venn.mjs
+//      node scripts/verify-venn.mjs --census   list unclassified hidden words
+import fs from 'node:fs';
 import { PUZZLES } from '../app/venn/puzzles.js';
-import { ruleFn, HIDDEN, hides } from '../lib/venn-rules.js';
+import { ruleFn, HIDDEN, hides, LETTERS } from '../lib/venn-rules.js';
 import { DOMAINS } from '../lib/venn-facts.js';
+import { REVIEWED } from './venn-hidden-review.mjs';
 
 let fails = 0;
 const fail = (m) => { console.error('FAIL:', m); fails++; };
 
-// Words a solver would fairly read as a member of the circle but that the
-// rule does not recognise, because HIDDEN is a closed list. FEELING hides an
-// EEL and CARPET hides a CARP, yet neither scored as an animal, so the item
-// read as misfiled while the region counts said otherwise. A board carrying
-// one of these is unfair and fails, whatever the counts say.
+// ─── the census gate ───────────────────────────────────────────────────────
+// A `hides` rule tests a closed member list but its label promises a whole
+// category, so the danger has always been the word we simply forgot: FEELING
+// hides an EEL, CARPET hides a CARP, WOMBAT hides a WOMB, and each read as
+// misfiled to anyone who spotted it. The old guard was a second hand-written
+// list of such words, which failed the same way the first one did the moment
+// something was missing from BOTH (WOMBAT shipped on 2026-08-06 that way).
 //
-// The knowledge rules have no equivalent list and need none: a domain table
-// carries every property of every row it holds, and an item that is not a row
-// fails outright, so a knowledge board cannot assert something false by
-// omission the way a member list can.
-const DECOY = {
-  animal: ['EEL','ASS','COD','DOE','CUB','KID','PUP','GNU','YAK','EMU','RAY','CROW','DOVE','DUCK','SWAN','WREN','LARK','HAWK','BOAR','BULL','CALF','COLT','FOAL','LAMB','MARE','MULE','GOAT','DEER','HARE','MOLE','SEAL','BEAR','LION','WOLF','MOTH','WORM','TOAD','FROG','CRAB','CLAM','SLUG','SOLE','CARP','PIKE','TUNA','BASS','ORCA','STOAT','OTTER','SHEEP','HORSE','MOUSE','SNAKE','TIGER','ZEBRA','WHALE','SHARK','ROBIN','RAVEN','GOOSE','SKUNK','SLOTH','MOOSE','BISON','CAMEL','LLAMA','PANDA','KOALA','HYENA','RHINO','SQUID','TROUT','SNAIL','LOCUST','WEASEL','BADGER','RABBIT','MONKEY','FERRET','BEAVER','TURTLE','SALMON','SPIDER'],
-  body: ['GUT','LIVER','TORSO','SCALP','VEIN','WAIST','TONGUE','KIDNEY','MUSCLE','THROAT','TEMPLE','PELVIS','FINGER','EYELID','SHOULDER','STOMACH'],
-  number: ['THREE','SEVEN','EIGHT','ZERO','ELEVEN','TWELVE','TWENTY','FORTY','FIFTY','SIXTY','NINETY','HUNDRED','MILLION'],
-};
+// So the guard is no longer a list of bad words. It is a census: pull EVERY
+// real English word hidden inside every item, and require each one to have been
+// classified, either as a member in HIDDEN or as a reviewed non-member in
+// scripts/venn-hidden-review.mjs. A word nobody has looked at fails the board.
+// Forgetting is now impossible; the worst case is a build that stops and asks.
+//
+// Knowledge rules need no equivalent. A domain table carries every property of
+// every row, and an item off the table fails outright, so a knowledge board
+// cannot assert something false by omission the way a member list can.
+const DICT = new Set(
+  fs.readFileSync(new URL('../public/tuck-dict.txt', import.meta.url), 'utf8')
+    .split('\n').map((w) => w.trim().toUpperCase()).filter(Boolean),
+);
+
+// Every dictionary word of three letters or more sitting inside `w` without
+// being `w` itself (or just its plural) — the same test the rule uses, so the
+// census sees exactly what the scoring engine could have seen.
+function hiddenWords(w) {
+  const t = LETTERS(w); const out = new Set();
+  for (let i = 0; i < t.length; i++) {
+    for (let j = i + 3; j <= t.length; j++) {
+      const sub = t.slice(i, j);
+      if (DICT.has(sub) && hides(t, sub)) out.add(sub);
+    }
+  }
+  return [...out];
+}
+
+const CENSUS = process.argv.includes('--census');
+const unreviewed = { animal: new Map(), body: new Map(), number: new Map() };
 
 // ─── domain table integrity, once, before any board is read ────────────────
 // A mistyped tag is the one way a knowledge board can quietly lie:
@@ -136,12 +164,15 @@ PUZZLES.forEach((p, i) => {
       if (hits.length && !hits.some((h) => w !== h && w !== h + 'S' && w !== h + 'ES')) {
         fail(`${tag}: ${w} reads as hiding ${hits.join('/')} but only IS that word`);
       }
-      // ... and no item may hide a REAL member of the category that the
-      // closed list happens to omit, unless it also qualifies for real.
-      const real = HIDDEN[hr.set].some((h) => hides(w, h));
-      const fakes = DECOY[hr.set].filter((h) => hides(w, h));
-      if (!real && fakes.length) {
-        fail(`${tag}: ${w} hides ${fakes.join('/')} but scores outside the circle`);
+      // ... and every real word hidden in the item must have been classified,
+      // so a category member we never thought of cannot slip through unscored.
+      const members = new Set(HIDDEN[hr.set]);
+      const reviewed = new Set(REVIEWED[hr.set]);
+      for (const h of hiddenWords(w)) {
+        if (members.has(h) || reviewed.has(h)) continue;
+        if (!unreviewed[hr.set].has(h)) unreviewed[hr.set].set(h, []);
+        unreviewed[hr.set].get(h).push(`#${p.num} ${w}`);
+        if (!CENSUS) fail(`${tag}: ${w} hides "${h}", which nobody has classified. Add it to HIDDEN if it is ${hr.set === 'body' ? 'a body part' : hr.set === 'animal' ? 'an animal' : 'a number'}, otherwise to scripts/venn-hidden-review.mjs`);
       }
     });
   }
@@ -156,6 +187,17 @@ PUZZLES.forEach((p, i) => {
   if (hid.includes(7)) fail(`${tag}: the triple overlap count must never be hidden`);
   if (hid.some((r) => !REGIONS.includes(r))) fail(`${tag}: hidden count names a region that does not exist`);
 });
+
+if (CENSUS) {
+  let n = 0;
+  for (const [set, m] of Object.entries(unreviewed)) {
+    if (!m.size) continue;
+    n += m.size;
+    console.log(`\n${set}: ${m.size} unclassified word(s)`);
+    for (const [h, where] of [...m].sort()) console.log(`  ${h.padEnd(10)} ${where.join(', ')}`);
+  }
+  console.log(n ? `\nclassify these, then re-run without --census` : '\ncensus clean: every hidden word is classified');
+}
 
 const known = PUZZLES.filter((p) => p.domain).length;
 if (fails) { console.error(`\nverify-venn: ${fails} FAILURE(S)`); process.exit(1); }
