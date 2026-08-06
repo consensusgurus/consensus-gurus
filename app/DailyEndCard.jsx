@@ -303,6 +303,23 @@ function useCountUp(target, ms = 1000) {
   return [n, done];
 }
 
+/* The prize figure is the hook in the share teaser, so it is picked out of the
+   copy string and rendered gold, heavy and underlined instead of sitting flat
+   in the sentence. Split on CONTEST.prizeLabel so lib/contest.js stays the one
+   source of the number: if the label ever stops appearing in the teaser the
+   split yields a single part and the copy renders unchanged. */
+function teaserNodes() {
+  const label = CONTEST.prizeLabel;
+  const parts = String(COPY.teaser).split(label);
+  if (parts.length < 2) return COPY.teaser;
+  const out = [];
+  parts.forEach((part, i) => {
+    if (i > 0) out.push(<span className="pz" key={`p${i}`}>{label}</span>);
+    if (part) out.push(<span key={`t${i}`}>{part}</span>);
+  });
+  return <>{out}</>;
+}
+
 /**
  * @param self          game key, e.g. "garble"
  * @param completed      bool; the player reached the end of the puzzle (default =
@@ -1081,19 +1098,22 @@ export default function DailyEndCard({
            rather than as a third visual language on an already busy card.
            1.55 / 1 split gives share the emphasis, since it is the one with
            money attached. */
-        .dec-actions{display:grid;grid-template-columns:1.55fr 1fr;gap:10px;margin-bottom:7px;}
+        .dec-actions{display:grid;grid-template-columns:1.55fr 1fr;gap:10px;margin-bottom:11px;}
         .dec-sharebar{display:flex;align-items:center;gap:11px;width:100%;box-sizing:border-box;text-align:left;font-family:${SANS};color:var(--white);background:${BLUE};border:2px solid ${BLUE};border-radius:14px;padding:12px 13px;cursor:pointer;transition:filter .12s ease;}
         .dec-sharebar:hover{filter:brightness(1.08);}
         .dec-sharebar .ic{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-sharebar .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
         .dec-sharebar .t{font-size:13.5px;font-weight:800;letter-spacing:-.01em;line-height:1.25;}
+        /* The prize figure inside the teaser: gold on the blue bar, heavier
+           than the sentence around it, underlined so it reads as the offer. */
+        .dec-sharebar .t .pz{font-weight:900;color:#ffd76b;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px;}
         .dec-sharebar .s{font-size:11px;font-weight:600;color:rgba(255,255,255,.72);}
         .dec-back{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;font-family:${SANS};font-weight:800;font-size:13.5px;color:${INK};text-decoration:none;background:linear-gradient(180deg,#ffffff 0%,#f3f5f9 100%);border:2px solid #d8dee9;border-radius:14px;padding:12px 13px;cursor:pointer;transition:filter .12s ease;}
         .dec-back:hover{filter:brightness(0.985);}
         .dec-back .bi{color:${SLATE};flex-shrink:0;}
         /* Contest footnote: carries the asterisk on the share label. Tappable,
            opening the same rules page the pop-up links to. */
-        .dec-fine{font-size:10.5px;line-height:1.45;color:#8a92a6;margin:0 2px 11px;}
+        .dec-fine{grid-column:1/-1;font-size:10.5px;line-height:1.45;color:#8a92a6;margin:-3px 2px 0;}
         .dec-fine a{color:#8a92a6;text-decoration:underline;}
         /* Quick replay: a quiet full-width bar directly under the share bar
            (owner 2026-08-04). Some games invite an immediate second run, and
@@ -1434,11 +1454,13 @@ export default function DailyEndCard({
              shortening the label would leave the asterisk carrying the whole
              offer. Share stays on top, as the primary action. */
           .dec-actions{grid-template-columns:1fr;gap:8px;}
-          .dec-sharebar{gap:11px;padding:11px 12px;}
+          /* Stacked, the footnote sits directly under the share bar it
+             annotates instead of trailing "Back to Main". */
+          .dec-sharebar{order:1;gap:11px;padding:11px 12px;}
           .dec-sharebar .t{font-size:13px;}
           .dec-sharebar .s{font-size:11px;}
-          .dec-back{padding:11px 12px;font-size:13px;}
-          .dec-fine{font-size:10px;}
+          .dec-fine{order:2;font-size:10px;margin:-2px 2px -1px;}
+          .dec-back{order:3;padding:11px 12px;font-size:13px;}
           .dec-replay{font-size:12.5px;padding:11px 12px;gap:7px;}
           .dec-replay .rs{display:none;}
           .dec-claim{gap:10px;padding:10px 11px;}
@@ -1694,7 +1716,7 @@ export default function DailyEndCard({
             <span className="t">
               {/copied/i.test(shareLabel || '')
                 ? shareLabel
-                : (contestLive ? COPY.teaser : 'Share result or challenge a friend')}
+                : (contestLive ? teaserNodes() : 'Share result or challenge a friend')}
             </span>
             <span className="s">
               {contestLive ? `Top ${CONTEST.winners} referrers win` : 'You get the credit when they play.'}
@@ -1705,13 +1727,19 @@ export default function DailyEndCard({
           <LayoutGrid size={16} strokeWidth={2.2} className="bi" />
           <span>Back to Main</span>
         </a>
+        {/* The footnote lives INSIDE the action grid so the phone layout can
+            order it. Stacked one-per-row, a footnote after the grid reads as
+            fine print for "Back to Main" rather than for the share offer it
+            actually annotates, so on mobile it is ordered between the two
+            (see the .dec-actions order rules). On desktop it spans both
+            columns on the row below, exactly where it sat before. */}
+        {contestLive ? (
+          <p className="dec-fine">
+            *Contest ends {CONTEST.deadlineLabel}. Email on your account required.{' '}
+            <a href="/quizzes/contest">See rules</a>.
+          </p>
+        ) : null}
       </div>
-      {contestLive ? (
-        <p className="dec-fine">
-          *Contest ends {CONTEST.deadlineLabel}. Email on your account required.{' '}
-          <a href="/quizzes/contest">See rules</a>.
-        </p>
-      ) : null}
 
       {/* ---- 4b. quick replay ---- */}
       {/* Only for callers that pass onReplay. A replay is free practice: the
