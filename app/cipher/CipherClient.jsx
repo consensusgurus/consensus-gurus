@@ -314,6 +314,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const [showA2hsHelp, setShowA2hsHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
   const [mobileUi, setMobileUi] = useState(false);
+  // The dock is really a response to a narrow COLUMN, not to a phone per se, so
+  // it tracks the viewport as well as the device. A resized desktop window or a
+  // split-screen tablet gets it too, and it follows a rotation live.
+  const [narrowUi, setNarrowUi] = useState(false);
   const searchParams = useSearchParams();
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
@@ -324,6 +328,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
   const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
+  // Phone layout: once the clock runs, the letter picker, the digit pad and
+  // Check move into a fixed dock at the bottom of the viewport, and the inline
+  // rack + pad come out of the scroll flow. Everything else is unchanged.
+  const dockUi = (mobileUi || narrowUi) && started;
   const won = g.status === 'done' && g.fails === 0;
   const score = g.status === 'done' ? Math.max(1, TOTAL - g.fails) : 0;
 
@@ -332,11 +340,22 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
       setMobileUi(isMobileDevice());
     } catch {}
+    let mq = null, onMq = null;
+    try {
+      mq = window.matchMedia('(max-width: 620px)');
+      setNarrowUi(mq.matches);
+      onMq = (e) => setNarrowUi(e.matches);
+      if (mq.addEventListener) mq.addEventListener('change', onMq); else mq.addListener(onMq);
+    } catch {}
     const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
     const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
     window.addEventListener('beforeinstallprompt', onBip);
     window.addEventListener('appinstalled', onInstalled);
-    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBip);
+      window.removeEventListener('appinstalled', onInstalled);
+      try { if (mq && onMq) { if (mq.removeEventListener) mq.removeEventListener('change', onMq); else mq.removeListener(onMq); } } catch {}
+    };
   }, []);
   const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
 
@@ -441,6 +460,19 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const colsSolved = colInfo.every((c) => c.ok === true);
   const badCol = colInfo.some((c) => c.ok === false);
 
+  // The dock's one-line status. It absorbs the three separate messages the
+  // desktop card spreads out (the tap hint, the check verdict, the column
+  // warning), because on a phone only one line of chrome is affordable and the
+  // most urgent of the three is always the one worth showing.
+  const dockTone = (verdict && !verdict.soft) || badCol ? 'bad' : colsSolved && !verdict ? 'good' : '';
+  const dockSay = verdict ? verdict.msg
+    : badCol ? 'A column is marked ✗. Checking now costs a point.'
+    : colsSolved ? 'Every column checks out. Lock it in.'
+    : noteMode ? (selected !== null ? `Notes on. Tap digits to cross them off ${selected}.` : 'Notes on. Pick a letter, then cross digits off it.')
+    : selected === null ? 'Pick a letter, then tap its digit.'
+    : g.assign[selected] !== undefined ? `${selected} = ${g.assign[selected]}. Tap another digit to change it.`
+    : `Tap a digit for ${selected}.`;
+
   const REC_KEY = `sot_cipher_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
     // A play counts only once the player actually acts (assigns a digit or fails a
@@ -500,6 +532,9 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   // Assign a digit to a named letter, then jump to the next unassigned one.
   function assignTo(ch, d) {
     if (!playing) return;
+    // A short tick on assignment, so a docked-pad tap confirms itself without
+    // the player having to look back up at the equation.
+    try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
     setG((prev) => ({ ...prev, assign: { ...prev.assign, [ch]: d }, t0: prev.t0 || Date.now() }));
     const after = { ...g.assign, [ch]: d };
     const next = LETTERS.find((l) => after[l] === undefined);
@@ -697,6 +732,34 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     return out;
   }
 
+  // The ten digit keys, shared by the desktop pad and the mobile dock. Each key
+  // now carries the state the letter rack used to spell out: who owns the digit
+  // (dimmed), 0 under a leading letter (disabled), and anything crossed off for
+  // the selected letter in Notes (struck through). That is what lets the rack
+  // come off the phone layout without losing information.
+  function renderPadKeys() {
+    const selEx = selected !== null ? (g.excl[selected] || []) : [];
+    return Array.from({ length: 10 }, (_, d) => {
+      const owners = digitOwners[d] || [];
+      const takenByOther = owners.some((l) => l !== selected);
+      const illegal = selected !== null && d === 0 && FIRSTS.has(selected);
+      const xed = selected !== null && selEx.includes(d);
+      return (
+        <button
+          key={d}
+          type="button"
+          disabled={illegal}
+          className={`cf-pk${takenByOther ? ' taken' : ''}${xed ? ' xed' : ''}`}
+          onClick={() => setDigit(d)}
+          aria-label={`Digit ${d}${owners.length ? `, taken by ${owners.join(', ')}` : ''}${illegal ? `, not allowed on ${selected} because it starts a word` : ''}`}
+        >
+          {d}
+          {owners.length ? <span className="who">{owners.join('')}</span> : null}
+        </button>
+      );
+    });
+  }
+
   function renderRow(word, op, key) {
     const cells = [];
     for (let i = 0; i < maxLen - word.length; i++) cells.push(<span key={`sp${i}`} className="cf-cell" style={{ visibility: 'hidden' }} />);
@@ -745,7 +808,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
       <DailyChrome slug="cipher" name="Cipher" collapsed={started} />
-      <div className="cf-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+      <div className="cf-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: dockUi ? '18px 38px calc(232px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cf-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .cf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -790,7 +853,55 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-pk.foot:not(.note){grid-column:span 3;}
           .cf-pk.note.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .cf-pad.notes .cf-pk:not(.foot){border-style:dashed;border-color:${COLORS.accent};}
-          @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}.cf-carry,.cf-mk{width:40px;}.cf-rack{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}}
+          /* Pad key states. A digit already owned by another letter, a 0 under a
+             leading letter, or a digit crossed off in Notes now READS as such on
+             the key itself, which is what the letter rack used to be for. */
+          .cf-pk.taken{background:#f3f4f6;color:rgba(28,30,36,0.32);}
+          .cf-pk.xed{color:rgba(28,30,36,0.28);text-decoration:line-through;}
+          .cf-pk:disabled{opacity:0.32;cursor:default;}
+          .cf-pk:disabled:hover{background:var(--white);}
+          .cf-wrap button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+          /* A long Sunday equation can be wider than a phone column; let the
+             equation scroll sideways instead of bleeding out of the card. */
+          .cf-eqn{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+          .cf-eqn::-webkit-scrollbar{display:none;}
+
+          /* ── Mobile dock ────────────────────────────────────────────────────
+             On a phone the equation card, the letter rack and the digit pad
+             stacked to roughly 690px inside a ~650px viewport, so the equation
+             and the pad were never on screen together and every single move
+             cost a scroll down and a scroll back. The pad, the letter picker
+             and Check now ride in a fixed bar at the bottom (the same pattern
+             Garble uses) and the equation scrolls behind it. The rack is
+             retired on mobile: its job (which digits are still open) is now
+             carried by the pad key states plus the per-letter count. */
+          .cf-dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--white);border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -5px 20px rgba(20,22,28,0.13);padding:7px 10px calc(7px + env(safe-area-inset-bottom));}
+          .cf-dock.notes{background:${COLORS.accentSoft};border-top:2px solid ${COLORS.accent};}
+          .cf-dk{max-width:470px;margin:0 auto;display:flex;flex-direction:column;gap:6px;}
+          .cf-say{font-size:11.5px;font-weight:800;line-height:1.35;text-align:center;color:${COLORS.faded};}
+          .cf-say.bad{color:${COLORS.rust};}
+          .cf-say.good{color:${COLORS.green};}
+          .cf-strip{display:grid;gap:3px;}
+          .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid rgba(28,30,36,0.16);border-radius:8px;background:var(--white);padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
+          .cf-sc .l{font-size:14px;font-weight:800;color:${COLORS.ink};line-height:1;}
+          .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:${COLORS.accent};line-height:1;font-variant-numeric:tabular-nums;}
+          .cf-sc .n{font-size:9.5px;font-weight:800;color:${COLORS.faded};line-height:1;font-variant-numeric:tabular-nums;}
+          .cf-sc.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.28);}
+          .cf-dock.notes .cf-sc{background:var(--white);}
+          .cf-dock.notes .cf-sc.on{background:${COLORS.accent};border-color:${COLORS.accent};}
+          .cf-dock.notes .cf-sc.on .l,.cf-dock.notes .cf-sc.on .d,.cf-dock.notes .cf-sc.on .n{color:var(--white);}
+          .cf-sc.lone{border-color:${COLORS.green};}
+          .cf-sc.lone .n{color:${COLORS.green};}
+          .cf-dock .cf-pad{grid-template-columns:repeat(5,1fr);gap:6px;width:100%;}
+          .cf-dock .cf-pk{height:46px;font-size:20px;}
+          .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
+          .cf-drow{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:6px;}
+          .cf-db{height:44px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);color:${COLORS.ink};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
+          .cf-db.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .cf-db.go{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);font-size:13px;}
+          .cf-db.go.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.28);}
+          .cf-db.warn{border-color:${COLORS.rust};color:${COLORS.rust};}
+          @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}.cf-carry,.cf-mk{width:40px;}.cf-carry{height:26px;}.cf-rack{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}.cf-cd{font-size:14px;padding:7px 6px;}}
         `}</style>
 
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
@@ -840,7 +951,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             <span style={{ whiteSpace: 'nowrap' }}>every letter is a digit · {opWord}</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>failed checks <b style={{ color: g.fails ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.fails}</b></span>
           </div>
-          <div style={{ maxWidth: (maxLen + 1) * 50, margin: '0 auto' }}>
+          <div className="cf-eqn" style={{ maxWidth: (maxLen + 1) * 50, margin: '0 auto' }}>
             {renderCarryRow()}
             {PUZZLE.lhs.map((w, i) => renderRow(w, (OP === 'sub' ? i > 0 : i === PUZZLE.lhs.length - 1) ? opGlyph : '', `l${i}`))}
             <div className="cf-rule" />
@@ -852,7 +963,9 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
               {carryWord}s on top · column checks below · both free
             </div>
           )}
-          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, textAlign: 'center', margin: '10px 0 8px', minHeight: 16 }}>
+          {/* These three status lines are folded into the dock's single status
+              line on a phone, so they only render in the desktop card. */}
+          <div style={{ display: dockUi ? 'none' : 'block', fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, textAlign: 'center', margin: '10px 0 8px', minHeight: 16 }}>
             {playing
               ? (noteMode
                   ? (selected !== null
@@ -867,7 +980,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           {/* The key rack: every letter, its digit, and the digits still open to
               it. Digits taken elsewhere and 0 on a leading letter drop out on
               their own, which is the bookkeeping players were doing on paper. */}
-          {playing && (
+          {playing && !dockUi && (
             <div className="cf-rack">
               {LETTERS.map((ch) => {
                 const d = g.assign[ch];
@@ -898,33 +1011,29 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
 
-          {playing && (
+          {playing && !dockUi && (
             <div className={`cf-pad${noteMode ? ' notes' : ''}`}>
-              {Array.from({ length: 10 }, (_, d) => (
-                <button key={d} type="button" className="cf-pk" onClick={() => setDigit(d)}>
-                  {d}
-                  {digitOwners[d] && digitOwners[d].length ? <span className="who">{digitOwners[d].join('')}</span> : null}
-                </button>
-              ))}
+              {renderPadKeys()}
               <button type="button" className={`cf-pk foot note${noteMode ? ' on' : ''}`} onClick={() => setNoteMode((v) => !v)} aria-pressed={noteMode}><Pencil size={13} /> notes {noteMode ? 'on' : 'off'}</button>
               <button type="button" className="cf-pk foot" onClick={eraseSelected}><Delete size={13} /> erase letter</button>
             </div>
           )}
-          {verdict && (
+          {verdict && !dockUi && (
             <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: verdict.soft ? COLORS.faded : COLORS.rust, textAlign: 'center', marginTop: 10, lineHeight: 1.45 }}>
               {verdict.msg}
             </div>
           )}
           {playing && (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
-              <button type="button" className={`cf-btn primary${colsSolved ? ' ready' : ''}`} onClick={check}><Lock size={14} strokeWidth={2.6} /> Check solution</button>
+              {/* Check lives in the dock on a phone, so it is never scrolled away. */}
+              {!dockUi && <button type="button" className={`cf-btn primary${colsSolved ? ' ready' : ''}`} onClick={check}><Lock size={14} strokeWidth={2.6} /> Check solution</button>}
               <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: COLORS.rust } : undefined}>{clearArmed ? 'Clear all — tap again' : 'Clear'}</button>
               {g.fails >= 3 && (
                 <button type="button" className="cf-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
               )}
             </div>
           )}
-          {playing && (badCol || colsSolved) && (
+          {playing && !dockUi && (badCol || colsSolved) && (
             <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, textAlign: 'center', marginTop: 8, color: badCol ? COLORS.rust : COLORS.green }}>
               {badCol
                 ? `A column is marked ✗ — checking now costs a point.`
@@ -1027,6 +1136,47 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
+      {/* Mobile dock. Everything a move needs — which letter, which digit, and
+          the scored Check — pinned to the bottom of the viewport, so the
+          equation above it is read rather than scrolled to and from. The letter
+          strip replaces the 194px rack: an unassigned letter shows how many
+          digits are still open to it (green ring when only one is left, which
+          is the moment the rack's "lone" highlight used to flag), and the pad
+          keys carry the rest of that bookkeeping themselves. */}
+      {dockUi && playing && (
+        <div className={`cf-dock${noteMode ? ' notes' : ''}`}>
+          <div className="cf-dk">
+            <div className={`cf-say${dockTone === 'bad' ? ' bad' : dockTone === 'good' ? ' good' : ''}`}>{dockSay}</div>
+            <div className="cf-strip" style={{ gridTemplateColumns: `repeat(${LETTERS.length}, minmax(0,1fr))` }}>
+              {LETTERS.map((ch) => {
+                const d = g.assign[ch];
+                const ex = g.excl[ch] || [];
+                const n = candidatesFor(ch).filter((x) => !ex.includes(x)).length;
+                const lone = d === undefined && n === 1;
+                return (
+                  <button
+                    key={ch}
+                    type="button"
+                    className={`cf-sc${selected === ch ? ' on' : ''}${lone ? ' lone' : ''}`}
+                    onClick={() => tapLetter(ch)}
+                    aria-label={`Letter ${ch}${d !== undefined ? `, digit ${d}` : `, ${n} digit${n === 1 ? '' : 's'} still open`}`}
+                  >
+                    <span className="l">{ch}</span>
+                    {d !== undefined ? <span className="d">{d}</span> : <span className="n">{n}</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="cf-pad">{renderPadKeys()}</div>
+            <div className="cf-drow">
+              <button type="button" className={`cf-db${noteMode ? ' on' : ''}`} onClick={() => setNoteMode((v) => !v)} aria-pressed={noteMode}><Pencil size={13} /> Notes</button>
+              <button type="button" className="cf-db" onClick={eraseSelected}><Delete size={13} /> Erase</button>
+              <button type="button" className={`cf-db go${colsSolved ? ' ready' : ''}`} onClick={check}><Lock size={13} strokeWidth={2.6} /> Check</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
       {!playing && !endClosed && (
         <DailyEndCard
@@ -1046,7 +1196,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
       {toast && (
-        <div style={{ position: 'fixed', left: '50%', bottom: 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', left: '50%', bottom: dockUi ? 'calc(248px + env(safe-area-inset-bottom))' : 26, transform: 'translateX(-50%)', background: COLORS.ink, color: T.white, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, padding: '10px 18px', borderRadius: 9, zIndex: 60, boxShadow: '0 6px 18px rgba(20,22,28,0.25)', maxWidth: '86vw', textAlign: 'center' }}>
           {toast}
         </div>
       )}
