@@ -84,7 +84,7 @@ import {
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
-  Flame, Frame, Contrast, Layers,
+  Flame, Frame, Contrast, Layers, FileText,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
@@ -108,7 +108,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn']
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel', 'feud'], until: '2026-09-15' };
+const LAUNCH_PIN = { keys: ['redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel', 'feud'], until: '2026-09-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -174,12 +174,12 @@ export const GAME_META = {
   turn: { accent: '#226218', badgeBg: '#226218', badgeInk: T.white, Fin: Contrast },
   suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
+  redact: { accent: '#27272a', badgeBg: '#18181b', badgeInk: T.white, Fin: FileText },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
 export const CAT_META = {
   word:      { name: 'Word',      color: T.blue, Icon: Type },
-  history:   { name: 'History',   color: '#6d28d9', Icon: Clock },
   geography: { name: 'Geography', color: '#0e7c5a', Icon: Globe },
   numbers:   { name: 'Numbers',   color: '#ea580c', Icon: Hash },
   logic:     { name: 'Logic',     color: '#9f1239', Icon: Fingerprint },
@@ -195,7 +195,7 @@ export const CAT_META = {
   cards:     { name: 'Cards',     color: '#7f1d1d', Icon: Club },
 };
 // Family render order for the "more games" grid.
-const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'history', 'geography'];
+const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'geography'];
 
 // ---- the daily slate (31 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
@@ -211,8 +211,8 @@ export const DAILY_GAMES = [
   { key: 'garble', cat: 'word',      name: 'Garble', tag: 'Untangle five words',       blurb: 'Five scrambled words against the clock. Unscramble each one before time runs out.', href: '/garble' },
   { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Spot the error, fix the copy',        blurb: 'A short passage hides one slip of fact, spelling or grammar. Catch it, then correct it.', href: '/stet' },
   { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Same letters, highest score wins',  blurb: 'Everyone gets the identical letters. Tuck them into the grid for the biggest score of the day.', href: '/tuck' },
-  { key: 'dating', cat: 'history',   name: 'Dating', tag: 'Put five moments in order', blurb: 'Five moments from history, no dates given. Put them on the timeline, earliest to latest.', href: '/dating' },
-  { key: 'extra',  cat: 'history',   name: 'Extra',  tag: 'Name the redacted front page', blurb: 'A real front page with the key words blacked out. Work out the story it broke.', href: '/extra' },
+  { key: 'dating', cat: 'trivia',     name: 'Dating', tag: 'Put five moments in order', blurb: 'Five moments from history, no dates given. Put them on the timeline, earliest to latest.', href: '/dating' },
+  { key: 'extra',  cat: 'trivia',     name: 'Extra',  tag: 'Name the redacted front page', blurb: 'A real front page with the key words blacked out. Work out the story it broke.', href: '/extra' },
   { key: 'span',   cat: 'geography', name: 'Span',   tag: 'Cross the map, border by border', blurb: 'Travel from one country to another over land, naming every border you cross on the way.', href: '/span' },
   { key: 'ping',   cat: 'geography', name: 'Ping',   tag: 'Find the secret city',        blurb: 'Name any city and get the distance back. Triangulate your way to the hidden one.', href: '/ping' },
   { key: 'tally',  cat: 'numbers',   name: 'Tally',  tag: 'Balance every row and column', blurb: 'Place the numbers so every row and column lands exactly on its target total.', href: '/tally' },
@@ -233,6 +233,7 @@ export const DAILY_GAMES = [
   { key: 'chain',  cat: 'endgame',     name: 'Chain',  tag: 'Take them, or leave them',    blurb: 'A dots and boxes endgame you are already winning. One edge keeps it, and the free box is usually bait.', href: '/chain' },
   { key: 'suffice', cat: 'logic',      name: 'Suffice', tag: 'Decide what is enough',      blurb: 'Eight questions you never answer. For each one, decide whether the two statements are enough to settle it.', href: '/suffice' },
   { key: 'turn',   cat: 'endgame',     name: 'Turn',   tag: 'Ten squares left',            blurb: 'An Othello endgame you are already winning. One square keeps it, and the careful little move is not always it.', href: '/turn' },
+  { key: 'redact', cat: 'trivia',     name: 'Redact', tag: 'Uncover the blacked-out article', blurb: 'A whole article about one famous subject, every word behind a block. Guess words to uncover it and name the subject.', href: '/redact' },
   { key: 'strata', cat: 'word',       name: 'Strata', tag: 'Dig the words out',          blurb: 'Every letter belongs to a buried word. Take one out and the letters above it fall, which is what lets you read the next.', href: '/strata' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    blurb: 'Six numbers, four operations, one target. Hit it exactly or get as close as you can.', href: '/crunch' },
