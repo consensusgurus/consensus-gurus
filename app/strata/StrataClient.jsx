@@ -364,11 +364,28 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
   const won = foundWords.length === TOTAL;
   const threadLabel = (PUZZLE.themes || []).join(' + ');
 
-  // The grid box. 6x7 on a Sunday needs to fit a phone, so the tile size is a CSS
-  // variable the media query rewrites rather than a number baked into every tile.
+  // ⚠️ TILE SIZE IS A NUMBER, NOT A CSS VARIABLE, AND HAS TO STAY ONE.
+  // `top` and `left` are the animated properties (they ARE the collapse), and
+  // Chrome will not transition a value of the form calc(var(--x) * n + mpx): the
+  // transition is created, reports playState "running", and then sits at
+  // currentTime 0 forever, so the computed top stays at the old row while the
+  // inline style shows the new one. The tile renders in its old slot and the
+  // board silently never falls. That shipped once and was caught on the live
+  // page. Keep every animated value a plain px number computed here.
   const gap = 6;
-  const boardW = `calc(var(--st-tile) * ${cols} + ${gap * (cols - 1)}px)`;
-  const boardH = `calc(var(--st-tile) * ${rows} + ${gap * (rows - 1)}px)`;
+  const [tile, setTile] = useState(56);
+  useEffect(() => {
+    const fit = () => {
+      const avail = Math.min(window.innerWidth - 34, 560);
+      setTile(Math.max(30, Math.min(56, Math.floor((avail - gap * (cols - 1)) / cols))));
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [cols]);
+  const step = tile + gap;
+  const boardW = cols * tile + gap * (cols - 1);
+  const boardH = rows * tile + gap * (rows - 1);
 
   return (
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
@@ -376,17 +393,15 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
       <DailyChrome slug="strata" name="Strata" collapsed={!!g.t0} />
       <div className="st-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
-          .st-wrap{--st-tile:56px;}
-          @media(max-width:560px){.st-wrap{padding-left:12px !important;padding-right:12px !important;--st-tile:44px;}}
-          @media(max-width:380px){.st-wrap{--st-tile:38px;}}
+          @media(max-width:560px){.st-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .st-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .st-btn:hover{background:${COLORS.accentSoft};}
           .st-btn:disabled{opacity:0.4;cursor:default;}
           .st-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .st-btn.primary:hover{background:${COLORS.accentDeep};}
           .st-board{position:relative;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none;}
-          .st-tile{position:absolute;width:var(--st-tile);height:var(--st-tile);display:flex;align-items:center;justify-content:center;
-            font-family:${SANS};font-weight:800;font-size:calc(var(--st-tile) * 0.42);border-radius:7px;cursor:pointer;
+          .st-tile{position:absolute;display:flex;align-items:center;justify-content:center;
+            font-family:${SANS};font-weight:800;border-radius:7px;cursor:pointer;
             background:var(--white);border:1px solid rgba(28,30,36,0.15);color:${COLORS.ink};
             transition:top ${FALL_MS}ms cubic-bezier(.4,.05,.35,1),left ${FALL_MS}ms cubic-bezier(.4,.05,.35,1),background 120ms,color 120ms,border-color 120ms,transform 160ms,opacity ${LIFT_MS}ms;}
           .st-tile.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);transform:scale(1.04);}
@@ -462,8 +477,8 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                       key={cell.id}
                       className={cls.join(' ')}
                       style={{
-                        top: `calc(var(--st-tile) * ${p[0]} + ${gap * p[0]}px)`,
-                        left: `calc(var(--st-tile) * ${p[1]} + ${gap * p[1]}px)`,
+                        width: tile, height: tile, fontSize: Math.round(tile * 0.42),
+                        top: p[0] * step, left: p[1] * step,
                       }}
                       onPointerDown={(e) => onDown(cell.id, e)}
                       onPointerEnter={() => onEnter(cell.id)}
