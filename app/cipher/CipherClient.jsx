@@ -885,13 +885,18 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid rgba(28,30,36,0.16);border-radius:8px;background:var(--white);padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
           .cf-sc .l{font-size:14px;font-weight:800;color:${COLORS.ink};line-height:1;}
           .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:${COLORS.accent};line-height:1;font-variant-numeric:tabular-nums;}
-          .cf-sc .n{font-size:9.5px;font-weight:800;color:${COLORS.faded};line-height:1;font-variant-numeric:tabular-nums;}
+          /* The count of digits still open to an unassigned letter renders as a
+             PILL, never as a bare numeral: a bare one sat in the same slot as an
+             assigned digit and the two read alike at a glance (A=7 vs H has 7
+             left). The pill says "this is a tally, not a value". */
+          .cf-sc .n{font-size:9.5px;font-weight:800;color:${COLORS.faded};line-height:1;font-variant-numeric:tabular-nums;background:rgba(28,30,36,0.10);border-radius:5px;padding:1.5px 4px;}
           .cf-sc.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.28);}
           .cf-dock.notes .cf-sc{background:var(--white);}
           .cf-dock.notes .cf-sc.on{background:${COLORS.accent};border-color:${COLORS.accent};}
-          .cf-dock.notes .cf-sc.on .l,.cf-dock.notes .cf-sc.on .d,.cf-dock.notes .cf-sc.on .n{color:var(--white);}
+          .cf-dock.notes .cf-sc.on .l,.cf-dock.notes .cf-sc.on .d{color:var(--white);}
+          .cf-dock.notes .cf-sc.on .n{color:${COLORS.ink};background:rgba(255,255,255,0.92);}
           .cf-sc.lone{border-color:${COLORS.green};}
-          .cf-sc.lone .n{color:${COLORS.green};}
+          .cf-sc.lone .n{color:var(--white);background:${COLORS.green};}
           .cf-dock .cf-pad{grid-template-columns:repeat(5,1fr);gap:6px;width:100%;}
           .cf-dock .cf-pk{height:46px;font-size:20px;}
           .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
