@@ -5,14 +5,14 @@
 //
 // Four checks per banked day, and the fourth is the one that matters:
 //
-//   1. par recomputes from the stored board to the stored number.
+//   1. the benchmark recomputes from the stored board to the stored number.
 //   2. greedy recomputes likewise.
 //   3. the opponent's rack the CLIENT derives (bag minus board minus your rack)
 //      is exactly the rack the generator banked. If this ever fails, the client
 //      is playing a different game from the one that was solved.
-//   4. PAR IS ACTUALLY REACHABLE: play the solver's own line against the very
+//   4. THE BENCHMARK IS ACTUALLY REACHABLE: play the solver's own line against the very
 //      defence the client runs (bestReply), and the final spread must land on
-//      par. A par nobody can hit is a broken promise, and only a full playout
+//      benchmark. A benchmark nobody can hit is a broken promise, and only a full playout
 //      catches it — recomputing the number proves nothing about whether the
 //      defence in the browser matches the defence in the search.
 
@@ -85,17 +85,17 @@ for (const p of PUZZLES) {
   if (gr !== p.greedy) problems.push(`greedy ${p.greedy} recomputes to ${gr}`);
 
   // The one that matters: replay the solver's line against the browser's own
-  // defence and confirm the spread lands exactly on the banked par.
+  // defence and confirm the spread lands exactly on the banked benchmark.
   const out = solveLine(board, p.rack, p.foe, lex);
   if (out.end === 'guard') problems.push('playout did not terminate');
-  else if (out.spread !== p.par) {
+  else if (out.spread !== p.benchmark) {
     const pretty = out.line.map((m) => `${m.who === 'you' ? 'you' : 'them'}:${m.word}${m.score ? '+' + m.score : ''}`).join(' ');
-    problems.push(`PAR NOT REACHABLE: the line yields ${out.spread}, par claims ${p.par} [${pretty}]`);
+    problems.push(`BENCHMARK NOT REACHABLE: the line yields ${out.spread}, benchmark claims ${p.benchmark} [${pretty}]`);
   }
-  if (out.spread <= p.greedy) problems.push(`par ${p.par} does not beat greedy ${p.greedy}`);
+  if (out.spread <= p.greedy) problems.push(`benchmark ${p.benchmark} does not beat greedy ${p.greedy}`);
 
   if (problems.length) { fail++; console.error(`FAIL ${p.live} #${p.num}\n   ${problems.join('\n   ')}`); }
-  else console.log(`ok   ${p.live} #${p.num}  par ${p.par >= 0 ? '+' : ''}${p.par}  greedy ${p.greedy >= 0 ? '+' : ''}${p.greedy}  ${out.line.length} plies  ${out.end}`);
+  else console.log(`ok   ${p.live} #${p.num}  benchmark ${p.benchmark >= 0 ? '+' : ''}${p.benchmark}  greedy ${p.greedy >= 0 ? '+' : ''}${p.greedy}  ${out.line.length} plies  ${out.end}`);
 }
 
 console.log(`\n${checked - fail}/${checked} puzzles verified`);

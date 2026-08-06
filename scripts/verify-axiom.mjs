@@ -10,13 +10,13 @@
 //   - C3 the given reds kill 1..2 candidates (1..3 on Sunday), never the answer
 //   - C4 >= 2 decoys survive the reds, each exposed by >= 2 testable tiles
 //   - C5 >= 6 testable tiles where every surviving decoy agrees with the truth
-//   - C6 par is exactly 2: no single test splits the field, some pair does
+//   - C6 perfect is exactly 2: no single test splits the field, some pair does
 // and, for every board built under the v2 generator (num > LEGACY_THROUGH):
 //   - C7 the filler kinds are capped: at most one "contains no letter X" (two
 //     on a Sunday's wider field) and at most one "exactly N letters long", so
 //     the field stops being padded with rules that are never the answer
 //   - C8 enough tiles are informative that the deduction is findable by hand
-//   - C9 par-2 pairs are at least 12% of all tile pairs (9% on Sunday), so a
+//   - C9 perfect-2 pairs are at least 12% of all tile pairs (9% on Sunday), so a
 //     thinking player is not hunting one needle in 171
 //   - C10 bank-wide: the answer is spread across the candidate slots, and no
 //     rule kind that appears often is a free cross-out
@@ -134,15 +134,15 @@ PUZZLES.forEach((p, idx) => {
 
   // C6
   const oneShot = testable.some((ti) => killers.every((s) => s.has(ti)));
-  if (oneShot) fail(`${tag}: a single test splits the whole field (par must be 2)`);
+  if (oneShot) fail(`${tag}: a single test splits the whole field (perfect must be 2)`);
   let pair = false;
   for (let a = 0; a < testable.length && !pair; a++) {
     for (let b = a + 1; b < testable.length; b++) {
       if (killers.every((s) => s.has(testable[a]) || s.has(testable[b]))) { pair = true; break; }
     }
   }
-  if (!pair) fail(`${tag}: no pair of tests isolates the answer (par > 2, unfair at this budget)`);
-  if (p.budget < 4) fail(`${tag}: budget below the par-2 floor`);
+  if (!pair) fail(`${tag}: no pair of tests isolates the answer (perfect > 2, unfair at this budget)`);
+  if (p.budget < 4) fail(`${tag}: budget below the perfect-2 floor`);
 
   if (p.num > LEGACY_THROUGH) {
     // C7 filler caps
@@ -156,7 +156,7 @@ PUZZLES.forEach((p, idx) => {
     const informMin = p.sunday ? 10 : 8;
     if (inform < informMin) fail(`${tag}: only ${inform} informative tiles (want >= ${informMin})`);
 
-    // C9 par-2 pairs have to be findable, not a needle
+    // C9 perfect-2 pairs have to be findable, not a needle
     let pairs = 0; let totPairs = 0;
     for (let a = 0; a < testable.length; a++) {
       for (let b = a + 1; b < testable.length; b++) {
@@ -166,7 +166,7 @@ PUZZLES.forEach((p, idx) => {
     }
     const pct = pairs / totPairs;
     const pctMin = p.sunday ? 0.09 : 0.12;
-    if (pct < pctMin) fail(`${tag}: only ${pairs}/${totPairs} par-2 pairs (${(100 * pct).toFixed(0)}%, want >= ${(100 * pctMin).toFixed(0)}%)`);
+    if (pct < pctMin) fail(`${tag}: only ${pairs}/${totPairs} perfect-2 pairs (${(100 * pct).toFixed(0)}%, want >= ${(100 * pctMin).toFixed(0)}%)`);
   }
 
   bank.push({ num: p.num, slot: answer, kinds: p.rules.map((r) => r.k), answerKind: p.rules[answer].k });
@@ -199,4 +199,4 @@ if (v2.length >= 12) {
 }
 
 if (fails) { console.error(`\nverify-axiom: ${fails} FAILURE(S)`); process.exit(1); }
-console.log(`verify-axiom: all ${PUZZLES.length} boards pass (unique rule, gift greens neutral, par 2, structure OK)`);
+console.log(`verify-axiom: all ${PUZZLES.length} boards pass (unique rule, gift greens neutral, perfect 2, structure OK)`);

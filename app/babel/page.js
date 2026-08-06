@@ -13,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Babel — Daily Word Tile Endgame Puzzle: The Bag Is Empty | Mind Loft',
   description:
-    'A free daily word puzzle for endgame players. The bag is empty, so your opponent’s rack is not a secret: it is the bag minus the board minus your own tiles. Race them out or block the lane they need, and beat the solver’s par on spread.',
+    'A free daily word puzzle for endgame players. The bag is empty, so your opponent’s rack is not a secret: it is the bag minus the board minus your own tiles. Race them out or block the lane they need, and beat the solver’s benchmark on spread.',
   alternates: { canonical: '/babel' },
   openGraph: {
     title: 'Babel — The Daily Word Tile Endgame',
@@ -37,7 +37,7 @@ const gameJsonLd = {
   alternateName: 'Babel — Daily Word Tile Endgame Puzzle',
   url: `${SITE_URL}/babel`,
   description:
-    'A free daily word puzzle: a word tile game picked up at the very end. The bag is empty, the player holds five tiles (six in the Sunday Edition) and the opponent holds the rest, so the opponent’s rack can be deduced exactly from the bag, the board and your own rack. Scoring is by spread, and every position ships with a par achieved by the same solver that plays the defence.',
+    'A free daily word puzzle: a word tile game picked up at the very end. The bag is empty, the player holds five tiles (six in the Sunday Edition) and the opponent holds the rest, so the opponent’s rack can be deduced exactly from the bag, the board and your own rack. Scoring is by spread, and every position ships with a benchmark achieved by the same solver that plays the defence.',
   genre: ['Word puzzle', 'Puzzle', 'Strategy puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

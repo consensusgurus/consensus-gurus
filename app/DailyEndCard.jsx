@@ -64,12 +64,12 @@
 //
 // Each client passes only its result strings + handlers (unchanged API):
 //   <DailyEndCard modal self="tuck" completed
-//     score={<>{finalScore} pts &middot; par {PAR}</>}
+//     score={<>{finalScore} pts &middot; benchmark {BENCH}</>}
 //     onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
 //     onReplay={resetGame} onClose={() => setJustWon(false)} />
 // `completed` (default = `won`) says the player REACHED THE END of the puzzle,
 // which turns a non-win from "Incomplete." into "Not perfect."; pass it on every
-// game whose `won` really means perfect-or-par. `defeat` forces "Defeated." and
+// game whose `won` really means perfect-or-target. `defeat` forces "Defeated." and
 // defaults on for the End Game titles. Pass a
 // clean `score` node ONLY for variable-score games (Tuck/Outrank/Outwit) so every
 // other game just reads its title with score/time/accuracy left to the board.
@@ -100,8 +100,9 @@ const AMBER = '#b45309';
 // player walked away from, so the card reads "Defeated." rather than
 // "Incomplete." (owner, 2026-08-02). This set is keyed by GAME, not by category,
 // which is why Taire stays in it after moving to Cards on 2026-08-04. Babel and
-// Hands are scored against par, so falling short there is "Not perfect." like
-// any other par game, and both are deliberately NOT in this set.
+// Hands is scored against par and Babel against its solver benchmark, so falling
+// short there is "Not perfect." like any other target game, and both are
+// deliberately NOT in this set.
 const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn']);
 
 // LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily puzzles lead the

@@ -442,7 +442,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         headers: { 'Content-Type': 'application/json' },
         // total = the day's VEIN (uniform for everyone, so the combined board's
         // completion normalization is stable, and a Mother Lode run legitimately
-        // scores past it — the same par model Tuck uses). guessesUsed = words
+        // scores past it — the same benchmark model Tuck uses). guessesUsed = words
         // mined, so ties break toward the leaner haul.
         body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: VEIN, correct: sc >= VEIN ? 1 : 0, guessesUsed: n, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })

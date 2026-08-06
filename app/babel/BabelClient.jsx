@@ -13,7 +13,8 @@
 //
 // Your score is SPREAD: your points from here minus theirs, including the
 // end-of-game rack adjustment (go out and their leftovers come off their score
-// and onto yours). Par is the spread our solver ACHIEVES from your seat against
+// and onto yours). The benchmark is the spread our solver ACHIEVES from your seat
+// against
 // the very defence the browser plays (solveLine in lib/babel-engine.js), so it
 // is reachable by construction rather than a ceiling nobody can hit.
 //
@@ -179,7 +180,7 @@ function deriveStats(stats, todayNum) {
 
 export default function BabelClient({ puzzles, forceNum }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
-  const PAR = PUZZLE.par;
+  const BENCH = PUZZLE.benchmark;
   const START_RACK = PUZZLE.rack;
   const STORE_KEY = `sot_babel_${PUZZLE.num}`;
 
@@ -555,7 +556,7 @@ export default function BabelClient({ puzzles, forceNum }) {
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - g.t0) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     const sc = Math.max(0, g.my - g.foeScore);
-    return { quizId: PUZZLE.quizId, score: sc, total: PAR, correct: 0, guessesUsed: g.rack.length, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+    return { quizId: PUZZLE.quizId, score: sc, total: BENCH, correct: 0, guessesUsed: g.rack.length, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
 
   function postResult(state) {
@@ -567,13 +568,13 @@ export default function BabelClient({ puzzles, forceNum }) {
     const sc = Math.max(0, sp);
     const stuck = state.rack.length;
     const el = state.t0 ? Math.max(1, Math.round(((state.tEnd || Date.now()) - state.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: sc, t: PAR, g: stuck, won: sp >= PAR })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: BENCH, g: stuck, won: sp >= BENCH })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: PAR, correct: sp >= PAR ? 1 : 0, guessesUsed: stuck, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: BENCH, correct: sp >= BENCH ? 1 : 0, guessesUsed: stuck, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoardData({ ...EMPTY_BOARD, ...d }); })
@@ -587,12 +588,12 @@ export default function BabelClient({ puzzles, forceNum }) {
     setG(freshState()); setPending([]); setArmed(null); setSel(null); setEndClosed(false);
   }
 
-  const won = g.status === 'done' && spread >= PAR;
+  const won = g.status === 'done' && spread >= BENCH;
 
   function copyShare() {
     const line = g.status === 'playing'
       ? `Babel ${PUZZLE.dateLabel} — mid-endgame.`
-      : `Babel ${PUZZLE.dateLabel}\nSpread ${signed(spread)} vs par ${signed(PAR)}${won ? ' ✓' : ''}\n${g.over === 'you-out' ? 'Went out first.' : g.over === 'foe-out' ? 'Caught holding tiles.' : 'Board closed out.'}`;
+      : `Babel ${PUZZLE.dateLabel}\nSpread ${signed(spread)} vs benchmark ${signed(BENCH)}${won ? ' ✓' : ''}\n${g.over === 'you-out' ? 'Went out first.' : g.over === 'foe-out' ? 'Caught holding tiles.' : 'Board closed out.'}`;
     const streakBit = isTodays && myStats.cur >= 2 && g.status !== 'playing' ? ` · streak ${myStats.cur}` : '';
     const text = `${line}${streakBit}\nmindloftdaily.com/babel`;
     try {
@@ -615,7 +616,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         You are scored on <b>spread</b>: your points from here minus theirs. Go out first and their leftover tiles come off their score and onto yours, which is usually worth more than any single play. Get stuck holding tiles and it happens to you.
       </p>
       <p style={{ margin: '0 0 8px' }}>
-        Tap a tile, then tap a square, or just click a square and type. <b>Par is {signed(PAR)}</b>: the spread our solver gets from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
+        Tap a tile, then tap a square, or just click a square and type. <b>The benchmark is {signed(BENCH)}</b>: the spread our solver gets from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
       </p>
       <p style={{ margin: 0, color: COLORS.faded }}>
         The bag is 65 tiles: every letter, weighted toward the common ones, Q included and no blanks. It is smaller than a full-size set because the board is 11 by 11, and it is printed beside the board, so nothing about it is hidden. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
@@ -683,7 +684,7 @@ export default function BabelClient({ puzzles, forceNum }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Babel is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>The bag is empty and there are {START_RACK.length} tiles on your rack. Par is <b>{signed(PAR)}</b>. The board waits until you begin.</p>
+                <p style={{ margin: '0 0 6px' }}>The bag is empty and there are {START_RACK.length} tiles on your rack. The benchmark is <b>{signed(BENCH)}</b>. The board waits until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -702,8 +703,8 @@ export default function BabelClient({ puzzles, forceNum }) {
         {!preStart && (
         <>
         <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
-          <span style={{ fontSize: 12 }}>spread <b style={{ color: spread >= PAR ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{signed(spread)}</b></span>
-          <span>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{signed(PAR)}</b></span>
+          <span style={{ fontSize: 12 }}>spread <b style={{ color: spread >= BENCH ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{signed(spread)}</b></span>
+          <span>benchmark <b style={{ color: COLORS.accent, fontWeight: 500 }}>{signed(BENCH)}</b></span>
           <span>you <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.my}</b></span>
           <span>them <b style={{ color: COLORS.foe, fontWeight: 500 }}>{g.foeScore}</b></span>
           <span style={{ marginLeft: 'auto' }}>{elapsed}</span>
@@ -819,7 +820,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                  {won ? `Par was ${signed(PAR)}. You matched the book line.` : `Par was ${signed(PAR)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}
+                  {won ? `The benchmark was ${signed(BENCH)}. You matched the book line.` : `The benchmark was ${signed(BENCH)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}
                   {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>
                     {g.over === 'you-out' ? 'You went out first.' : g.over === 'foe-out' ? 'They went out first.' : 'The board closed out.'} {elapsed}
                   </span>
@@ -904,7 +905,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           self="babel"
           won={won}
           completed
-          score={<>{signed(spread)} spread &middot; par {signed(PAR)}</>}
+          score={<>{signed(spread)} spread &middot; benchmark {signed(BENCH)}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
@@ -940,7 +941,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           Babel is a free daily word puzzle from Mind Loft: a word tile game picked up at the very end. The bag is empty, you hold five tiles and your opponent holds the rest, and the last few plays decide everything. Because nothing is left to draw, their rack is not a mystery. It is the bag minus the board minus your own tiles, which is exactly the arithmetic tournament players do on a tracking sheet. Babel prints the bag and leaves the subtraction to you.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          You are scored on spread: your points from here minus your opponent&rsquo;s. Going out first is the prize, because their leftover tiles come off their score and land on yours. That makes the real question a familiar one to any endgame player: race, or block the lane they need and make them sit on a tile they cannot play. Every position ships with a par computed by the same solver that plays the defence, so par is always reachable and never a guess.
+          You are scored on spread: your points from here minus your opponent&rsquo;s. Going out first is the prize, because their leftover tiles come off their score and land on yours. That makes the real question a familiar one to any endgame player: race, or block the lane they need and make them sit on a tile they cannot play. Every position ships with a benchmark computed by the same solver that plays the defence, so it is always reachable and never a guess.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The bag is 65 tiles, weighted toward the common letters, with the Q in and no blanks. It is smaller than a full-size set because the board is 11 by 11, and it is printed on the page rather than left for you to remember. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.

@@ -17,7 +17,7 @@
 //
 // SUNDAY EDITIONS: a Sunday puzzle carries `via` (the chain must pass through
 // that country before the destination) or `avoid` (that country is closed and
-// can't be entered). par is the CONSTRAINED shortest, so scoring needs no
+// can't be entered). perfect is the CONSTRAINED shortest, so scoring needs no
 // special-casing; the rules are enforced in addCountry, and hint/reveal route
 // around them. See the authoring notes in app/span/puzzles.js.
 //
@@ -345,7 +345,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
   const chain = g.chain || [PUZZLE.start];
   const head = chain[chain.length - 1];
-  const hops = chain.length - 1; // score meter: final path length vs par
+  const hops = chain.length - 1; // score meter: final path length vs perfect
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
@@ -353,7 +353,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
 
-  // Sunday Edition twist (one per Sunday puzzle, never both): par already
+  // Sunday Edition twist (one per Sunday puzzle, never both): perfect already
   // accounts for the constraint, so scoring below stays untouched.
   const VIA = PUZZLE.via || null;
   const AVOID = PUZZLE.avoid || null;
@@ -481,7 +481,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
-  const finalScore = won ? Math.max(1, Math.min(10, 10 - (hops - PUZZLE.par))) : 0;
+  const finalScore = won ? Math.max(1, Math.min(10, 10 - (hops - PUZZLE.perfect))) : 0;
 
   const REC_KEY = `sot_span_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
@@ -498,7 +498,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   function postResult(g2, score) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.misses, won: g2.status === 'won' && (g2.chain.length - 1) === PUZZLE.par })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: g2.misses, won: g2.status === 'won' && (g2.chain.length - 1) === PUZZLE.perfect })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
@@ -542,7 +542,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     if (canonical === PUZZLE.end) {
       g2.status = 'won';
       g2.tEnd = Date.now();
-      const score = Math.max(1, Math.min(10, 10 - ((g2.chain.length - 1) - PUZZLE.par)));
+      const score = Math.max(1, Math.min(10, 10 - ((g2.chain.length - 1) - PUZZLE.perfect)));
       postResult(g2, score);
       setG(g2);
       setJustWon(true);
@@ -580,7 +580,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     if (next === PUZZLE.end) {
       g2.status = 'won';
       g2.tEnd = Date.now();
-      const score = Math.max(1, Math.min(10, 10 - ((g2.chain.length - 1) - PUZZLE.par)));
+      const score = Math.max(1, Math.min(10, 10 - ((g2.chain.length - 1) - PUZZLE.perfect)));
       postResult(g2, score);
       setG(g2);
       setJustWon(true);
@@ -651,7 +651,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border.${VIA ? ` Sunday Edition: the road must pass through ${VIA}.` : AVOID ? ` Sunday Edition: ${AVOID} is closed.` : ''} Shortest path is ${PUZZLE.par}.\n${shareUrl()}`
+      ? `Span #${PUZZLE.num} — get from ${PUZZLE.start} to ${PUZZLE.end}, border by border.${VIA ? ` Sunday Edition: the road must pass through ${VIA}.` : AVOID ? ` Sunday Edition: ${AVOID} is closed.` : ''} Shortest path is ${PUZZLE.perfect}.\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
@@ -715,9 +715,9 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
       <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
-      <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.par} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
+      <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.perfect} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
       {isSundayEd && sundayRule && (
-        <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.par}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.par}-hop shortest path already does.</>}</p>
+        <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.perfect}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.perfect}-hop shortest path already does.</>}</p>
       )}
       <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b>, on your first ever play, walks you one step down a shortest road.</p>
     </div>
@@ -801,7 +801,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.start}</b> &rarr; <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.end}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>shortest <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.par}</b> &middot; hops <b style={{ color: hops > PUZZLE.par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.perfect}</b> &middot; hops <b style={{ color: hops > PUZZLE.perfect ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
           </div>
 
           {/* the road so far */}
@@ -868,7 +868,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         {!playing && (
           <>
             <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-              <SpanMap chain={chain} best={won && hops === PUZZLE.par ? null : bestRoute} alts={altRoads} />
+              <SpanMap chain={chain} best={won && hops === PUZZLE.perfect ? null : bestRoute} alts={altRoads} />
               {revealRoute && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', margin: '8px 0 4px' }}>
                   {revealRoute.map((c, i) => {
@@ -970,7 +970,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           won={won}
           headline={won ? <>You made the span!</> : <>You scored {Math.round(((won ? finalScore : 0) / 10) * 100)}%</>}
           subline={won
-            ? <>{finalScore}/10 &middot; {hops} hops (shortest {PUZZLE.par}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            ? <>{finalScore}/10 &middot; {hops} hops (perfect {PUZZLE.perfect}) &middot; {g.misses} miss{g.misses === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
             : <>0/10 &middot; a shortest road is below</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}

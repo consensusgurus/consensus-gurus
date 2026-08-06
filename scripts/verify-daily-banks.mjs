@@ -39,7 +39,7 @@
 //            repeats before that date are reported as a review note. Boards
 //            from that date also must admit exactly ONE filing of the words
 //            into the slots under the length and crossing constraints.
-//   span   — par equals the true BFS shortest hop count on borders.js, with
+//   span   — perfect equals the true BFS shortest hop count on borders.js, with
 //            Sunday via/avoid constraints applied exactly as the rules state.
 //   dating — exactly 5 events in strictly ascending true order, distinct.
 //   circa  — year is a sane integer and matches any year in the blurb copy.
@@ -561,21 +561,21 @@ if (RUN('span')) {
   const adj = buildAdj();
   for (const p of PUZZLES) {
     const errs = [];
-    let truePar;
+    let truePerfect;
     if (p.avoid) {
-      truePar = shortestHops(adj, p.start, p.end, new Set([p.avoid]));
+      truePerfect = shortestHops(adj, p.start, p.end, new Set([p.avoid]));
       const un = shortestHops(adj, p.start, p.end);
-      if (truePar === un) errs.push('avoid constraint changes nothing');
+      if (truePerfect === un) errs.push('avoid constraint changes nothing');
     } else if (p.via) {
       const a = shortestHops(adj, p.start, p.via);
       const b = shortestHops(adj, p.via, p.end);
-      truePar = (a != null && b != null) ? a + b : null;
+      truePerfect = (a != null && b != null) ? a + b : null;
     } else {
-      truePar = shortestHops(adj, p.start, p.end);
+      truePerfect = shortestHops(adj, p.start, p.end);
     }
-    if (truePar == null) errs.push('no route exists');
-    else if (truePar !== p.par) errs.push(`par ${p.par} != BFS ${truePar}`);
-    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `par ${p.par} = BFS${p.via ? ` (via ${p.via})` : p.avoid ? ` (avoid ${p.avoid})` : ''}`);
+    if (truePerfect == null) errs.push('no route exists');
+    else if (truePerfect !== p.perfect) errs.push(`perfect ${p.perfect} != BFS ${truePerfect}`);
+    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `perfect ${p.perfect} = BFS${p.via ? ` (via ${p.via})` : p.avoid ? ` (avoid ${p.avoid})` : ''}`);
   }
 }
 

@@ -1,22 +1,25 @@
 // Puzzle data for the daily game. Imported ONLY by the server page
 // component, which filters to live<=today before passing puzzles to
-// the client — so future puzzles (and their pars/routes) never ship to the
+// the client — so future puzzles (and their perfect routes) never ship to the
 // browser bundle.
 //
-// par = BFS-minimum border hops on app/span/borders.js — recompute with the
-// validator after ANY borders change; a stale par breaks scoring. `note` is
+// perfect = BFS-minimum border hops on app/span/borders.js, the shortest road
+// that exists. It is the target players are shown, and it is a proven minimum
+// rather than an average, which is why it is called perfect and not par.
+// Recompute with the validator after ANY borders change; a stale perfect
+// breaks scoring. `note` is
 // revealed at game end (a fun fact about the route, never a spoiler before).
 //
 // SUNDAY EDITIONS (every Sunday, starting 2026-07-19): one twist per Sunday,
 // either `via: '<Country>'` (the chain must pass through it before reaching
 // the destination) or `avoid: '<Country>'` (that country is closed and can't
 // be entered). Set `sunday: true` alongside. RULES FOR AUTHORING:
-// - par MUST be the CONSTRAINED shortest: for avoid, BFS with the country
+// - perfect MUST be the CONSTRAINED shortest: for avoid, BFS with the country
 //   blocked (the destination must stay reachable!); for via, hops(start,via)
 //   + hops(via,end), which the validator also proves is achievable as a
 //   simple path (the two legs must compose without reusing a country).
 // - Never both via and avoid on one puzzle. Weekday puzzles get neither.
-// - Pick twists that genuinely reroute the road (base par should change).
+// - Pick twists that genuinely reroute the road (base perfect should change).
 export const PUZZLES = [
   {
     num: 1,
@@ -25,7 +28,7 @@ export const PUZZLES = [
     dateLabel: 'July 12, 2026',
     start: 'Canada',
     end: 'Panama',
-    par: 7,
+    perfect: 7,
     note: 'The full mainland run: there is exactly one shortest road, and no country on it can be skipped.',
   },
   {
@@ -35,7 +38,7 @@ export const PUZZLES = [
     dateLabel: 'July 13, 2026',
     start: 'Finland',
     end: 'Greece',
-    par: 4,
+    perfect: 4,
     note: 'Both shortest roads leave Europe: Russia opens the door, and Turkey or the Caucasus closes it.',
   },
   {
@@ -45,7 +48,7 @@ export const PUZZLES = [
     dateLabel: 'July 14, 2026',
     start: 'Argentina',
     end: 'Ecuador',
-    par: 3,
+    perfect: 3,
     note: 'Brazil borders every South American country except Ecuador and Chile — which is exactly why it is the perfect middle step.',
   },
   {
@@ -55,7 +58,7 @@ export const PUZZLES = [
     dateLabel: 'July 15, 2026',
     start: 'Senegal',
     end: 'Egypt',
-    par: 4,
+    perfect: 4,
     note: 'The Sahara is a highway here: Algeria and Libya between them touch almost everything across North Africa.',
   },
   {
@@ -65,7 +68,7 @@ export const PUZZLES = [
     dateLabel: 'July 16, 2026',
     start: 'Norway',
     end: 'South Korea',
-    par: 3,
+    perfect: 3,
     note: 'Russia borders both Norway and North Korea — one country spans the whole of Eurasia.',
   },
   {
@@ -75,7 +78,7 @@ export const PUZZLES = [
     dateLabel: 'July 17, 2026',
     start: 'Oman',
     end: 'Tunisia',
-    par: 6,
+    perfect: 6,
     note: 'The one shortest road runs Jordan → Israel → Egypt: the Sinai crossing is the only land door between Asia and Africa.',
   },
   {
@@ -85,7 +88,7 @@ export const PUZZLES = [
     dateLabel: 'July 18, 2026',
     start: 'Mexico',
     end: 'Chile',
-    par: 8,
+    perfect: 8,
     note: 'Eight hops, one road: Central America is a single-file line, and the shortest way into Chile comes through Peru at the far end.',
   },
   {
@@ -97,7 +100,7 @@ export const PUZZLES = [
     end: 'Switzerland',
     sunday: true,
     via: 'Italy',
-    par: 7, // hops(Sweden,Italy)=6 + hops(Italy,Switzerland)=1, legs disjoint
+    perfect: 7, // hops(Sweden,Italy)=6 + hops(Italy,Switzerland)=1, legs disjoint
     note: 'Without the detour this is a 5-hop road. Italy drags you the long way around: out through Russia, across Poland and Germany, down through France, and into Switzerland from the south.',
   },
   {
@@ -107,7 +110,7 @@ export const PUZZLES = [
     dateLabel: 'July 20, 2026',
     start: 'Thailand',
     end: 'Georgia',
-    par: 4,
+    perfect: 4,
     note: 'China and Russia stitched together bridge Southeast Asia to the Caucasus in just two giant steps.',
   },
   {
@@ -117,7 +120,7 @@ export const PUZZLES = [
     dateLabel: 'July 21, 2026',
     start: 'South Africa',
     end: 'Nigeria',
-    par: 5,
+    perfect: 5,
     note: 'The Atlantic coast is the fast lane — Angola reaches the Republic of the Congo through Cabinda, its exclave north of the DRC.',
   },
   {
@@ -127,7 +130,7 @@ export const PUZZLES = [
     dateLabel: 'July 22, 2026',
     start: 'Timor-Leste',
     end: 'Bangladesh',
-    par: 5,
+    perfect: 5,
     note: 'Indonesia and Malaysia share a land border on Borneo — the island route quietly connects to mainland Asia.',
   },
   {
@@ -137,7 +140,7 @@ export const PUZZLES = [
     dateLabel: 'July 23, 2026',
     start: 'Estonia',
     end: 'Portugal',
-    par: 6,
+    perfect: 6,
     note: 'The Baltic chain through Latvia and Lithuania is one hop longer — the single shortest road slips out through Russia and crosses into Poland at Kaliningrad.',
   },
   {
@@ -147,7 +150,7 @@ export const PUZZLES = [
     dateLabel: 'July 24, 2026',
     start: 'Ghana',
     end: 'Ethiopia',
-    par: 5,
+    perfect: 5,
     note: 'Both shortest roads cross the Sahara — the coast route through Nigeria and Cameroon is the scenic detour.',
   },
   {
@@ -157,7 +160,7 @@ export const PUZZLES = [
     dateLabel: 'July 25, 2026',
     start: 'Spain',
     end: 'India',
-    par: 6,
+    perfect: 6,
     note: 'The one shortest road runs through Russia and China — the southern route through Iran and Pakistan costs two extra hops.',
   },
   {
@@ -169,7 +172,7 @@ export const PUZZLES = [
     end: 'China',
     sunday: true,
     avoid: 'Russia',
-    par: 8, // base par is 3 (Poland–Russia–China); with Russia closed the road is the old Silk Road
+    perfect: 8, // base perfect is 3 (Poland–Russia–China); with Russia closed the road is the old Silk Road
     note: 'With Russia open this is three hops. Closed, the only way east is the old Silk Road: down the Balkans, through Turkey and Iran, and over the mountains into China.',
   },
   {
@@ -179,7 +182,7 @@ export const PUZZLES = [
     dateLabel: 'July 27, 2026',
     start: 'Norway',
     end: 'Portugal',
-    par: 6,
+    perfect: 6,
     note: 'One road, no shortcuts: Sweden and Finland only loop back to Russia, so the fast way to the Atlantic\'s far corner leaves Norway heading east and comes all the way down the spine of Europe.',
   },
   {
@@ -189,7 +192,7 @@ export const PUZZLES = [
     dateLabel: 'July 28, 2026',
     start: 'Kenya',
     end: 'Nigeria',
-    par: 4,
+    perfect: 4,
     note: 'Four different four-hop roads tie for the shortest, and every one slices due west across the Sahel — the belt of countries that stitches East Africa to West.',
   },
   {
@@ -199,7 +202,7 @@ export const PUZZLES = [
     dateLabel: 'July 29, 2026',
     start: 'Iran',
     end: 'Vietnam',
-    par: 3,
+    perfect: 3,
     note: 'Two roads, one giant between them: cut through Afghanistan or through Pakistan, either way China is unavoidable — no other country touches both this corner of Asia and the South China Sea.',
   },
   {
@@ -209,7 +212,7 @@ export const PUZZLES = [
     dateLabel: 'July 30, 2026',
     start: 'Peru',
     end: 'Panama',
-    par: 2,
+    perfect: 2,
     note: 'All of South America funnels through one doorway: Colombia is its only link to Panama and the road north, so every crossing between the two continents — Peru\'s included — runs through it.',
   },
   {
@@ -219,7 +222,7 @@ export const PUZZLES = [
     dateLabel: 'July 31, 2026',
     start: 'Morocco',
     end: 'Nigeria',
-    par: 3,
+    perfect: 3,
     note: 'The Mediterranean coast is a dead end, so the short road runs south into the Sahara: Algeria stretches down to touch Niger, and Niger opens straight into Nigeria.',
   },
   {
@@ -229,7 +232,7 @@ export const PUZZLES = [
     dateLabel: 'August 1, 2026',
     start: 'Greece',
     end: 'Egypt',
-    par: 4,
+    perfect: 4,
     note: 'No land road links Europe to Africa around the Mediterranean, so the way to Egypt bends east through Turkey and Syria, then crosses from Israel over the Sinai, the only land bridge between the two continents.',
   },
   {
@@ -241,7 +244,7 @@ export const PUZZLES = [
     end: 'Colombia',
     sunday: true,
     avoid: 'Brazil',
-    par: 3, // base par is 2 (Argentina-Brazil-Colombia); with Brazil closed the road climbs the Andes
+    perfect: 3, // base perfect is 2 (Argentina-Brazil-Colombia); with Brazil closed the road climbs the Andes
     note: 'With Brazil open this is two hops. Closed, the only way north hugs the Andes: up through Bolivia and Peru before crossing into Colombia.',
   },
   {
@@ -251,7 +254,7 @@ export const PUZZLES = [
     dateLabel: 'August 3, 2026',
     start: 'Portugal',
     end: 'Poland',
-    par: 4,
+    perfect: 4,
     note: 'Portugal has only one neighbor, so every road out starts in Spain, then runs the width of the continent through France and Germany to reach Poland.',
   },
   {
@@ -261,7 +264,7 @@ export const PUZZLES = [
     dateLabel: 'August 4, 2026',
     start: 'Italy',
     end: 'Netherlands',
-    par: 3,
+    perfect: 3,
     note: 'The Alps are no barrier here: step west into France, north into Germany, and the Low Countries open up, three hops to the North Sea.',
   },
   {
@@ -271,7 +274,7 @@ export const PUZZLES = [
     dateLabel: 'August 5, 2026',
     start: 'Egypt',
     end: 'Ghana',
-    par: 4,
+    perfect: 4,
     note: 'There is no coastal road along the Gulf of Guinea, so the short way dives into the Sahara: through Libya and Niger, then down through Burkina Faso to the Gold Coast.',
   },
   {
@@ -281,7 +284,7 @@ export const PUZZLES = [
     dateLabel: 'August 6, 2026',
     start: 'India',
     end: 'Turkey',
-    par: 3,
+    perfect: 3,
     note: 'A straight westward march across the old Silk Road: Pakistan, then Iran, which reaches all the way to Turkey in a tidy three hops.',
   },
   {
@@ -291,7 +294,7 @@ export const PUZZLES = [
     dateLabel: 'August 7, 2026',
     start: 'Norway',
     end: 'Italy',
-    par: 5,
+    perfect: 5,
     note: 'Scandinavia has only one land door to the continent: Norway touches Russia, and from there the road runs back west through Poland, Germany and France before finally reaching Italy.',
   },
   {
@@ -301,7 +304,7 @@ export const PUZZLES = [
     dateLabel: 'August 8, 2026',
     start: 'Venezuela',
     end: 'Chile',
-    par: 3,
+    perfect: 3,
     note: 'Down the Pacific spine of the continent: Colombia, then Peru, which shares the long desert frontier with Chile.',
   },
   {
@@ -313,7 +316,7 @@ export const PUZZLES = [
     end: 'Poland',
     sunday: true,
     avoid: 'Germany',
-    par: 4,
+    perfect: 4,
     note: 'With Germany open this is a quick two hops. Closed, the road detours through the Alps and central Europe: Italy, Austria and Czechia before slipping into Poland.',
   },
   {
@@ -323,7 +326,7 @@ export const PUZZLES = [
     dateLabel: 'August 10, 2026',
     start: 'France',
     end: 'Serbia',
-    par: 4,
+    perfect: 4,
     note: 'East across the middle of Europe: Italy, then Austria and Hungary, which open the door to the Balkans and Serbia.',
   },
   {
@@ -333,7 +336,7 @@ export const PUZZLES = [
     dateLabel: 'August 11, 2026',
     start: 'Kyrgyzstan',
     end: 'Jordan',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Kazakhstan, Turkmenistan, Iran and Iraq before reaching Jordan.",
   },
   {
@@ -343,7 +346,7 @@ export const PUZZLES = [
     dateLabel: 'August 12, 2026',
     start: 'Slovenia',
     end: 'Cambodia',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Hungary, Ukraine, Russia, China and Laos before reaching Cambodia.",
   },
   {
@@ -353,7 +356,7 @@ export const PUZZLES = [
     dateLabel: 'August 13, 2026',
     start: 'San Marino',
     end: 'Andorra',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Italy and France before reaching Andorra.",
   },
   {
@@ -363,7 +366,7 @@ export const PUZZLES = [
     dateLabel: 'August 14, 2026',
     start: 'Pakistan',
     end: 'Bosnia and Herzegovina',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Iran, Turkey, Bulgaria and Serbia before reaching Bosnia and Herzegovina.",
   },
   {
@@ -373,7 +376,7 @@ export const PUZZLES = [
     dateLabel: 'August 15, 2026',
     start: 'San Marino',
     end: 'Serbia',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Italy, Austria and Hungary before reaching Serbia.",
   },
   {
@@ -385,7 +388,7 @@ export const PUZZLES = [
     end: 'Vietnam',
     sunday: true,
     avoid: 'China',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Iran, Pakistan, India, Myanmar and Laos before reaching Vietnam. With the closed country open the crossing is shorter, so the detour is the whole puzzle.",
   },
   {
@@ -395,7 +398,7 @@ export const PUZZLES = [
     dateLabel: 'August 17, 2026',
     start: 'Mongolia',
     end: 'Albania',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Russia, Georgia, Turkey and Greece before reaching Albania.",
   },
   {
@@ -405,7 +408,7 @@ export const PUZZLES = [
     dateLabel: 'August 18, 2026',
     start: 'Kazakhstan',
     end: 'Liechtenstein',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Russia, Poland, Germany and Switzerland before reaching Liechtenstein.",
   },
   {
@@ -415,7 +418,7 @@ export const PUZZLES = [
     dateLabel: 'August 19, 2026',
     start: 'Lithuania',
     end: 'Laos',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Russia and China before reaching Laos.",
   },
   {
@@ -425,7 +428,7 @@ export const PUZZLES = [
     dateLabel: 'August 20, 2026',
     start: 'Croatia',
     end: 'South Korea',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Hungary, Ukraine, Russia and North Korea before reaching South Korea.",
   },
   {
@@ -435,7 +438,7 @@ export const PUZZLES = [
     dateLabel: 'August 21, 2026',
     start: 'Serbia',
     end: 'Mongolia',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Hungary, Ukraine and Russia before reaching Mongolia.",
   },
   {
@@ -445,7 +448,7 @@ export const PUZZLES = [
     dateLabel: 'August 22, 2026',
     start: 'Azerbaijan',
     end: 'Croatia',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Russia, Ukraine and Hungary before reaching Croatia.",
   },
   {
@@ -457,7 +460,7 @@ export const PUZZLES = [
     end: 'Sweden',
     sunday: true,
     avoid: 'Poland',
-    par: 7,
+    perfect: 7,
     note: "One shortest road runs through Germany, Austria, Slovakia, Ukraine, Russia and Finland before reaching Sweden. With the closed country open the crossing is shorter, so the detour is the whole puzzle.",
   },
   {
@@ -467,7 +470,7 @@ export const PUZZLES = [
     dateLabel: 'August 24, 2026',
     start: 'Qatar',
     end: 'Sudan',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Saudi Arabia, Jordan, Israel and Egypt before reaching Sudan.",
   },
   {
@@ -477,7 +480,7 @@ export const PUZZLES = [
     dateLabel: 'August 25, 2026',
     start: 'Bhutan',
     end: 'Serbia',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through China, Russia, Ukraine and Hungary before reaching Serbia.",
   },
   {
@@ -487,7 +490,7 @@ export const PUZZLES = [
     dateLabel: 'August 26, 2026',
     start: 'Austria',
     end: 'Jordan',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Hungary, Romania, Bulgaria, Turkey and Iraq before reaching Jordan.",
   },
   {
@@ -497,7 +500,7 @@ export const PUZZLES = [
     dateLabel: 'August 27, 2026',
     start: 'Oman',
     end: 'Estonia',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Saudi Arabia, Iraq, Turkey, Georgia and Russia before reaching Estonia.",
   },
   {
@@ -507,7 +510,7 @@ export const PUZZLES = [
     dateLabel: 'August 28, 2026',
     start: 'Cambodia',
     end: 'Hungary',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Laos, China, Russia and Ukraine before reaching Hungary.",
   },
   {
@@ -517,7 +520,7 @@ export const PUZZLES = [
     dateLabel: 'August 29, 2026',
     start: 'Myanmar',
     end: 'Belgium',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through China, Russia, Poland and Germany before reaching Belgium.",
   },
   {
@@ -529,7 +532,7 @@ export const PUZZLES = [
     end: 'Turkmenistan',
     sunday: true,
     avoid: 'Poland',
-    par: 7,
+    perfect: 7,
     note: "One shortest road runs through Germany, Austria, Slovakia, Ukraine, Russia and Kazakhstan before reaching Turkmenistan. With the closed country open the crossing is shorter, so the detour is the whole puzzle.",
   },
   {
@@ -539,7 +542,7 @@ export const PUZZLES = [
     dateLabel: 'August 31, 2026',
     start: 'Qatar',
     end: 'Ukraine',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Saudi Arabia, Iraq, Turkey, Bulgaria and Romania before reaching Ukraine.",
   },
   {
@@ -549,7 +552,7 @@ export const PUZZLES = [
     dateLabel: 'September 1, 2026',
     start: 'Ethiopia',
     end: 'Greece',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Sudan, Egypt, Israel, Syria and Turkey before reaching Greece.",
   },
   {
@@ -559,7 +562,7 @@ export const PUZZLES = [
     dateLabel: 'September 2, 2026',
     start: 'Uzbekistan',
     end: 'Ukraine',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Kazakhstan and Russia before reaching Ukraine.",
   },
   {
@@ -569,7 +572,7 @@ export const PUZZLES = [
     dateLabel: 'September 3, 2026',
     start: 'Finland',
     end: 'Belgium',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Russia, Poland and Germany before reaching Belgium.",
   },
   {
@@ -579,7 +582,7 @@ export const PUZZLES = [
     dateLabel: 'September 4, 2026',
     start: 'Democratic Republic of the Congo',
     end: 'Somalia',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through South Sudan and Kenya before reaching Somalia.",
   },
   {
@@ -589,7 +592,7 @@ export const PUZZLES = [
     dateLabel: 'September 5, 2026',
     start: 'China',
     end: 'United Arab Emirates',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Afghanistan, Iran, Iraq and Saudi Arabia before reaching United Arab Emirates.",
   },
   {
@@ -601,7 +604,7 @@ export const PUZZLES = [
     end: 'Georgia',
     sunday: true,
     avoid: 'Russia',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Romania, Bulgaria and Turkey before reaching Georgia. With the closed country open the crossing is shorter, so the detour is the whole puzzle.",
   },
   {
@@ -611,7 +614,7 @@ export const PUZZLES = [
     dateLabel: 'September 7, 2026',
     start: 'Belgium',
     end: 'Iraq',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Germany, Poland, Russia, Georgia and Turkey before reaching Iraq.",
   },
   {
@@ -621,7 +624,7 @@ export const PUZZLES = [
     dateLabel: 'September 8, 2026',
     start: 'Lebanon',
     end: 'Belarus',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Syria, Turkey, Georgia and Russia before reaching Belarus.",
   },
   {
@@ -631,7 +634,7 @@ export const PUZZLES = [
     dateLabel: 'September 9, 2026',
     start: 'Turkey',
     end: 'Slovenia',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Bulgaria, Serbia and Hungary before reaching Slovenia.",
   },
   {
@@ -641,7 +644,7 @@ export const PUZZLES = [
     dateLabel: 'September 10, 2026',
     start: 'Cameroon',
     end: 'Tanzania',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Central African Republic and Democratic Republic of the Congo before reaching Tanzania.",
   },
   {
@@ -651,7 +654,7 @@ export const PUZZLES = [
     dateLabel: 'September 11, 2026',
     start: 'Albania',
     end: 'Austria',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Montenegro, Croatia and Hungary before reaching Austria.",
   },
   {
@@ -661,7 +664,7 @@ export const PUZZLES = [
     dateLabel: 'September 12, 2026',
     start: 'Estonia',
     end: 'Slovakia',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Russia and Poland before reaching Slovakia.",
   },
   {
@@ -673,7 +676,7 @@ export const PUZZLES = [
     end: 'Hungary',
     sunday: true,
     avoid: 'Russia',
-    par: 7,
+    perfect: 7,
     note: "One shortest road runs through India, Pakistan, Iran, Turkey, Bulgaria and Serbia before reaching Hungary. With the closed country open the crossing is shorter, so the detour is the whole puzzle.",
   },
   {
@@ -683,7 +686,7 @@ export const PUZZLES = [
     dateLabel: 'September 14, 2026',
     start: 'Myanmar',
     end: 'Papua New Guinea',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Thailand, Malaysia and Indonesia before reaching Papua New Guinea.",
   },
   {
@@ -693,7 +696,7 @@ export const PUZZLES = [
     dateLabel: 'September 15, 2026',
     start: 'Uzbekistan',
     end: 'Oman',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Afghanistan, Iran, Iraq and Saudi Arabia before reaching Oman.",
   },
   {
@@ -703,7 +706,7 @@ export const PUZZLES = [
     dateLabel: 'September 16, 2026',
     start: 'Andorra',
     end: 'Laos',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through France, Germany, Poland, Russia and China before reaching Laos.",
   },
   {
@@ -713,7 +716,7 @@ export const PUZZLES = [
     dateLabel: 'September 17, 2026',
     start: 'Armenia',
     end: 'Romania',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Turkey and Bulgaria before reaching Romania.",
   },
   {
@@ -723,7 +726,7 @@ export const PUZZLES = [
     dateLabel: 'September 18, 2026',
     start: 'South Sudan',
     end: 'Botswana',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Democratic Republic of the Congo, Zambia and Namibia before reaching Botswana.",
   },
   {
@@ -733,7 +736,7 @@ export const PUZZLES = [
     dateLabel: 'September 19, 2026',
     start: 'Belgium',
     end: 'India',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Germany, Poland, Russia and China before reaching India.",
   },
   {
@@ -745,7 +748,7 @@ export const PUZZLES = [
     end: 'Greece',
     sunday: true,
     avoid: 'Turkey',
-    par: 5,
+    perfect: 5,
     note: "One shortest road runs through Russia, Ukraine, Romania and Bulgaria before reaching Greece. With the closed country open the crossing is shorter, so the detour is the whole puzzle.",
   },
   {
@@ -755,7 +758,7 @@ export const PUZZLES = [
     dateLabel: 'September 21, 2026',
     start: 'Norway',
     end: 'Egypt',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Russia, Georgia, Turkey, Syria and Israel before reaching Egypt.",
   },
   {
@@ -765,7 +768,7 @@ export const PUZZLES = [
     dateLabel: 'September 22, 2026',
     start: 'Qatar',
     end: 'Bosnia and Herzegovina',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Saudi Arabia, Iraq, Turkey, Bulgaria and Serbia before reaching Bosnia and Herzegovina.",
   },
   {
@@ -775,7 +778,7 @@ export const PUZZLES = [
     dateLabel: 'September 23, 2026',
     start: 'Georgia',
     end: 'Montenegro',
-    par: 4,
+    perfect: 4,
     note: "One shortest road runs through Turkey, Greece and Albania before reaching Montenegro.",
   },
   {
@@ -785,7 +788,7 @@ export const PUZZLES = [
     dateLabel: 'September 24, 2026',
     start: 'Romania',
     end: 'Norway',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Ukraine and Russia before reaching Norway.",
   },
   {
@@ -795,7 +798,7 @@ export const PUZZLES = [
     dateLabel: 'September 25, 2026',
     start: 'Spain',
     end: 'North Macedonia',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through France, Italy, Austria, Hungary and Serbia before reaching North Macedonia.",
   },
   {
@@ -805,7 +808,7 @@ export const PUZZLES = [
     dateLabel: 'September 26, 2026',
     start: 'Saudi Arabia',
     end: 'Germany',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Iraq, Turkey, Georgia, Russia and Poland before reaching Germany.",
   },
   {
@@ -817,7 +820,7 @@ export const PUZZLES = [
     end: 'Uganda',
     sunday: true,
     avoid: 'South Sudan',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Israel, Egypt, Sudan, Central African Republic and Democratic Republic of the Congo before reaching Uganda. With the closed country open the crossing is shorter, so the detour is the whole puzzle.",
   },
   {
@@ -827,7 +830,7 @@ export const PUZZLES = [
     dateLabel: 'September 28, 2026',
     start: 'Thailand',
     end: 'Pakistan',
-    par: 3,
+    perfect: 3,
     note: "One shortest road runs through Myanmar and India before reaching Pakistan.",
   },
   {
@@ -837,7 +840,7 @@ export const PUZZLES = [
     dateLabel: 'September 29, 2026',
     start: 'Iraq',
     end: 'Uganda',
-    par: 6,
+    perfect: 6,
     note: "One shortest road runs through Syria, Israel, Egypt, Sudan and South Sudan before reaching Uganda.",
   },
 ];

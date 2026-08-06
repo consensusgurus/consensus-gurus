@@ -6,7 +6,8 @@
 // both racks are at the day's target size. Whatever the board looks like at
 // that moment IS the puzzle — tight, plausible, and nobody's darling.
 //
-// Par is then the exact value of that endgame under lib/babel-engine's search,
+// The benchmark is then the exact value of that endgame under lib/babel-engine's
+// search,
 // which is the same search the client defends with, so the number is a promise
 // rather than an estimate.
 //
@@ -224,7 +225,7 @@ function assess(pos, target) {
     if (res.line[0].word === 'pass') continue; // dead board, nothing to play
     if (res.spread < 8) continue;            // nothing to win from this seat
     if (res.spread - greedy < 4) continue;   // greed already finds it
-    return { par: res.spread, ms, greedy, moveCount: moves.length, seat, plies: res.line.length };
+    return { benchmark: res.spread, ms, greedy, moveCount: moves.length, seat, plies: res.line.length };
   }
   return null;
 }
@@ -270,11 +271,11 @@ for (let i = 0; i < DAYS; i++) {
     board: boardToRows(pos.board),
     rack: a.seat.me,
     foe: a.seat.opp,
-    par: a.par,
+    benchmark: a.benchmark,
     greedy: a.greedy,
   });
   made++;
-  console.log(`${iso}${sunday ? ' [SUN]' : '     '} #${num}  ${a.seat.me.join('')} vs ${a.seat.opp.join('')}  par ${a.par}  greedy ${a.greedy}  moves ${a.moveCount}  ${a.plies} plies ${a.ms}ms`);
+  console.log(`${iso}${sunday ? ' [SUN]' : '     '} #${num}  ${a.seat.me.join('')} vs ${a.seat.opp.join('')}  benchmark ${a.benchmark}  greedy ${a.greedy}  moves ${a.moveCount}  ${a.plies} plies ${a.ms}ms`);
 }
 
 // ─── write ─────────────────────────────────────────────────────────────────
@@ -291,19 +292,19 @@ const header = `// Puzzle data for Babel, the daily Scrabble endgame. Imported O
 //
 // Each day is the tail of a real self-played game (scripts/gen-babel.mjs): the
 // bag is empty, both racks are frozen at five tiles (six in the Sunday
-// Edition), and \`par\` is the exact value of the endgame under the shared
+// Edition), and \`benchmark\` is the exact value of the endgame under the shared
 // search in lib/babel-engine.js — the same search the client defends with, so
-// par is always reachable. \`greedy\` is what always grabbing the biggest number
+// the benchmark is always reachable. \`greedy\` is what always grabbing the biggest number
 // gets you, and every banked day pays at least 4 more than that for playing the
 // endgame properly.
 //
-// Validate with scripts/verify-babel.mjs after ANY edit; it recomputes par and
+// Validate with scripts/verify-babel.mjs after ANY edit; it recomputes the benchmark and
 // greedy from the stored board and fails on drift.
 export const PUZZLES = [
 `;
 const body = out.map((p) => {
   const board = p.board.map((r) => JSON.stringify(r)).join(', ');
-  return `  { num: ${p.num}, quizId: ${JSON.stringify(p.quizId)}, live: ${JSON.stringify(p.live)}, dateLabel: ${JSON.stringify(p.dateLabel)}, sunday: ${p.sunday}, par: ${p.par}, greedy: ${p.greedy},\n    rack: ${JSON.stringify(p.rack)}, foe: ${JSON.stringify(p.foe)},\n    board: [${board}] },`;
+  return `  { num: ${p.num}, quizId: ${JSON.stringify(p.quizId)}, live: ${JSON.stringify(p.live)}, dateLabel: ${JSON.stringify(p.dateLabel)}, sunday: ${p.sunday}, benchmark: ${p.benchmark}, greedy: ${p.greedy},\n    rack: ${JSON.stringify(p.rack)}, foe: ${JSON.stringify(p.foe)},\n    board: [${board}] },`;
 }).join('\n');
 fs.writeFileSync(OUT, header + body + '\n];\n');
 console.log(`\nwrote ${made} puzzles to ${OUT} (${tries} positions tried, ${Math.round((Date.now() - T0) / 1000)}s)`);

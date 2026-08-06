@@ -83,9 +83,9 @@ export async function POST(request) {
       return NextResponse.json({ error: 'quizId required' }, { status: 400 });
     }
     // NOTE: `score` may legitimately EXCEED `total` on daily games where
-    // `total` is a beatable PAR/target rather than a maximum (Tuck sends
-    // total = the day's par, and the whole point is to beat it). Bounding
-    // score by `total` therefore 400-rejected every par-beating Tuck
+    // `total` is a beatable benchmark/target rather than a maximum (Tuck sends
+    // total = the day's benchmark, and the whole point is to beat it). Bounding
+    // score by `total` therefore 400-rejected every benchmark-beating Tuck
     // submission, so the row never saved even though the client celebrated.
     // Bound score by the same absolute ceiling as total instead.
     if (!Number.isInteger(score) || !Number.isInteger(total) || total <= 0 || total > 100000 || score < 0 || score > 100000) {

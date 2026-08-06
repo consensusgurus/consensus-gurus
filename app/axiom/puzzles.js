@@ -23,13 +23,13 @@
 //      testable tiles
 //   C5 at least six testable tiles where every live decoy agrees with the
 //      truth (the traps: testing one teaches nothing)
-//   C6 par is exactly 2, so no single tile can split the field on its own
+//   C6 perfect is exactly 2, so no single tile can split the field on its own
 // and, from board 7 on (the v2 generator, 2026-07-29):
 //   C7 at most one "no letter X" candidate (two on Sunday) and one "exactly N
 //      letters" candidate, so the field is not padded with rules that are never
 //      the answer
 //   C8 at least 8 informative tiles on a weekday, 10 on Sunday
-//   C9 par-2 pairs are >= 12% of all tile pairs (9% Sunday), so the splitting
+//   C9 perfect-2 pairs are >= 12% of all tile pairs (9% Sunday), so the splitting
 //      pair is findable rather than a needle
 //   C10 across the bank: the answer is spread over the candidate slots, and no
 //      common rule kind is a free cross-out. Candidate order is shuffled per

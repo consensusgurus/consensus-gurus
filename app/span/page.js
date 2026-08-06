@@ -10,7 +10,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Span — Free Daily Geography Border Puzzle | Mind Loft',
   description:
-    'A free daily geography puzzle — connect two countries with the shortest chain of land borders you can find. Par is the shortest road on the map. New route every day.',
+    'A free daily geography puzzle — connect two countries with the shortest chain of land borders you can find. Perfect is the shortest road on the map. New route every day.',
   alternates: { canonical: '/span' },
   manifest: '/span.webmanifest',
   icons: {
@@ -21,7 +21,7 @@ export const metadata = {
   openGraph: {
     title: 'Span — A Daily Border-Hopping Geography Puzzle',
     description:
-      'Two countries a day. Chain land borders between them in the fewest moves — par is the shortest road on the map. A new geography puzzle from Mind Loft.',
+      'Two countries a day. Chain land borders between them in the fewest moves — perfect is the shortest road on the map. A new geography puzzle from Mind Loft.',
     url: '/span',
     type: 'website',
     siteName: 'Mind Loft',
@@ -41,7 +41,7 @@ const gameJsonLd = {
   alternateName: 'Span — Daily Geography Border Puzzle',
   url: `${SITE_URL}/span`,
   description:
-    'A free daily geography puzzle: connect a start country to a destination with a chain of land borders. Par is the shortest possible road — every extra move costs a point, and misses break ties.',
+    'A free daily geography puzzle: connect a start country to a destination with a chain of land borders. Perfect is the shortest possible road — every extra move costs a point, and misses break ties.',
   genre: ['Geography puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

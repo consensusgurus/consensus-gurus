@@ -1,8 +1,8 @@
 // Verify the Tuck bank: every rack must be 14 uppercase letters with 4-6
-// vowels (the Sunday Edition deals 15 letters with 5-7 vowels), and every stored PAR must be ACHIEVABLE — this re-runs the ladder
+// vowels (the Sunday Edition deals 15 letters with 5-7 vowels), and every stored BENCHMARK must be ACHIEVABLE — this re-runs the ladder
 // solver (one horizontal spine + vertical words hung off non-adjacent columns,
 // all words from public/tuck-dict.txt) and fails if it cannot reach the stored
-// par on that rack. Ids/dates/sunday flags are also checked. Run after ANY edit:
+// benchmark on that rack. Ids/dates/sunday flags are also checked. Run after ANY edit:
 //   node scripts/verify-tuck.mjs
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -86,8 +86,8 @@ PUZZLES.forEach((p, i) => {
     const [vMin, vMax] = p.sunday ? [5, 7] : [4, 6];
     if (v < vMin || v > vMax) errs.push(`vowel count ${v} outside ${vMin}-${vMax}`);
     const best = ladder(p.letters);
-    if (best < p.par) errs.push(`stored par ${p.par} NOT achieved by solver (best ${best})`);
-    else console.log(`✓ ${p.quizId}  ${p.letters.join('')}  par ${p.par} achievable (solver ${best})`);
+    if (best < p.benchmark) errs.push(`stored benchmark ${p.benchmark} NOT achieved by solver (best ${best})`);
+    else console.log(`✓ ${p.quizId}  ${p.letters.join('')}  benchmark ${p.benchmark} achievable (solver ${best})`);
   }
   if (errs.length) { bad++; console.error(`✗ ${p.quizId}: ${errs.join('; ')}`); }
 });

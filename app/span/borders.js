@@ -288,7 +288,7 @@ export function shortestRoute(adj, from, to, blocked) {
 
 // BFS distances from one country to every reachable country; used to find
 // ALL countries that sit on some shortest road (v is on one iff
-// dist(start,v) + dist(v,end) === par). `blocked` as in shortestHops.
+// dist(start,v) + dist(v,end) === perfect). `blocked` as in shortestHops.
 export function distancesFrom(adj, from, blocked) {
   const block = blockSet(blocked);
   const dist = { [from]: 0 };
