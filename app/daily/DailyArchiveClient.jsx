@@ -38,7 +38,7 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 const CATEGORIES = [
-  { key: 'word', label: 'Word', keys: ['crux', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph'] },
+  { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph'] },
   { key: 'history', label: 'History', keys: ['dating', 'extra'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge', 'crunch'] },
@@ -54,7 +54,7 @@ const CATEGORIES = [
 // Each game's accent, lightened for legibility on the dark leaderboard card
 // (mirrors ACCENTS_NAVY in DailyCombinedLeaderboard).
 const NAVY_ACCENT = {
-  babel: '#6ee7b7', glyph: '#94a3b8', hands: '#fca5a5', chain: '#f0abfc', turn: '#8cda81', suffice: '#a5b4fc',
+  babel: '#6ee7b7', glyph: '#94a3b8', hands: '#fca5a5', chain: '#f0abfc', turn: '#8cda81', suffice: '#a5b4fc', strata: '#f4a06a',
   crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0',
   tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',

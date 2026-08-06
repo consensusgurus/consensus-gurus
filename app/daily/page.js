@@ -46,6 +46,7 @@ import { PUZZLES as CHAIN_FULL } from '../chain/puzzles';
 import { PUZZLES as HANDS_FULL } from '../hands/puzzles';
 import { PUZZLES as TURN_FULL } from '../turn/puzzles';
 import { PUZZLES as SUFFICE_FULL } from '../suffice/puzzles';
+import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
@@ -88,6 +89,7 @@ const BABEL = BABEL_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const CHAIN = CHAIN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const TURN = TURN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SUFFICE = SUFFICE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HANDS = HANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
@@ -179,6 +181,7 @@ const GAMES = [
   { key: 'chain', name: 'Chain', path: '/chain', tag: 'Take them, or leave them', accent: '#4a044e', bg: '#f6ecf8', border: 'rgba(74,4,78,0.4)', src: CHAIN },
   { key: 'turn', name: 'Turn', path: '/turn', tag: 'Ten squares left', accent: '#226218', bg: '#e9f3e6', border: 'rgba(34,98,24,0.4)', src: TURN },
   { key: 'suffice', name: 'Suffice', path: '/suffice', tag: 'Decide what is enough', accent: '#4338ca', bg: '#eef0ff', border: 'rgba(67,56,202,0.4)', src: SUFFICE },
+  { key: 'strata', name: 'Strata', path: '/strata', tag: 'Dig the words out', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)', src: STRATA },
 ];
 
 const breadcrumbJsonLd = {

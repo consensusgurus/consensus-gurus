@@ -58,6 +58,7 @@ export const DAILY_GAMES = [
   { key: 'chain', href: '/chain', name: 'Chain', tag: 'take them, or leave them', store: 'sot_chain_day', accent: '#4a044e', bg: '#f6ecf8', border: 'rgba(74,4,78,0.4)' },
   { key: 'suffice', href: '/suffice', name: 'Suffice', tag: 'decide what is enough', store: 'sot_suffice_day', accent: '#4338ca', bg: '#eef0ff', border: 'rgba(67,56,202,0.4)' },
   { key: 'turn', href: '/turn', name: 'Turn', tag: 'ten squares left', store: 'sot_turn_day', accent: '#226218', bg: '#e9f3e6', border: 'rgba(34,98,24,0.4)' },
+  { key: 'strata', href: '/strata', name: 'Strata', tag: 'dig the words out', store: 'sot_strata_day', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)' },
 ];
 
 function etToday() {
