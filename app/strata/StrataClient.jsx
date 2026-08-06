@@ -401,14 +401,23 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
   const won = foundWords.length === TOTAL;
   const threadLabel = (PUZZLE.themes || []).join(' + ');
 
-  // ⚠️ TILE SIZE IS A NUMBER, NOT A CSS VARIABLE, AND HAS TO STAY ONE.
-  // `top` and `left` are the animated properties (they ARE the collapse), and
-  // Chrome will not transition a value of the form calc(var(--x) * n + mpx): the
-  // transition is created, reports playState "running", and then sits at
-  // currentTime 0 forever, so the computed top stays at the old row while the
-  // inline style shows the new one. The tile renders in its old slot and the
-  // board silently never falls. That shipped once and was caught on the live
-  // page. Keep every animated value a plain px number computed here.
+  // Tile size is a number fitted to the viewport rather than a CSS variable
+  // stepped by breakpoints, so a 6x7 Sunday board fills a phone exactly instead
+  // of landing on whichever of three fixed sizes happens to fit.
+  //
+  // CORRECTION, and it is worth writing down because it cost an hour: this was
+  // first changed on the theory that Chrome could not transition a value of the
+  // form calc(var(--x) * n + mpx), because the tiles' computed `top` was sitting
+  // on the old row while the inline style already showed the new one, and the
+  // top transition reported playState "running" at currentTime 0 forever. That
+  // theory was WRONG. The tab being measured was a background tab, and Chrome
+  // throttles CSS transitions in a hidden tab, so they never tick. The board was
+  // falling correctly the whole time. calc(var()) would have been fine. Keeping
+  // the px version on its own merits, not because the old one was broken.
+  //
+  // The lesson for the next person measuring a live daily through an automated
+  // tab: check document.visibilityState before believing an animation is stuck,
+  // or call el.getAnimations().forEach(a => a.finish()) and measure after.
   const gap = 6;
   const [tile, setTile] = useState(56);
   useEffect(() => {
