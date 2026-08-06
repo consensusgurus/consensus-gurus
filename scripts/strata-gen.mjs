@@ -24,6 +24,29 @@ import { writeFileSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { analyse, decoys, makeCells, gridOf, placements } from '../lib/strata-core.js';
 import { loadThemes } from './strata-themes.mjs';
 
+// ── the week's difficulty curve (owner, 2026-08-06) ─────────────────────────
+// Day one shipped GUSSET and BOBBIN on a Sewing board and players did not know
+// the words. Two separate things were wrong, so there are two separate dials.
+//
+//   maxTier  how obscure the CATEGORY may be. 1 = everyday, 3 = specialist.
+//   minZipf  how rare any single WORD may be, on the Zipf scale in
+//            scripts/.lode-freq.json. 4.7 is "apple", 3.5 is "seam",
+//            2.5 is "bobbin". EVERY answer on the board must clear the floor.
+//
+// Monday is everyday words in an everyday category and it loosens across the
+// week, so a Monday board is about seeing the collapse and a Sunday is about
+// knowing the vocabulary as well. Keyed by getUTCDay: 0 = Sunday.
+export const DIFFICULTY = {
+  1: { maxTier: 1, minZipf: 4.0 },
+  2: { maxTier: 1, minZipf: 3.8 },
+  3: { maxTier: 2, minZipf: 3.6 },
+  4: { maxTier: 2, minZipf: 3.4 },
+  5: { maxTier: 3, minZipf: 3.2 },
+  6: { maxTier: 3, minZipf: 3.0 },
+  0: { maxTier: 3, minZipf: 2.8 },
+};
+export const dayRule = (iso) => DIFFICULTY[new Date(iso + 'T12:00:00Z').getUTCDay()];
+
 function rng(seed) {
   let a = seed >>> 0;
   return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
@@ -61,9 +84,9 @@ function subsets(r, pool, target, minW, maxW, tries = 900) {
 // subsets() is a search, so calling it inside a loop is what wedged the first
 // full run. Every (theme, target, count-range) answer is computed once.
 const SUBSET_CACHE = new Map();
-function cachedSubsets(r, theme, target, minW, maxW) {
-  const key = `${theme.name}|${target}|${minW}|${maxW}`;
-  if (!SUBSET_CACHE.has(key)) SUBSET_CACHE.set(key, subsets(r, theme.pool, target, minW, maxW, 400));
+function cachedSubsets(r, tag, words, target, minW, maxW) {
+  const key = `${tag}|${target}|${minW}|${maxW}`;
+  if (!SUBSET_CACHE.has(key)) SUBSET_CACHE.set(key, subsets(r, words, target, minW, maxW, 400));
   return SUBSET_CACHE.get(key);
 }
 
@@ -251,7 +274,8 @@ function main() {
   const RUN_MS = Number(process.argv[4] || 35000);
   const runUntil = Date.now() + RUN_MS;
   const BANK = new URL('./strata-bank.json', import.meta.url);
-  const themes = loadThemes();
+  const FREQ = JSON.parse(readFileSync(new URL('./.lode-freq.json', import.meta.url), 'utf8'));
+  const themes = loadThemes(FREQ);
   // Salt lets a rerun try a different theme order on a day the previous run
   // could not seat. The OUTPUT is proved either way, so a varying seed costs
   // nothing; pass STRATA_SALT to shuffle the deck again.
@@ -265,14 +289,27 @@ function main() {
 
   let themeCursor = shuffle(r, themes.map((_, i) => i));
   let ci = 0;
-  const nextTheme = (num) => {
+  // Draw a theme that satisfies the day's rule and has enough vocabulary ABOVE
+  // the day's Zipf floor to actually fill the grid. Later in the week we prefer
+  // the hardest tier still allowed, so the everyday categories are not all spent
+  // on Thursdays and missing when Monday comes round.
+  const nextTheme = (num, rule, needLetters) => {
+    const eligible = [];
     for (let guard = 0; guard < themes.length * 2; guard++) {
       if (ci >= themeCursor.length) { themeCursor = shuffle(r, themeCursor); ci = 0; }
       const t = themes[themeCursor[ci++]];
       const prev = recent.get(t.name);
-      if (prev === undefined || num - prev >= 14) return t;
+      if (prev !== undefined && num - prev < 14) continue;
+      if (t.tier > rule.maxTier) continue;
+      const usable = t.pool.filter((w) => t.zipf(w) >= rule.minZipf);
+      if (usable.reduce((s, w) => s + w.length, 0) < needLetters) continue;
+      eligible.push({ ...t, usable });
+      if (eligible.length >= 6) break;
     }
-    return themes[themeCursor[0]];
+    if (!eligible.length) return null;
+    const best = Math.max(...eligible.map((t) => t.tier));
+    const top = eligible.filter((t) => t.tier === best);
+    return pick(r, top);
   };
 
   let num = out.length;
@@ -280,6 +317,7 @@ function main() {
     if (Date.now() > runUntil) { console.error(`… out of time, ${out.length} of ${DAYS} done, rerun to continue`); break; }
     const live = etDateAdd(START, d);
     const sunday = isSunday(live);
+    const rule = dayRule(live);
     // A per-day deadline. Some theme pools simply cannot seat eight words on a
     // 6x7 grid at the tight gate, and without a clock the run just sits there
     // (which it did, twice, before this was added).
@@ -288,8 +326,8 @@ function main() {
     while (!found && tries < 26 && Date.now() < deadline) {
       tries++;
       if (sunday) {
-        const a = nextTheme(num + 1), b = nextTheme(num + 1);
-        if (a.name === b.name) continue;
+        const a = nextTheme(num + 1, rule, 20), b = nextTheme(num + 1, rule, 20);
+        if (!a || !b || a.name === b.name) continue;
         const rows = 7, cols = 6, target = 42;
         // two threads, each contributing at least three words
         // Both threads are drawn to an exact letter budget so the two halves of the
@@ -299,8 +337,8 @@ function main() {
         // digit per cell, so a tenth word would need two characters.
         const sets = [];
         for (let sumA = 16; sumA <= 26 && sets.length < 40; sumA++) {
-          const left = cachedSubsets(r, a, sumA, 3, 5);
-          const right = cachedSubsets(r, b, target - sumA, 3, 5);
+          const left = cachedSubsets(r, a.name + rule.minZipf, a.usable, sumA, 3, 5);
+          const right = cachedSubsets(r, b.name + rule.minZipf, b.usable, target - sumA, 3, 5);
           if (!left.length || !right.length) continue;
           for (let t = 0; t < 6 && sets.length < 40; t++) {
             const combo = pick(r, left).concat(pick(r, right));
@@ -312,10 +350,11 @@ function main() {
         const sunSpec ={ rows, cols, wordSets: sets, pool: a.pool.concat(b.pool), maxOpening: 3, minDepth: 4, budget: 240, until: deadline };
         found = findBoard((d + 1) * 7919 + tries, sunSpec);
         if (!found && tries >= 5) found = findBoard((d + 1) * 7919 + tries, { ...sunSpec, minDepth: 3, until: deadline + 20000 });
-        used = { themes: [a.name, b.name], pool: a.pool.concat(b.pool) };
+        used = { themes: [a.name, b.name], pool: a.pool.concat(b.pool), tier: Math.max(a.tier, b.tier) };
       } else {
-        const th = nextTheme(num + 1);
-        const sets = cachedSubsets(r, th, 25, 5, 7);
+        const th = nextTheme(num + 1, rule, 32);
+        if (!th) continue;
+        const sets = cachedSubsets(r, th.name + rule.minZipf, th.usable, 25, 5, 7);
         if (!sets.length) continue;
         // Ask for a properly gated board first (at most two words readable at the
         // start, something buried three deep). Only if a theme cannot produce one
@@ -324,17 +363,20 @@ function main() {
         const tight = { rows: 5, cols: 5, wordSets: sets, pool: th.pool, maxOpening: 2, minDepth: 3, budget: 700, until: deadline };
         found = findBoard((d + 1) * 104729 + tries, tight);
         if (!found && tries >= 8) found = findBoard((d + 1) * 104729 + tries, { ...tight, maxOpening: 3, minDepth: 2, budget: 500, until: deadline + 10000 });
-        used = { themes: [th.name], pool: th.pool };
+        used = { themes: [th.name], pool: th.pool, tier: th.tier };
       }
     }
     if (!found) { console.error(`✗ no board for ${live}${sunday ? ' (SUNDAY)' : ''} after ${tries} theme(s)`); break; }
     num++;
     for (const t of used.themes) recent.set(t, num);
+    const lowest = Math.min(...found.p.words.map((w) => FREQ[w.toLowerCase()]));
     out.push(pack(found, {
       num, quizId: `strata-${Number(live.slice(5, 7))}-${Number(live.slice(8, 10))}-${live.slice(2, 4)}`,
       live, dateLabel: labelOf(live), sunday, themes: used.themes, pool: used.pool,
+      tier: used.tier, minZipf: Number(lowest.toFixed(2)),
     }));
-    console.error(`${live}${sunday ? ' SUN' : '   '}  ${used.themes.join(' + ').padEnd(34)} words=${found.p.words.length} open=${found.analysis.openingCount} depth=${found.analysis.deepest} states=${found.analysis.states}`);
+    const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(live + 'T12:00:00Z').getUTCDay()];
+    console.error(`${live} ${dow}${sunday ? '*' : ' '} t${used.tier} ${used.themes.join(' + ').padEnd(30)} w=${found.p.words.length} open=${found.analysis.openingCount} depth=${found.analysis.deepest} rarest=${lowest.toFixed(2)}(floor ${rule.minZipf})`);
     writeFileSync(BANK, JSON.stringify(out, null, 1));
   }
   writeFileSync(BANK, JSON.stringify(out, null, 1));

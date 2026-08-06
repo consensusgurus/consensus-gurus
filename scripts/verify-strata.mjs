@@ -27,8 +27,17 @@
 // compared rather than trusted.
 //
 // Run: node scripts/verify-strata.mjs
+import { readFileSync } from 'node:fs';
 import { PUZZLES } from '../app/strata/puzzles.js';
 import { analyse, decoys, replayIntendedLine, ownedCells, makeCells, gridOf, placements } from '../lib/strata-core.js';
+import { dayRule } from './strata-gen.mjs';
+
+// The frequency table Lode already ships. Zipf, log10 per billion: 4.7 is
+// "apple", 3.5 is "seam", 2.5 is "bobbin". It covers 4-8 letter common nouns
+// only, which is deliberate here: a word it cannot score is a proper noun or a
+// three letter word, and neither can be difficulty-graded, so neither ships.
+const FREQ = JSON.parse(readFileSync(new URL('./.lode-freq.json', import.meta.url), 'utf8'));
+const zipf = (w) => FREQ[w.toLowerCase()];
 
 let BAD = 0;
 const fail = (id, msg) => { BAD++; console.error(`✗ ${id}: ${msg}`); };
@@ -36,7 +45,10 @@ const ok = (id, msg) => console.log(`✓ ${id}  ${msg}`);
 
 // Boards live before this date are frozen history: published and played, so they
 // are exempt from later tightenings of the floors rather than retro-failed.
-const STRATA_FLOOR_FROM = '2026-08-10';
+const STRATA_FLOOR_FROM = '2026-08-06';
+// The Monday-to-Sunday difficulty curve was added the day after launch, so the
+// launch board is frozen history and exempt. Everything from here carries it.
+const CURVE_FROM = '2026-08-07';
 const WEEKDAY = { rows: 5, cols: 5, maxOpening: 3, minDepth: 2, minWords: 5 };
 const SUNDAY = { rows: 7, cols: 6, maxOpening: 3, minDepth: 4, minWords: 7 };
 const THEME_REPEAT_WINDOW = 14;   // days before a theme may come round again
@@ -56,6 +68,7 @@ const seenBoards = new Map();
 let prevLive = null;
 let worstAnalyse = 0, worstClient = 0;
 let totalWords = 0, totalStates = 0, gatedHard = 0;
+const rarestSeen = [];
 
 for (const p of PUZZLES) {
   const id = `strata #${p.num}`;
@@ -121,6 +134,30 @@ for (const p of PUZZLES) {
   if (p.opening !== undefined && p.opening !== a.openingCount) fail(id, `bank says opening=${p.opening}, recomputed ${a.openingCount}`);
   if (p.deepest !== undefined && p.deepest !== a.deepest) fail(id, `bank says deepest=${p.deepest}, recomputed ${a.deepest}`);
   if (a.deepest >= spec.minDepth + 1) gatedHard++;
+
+  // ── 4b. the week's difficulty curve ───────────────────────────────────────
+  // Day one shipped GUSSET (not even in the frequency table) and BOBBIN (2.52)
+  // and players did not know the words. Two dials, checked separately, because a
+  // board can be easy on one and hard on the other: how obscure the CATEGORY is
+  // (`tier`) and how rare the rarest WORD is (Zipf).
+  if (p.live >= CURVE_FROM) {
+    const rule = dayRule(p.live);
+    const dow = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date(p.live + 'T12:00:00Z').getUTCDay()];
+    let rarest = Infinity, rarestWord = null;
+    for (const w of p.words) {
+      if (w.length < 4 || w.length > 8) fail(id, `${w} is ${w.length} letters; answers are 4 to 8 so every one can be frequency-graded`);
+      const z = zipf(w);
+      if (z === undefined) { fail(id, `${w} is not in the frequency table, so its difficulty is unknown (proper nouns and 3-letter words land here)`); continue; }
+      if (z < rarest) { rarest = z; rarestWord = w; }
+    }
+    if (rarestWord) {
+      if (rarest < rule.minZipf) fail(id, `${dow} floor is Zipf ${rule.minZipf} but ${rarestWord} is ${rarest.toFixed(2)}; that is the word nobody knows`);
+      if (p.minZipf !== undefined && Math.abs(p.minZipf - rarest) > 0.005) fail(id, `bank says minZipf=${p.minZipf}, recomputed ${rarest.toFixed(2)}`);
+      rarestSeen.push({ num: p.num, dow, z: rarest, w: rarestWord });
+    }
+    if (p.tier === undefined) fail(id, 'no theme tier recorded, so the category-obscurity dial cannot be checked');
+    else if (p.tier > rule.maxTier) fail(id, `${dow} allows tier ${rule.maxTier} categories at most, this board is tier ${p.tier} (${p.themes.join(' + ')})`);
+  }
 
   // ── 5. decoys from the day's own category ─────────────────────────────────
   if (!Array.isArray(p.pool) || !p.pool.length) fail(id, 'no `pool` on the board, so the decoy check cannot run');
@@ -191,6 +228,20 @@ const sundays = PUZZLES.filter((p) => p.sunday).length;
 if (PUZZLES.length >= 14 && sundays === 0) fail('strata pool', 'a bank this long with no Sunday Edition means the Sunday drop is missing');
 if (PUZZLES.length && gatedHard / PUZZLES.length < 0.4) {
   fail('strata pool', `only ${(gatedHard / PUZZLES.length * 100).toFixed(0)}% of boards bury a word deeper than the floor; a bank at the floor every day reads flat`);
+}
+
+// The floors alone could be satisfied by a flat bank that sits at the Sunday
+// level all week, so check the curve actually slopes: early-week boards must be
+// meaningfully more common than late-week ones.
+if (rarestSeen.length >= 10) {
+  const early = rarestSeen.filter((r) => ['Monday', 'Tuesday'].includes(r.dow));
+  const late = rarestSeen.filter((r) => ['Saturday', 'Sunday'].includes(r.dow));
+  const avg = (a) => a.reduce((s, r) => s + r.z, 0) / (a.length || 1);
+  if (early.length && late.length) {
+    const gap = avg(early) - avg(late);
+    if (gap < 0.5) fail('strata pool', `the week barely ramps: Mon/Tue rarest averages ${avg(early).toFixed(2)}, Sat/Sun ${avg(late).toFixed(2)}, a gap of only ${gap.toFixed(2)}`);
+    else console.log(`… strata curve  Mon/Tue rarest word averages Zipf ${avg(early).toFixed(2)}, Sat/Sun ${avg(late).toFixed(2)} (gap ${gap.toFixed(2)})`);
+  }
 }
 
 if (BAD === 0) {
