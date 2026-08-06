@@ -140,7 +140,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
   const [copied, setCopied] = useState(false);
-  const dragging = useRef(false);
+  const press = useRef(null);
   const searchParams = useSearchParams();
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const viewedRef = useRef(false);
@@ -276,15 +276,31 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
     }, LIFT_MS);
   }, [cells, remaining, TOTAL, postResult]);
 
-  const touch = useCallback((id) => {
+  // TWO WAYS IN, ONE CODE PATH. Tap the letters one at a time, or hold and drag
+  // through them. Tapping is the primary mode and is exact, which matters here
+  // because diagonals are legal: a dragged path across a diagonal passes over
+  // the corner of the orthogonal neighbour on its way, and that neighbour used
+  // to get picked up, so a clean diagonal came out as a wrong word. Two fixes,
+  // and tapping is the one that always works.
+  //
+  //   drag  the hit test ignores anything outside the middle of a tile, so
+  //         clipping a corner in passing does nothing
+  //   tap   nothing is in passing at all. Tap the last letter again to drop the
+  //         whole trace, or tap any earlier letter to walk back to it.
+  const extend = useCallback((id, fromDrag) => {
     if (!playing || lifting || !g.t0) return;
     setTrace((cur) => {
       if (!cur.length) return [id];
       const i = cur.indexOf(id);
-      if (i >= 0) return cur.slice(0, i + 1);          // walk back along your own path
+      if (i >= 0) {
+        // tapping the letter you are sitting on clears the trace; anything
+        // earlier walks back to it. A drag only ever walks back.
+        if (!fromDrag && i === cur.length - 1) return [];
+        return cur.slice(0, i + 1);
+      }
       const a = at.get(cur[cur.length - 1]);
       const b = at.get(id);
-      if (!a || !b || !adjacent(a, b)) return cur;
+      if (!a || !b || !adjacent(a, b)) return fromDrag ? cur : [id];
       const next = cur.concat([id]);
       // Auto-accept the moment the trace spells an unfound word. There is no
       // Enter key here and no submit button: the house rule for a typed daily is
@@ -298,21 +314,42 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
 
   function onDown(id, e) {
     if (e && e.preventDefault) e.preventDefault();
-    dragging.current = true;
-    if (!playing || lifting || !g.t0) return;
-    setTrace([id]);
+    press.current = { id, last: id, moved: false };
+    extend(id, false);
   }
-  function onEnter(id) { if (dragging.current) touch(id); }
+
   useEffect(() => {
-    const up = () => {
-      if (!dragging.current) return;
-      dragging.current = false;
-      setTrace((cur) => { if (cur.length > 1) setTimeout(() => commit(cur), 0); return cur.length > 1 ? cur : cur; });
+    const move = (e) => {
+      const p = press.current;
+      if (!p) return;
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const t = el && el.closest && el.closest('.st-tile');
+      if (!t || t.dataset.cid === undefined) return;
+      const r = t.getBoundingClientRect();
+      const dx = e.clientX - (r.x + r.width / 2);
+      const dy = e.clientY - (r.y + r.height / 2);
+      if (Math.hypot(dx, dy) > r.width * 0.44) return;      // corner clip, not a pick
+      const id = Number(t.dataset.cid);
+      if (id === p.last) return;
+      p.last = id; p.moved = true;
+      extend(id, true);
     };
+    const up = () => {
+      const p = press.current;
+      press.current = null;
+      // A tap leaves the trace standing so the next tap can extend it. Only a
+      // real drag commits on release.
+      if (p && p.moved) setTrace((cur) => { if (cur.length > 1) setTimeout(() => commit(cur), 0); return cur; });
+    };
+    window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
-    return () => { window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up); };
-  }, [commit]);
+    return () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+    };
+  }, [commit, extend]);
 
   // ---- hints ----
   function revealThread() {
@@ -439,7 +476,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
               </p>
               {gateRules && (
                 <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 14px', paddingLeft: 20 }}>
-                  <li>Drag or tap through neighbouring letters. Diagonals count.</li>
+                  <li>Tap the letters one at a time, or hold and drag through them. Diagonals count.</li>
                   <li>Most of today&rsquo;s words cannot be read yet. They arrive when the board falls.</li>
                   <li>A wrong trace costs nothing. You cannot get stuck, in any order.</li>
                   <li>Hints are the only thing that separates two players who both finish.</li>
@@ -480,12 +517,25 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                         width: tile, height: tile, fontSize: Math.round(tile * 0.42),
                         top: p[0] * step, left: p[1] * step,
                       }}
+                      data-cid={cell.id}
                       onPointerDown={(e) => onDown(cell.id, e)}
-                      onPointerEnter={() => onEnter(cell.id)}
-                      onClick={() => { if (!dragging.current) touch(cell.id); }}
                     >{cell.ch}</div>
                   );
                 })}
+              </div>
+
+              {/* What you have spelled so far. Tapping has no finger on the
+                  board to look at, so the trace needs to be readable as text. */}
+              <div style={{ minHeight: 26, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontFamily: MONO, fontSize: 16, letterSpacing: '0.22em', fontWeight: 700, color: bad ? '#b91c1c' : COLORS.accentDeep }}>
+                  {trace.map((id) => cells[id].ch).join('')}
+                </span>
+                {trace.length > 0 && (
+                  <button
+                    onClick={() => setTrace([])}
+                    style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  >clear</button>
+                )}
               </div>
 
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
@@ -554,7 +604,8 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
               most of the words cannot be read until the board has collapsed under them.
             </p>
             <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 12px', paddingLeft: 20 }}>
-              <li>Drag through letters, or tap them one at a time. Diagonals count.</li>
+              <li>Tap the letters one at a time, or hold and drag through them. Diagonals count.</li>
+              <li>Tapping the letter you are on drops the trace; tapping an earlier one walks back to it.</li>
               <li>A word is taken the moment your trace spells it. There is nothing to press.</li>
               <li>A wrong trace costs nothing, and there is no order that can strand you.</li>
               <li>Two hints are on offer: name the thread, or light up where a word starts.</li>
