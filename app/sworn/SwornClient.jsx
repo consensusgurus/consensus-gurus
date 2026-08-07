@@ -26,6 +26,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HelpCircle, X, Smartphone, Lightbulb, Scale, Eraser } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -485,12 +486,22 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>One of the sworn is the <b>thief</b>. Each gives one statement, and you&rsquo;re told <b>exactly how many are lying</b>. Liars&rsquo; statements are false; truth-tellers&rsquo; are true.</p>
-      <p style={{ margin: '0 0 9px' }}>Test each theory: assume a suspect is the thief and see whether the lie count works out. Tap the <b>?</b> next to a name to keep scratch verdicts (truthful ✓ / lying ✗) as you go.</p>
-      <p style={{ margin: '0 0 9px' }}>When you&rsquo;re sure, hit <b>Accuse</b>. A first-try accusation is a perfect 12 &mdash; each wrong accusation costs 2.</p>
-      <p style={{ margin: 0 }}>Every case has exactly one consistent story, reachable by pure logic. Ties on the daily board break by fewest wrong accusations, then fastest time. Six are sworn for Sunday&rsquo;s Grand Inquest.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead="One of the sworn is the thief. Find them from the statements alone."
+      chips={[
+        { label: 'Truthful ✓', tone: 'good' },
+        { label: 'Lying ✗', tone: 'bad' },
+      ]}
+      steps={[
+        <>Each of the sworn gives <b>one statement</b>, and you&rsquo;re told <b>exactly how many are lying</b>. Liars&rsquo; statements are false, truth-tellers&rsquo; are true.</>,
+        <>Test each theory: assume a suspect is the thief and see whether the lie count works out.</>,
+        <>Tap the <b>?</b> next to a name to keep scratch verdicts as you go.</>,
+        <>When you&rsquo;re sure, hit <b>Accuse</b>.</>,
+      ]}
+      knack="Every case has exactly one consistent story, reachable by pure logic, so a theory that leaves the lie count off by even one is dead."
+      footer={<>A first-try accusation is a perfect 12, and each wrong accusation costs 2. Ties on the daily board break by fewest wrong accusations, then fastest time. Six are sworn for Sunday&rsquo;s Grand Inquest.</>}
+    />
   );
 
   return (

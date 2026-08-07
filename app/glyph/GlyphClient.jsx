@@ -27,6 +27,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -490,12 +491,18 @@ export default function GlyphClient({ puzzles, forceNum }) {
   const revealed = !playing;
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 8px' }}>Every letter in the grid has been swapped for a number, and the same number always means the same letter across the whole board.</p>
-      <p style={{ margin: '0 0 8px' }}>Tap a square to select its number, then type or tap a letter. Every square with that number fills at once.</p>
-      <p style={{ margin: '0 0 8px' }}>There are no clues. Work from the {PUZZLE.given.length} letters you are given, the shapes of the words, and the crossings. All 26 letters appear, each exactly once in the key, so the ones you have ruled out narrow the rest.</p>
-      <p style={{ margin: 0 }}>You have {MAX_CHECKS} Checks if you want the board audited. Each one costs 3 points, so a clean solve is 10 out of 10.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Crack the code: every letter has been swapped for a number, and the same number always means the same letter across the whole board."
+      steps={[
+        <><b>Tap a square</b> to select its number, then type or tap a letter. Every square with that number fills at once.</>,
+        <>There are no clues. Work from the <b>{PUZZLE.given.length} letters you are given</b>, the shapes of the words, and the crossings.</>,
+        <>All 26 letters appear, each exactly once in the key, so the ones you have ruled out narrow the rest.</>,
+        <>Press <b>Check</b> if you want the board audited. You have <b>{MAX_CHECKS}</b>.</>,
+      ]}
+      knack="The key is one letter to one number with nothing left over, so a letter you have already spent is as much information as a square you have filled."
+      footer={<>Each Check costs 3 points, so a clean solve is 10 out of 10.</>}
+    />
   );
 
   return (

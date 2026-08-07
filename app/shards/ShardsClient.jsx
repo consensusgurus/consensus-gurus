@@ -28,6 +28,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HelpCircle, X, Smartphone, RotateCcw, Trash2, Lightbulb, CheckCircle2, Undo2 } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -801,12 +802,22 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const tickCells = useMemo(() => { const s = new Set(); for (const cells of runTicks) { if (cells.length) s.add(cells[cells.length - 1]); } return s; }, [runTicks]);
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>The grid arrives solved, then shattered into <b>lettered pieces</b>. Reassemble them so every across and down run of two or more letters is a real word. No clues, the letters are the clues.</p>
-      <p style={{ margin: '0 0 9px' }}>Pieces are rigid: no turning, no flipping. <b>Drag</b> a piece onto the grid, or <b>tap a piece then tap a square</b>. The piece you just placed is <b>wet</b>: shift it around as much as you like for nothing. It earns no ticks and counts toward nothing until you <b>tap it again to lock it in</b>. There is an <b>Undo</b> and a free <b>Clear</b>. The board finishes itself the moment every piece is locked in and every word checks out.</p>
-      <p style={{ margin: '0 0 9px' }}>There is exactly <b>one</b> correct reassembly. Start at <b>{START}</b>. Adjusting a wet piece is free. Moving one you have already locked in costs a miss of 5 and makes it wet again, so you can fine-tune the correction. Three hints, in order, cost {HINTS[0]}, {HINTS[1]} and {HINTS[2]}. Score never drops below {FLOOR}.</p>
-      <p style={{ margin: 0 }}>A tick appears on each finished valid word. Ties on the leaderboard break by fewest misses, then fastest clock.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Reassemble the shattered grid so every across and down run of two or more letters is a real word."
+      chips={[
+        { label: 'Wet piece, free to move', tone: 'warn' },
+        { label: 'Locked in, moving costs 5', tone: 'bad' },
+      ]}
+      steps={[
+        <>The lettered pieces are rigid: no turning, no flipping. <b>Drag</b> one onto the grid, or <b>tap a piece then tap a square</b>.</>,
+        <>The piece you just placed is <b>wet</b>. Shift it around as much as you like for nothing: it earns no ticks and counts toward nothing until you <b>tap it again to lock it in</b>.</>,
+        <>Moving a piece you have already locked in costs a <b>miss of 5</b> and makes it wet again, so you can fine-tune the correction.</>,
+        <><b>Undo</b> takes back a move and <b>Clear</b> is free. A tick appears on each finished valid word, and the board finishes itself once every piece is locked in and every word checks out.</>,
+      ]}
+      knack="There are no clues but the letters, and exactly one reassembly is correct, so place the pieces whose runs can only spell one thing and let the rest fall in."
+      footer={<>Start at {START}. Three hints, in order, cost {HINTS[0]}, {HINTS[1]} and {HINTS[2]}. Score never drops below {FLOOR}. Ties break by fewest misses, then fastest clock.</>}
+    />
   );
 
   // Cell size shrinks as the grid grows so the board still clears a 360px phone

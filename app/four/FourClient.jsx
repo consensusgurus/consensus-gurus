@@ -33,6 +33,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -611,12 +612,22 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>You are <b>red</b> and you drop first. The position is already won for you: there is a forced <b>win in {PUZZLE.winIn}</b> of your moves. <b>Tap a column</b> to drop a disc.</p>
-      <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> column wins. Every other drop throws it away, and here is the sting: a wrong drop is <b>not taken back</b>. The engine plays on and it is perfect, so once the win is gone it never comes back and you are playing for a draw.</p>
-      <p style={{ margin: '0 0 9px' }}>The engine always answers with its most stubborn defence, and the same one for everybody, so the game you play is the game everyone else plays. One free <b>hint</b>, on your first ever play, greys out two columns that do not win.</p>
-      <p style={{ margin: 0 }}>The win scores <b>10</b> and a draw <b>4</b>. Losing the win scores nothing, and neither does giving up. Ties break on fewest wrong drops, then fastest time. Weekdays are a win in four, and <b>Sundays</b> step up to a win in five.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>You are <b>red</b>, you drop first, and the position is already won for you: a forced <b>win in {PUZZLE.winIn}</b> of your moves.</>}
+      chips={[
+        { label: 'Win = 10', tone: 'good' },
+        { label: 'Draw = 4', tone: 'warn' },
+        { label: 'Win thrown away, or gave up = 0', tone: 'bad' },
+      ]}
+      steps={[
+        <><b>Tap a column</b> to drop a disc. Exactly <b>one</b> column wins, every other drop throws it away.</>,
+        <>A wrong drop is <b>not taken back</b>. The engine plays on and it is perfect, so once the win is gone it never comes back and you are playing for a draw.</>,
+        <>One free <b>hint</b>, on your first ever play, greys out two columns that do not win.</>,
+      ]}
+      knack="The engine always answers with its most stubborn defence, and the same one for everybody, so the game you play is the game everyone else plays."
+      footer="Ties break on fewest wrong drops, then fastest time. Weekdays are a win in four, Sundays step up to a win in five."
+    />
   );
 
   const statusLine = () => {

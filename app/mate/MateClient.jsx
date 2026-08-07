@@ -35,6 +35,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -676,12 +677,19 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>You are <b>White</b>, and you move first. There is a forced <b>checkmate in {PUZZLE.mateIn}</b> moves on the board. <b>Tap one of your pieces</b>, and the squares it can legally reach light up. <b>Tap one</b> to play the move.</p>
-      <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> first move forces mate. Every other move on the board, however forcing it looks, lets Black wriggle out. You may play <b>any legal move</b>, and there is <b>no take-back</b>: a move that does not force mate is played, and the puzzle ends there.</p>
-      <p style={{ margin: '0 0 9px' }}>Play the whole line, not just the key. After your move Black answers with its best defence, and you have to <b>finish the job</b>{PUZZLE.mateIn > 2 ? ', twice over on a Sunday' : ''}. One free <b>hint</b>, on your first ever play, tells you which piece moves, never where it goes.</p>
-      <p style={{ margin: 0 }}>The <b>mate scores 10</b>, and missing it scores nothing, the same as giving up. Ties break on fastest time. Weekdays are mate in two, and <b>Sundays</b> step up to mate in three.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Find the mate."
+      banner={<>You are <b>White</b> and you move first. There is a forced <b>checkmate in {PUZZLE.mateIn}</b> moves on the board.</>}
+      steps={[
+        <><b>Tap one of your pieces</b> and the squares it can legally reach light up. <b>Tap one</b> to play the move.</>,
+        <>Play the whole line, not just the key. Black answers with its best defence, and you have to <b>finish the job</b>{PUZZLE.mateIn > 2 ? ', twice over on a Sunday' : ''}.</>,
+        <>One free <b>hint</b>, on your first ever play, tells you which piece moves, never where it goes.</>,
+      ]}
+      knack={<>Count Black&rsquo;s escapes before you commit. The key is the move that leaves the defence no answer, not the loudest check.</>}
+      note={<>Exactly <b>one</b> first move forces mate; every other move, however forcing it looks, lets Black wriggle out. You may play <b>any legal move</b> and there is <b>no take-back</b>, so a move that does not force mate ends the puzzle there.</>}
+      footer="The mate scores 10, and missing it scores nothing, the same as giving up. Ties break on fastest time. Weekdays are mate in two, Sundays step up to mate in three."
+    />
   );
 
   const fileLabels = 'abcdefgh'.split('');

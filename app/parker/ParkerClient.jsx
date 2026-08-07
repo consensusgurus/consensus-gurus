@@ -36,6 +36,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -505,12 +506,19 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Get the <b>red block</b> to the <b>exit</b>, the gap in the right-hand wall. <b>Tap a block</b> to pick it up, then <b>tap the square you want it to reach</b>, and it slides there if the lane is clear.</p>
-      <p style={{ margin: '0 0 9px' }}>Every block is stuck on one axis. A block lying across slides left and right only, a block standing up slides only up and down. Nothing turns, nothing jumps.</p>
-      <p style={{ margin: '0 0 9px' }}>Sliding one block any distance counts as <b>one move</b>. <b>Par is {par}</b> on this board, the number a clean solve lands on. <b>Perfect is {perfect}</b>, the fewest moves that exist here, found by exhaustive search rather than by hand, and nobody gets under it. There is <b>no undo</b>, only a restart that puts the board back and zeroes your moves, though the clock keeps running.</p>
-      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b>, on your first ever play, names the block to move next. <b>Sundays</b> are a much longer jam.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>Get the <b>red block</b> to the <b>exit</b>, the gap in the right-hand wall.</>}
+      banner={<><b>Par is {par}</b> on this board, the number a clean solve lands on. <b>Perfect is {perfect}</b>, the fewest moves that exist here, found by exhaustive search rather than by hand, and nobody gets under it.</>}
+      steps={[
+        <><b>Tap a block</b> to pick it up, then <b>tap the square you want it to reach</b>, and it slides there if the lane is clear.</>,
+        <>Every block is stuck on one axis: lying across it slides left and right, standing up only up and down. Nothing turns, nothing jumps.</>,
+        <>Sliding one block any distance counts as <b>one move</b>. One free <b>hint</b>, on your first ever play, names the block to move next.</>,
+      ]}
+      knack={<>Work back from the exit lane: clear whatever stands in the red block&rsquo;s run first, then find what is pinning those.</>}
+      note={<>There is <b>no undo</b>, only a <b>restart</b> that puts the board back and zeroes your moves, though the clock keeps running.</>}
+      footer={<>Perfect scores 10 and every {step} moves over it costs a point, so par scores 8, down to a floor of one, and finishing always beats walking away. Sundays are a much longer jam.</>}
+    />
   );
 
   const cellPct = 100 / N;

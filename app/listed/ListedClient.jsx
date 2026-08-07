@@ -32,6 +32,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -661,17 +662,23 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}><b>{N} real things, one ranking.</b> Put them in order, {PUZZLE.hi.toLowerCase()} at the top, {PUZZLE.lo.toLowerCase()} at the bottom. {mobileUi ? 'Tap the arrows to move a row.' : 'Drag a row where it belongs, or use the arrows.'}</p>
-      <p style={{ margin: '0 0 9px' }}><b>You get {MAX_CHECKS} submits</b>, and each one grades every row:</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, margin: '0 0 9px' }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ flex: '0 0 auto', width: 15, height: 15, borderRadius: 4, background: COLORS.lock }} /> exactly right, and it locks with its real figure shown</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ flex: '0 0 auto', width: 15, height: 15, borderRadius: 4, background: COLORS.near }} /> off by one place, so it is nearly home</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ flex: '0 0 auto', width: 15, height: 15, borderRadius: 4, background: '#d3d7de' }} /> two or more places away</span>
-      </div>
-      <p style={{ margin: '0 0 9px' }}>Rank the whole board on your first submit for a perfect 10. Each extra submit costs a point, and each item you never lock costs one more.</p>
-      <p style={{ margin: 0 }}>One free <b>hint</b>, on your first ever play, reveals the figure of whichever item sits furthest from home. Every board is <b>trivia</b>, <b>history</b> or <b>geography</b>, and every ranking is a published number, never an opinion. New list every day at midnight Eastern.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.brand} accentSoft={COLORS.brandSoft} accentDeep={COLORS.brandInk}
+      lead={<>{N} real things, one ranking.</>}
+      banner={<>Order them, {PUZZLE.hi.toLowerCase()} at the top, {PUZZLE.lo.toLowerCase()} at the bottom.</>}
+      chips={[
+        { label: 'Exactly right, locks with its figure', style: { background: COLORS.lockSoft, border: `1.5px solid ${COLORS.lock}`, color: COLORS.lockInk } },
+        { label: 'Off by one place', style: { background: COLORS.nearSoft, border: `1.5px solid ${COLORS.near}`, color: COLORS.nearInk } },
+        { label: 'Two or more places away', tone: 'grey' },
+      ]}
+      steps={[
+        <>{mobileUi ? 'Tap the arrows to move a row.' : 'Drag a row where it belongs, or use the arrows.'}</>,
+        <>You get <b>{MAX_CHECKS} submits</b>, and each one grades every row by the colors above.</>,
+        <>One free <b>hint</b>, on your first ever play, reveals the figure of whichever item sits furthest from home.</>,
+      ]}
+      knack="Place the extremes first. Every row that locks with its real figure narrows what the rows around it can be."
+      footer="Rank the whole board on your first submit for a perfect 10. Each extra submit costs a point, and each item you never lock costs one more. Boards are trivia, history or geography, and every ranking is a published number, never an opinion. New list daily at midnight Eastern."
+    />
   );
 
   return (

@@ -16,6 +16,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { X, Smartphone, Flame } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -423,12 +424,18 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}><b>Forty questions, one life.</b> Answer multiple-choice trivia until you get one wrong, and every question you clear is a point. A wrong answer, or a clock at zero, ends the run on the spot.</p>
-      <p style={{ margin: '0 0 9px' }}>The forty climb in <b>five rounds of eight</b>, from gimmes to genuinely brutal, and each round cycles the same eight categories: geography, science, history, sports, movies, music, books, and a grab bag. Everyone plays the same forty in the same order.</p>
-      <p style={{ margin: '0 0 9px' }}>You get <b>{Q_SECONDS} seconds a question</b>, and the clock does not pause, so looking things up costs the run. There is no reason to stop early: answering can only add points, and a miss keeps everything you banked.</p>
-      <p style={{ margin: 0 }}>Ties on the daily board break by <b>time</b>, so sure-footed beats slow. Clear all forty and you have run the table.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Forty questions, one life."
+      steps={[
+        <>Answer multiple-choice trivia until you get one wrong. <b>Every question you clear is a point.</b></>,
+        <>A wrong answer, or a clock at zero, <b>ends the run on the spot</b>.</>,
+        <>You get <b>{Q_SECONDS} seconds a question</b>, and the clock does not pause, so looking things up costs the run.</>,
+        <>The forty climb in <b>five rounds of eight</b>, from gimmes to genuinely brutal, each round cycling the same eight categories: geography, science, history, sports, movies, music, books, and a grab bag.</>,
+      ]}
+      knack="There is no reason to stop early. Answering can only add points, and a miss keeps everything you banked."
+      footer="Everyone plays the same forty in the same order. Ties on the daily board break by time, so sure-footed beats slow. Clear all forty and you have run the table."
+    />
   );
 
   const scoreRow = (label, value, accent) => (

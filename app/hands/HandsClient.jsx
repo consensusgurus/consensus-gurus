@@ -40,6 +40,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -451,13 +452,23 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Cards come one at a time. <b>Tap any empty square</b> to put the card on offer there. It never moves again, and there is no undo.</p>
-      <p style={{ margin: '0 0 9px' }}>When the grid is full you have made <b>ten poker hands</b>: five across and five down. Every card counts in two of them at once, which is the whole puzzle.</p>
-      <p style={{ margin: '0 0 9px' }}>Hands pay <b>pair 1, two pair 3, flush 5, three of a kind 6, full house 10, straight 12, four of a kind 16, straight flush 25, royal flush 30</b>. A straight beats a flush here, because on a five by five grid flushes are the easy ones.</p>
-      <p style={{ margin: '0 0 9px' }}>You get <b>one muck</b> a day. It throws away the card on offer and deals the next one, and you do not get to see it first. Spend it well: there is only one.</p>
-      <p style={{ margin: 0 }}><b>Par is {par}</b> on this deal, what an ordinary round comes home with, and it scores 8. <b>Ace is {ace}</b>, the best our solver managed playing blind, and it scores 10. Both are real rounds somebody played, not formulas. Everybody today gets this same deal in this same order, so nothing here is luck.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Build ten poker hands at once: five across and five down."
+      banner={<><b>Par is {par}</b> on this deal, what an ordinary round comes home with: it scores 8. <b>Ace is {ace}</b>, the best our solver managed playing blind: it scores 10.</>}
+      chips={[
+        { label: 'Pair 1' }, { label: 'Two pair 3' }, { label: 'Flush 5' },
+        { label: 'Three of a kind 6' }, { label: 'Full house 10' }, { label: 'Straight 12' },
+        { label: 'Four of a kind 16' }, { label: 'Straight flush 25' }, { label: 'Royal flush 30' },
+      ]}
+      steps={[
+        <>Cards come one at a time. <b>Tap any empty square</b> to place the card on offer. It never moves again, and there is no undo.</>,
+        <>A full grid is <b>ten hands</b>, five across and five down. Every card counts in two of them at once, which is the whole puzzle.</>,
+        <>You get <b>one muck</b> a day. It bins the card on offer and deals the next, sight unseen. Spend it well: there is only one.</>,
+      ]}
+      knack="A straight beats a flush here, because on a five by five grid flushes are the easy ones."
+      footer="Par and ace are both real rounds somebody played, not formulas. Everybody today gets this same deal in this same order, so nothing here is luck."
+    />
   );
 
   const cellStyle = (filled, live) => ({

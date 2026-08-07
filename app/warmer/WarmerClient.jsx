@@ -34,6 +34,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 
@@ -390,12 +391,18 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>There is one secret word each day. Guess any word and Warmer tells you how <b>close in meaning</b> it is &mdash; not the spelling, the <i>meaning</i>. Guess <b>ocean</b> when the word is <b>sea</b> and you&rsquo;re scorching; guess <b>pencil</b> and you&rsquo;re freezing.</p>
-      <p style={{ margin: '0 0 9px' }}>Every guess is placed on the cold-to-hot bar and given a <b>rank</b> &mdash; #1 is the answer, and a lower number means closer. Use each guess to steer toward the hot end.</p>
-      <p style={{ margin: '0 0 9px' }}>Guesses are <b>unlimited</b>. The leaderboard ranks solvers by <b>fewest guesses</b> (ties by fastest time); if you <b>give up</b>, you&rsquo;re still ranked by the closest word you reached. One free <b>hint</b>, on your first ever play, reveals a warm word.</p>
-      <p style={{ margin: 0 }}>A new word drops every day at midnight Eastern.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="There is one secret word each day."
+      steps={[
+        <>Guess any word and Warmer tells you how <b>close in meaning</b> it is, not the spelling, the <i>meaning</i>. Guess <b>ocean</b> when the word is <b>sea</b> and you are scorching; guess <b>pencil</b> and you are freezing.</>,
+        <>Every guess is placed on the <b>cold-to-hot bar</b> and given a <b>rank</b>. #1 is the answer, and a lower number means closer.</>,
+        <>Guesses are <b>unlimited</b>. Use each one to steer toward the hot end.</>,
+        <>One free <b>hint</b>, on your first ever play, reveals a warm word.</>,
+      ]}
+      knack="Meaning is the whole game, so chase the sense of your warmest guess rather than words that merely look like it."
+      footer="The leaderboard ranks solvers by fewest guesses, ties by fastest time. Give up and you are still ranked by the closest word you reached. A new word drops every day at midnight Eastern."
+    />
   );
 
   return (

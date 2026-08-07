@@ -37,6 +37,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { T } from '@/lib/theme';
 
 const COLORS = {
@@ -627,12 +628,19 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Everyone gets the same <b>{RACK} letters</b>. Build your own little crossword on the board: every run of two or more letters must be a real word, across and down, and everything must connect into one grid.</p>
-      <p style={{ margin: '0 0 9px' }}>Score is standard tile points across all your words &mdash; a letter at an intersection counts in <b>both</b> words &mdash; plus 10 for tucking in all {RACK} tiles. Today&rsquo;s <b>benchmark of {BENCH}</b> was actually scored by our solver, so it can be beaten.</p>
-      <p style={{ margin: '0 0 9px' }}>Rebuild as much as you like &mdash; but <b>one shot counts</b>: only your first submitted grid ranks on the daily board. Ties break by fewest unused tiles, then fastest clock.</p>
-      <p style={{ margin: 0 }}>Tap a square and type, or tap a rack tile then a square. Space flips typing direction. To pull tiles back, tap <b>Take back</b> then tap any placed tile, triple-tap a placed tile (select, flip, remove), or press Backspace on a selected square.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>Everyone gets the same <b>{RACK} letters</b>. Build your own little crossword with them.</>}
+      banner={<>Today&rsquo;s <b>benchmark: {BENCH}</b>. Our solver actually scored it, so it can be beaten.</>}
+      steps={[
+        <>Tap a square and type, or tap a rack tile then a square. <b>Space</b> flips the typing direction.</>,
+        <>Every run of two or more letters must be a <b>real word</b>, across and down, and everything must connect into <b>one grid</b>.</>,
+        <>To pull tiles back, tap <b>Take back</b> then tap any placed tile, triple-tap a placed tile (select, flip, remove), or press <b>Backspace</b> on a selected square.</>,
+        <>Rebuild as much as you like, but <b>one shot counts</b>: only your first submitted grid ranks on the daily board.</>,
+      ]}
+      knack="A letter at an intersection counts in both of its words, so crossing your heavy tiles is worth more than lining them up."
+      footer={`Standard tile points across all your words, plus 10 for tucking in all ${RACK} tiles. Ties break by fewest unused tiles, then fastest clock.`}
+    />
   );
 
   return (

@@ -35,6 +35,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -709,13 +710,23 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Seat exactly <b>{STARS === 2 ? 'two jesters' : 'one jester'}</b> in every row, every column, and every colored court.</p>
-      <p style={{ margin: '0 0 9px' }}>Jesters are jealous: <b>no two may touch</b>, not even diagonally. Quarrelling jesters glow red.</p>
-      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>✗</b> / <b>🃏</b> buttons. It starts on <b>✗</b> (rule a cell out), the mark you reach for most, and remembers your choice next time. Switch to <b>🃏</b> to seat jesters, or just <b>hold</b> a cell (right-click on a computer) to seat one directly in either mode. Tap a seated jester to lift it. Leave auto-✗ on and seating a jester pencils out its neighbours for you, plus its row, column or court as soon as that one is full; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</p>
-      <p style={{ margin: 0 }}>Every board has exactly one legal seating, reachable by pure deduction &mdash; no guessing needed. The board completes itself the moment the last jester is seated legally. Ties on the daily board break by fewest placements, then fastest time. Courts get harder as the week goes on, and Sunday seats <b>two</b> jesters per row, column and court on a bigger board, where a second jester in a row is correct and only a third quarrels.</p>
-      <p style={{ margin: '9px 0 0' }}>The numbers along the edges count the seats each row and column still owes, and a court fades once it is full.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead={<>Seat exactly <b>{STARS === 2 ? 'two jesters' : 'one jester'}</b> in every row, every column and every colored court.</>}
+      chips={[
+        { label: 'Red = quarrelling jesters', tone: 'bad' },
+        { label: 'Edge number = seats still owed', tone: 'grey' },
+        { label: 'Faded court = full', tone: 'good' },
+      ]}
+      steps={[
+        <>Jesters are jealous, so <b>no two may touch</b>, not even diagonally.</>,
+        <>The <b>✗</b> / <b>🃏</b> buttons set what a tap places, opening on <b>✗</b> to rule a cell out and remembering your choice. <b>Hold</b> a cell (right-click on a computer) to seat a jester in either mode, and tap a seated jester to lift it.</>,
+        <>Leave <b>auto-✗</b> on and seating a jester pencils out its neighbours, plus its row, column or court once that one is full; lift the jester and those marks clear too. <b>Undo</b> rolls back your last move.</>,
+        <>The board completes itself the moment the last jester is seated legally.</>,
+      ]}
+      knack="Every board has exactly one legal seating, reachable by pure deduction, so never guess. A court penned into a single row already owes that row its seat."
+      footer="Ties break on fewest placements, then fastest time. Courts get harder as the week goes on, and Sunday seats two jesters per row, column and court on a bigger board, where a second in a row is correct and only a third quarrels."
+    />
   );
 
   return (

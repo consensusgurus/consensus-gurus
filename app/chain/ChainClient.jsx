@@ -23,6 +23,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -555,12 +556,18 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Boxes, picked up at the end. <b>Tap an edge</b> to draw it. Draw the fourth side of a box and you claim it and <b>go again</b>, so a good run keeps going. There are {PUZZLE.rows * PUZZLE.cols} boxes, an odd number, so somebody has to win.</p>
-      <p style={{ margin: '0 0 9px' }}>You are already ahead on this board and exactly <b>one</b> edge keeps it. Here is the sting: a wrong edge is <b>not taken back</b>. The engine plays on and it is perfect, so once the win is gone it never comes back.</p>
-      <p style={{ margin: '0 0 9px' }}>The trap is the free box. Taking every box in front of you is usually how you lose control, because whoever runs out of safe edges first has to open the next chain. Some days the right move is to hand two boxes back. Some days it is to take what is there. Read the board, not the habit. One free <b>hint</b>, on your first ever play, marks three edges, one of which wins.</p>
-      <p style={{ margin: 0 }}>Winning scores <b>10</b>. Losing scores nothing, and so does giving up. Ties break on fewest errors, then fastest time. Weekdays are a {PUZZLE.sunday ? '3 by 5' : `${PUZZLE.rows} by ${PUZZLE.cols}`} board, and <b>Sundays</b> step up to 5 by 5.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Boxes, picked up at the end. You are already ahead, and one edge keeps it that way."
+      steps={[
+        <><b>Tap an edge</b> to draw it. Draw the fourth side of a box and you claim it and <b>go again</b>, so a good run keeps going.</>,
+        <>There are {PUZZLE.rows * PUZZLE.cols} boxes, an odd number, so somebody has to win.</>,
+        <>Exactly <b>one</b> edge holds your lead. Find it before you touch the board.</>,
+      ]}
+      knack="The trap is the free box. Taking every box in front of you is usually how you lose control, because whoever runs out of safe edges first has to open the next chain. Some days the right move is to hand two boxes back, some days it is to take what is there. Read the board, not the habit."
+      note={<>A wrong edge is <b>not taken back</b>. The engine plays on and it is perfect, so once the win is gone it never comes back.</>}
+      footer={<>Winning scores 10. Losing scores nothing, and so does giving up. One free <b>hint</b>, on your first ever play, marks three edges, one of which wins. Ties break on fewest errors, then fastest time. Weekdays are a {PUZZLE.sunday ? '3 by 5' : `${PUZZLE.rows} by ${PUZZLE.cols}`} board, and Sundays step up to 5 by 5.</>}
+    />
   );
 
   const statusLine = () => {

@@ -32,6 +32,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -589,13 +590,23 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
   const noteFs = n > 5 ? 'clamp(6px, 1.5vw, 9px)' : 'clamp(7px, 1.7vw, 10px)';
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Every row and every column holds <b>1 to {n}</b>, once each. The <b>printed digits are true</b>. Between some neighbouring squares sits a sign whose open end points at the <b>larger</b> number.</p>
-      <p style={{ margin: '0 0 9px' }}>Exactly <b>one sign is lying</b>. So a contradiction is never proof you slipped up, it might be the fib, and that is the whole puzzle. Fill the grid, then <b>tap the sign you are accusing</b> and hit Submit.</p>
-      <p style={{ margin: '0 0 9px' }}>A sign <b style={{ color: '#9aa2b1' }}>greys out</b> once your grid satisfies it and turns <b style={{ color: COLORS.amber }}>amber</b> once your grid breaks it, which is only what you could read off the board yourself. Finish with exactly one amber sign and that is your liar. A repeated digit in a line shows <b style={{ color: COLORS.rust }}>red</b>, free of charge.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a square then a number, or type. <b>Notes</b> (press N) pencils small candidates. <b>Undo</b> is Ctrl+Z, and one free <b>hint</b>, on your first ever play, fills a correct square.</p>
-      <p style={{ margin: 0 }}>Exactly one grid and one lying sign fit the board, so the answer is provable, never a guess. A clean solve scores a perfect <b>10</b>, every two wrong submissions cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 6&times;6 Edition.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Solve the grid, then name the one sign that is lying."
+      chips={[
+        { label: 'Grey sign: your grid satisfies it', tone: 'grey' },
+        { label: 'Amber sign: your grid breaks it', tone: 'warn' },
+        { label: 'Red digit: repeated in its line', tone: 'bad' },
+      ]}
+      steps={[
+        <>Every row and column holds <b>1 to {n}</b> once each, and the <b>printed digits are true</b>. Each sign&rsquo;s open end points at the <b>larger</b> of its two neighbours.</>,
+        <>Exactly <b>one sign lies</b>, so a contradiction is never proof you slipped up. It might be the fib, and that is the whole puzzle.</>,
+        <>Tap a square then a number, or type. <b>Notes</b> (press N) pencils candidates, <b>Undo</b> is Ctrl+Z, and one free <b>hint</b>, on your first ever play, fills a correct square.</>,
+        <>Fill the grid, then <b>tap the sign you are accusing</b> and hit <b>Submit</b>.</>,
+      ]}
+      knack="The colours are free and only report what you could read off the board yourself. Finish with exactly one amber sign and that is your liar."
+      footer="One grid and one liar fit the board, so the answer is provable, never a guess. A clean solve scores a perfect 10, every two wrong submissions cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 6×6 Edition."
+    />
   );
 
   const SIDE = 2 * n - 1;

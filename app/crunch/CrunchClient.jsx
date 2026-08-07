@@ -30,6 +30,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -521,12 +522,24 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Make the <b>target</b> out of the six numbers. <b>Tap a number</b>, <b>tap an operation</b>, then <b>tap a second number</b>. The answer replaces both and becomes a number you can use again.</p>
-      <p style={{ margin: '0 0 9px' }}>Every value has to be a <b>positive whole number</b>, so 3 minus 7 is out and 7 divided by 2 is out. You do not have to use all six. On this board an exact answer needs <b>{need} of the six</b>.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Undo</b> and <b>start over</b> cost nothing. You are not scored on how many steps you take, you are scored on the closest value you ever make, so there is nothing to gain by hoarding take-backs.</p>
-      <p style={{ margin: 0 }}>Spot on scores <b>10</b>, within five scores <b>7</b>, within ten scores <b>5</b>, anything else scores <b>1</b>. Only walking away scores nothing. One free <b>hint</b>, on your first ever play, names a step that still works. <b>Sundays</b> are a harder set.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Make the target out of the six numbers."
+      chips={[
+        { label: 'Spot on = 10', tone: 'good' },
+        { label: 'Within five = 7', tone: 'good' },
+        { label: 'Within ten = 5', tone: 'warn' },
+        { label: 'Anything else = 1', tone: 'grey' },
+      ]}
+      steps={[
+        <><b>Tap a number</b>, <b>tap an operation</b>, then <b>tap a second number</b>. The answer replaces both and becomes a number you can use again.</>,
+        <>Every value has to be a <b>positive whole number</b>, so 3 minus 7 is out and 7 divided by 2 is out.</>,
+        <>You do not have to use all six. On this board an exact answer needs <b>{need} of the six</b>.</>,
+        <><b>Undo</b> and <b>start over</b> cost nothing.</>,
+      ]}
+      knack="You are scored on the closest value you ever make, not on how many steps you take, so there is nothing to gain by hoarding take-backs."
+      footer={<>Only walking away scores nothing. One free <b>hint</b>, on your first ever play, names a step that still works. Sundays are a harder set.</>}
+    />
   );
 
   const statusLine = !playing

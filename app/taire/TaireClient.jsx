@@ -28,6 +28,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { X, Lightbulb, Eye, Smartphone, RotateCcw } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -537,13 +538,22 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>{DECK === 20 ? 'Twenty cards, two suits, ace through ten' : 'Sixteen cards, two suits, ace through eight'}, all face up. Send every card <b>home</b> to its pile at the top right, ace first, then two, and so on.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Tap a card</b> to pick it up, then tap where it goes. Only the <b>bottom card</b> of a column can move, one card at a time, never a stack. It can go onto a card one rank higher of the other colour, onto an empty column, into a <b>free cell</b>, or home.</p>
-      <p style={{ margin: '0 0 9px' }}>You have <b>{CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}</b> today. A cell parks a single card for as long as you like.</p>
-      <p style={{ margin: '0 0 9px' }}>Every card moved is <b>one move</b>, sending one home included. <b>Par is {par}</b> on this deal, the number a clean line comes home in. <b>Perfect is {perfect}</b>, the proven minimum, so nothing beats it. There is <b>no undo</b>, only a restart that redeals the same board and zeroes your moves, though the clock keeps running.</p>
-      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} moves over it costs a point, so par scores <b>8</b>, down to a floor of one and finishing always beats walking away. One free <b>hint</b>, on your first ever play, shows which cards can move at all. Every deal is winnable, and the <b>Sunday Edition</b> gives you a single free cell.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>{DECK === 20 ? 'Twenty cards, two suits, ace through ten' : 'Sixteen cards, two suits, ace through eight'}, all face up. Send every card <b>home</b>.</>}
+      chips={[
+        { label: `Perfect ${perfect} moves = 10`, tone: 'good' },
+        { label: `Par ${par} moves = 8` },
+      ]}
+      steps={[
+        <><b>Tap a card</b> to pick it up, then tap where it goes. Home is the pile at the top right: ace first, then two, and so on.</>,
+        <>Only the <b>bottom card</b> of a column can move, one card at a time, never a stack. It can go onto a card one rank higher of the other colour, onto an empty column, into a <b>free cell</b>, or home.</>,
+        <>You have <b>{CELLS === 1 ? 'one free cell' : `${CELLS} free cells`}</b> today, each parking a single card for as long as you like.</>,
+        <>Every card moved is <b>one move</b>, sending one home included. There is <b>no undo</b>, only a <b>restart</b> that redeals the same board and zeroes your moves while the clock keeps running.</>,
+      ]}
+      knack={<><b>Perfect</b> is the proven minimum, so nothing beats it, while <b>par</b> is the number a clean line comes home in. Every deal is winnable, and finishing always beats walking away.</>}
+      footer={<>Every {step} moves over perfect costs a point, down to a floor of one. One free hint, on your first ever play, shows which cards can move at all. The Sunday Edition gives you a single free cell.</>}
+    />
   );
 
   const fnd = state.fnd;

@@ -44,6 +44,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -509,12 +510,24 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   const pct = Math.min(100, Math.round((score / Math.max(1, MAXSCORE)) * 100));
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Make as many words as you can from the {ALL_LETTERS.length} letters. Every word must use the <b>core letter {CORE}</b>, must be at least <b>four letters</b>, and letters may be reused as often as you like.</p>
-      <p style={{ margin: '0 0 9px' }}>Points come from <b>rarity, not length</b>. A common word pays 1&times; its length bonus, an uncommon word 2&times;, a genuinely rare one 3&times;. One good word is worth a fistful of easy ones. A <b>pangram</b> uses every letter on the board and pays a further 10.</p>
-      <p style={{ margin: '0 0 9px' }}>Reach <b>{VEIN} points</b> and you have struck the Lode: the day counts as solved. Keep digging for the <b>Mother Lode</b> if you want every last word.</p>
-      <p style={{ margin: 0 }}>Type a word and press Enter, or tap the letters. <b>One shot counts</b>: your first posted score is the one that ranks, and leaving mid-dig posts what you had. Ties break by fewest words, then fastest clock.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead={<>Make as many words as you can from the {ALL_LETTERS.length} letters.</>}
+      banner={<>Every word must use the <b>core letter {CORE}</b> and run at least <b>four letters</b>. Letters may be reused as often as you like.</>}
+      chips={[
+        { label: 'Common 1×', tone: 'grey' },
+        { label: 'Uncommon 2×' },
+        { label: 'Rare 3×', tone: 'good' },
+        { label: 'Pangram +10', tone: 'warn' },
+      ]}
+      steps={[
+        <><b>Type</b> a word and press Enter, or <b>tap the letters</b>.</>,
+        <>Points come from <b>rarity, not length</b>: the multiplier above scales the word&rsquo;s length bonus. A <b>pangram</b> uses every letter on the board and pays a further 10.</>,
+        <>Reach <b>{VEIN} points</b> and you have struck the Lode, so the day counts as solved. Keep digging for the <b>Mother Lode</b>, every last word.</>,
+      ]}
+      knack="One good word is worth a fistful of easy ones, so work the awkward letters before you clear the obvious four-letter fills."
+      footer="One shot counts: your first posted score is the one that ranks, and leaving mid-dig posts what you had. Ties break by fewest words, then fastest clock."
+    />
   );
 
   return (

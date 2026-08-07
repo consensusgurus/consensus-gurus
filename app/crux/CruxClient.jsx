@@ -22,6 +22,7 @@ import Grain from '../Grain';
 import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
@@ -1007,12 +1008,23 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start tile.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid &mdash; no clues. The <b>four categories</b> are the only hints; each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Guess to reveal:</b> tap a slot, type a real word, hit enter. <span style={{ background: COLORS.ink, color: T.white, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Dark</span> = right letter, right square (locks in, crossings too). <span style={{ background: '#e6b93f', color: '#5c4a06', borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>Yellow</span> = in the word, different square. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</p>
-      <p style={{ margin: '0 0 9px' }}><b>File your solves:</b> tap a word, then a category &mdash; placements stay secret and movable. One <b>submit</b> ends the puzzle. Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. No lock-in, no score.</p>
-      <p style={{ margin: 0 }}>Stuck? One free <b>hint</b>, on your first ever play, per puzzle reveals a letter.</p>
-    </div>
+    <DailyRules
+      lead={<><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid, with no clues.</>}
+      banner={<>The <b>four categories</b> are the only hints, and each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</>}
+      chips={[
+        { label: 'Dark = right letter, right square', style: { background: COLORS.ink, color: T.white, border: `1.5px solid ${COLORS.ink}` } },
+        { label: 'Yellow = in the word, different square', style: { background: '#e6b93f', color: '#5c4a06', border: '1.5px solid #5c4a06' } },
+      ]}
+      steps={[
+        <><b>Guess to reveal</b>: tap a slot, type a real word, hit enter. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</>,
+        <>A dark letter <b>locks in</b>, and its crossings lock with it.</>,
+        <><b>File your solves</b>: tap a word, then a category. Placements stay secret and movable.</>,
+        <>One <b>submit</b> ends the puzzle.</>,
+      ]}
+      knack="Crossings are free letters. Solve the words that touch the most slots first and the rest of the grid opens up on its own."
+      note={<>No lock-in, no score: nothing counts until you <b>submit</b>.</>}
+      footer={<>Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. One hint per puzzle, free on your first ever play, reveals a letter.</>}
+    />
   );
 
   return (

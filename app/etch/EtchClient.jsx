@@ -27,6 +27,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -578,12 +579,23 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
   const boardMax = W > 12 ? 620 : 470;
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>The numbers beside each <b>row</b> and above each <b>column</b> are the lengths of the filled runs in that line, in order, with at least one blank between them. A row clued <b>4 2</b> has four filled squares, then a gap, then two.</p>
-      <p style={{ margin: '0 0 9px' }}>Pick what a tap places with the <b>Fill</b> / <b>Mark</b> buttons. It starts on <b>Mark</b> (press M), where a tap pencils a free × on a square you have ruled out, never scored, which is the safe way to work since a wrong fill costs an error. Switch to <b>Fill</b> (press F) to fill squares and <b>drag</b> to fill a run, or just <b>right-click</b> a square to fill it directly. Your choice is remembered next time, and a clue dims once its line matches.</p>
-      <p style={{ margin: '0 0 9px' }}>Every board has exactly one solution and can be reached by pure logic, so you never have to guess. Filling a square that isn&rsquo;t part of the picture turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error, clear it to carry on. <b>Undo</b> (or Ctrl+Z) takes back your last stroke, and one free <b>hint</b>, on your first ever play, fills a correct square.</p>
-      <p style={{ margin: 0 }}>A clean solve with <b>no errors</b> scores a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 15&times;15 Edition.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Fill the squares the clues force, and a picture appears."
+      chips={[
+        { label: 'Mark (M): a free ×, never scored', tone: 'grey' },
+        { label: 'Fill (F): a wrong square is an error', tone: 'bad' },
+      ]}
+      steps={[
+        <>The numbers on each <b>row</b> and <b>column</b> are the lengths of its filled runs, in order, with at least one blank between them. A row clued <b>4 2</b> is four filled, a gap, then two.</>,
+        <>Choose what a tap places with <b>Fill</b> / <b>Mark</b>. It opens on <b>Mark</b>, pencilling a &times; on a square you have ruled out, and remembers your choice next time.</>,
+        <>On <b>Fill</b>, tap a square or <b>drag</b> to fill a run. A <b>right-click</b> fills one directly from either tool, and a clue <b>dims</b> once its line matches.</>,
+        <><b>Undo</b> (or Ctrl+Z) takes back your last stroke, and one free <b>hint</b>, on your first ever play, fills a correct square.</>,
+      ]}
+      knack="One solution per board, reachable by pure logic, so you never have to guess. Marking what you have ruled out is free, filling it wrong is not."
+      note={<>Filling a square that isn&rsquo;t part of the picture turns <b>red</b> and counts as an error. Clear it to carry on.</>}
+      footer="A clean solve with no errors is a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 15×15 Edition."
+    />
   );
 
   return (

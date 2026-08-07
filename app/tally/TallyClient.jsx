@@ -32,6 +32,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 
@@ -918,16 +919,24 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Fill every open square so each <b>row and column adds up to the target</b> at its end.</p>
-      <p style={{ margin: '0 0 9px' }}>You may only use the <b>tiles on your rack</b>, and you must use <b>every one</b>. Digits repeat &mdash; the rack tells you how many of each you have. That supply is the trick: when the sums leave two ways to fill a line, the tiles left leave one.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Undo</b> steps the board back one change, and <b>Clear board</b> lifts every tile at once. Both are free, and neither refunds a move: they restore the grid, not the score.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a tile, then a square. Tap a placed tile to <b>lift it back</b> &mdash; lifting is free. Dotted squares are yours; a square with a corner dot is a printed given; dark squares are out of play.</p>
-      <p style={{ margin: '0 0 9px' }}>Certainty arrives in halves, so the <b>notes</b> do too. Often the rack proves a digit belongs somewhere in a <b>row</b> before you can say which square: mark it <b>right row</b> and it keeps a navy rail top and bottom, still free to slide. <b>Right column</b> rails the sides. A tile carrying <b>both</b> is <b>certain</b> and locks, since two proven lines meet at one square; tap once to unlock.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Drag a half-marked tile along its line</b> to move it without lifting it, so the note survives the move. Tiles in the way shuffle one square toward the one it left, however many of them there are. It costs one move, the same as lifting and re-placing. A tile that has proven the crossing line will not be pushed out of it, so it blocks the slide there.</p>
-      <p style={{ margin: '0 0 9px' }}>Hold a tile (or right-click) to mark it certain outright, or use the <b>&#10003; Mark</b> tool and tap to cycle. Tapping a <b>row or column target</b> notes that half on every tile in the line. Notes are free: they never cost a move and never count against your score. The full key sits under the board.</p>
-      <p style={{ margin: 0 }}>A clean solve uses the <b>fewest possible</b> placements for a perfect 10 &mdash; every extra placement costs a point. Ties break on fewest errors, then fastest time. One free <b>hint</b>, on your first ever play, fills a correct square.</p>
-    </div>
+    <DailyRules
+      lead="Fill every open square so each row and column adds up to the target at its end."
+      chips={[
+        { label: 'Right row = rails top and bottom' },
+        { label: 'Right column = rails at the sides' },
+        { label: 'Both = certain, and it locks' },
+      ]}
+      steps={[
+        <>Tap a tile on your rack, then a square. You must use <b>every rack tile</b> and nothing else: digits repeat, and the rack tells you how many of each you have. Dotted squares are yours, a corner dot is a printed given, dark squares are out of play.</>,
+        <>Tap a placed tile to <b>lift it back</b>, which is free. <b>Undo</b> steps back one change, <b>Clear board</b> lifts every tile at once. Both are free, and neither refunds a move: they restore the grid, not the score.</>,
+        <>Certainty arrives in halves, so the notes do too: often the rack proves a digit belongs somewhere in a <b>row</b> before you can say which square, and a half-marked tile is still free to slide. Two proven lines meet at one square, so a tile carrying <b>both</b> halves is certain and locks. Tap it once to unlock.</>,
+        <><b>Hold</b> a tile (or right-click) to mark it certain outright, or use the <b>&#10003; Mark</b> tool and tap to cycle. Tapping a <b>row or column target</b> notes that half on every tile in the line. Notes are free: they never cost a move and never count against your score. The full key sits under the board.</>,
+        <><b>Drag a half-marked tile</b> along its proven line to move it without lifting, so the note survives. Tiles in the way shuffle one square toward the one it left, however many there are. It costs one move, the same as lifting and re-placing.</>,
+      ]}
+      knack="The rack supply is the lever. When the sums leave two ways to fill a line, the tiles you have left leave one."
+      note="A tile that has proven the crossing line will not be pushed out of it, so it blocks the slide there."
+      footer="The fewest possible placements is a perfect 10, every extra placement costs a point. Ties break on fewest errors, then fastest time. One free hint, on your first ever play, fills a correct square."
+    />
   );
 
   return (

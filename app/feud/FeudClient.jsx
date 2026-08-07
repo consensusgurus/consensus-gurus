@@ -28,6 +28,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -590,11 +591,18 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — how-to-play modal + start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>The answer key is <b>live</b>: it is whatever today&rsquo;s players say, and it keeps moving all day. There is nothing to know &mdash; just read the room.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Five prompts, three answers each, typed blind.</b> Go for what the CROWD will say, not what you&rsquo;d say. <b>Fill all three</b> — every answer pays its own share of the crowd, and a guess nobody else makes simply pays nothing. Lock in and every answer becomes a vote in the tally you&rsquo;re scored on.</p>
-      <p style={{ margin: 0 }}>An answer pays the <b>percent of the crowd</b> that said the same thing (an answer nobody else gives pays zero). You&rsquo;re always graded on the crowd minus your own votes. <b>{winBar(TOTAL)}+ of {TOTAL}</b> means you matched the crowd &mdash; for now: shares reshuffle until midnight Eastern.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Five prompts, three answers each, typed blind. Say what the crowd will say, not what you would say."
+      banner={<>The answer key is <b>live</b>: it is whatever today&rsquo;s players say, and it keeps moving all day.</>}
+      steps={[
+        <>Type <b>three answers</b> to every prompt. <b>Fill all three</b>: each one pays its own share, and a guess nobody else makes simply pays nothing.</>,
+        <>An answer pays the <b>percent of the crowd</b> that said the same thing. You are always graded on the crowd <b>minus your own votes</b>.</>,
+        <>Lock in, and every answer you gave becomes a vote in the tally the next player is scored on.</>,
+      ]}
+      knack="There is nothing to know here, just read the room. Go for the obvious answer, never the clever one."
+      footer={<><b>{winBar(TOTAL)}+ of {TOTAL}</b> means you matched the crowd, for now: shares reshuffle until midnight Eastern.</>}
+    />
   );
 
   return (

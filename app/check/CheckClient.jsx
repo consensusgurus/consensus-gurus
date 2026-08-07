@@ -28,6 +28,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -563,12 +564,18 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>You are <b>red</b>, moving up the board. Capture <b>every black piece</b> within <b>{BUDGET} of your moves</b>. Tap one of your pieces and its legal squares light up, then tap one to play it.</p>
-      <p style={{ margin: '0 0 9px' }}>Standard checkers: men step one square diagonally forward, kings go both ways, and reaching the far row crowns you and ends the turn. <b>Captures are compulsory</b>, and a jump must be carried on for as long as the same piece can keep jumping. That rule is the whole puzzle: the winning move is nearly always a <b>sacrifice</b> that forces black to jump into a sweep.</p>
-      <p style={{ margin: '0 0 9px' }}>Exactly <b>one</b> first move clears the board in time. A wrong one is <b>not taken back</b>: black answers, your budget still runs down, and you finish the board knowing the sweep has gone.</p>
-      <p style={{ margin: 0 }}>Clearing the board scores <b>10</b>. Falling short scores nothing, the same as giving up: the sweep is the whole puzzle. One free <b>hint</b>, on your first ever play, names the piece to move. <b>Sundays</b> give you four moves instead of three, and need them.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>You are <b>red</b>, moving up the board. Capture <b>every black piece</b> within <b>{BUDGET} of your moves</b>.</>}
+      steps={[
+        <>Tap one of your pieces and its legal squares light up, then tap one to play it.</>,
+        <>Standard checkers: men step one square diagonally forward, kings go both ways, and reaching the far row crowns you and ends the turn.</>,
+        <><b>Captures are compulsory</b>, and a jump must be carried on for as long as the same piece can keep jumping.</>,
+      ]}
+      knack="That compulsory jump is the whole puzzle: the winning move is nearly always a sacrifice that forces black to jump into a sweep."
+      note={<>Exactly <b>one</b> first move clears the board in time, and a wrong one is <b>not taken back</b>: black answers, your budget still runs down, and the sweep is gone.</>}
+      footer={<>Clearing the board scores 10. Falling short scores nothing, the same as giving up. One free <b>hint</b>, on your first ever play, names the piece to move. Sundays give you four moves instead of three, and need them.</>}
+    />
   );
 
   const statusLine = () => {

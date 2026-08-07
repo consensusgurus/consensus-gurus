@@ -27,6 +27,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -623,12 +624,18 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start tile.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Emcee is a <b>mini crossword</b>: fill every square using the numbered <b>Across</b> and <b>Down</b> clues. Tap a square to select its word, tap it again to flip direction, and type. On a keyboard, <b>space</b> flips direction and <b>tab</b> jumps to the next clue.</p>
-      <p style={{ margin: '0 0 9px' }}>The grid <b>checks itself</b> the moment the last square is filled. A perfect fill wins on the spot; a wrong one marks the misses <b style={{ color: COLORS.rust }}>red</b> and counts a <b>check</b> against you.</p>
-      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b>, on your first ever play, reveals a letter.</p>
-      <p style={{ margin: 0 }}>Finish the grid for a full score. On the daily board, ties break on <b>fewest checks</b>, then <b>fastest time</b> &mdash; so a clean, quick solve is the crown. Sundays go bigger: a 7&times;7 grid.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Fill every square of the mini crossword from the numbered Across and Down clues."
+      steps={[
+        <><b>Tap a square</b> to select its word, tap it again to flip direction, then type. On a keyboard, <b>space</b> flips direction and <b>tab</b> jumps to the next clue.</>,
+        <>The grid <b>checks itself</b> the moment the last square is filled. A perfect fill wins on the spot.</>,
+        <>A wrong fill marks the misses <b style={{ color: COLORS.rust }}>red</b> and counts a <b>check</b> against you.</>,
+        <>One free <b>hint</b>, on your first ever play, reveals a letter.</>,
+      ]}
+      knack="Nothing is judged until the last square goes in, so read your shakiest word against its crossing clue before you fill it."
+      footer="Finish the grid for a full score. Ties break on fewest checks, then fastest time, so a clean quick solve is the crown. Sundays go bigger: a 7×7 grid."
+    />
   );
 
   return (

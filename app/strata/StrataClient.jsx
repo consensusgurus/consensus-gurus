@@ -41,6 +41,7 @@ import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { T } from '@/lib/theme';
 import { makeCells, positions, adjacent, findOne, gridOf } from '@/lib/strata-core';
@@ -484,12 +485,18 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                 Trace a word and it lifts out. Then the letters above it fall, and the board you were reading is gone.
               </p>
               {gateRules && (
-                <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 14px', paddingLeft: 20 }}>
-                  <li>Tap the letters one at a time, or hold and drag through them. Diagonals count.</li>
-                  <li>Most of today&rsquo;s words cannot be read yet. They arrive when the board falls.</li>
-                  <li>A wrong trace costs nothing. You cannot get stuck, in any order.</li>
-                  <li>Hints are the only thing that separates two players who both finish.</li>
-                </ul>
+                <div style={{ marginBottom: 14 }}>
+                  <DailyRules
+                    accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+                    steps={[
+                      <>Tap the letters one at a time, or <b>hold and drag</b> through them. <b>Diagonals count</b>.</>,
+                      <>Most of today&rsquo;s words cannot be read yet. They arrive when the board falls.</>,
+                      <>A <b>wrong trace costs nothing</b>. You cannot get stuck, in any order.</>,
+                    ]}
+                    knack="Take whatever you can read now. Every word you lift drops the letters above it into the next one."
+                    footer="Hints are the only thing that separates two players who both finish."
+                  />
+                </div>
               )}
               <button className="st-btn primary" onClick={start}>Start digging</button>
               {!gateRules && <button className="st-btn" style={{ marginLeft: 8 }} onClick={() => setGateRules(true)}>Show instructions</button>}

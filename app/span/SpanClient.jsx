@@ -29,6 +29,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HelpCircle, Share2, RotateCcw, X, Undo2, Flag, Swords, Smartphone, Lightbulb, Eye } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -713,14 +714,20 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}><b>Get from {PUZZLE.start} to {PUZZLE.end}</b> by typing a chain of countries &mdash; each one must share a <b>land border</b> with the last.</p>
-      <p style={{ margin: '0 0 9px' }}><b>The shortest path is {PUZZLE.perfect} hops.</b> Your score is 10 if your final chain matches it, minus one for each country over. Undo any step for free. A country that doesn&apos;t border your position is a miss &mdash; misses break leaderboard ties.</p>
-      {isSundayEd && sundayRule && (
-        <p style={{ margin: '0 0 9px' }}><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.perfect}-hop shortest path already takes the detour.</> : <><b>{AVOID}</b> is closed today &mdash; the road has to go around it, and the {PUZZLE.perfect}-hop shortest path already does.</>}</p>
-      )}
-      <p style={{ margin: 0 }}>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels. One free <b>hint</b>, on your first ever play, walks you one step down a shortest road.</p>
-    </div>
+    <DailyRules
+      lead={<>Get from <b>{PUZZLE.start}</b> to <b>{PUZZLE.end}</b> by land border.</>}
+      banner={<>Perfect is <b>{PUZZLE.perfect} hops</b>, the proven shortest road.</>}
+      steps={[
+        <>Type a country that shares a <b>land border</b> with where you stand, and keep going until you reach {PUZZLE.end}.</>,
+        <>Mainland borders only: overseas territories don&apos;t count (sorry, France&ndash;Brazil), and neither do bridges or tunnels.</>,
+        <>A country that doesn&apos;t border your position is a <b>miss</b>. <b>Undo</b> any step for free.</>,
+      ]}
+      knack="Head for the country that opens the most onward borders, not the one that simply looks closest on the map."
+      note={isSundayEd && sundayRule ? (
+        <><b>Sunday Edition:</b> {VIA ? <>your road must pass through <b>{VIA}</b> before it reaches {PUZZLE.end}. The {PUZZLE.perfect}-hop shortest road already takes the detour.</> : <><b>{AVOID}</b> is closed today, so the road has to go around it. The {PUZZLE.perfect}-hop shortest road already does.</>}</>
+      ) : null}
+      footer="Score is 10 if your final chain matches perfect, minus one for each country over. Misses break leaderboard ties. One free hint, on your first ever play, walks you one step down a shortest road."
+    />
   );
 
   return (

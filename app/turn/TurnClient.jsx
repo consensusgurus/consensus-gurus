@@ -34,6 +34,7 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { makeGame, idOrder, engineMove, SQ_NAME } from './othello';
 import { T } from '@/lib/theme';
@@ -575,12 +576,20 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Othello, picked up at the end. You are <b>black</b>. <b>Tap a ringed square</b> to play there: your disc must trap a line of white discs against another black one, and every disc you trap flips. If you have no legal square you <b>pass</b> and the engine goes again, which cuts both ways and is most of the tactics down here.</p>
-      <p style={{ margin: '0 0 9px' }}>There are {PUZZLE.empties} empty squares and the game is <b>already won for you</b>. Exactly <b>one</b> square keeps it. A wrong square is <b>not taken back</b>: the engine solves the position to the last disc, so once the win is gone it never comes back.</p>
-      <p style={{ margin: '0 0 9px' }}>The habit to distrust is your own. Flipping as few discs as possible is good Othello most of the time, which is exactly why it is not always right here: some days the square that turns the whole row is the only move that wins, and some days neither extreme does. Read the board, not the reflex. One free <b>hint</b>, on your first ever play, rings three squares, one of which wins.</p>
-      <p style={{ margin: 0 }}>Finding it is not the whole job: every move after it has to hold the win too. Most discs at the end takes it, and a level board is not a win. Winning scores <b>10</b>, losing <b>1</b>, giving up nothing. Ties break on fewest errors, then fastest time. <b>Sundays</b> step up to 12 empty squares.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Othello, picked up at the end. You are black, and the game is already won for you."
+      banner={<>{PUZZLE.empties} empty squares, and exactly <b>one</b> of them keeps the win.</>}
+      steps={[
+        <><b>Tap a ringed square</b> to play there. Your disc must trap a line of white discs against another black one, and every disc you trap flips.</>,
+        <>With no legal square you <b>pass</b> and the engine goes again, which cuts both ways and is most of the tactics down here.</>,
+        <>A wrong square is <b>not taken back</b>. The engine solves the position to the last disc, so once the win is gone it never comes back.</>,
+        <>Finding the square is not the whole job: every move after it has to hold the win too. <b>Most discs</b> at the end takes it, and a level board is not a win.</>,
+        <>One free <b>hint</b>, on your first ever play, rings three squares, one of which wins.</>,
+      ]}
+      knack="The habit to distrust is your own. Flipping as few discs as possible is good Othello most of the time, which is exactly why it is not always right here: some days the square that turns the whole row is the only move that wins, and some days neither extreme does. Read the board, not the reflex."
+      footer="Winning scores 10, losing 1, giving up nothing. Ties break on fewest errors, then fastest time. Sundays step up to 12 empty squares."
+    />
   );
 
   const statusLine = () => {

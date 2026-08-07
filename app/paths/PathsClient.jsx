@@ -33,6 +33,7 @@ import DailyEndCard from '../DailyEndCard';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import DailyChrome from '../DailyChrome';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
@@ -581,12 +582,25 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   }, [PUZZLE, n]);
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Lay track along the lanes until <b>every town is linked back to the depot</b>. Drag along a lane to lay track, drag back over your own track to lift it. Towns turn green as they connect.</p>
-      <p style={{ margin: '0 0 9px' }}>What it costs you: an open lane is <b>1</b>, a <b style={{ color: COLORS.ridgeInk }}>ridge lane</b> is <b>2</b>, and a <b style={{ color: COLORS.riverInk }}>river crossing</b> is <b>3</b>. The tan shading marks exactly the lanes that charge 2, and a lane only charges 2 when <b>both</b> of its ends stand on the ridge, so skirting the edge of one is free. The river is a solid barrier with no gap in it, so you pay to cross it somewhere.</p>
-      <p style={{ margin: '0 0 9px' }}>Linking everything does not end the round. The first network you find is never the cheapest, so keep trimming and press <b>Finish</b> when you are happy. <b>Undo</b> (or Ctrl+Z) and <b>Clear</b> are free and unlimited, and one free <b>hint</b>, on your first ever play, lays a single lane of a cheapest network.</p>
-      <p style={{ margin: 0 }}><b>Perfect</b> is the cheapest network that exists on the board, proved by an exact solver, and it scores 10. <b>Par</b> is {step} over perfect per point, so par lands on 8. Spurs that lead nowhere still cost you. Ties break on cost, then on time. Sundays are a bigger 11&times;11 Edition with ten towns.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent}
+      accentSoft={COLORS.accentSoft}
+      lead="Link every town to the depot for as little track as you can."
+      chips={[
+        { label: 'Open 1', tone: 'grey' },
+        { label: 'Ridge 2', style: { background: COLORS.ridge, border: `1.5px solid ${COLORS.ridgeInk}`, color: COLORS.ridgeInk } },
+        { label: 'Crossing 3', style: { background: COLORS.river, border: `1.5px solid ${COLORS.riverInk}`, color: COLORS.riverInk } },
+      ]}
+      sub={<>Tan shading marks every lane that charges 2, which needs <b>both</b> ends on the ridge, so skirting the edge is free. The river is one unbroken barrier.</>}
+      steps={[
+        <>Drag or tap a lane to <b>lay track</b>, drag back over your track to lift it. Towns turn green as they connect.</>,
+        <>Link all {TOWNS.length} towns, then keep <b>trimming</b>: your first network is never the cheapest, and dead-end spurs still cost you.</>,
+        <><b>Undo</b> (Ctrl+Z) and <b>Clear</b> are free and unlimited. One free <b>hint</b>, on your first ever play, lays a lane of a cheapest network.</>,
+        <>Linking everything does not end the round: press <b>Finish</b> when you cannot trim any further.</>,
+      ]}
+      knack="Share one crossing. You pay the river somewhere, and two lanes of detour on open ground beats paying 3 again."
+      footer={<><b>Perfect</b>, the solver-proved cheapest network on the board, scores 10; a point comes off per {step} over, so par is 8. Ties break on cost, then time. Sundays are an 11&times;11 Edition with ten towns.</>}
+    />
   );
 
   return (

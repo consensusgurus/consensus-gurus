@@ -28,6 +28,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -617,11 +618,23 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>The answer key is <b>everyone playing today</b>. One themed slate, two moves.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Vote</b>: tap your honest favorite &mdash; your taste becomes part of the crowd. <b>Call it</b>: put the whole slate in the order you think today&rsquo;s crowd ranks it by favorite votes.</p>
-      <p style={{ margin: 0 }}>Each item pays <b>2</b> in its exact slot, <b>1</b> one slot off, <b>0</b> otherwise. The twist: <b>nothing is final</b> &mdash; every new vote can reshuffle the crowd&rsquo;s order, so your score and rank move all day. <b>{winBar(TOTAL)} of {TOTAL}</b> means you outranked the crowd &mdash; for now.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="The answer key is everyone playing today."
+      chips={[
+        { label: '2 = exact slot', tone: 'good' },
+        { label: '1 = one slot off', tone: 'warn' },
+        { label: '0 = anywhere else', tone: 'bad' },
+      ]}
+      steps={[
+        <><b>Vote</b>: tap your honest favorite, and your taste becomes part of the crowd.</>,
+        <><b>Call it</b>: put the whole slate in the order you think today&rsquo;s crowd ranks it by favorite votes.</>,
+        <>Score <b>{winBar(TOTAL)} of {TOTAL}</b> and you outranked the crowd, for now.</>,
+      ]}
+      knack={<>Rank what the crowd likes, not what you like. Your own favorite is one vote among all of today&rsquo;s.</>}
+      note={<><b>Nothing is final.</b> Every new vote can reshuffle the crowd&rsquo;s order, so your score and rank move all day.</>}
+      footer="One themed slate, two moves, and the standings keep re-scoring until the day is out."
+    />
   );
 
   return (

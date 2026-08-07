@@ -28,6 +28,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -576,12 +577,23 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
   for (let i = 0; i < n; i++) for (let j = 0; j <= n; j++) segs.push({ kind: 'v', i, j, idx: i * (n + 1) + j, x1: X(j), y1: Y(i), x2: X(j), y2: Y(i + 1) });
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Draw <b>one single closed loop</b> along the grid lines. A number tells you exactly how many of that cell&rsquo;s four sides are part of the loop, so a <b>3</b> has three sides used and a <b>0</b> has none. Cells with no number are unconstrained.</p>
-      <p style={{ margin: '0 0 9px' }}>The loop never branches and never crosses itself, so every corner it reaches has exactly two lines running out of it. That, plus the numbers, is enough to pin down a single answer.</p>
-      <p style={{ margin: '0 0 9px' }}>Choose what a tap places with the <b>&times;</b> / <b>Line</b> buttons. It starts on <b>&times;</b> (a free note that no line goes there, never scored), the mark you use most, and remembers your choice next time. Switch to <b>Line</b> to draw the loop, or just <b>hold</b> a segment (right-click on a computer) to draw a line in either mode. Tap again to lift a line or clear a &times;. A number dims when its sides are all accounted for. <b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b>, on your first ever play, draws a correct segment.</p>
-      <p style={{ margin: 0 }}>A line that isn&rsquo;t part of the loop turns <b style={{ color: COLORS.rust }}>red</b> and counts as an error. A clean solve with <b>no errors</b> scores a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 10&times;10 Edition.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Draw one single closed loop along the grid lines."
+      chips={[
+        { label: '× = no line here', tone: 'grey' },
+        { label: 'Red line = error', tone: 'bad' },
+        { label: 'Dimmed number = sides settled', tone: 'good' },
+      ]}
+      steps={[
+        <>A number is exactly how many of that cell&rsquo;s four sides the loop uses: a <b>3</b> uses three, a <b>0</b> none. Cells with no number are unconstrained.</>,
+        <>The loop never branches or crosses itself, so every corner it reaches has exactly two lines running out. That plus the numbers pins down a single answer.</>,
+        <>The <b>&times;</b> / <b>Line</b> buttons set what a tap places, opening on <b>&times;</b>, a free note that is never scored, and remembering your choice next time. <b>Hold</b> a segment (right-click on a computer) to draw a line in either mode, and tap again to lift a line or clear a &times;.</>,
+        <><b>Undo</b> (or Ctrl+Z) takes back your last move. One free <b>hint</b>, on your first ever play, draws a correct segment.</>,
+      ]}
+      knack="Start on the 0s and 3s: they settle sides outright, and every settled side forces the corners around it."
+      footer={<>No errors scores a perfect 10, and every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 10&times;10 Edition.</>}
+    />
   );
 
   return (

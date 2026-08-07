@@ -39,6 +39,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -791,14 +792,18 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const strategyLine = (<>There is <b>exactly one solution</b>, and you can reach it by pure logic &mdash; start with the leftmost column of the answer, and let the carries do the talking. No guessing required.</>);
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Today&rsquo;s equation is a <b>cryptarithm</b>: every letter stands for a different digit, 0&ndash;9, and the {opWord} must work out. Letters that start a word are never zero.</p>
-      <p style={{ margin: '0 0 9px' }}>Tap a letter, then tap a digit (or just type). Tap a filled letter again to clear it. The pad shows which letter owns each digit; if two letters share one, both flag red.</p>
-      <p style={{ margin: '0 0 9px' }}>The board keeps the scratch work for you. The <b>key rack</b> lists the digits still open to each letter, dropping any digit taken elsewhere; hit <b>Notes</b> to cross off more. The <b>{carryWord} row</b> above the equation fills itself in as far as your digits allow, and you can pencil the rest. Under each column, a <b>✓ or ✗</b> tells you exactly which column works, so a wrong digit turns up where it happened.</p>
-      <p style={{ margin: '0 0 9px' }}>Those column marks are <b>free</b>. Only the Check button is scored.</p>
-      <p style={{ margin: '0 0 9px' }}>{strategyLine}</p>
-      <p style={{ margin: 0 }}>Solve it for up to <b>10 points</b>: a clean first check is a perfect 10, and every failed check costs one. Ties on the daily board break by fewest failed checks, then fastest time.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>A <b>cryptarithm</b>: every letter is a different digit, 0&ndash;9, and the {opWord} must work out.</>}
+      steps={[
+        <>Letters that start a word are <b>never zero</b>.</>,
+        <><b>Tap a letter, then tap a digit</b>, or just type. Tap a filled letter again to clear it. The pad shows which letter owns each digit, and two letters sharing one both flag red.</>,
+        <>The board keeps the scratch work: the <b>key rack</b> lists the digits still open to each letter, dropping any taken elsewhere; <b>Notes</b> crosses off more; and the <b>{carryWord} row</b> above the equation fills in as far as your digits allow, with the rest yours to pencil.</>,
+        <>A <b>✓ or ✗</b> under each column shows exactly which column works, so a wrong digit turns up where it happened. Those marks are <b>free</b>; only <b>Check</b> is scored.</>,
+      ]}
+      knack={<>There is <b>exactly one solution</b> and pure logic reaches it: start with the leftmost column of the answer and let the carries do the talking. No guessing required.</>}
+      footer="Up to 10 points: a clean first check is a perfect 10, and every failed check costs one. Ties on the daily board break by fewest failed checks, then fastest time."
+    />
   );
 
   return (

@@ -15,6 +15,7 @@ import { HelpCircle, Share2, RotateCcw, X, Trophy, Eye, Smartphone } from 'lucid
 import Grain from '../Grain';
 import DailyGamesPromo from '../DailyGamesPromo';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -470,11 +471,19 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start tile.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}><b>Untangle five garbled words</b> &mdash; tap a row, type the word using exactly the letters shown, hit enter. Wrong words are <b>misses</b>.</p>
-      <p style={{ margin: '0 0 9px' }}>Each solution donates its <span style={{ background: COLORS.gold, color: COLORS.goldInk, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>gold letters</span> to <b>the finale</b> &mdash; a last answer with its clue printed up top. Solve it whenever you see it; the finale ends the puzzle.</p>
-      <p style={{ margin: 0 }}>Score is out of 10: one per word, five for the finale. Fewest misses breaks ties, then time.</p>
-    </div>
+    <DailyRules
+      chips={[
+        { label: 'Gold letters feed the finale', style: { background: COLORS.gold, border: `1.5px solid ${COLORS.goldInk}`, color: COLORS.goldInk } },
+      ]}
+      lead="Untangle five garbled words, then the finale they feed."
+      steps={[
+        <><b>Tap a row</b>, type the word using exactly the letters shown, and hit <b>enter</b>. A wrong word is a <b>miss</b>.</>,
+        <>Each solved word donates its <b>gold letters</b> to <b>the finale</b>, a last answer with its clue printed up top.</>,
+        <>Solve the finale whenever you see it. It <b>ends the puzzle</b>.</>,
+      ]}
+      knack="The finale is worth half the board, so a gold letter or two is often enough to call it before all five words are untangled."
+      footer="Score is out of 10: one per word, five for the finale. Fewest misses breaks ties, then time."
+    />
   );
 
   return (

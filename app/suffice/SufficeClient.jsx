@@ -40,6 +40,7 @@ import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { T } from '@/lib/theme';
 import { getScenario, decide, linClassify, witness, CHOICES } from './engine';
@@ -377,12 +378,18 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                 Working out the actual value is wasted time.
               </p>
               {gateRules && (
-                <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 14px', paddingLeft: 20 }}>
-                  <li>Decide each statement on its own first, then the two together.</li>
-                  <li>&ldquo;Sufficient&rdquo; means the answer is the same in every case the statement allows.</li>
-                  <li>One counterexample is enough to make a statement insufficient.</li>
-                  <li>One point per item. No going back once you answer.</li>
-                </ul>
+                <div style={{ marginBottom: 14 }}>
+                  <DailyRules
+                    accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+                    steps={[
+                      <>Decide each statement <b>on its own</b> first, then the two <b>together</b>.</>,
+                      <>&ldquo;Sufficient&rdquo; means the answer is the <b>same in every case</b> the statement allows.</>,
+                      <>One <b>counterexample</b> is enough to make a statement insufficient.</>,
+                    ]}
+                    knack="Hunt for the second case, not the answer. Find two values a statement still permits and it is insufficient, and you are done."
+                    footer="One point per item. No going back once you answer."
+                  />
+                </div>
               )}
               <button className="sf-btn primary" onClick={start}>Start</button>
               {!gateRules && (

@@ -26,6 +26,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -623,12 +624,18 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Carve the grid into <b>{R} connected blocks</b> that each add up to <b>{TARGET}</b>. Every block grows out from its <b>ringed anchor square</b>, and there is exactly one way to carve the board.</p>
-      <p style={{ margin: '0 0 9px' }}>Pick a color below the board (or tap its anchor), then tap squares that <b>touch that block</b> to paint them in. Tap a painted square to un-carve it. The running total on each color chip shows how close its block is.</p>
-      <p style={{ margin: '0 0 9px' }}>The moment a block hits {TARGET} it is checked: a true block <b>locks in</b>, a wrong one shakes <b style={{ color: COLORS.rust }}>red</b>, clears back to its anchor, and counts as an <b>error</b>. One free <b>hint</b>, on your first ever play, paints a correct square.</p>
-      <p style={{ margin: 0 }}>Carve every block with <b>no errors</b> for a perfect 10 &mdash; every error costs a point. Ties break on fewest errors, then fastest time. Sundays go bigger: a 7&times;7 board in nine blocks.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>Carve the grid into <b>{R} connected blocks</b> that each add up to <b>{TARGET}</b>.</>}
+      steps={[
+        <>Every block grows out from its <b>ringed anchor square</b>, and there is exactly one way to carve the board.</>,
+        <>Pick a colour below the board, or tap its anchor, then tap squares that <b>touch that block</b> to paint them in. Tap a painted square to un-carve it.</>,
+        <>Each colour chip shows its block&rsquo;s running total.</>,
+        <>The moment a block hits {TARGET} it is checked: a true block <b>locks in</b>, a wrong one shakes <b style={{ color: COLORS.rust }}>red</b>, clears back to its anchor and counts as an <b>error</b>.</>,
+      ]}
+      knack="Start with the anchors hemmed in by edges or big numbers. A block with only one way to grow settles its neighbours for you."
+      footer={<>No errors is a perfect 10, and every error costs a point. One free <b>hint</b>, on your first ever play, paints a correct square. Ties break on fewest errors, then fastest time. Sundays go bigger: a 7&times;7 board in nine blocks.</>}
+    />
   );
 
   return (

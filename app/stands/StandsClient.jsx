@@ -30,6 +30,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { T as THEME } from '@/lib/theme';
 
 const COLORS = {
@@ -393,26 +394,23 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
   const cellIndex = (i, j) => PAIRS.findIndex(([a,b]) => (a === i && b === j) || (a === j && b === i));
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>Rebuild the results sheet.</p>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12, fontSize: 12.5, fontWeight: 800 }}>
-        <span style={{ borderRadius: 7, padding: '6px 10px', background: COLORS.greenSoft, border: `1.5px solid ${COLORS.green}`, color: '#14532d' }}>W = 3 points</span>
-        <span style={{ borderRadius: 7, padding: '6px 10px', background: '#fef3c7', border: '1.5px solid #b45309', color: '#78350f' }}>D = 1 point</span>
-        <span style={{ borderRadius: 7, padding: '6px 10px', background: '#fee2e2', border: '1.5px solid #b91c1c', color: '#7f1d1d' }}>L = 0</span>
-      </div>
-      <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
-        <li style={{ marginBottom: 5 }}>Every team played every other team once, so there are <b>{PAIRS.length} matches</b> to place.</li>
-        <li style={{ marginBottom: 5 }}>Tap any cell in either half to cycle it: win, draw, loss, blank (long-press or right-click to step back). The opposite cell mirrors it.</li>
-        <li style={{ marginBottom: 5 }}>The table under the grid recalculates as you go. Use it against the clues.</li>
-        <li>Fill every cell, then <b>hand in the sheet</b>.</li>
-      </ol>
-      <div style={{ background: THEME.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
-        <b>The knack:</b> points are the lever. A team on 7 from four matches can only be two wins and a draw, so one line of the table often fixes three results at once. Start with whichever team the clues pin hardest.
-      </div>
-      <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
-        12 points, 3 off for each sheet handed in wrong, 2 for a nudge. Exactly one set of results fits the clues.
-      </p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead="Rebuild the results sheet."
+      chips={[
+        { label: 'W = 3 points', tone: 'good', style: { padding: '6px 10px' } },
+        { label: 'D = 1 point', tone: 'warn', style: { padding: '6px 10px' } },
+        { label: 'L = 0', tone: 'bad', style: { padding: '6px 10px' } },
+      ]}
+      steps={[
+        <>Every team played every other team once, so there are <b>{PAIRS.length} matches</b> to place.</>,
+        <>Tap any cell in either half to cycle it: win, draw, loss, blank (long-press or right-click to step back). The opposite cell mirrors it.</>,
+        <>The table under the grid recalculates as you go. Use it against the clues.</>,
+        <>Fill every cell, then <b>hand in the sheet</b>.</>,
+      ]}
+      knack="points are the lever. A team on 7 from four matches can only be two wins and a draw, so one line of the table often fixes three results at once. Start with whichever team the clues pin hardest."
+      footer="12 points, 3 off for each sheet handed in wrong, 2 for a nudge. Exactly one set of results fits the clues."
+    />
   );
 
   return (

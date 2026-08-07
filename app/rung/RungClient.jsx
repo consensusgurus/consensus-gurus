@@ -26,6 +26,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { X, Lightbulb, Eye, Smartphone, RotateCcw } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -527,12 +528,22 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Climb from <b>{PUZZLE.start.toUpperCase()}</b> to <b>{PUZZLE.target.toUpperCase()}</b>, <b>changing one letter at a time</b>. Every rung has to be a real word, and the letters stay where they are: no anagrams, no adding or dropping letters.</p>
-      <p style={{ margin: '0 0 9px' }}>A rung must be one of the <b>1,292 common five-letter words</b> in the game&rsquo;s list. Par and perfect were both worked out over exactly that list, so if a word is not in it, it is not a rung here.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Par is {par}</b> on this ladder, the length a clean climb comes in at. <b>Perfect is {perfect}</b>, the shortest route that exists, found by search rather than by hand, and nobody gets under it. There is <b>no undo</b>, only a restart that puts you back at the start word and zeroes your rungs, though the clock keeps running. You can always climb backwards by retyping an earlier word, and that costs a rung like anything else.</p>
-      <p style={{ margin: 0 }}>Perfect scores <b>10</b> and every {step} rungs over it costs a point, so par scores <b>8</b>, down to a floor of one. One free <b>hint</b>, on your first ever play, gives you the next word of a shortest ladder from wherever you are. <b>Sundays</b> are a much longer climb.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>Climb from <b>{PUZZLE.start.toUpperCase()}</b> to <b>{PUZZLE.target.toUpperCase()}</b>, changing one letter at a time.</>}
+      chips={[
+        { label: `Perfect ${perfect} rungs = 10`, tone: 'good' },
+        { label: `Par ${par} rungs = 8` },
+      ]}
+      steps={[
+        <>Every rung must be a real word, and the letters stay where they are: <b>no anagrams</b>, no adding or dropping letters.</>,
+        <>A rung has to be one of the <b>1,292 common five-letter words</b> in the game&rsquo;s list. Par and perfect were worked out over exactly that list, so a word not in it is not a rung here.</>,
+        <><b>Perfect</b> is the shortest route that exists, found by search rather than by hand, so nobody gets under it. <b>Par</b> is the length a clean climb comes in at.</>,
+        <>No <b>undo</b>: <b>restart</b> puts you back at the start word and zeroes your rungs while the clock keeps running. Climbing backwards by retyping an earlier word costs a rung too.</>,
+      ]}
+      knack="Change only the letters the target needs. A detour that undoes a letter you already had right costs you two rungs."
+      footer={<>Every {step} rungs over perfect costs a point, down to a floor of one. One free hint, on your first ever play, gives the next word of a shortest ladder from wherever you are. Sundays are a much longer climb.</>}
+    />
   );
 
   const Word = ({ w, prevWord, dim, outline }) => (

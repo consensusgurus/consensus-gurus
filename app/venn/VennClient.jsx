@@ -32,6 +32,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { T } from '@/lib/theme';
 import { ruleFn, ruleLabel, usesFacts } from '@/lib/venn-rules';
 import { domainNote } from '@/lib/venn-facts';
@@ -326,35 +327,29 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
   const noun = PUZZLE.domain ? 'item' : 'word';
   const tightItems = PUZZLE.items.some((w) => w.length > 8);
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>File every {noun} where it belongs.</p>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-        {PUZZLE.rules.map((r, i) => (
-          <span key={i} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 800, borderRadius: 7, padding: '6px 10px', background: T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] }}>
-            {String.fromCharCode(65 + i)}: {ruleLabel(r, PUZZLE.domain)}
-          </span>
-        ))}
-      </div>
-      {(showVowelNote || showHidesNote || factNote) && (
-        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: COLORS.faded, fontWeight: 600, marginBottom: 12 }}>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead={`File every ${noun} where it belongs.`}
+      chips={PUZZLE.rules.map((r, i) => ({
+        label: `${String.fromCharCode(65 + i)}: ${ruleLabel(r, PUZZLE.domain)}`,
+        style: { padding: '6px 10px', background: T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] },
+      }))}
+      steps={[
+        <>Tap a word, then tap the region it belongs in. Tap a filed word to pick it back up, or tap its <b>&times;</b> to send it straight to the tray.</>,
+        <>Words can satisfy two circles, or all three. Every region here holds at least one.</>,
+        <>Each region prints <b>how many</b> words belong in it.</>,
+        <>When your counts match, <b>File the sheet</b>.</>,
+      ]}
+      knack="the counts are the proof. If a region wants two words and you can only find one for it, something you have already filed elsewhere belongs there, so go back and find it rather than guessing."
+      sub={(showVowelNote || showHidesNote || factNote) ? (
+        <>
           {factNote && <div><b>{factNote}</b></div>}
           {showVowelNote && <div>The vowels are A, E, I, O and U. Y never counts as one.</div>}
           {showHidesNote && <div>A word hides something only when the smaller word sits inside a longer one. SHIP hides a hip, but LUNG does not hide a lung.</div>}
-        </div>
-      )}
-      <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
-        <li style={{ marginBottom: 5 }}>Tap a word, then tap the region it belongs in. Tap a filed word to pick it back up, or tap its <b>&times;</b> to send it straight to the tray.</li>
-        <li style={{ marginBottom: 5 }}>Words can satisfy two circles, or all three. Every region here holds at least one.</li>
-        <li style={{ marginBottom: 5 }}>Each region prints <b>how many</b> words belong in it.</li>
-        <li>When your counts match, <b>File the sheet</b>.</li>
-      </ol>
-      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
-        <b>The knack:</b> the counts are the proof. If a region wants two words and you can only find one for it, something you have already filed elsewhere belongs there, so go back and find it rather than guessing.
-      </div>
-      <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
-        12 points, 3 off for each sheet that comes back wrong. Vowels are A, E, I, O, U, never Y.{PUZZLE.sunday ? ' Sunday withholds two of the counts.' : ''}
-      </p>
-    </div>
+        </>
+      ) : null}
+      footer={`12 points, 3 off for each sheet that comes back wrong. Vowels are A, E, I, O, U, never Y.${PUZZLE.sunday ? ' Sunday withholds two of the counts.' : ''}`}
+    />
   );
 
   const trayItems = PUZZLE.items.map((w, i) => ({ w, i })).filter(({ i }) => !g.place[i]);

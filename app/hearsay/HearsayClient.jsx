@@ -32,6 +32,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -458,32 +459,22 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
   // evidence") in the middle of a paragraph, so the rules now state the goal,
   // show who knows what, and teach the trick with this board's own words.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>Work out which {PUZZLE.noun} is the secret one.</p>
-
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-        {PUZZLE.who.map((w, i) => (
-          <span key={w} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 800, borderRadius: 7, padding: '7px 10px', background: COLORS.accentSoft, border: '1.5px solid rgba(124,45,146,0.4)', color: COLORS.accentDeep }}>
-            {w} knows the {PUZZLE.attrs[i]}
-          </span>
-        ))}
-      </div>
-
-      <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
-        <li style={{ marginBottom: 5 }}>Each of them knows <b>only</b> that one detail. Nobody lies.</li>
-        <li style={{ marginBottom: 5 }}>They speak in turn, and every line narrows the list.</li>
-        <li style={{ marginBottom: 5 }}>Tap cards to cross them off as you rule them out.</li>
-        <li>Hit <b>Name the {PUZZLE.noun}</b> and pick the last one standing.</li>
-      </ol>
-
-      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
-        <b>The knack:</b> &ldquo;I don&rsquo;t know&rdquo; is the evidence. If the secret {PUZZLE.noun} were the only one with its {PUZZLE.attrs[0]}, {PUZZLE.who[0]} would have known straight away. {PUZZLE.who[0]} did not, so every {PUZZLE.attrs[0]} that appears just once is out. A line said <i>later</i> is sharper still: &ldquo;I still don&rsquo;t know&rdquo; is about the list as it stands after everything already said.
-      </div>
-
-      <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
-        12 points for a first-time pick, 3 off for each wrong name. Exactly one card survives every line.
-      </p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead={`Work out which ${PUZZLE.noun} is the secret one.`}
+      chips={PUZZLE.who.map((w, i) => ({
+        label: `${w} knows the ${PUZZLE.attrs[i]}`,
+        style: { border: '1.5px solid rgba(124,45,146,0.4)' },
+      }))}
+      steps={[
+        <>Each of them knows <b>only</b> that one detail. Nobody lies.</>,
+        <>They speak in turn, and every line narrows the list.</>,
+        <>Tap cards to cross them off as you rule them out.</>,
+        <>Hit <b>Name the {PUZZLE.noun}</b> and pick the last one standing.</>,
+      ]}
+      knack={<>&ldquo;I don&rsquo;t know&rdquo; is the evidence. If the secret {PUZZLE.noun} were the only one with its {PUZZLE.attrs[0]}, {PUZZLE.who[0]} would have known straight away. {PUZZLE.who[0]} did not, so every {PUZZLE.attrs[0]} that appears just once is out. A line said <i>later</i> is sharper still: &ldquo;I still don&rsquo;t know&rdquo; is about the list as it stands after everything already said.</>}
+      footer="12 points for a first-time pick, 3 off for each wrong name. Exactly one card survives every line."
+    />
   );
 
   return (

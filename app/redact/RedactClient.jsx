@@ -34,6 +34,7 @@ import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { T } from '@/lib/theme';
 import { FREEBIES, norm, tokenize, titleTargets, guessMatches } from './words';
@@ -448,13 +449,18 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
                 every hit uncovers that word everywhere it appears. Uncover the title to win.
               </p>
               {gateRules && (
-                <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 14px', paddingLeft: 20 }}>
-                  <li>Common words like the, of, and was are already uncovered for free.</li>
-                  <li>Start broad (city, war, century, first) and follow what appears.</li>
-                  <li>Plurals count: guessing year also uncovers years.</li>
-                  <li>Tap any block to see how many letters it hides.</li>
-                  <li>There is no guess limit and no clock pressure, only the board.</li>
-                </ul>
+                <div style={{ marginBottom: 14 }}>
+                  <DailyRules
+                    accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+                    steps={[
+                      <>Common words like <b>the</b>, <b>of</b>, <b>and</b> and <b>was</b> are already uncovered for free.</>,
+                      <>Plurals count: guessing <b>year</b> also uncovers <b>years</b>.</>,
+                      <>Tap any block to see <b>how many letters</b> it hides.</>,
+                    ]}
+                    knack="Start broad, with words like city, war, century and first, then follow whatever appears."
+                    footer="There is no guess limit and no clock pressure, only the board."
+                  />
+                </div>
               )}
               <button className="rd-btn primary" onClick={start}>Start uncovering</button>
               {!gateRules && (

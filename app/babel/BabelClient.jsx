@@ -37,6 +37,7 @@ import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import useEndHold from '../useEndHold';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -605,23 +606,19 @@ export default function BabelClient({ puzzles, forceNum }) {
   }
 
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 8px' }}>
-        A word tile game, picked up at the very end. <b>The bag is empty</b>, so there is nothing left to draw: you hold {START_RACK.length} tiles, your opponent holds the rest, and these are the last plays of the game.
-      </p>
-      <p style={{ margin: '0 0 8px' }}>
-        <b>Their rack is not a secret, but nobody will hand it to you.</b> It is the bag minus everything on the board minus your own tiles. The bag is printed beside the board, the board is in front of you, and the subtraction is yours to do. Working out what they can then DO with those tiles is the rest of it.
-      </p>
-      <p style={{ margin: '0 0 8px' }}>
-        You are scored on <b>spread</b>: your points from here minus theirs. Go out first and their leftover tiles come off their score and onto yours, which is usually worth more than any single play. Get stuck holding tiles and it happens to you.
-      </p>
-      <p style={{ margin: '0 0 8px' }}>
-        Tap a tile, then tap a square, or just click a square and type. <b>The benchmark is {signed(BENCH)}</b>: the spread our solver gets from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Simply grabbing the biggest number each turn gets you {signed(PUZZLE.greedy)}.
-      </p>
-      <p style={{ margin: 0, color: COLORS.faded }}>
-        The bag is 65 tiles: every letter, weighted toward the common ones, Q included and no blanks. It is smaller than a full-size set because the board is 11 by 11, and it is printed beside the board, so nothing about it is hidden. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it will never answer with something nobody has heard of.
-      </p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="A word tile game, picked up at the very end. The bag is empty, so these are the last plays."
+      banner={<>The benchmark is {signed(BENCH)}: the spread our solver makes from your seat against this same opponent, so it is a score somebody has actually made, not a theoretical ceiling. Greedy play gets {signed(PUZZLE.greedy)}.</>}
+      steps={[
+        <>You hold {START_RACK.length} tiles, your opponent holds the rest, and there is nothing left to draw.</>,
+        <><b>Tap a tile, then tap a square</b>, or click a square and type.</>,
+        <>Their rack is no secret, but nobody hands it to you: it is the <b>bag</b>, printed beside the board, minus the board, minus your own tiles. Working out what they can do with it is the rest.</>,
+        <>You are scored on <b>spread</b>: your points from here minus theirs.</>,
+      ]}
+      knack="Go out first and their leftover tiles come off their score and onto yours, usually worth more than any single play. Get stuck holding tiles and it happens to you."
+      footer="The 65-tile bag holds every letter, weighted toward the common ones, Q included and no blanks, sized for the 11 by 11 board and hidden from nobody. Your words are checked against the full Tuck dictionary; your opponent plays from a common-word list, so it never answers with something nobody has heard of."
+    />
   );
 
   return (

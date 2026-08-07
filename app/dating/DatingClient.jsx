@@ -33,6 +33,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -655,11 +656,17 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}><b>Five moments from history, shuffled.</b> Arrange them from earliest (top) to latest (bottom) &mdash; {mobileUi ? 'tap the arrows to move a card' : 'drag a card where it belongs, or use the arrows'}.</p>
-      <p style={{ margin: '0 0 9px' }}><b>You get {MAX_CHECKS} checks.</b> Each check locks every event you&apos;ve placed correctly and reveals its year. Date the whole board on your first check for a perfect 10 &mdash; each extra check costs a point, and each event you never place costs two.</p>
-      <p style={{ margin: 0 }}>One free <b>hint</b>, on your first ever play, reveals the year of your most misplaced event. New moments every day at midnight Eastern.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.plum} accentSoft={COLORS.plumSoft} accentDeep={COLORS.plumInk}
+      lead="Five moments from history, shuffled. Put them back in order."
+      steps={[
+        <>Arrange the cards from <b>earliest</b> at the top to <b>latest</b> at the bottom: {mobileUi ? 'tap the arrows to move a card' : 'drag a card where it belongs, or use the arrows'}.</>,
+        <>You get <b>{MAX_CHECKS} checks</b>. Each check locks every event you&apos;ve placed correctly and reveals its year.</>,
+        <>One free <b>hint</b>, on your first ever play, reveals the year of your most misplaced event.</>,
+      ]}
+      knack="Anchor the two dates you are sure of, then slot the rest between them. A check spent early still tells you which placings were right."
+      footer={<>Date the whole board on your first check for a perfect 10. Each extra check costs a point, and each event you never place costs two. New moments every day at midnight Eastern.</>}
+    />
   );
 
   return (

@@ -32,6 +32,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { T } from '@/lib/theme';
 
 const COLORS = {
@@ -324,27 +325,24 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
 
   const champion = PUZZLE.items[TRUE[MATCHES - 1]];
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>Fill the bracket. One question, {N} contenders.</p>
-      <div style={{ background: COLORS.accentSoft, border: `1.5px solid ${COLORS.accent}`, borderRadius: 8, padding: '9px 11px', marginBottom: 12, fontSize: 14, fontWeight: 800, color: COLORS.accentDeep }}>
-        {PUZZLE.metric}
-      </div>
-      {PUZZLE.asOf && (
-        <p style={{ margin: '-6px 0 12px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500 }}>Figures as of {PUZZLE.asOf}</p>
-      )}
-      <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
-        <li style={{ marginBottom: 5 }}>Every matchup asks the same question. Tap the one you think wins.</li>
-        <li style={{ marginBottom: 5 }}>Your winners <b>carry forward</b>, so later rounds are made of your own picks.</li>
-        <li style={{ marginBottom: 5 }}>You get <b>no feedback</b> until the end. Fill all {MATCHES} and hand it in.</li>
-        <li>Everything reveals at once, with the real numbers under every name.</li>
-      </ol>
-      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
-        <b>The knack:</b> the first round is deliberately lopsided and the final is close on purpose. Getting round one right is not the puzzle. The puzzle is that a single bad call in round one takes every later pick down with it, exactly like a busted Final Four.
-      </div>
-      <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
-        Pool scoring: 1 a pick in the first round, 2 in the quarters, 4 in the semis, 8 for the final. Every round is worth {N / 2}, so {TOTAL} is perfect. A later pick only counts if the thing you advanced really did win that slot.
-      </p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead={`Fill the bracket. One question, ${N} contenders.`}
+      banner={PUZZLE.metric}
+      sub={PUZZLE.asOf ? (
+        <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500 }}>
+          Figures as of {PUZZLE.asOf}
+        </span>
+      ) : null}
+      steps={[
+        <>Every matchup asks the same question. Tap the one you think wins.</>,
+        <>Your winners <b>carry forward</b>, so later rounds are made of your own picks.</>,
+        <>You get <b>no feedback</b> until the end. Fill all {MATCHES} and hand it in.</>,
+        <>Everything reveals at once, with the real numbers under every name.</>,
+      ]}
+      knack="the first round is deliberately lopsided and the final is close on purpose. Getting round one right is not the puzzle. The puzzle is that a single bad call in round one takes every later pick down with it, exactly like a busted Final Four."
+      footer={`Pool scoring: 1 a pick in the first round, 2 in the quarters, 4 in the semis, 8 for the final. Every round is worth ${N / 2}, so ${TOTAL} is perfect. A later pick only counts if the thing you advanced really did win that slot.`}
+    />
   );
 
   return (

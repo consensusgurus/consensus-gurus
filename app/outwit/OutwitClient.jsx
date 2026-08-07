@@ -29,6 +29,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -707,11 +708,20 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Your opponent is <b>everyone playing today</b>. Five prompts, no right answers &mdash; you score by reading the crowd.</p>
-      <p style={{ margin: '0 0 9px' }}><b>Road Less Traveled</b>: pick what fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median. <b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest pick wins. <b>Undercut</b> (last): closest to a fraction of the crowd&rsquo;s average &mdash; and the fraction changes every day, so read the prompt.</p>
-      <p style={{ margin: 0 }}>Each prompt pays <b>0, 1, or 2 points</b>. The twist: <b>nothing is final</b> &mdash; every new player re-scores the whole field, including you, so your rank moves all day. Lock in to reveal where the crowd actually went. <b>7 of 10</b> means you outwitted them &mdash; for now.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Your opponent is everyone playing today."
+      banner="Five prompts, no right answers. You score by reading the crowd."
+      steps={[
+        <><b>Road Less Traveled</b>: pick what fewest pick. <b>Herd</b>: closest to the crowd&rsquo;s median.</>,
+        <><b>Meeting Point</b>: match the most-picked answer. <b>Rare Bird</b>: the rarest pick wins.</>,
+        <><b>Undercut</b> comes last: closest to a fraction of the crowd&rsquo;s average, and the fraction changes every day, so read the prompt.</>,
+        <><b>Lock in</b> to reveal where the crowd actually went.</>,
+      ]}
+      knack="Play the answer you think the average player types, not the one you like. Your own taste is the trap."
+      note={<><b>Nothing is final.</b> Every new player re-scores the whole field, including you, so your rank moves all day.</>}
+      footer="Each prompt pays 0, 1, or 2 points. 7 of 10 means you outwitted them, for now."
+    />
   );
 
   return (

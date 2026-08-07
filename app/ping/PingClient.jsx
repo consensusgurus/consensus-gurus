@@ -21,6 +21,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HelpCircle, X, Lightbulb, Eye, Smartphone, MapPin, Search } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -583,13 +584,24 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>There&rsquo;s one secret city a day and <b>no clues</b>. <b>Guess any world city</b> to begin.</p>
-      <p style={{ margin: '0 0 9px' }}>Every guess pings back one number: the <b>distance in {unitWord(unit)}</b> to the secret city. No direction, just the distance. Watch it shrink to close in, from <b style={{ color: '#475569' }}>cold</b> ({fmtDistIn(2500, unit)}+) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within {fmtDistIn(200, unit)}).</p>
-      <p style={{ margin: '0 0 9px' }}>Prefer kilometers? Flip the <b>mi / km</b> switch above the guess box any time. It only changes what you read, never your score.</p>
-      <p style={{ margin: '0 0 9px' }}>There&rsquo;s <b>no guess limit</b>. Keep going until you land on the city, and your <b>score is how few guesses it took</b>. Stuck? <b>Give up</b> any time and you&rsquo;re still scored on how close your best guess got, ranked against everyone who played. One free <b>hint</b>, on your first ever play, reveals the continent.</p>
-      <p style={{ margin: 0 }}>Ties on the daily board break on fewest guesses, then fastest time. Sundays hide a trickier city.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead="One secret city a day. Find it with distance alone."
+      chips={[
+        { label: `Cold ${fmtDistIn(2500, unit)}+`, style: { background: '#eef2f7', border: '1.5px solid #475569', color: '#475569' } },
+        { label: 'Cool', style: { background: '#eef2f7', border: '1.5px solid #0a1730', color: '#0a1730' } },
+        { label: 'Warm', style: { background: '#fef3c7', border: '1.5px solid #92610b', color: '#92610b' } },
+        { label: `Hot, within ${fmtDistIn(200, unit)}`, style: { background: '#fee2e2', border: '1.5px solid #9a3d0c', color: '#9a3d0c' } },
+      ]}
+      steps={[
+        <>Guess <b>any world city</b> to begin. There are <b>no clues</b> and <b>no guess limit</b>.</>,
+        <>Each guess pings back one number: the <b>distance in {unitWord(unit)}</b> to the secret city. No direction, just the distance, and it shrinks as you close in.</>,
+        <>Flip the <b>mi / km</b> switch above the guess box any time. It only changes what you read, never your score.</>,
+        <>Land on the city, or <b>Give up</b> and still be scored on how close your best guess got, ranked against everyone who played.</>,
+      ]}
+      knack="Distance alone triangulates fast, so spread your first few guesses across far apart continents rather than crowding one region."
+      footer={<>Your score is how few guesses it took. One free <b>hint</b>, on your first ever play, reveals the continent. Ties break on fewest guesses, then fastest time. Sundays hide a trickier city.</>}
+    />
   );
 
   return (

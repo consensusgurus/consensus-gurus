@@ -26,6 +26,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -496,12 +497,18 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>A historic front page, with the giveaway words <b>blacked out</b>. Type what story it is &mdash; the event, in your own words (&ldquo;the moon landing&rdquo;, &ldquo;Nixon resigns&rdquo;).</p>
-      <p style={{ margin: '0 0 9px' }}>A wrong guess, or a press of <b>Tear a word free</b>, rips the censor strip off one more word. You get <b>six tears</b> &mdash; a wrong guess with nothing left to tear ends the puzzle.</p>
-      <p style={{ margin: '0 0 9px' }}>One free <b>hint</b>, on your first ever play, reveals the dateline: the paper&rsquo;s date and place.</p>
-      <p style={{ margin: 0 }}>Naming the story with <b>zero tears</b> is a cold read &mdash; a perfect 10. Every tear costs a point. Ties break on fewest tears, then fastest time. Sundays run a trickier story.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="A historic front page, with the giveaway words blacked out. Name the story."
+      steps={[
+        <>Read the page and <b>type the story</b>: the event, in your own words (&ldquo;the moon landing&rdquo;, &ldquo;Nixon resigns&rdquo;).</>,
+        <>A wrong guess, or a press of <b>Tear a word free</b>, rips the censor strip off one more word. You get <b>six tears</b>.</>,
+        <>A wrong guess with nothing left to tear <b>ends the puzzle</b>.</>,
+        <>One free <b>hint</b>, on your first ever play, reveals the dateline: the paper&rsquo;s date and place.</>,
+      ]}
+      knack="A wrong guess and a deliberate tear cost exactly the same, so when you are unsure, tear on purpose rather than guess and hope."
+      footer="Naming it with zero tears is a cold read, a perfect 10, and every tear costs a point. Ties break on fewest tears, then fastest time. Sundays run a trickier story."
+    />
   );
 
   return (

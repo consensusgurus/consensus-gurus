@@ -41,6 +41,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
 import { T } from '@/lib/theme';
 
 const COLORS = {
@@ -598,48 +599,34 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   // rules now lead with the goal, show the colours rather than describing them,
   // and put the numbers in a footnote: a first-timer needs the loop, not the
   // scoring table.
-  const legendChip = (word, kind) => (
-    <span style={{
-      fontFamily: SANS, fontWeight: 800, fontSize: 12, letterSpacing: '0.04em', borderRadius: 7, padding: '7px 10px',
-      background: kind === 'yes' ? COLORS.greenSoft : kind === 'no' ? COLORS.redSoft : T.white,
-      border: `1.5px solid ${kind === 'yes' ? COLORS.green : kind === 'no' ? COLORS.redInk : 'rgba(28,30,36,0.2)'}`,
-      color: kind === 'yes' ? '#14532d' : kind === 'no' ? '#7f1d1d' : COLORS.ink,
-    }}>{word}</span>
-  );
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>Work out the hidden rule.</p>
-
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-        {legendChip('EFFORT', 'yes')}{legendChip('FALSE', 'no')}{legendChip('TRAIL', 'grey')}
-      </div>
-      <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginBottom: 12 }}>
-        Green: the rule is true of that word. Red: it is not. Grey: already one or the other, but you have not uncovered it.
-      </div>
-
-      <ol style={{ margin: '0 0 12px', paddingLeft: 19 }}>
-        <li style={{ marginBottom: 5 }}>{PUZZLE.rules.length} candidate rules sit under the board. <b>Exactly one</b> fits every tile.</li>
-        <li style={{ marginBottom: 5 }}>Tapping a tile crosses it out as a free note. To <b>spend a test</b> and flip its colour, switch to <b>Test</b> or hold the tile. You get <b>{PUZZLE.budget}</b>.</li>
-        <li style={{ marginBottom: 5 }}>Cross out each rule as the colours kill it. This is a free note for your own benefit and never changes your score.</li>
-        <li>Hit the <b>Name it</b> button and pick the one still standing.</li>
-      </ol>
-
-      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.accent}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45 }}>
-        <b>The knack: only test words the surviving rules disagree about.</b> Work out what each live rule predicts for a tile before you spend on it. If they all predict the same colour, that tile teaches you nothing whichever way it flips. The useful tiles are the ones that split the field, and most tiles are not useful.
-      </div>
-
-      <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderLeft: `3px solid ${COLORS.rust}`, borderRadius: 7, padding: '9px 11px', fontSize: 13, lineHeight: 1.45, marginTop: 8 }}>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+      lead="Work out the hidden rule."
+      chips={[
+        { label: 'EFFORT', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.greenSoft, border: `1.5px solid ${COLORS.green}`, color: '#14532d' } },
+        { label: 'FALSE', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.redSoft, border: `1.5px solid ${COLORS.redInk}`, color: '#7f1d1d' } },
+        { label: 'TRAIL', style: { fontSize: 12, letterSpacing: '0.04em', background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', color: COLORS.ink } },
+      ]}
+      sub="Green: the rule is true of that word. Red: it is not. Grey: already one or the other, but you have not uncovered it."
+      steps={[
+        <>{PUZZLE.rules.length} candidate rules sit under the board. <b>Exactly one</b> fits every tile.</>,
+        <>Tapping a tile crosses it out as a free note. To <b>spend a test</b> and flip its colour, switch to <b>Test</b> or hold the tile. You get <b>{PUZZLE.budget}</b>.</>,
+        <>Cross out each rule as the colours kill it. This is a free note for your own benefit and never changes your score.</>,
+        <>Hit the <b>Name it</b> button and pick the one still standing.</>,
+      ]}
+      knackLabel="The knack: only test words the surviving rules disagree about."
+      knack="Work out what each live rule predicts for a tile before you spend on it. If they all predict the same colour, that tile teaches you nothing whichever way it flips. The useful tiles are the ones that split the field, and most tiles are not useful."
+      noteGap={8}
+      note={<>
         <b>Naming the rule is a bet, and the button shows the odds.</b> It always reads what you would bank right now, so nothing is deducted after the fact. That number starts low and climbs as the words you uncover narrow the field. Name it early and you are guessing; wait until the evidence leaves one rule alive and it reads the full {TOTAL}.
         <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
           <li><b>What raises it:</b> uncovering words that rule other candidates out. Only revealed words count. Crossing rules off by hand is a free note and does nothing either way.</li>
           <li><b>What lowers it:</b> {UNPROVEN_COST} for each candidate the board cannot yet rule out, {WRONG_COST} for a wrong name ({MAX_WRONG} ends the day), and 2 for each test past {PERFECT}, the fewest that can settle this board.</li>
         </ul>
-      </div>
-
-      <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: COLORS.faded }}>
-        Vowels are A, E, I, O, U, never Y.
-      </p>
-    </div>
+      </>}
+      footer="Vowels are A, E, I, O, U, never Y."
+    />
   );
 
   return (

@@ -24,6 +24,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HelpCircle, X, Smartphone, Pencil, Stamp } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
@@ -641,12 +642,24 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>You&rsquo;re the copy desk. Most sentences in today&rsquo;s brief hide <b>one slip</b> &mdash; a wrong word or a grammar error, always a real word, so spellcheck is no help. Think &ldquo;free reign&rdquo;, &ldquo;should of&rdquo;, &ldquo;a mute point&rdquo;. Word choice <i>and</i> grammar are both fair game.</p>
-      <p style={{ margin: '0 0 9px' }}>But some sentences are <b>clean</b>. If nothing&rsquo;s wrong, stamp it <b>Stet</b> &mdash; the proofreader&rsquo;s mark for &ldquo;let it stand&rdquo; &mdash; and take the points. Flag a word in clean copy and you get nothing.</p>
-      <p style={{ margin: '0 0 9px' }}>Every error is worth <b>2 points</b>: one for flagging the right word, one for typing the right fix. A correct stet is worth 2. {PUZZLE.sunday ? <>It&rsquo;s Sunday, so a sentence can hide <b>two</b> errors &mdash; flag up to two words, then lock it in.</> : <>On Sundays the brief runs seven sentences and can hide two errors in one sentence.</>}</p>
-      <p style={{ margin: 0 }}>Ties on the daily board break by fewest mis-flags, then fastest time.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead={<>You&rsquo;re the copy desk. Most sentences in today&rsquo;s brief hide <b>one slip</b>, but some are clean.</>}
+      chips={[
+        { label: 'Right word flagged = 1', tone: 'good' },
+        { label: 'Right fix typed = 1', tone: 'good' },
+        { label: 'Correct Stet = 2', tone: 'good' },
+        { label: 'Flag in clean copy = 0', tone: 'bad' },
+      ]}
+      steps={[
+        <>The slip is always a <b>real word</b>, so spellcheck is no help: think &ldquo;free reign&rdquo;, &ldquo;should of&rdquo;, &ldquo;a mute point&rdquo;. Word choice <i>and</i> grammar are fair game.</>,
+        <><b>Flag</b> the wrong word, then type the right fix.</>,
+        <>If nothing&rsquo;s wrong, stamp it <b>Stet</b>, the proofreader&rsquo;s mark for &ldquo;let it stand&rdquo;, and take the points.</>,
+        <>{PUZZLE.sunday ? <><b>Sunday Edition:</b> a sentence can hide <b>two</b> errors, so flag up to two words, then lock it in.</> : <>On Sundays the brief runs seven sentences and can hide two errors in one sentence.</>}</>,
+      ]}
+      knack="Read for sense, not for spelling. The trap is always a word that is spelled perfectly and simply the wrong one."
+      footer="Ties on the daily board break by fewest mis-flags, then fastest time."
+    />
   );
 
   return (

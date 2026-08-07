@@ -23,6 +23,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -493,11 +494,22 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start tile.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}><b>Sixteen words hide four threads</b> of four &mdash; a shared category each. Tap four words, then <b>Submit</b>.</p>
-      <p style={{ margin: '0 0 9px' }}>Right: the thread banks in its color, <span style={{ background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>yellow</span> easiest to <span style={{ background: CAT_COLORS[3].bg, color: T.white, borderRadius: 4, padding: '1px 6px', fontWeight: 800 }}>red</span> trickiest. Wrong: one of your <b>four mistakes</b> is gone &mdash; &ldquo;one away&rdquo; is the only hint you get.</p>
-      <p style={{ margin: 0 }}>The words that look like they belong together usually don&apos;t. That&apos;s the puzzle.</p>
-    </div>
+    <DailyRules
+      lead="Sixteen words hide four threads of four, one shared category each."
+      chips={[
+        { label: 'Yellow, easiest', style: { background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, border: `1.5px solid ${CAT_COLORS[0].tc}` } },
+        { label: 'Green', style: { background: CAT_COLORS[1].bg, color: CAT_COLORS[1].tc, border: `1.5px solid ${CAT_COLORS[1].tc}` } },
+        { label: 'Blue', style: { background: CAT_COLORS[2].bg, color: CAT_COLORS[2].tc, border: `1.5px solid ${CAT_COLORS[2].tc}` } },
+        { label: 'Red, trickiest', style: { background: CAT_COLORS[3].bg, color: CAT_COLORS[3].tc, border: `1.5px solid ${CAT_COLORS[3].tc}` } },
+      ]}
+      steps={[
+        <><b>Tap four words</b> you think share a thread, then <b>Submit</b>.</>,
+        <>Right, and the thread banks in its color, yellow easiest through red trickiest.</>,
+        <>Wrong, and one of your <b>four mistakes</b> is gone. <b>&ldquo;One away&rdquo;</b> is the only hint you get.</>,
+      ]}
+      knack={<>The words that look like they belong together usually don&apos;t. That&rsquo;s the puzzle.</>}
+      footer="Every thread you bank scores 2, out of 8. Four mistakes ends the day."
+    />
   );
 
   return (

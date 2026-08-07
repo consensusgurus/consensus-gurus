@@ -18,6 +18,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation';
 import { HelpCircle, Share2, RotateCcw, X, Lightbulb, Eye, Smartphone, Pencil, Eraser, Trash2 } from 'lucide-react';
 import Grain from '../Grain';
+import DailyRules from '../DailyRules';
 import Footer from '../Footer';
 import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -709,12 +710,17 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Fill every empty square so that each <b>row</b>, each <b>column</b>, and each <b>3×3 box</b> contains the digits <b>1–9</b> with no repeats. Every board has exactly one solution.</p>
-      <p style={{ margin: '0 0 9px' }}>Two ways to place a number: tap a square then tap a number, or pick a number first and tap every square it goes in. Wrong entries are not flagged, so it is on you to spot them, just like paper sudoku. On desktop you can also use the arrow keys and number keys.</p>
-      <p style={{ margin: '0 0 9px' }}>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it. <b>Undo</b> (or Ctrl+Z) takes back your last move, <b>Clear</b> wipes every number you have entered and leaves the printed clues, and one free <b>hint</b>, on your first ever play, fills a correct number.</p>
-      <p style={{ margin: 0 }}>Solve the whole grid and you score a perfect 10. The faster you finish, the higher you place on the daily leaderboard. Sundays are a harder Edition with fewer clues.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats."
+      steps={[
+        <><b>Tap a square then tap a number</b>, or pick a number first and tap every square it goes in. On desktop the <b>arrow keys and number keys</b> work too.</>,
+        <>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it.</>,
+        <><b>Undo</b> (or Ctrl+Z) takes back your last move. <b>Clear</b> wipes every number you have entered and leaves the printed clues.</>,
+      ]}
+      knack="Wrong entries are not flagged, just like paper sudoku, so it is on you to spot them before one bad digit poisons half the grid."
+      footer="Every board has exactly one solution. Solve the whole grid and you score a perfect 10, and the faster you finish, the higher you place on the daily leaderboard. One free hint, on your first ever play, fills a correct number. Sundays are a harder Edition with fewer clues."
+    />
   );
 
   return (

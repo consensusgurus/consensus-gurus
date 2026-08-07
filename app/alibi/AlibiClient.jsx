@@ -34,6 +34,7 @@ import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
+import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -560,12 +561,22 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
-    <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-      <p style={{ margin: '0 0 9px' }}>Four guests, four rooms, four departure times, four items. Every witness statement is <b>true</b>, and together they pin down exactly one arrangement.</p>
-      <p style={{ margin: '0 0 9px' }}>Work the three boards: tap a cell to toggle <b>✗</b> (impossible), and long-press it (right-click on a computer) to mark <b>●</b> (confirmed). Each suspect gets exactly one ● per board. Leave auto-✗ on and marking a ● crosses off its row and column for you.</p>
-      <p style={{ margin: '0 0 9px' }}>When all <b>{TOTAL} facts</b> are confirmed, check your accusation. A first-try accusation is a perfect {TOTAL} &mdash; each wrong accusation costs 2.</p>
-      <p style={{ margin: 0 }}>Ties on the daily board break by fewest wrong accusations, then fastest time. A new case opens at midnight Eastern.</p>
-    </div>
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="Four guests, four rooms, four departure times, four items. One arrangement fits."
+      chips={[
+        { label: '✗ = impossible', tone: 'grey' },
+        { label: '● = confirmed', tone: 'good' },
+      ]}
+      steps={[
+        <>Every witness statement is <b>true</b>, and together they pin down exactly one arrangement.</>,
+        <>Work the three boards: <b>tap</b> a cell to toggle <b>✗</b>, and <b>long-press</b> it, or right-click on a computer, to mark <b>●</b>.</>,
+        <>Each suspect gets exactly one <b>●</b> per board. Leave <b>auto-✗</b> on and marking a ● crosses off its row and column for you.</>,
+        <>Confirm all <b>{TOTAL} facts</b>, then check your <b>accusation</b>.</>,
+      ]}
+      knack="Work the three boards together. A fact you settle on one board almost always rules out a cell on another."
+      footer={<>A first-try accusation is a perfect {TOTAL}, and each wrong accusation costs 2. Ties on the daily board break by fewest wrong accusations, then fastest time. A new case opens at midnight Eastern.</>}
+    />
   );
 
   return (
