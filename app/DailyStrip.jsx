@@ -1521,17 +1521,23 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* No archive chevron on a phone any more: the whole row opens the
              drawer, so a control that does the same thing is just clutter. The
              .sl-ab rules stay for the desktop button's benefit only. */
-          /* eyebrow over name over sub, the cap bar's stack. The name gets the
-             space the four departed controls freed, and the line boxes are a
-             touch looser than the tight ones that shipped with the figure in
-             the name line (owner: "less bunching"). */
-          .sl-nm{display:flex;flex-direction:column;gap:1px;}
-          .sl-nm b{display:block;font-size:16.5px;line-height:1.25;}
-          .sl-cm{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.35;margin:0;}
+          /* TITLE FIRST, category small to its right (owner, 2026-08-07). The
+             category had a line of its own above the name; on its own line a
+             three-word tagline underneath, it was a third line of type competing
+             with the title for the row. Beside the title it is a footnote, the
+             title gets 18px, and the row comes out SHORTER than the stacked
+             version despite the bigger name.
+             Row flex + wrap rather than a JSX change: the DOM order is category,
+             name, sub, so the order property puts the name first and a 100% basis on the
+             sub line breaks it onto its own line. Baselines align, so the tiny
+             caps sit on the title's baseline. */
+          .sl-nm{display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:7px;}
+          .sl-nm b{order:1;min-width:0;display:block;font-size:18px;line-height:1.2;}
+          .sl-cm{order:2;flex:none;display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.2;margin:0;}
           /* The sub line is a flex row: the tagline shrinks and ellipsizes, the
              leader chip is flex:none, so the leader is never the thing that gets
              cut off. It still caps at 38vw and ellipsizes its own long names. */
-          .sl-nm .sl-sub{display:flex;align-items:baseline;font-size:11.5px;line-height:1.4;}
+          .sl-nm .sl-sub{order:3;flex:1 1 100%;min-width:0;display:flex;align-items:baseline;font-size:11.5px;line-height:1.4;margin-top:1px;}
           .sl-tg{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
           .sl-mld{flex:none;display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;color:var(--muted);max-width:42vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
           .sl-mld svg{flex:none;color:var(--gold-ink);}

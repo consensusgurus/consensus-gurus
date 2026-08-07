@@ -1895,7 +1895,11 @@ byte-identical.
   Everything that was a control left. **The whole row expands the drawer**, Play now lives at the top
   of that drawer with the other chips, and the pin lives there too, so `.sl-fav`, `.sl-status` and
   `.sl-arch` are all `display:none` and the pins grid is identical to the plain one. What is left is
-  the category as a 9px uppercase eyebrow ABOVE the name, the name with room to breathe, the tagline
+  the title at 18px with the category as small caps BESIDE it (owner, 2026-08-07: above the name it
+  was a third line of type competing with the title; beside it, it is a footnote, and the row comes
+  out shorter despite the bigger name). `.sl-nm` is a wrapping flex ROW and the order property does
+  the arranging, since the DOM order is category, name, sub; a 100% flex-basis on the sub breaks it
+  onto its own line and baselines align, so the tiny caps sit on the title's baseline. Then the tagline
   and leader on the sub line separated by `.sl-dot`, the crowd size as a stacked right-edge figure
   (`.sl-pl`), and the game's bare emblem on the right edge where the Play button used to sit. The
   icon moves there with `order` (grid honours it) rather than a JSX change, and it carries NO plate:
