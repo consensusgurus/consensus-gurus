@@ -676,6 +676,29 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // directly under its own row rather than as an overlay over the board.
   const renderSlate = (arr, dim) => {
     const out = [];
+    // Phone layout groups the slate by state (owner-approved direction B,
+    // 2026-08-07). The three band headers are pushed FIRST and moved into place
+    // by CSS `order` inside the <=900px block, NOT interleaved here, so the
+    // DESKTOP source order is byte-identical to before and the sortable column
+    // headers keep working exactly as they did. Above 900px the bands are
+    // display:none. A row and its own drawer carry the same order value, and
+    // equal-order flex items keep source order, so a drawer never leaves its
+    // row. An empty group renders no band.
+    let nProg = 0, nTodo = 0, nDone = 0;
+    arr.forEach((g) => {
+      if (done.has(g.key)) nDone += 1;
+      else if (inprog.has(g.key)) nProg += 1;
+      else nTodo += 1;
+    });
+    const band = (cls, label, count) => (count ? (
+      <div className={`sl-band ${cls}`} key={`band-${cls}`}>
+        <span className="sl-bt">{label}</span>
+        <span className="sl-bc">{count}</span>
+      </div>
+    ) : null);
+    out.push(band('prog', 'In progress', nProg));
+    out.push(band('todo', 'Ready to play', nTodo));
+    out.push(band('dn', 'Done today', nDone));
     arr.forEach((g) => {
       const isDone = done.has(g.key);
       const ip = !isDone && inprog.has(g.key);
@@ -690,7 +713,27 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const open = sel === g.key;
       const fav = favSet.has(g.key);
       out.push(
-        <div key={g.key} className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}`}>
+        <div
+          key={g.key}
+          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}`}
+          style={{ '--rc': col }}
+          onClick={(e) => {
+            // PHONE ONLY: a tap anywhere on the row opens the stats + archive
+            // drawer, and Play / Resume is the only control that still
+            // navigates into the game (owner, 2026-08-07). Gated with
+            // matchMedia at CLICK time rather than on a rendered flag, so the
+            // markup is identical on the server and the desktop row keeps its
+            // old behaviour (name links to the game, chevron opens the drawer)
+            // with no hydration branch.
+            if (typeof window === 'undefined' || !window.matchMedia) return;
+            if (!window.matchMedia('(max-width: 900px)').matches) return;
+            // .sl-btn.done is a static score chip, not a control, so it falls
+            // through and expands like the rest of the row.
+            if (e.target.closest && e.target.closest('.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb')) return;
+            e.preventDefault(); // swallow the name link's navigation
+            pick(g.key);
+          }}
+        >
           {/* Pin. Restored to the row on 2026-08-07: the star used to live in a
               tile corner, and when the tile board was retired for the slate the
               only surviving control was the one inside the expanded drawer,
@@ -725,13 +768,25 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             </span>
           ) : null}
           <a className="sl-ic" href={g.href} aria-label={g.name}><img src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} /></a>
+          {/* Source order is now eyebrow, name, then the sub line that carries
+              the leader. The desktop row is unaffected: .sl-cm and .sl-mld are
+              both display:none above 900px, so it still renders exactly the
+              name over its tagline. The phone's play count moved OUT of the sub
+              line and into the .sl-pl figure on the right edge, which is why
+              .sl-mpl is gone. */}
           <a className="sl-nm" href={g.href}>
-            <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
-            <i className="sl-mld">{lead ? <><Crown size={9} strokeWidth={2.6} />{lead}</> : 'Be the first'}</i>
-            <span className="sl-sub">{g.tag}{pl != null ? <em className="sl-mpl">{` \u00b7 ${fmtPlays(pl)} playing`}</em> : null}</span>
+            <i className="sl-cm" style={{ color: col }}>{cat}</i>
+            <b>{g.name}</b>
+            <span className="sl-sub">
+              {g.tag}
+              <i className="sl-mld">{lead ? <><Crown size={9} strokeWidth={2.6} />{lead}</> : 'Be the first'}</i>
+            </span>
           </a>
           <span className="sl-cat"><span style={{ background: `${col}1a`, color: col }}>{cat}</span></span>
-          <span className="sl-pl">{pl != null ? fmtPlays(pl) : '\u2014'}</span>
+          {/* One element, two readings: a bare centred number in the desktop
+              Players column, a stacked figure on the phone. The <b>/<i> are
+              neutralised above 900px (see .sl-pl b / .sl-pl i). */}
+          <span className="sl-pl">{pl != null ? <><b>{fmtPlays(pl)}</b><i>playing</i></> : '\u2014'}</span>
           <span className={`sl-st${st ? '' : ' none'}`}>{st ? <><Flame size={10} strokeWidth={2.8} />{st}</> : '\u2013'}</span>
           <span className="sl-ld">{lead
             ? <><Crown size={10} strokeWidth={2.6} /><span>{lead}</span></>
@@ -768,7 +823,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           </span>
         </div>,
       );
-      if (open) out.push(<div className="sl-drawer" key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
+      // The state class is what pairs the drawer with its row under the phone
+      // `order` grouping; it has no effect above 900px.
+      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
     });
     return out;
   };
@@ -1253,11 +1310,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-nm .sl-sub{display:block;font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-cm{display:none;}
-        .sl-mpl{display:none;font-style:normal;}
         .sl-mld{display:none;font-style:normal;}
         .sl-cat{display:flex;justify-content:center;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
         .sl-pl{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;color:var(--muted);}
+        /* The Players cell now wraps its number in <b> and carries an <i> label
+           for the phone figure. Both are neutralised here so the DESKTOP column
+           renders the same bare centred number it always did. */
+        .sl-pl b{font-weight:inherit;font-size:inherit;}
+        .sl-pl i{display:none;}
+        /* Group bands. Phone-only furniture: they are in the DOM at every width
+           and only the <=900px block gives them a box and an order. */
+        .sl-band{display:none;}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
         .sl-st.none{color:#c3c8d1;}
         .sl-ld{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
@@ -1279,36 +1343,58 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-ring i{width:13px;height:13px;border-radius:50%;background:var(--white);display:block;}
         .sl-ab.on .sl-ring i{background:var(--blue);}
         .sl-drawer{border-bottom:1px solid var(--border);background:#fbfcfe;}
-        /* Phone: no rank column, the category rides beside the name unbolded,
-           the play count moves into the subtitle, and only the status button
-           keeps the right edge (owner, 2026-08-03). */
+        /* ── phone slate: direction B (owner-approved 2026-08-07) ──────────
+           Replaces the 2026-08-03 phone row (icon plate, category beside the
+           name, play count in the subtitle, status button on the right edge).
+           Everything below the two blue cap bars is rebuilt out of the four
+           moves those bars already make: a solid ground, a 4px left rule where
+           the icon used to be, a small uppercase eyebrow over a big name, and
+           one control on the right edge. Rows group under solid state bands.
+           NOTHING in here escapes the media query: the desktop slate keeps its
+           icon plate, its eight sortable columns and its centred cells. */
         @media(max-width:900px){
-          .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;}
+          /* flex, so the bands and rows can be ordered into their groups */
+          .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;display:flex;flex-direction:column;}
           .sl-head{display:none;}
-          .sl-row{grid-template-columns:40px minmax(0,1fr) auto auto;gap:9px;padding:8px 12px;}
-          /* Phone: the star is 20px on a 7px gap, and it is paid for rather than
-             added on. The decorative game icon drops 40->30, the gap 9->7 and the
-             side padding 12->8, which hands the reclaimed space to the name.
-             Measured in a 390px frame: the name column lands at 185px against
-             188px with no star column at all, and the number of truncated
-             subtitles goes 9 -> 10 out of 49, so the star is effectively free.
-             Untuned (24px star, 40px icon, 9px padding) it cost 23px and pushed
-             that count to 21, which is why these five rules exist. */
-          .dh-board.pins .sl-row{grid-template-columns:20px 30px minmax(0,1fr) auto auto;gap:7px;padding:8px 8px;}
-          .dh-board.pins .sl-ic{height:30px;}
-          .dh-board.pins .sl-ic img{height:20px;max-width:26px;}
+          /* order: prog band 1, prog rows 2, todo band 3, todo rows 4, done
+             band 5, done rows 6. A drawer shares its row's value. */
+          .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:3;}
+          .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
+          .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--blue-200);font-variant-numeric:tabular-nums;}
+          .sl-band.prog{order:1;}
+          .sl-band.dn{order:5;background:var(--success-deep);}
+          .sl-row,.sl-drawer{order:4;}
+          .sl-row.inprog,.sl-drawer.inprog{order:2;}
+          .sl-row.done,.sl-drawer.done{order:6;}
+          /* The whole row is the expand target, so it takes the pointer; only
+             Play / Resume still navigates (see the row's onClick). */
+          .sl-row{grid-template-columns:minmax(0,1fr) auto auto auto;gap:10px;padding:9px 12px 9px 16px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
+          .sl-row.inprog{box-shadow:inset 4px 0 0 var(--gold);}
+          .sl-row.done{box-shadow:inset 4px 0 0 #16a34a;}
+          /* Pins add one 20px star track. The icon plate is gone here, so the
+             star is paid for out of the space it freed rather than out of the
+             name column. */
+          .dh-board.pins .sl-row{grid-template-columns:20px minmax(0,1fr) auto auto auto;gap:8px;padding:9px 8px 9px 14px;}
           .sl-favb{width:20px;height:20px;}
           .sl-favb svg{width:12px;height:12px;}
-          .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
+          /* the 4px rule replaces the icon plate, exactly as it does in the cap */
+          .sl-ic{display:none;}
+          .sl-cat,.sl-st,.sl-ld{display:none;}
+          /* Players, as a right-edge figure rather than a column. */
+          .sl-pl{display:block;text-align:right;line-height:1;}
+          .sl-pl b{display:block;font-size:13px;font-weight:800;color:var(--ink);}
+          .sl-pl i{display:block;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:3px;}
           /* the archive control survives on a phone as an icon, so the stats and
              archive drawer stays reachable with the columns gone */
           .sl-arch{display:flex;}
           .sl-ab{padding:6px 7px;gap:0;}
           .sl-ab .sl-ring,.sl-ab-pct{display:none;}
-          .sl-nm b{display:inline;font-size:14.5px;}
-          .sl-cm{display:inline;font-weight:600;font-size:12px;margin-left:6px;}
-          .sl-mpl{display:inline;}
-          .sl-mld{display:inline-flex;align-items:center;gap:3px;margin-left:8px;font-size:11px;font-weight:700;color:var(--muted);max-width:38vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:baseline;}
+          /* eyebrow over name over sub, the cap bar's stack */
+          .sl-nm{display:flex;flex-direction:column;}
+          .sl-nm b{display:block;font-size:16px;line-height:1.2;}
+          .sl-cm{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0 0 1px;}
+          .sl-nm .sl-sub{font-size:11.5px;}
+          .sl-mld{display:inline-flex;align-items:center;gap:3px;margin-left:6px;font-size:11px;font-weight:700;color:var(--muted);max-width:38vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:baseline;}
           .sl-mld svg{flex:none;color:var(--gold-ink);}
           .sl-btn{width:64px;}
         }

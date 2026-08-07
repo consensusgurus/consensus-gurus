@@ -1852,6 +1852,62 @@ Applied 2026-08-01 across all 24 free-hint games: carve, check, circa, crunch, c
 emcee, etch, extra, fib, four, hedge, jester, listed, mate, parker, ping, rung, span, suds,
 sworn, taire, tally, warmer.
 
+## Phone home layout: direction B (owner-approved 2026-08-07)
+
+The homepage's PHONE layout (<=900px) is deliberately built out of the four moves the two cap
+bars already make, because those bars plus the navy header are the part the owner signed off on:
+a solid saturated ground, a 4px left rule where an icon used to be, a small uppercase eyebrow
+over a big 800-weight name, and one control on the right edge. **The DESKTOP layout is
+unchanged and must stay unchanged.** Every rule below lives inside `@media(max-width:900px)`;
+the only base-level additions are neutralisers (`display:none`) that keep the desktop render
+byte-identical.
+
+**Slate (`app/DailyStrip.jsx`)**
+
+- **Rows group by state under solid bands:** In progress / Ready to play / Done today, each with
+  its count. The bands are pushed FIRST in `renderSlate` and placed by CSS `order` inside the
+  media query (prog band 1, prog rows 2, todo band 3, todo rows 4, done band 5, done rows 6), NOT
+  interleaved in JS. That is what keeps the desktop source order, and therefore the sortable
+  column headers, exactly as they were. `.dh-board.slate` becomes `display:flex;flex-direction:
+  column` on a phone for this. A row and its own drawer carry the SAME order value and
+  equal-order flex items keep source order, so a drawer never leaves its row: any new per-row
+  element must follow that rule or it will float out of its group.
+- **Row shape:** no icon plate (`.sl-ic` is hidden); a 4px `box-shadow:inset` left rule in the
+  game's category blue, fed by a `--rc` custom property set on the row (amber when in progress,
+  green when done); the category as a 9px uppercase eyebrow ABOVE the name; the leader riding in
+  the sub line after the tagline; the play count as a stacked right-edge figure; then the status
+  button and the archive chevron.
+- **One element, two readings:** `.sl-pl` wraps its number in `<b>` and carries an `<i>` label, and
+  both are neutralised at base so the desktop Players column still renders a bare centred number.
+  Same trick for `.sl-cm` / `.sl-mld`, which are `display:none` above 900px, which is why the JSX
+  can reorder them freely.
+- **A tap anywhere on the row opens the stats + archive drawer, and Play / Resume is the only
+  control that still navigates into the game.** Implemented as an `onClick` on `.sl-row` gated
+  with `matchMedia('(max-width: 900px)')` at CLICK time, not on a rendered flag, so the markup is
+  identical on the server and the desktop row keeps its old behaviour (name links to the game,
+  chevron opens the drawer) with no hydration branch. The handler bails on
+  `.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb` and otherwise `preventDefault()`s to swallow the
+  name link's navigation. `.sl-btn.done` is a static score chip, not a control, so it falls
+  through and expands like the rest of the row.
+
+**Rails (`app/HomeRails.jsx`)**
+
+- Each ranked panel promotes its **#1 into a hero slab** on a phone: eyebrow, big name, sub, big
+  figure, gold left rule. Rendered by `Rows` from a `hero={{eyebrow, sub, unit, tone}}` prop, with
+  `.hr-tbl tr.lead1` hidden below 900px so the list starts at 2, and the panel's grey sub-strip
+  folded into the slab (`.hr-panel:has(.hr-hero) .hr-sub{display:none}`, so a board with no rows
+  keeps its descriptor). Both renders sit in the DOM at once; `display:none` keeps the hidden one
+  out of the accessibility tree, so nothing is announced twice.
+- The slab ground is **blue, not the header's navy**: `.hr-ph` stays visible because it carries the
+  contest countdown and the flip panel's face switcher, which a phone still needs, so a navy slab
+  would abut a navy header with no edge. Blue over navy is the cap bars' own pairing. `tone:
+  'lite'` gives the lighter `#4d84f3` so two adjacent rails do not read as one block.
+- Live feed and Featured are untouched: they already carry navy tabs and big stats.
+
+**When adding anything to the phone home surface, match these tokens** (`globals.css` +
+`lib/home-blues.js`), and keep every rule inside the media query. A mock-up of the three
+directions considered lives at `mobile-home-mockups.html` in the repo root.
+
 ## Chrome tab hygiene (universal rule, owner-requested 2026-06-05)
 
 Close every Chrome MCP tab as soon as it is no longer needed: reuse ONE tab per session (navigate in

@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mind Loft — mobile home mock-ups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0c0e; --muted:#3f4757; --slate:#646c7a;
+  --accent:#1e3a8a; --white:#fff; --surface:#f7f8fa; --surface-alt:#eef2f7;
+  --border:#e5e7eb; --blue:#2563eb; --blue-deep:#1d4ed8; --blue-mid:#2c4fa8;
+  --blue-lite:#4d84f3; --blue-200:#bfdbfe; --pale:#dbe8ff;
+  --accent-soft:#eef3ff; --accent-border:#cddffb;
+  --gold:#e8b43a; --gold-ink:#a16207; --success-deep:#15803d;
+  /* slate category blues, from lib/home-blues.js */
+  --c-word:#1e3a8a; --c-num:#0369a1; --c-logic:#3730a3; --c-geo:#075985;
+  --c-trivia:#2563eb; --c-end:#475b78; --c-cards:#1e5f8f; --c-crowd:#3d5a80;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#111318;color:#e7ecf3;font-family:'Manrope',system-ui,sans-serif;padding:28px 22px 60px}
+h1{font-size:20px;font-weight:800;letter-spacing:-.4px;margin:0 0 6px}
+.lede{font-size:13px;color:#9aa6b8;max-width:900px;line-height:1.55;margin:0 0 26px}
+.lede b{color:#dbe8ff;font-weight:700}
+.rack{display:flex;gap:26px;align-items:flex-start;overflow-x:auto;padding-bottom:20px}
+.col{flex:0 0 auto;width:390px}
+.hd{margin:0 0 4px;font-size:14px;font-weight:800;letter-spacing:.02em;color:#fff}
+.hd em{font-style:normal;color:#7fa6ee}
+.why{font-size:11.5px;line-height:1.5;color:#98a4b6;margin:0 0 12px;min-height:62px}
+.phone{width:390px;background:#fff;color:var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 18px 46px -12px rgba(0,0,0,.65)}
+
+/* ─────────── SHARED: header + stat strip + the two blue bars ─────────── */
+.mh{display:flex;align-items:center;gap:9px;background:var(--accent);padding:11px 13px}
+.mh .mark{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}
+.mh .mark svg{display:block}
+.mh .wm{font-size:16px;font-weight:800;letter-spacing:-.3px;color:#fff}
+.mh .wm i{font-style:normal;color:#60a5fa}
+.mh .who{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:#fff}
+.mh .av{width:24px;height:24px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+.st{display:flex;background:var(--accent);border-top:1px solid rgba(255,255,255,.13)}
+.st>div{flex:1;padding:9px 13px 10px;border-right:1px solid rgba(255,255,255,.13)}
+.st>div:last-child{border-right:none}
+.st b{display:block;font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.st b s{font-size:11px;font-weight:600;color:var(--blue-200);text-decoration:none;margin-left:3px}
+.st span{display:block;font-size:9.5px;font-weight:700;color:#9dbdf3;margin-top:2px}
+.st span.up{color:#6ee7a8}
+
+.bar{position:relative;display:flex;align-items:center;gap:12px;padding:13px 14px 13px 22px;background:var(--blue);color:#fff}
+.bar+.bar{background:var(--blue-lite)}
+.bar::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.9)}
+.bar .txt{min-width:0}
+.bar .eye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--pale)}
+.bar .nm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3}
+.bar .sub{font-size:11px;font-weight:600;color:var(--pale);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar .go{margin-left:auto;flex:none;width:98px;padding:10px 0;border-radius:8px;background:#fff;color:var(--blue-deep);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-align:center}
+
+/* ─────────── DIRECTION A — ruled rows ─────────── */
+.band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent)}
+.band h2{margin:0;font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#fff}
+.band .ct{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--blue-200)}
+.band.mid{background:var(--blue-mid)}
+.band.sm h2{font-size:10.5px;letter-spacing:.12em}
+
+.tabs{display:flex;background:var(--blue-mid);padding:7px 8px;gap:6px;overflow-x:auto}
+.tabs button{flex:none;border:0;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#c3d5f4;background:rgba(255,255,255,.10);border-radius:999px;padding:6px 12px}
+.tabs button.on{background:#fff;color:var(--blue-deep)}
+
+.rw{position:relative;display:flex;align-items:center;gap:10px;padding:9px 12px 9px 16px;border-bottom:1px solid #eef0f4;background:#fff}
+.rw::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rule,#475b78)}
+.rw .ic{width:30px;height:30px;flex:none;border-radius:8px;background:var(--surface-alt);display:flex;align-items:center;justify-content:center}
+.rw .mid{flex:1;min-width:0}
+.rw .t1{display:flex;align-items:center;gap:7px;min-width:0}
+.rw .gn{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.rw .chip{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--rule,#475b78);border:1px solid currentColor;border-radius:4px;padding:1px 5px;flex:none}
+.rw .t2{display:block;font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.rw .ld{color:var(--gold-ink);font-weight:700}
+.rw .go2{flex:none;width:64px;padding:7px 0;border-radius:7px;background:var(--blue);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:center}
+.rw .go2.res{background:#fdf2df;color:#a16207;border:1px solid #f0d79a}
+.rw .go2.dn{background:#f1faf5;color:var(--success-deep);border:1px solid #cfeadd}
+.rw .arc{flex:none;width:26px;height:26px;border-radius:7px;border:1px solid var(--accent-border);color:var(--blue-deep);display:flex;align-items:center;justify-content:center}
+.rw.prog{background:#fffaeb} .rw.prog::before{background:var(--gold)}
+.rw.done{background:#f6fbf8} .rw.done::before{background:#16a34a}
+.rw.done .gn{color:#14532d}
+
+.pnl{border-top:1px solid var(--border)}
+.ph{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent)}
+.ph .pi{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center}
+.ph h3{margin:0;font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#fff}
+.ph .cd{margin-left:auto;font-size:10px;font-weight:800;color:#bfdbfe;background:rgba(255,255,255,.14);border-radius:999px;padding:3px 8px}
+.psub{font-size:11px;color:var(--slate);padding:7px 13px;background:var(--surface);border-bottom:1px solid var(--border)}
+.lr{display:flex;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid #f0f2f6;font-size:13px}
+.lr .rk{width:16px;font-size:11px;font-weight:800;color:#9aa2b1;font-variant-numeric:tabular-nums}
+.lr .v{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.lr.one{background:#fdf7e8;box-shadow:inset 4px 0 0 var(--gold)}
+.lr.one .rk{color:var(--gold-ink)}
+.lr.one .nm{font-weight:800}
+.pfoot{display:flex;align-items:center;gap:10px;padding:8px 13px;border-top:1px solid var(--border)}
+.pfoot .ex{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--slate)}
+.pfoot .lk{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep)}
+
+.ftabs{display:flex}
+.ftabs div{flex:1;text-align:center;background:var(--blue-mid);font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#c3d5f4;padding:11px 6px}
+.ftabs div.on{background:var(--accent);color:#fff;box-shadow:inset 0 -3px 0 var(--blue)}
+.fstat{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.fstat>div{flex:1;padding:10px 13px;border-right:1px solid var(--border)}
+.fstat>div:last-child{border-right:none}
+.fstat b{display:block;font-size:19px;font-weight:800;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+.fstat span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+.fr{display:flex;align-items:center;gap:9px;padding:8px 13px;border-bottom:1px solid #f0f2f6}
+.fr .fm{flex:1;min-width:0}
+.fr .ft{display:flex;align-items:baseline;gap:6px;font-size:12.5px;font-weight:800}
+.fr .fc{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:4px;color:#fff;background:var(--rule,#475b78)}
+.fr .fs{font-size:11px;color:var(--slate)}
+.fr .rg{width:30px;height:30px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;font-variant-numeric:tabular-nums}
+.fr .rg i{width:23px;height:23px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.frow{display:flex;align-items:center;gap:11px;padding:11px 13px;border-bottom:1px solid #f0f2f6}
+.frow .fi{width:32px;height:32px;flex:none;border-radius:9px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center}
+.frow .fm2{flex:1;min-width:0}
+.frow .h{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800}
+.frow .lead{font-size:10.5px;font-weight:800;color:var(--gold-ink)}
+.frow .s{font-size:11px;color:var(--slate)}
+.frow .ar{color:#9aa2b1;font-size:17px}
+
+/* ─────────── DIRECTION B — banded groups + hero rails ─────────── */
+.b .rw{padding-left:18px}
+.b .rw .ic{display:none}
+.b .eyerow{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--rule,#475b78)}
+.b .rw .gn{font-size:16px}
+.b .plc{flex:none;text-align:right;margin-right:2px}
+.b .plc b{display:block;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.b .plc span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:2px}
+.hero{position:relative;display:flex;align-items:center;gap:12px;padding:14px 14px 14px 22px;background:var(--accent);color:#fff}
+.hero::before{content:'';position:absolute;left:10px;top:13px;bottom:13px;width:4px;border-radius:2px;background:var(--gold)}
+.hero .txt{min-width:0}
+.hero .eye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#f0d79a}
+.hero .nm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3}
+.hero .sub{font-size:11px;font-weight:600;color:var(--blue-200)}
+.hero .big{margin-left:auto;flex:none;text-align:right}
+.hero .big b{display:block;font-size:23px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+.hero .big span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-200)}
+.hero.blue{background:var(--blue)} .hero.blue::before{background:rgba(255,255,255,.9)}
+.hero.blue .eye{color:var(--pale)}
+
+/* ─────────── DIRECTION C — dark board ─────────── */
+.c .deck{background:#16306e}
+.c .tabs{background:transparent;border-bottom:1px solid rgba(255,255,255,.14)}
+.c .tabs button{background:transparent;color:#9dbdf3;border-radius:0;padding:9px 4px;margin-right:14px;box-shadow:inset 0 -2px 0 transparent}
+.c .tabs button.on{background:transparent;color:#fff;box-shadow:inset 0 -2px 0 #fff}
+.c .drw{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-bottom:1px solid rgba(255,255,255,.10);color:#fff}
+.c .drw::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--rule,#60a5fa);opacity:.95}
+.c .drw .mid{flex:1;min-width:0}
+.c .drw .eyerow,.c .drw .gn,.c .drw .t2{display:block}
+.c .drw .eyerow{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8fb4fb}
+.c .drw .gn{font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1.25}
+.c .drw .t2{font-size:11px;color:#a8bfe8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c .drw .ld{color:#f0d79a;font-weight:700}
+.c .drw .go2{flex:none;width:66px;padding:7px 0;border-radius:7px;background:#fff;color:var(--blue-deep);font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:center}
+.c .drw .go2.res{background:var(--gold);color:#3a2a05}
+.c .drw.done{background:rgba(255,255,255,.04)}
+.c .drw.done .gn{color:#bfe6cf}
+.c .drw .sc{flex:none;font-size:11px;font-weight:800;color:#6ee7a8;letter-spacing:.04em}
+.c .drw .arc{flex:none;width:26px;height:26px;border-radius:7px;border:1px solid rgba(255,255,255,.28);color:#cfe0fb;display:flex;align-items:center;justify-content:center}
+.c .cband{display:flex;align-items:center;gap:9px;padding:9px 13px;background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.12)}
+.c .cband h3{margin:0;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.c .cband .ct{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#9dbdf3}
+.c .clr{display:flex;align-items:center;gap:10px;padding:8px 13px;border-bottom:1px solid rgba(255,255,255,.09);font-size:13px;color:#e9f0fb}
+.c .clr .rk{width:16px;font-size:11px;font-weight:800;color:#7f9ad0;font-variant-numeric:tabular-nums}
+.c .clr .v{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:#fff}
+.c .clr.one{background:rgba(232,180,58,.14);box-shadow:inset 4px 0 0 var(--gold)}
+.c .clr.one .rk,.c .clr.one .v{color:var(--gold)}
+.c .cfoot{display:flex;align-items:center;padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.12)}
+.c .cfoot .ex{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#9dbdf3}
+.c .cfoot .lk{margin-left:auto;font-size:11px;font-weight:800;color:#fff}
+.c .cstat{display:flex;border-bottom:1px solid rgba(255,255,255,.12)}
+.c .cstat>div{flex:1;padding:10px 13px;border-right:1px solid rgba(255,255,255,.12)}
+.c .cstat>div:last-child{border-right:none}
+.c .cstat b{display:block;font-size:19px;font-weight:800;color:#fff;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+.c .cstat span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#9dbdf3}
+.c .psub{background:rgba(255,255,255,.05);color:#a8bfe8;border-bottom:1px solid rgba(255,255,255,.12)}
+.note{font-size:10.5px;color:#7f8b9d;margin:10px 0 0;line-height:1.5}
+@media(max-width:1280px){.rack{flex-direction:column;align-items:center}.col{width:390px}}
+</style>
+</head>
+<body>
+
+<h1>Mind Loft &middot; mobile home, three directions</h1>
+<p class="lede">Every direction keeps the <b>navy header + stat strip</b> and the <b>two blue bars</b> exactly as they ship today, and rebuilds everything below them out of the same four moves those bars already use: a <b>solid ground</b>, a <b>4px left rule instead of an icon</b>, a <b>tiny pale-blue uppercase eyebrow over a big 800-weight name</b>, and a <b>single pill button on the right edge</b>. Frames are 390px. Colors are the live tokens (<code>globals.css</code> + <code>lib/home-blues.js</code>), so anything here is a CSS change, not a new palette.</p>
+
+<div class="rack">
+
+<!-- ══════════════════════ A ══════════════════════ -->
+<div class="col">
+  <p class="hd">A &middot; <em>Ruled rows</em></p>
+  <p class="why">Least disruptive. The slate keeps its shape but every row grows the bars' 4px left rule in its category blue, the category becomes a mono eyebrow chip instead of grey italics, and the Play control becomes the blue pill (the white bar button, inverted). Filter tabs move onto a navy strip as pills. Rail panels lose the grey sub-strip and give #1 a gold rule.</p>
+  <div class="phone">
+    <div class="mh">
+      <span class="mark"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M3 11l9-7 9 7"/><path d="M6 10v9h12v-9"/></svg></span>
+      <span class="wm">Mind <i>Loft</i></span>
+      <span class="who">Gator85 <span class="av">G</span></span>
+    </div>
+    <div class="st">
+      <div><b>#1<s>of 2,931</s></b><span>no change today</span></div>
+      <div><b>9,796<s>IQ pts</s></b><span class="up">+101 today</span></div>
+      <div><b>10<s>/51</s></b><span>played today</span></div>
+    </div>
+    <div class="bar"><div class="txt"><div class="eye">Up next</div><div class="nm">Crux</div><div class="sub">A clueless crossword &middot; 87 players today</div></div><div class="go">&#9654; Resume</div></div>
+    <div class="bar"><div class="txt"><div class="eye">Easiest board</div><div class="nm">Fib</div><div class="sub">One clue is lying &middot; 1 on the leaderboard</div></div><div class="go">&#9654; Play</div></div>
+
+    <div class="band"><h2>Today's slate</h2><span class="ct">51 games &middot; 907 plays</span></div>
+    <div class="tabs"><button class="on">All</button><button>Unplayed</button><button>Trivia</button><button>End game</button><button>Word</button></div>
+
+    <div class="rw prog" style="--rule:var(--c-end)"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#475b78"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span><span class="mid"><span class="t1"><span class="gn">Chain</span><span class="chip">End game</span></span><span class="t2">Take them, or leave them &middot; 131 playing &middot; <span class="ld">&#9819; LookAtLeo</span></span></span><span class="go2 res">&#10073;&#10073;</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    <div class="rw prog" style="--rule:var(--c-word)"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#1e3a8a"><rect x="3" y="4" width="6" height="6"/><rect x="11" y="4" width="6" height="6"/><rect x="3" y="12" width="6" height="6"/><rect x="11" y="12" width="6" height="6"/></svg></span><span class="mid"><span class="t1"><span class="gn">Crux</span><span class="chip">Word</span></span><span class="t2">A clueless crossword &middot; 87 playing &middot; <span class="ld">&#9819; Gayle F</span></span></span><span class="go2 res">&#10073;&#10073;</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    <div class="rw" style="--rule:var(--c-word)"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#1e3a8a"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg></span><span class="mid"><span class="t1"><span class="gn">Links</span><span class="chip">Word</span></span><span class="t2">Four hidden threads &middot; 31 playing &middot; <span class="ld">&#9819; hoooooop</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    <div class="rw" style="--rule:var(--c-end)"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#475b78"><path d="M3 3h6v6H3zM9 9h6v6H9zM15 3h6v6h-6zM3 15h6v6H3zM15 15h6v6h-6z"/></svg></span><span class="mid"><span class="t1"><span class="gn">Check</span><span class="chip">End game</span></span><span class="t2">Give a piece, take them all &middot; 27 playing &middot; <span class="ld">&#9819; e4n</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    <div class="rw" style="--rule:var(--c-logic)"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#3730a3"><circle cx="12" cy="7" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7z"/></svg></span><span class="mid"><span class="t1"><span class="gn">Jesters</span><span class="chip">Logic</span></span><span class="t2">Seat the court &middot; 24 playing &middot; <span class="ld">&#9819; e4n</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    <div class="rw" style="--rule:var(--c-geo)"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#075985"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg></span><span class="mid"><span class="t1"><span class="gn">Ping</span><span class="chip">Geography</span></span><span class="t2">Guess the secret city &middot; 23 playing &middot; <span class="ld">&#9819; Drew Csi</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+    <div class="rw done" style="--rule:#16a34a"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="#15803d"><path d="M4 12.5 10 18.5 20 6" stroke="#15803d" stroke-width="3.4" fill="none" stroke-linecap="round"/></svg></span><span class="mid"><span class="t1"><span class="gn">Streak</span><span class="chip" style="color:#15803d">Trivia</span></span><span class="t2">9 of 40 &middot; beat 61% &middot; <span class="ld">&#9819; e4n</span></span></span><span class="go2 dn">Done</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+
+    <div class="pnl">
+      <div class="ph"><span class="pi"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><path d="M3 7l4 4 5-7 5 7 4-4v11H3z"/></svg></span><h3>Community leaderboard ($)</h3><span class="cd">28d left</span></div>
+      <div class="psub">$20 first, $5 second and third &middot; Players (x1) + Sessions (x0.5)</div>
+      <div class="lr one"><span class="rk">1</span><span class="nm">Gayle F</span><span class="v">12.9</span></div>
+      <div class="lr"><span class="rk">2</span><span class="nm">Annie</span><span class="v">10.9</span></div>
+      <div class="lr"><span class="rk">3</span><span class="nm">Gator85</span><span class="v">8.9</span></div>
+      <div class="lr"><span class="rk">4</span><span class="nm">Sophie</span><span class="v">8.2</span></div>
+      <div class="pfoot"><span class="ex">Show all 11</span><span class="lk">Board and rules &rarr;</span></div>
+    </div>
+
+    <div class="pnl">
+      <div class="ftabs"><div class="on">Live feed</div><div>Your results</div></div>
+      <div class="fstat"><div><b>978</b><span>plays today</span></div><div><b>180h 1m</b><span>played today</span></div></div>
+      <div class="fr" style="--rule:var(--c-logic)"><span class="fm"><span class="ft"><span>Jesters: 8/7/26</span><span class="fc">Logic</span></span><span class="fs">10/10 &middot; beat 56% &middot; 4m ago</span></span><span class="rg" style="background:conic-gradient(#1e3a8a 100%,#e5e7eb 0)"><i>100%</i></span></div>
+      <div class="fr" style="--rule:var(--c-word)"><span class="fm"><span class="ft"><span>Crux: 8/7/26</span><span class="fc">Word</span></span><span class="fs">16/16 &middot; beat 66% &middot; 5m ago</span></span><span class="rg" style="background:conic-gradient(#1e3a8a 100%,#e5e7eb 0)"><i>100%</i></span></div>
+      <div class="fr" style="--rule:var(--c-trivia)"><span class="fm"><span class="ft"><span>Streak: 8/7/26</span><span class="fc">Trivia</span></span><span class="fs">9/40 &middot; beat 61% &middot; 6m ago</span></span><span class="rg" style="background:conic-gradient(#a9bcd8 23%,#e5e7eb 0)"><i>23%</i></span></div>
+      <div class="pfoot"><span class="ex">All activity</span><span class="lk">Category mastery &rarr;</span></div>
+    </div>
+
+    <div class="pnl">
+      <div class="ph"><span class="pi"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="9"/></svg></span><h3>Featured</h3></div>
+      <div class="frow"><span class="fi"><svg width="15" height="15" viewBox="0 0 24 24" fill="#1e3a8a"><circle cx="12" cy="12" r="9"/></svg></span><span class="fm2"><span class="h">Daily challenge <span class="lead">&#9819; bandor</span></span><span class="s">Literature</span></span><span class="ar">&rsaquo;</span></div>
+      <div class="frow"><span class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M6 4l14 8-14 8z"/></svg></span><span class="fm2"><span class="h">Quiz of the day <span class="lead">&#9819; Steinni</span></span><span class="s">Ski Resort From the Trail Map</span></span><span class="ar">&rsaquo;</span></div>
+      <div class="frow"><span class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M4 6h16v5a8 8 0 0 1-16 0z"/></svg></span><span class="fm2"><span class="h">Start a duel</span><span class="s">Challenge someone 1 v 1</span></span><span class="ar">&rsaquo;</span></div>
+    </div>
+  </div>
+  <p class="note">Changes: <code>.sl-row</code> gains a rule pseudo-element, <code>.sl-cm</code> becomes a chip, <code>.sl-btn.play</code> fills blue, <code>.sl-filt</code> becomes pills on <code>#2c4fa8</code>, <code>.hr-sub</code> keeps its grey, <code>.hr-tbl tr.lead1</code> keeps gold.</p>
+</div>
+
+<!-- ══════════════════════ B ══════════════════════ -->
+<div class="col b">
+  <p class="hd">B &middot; <em>Banded groups + hero rails</em></p>
+  <p class="why">The middle option, and the one that reads most like the two bars. The 51 games break into solid navy sub-bands (In progress / Ready to play / Done), rows drop the icon plate for the 4px rule, and the category moves above the name as an eyebrow. Each rail panel promotes its #1 into a full hero slab: eyebrow, big name, sub, big number.</p>
+  <div class="phone">
+    <div class="mh">
+      <span class="mark"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M3 11l9-7 9 7"/><path d="M6 10v9h12v-9"/></svg></span>
+      <span class="wm">Mind <i>Loft</i></span>
+      <span class="who">Gator85 <span class="av">G</span></span>
+    </div>
+    <div class="st">
+      <div><b>#1<s>of 2,931</s></b><span>no change today</span></div>
+      <div><b>9,796<s>IQ pts</s></b><span class="up">+101 today</span></div>
+      <div><b>10<s>/51</s></b><span>played today</span></div>
+    </div>
+    <div class="bar"><div class="txt"><div class="eye">Up next</div><div class="nm">Crux</div><div class="sub">A clueless crossword &middot; 87 players today</div></div><div class="go">&#9654; Resume</div></div>
+    <div class="bar"><div class="txt"><div class="eye">Easiest board</div><div class="nm">Fib</div><div class="sub">One clue is lying &middot; 1 on the leaderboard</div></div><div class="go">&#9654; Play</div></div>
+
+    <div class="band"><h2>Today's slate</h2><span class="ct">51 games &middot; 907 plays</span></div>
+    <div class="tabs"><button class="on">All</button><button>Unplayed</button><button>Trivia</button><button>End game</button><button>Word</button></div>
+
+    <div class="band mid sm"><h2>In progress</h2><span class="ct">2</span></div>
+    <div class="rw prog" style="--rule:var(--c-end)"><span class="mid"><span class="eyerow">End game</span><span class="t1"><span class="gn">Chain</span></span><span class="t2">Take them, or leave them &middot; <span class="ld">&#9819; LookAtLeo</span></span></span><span class="plc"><b>131</b><span>playing</span></span><span class="go2 res">&#10073;&#10073;</span></div>
+    <div class="rw prog" style="--rule:var(--c-word)"><span class="mid"><span class="eyerow">Word</span><span class="t1"><span class="gn">Crux</span></span><span class="t2">A clueless crossword &middot; <span class="ld">&#9819; Gayle F</span></span></span><span class="plc"><b>87</b><span>playing</span></span><span class="go2 res">&#10073;&#10073;</span></div>
+
+    <div class="band mid sm"><h2>Ready to play</h2><span class="ct">39</span></div>
+    <div class="rw" style="--rule:var(--c-word)"><span class="mid"><span class="eyerow">Word</span><span class="t1"><span class="gn">Links</span></span><span class="t2">Four hidden threads &middot; <span class="ld">&#9819; hoooooop</span></span></span><span class="plc"><b>31</b><span>playing</span></span><span class="go2">Play</span></div>
+    <div class="rw" style="--rule:var(--c-end)"><span class="mid"><span class="eyerow">End game</span><span class="t1"><span class="gn">Check</span></span><span class="t2">Give a piece, take them all &middot; <span class="ld">&#9819; e4n</span></span></span><span class="plc"><b>27</b><span>playing</span></span><span class="go2">Play</span></div>
+    <div class="rw" style="--rule:var(--c-word)"><span class="mid"><span class="eyerow">Word</span><span class="t1"><span class="gn">Stet</span></span><span class="t2">Spot the error, fix the copy &middot; <span class="ld">&#9819; EJ</span></span></span><span class="plc"><b>25</b><span>playing</span></span><span class="go2">Play</span></div>
+    <div class="rw" style="--rule:var(--c-geo)"><span class="mid"><span class="eyerow">Geography</span><span class="t1"><span class="gn">Ping</span></span><span class="t2">Guess the secret city &middot; <span class="ld">&#9819; Drew Csi</span></span></span><span class="plc"><b>23</b><span>playing</span></span><span class="go2">Play</span></div>
+    <div class="rw" style="--rule:var(--c-trivia)"><span class="mid"><span class="eyerow">Trivia</span><span class="t1"><span class="gn">Dating</span></span><span class="t2">Put history in order &middot; <span class="ld">&#9819; steinni1</span></span></span><span class="plc"><b>17</b><span>playing</span></span><span class="go2">Play</span></div>
+
+    <div class="band mid sm" style="background:#15803d"><h2>Done today</h2><span class="ct">10</span></div>
+    <div class="rw done" style="--rule:#16a34a"><span class="mid"><span class="eyerow" style="color:#15803d">Trivia</span><span class="t1"><span class="gn">Streak</span></span><span class="t2">9 of 40 &middot; beat 61% of players</span></span><span class="go2 dn">Done</span></div>
+    <div class="rw done" style="--rule:#16a34a"><span class="mid"><span class="eyerow" style="color:#15803d">Logic</span><span class="t1"><span class="gn">Alibi</span></span><span class="t2">12 of 12 &middot; beat 55% of players</span></span><span class="go2 dn">Done</span></div>
+
+    <div class="pnl">
+      <div class="hero"><div class="txt"><div class="eye">Top community member</div><div class="nm">Gayle F</div><div class="sub">28 days left &middot; $20 first, $5 second and third</div></div><div class="big"><b>12.9</b><span>score</span></div></div>
+      <div class="lr"><span class="rk">2</span><span class="nm">Annie</span><span class="v">10.9</span></div>
+      <div class="lr"><span class="rk">3</span><span class="nm">Gator85</span><span class="v">8.9</span></div>
+      <div class="lr"><span class="rk">4</span><span class="nm">Sophie</span><span class="v">8.2</span></div>
+      <div class="pfoot"><span class="ex">Show all 11</span><span class="lk">Board and rules &rarr;</span></div>
+    </div>
+
+    <div class="pnl">
+      <div class="hero blue"><div class="txt"><div class="eye">Today's leader</div><div class="nm">e4n</div><div class="sub">Combined daily games score</div></div><div class="big"><b>283.4</b><span>points</span></div></div>
+      <div class="lr"><span class="rk">2</span><span class="nm">Darrren1</span><span class="v">195.2</span></div>
+      <div class="lr"><span class="rk">3</span><span class="nm">Bee80</span><span class="v">190.8</span></div>
+      <div class="lr"><span class="rk">4</span><span class="nm">Gator88</span><span class="v">162.1</span></div>
+      <div class="pfoot"><span class="ex">Show all 10</span><span class="lk">Full leaderboard &rarr;</span></div>
+    </div>
+
+    <div class="pnl">
+      <div class="ftabs"><div class="on">Live feed</div><div>Your results</div></div>
+      <div class="fstat"><div><b>978</b><span>plays today</span></div><div><b>180h 1m</b><span>played today</span></div></div>
+      <div class="fr" style="--rule:var(--c-logic)"><span class="fm"><span class="ft"><span>Jesters: 8/7/26</span><span class="fc">Logic</span></span><span class="fs">10/10 &middot; beat 56% &middot; 4m ago</span></span><span class="rg" style="background:conic-gradient(#1e3a8a 100%,#e5e7eb 0)"><i>100%</i></span></div>
+      <div class="fr" style="--rule:var(--c-word)"><span class="fm"><span class="ft"><span>Crux: 8/7/26</span><span class="fc">Word</span></span><span class="fs">16/16 &middot; beat 66% &middot; 5m ago</span></span><span class="rg" style="background:conic-gradient(#1e3a8a 100%,#e5e7eb 0)"><i>100%</i></span></div>
+      <div class="pfoot"><span class="ex">All activity</span><span class="lk">Category mastery &rarr;</span></div>
+    </div>
+
+    <div class="pnl">
+      <div class="ph"><span class="pi"><svg width="12" height="12" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="9"/></svg></span><h3>Featured</h3></div>
+      <div class="frow"><span class="fi"><svg width="15" height="15" viewBox="0 0 24 24" fill="#1e3a8a"><circle cx="12" cy="12" r="9"/></svg></span><span class="fm2"><span class="h">Daily challenge <span class="lead">&#9819; bandor</span></span><span class="s">Literature</span></span><span class="ar">&rsaquo;</span></div>
+      <div class="frow"><span class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1e3a8a"><path d="M6 4l14 8-14 8z"/></svg></span><span class="fm2"><span class="h">Quiz of the day <span class="lead">&#9819; Steinni</span></span><span class="s">Ski Resort From the Trail Map</span></span><span class="ar">&rsaquo;</span></div>
+    </div>
+  </div>
+  <p class="note">Costs one extra band per group and ~4px of row height for the eyebrow; buys you a slate you can skim by state without reading the buttons. The hero slab is the same markup as <code>.dh-cell</code>, reused.</p>
+</div>
+
+<!-- ══════════════════════ C ══════════════════════ -->
+<div class="col c">
+  <p class="hd">C &middot; <em>Dark board</em></p>
+  <p class="why">The full commitment: the whole page below the bars sits on the header's navy, so there is one surface from the logo to the footer and the white pill buttons are the only bright thing on it. Hairlines become white at 10%, category colors become the left rules, gold marks the leader, green marks what you finished.</p>
+  <div class="phone">
+    <div class="mh">
+      <span class="mark"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M3 11l9-7 9 7"/><path d="M6 10v9h12v-9"/></svg></span>
+      <span class="wm">Mind <i>Loft</i></span>
+      <span class="who">Gator85 <span class="av">G</span></span>
+    </div>
+    <div class="st">
+      <div><b>#1<s>of 2,931</s></b><span>no change today</span></div>
+      <div><b>9,796<s>IQ pts</s></b><span class="up">+101 today</span></div>
+      <div><b>10<s>/51</s></b><span>played today</span></div>
+    </div>
+    <div class="bar"><div class="txt"><div class="eye">Up next</div><div class="nm">Crux</div><div class="sub">A clueless crossword &middot; 87 players today</div></div><div class="go">&#9654; Resume</div></div>
+    <div class="bar"><div class="txt"><div class="eye">Easiest board</div><div class="nm">Fib</div><div class="sub">One clue is lying &middot; 1 on the leaderboard</div></div><div class="go">&#9654; Play</div></div>
+
+    <div class="deck">
+      <div class="band"><h2>Today's slate</h2><span class="ct">51 games &middot; 907 plays</span></div>
+      <div class="tabs"><button class="on">All</button><button>Unplayed</button><button>Trivia</button><button>End game</button><button>Word</button></div>
+
+      <div class="drw" style="--rule:#8fa3c9"><span class="mid"><span class="eyerow">End game &middot; 131 playing</span><span class="gn">Chain</span><span class="t2">Take them, or leave them &middot; <span class="ld">&#9819; LookAtLeo</span></span></span><span class="go2 res">&#10073;&#10073;</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="drw" style="--rule:#7f9ae0"><span class="mid"><span class="eyerow">Word &middot; 87 playing</span><span class="gn">Crux</span><span class="t2">A clueless crossword &middot; <span class="ld">&#9819; Gayle F</span></span></span><span class="go2 res">&#10073;&#10073;</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="drw" style="--rule:#7f9ae0"><span class="mid"><span class="eyerow">Word &middot; 31 playing</span><span class="gn">Links</span><span class="t2">Four hidden threads &middot; <span class="ld">&#9819; hoooooop</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="drw" style="--rule:#8fa3c9"><span class="mid"><span class="eyerow">End game &middot; 27 playing</span><span class="gn">Check</span><span class="t2">Give a piece, take them all &middot; <span class="ld">&#9819; e4n</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="drw" style="--rule:#9a94e8"><span class="mid"><span class="eyerow">Logic &middot; 24 playing</span><span class="gn">Jesters</span><span class="t2">Seat the court &middot; <span class="ld">&#9819; e4n</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="drw" style="--rule:#63a8d6"><span class="mid"><span class="eyerow">Geography &middot; 23 playing</span><span class="gn">Ping</span><span class="t2">Guess the secret city &middot; <span class="ld">&#9819; Drew Csi</span></span></span><span class="go2">Play</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="drw done" style="--rule:#4ade80"><span class="mid"><span class="eyerow" style="color:#8ee0ab">Trivia &middot; done</span><span class="gn">Streak</span><span class="t2">9 of 40 &middot; beat 61% of players</span></span><span class="sc">9/40</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+      <div class="drw done" style="--rule:#4ade80"><span class="mid"><span class="eyerow" style="color:#8ee0ab">Logic &middot; done</span><span class="gn">Alibi</span><span class="t2">12 of 12 &middot; beat 55% of players</span></span><span class="sc">12/12</span><span class="arc"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 9 6 6 6-6"/></svg></span></div>
+
+      <div class="cband"><h3>Community leaderboard ($)</h3><span class="ct">28d left</span></div>
+      <div class="psub" style="font-size:11px;padding:7px 13px">$20 first, $5 second and third &middot; Players (x1) + Sessions (x0.5)</div>
+      <div class="clr one"><span class="rk">1</span><span class="nm">Gayle F</span><span class="v">12.9</span></div>
+      <div class="clr"><span class="rk">2</span><span class="nm">Annie</span><span class="v">10.9</span></div>
+      <div class="clr"><span class="rk">3</span><span class="nm">Gator85</span><span class="v">8.9</span></div>
+      <div class="clr"><span class="rk">4</span><span class="nm">Sophie</span><span class="v">8.2</span></div>
+      <div class="cfoot"><span class="ex">Show all 11</span><span class="lk">Board and rules &rarr;</span></div>
+
+      <div class="cband"><h3>Live feed</h3><span class="ct">Your results &rarr;</span></div>
+      <div class="cstat"><div><b>978</b><span>plays today</span></div><div><b>180h 1m</b><span>played today</span></div></div>
+      <div class="clr"><span class="nm" style="flex:1"><b style="font-weight:800">Jesters: 8/7/26</b><br><span style="font-size:11px;color:#a8bfe8">10/10 &middot; beat 56% &middot; 4m ago</span></span><span class="v" style="font-size:11px;color:#8fb4fb">100%</span></div>
+      <div class="clr"><span class="nm" style="flex:1"><b style="font-weight:800">Crux: 8/7/26</b><br><span style="font-size:11px;color:#a8bfe8">16/16 &middot; beat 66% &middot; 5m ago</span></span><span class="v" style="font-size:11px;color:#8fb4fb">100%</span></div>
+      <div class="clr"><span class="nm" style="flex:1"><b style="font-weight:800">Streak: 8/7/26</b><br><span style="font-size:11px;color:#a8bfe8">9/40 &middot; beat 61% &middot; 6m ago</span></span><span class="v" style="font-size:11px;color:#8fb4fb">23%</span></div>
+      <div class="cfoot"><span class="ex">All activity</span><span class="lk">Category mastery &rarr;</span></div>
+
+      <div class="cband"><h3>Featured</h3></div>
+      <div class="clr"><span class="nm" style="flex:1"><b style="font-weight:800">Daily challenge</b> <span style="color:#f0d79a;font-size:10.5px;font-weight:800">&#9819; bandor</span><br><span style="font-size:11px;color:#a8bfe8">Literature</span></span><span style="color:#9dbdf3;font-size:17px">&rsaquo;</span></div>
+      <div class="clr"><span class="nm" style="flex:1"><b style="font-weight:800">Quiz of the day</b> <span style="color:#f0d79a;font-size:10.5px;font-weight:800">&#9819; Steinni</span><br><span style="font-size:11px;color:#a8bfe8">Ski Resort From the Trail Map</span></span><span style="color:#9dbdf3;font-size:17px">&rsaquo;</span></div>
+      <div class="clr" style="border-bottom:none"><span class="nm" style="flex:1"><b style="font-weight:800">Start a duel</b><br><span style="font-size:11px;color:#a8bfe8">Challenge someone 1 v 1</span></span><span style="color:#9dbdf3;font-size:17px">&rsaquo;</span></div>
+    </div>
+  </div>
+  <p class="note">Biggest change, and the only one that needs a real check: 51 rows of white-on-navy is a lot of dark, and the archive drawer, filter chips and rings all need dark variants. Cheap to trial, since the phone slate is already its own <code>@media(max-width:900px)</code> block.</p>
+</div>
+
+</div>
+</body>
+</html>

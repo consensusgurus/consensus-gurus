@@ -61,8 +61,25 @@ function fmtTime(sec) {
   return h ? `${h}:${two(m)}:${two(s)}` : `${m}:${two(s)}`;
 }
 
-function Rows({ rows, fmt, open, hrefFor }) {
+function Rows({ rows, fmt, open, hrefFor, hero }) {
+  // The phone hero slab: the panel's #1 rendered in the same shape as the Up
+  // next / Easiest board cap bars (eyebrow, big name, sub, big figure), with
+  // its table row hidden underneath so the list starts at 2. Both renders sit
+  // in the DOM at once and each is display:none at the other width, which keeps
+  // the hidden one out of the accessibility tree, so nothing is read twice.
+  const lead = (hero && rows.length) ? rows[0] : null;
   return (
+    <>
+    {lead ? (
+      <div className={`hr-hero${hero.tone === 'lite' ? ' lite' : ''}`}>
+        <div className="hr-htxt">
+          <div className="hr-heye">{hero.eyebrow}</div>
+          <div className="hr-hnm"><Link href={hrefFor(lead.name)}>{lead.name}</Link></div>
+          {hero.sub ? <div className="hr-hsub">{hero.sub}</div> : null}
+        </div>
+        <div className="hr-hval"><b>{fmt(lead.value)}</b><span>{hero.unit || 'score'}</span></div>
+      </div>
+    ) : null}
     <table className="hr-tbl"><tbody>
       {rows.map((r, i) => (
         <tr key={`${r.name}-${i}`} className={i === 0 ? 'lead1' : undefined}>
@@ -73,6 +90,7 @@ function Rows({ rows, fmt, open, hrefFor }) {
       ))}
       {!rows.length ? <tr><td colSpan={3} className="hr-none">Nothing here yet today.</td></tr> : null}
     </tbody></table>
+    </>
   );
 }
 
@@ -119,7 +137,12 @@ function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
       </div>
       <div className="hr-sub">{face.sub}</div>
       <div className="hr-scroll hr-flex">
-        <Rows rows={shown} fmt={face.fmt} hrefFor={face.hrefFor} />
+        <Rows
+          rows={shown}
+          fmt={face.fmt}
+          hrefFor={face.hrefFor}
+          hero={{ eyebrow: face.eyebrow || face.label, sub: face.sub, unit: face.unit, tone: face.tone }}
+        />
       </div>
       <div className="hr-foot">
         {face.rows.length > 5 ? (
@@ -276,6 +299,31 @@ export default function HomeRails({
       .hr-nm:hover{text-decoration:underline;}
       .hr-v{font-weight:700;font-variant-numeric:tabular-nums;}
       .hr-none{font-size:12px;color:var(--muted);padding:8px 13px;}
+      /* Phone hero slab (direction B, owner-approved 2026-08-07). Hidden above
+         900px, where the panel keeps its plain ranked table. Below 900px it
+         shows, the #1 table row hides, and the panel's grey sub-strip folds
+         INTO the slab so each rail reads with the cap bars' shape. The strip is
+         hidden only where a hero actually rendered (:has), so an empty board
+         keeps its descriptor.
+         The ground is BLUE, not the header's navy: .hr-ph stays visible (it
+         carries the contest countdown and the flip panel's face switcher, which
+         a phone still needs), so a navy slab would abut a navy header with no
+         edge between them. Blue over navy is the same pairing the two cap bars
+         already use, and the gold rule marks this one as a leaderboard #1
+         rather than a "go play this". */
+      .hr-hero{display:none;position:relative;align-items:center;gap:12px;padding:14px 14px 14px 22px;background:var(--blue);color:var(--white);}
+      .hr-hero::before{content:'';position:absolute;left:10px;top:13px;bottom:13px;width:4px;border-radius:2px;background:var(--gold);}
+      .hr-hero.lite{background:#4d84f3;}
+      .hr-htxt{min-width:0;}
+      .hr-heye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      /* line-height 1.3 plus a pixel of pad, not 1.1: these lines are
+         overflow:hidden for the ellipsis, so a tight box clips a descender. */
+      .hr-hnm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3;padding-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-hnm a{color:var(--white);text-decoration:none;}
+      .hr-hsub{font-size:11px;font-weight:600;line-height:1.35;padding-bottom:1px;color:var(--blue-200);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-hval{margin-left:auto;flex:none;text-align:right;}
+      .hr-hval b{display:block;font-size:23px;font-weight:800;letter-spacing:-.6px;line-height:1.1;font-variant-numeric:tabular-nums;}
+      .hr-hval span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-200);margin-top:2px;}
       .hr-foot{display:flex;align-items:center;gap:10px;padding:7px 13px;border-top:1px solid var(--border);flex:none;}
       .hr-exp{border:0;background:none;padding:0;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--slate);cursor:pointer;white-space:nowrap;flex:none;}
       .hr-exp:hover{color:var(--blue-deep);}
@@ -327,6 +375,9 @@ export default function HomeRails({
          sitting as tiles inside the page gutter (owner, 2026-08-03). */
       @media(max-width:900px){
         .hr-panel{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-left:none;border-right:none;border-radius:0;box-shadow:none;}
+        .hr-hero{display:flex;}
+        .hr-tbl tr.lead1{display:none;}
+        .hr-panel:has(.hr-hero) .hr-sub{display:none;}
       }
     `}</style>
   );
@@ -364,6 +415,13 @@ export default function HomeRails({
               rows={open.com ? communityRows : communityRows.slice(0, 5)}
               fmt={showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`}
               hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
+              hero={{
+                eyebrow: showContest ? 'Contest leader' : 'Top community member',
+                sub: showContest
+                  ? `${COPY.prizeLine} \u00b7 ${COPY.formulaLine}`
+                  : 'New players brought in, last 90 days',
+                unit: showContest ? 'score' : 'brought in',
+              }}
             />
           </div>
           <div className="hr-foot">
@@ -384,6 +442,9 @@ export default function HomeRails({
           faces={[
             {
               label: 'Daily games',
+              eyebrow: "Today's leader",
+              unit: 'points',
+              tone: 'lite',
               sub: 'Combined daily games score',
               rows: dailyRows,
               fmt: (v) => (Math.round((v || 0) * 10) / 10).toLocaleString(),
@@ -392,6 +453,9 @@ export default function HomeRails({
             },
             ...(xpToday.length ? [{
               label: 'IQ gainers',
+              eyebrow: "Today's top gainer",
+              unit: 'IQ pts',
+              tone: 'lite',
               sub: 'IQ points earned today',
               rows: xpToday,
               fmt: num,
@@ -409,6 +473,8 @@ export default function HomeRails({
           faces={[
             {
               label: 'All time',
+              eyebrow: 'Top player, all time',
+              unit: 'IQ pts',
               sub: 'Lifetime IQ points',
               rows: xpAll.length ? xpAll : xp30,
               fmt: num,
@@ -417,6 +483,8 @@ export default function HomeRails({
             },
             {
               label: '30 days',
+              eyebrow: 'Top player, 30 days',
+              unit: 'IQ pts',
               sub: 'IQ points, last 30 days',
               rows: xp30.length ? xp30 : xpAll,
               fmt: num,
