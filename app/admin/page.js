@@ -466,6 +466,15 @@ function buildTopPlayersToday(rows, signups, anonBase, quizTitles, limit = 10) {
   const nameById = new Map((signups || []).map((u) => [u.id, u.username || '(no name)']));
   const emailById = new Map((signups || []).map((u) => [u.id, u.email || null]));
   const labelByKey = new Map((anonBase || []).map((p) => [p.key, p.label]));
+  // A daily-game play's quiz_id is the dated puzzle id ('crux-8-7-26'), which is
+  // not in QUIZZES, so fall back to the game's own name rather than showing the
+  // raw slug.
+  const titleOf = (quizId) => {
+    const t = quizTitles && quizTitles.get(quizId);
+    if (t) return t;
+    const m = DAILY_DATED_RE.exec(quizId || '');
+    return m ? dailyGameName(m[1]) : quizId;
+  };
 
   const byPlayer = new Map();
   let playsToday = 0, secondsToday = 0, rawToday = 0;
@@ -505,7 +514,7 @@ function buildTopPlayersToday(rows, signups, anonBase, quizTitles, limit = 10) {
     if (!g.device && meta.device) g.device = meta.device;
     if (!g.geo && meta.geo) g.geo = meta.geo;
     if (!g.topGame || capped > g.topGame.seconds) {
-      g.topGame = { quizId: r.quiz_id, title: (quizTitles && quizTitles.get(r.quiz_id)) || r.quiz_id, seconds: capped };
+      g.topGame = { quizId: r.quiz_id, title: titleOf(r.quiz_id), seconds: capped };
     }
 
     playsToday += 1;
