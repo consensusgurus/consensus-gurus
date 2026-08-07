@@ -1935,6 +1935,16 @@ byte-identical.
   which left 721-900px pairing a phone slate row with a desktop-shaped drawer). It was a 13px-padded
   white panel holding five rounded, bordered cards, with the 2x2 stat tiles bordered again inside
   one of them, directly under rows that run edge to edge.
+- **The phone drawer is TWO-LEVEL** (owner, 2026-08-07): opening a row shows the button strip and
+  three collapsed bands, **Your record / Leaderboards / Archive**, and nothing else. Each opens one
+  block; it is an ACCORDION (one at a time, `sec` state in `DailyTilePanel`), because the whole point
+  is height. The single-level version ran ~1,100px, three screens for a drawer you opened to check
+  one number. "Your last N days" lives inside Your record. The mechanism is `display:contents` on
+  `.dtp-grid`, which promotes the three cards to children of `.dtp` (already a flex column) so the
+  cards, `.dtp-trend` and the bands are all siblings and `order` can interleave them band / content /
+  band / content. That is the ONLY way to get `.dtp-trend` under the Your record band without moving
+  it in the JSX, since it lives outside `.dtp-grid`. A section's own first label is hidden where it
+  would repeat the band that opens it.
 - **Every card becomes a dark band plus full-width content**, and each piece reuses an object the
   page already ships: `.dtp-lab` becomes the slate's `.sl-band`; `.dtp-stats` becomes the page
   header's 4-up divided strip; `.dtp-row` / `.dtp-lrow` become full-width hairline rows; the

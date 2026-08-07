@@ -77,6 +77,10 @@ export default function DailyTilePanel({
   const mine = (data && data.mine) || null;
   const loading = !data;
 
+  // Which phone section is open, or null for none. An ACCORDION, one at a time:
+  // the whole point is height, and two open sections is most of the way back to
+  // the single-level drawer this replaced.
+  const [sec, setSec] = useState(null);
   const [calMonth, setCalMonth] = useState(() => todayISO.slice(0, 7));
   useEffect(() => { setCalMonth(todayISO.slice(0, 7)); }, [game.key, todayISO]);
 
@@ -238,8 +242,26 @@ export default function DailyTilePanel({
         </div>
       </div>
 
+      {/* Phone-only section bands. They are rendered here but PLACED by CSS
+          order inside the <=900px block, each one immediately above the block it
+          opens, so the reader gets band / content / band / content down the
+          drawer. Above 900px they are display:none and the three cards sit side
+          by side exactly as before. */}
+      {[['rec', 'Your record'], ['lb', 'Leaderboards'], ['arc', 'Archive']].map(([k, label]) => (
+        <button
+          key={k}
+          type="button"
+          className={`dtp-sec ${k}${sec === k ? ' on' : ''}`}
+          onClick={() => setSec((cur) => (cur === k ? null : k))}
+          aria-expanded={sec === k}
+        >
+          <span>{label}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+        </button>
+      ))}
+
       <div className="dtp-grid">
-        <section className="dtp-col">
+        <section className={`dtp-col${sec === 'rec' ? ' open' : ''}`}>
           <div className="dtp-lab">Your record</div>
           <div className="dtp-stats">
             <div><b>{todayScore || (isDone ? 'Done' : '—')}</b><span>Today</span></div>
@@ -256,7 +278,7 @@ export default function DailyTilePanel({
           </div>
         </section>
 
-        <section className="dtp-col">
+        <section className={`dtp-col${sec === 'lb' ? ' open' : ''}`}>
           <div className="dtp-lab"><Trophy size={12} strokeWidth={2.4} />Today
             {todayField != null ? <span className="dtp-labct">{todayField.toLocaleString()} playing</span> : null}
           </div>
@@ -319,7 +341,7 @@ export default function DailyTilePanel({
           </div>
         </section>
 
-        <section className="dtp-col">
+        <section className={`dtp-col${sec === 'arc' ? ' open' : ''}`}>
           <div className="dtp-lab"><CalendarDays size={12} strokeWidth={2.4} />Archive</div>
           <div className="dtp-calhd">
             <button type="button" onClick={() => shiftMonth(-1)} disabled={calMonth <= earliestYM} aria-label="Previous month"><ChevronLeft size={15} strokeWidth={2.6} /></button>
@@ -348,7 +370,7 @@ export default function DailyTilePanel({
       {/* The bottom strip: today's crowd answers on the three crowd games (the
           default there), the day-by-day history everywhere else. Both fill the
           space the compact columns above leave behind. */}
-      <section className="dtp-trend">
+      <section className={`dtp-trend${sec === 'rec' ? ' open' : ''}`}>
         <div className="dtp-lab">
           {showCrowd ? <Users size={12} strokeWidth={2.4} /> : <TrendingUp size={12} strokeWidth={2.4} />}
           {showCrowd
@@ -487,8 +509,9 @@ export default function DailyTilePanel({
         .dtp-pinchip.on{background:var(--cta);border-color:var(--cta);color:var(--cta-ink);}
         .dtp-how{font-size:12.5px;line-height:1.4;color:var(--slate);font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
-        /* Phone-only close bar, revealed in the <=900px block. */
+        /* Phone-only furniture, revealed in the <=900px block. */
         .dtp-mclose{display:none;}
+        .dtp-sec{display:none;}
         .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:15px;
                   border-radius:10px;padding:12px 24px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
         .dtp-play:hover{background:var(--cta-hover);transform:translateY(-1px);}
@@ -703,10 +726,45 @@ export default function DailyTilePanel({
           .dtp-sharechip{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:var(--gold);}
           .dtp-pinchip{border-color:rgba(255,255,255,0.3);color:#cfe0fb;}
           .dtp-pinchip.on{background:var(--white);border-color:var(--white);color:var(--accent);}
-          /* one column, and the cards stop being cards */
-          .dtp-grid{grid-template-columns:1fr;gap:0;}
-          .dtp-col{border:0;border-radius:0;padding:0;}
-          .dtp-col:nth-child(3){grid-column:auto;}
+          /* TWO-LEVEL DRAWER (owner, 2026-08-07). display:contents on the grid
+             promotes the three cards to children of .dtp, which is already a
+             flex column, so the cards, the history section and the new bands are
+             all siblings and the order property can interleave them band /
+             content / band / content. .dtp-trend lives OUTSIDE .dtp-grid, so
+             this is the only way
+             to get it under the Your record band without moving it in the JSX.
+             Nothing but the bands shows until one is tapped: the single-level
+             version ran ~1,100px, three screens for a drawer you opened to check
+             one number. */
+          .dtp-grid{display:contents;}
+          .dtp-col{border:0;border-radius:0;padding:0;display:none;}
+          .dtp-col.open{display:flex;}
+          .dtp-trend{display:none;}
+          .dtp-trend.open{display:flex;}
+          .dtp-hd{order:0;}
+          .dtp-sec.rec{order:1;}
+          /* nth-child counts within .dtp-grid, which display:contents does not
+             change: the DOM is untouched, only box generation. */
+          .dtp-col:nth-child(1){order:2;}
+          .dtp-trend{order:3;}
+          .dtp-sec.lb{order:4;}
+          .dtp-col:nth-child(2){order:5;}
+          .dtp-sec.arc{order:6;}
+          .dtp-col:nth-child(3){order:7;}
+          .dtp-mclose{order:8;}
+          /* The band. Same object as the slate's group bands, plus a chevron. */
+          .dtp-sec{display:flex;align-items:center;gap:8px;width:100%;padding:10px 13px;border:0;
+            border-bottom:1px solid rgba(255,255,255,.14);background:#2c4fa8;
+            font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+            color:var(--white);cursor:pointer;text-align:left;}
+          .dtp-sec svg{margin-left:auto;flex:none;color:var(--blue-200);transition:transform .15s;}
+          .dtp-sec.on{background:var(--accent);}
+          .dtp-sec.on svg{transform:rotate(180deg);color:var(--white);}
+          .dtp-sec:active{background:var(--accent);}
+          /* A section's own first label repeats the band that opens it. The
+             Leaderboards card keeps its Today and All-time labels, which are
+             sub-headings rather than a repeat. */
+          .dtp-col:nth-child(1) > .dtp-lab,.dtp-col:nth-child(3) > .dtp-lab{display:none;}
           /* every section label becomes the slate's band */
           .dtp-lab,.dtp-lab.sm{margin:0;padding:8px 13px;background:#2c4fa8;
             font-family:'Manrope',system-ui,sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--white);}
