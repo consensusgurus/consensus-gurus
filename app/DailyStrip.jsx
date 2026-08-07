@@ -745,10 +745,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         aria-expanded={grpOpen[grp]}
       >
         {grpOpen[grp]
-          ? <>Show fewer <ChevronUp size={14} strokeWidth={2.8} /></>
+          ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
           : <>{peekOf(grp) > 0
               ? `Show ${count - peekOf(grp)} more`
-              : `Show all ${count}`} <ChevronDown size={14} strokeWidth={2.8} /></>}
+              : `Show all ${count}`} <ChevronDown size={12} strokeWidth={2.8} /></>}
       </button>
     ) : null);
     out.push(more('prog', nProg));
@@ -1473,10 +1473,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-hid{display:none;}
           /* The expand bar: one full-width rectangle at the foot of its group,
              inked to its group's colour so the pair reads as one block. */
-          .sl-more{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
-            padding:8px 13px;border:0;border-bottom:1px solid var(--border);background:var(--surface);
-            font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
-            color:var(--blue-deep);cursor:pointer;}
+          .sl-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+            padding:4px 13px;border:0;border-bottom:1px solid var(--border);background:var(--surface);
+            font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+            line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#eef1f6;}
           .sl-more.prog{order:3;color:#a16207;}
           .sl-more.todo{order:6;}
