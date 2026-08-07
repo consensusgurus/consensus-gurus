@@ -636,6 +636,11 @@ export default function StatHubClient() {
     if (dg) setDailyGame(dg);
     const tb = sp.get('tab');
     if (tb && TABS.some((x) => x.t === tb)) setTab(tb);
+    // Deep link to a sub-view of the Player tab, so a caller can land on the
+    // thing its own label promised: /quizzes/hub?tab=player&pview=category is
+    // where the home page's "Category mastery" link goes.
+    const pv = sp.get('pview');
+    if (pv && ['ranking', 'trophies', 'category', 'rating', 'activity'].includes(pv)) setPview(pv);
     // Deep link to a section within a tab (e.g. the daily-games Hall of Fame):
     // /quizzes/hub?tab=daily&section=champions scrolls the champion history in.
     // The daily leaderboard above it loads and grows after mount, so re-align a

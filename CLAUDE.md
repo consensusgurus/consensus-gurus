@@ -1879,7 +1879,9 @@ byte-identical.
   already know how you did, so the band plus its bar is the whole group until you ask. The reason is
   the rails, not tidiness: with all 51 rows listed, the leaderboard panels and Featured sat a very
   long scroll below the fold. Collapsed is the default on every load, since the point is what the
-  first screen shows. Nine ordered slots now, three per group (band, rows, bar): prog 1-2-3, todo
+  first screen shows. **Collapsing a group scrolls the bar back into view**: taking 34 rows out of
+  the page otherwise leaves the reader wherever those rows used to be, a long way from the bar they
+  just pressed. Nine ordered slots now, three per group (band, rows, bar): prog 1-2-3, todo
   4-5-6, done 7-8-9. A hidden row's drawer inherits `.sl-hid` so collapsing never leaves a panel
   with no row above it. **A filter suspends the peek**: any filter other than All shows every paused
   and unplayed row with no bar, because the filter already IS the reader narrowing the slate and
@@ -1887,15 +1889,20 @@ byte-identical.
   (`peekOf` in `renderSlate`). **Anything that sets `display` on a `.sl-row` inside the slate must exclude
   `.sl-hid`** — the `.mcut` rule in the 640px block outranks it on specificity AND source order, so
   it carries a `:not(.sl-hid)` guard.
-- **Row shape:** a compact 28px tile plate; a 4px `box-shadow:inset` left rule in the game's
-  category blue, fed by a `--rc` custom property set on the row (amber when in progress, green
-  when done); the category as an 8.5px uppercase eyebrow ABOVE the name; the play count small and
-  quiet INSIDE the name line (`.sl-npl`); the leader riding in the sub line after the tagline;
-  then the status button and the archive chevron. Four grid tracks, tile / name / status /
-  archive, five with pins. The row's height comes from the explicit tight line boxes on
-  `.sl-cm` / `.sl-nm b` / `.sl-sub` plus 6px of vertical padding: a right-edge players figure and
-  looser line boxes shipped first and the owner found the rows too tall (2026-08-07), so keep any
-  new per-row element inside one of the three existing lines rather than adding a fourth.
+- **Row shape: THREE tracks, name / count / icon, and NOTHING on the row is a control** (owner,
+  2026-08-07, against a reference image). The row previously carried a star, a tile plate, the name,
+  a Play button and a chevron: five things competing with the one that matters on a 390px line.
+  Everything that was a control left. **The whole row expands the drawer**, Play now lives at the top
+  of that drawer with the other chips, and the pin lives there too, so `.sl-fav`, `.sl-status` and
+  `.sl-arch` are all `display:none` and the pins grid is identical to the plain one. What is left is
+  the category as a 9px uppercase eyebrow ABOVE the name, the name with room to breathe, the tagline
+  and leader on the sub line separated by `.sl-dot`, the crowd size as a stacked right-edge figure
+  (`.sl-pl`), and the game's bare emblem on the right edge where the Play button used to sit. The
+  icon moves there with `order` (grid honours it) rather than a JSX change, and it carries NO plate:
+  at the right edge a filled rounded box reads as the button that used to be there.
+  `.sl-npl`, the count inside the name line, is kept but unused; that count has been swapped once
+  already. a11y: with the chevron gone the row's focusable child is the name link, and activating it
+  expands rather than navigating.
 - **The category filter is a dark strip of pills** (`#2c4fa8` ground, white pill for the active
   one), so it reads as part of the navy slate header above it. Desktop keeps its light underline
   tabs.
@@ -1930,7 +1937,12 @@ byte-identical.
   leaderboard `#1` takes the rails' gold rule (`.first`, a class that is inert above 900px) and
   `you` takes the blue one, with `.me` ordered AFTER `.first` so being #1 yourself reads as you.
   The calendar spans the full width, so its cells grow.
-- **The chip line is navy and its buttons spread across the width.** `flex:1 1 auto`, NOT `1 1 0`:
+- **Play is at the top of the drawer, first in the navy strip** (owner, 2026-08-07), because the
+  slate row no longer carries one. `.dtp-idt` and `.dtp-nm` go `display:contents` so the chips and
+  Play are flex items of ONE strip rather than two nested boxes, which is what lets Play join the
+  chip row without moving it in the JSX; `.dtp-acts` takes `order:-1` to lead. The top Close
+  (`.dtp-shrink`) leaves, since the drawer ends in a full-width Close bar.
+- **The button strip is navy and its buttons spread across the width.** `flex:1 1 auto`, NOT `1 1 0`:
   an equal-thirds split sizes every chip to the longest label, which leaves the streak flame in a
   third of empty space and can still truncate "Pin to your games". Growing from natural width spends
   the slack evenly, fills the strip, and never truncates, at any chip count from two to four.

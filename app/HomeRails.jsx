@@ -565,7 +565,11 @@ export default function HomeRails({
         </div>
         <div className="hr-foot">
           <button type="button" className="hr-exp" onClick={onAllLive}>All activity</button>
-          <Link href="/quizzes/hub?tab=player" className="hr-link">Category mastery &rarr;</Link>
+          {/* Straight to the CATEGORY view, not the hub's default Ranking view
+              (owner, 2026-08-07): the link says Category mastery, so landing on
+              a ranking table made the reader hunt for the thing they asked for.
+              StatHubClient reads ?pview= on mount. */}
+          <Link href="/quizzes/hub?tab=player&pview=category" className="hr-link">Category mastery &rarr;</Link>
         </div>
       </section>
 

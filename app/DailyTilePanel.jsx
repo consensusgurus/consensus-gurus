@@ -666,18 +666,34 @@ export default function DailyTilePanel({
              so on a phone the drawer opens straight into the chip line (owner,
              2026-08-07): Done today, the streak flame, Share for credit and the
              pin, none of which the row repeats in full. */
-          .dtp-ic,.dtp-nmt,.dtp-how,.dtp-acts{display:none;}
-          .dtp-hd{flex-wrap:wrap;gap:0;}
-          .dtp-nm:empty{display:none;}
-          /* THE CHIP LINE IS NAVY AND ITS BUTTONS SPREAD ACROSS THE WIDTH
-             (owner, 2026-08-07). flex:1 1 auto, not 1 1 0: an equal-thirds
-             split makes every chip as wide as the longest label, so "Pin to
-             your games" fits while the streak flame sits in a third of empty
-             space. Growing from natural width spends the slack evenly, fills
-             the strip, and never truncates a label, at any chip count from two
-             to four. */
-          .dtp-nm{background:var(--accent);padding:9px 11px;gap:8px;font-size:0;}
-          .dtp-nm > *{flex:1 1 auto;justify-content:center;font-size:11px;}
+          /* The identity is gone (the slate row above shows the tile art and
+             the name), but PLAY IS BACK, at the top of the drawer alongside the
+             chips (owner, 2026-08-07): the row no longer carries a Play button,
+             so this is the only one. Close leaves instead, since the drawer
+             ends in a full-width Close bar. */
+          .dtp-ic,.dtp-nmt,.dtp-how,.dtp-shrink{display:none;}
+          /* THE HEADER IS THE NAVY BUTTON STRIP AND ITS BUTTONS SPREAD ACROSS
+             THE WIDTH. flex:1 1 auto, not 1 1 0: an equal split sizes every
+             button to the longest label, so "Pin to your games" fits while the
+             streak flame sits in a third of empty space. Growing from natural
+             width spends the slack evenly, fills the strip, and never truncates
+             a label, at any count from two buttons to five. */
+          .dtp-hd{background:var(--accent);padding:9px 11px;gap:8px;flex-wrap:wrap;align-items:center;}
+          /* display:contents, so the chips and Play are flex items of ONE strip
+             rather than two nested boxes. Neither wrapper draws anything on a
+             phone, and this is what lets Play sit in the same row as the chips
+             without moving it in the JSX. */
+          .dtp-idt,.dtp-nm{display:contents;}
+          .dtp-hd > *,.dtp-nm > *{flex:1 1 auto;min-width:0;justify-content:center;font-size:11px;}
+          /* Play leads the strip. */
+          .dtp-acts{order:-1;display:flex;gap:8px;}
+          .dtp-play{flex:1 1 auto;background:var(--white);color:var(--blue-deep);
+            font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+            border-radius:999px;padding:6px 16px;gap:5px;}
+          .dtp-play:hover{background:var(--blue-200);transform:none;}
+          /* A touch taller than the desktop chips (owner, 2026-08-07): these are
+             the drawer's real controls on a phone, not decoration beside a name. */
+          .dtp-flame,.dtp-donechip,.dtp-sharechip,.dtp-pinchip{padding:6px 12px;}
           .dtp-flame{background:rgba(232,180,58,0.2);border-color:rgba(232,180,58,0.5);color:var(--gold);}
           .dtp-donechip{background:rgba(34,197,94,0.22);border-color:rgba(74,222,128,0.5);color:#bfe6cf;}
           .dtp-sharechip{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:var(--gold);}

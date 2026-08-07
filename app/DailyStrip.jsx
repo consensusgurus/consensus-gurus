@@ -728,7 +728,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         type="button"
         className={`sl-more ${grp}`}
         key={`more-${grp}`}
-        onClick={() => setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }))}
+        onClick={(e) => {
+          const el = e.currentTarget;
+          const wasOpen = grpOpen[grp];
+          setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }));
+          // COLLAPSING FOLLOWS THE READER (owner, 2026-08-07). Taking 34 rows
+          // back out of the page leaves them wherever those rows used to be,
+          // which is a long way from the bar they just pressed. Two frames, so
+          // the re-render and its layout have both landed before we measure.
+          if (wasOpen) {
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              try { el.scrollIntoView({ block: 'center' }); } catch (x) { /* older Safari */ }
+            }));
+          }
+        }}
         aria-expanded={grpOpen[grp]}
       >
         {grpOpen[grp]
@@ -838,6 +851,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                   end, which meant a long tagline (Emcee, Garble, Hands) ate the
                   leader chip instead of truncating itself. */}
               <i className="sl-tg">{g.tag}</i>
+              <i className="sl-dot">{'\u00b7'}</i>
               <i className="sl-mld">{lead ? <><Crown size={9} strokeWidth={2.6} />{lead}</> : 'Be the first'}</i>
             </span>
           </a>
@@ -855,7 +869,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               ? <span className="sl-btn done">{sl || 'Done'}</span>
               : ip
                 ? <a className="sl-btn prog" href={g.href} aria-label={`Resume ${g.name}`}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg>
                   </a>
                 : <a className="sl-btn play" href={g.href}>Play</a>}
           </span>
@@ -1382,8 +1396,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* The tagline's wrapper. Desktop renders it as the plain inline text it
            has always been; only the phone makes it a shrinking flex item. */
         .sl-tg{font-style:normal;}
-        /* Phone-only play count, inside the name line. */
+        /* Phone-only play count, inside the name line. Currently unused: the
+           count went back to the .sl-pl figure at the row's right edge on
+           2026-08-07. Kept because it has been swapped once already. */
         .sl-npl{display:none;font-style:normal;}
+        /* Separator between the tagline and the leader chip; phone only. */
+        .sl-dot{display:none;font-style:normal;}
         .sl-mld{display:none;font-style:normal;}
         .sl-cat{display:flex;justify-content:center;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
@@ -1456,54 +1474,66 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* The expand bar: one full-width rectangle at the foot of its group,
              inked to its group's colour so the pair reads as one block. */
           .sl-more{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
-            padding:11px 13px;border:0;border-bottom:1px solid var(--border);background:var(--surface);
-            font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+            padding:8px 13px;border:0;border-bottom:1px solid var(--border);background:var(--surface);
+            font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#eef1f6;}
           .sl-more.prog{order:3;color:#a16207;}
           .sl-more.todo{order:6;}
           .sl-more.dn{order:9;color:var(--success-deep);}
-          /* The whole row is the expand target, so it takes the pointer; only
-             Play / Resume still navigates (see the row's onClick).
-             Four tracks: tile, name, status, archive. The players figure went
-             back into the name line (owner, 2026-08-07), so it costs no column,
-             and the padding and line boxes are tight enough that a three-line
-             row lands near the two-line row it replaced. */
-          .sl-row{grid-template-columns:36px minmax(0,1fr) auto auto;gap:9px;padding:6px 11px 6px 15px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
+          /* THREE tracks: name, count, icon (owner, 2026-08-07, against a
+             reference image). The row used to carry a star, a tile plate, the
+             name, a Play button and a chevron, five things competing with the
+             one that matters, on a 390px line. Everything that was a control
+             has left: the WHOLE ROW expands the drawer, Play now lives at the
+             top of that drawer with the other chips, and the pin lives there
+             too. What is left is the name with room to breathe, the crowd size,
+             and the game's own emblem on the right edge where the button was.
+             a11y: with the chevron gone the row's focusable child is the name
+             link, and activating it expands rather than navigating (the row's
+             onClick preventDefaults). */
+          .sl-row{grid-template-columns:minmax(0,1fr) auto 40px;gap:11px;padding:9px 13px 9px 16px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
           .sl-row.inprog{box-shadow:inset 4px 0 0 var(--gold);}
           .sl-row.done{box-shadow:inset 4px 0 0 #16a34a;}
-          /* Pins add one 20px star track. The icon plate is gone here, so the
-             star is paid for out of the space it freed rather than out of the
-             name column. */
-          .dh-board.pins .sl-row{grid-template-columns:20px 36px minmax(0,1fr) auto auto;gap:7px;padding:6px 8px 6px 13px;}
-          .sl-favb{width:20px;height:20px;}
-          .sl-favb svg{width:12px;height:12px;}
-          /* The tile art stays (owner, 2026-08-07), on a compact 28px plate:
-             the 4px category rule reads as the row's colour, the tile as its
-             identity, and both fit because the players column is gone. */
-          /* The plate takes the space the row gap gave back (owner, 2026-08-07).
-             It is still shorter than the three-line name block beside it, so a
-             bigger tile costs the row no height at all. */
-          .sl-ic{height:36px;}
-          .sl-ic img{height:28px;max-width:34px;}
-          .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
-          .sl-npl{display:inline;font-size:10.5px;font-weight:700;letter-spacing:0;color:var(--slate);margin-left:7px;}
-          /* the archive control survives on a phone as an icon, so the stats and
-             archive drawer stays reachable with the columns gone */
-          .sl-arch{display:flex;}
-          .sl-ab{padding:6px 7px;gap:0;}
-          .sl-ab .sl-ring,.sl-ab-pct{display:none;}
-          /* eyebrow over name over sub, the cap bar's stack. Line boxes are
-             explicit and tight: this is where the row's height comes from. */
-          .sl-nm{display:flex;flex-direction:column;}
-          .sl-nm b{display:block;font-size:15.5px;line-height:1.2;}
-          .sl-cm{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.3;margin:0;}
+          /* Pins no longer add a track: the star is one of the things that left
+             the row, and the pin control is the full-width chip at the top of
+             the drawer. Same grid either way. */
+          .dh-board.pins .sl-row{grid-template-columns:minmax(0,1fr) auto 40px;gap:11px;padding:9px 13px 9px 16px;}
+          .sl-fav,.sl-cat,.sl-st,.sl-ld,.sl-status,.sl-arch,.sl-npl{display:none;}
+          /* Grid honours the order property, so the icon moves to the far right
+             without the JSX changing: name, count, icon. */
+          .sl-nm{order:1;}
+          .sl-pl{order:2;}
+          .sl-ic{order:3;}
+          /* No plate on the icon here. At the right edge a filled, rounded box
+             reads as the button that used to be there; bare art reads as the
+             game's emblem. */
+          .sl-ic{height:40px;background:transparent;border-radius:0;}
+          .sl-ic img{height:34px;max-width:40px;}
+          /* The crowd size goes BACK to a stacked right-edge figure. It rode
+             inside the name line while the row still had a button and a chevron
+             to make room for; with both gone the figure is the clearer read and
+             the name keeps its own line. */
+          .sl-pl{display:block;text-align:right;line-height:1;}
+          .sl-pl b{display:block;font-size:13px;font-weight:800;color:var(--ink);}
+          .sl-pl i{display:block;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:3px;}
+          .sl-dot{display:inline;flex:none;margin:0 5px;color:#c3c8d1;}
+          /* No archive chevron on a phone any more: the whole row opens the
+             drawer, so a control that does the same thing is just clutter. The
+             .sl-ab rules stay for the desktop button's benefit only. */
+          /* eyebrow over name over sub, the cap bar's stack. The name gets the
+             space the four departed controls freed, and the line boxes are a
+             touch looser than the tight ones that shipped with the figure in
+             the name line (owner: "less bunching"). */
+          .sl-nm{display:flex;flex-direction:column;gap:1px;}
+          .sl-nm b{display:block;font-size:16.5px;line-height:1.25;}
+          .sl-cm{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.35;margin:0;}
           /* The sub line is a flex row: the tagline shrinks and ellipsizes, the
              leader chip is flex:none, so the leader is never the thing that gets
              cut off. It still caps at 38vw and ellipsizes its own long names. */
-          .sl-nm .sl-sub{display:flex;align-items:baseline;font-size:11px;line-height:1.35;}
+          .sl-nm .sl-sub{display:flex;align-items:baseline;font-size:11.5px;line-height:1.4;}
           .sl-tg{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-          .sl-mld{flex:none;display:inline-flex;align-items:center;gap:3px;margin-left:6px;font-size:11px;font-weight:700;color:var(--muted);max-width:38vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+          .sl-mld{flex:none;display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;color:var(--muted);max-width:42vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
           .sl-mld svg{flex:none;color:var(--gold-ink);}
           .sl-btn{width:64px;}
           /* The category selector is a DARK strip of pills on a phone (owner,
