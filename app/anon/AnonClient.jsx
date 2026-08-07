@@ -146,7 +146,12 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
 
   const [g, setG] = useState(freshState);
   const [cur, setCur] = useState(A[0].c[0]);
-  const [view, setView] = useState('q');          // mobile only: passage or bank
+  // OPENS ON THE BANK, not the passage. A first-time player who lands on 124
+  // empty boxes has nothing to act on and no idea what the game wants; the bank
+  // is where the categories are, so it is the half that explains itself and the
+  // half the solve actually starts from. The rules copy says the same thing:
+  // start with the sharpest category, not the passage.
+  const [view, setView] = useState('b');          // mobile only: passage or bank
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -179,6 +184,16 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     () => A.slice(0, PUZZLE.spine).map((a) => fill[a.c[0]] || ''),
     [A, PUZZLE.spine, fill]
   );
+
+  const breakAfter = useMemo(() => {
+    const s2 = new Set();
+    let last = -1;
+    for (const tk of tokens) {
+      for (const t of tk) if (t.n !== undefined) last = t.n;
+      if (last >= 0) s2.add(last);
+    }
+    return s2;
+  }, [tokens]);
 
   // ---- persistence ----
   useEffect(() => {
@@ -366,6 +381,18 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   }, []);
   const ch = Math.round(cw * 1.26);
 
+  // The stretch of passage around a cell, for the dock. -1 marks a word break so
+  // the strip reads as words rather than one run of letters.
+  const passageAround = useCallback((n) => {
+    const lo = Math.max(0, n - 8), hi = Math.min(N - 1, n + 8);
+    const out = [];
+    for (let i = lo; i <= hi; i++) {
+      out.push(i);
+      if (i < hi && breakAfter.has(i)) out.push(-1);
+    }
+    return out;
+  }, [N, breakAfter]);
+
   const cellCls = (n) => {
     const c = ['an-cell'];
     if (owner[n] === curAnswer) c.push('mine');
@@ -469,6 +496,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-dcell{width:21px;height:26px;border-radius:4px;background:#16294a;border:1px solid #2b4675;display:flex;align-items:center;
             justify-content:center;font-weight:800;font-size:13px;color:var(--white);flex:none;}
           .an-dcell.on{background:${COLORS.accent};border-color:#b04a55;}
+          .an-dcell.gap{background:none;border:0;width:7px;}
           .an-kb{display:flex;flex-direction:column;gap:5px;background:#e5e8ef;border-radius:0 0 10px 10px;padding:7px 4px 9px;}
           .an-kr{display:flex;gap:5px;justify-content:center;}
           .an-kr button{flex:1;max-width:34px;height:42px;border:0;border-radius:6px;background:var(--white);font-family:${SANS};
@@ -546,14 +574,14 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                 </div>
               )}
 
-              {(!mobile || view === 'q') && (
-                <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
-                  {passagePanel}
-                </div>
-              )}
               {(!mobile || view === 'b') && (
                 <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
                   {banksPanel}
+                </div>
+              )}
+              {(!mobile || view === 'q') && (
+                <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
+                  {passagePanel}
                 </div>
               )}
 
@@ -571,15 +599,19 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                 <>
                   <div className="an-dock">
                     <div className="an-dockhead">
-                      <span>{A[curAnswer].cat ? `${A[curAnswer].cat} · ${A[curAnswer].w.length}` : `no category · ${A[curAnswer].w.length}`}</span>
+                      <span>{view === 'b'
+                        ? 'where that letter sits in the passage'
+                        : (A[curAnswer].cat ? `${A[curAnswer].cat} · ${A[curAnswer].w.length}` : `no category · ${A[curAnswer].w.length}`)}</span>
                       <span className="an-nav">
                         <button onClick={() => focusCell(A[(curAnswer + TOTAL - 1) % TOTAL].c[0])}>&lsaquo;</button>
                         <button onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>&rsaquo;</button>
                       </span>
                     </div>
                     <div className="an-dockbody">
-                      {A[curAnswer].c.map((n) => (
-                        <div key={n} className={`an-dcell${n === cur ? ' on' : ''}`} onClick={() => focusCell(n)}>{fill[n] || ''}</div>
+                      {(view === 'b' ? passageAround(cur) : A[curAnswer].c).map((n, i) => (
+                        n < 0
+                          ? <div key={`g${i}`} className="an-dcell gap" />
+                          : <div key={n} className={`an-dcell${n === cur ? ' on' : ''}`} onClick={() => focusCell(n)}>{fill[n] || ''}</div>
                       ))}
                     </div>
                   </div>
