@@ -12,13 +12,14 @@
 // promise instead of hitting /api/quiz/daily-status twice.
 
 import { useEffect, useState } from 'react';
-import { DAILY_KEYS } from '@/lib/daily-games';
+import { liveDailyKeys } from '@/lib/daily-games';
 
 // Retired games keep scoring their archived days, so they stay in DAILY_KEYS,
 // but they are not on today's board and must never inflate the "x of N today"
-// denominator. This is the same roster the daily board renders.
-const RETIRED = new Set(['circa']);
-export const DAY_ROSTER = DAILY_KEYS.filter((k) => !RETIRED.has(k));
+// denominator. This is the same roster the daily board renders. Retirement is
+// DATED in lib/daily-games (RETIRED_DAILY), so a game leaves this roster by
+// itself the morning after its bank's final drop.
+export const DAY_ROSTER = liveDailyKeys();
 
 export function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }

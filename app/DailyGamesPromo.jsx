@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { T } from '@/lib/theme';
+import { isRetiredDaily } from '@/lib/daily-games';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -63,7 +64,9 @@ export const DAILY_GAMES = [
   { key: 'deep', href: '/deep', name: 'Deep', tag: 'one topic, fifteen questions', store: 'sot_deep_day', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)' },
   { key: 'anon', href: '/anon', name: 'Anon', tag: 'a clueless acrostic', store: 'sot_anon_day', accent: '#8c2f39', bg: '#f8ecee', border: 'rgba(140,47,57,0.4)' },
   { key: 'redact', href: '/redact', name: 'Redact', tag: 'uncover the article', store: 'sot_redact_day', accent: '#27272a', bg: '#f4f4f5', border: 'rgba(39,39,42,0.4)' },
-];
+// Retired games (RETIRED_DAILY in lib/daily-games) are never promoted: their
+// bank has no next drop to sell.
+].filter((g) => !isRetiredDaily(g.key));
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }

@@ -327,6 +327,10 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  // Retired (owner ruling 2026-08-07): Extra's bank ends at No. 77 on
+  // 2026-09-29 and nothing is banked past it, so once the final front page is in
+  // the past there is no next drop. Say so BEFORE play, not only after.
+  const gameRetired = pickPuzzle(puzzles, null).live < etToday();
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const finalScore = won ? Math.max(1, 10 - tears) : 0;
@@ -555,6 +559,13 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
             ))}
         />
 
+        {gameRetired && (
+          <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.5 }}>
+            Extra has retired &mdash; this archive stays playable, but no new front pages drop.{' '}
+            Meet its successor: <a href="/redact" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
+          </div>
+        )}
+
         {/* start tile — sits where the front page goes; the redacted headline
             stays sealed until the player presses Start, which begins the clock. */}
         {preStart && (
@@ -673,7 +684,14 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
-                  {countdown ? <>Next Extra in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new front page drops at midnight Eastern.'}
+                  {gameRetired ? (
+                    <>
+                      Extra has retired &mdash; this was its final front page. Every past edition stays playable in{' '}
+                      <a href="/daily" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
+                      {' '}Meet its successor:{' '}
+                      <a href="/redact" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
+                    </>
+                  ) : countdown ? <>Next Extra in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new front page drops at midnight Eastern.'}
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}

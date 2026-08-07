@@ -391,7 +391,8 @@ HISTORY
 - dating - order events in time. Five events (Sunday six) authored in TRUE ascending order (array
   index is the answer key); `when` is the numeric year (negative = BC) and every year must be
   WEB-VERIFIED; `theme` spoiler-free; per-event `d` story; end `note`. verify-daily-banks dating.
-- extra - name the story. Hidden specs resolve via the client's `resolveHidden`; every date
+- extra - name the story. RETIRING at No. 77 on 2026-09-29, the end of its bank; never bank
+  another day (see 7g). Hidden specs resolve via the client's `resolveHidden`; every date
   web-verified; Sunday a trickier story. verify-daily-banks extra.
 
 COPY-DESK
@@ -410,4 +411,31 @@ CROWD PSYCHOLOGY (a pre-written house crowd seeds the pool until >10 real player
   indices); every item's vote count must be DISTINCT so the crowd order is unambiguous (§7a); themes
   never reused. verify-daily-banks outrank.
 
-(circa is RETIRED - the archive stays playable, but no new drops are banked.)
+(circa is RETIRED - the archive stays playable, but no new drops are banked. extra retires
+2026-09-29 on the same terms. See 7g.)
+
+### 7g. Retired daily games - NEVER bank new inventory for these
+
+A retired daily keeps scoring every archived day and stays playable at its own route and in the
+Retired section of `/daily`, but it runs no new puzzles. The roster and each game's FINAL live
+date are `RETIRED_DAILY` in `lib/daily-games.js`; `isRetiredDaily(key)` compares that date to
+Eastern today, so the retirement lands by itself on the morning after the last drop, with no
+deploy on the day. Every hub surface (games grid, home strip, slate rail, promo, end-card slate,
+the day roster in `app/useDayStats.js`, and the Completionist count in `lib/quiz-trophies.js`)
+already reads that helper, so retiring a game is one row in `RETIRED_DAILY` plus a retired banner
+in its own client.
+
+| game | last drop | ruling | successor |
+|---|---|---|---|
+| circa | 2026-07-20 | owner, 2026-07-20; bank capped at No. 7 | Outrank |
+| extra | 2026-09-29 | owner, 2026-08-07; bank ends at No. 77 | Redact |
+
+**HARD RULE: "grow all game inventory" NEVER includes a retired game.** When the owner asks to
+grow, extend, top up, refill or backfill the daily banks - however it is phrased, whichever games
+are named, and however far ahead the other banks are being pushed - a game in `RETIRED_DAILY` is
+NOT part of that instruction. Do not append a single entry to `app/circa/puzzles.js` or
+`app/extra/puzzles.js`. Do not "add a few to keep it alive", do not treat its short bank as a gap
+to close, and do not let a bulk-extension pass walk it just because it appears in `DAILY_KEYS`
+(it stays there so its archive keeps scoring). Any script that iterates the games MUST skip every
+key in `RETIRED_DAILY`. Extending a retired bank un-retires the game, which is the owner's call
+alone, so ask before adding even one day.

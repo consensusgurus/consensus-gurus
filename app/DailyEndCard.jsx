@@ -89,7 +89,7 @@ import {
 import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
-import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { isRetiredDaily, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
 
@@ -207,7 +207,7 @@ const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'ca
 // "what you actually do" sentence the Up next / Easiest cards show, so a player
 // who has never opened that game knows what they are walking into (owner
 // rework 2026-08-01: those two cards sell the game, not the numbers).
-export const DAILY_GAMES = [
+const ALL_DAILY_GAMES = [
   { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      blurb: 'A full crossword grid with no clues at all. Solve it from the crossings alone.', href: '/crux' },
   { key: 'emcee',  cat: 'word',      name: 'Emcee',  tag: 'The daily mini crossword',  blurb: 'A quick mini crossword with sharp clues, built to be finished in a couple of minutes.', href: '/emcee' },
   { key: 'shards', cat: 'word',      name: 'Shards', tag: 'Reassemble the crossword',   blurb: 'A finished crossword cut into pieces. Slot every shard back where it belongs.', href: '/shards' },
@@ -260,6 +260,13 @@ export const DAILY_GAMES = [
   { key: 'hedge',   cat: 'logic',    name: 'Hedge',   tag: 'Draw one closed loop',       blurb: 'Draw a single unbroken loop that satisfies every number printed on the board.', href: '/hedge' },
   { key: 'glyph',   cat: 'word',     name: 'Glyph',   tag: 'A crossword with no clues',  blurb: 'A codeword: every letter is a number, and two given letters are all you get to crack the alphabet.', href: '/glyph' },
 ];
+
+// The slate of games a player is offered next. A retired game leaves it on
+// its own the morning after its bank's last drop (RETIRED_DAILY in
+// lib/daily-games), and this card's "N done" totals follow from this list.
+// Lookups for the game being PLAYED go through ALL_DAILY_GAMES instead, so a
+// retired game's own end card still knows its name and family.
+export const DAILY_GAMES = ALL_DAILY_GAMES.filter((g) => !isRetiredDaily(g.key));
 
 const AUTO_SECONDS = 30;
 const REVEAL_MS = 2000; // win only: MIN time the finished board + confetti shows before the popup
@@ -572,7 +579,7 @@ export default function DailyEndCard({
   }, [self]);
 
   const meta = GAME_META[self] || GAME_META.crux;
-  const selfGame = DAILY_GAMES.find((g) => g.key === self) || null;
+  const selfGame = ALL_DAILY_GAMES.find((g) => g.key === self) || null;
   // Header for this game's `guessesUsed` column; null = it always posts 0, so
   // the column is dropped. Read from the registry so the card and the on-page
   // DailyBoardPanel can never disagree about the word.

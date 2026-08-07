@@ -44,6 +44,7 @@ import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
 import { fetchDailyMe, dailyMeQuery } from './dailyMeClient';
 import { T } from '@/lib/theme';
+import { isRetiredDaily } from '@/lib/daily-games';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
@@ -96,7 +97,11 @@ const GAMES = [
   { key: 'paths', href: '/paths', name: 'Paths', tag: 'Link every town', img: '/games/btn-paths.png' },
   { key: 'deep', href: '/deep', name: 'Deep', tag: 'One topic, fifteen questions', img: '/games/btn-deep.png' },
   { key: 'anon', href: '/anon', name: 'Anon', tag: 'A clueless acrostic', img: '/games/btn-anon.png' },
-];
+// A retired game drops out on its own the morning after its bank's last drop
+// (RETIRED_DAILY in lib/daily-games); it stays playable, just not on today's
+// board. The CATEGORIES key lists below can keep naming it: they resolve through
+// GAMES_BY_KEY and drop whatever no longer resolves.
+].filter((g) => !isRetiredDaily(g.key));
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
 // Games grouped by category, matching the five families in the end-of-game

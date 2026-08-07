@@ -21,6 +21,7 @@ import useDailyOrder, { sortByDailyOrder } from '../useDailyOrder';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { postView } from '@/lib/api';
 import { T } from '@/lib/theme';
+import { isRetiredDaily } from '@/lib/daily-games';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -37,7 +38,7 @@ const BLUE = T.blue;
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-const CATEGORIES = [
+const FAMILIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'crunch'] },
@@ -50,6 +51,20 @@ const CATEGORIES = [
   // page, but no longer run new daily puzzles (owner ruling 2026-07-20).
   { key: 'retired', label: 'Retired', keys: ['circa'] },
 ];
+
+// A game moves itself into Retired the morning after its bank's last drop
+// (RETIRED_DAILY in lib/daily-games), so nothing has to ship on the day. Its key
+// stays listed under its real family above, which is where it goes back if the
+// bank is ever extended.
+const CATEGORIES = (() => {
+  const retiredGroup = FAMILIES.find((c) => c.key === 'retired');
+  const moved = [];
+  const live = FAMILIES
+    .filter((c) => c.key !== 'retired')
+    .map((c) => ({ ...c, keys: c.keys.filter((k) => (isRetiredDaily(k) ? (moved.push(k), false) : true)) }))
+    .filter((c) => c.keys.length);
+  return [...live, { ...retiredGroup, keys: [...retiredGroup.keys, ...moved] }];
+})();
 // Each game's accent, lightened for legibility on the dark leaderboard card
 // (mirrors ACCENTS_NAVY in DailyCombinedLeaderboard).
 const NAVY_ACCENT = {

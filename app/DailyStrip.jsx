@@ -48,6 +48,7 @@ import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
 import { fetchDayStatus } from './useDayStats';
 import { catBlue } from '@/lib/home-blues';
+import { isRetiredDaily } from '@/lib/daily-games';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -101,7 +102,10 @@ const GAMES = [
   { key: 'paths', href: '/paths', name: 'Paths', img: '/games/btn-paths.png', store: 'sot_paths_day', tag: "Link every town" , cat: 'Logic' },
   { key: 'deep', href: '/deep', name: 'Deep', img: '/games/btn-deep.png', store: 'sot_deep_day', tag: "One topic, fifteen questions" , cat: 'Trivia' },
   { key: 'anon', href: '/anon', name: 'Anon', img: '/games/btn-anon.png', store: 'sot_anon_day', tag: "A clueless acrostic" , cat: 'Word' },
-];
+// Retired games leave the board by themselves the morning after their bank's
+// last drop (RETIRED_DAILY in lib/daily-games). Every count on this strip is
+// derived from GAMES, so the "all N done" copy follows along.
+].filter((g) => !isRetiredDaily(g.key));
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});
 // Recent Champions list length (yesterday plus the prior days), sized to fill
