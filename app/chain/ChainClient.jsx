@@ -574,7 +574,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
     if (!playing) {
       if (won) return `Boxes counted. You take it ${view.score.mine} to ${view.score.theirs}.`;
       if (g.status === 'lost') return `Boxes counted. The engine takes it ${view.score.theirs} to ${view.score.mine}.`;
-      return 'The winning edge is marked on the board.';
+      return 'You ended it there. The winning edge is still in the position.';
     }
     if (thinking) return 'The engine is answering...';
     if (view.turn === 2) return 'The engine is answering...';
@@ -599,7 +599,10 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
     return null;                                     // still open
   }
 
-  const revealKey = !playing && keySlot !== undefined && !view.drawnBy.has(keySlot);
+  // The winning edge is highlighted ONLY for a player who actually found it.
+  // Chain is a replayable position, so pulsing the key edge at someone who lost
+  // or gave up hands them the answer and spends the puzzle for good.
+  const revealKey = won && keySlot !== undefined && !view.drawnBy.has(keySlot);
 
   function renderEdge(e, horizontal) {
     const i = view.slotOf(e);
@@ -669,7 +672,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ch-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .ch-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accent};background:var(--white);color:${COLORS.accent};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ch-btn:hover{background:${COLORS.accentSoft};}
-          .ch-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .ch-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:118px;box-sizing:border-box;}
           .ch-edge{-webkit-tap-highlight-color:transparent;}
           .ch-edge.live:hover span{transition:background .12s ease;}
           .ch-fresh{animation:chink .3s ease;}
@@ -760,10 +763,10 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.faded }}>No take-back. Every edge you draw is played.</div>
               <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <button className="ch-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
-                  <Eye size={14} /> {armReveal ? 'Tap again to end' : 'Give up'}
+                  <Eye size={14} /> {armReveal ? 'Press again' : 'Give up'}
                 </button>
                 <button className="ch-tool" onClick={restartGame} title="Record this as a loss and deal the same board again" style={{ borderColor: armRestart ? COLORS.rust : undefined, color: armRestart ? COLORS.rust : undefined }}>
-                  <RotateCcw size={14} /> {armRestart ? 'Tap again to restart' : 'Restart'}
+                  <RotateCcw size={14} /> {armRestart ? 'Press again' : 'Restart'}
                 </button>
               </span>
             </div>
@@ -771,10 +774,21 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
-                The key: <span style={{ color: COLORS.accent }}>{revealKey ? 'the edge pulsing on the board' : 'the edge you found'}</span>.
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+              {/* The key edge and the idea behind it go only to a solver. The
+                  motif states the take-versus-decline decision outright, which
+                  is the whole puzzle, so it is withheld from everyone else. */}
+              {won ? (
+                <>
+                  <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
+                    The key: <span style={{ color: COLORS.accent }}>{revealKey ? 'the edge pulsing on the board' : 'the edge you found'}</span>.
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+                </>
+              ) : (
+                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
+                  We are not marking the edge. The win is still sitting in this position, so take another run at it.
+                </div>
+              )}
               {PUZZLE.sunday && (
                 <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, on the bigger 5 by 5 board.</div>
               )}

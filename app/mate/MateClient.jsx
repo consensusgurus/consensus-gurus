@@ -590,24 +590,14 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     say(`It is the ${names[(pos[from] || 'P').toUpperCase()]} that moves.`);
   }
 
-  // Give up: play the rest of the solution out on the board, score 0.
+  // Give up: the puzzle ends and scores 0, and the board is left exactly as it
+  // stands. This used to play the mating line out so the answer sat on the
+  // board, but a mate-in-N is worth replaying and showing the line spends the
+  // puzzle for good, so the key is now shown only to a solver.
   function revealEnd() {
     const cur = gRef.current;
-    let ms = cur.moves.slice();
-    let n = nodeAfter(PUZZLE.solution, ms);
-    // Finish the pair first if Black's reply had not landed yet.
-    if (ms.length % 2 === 1 && n && n.lines) { ms = [...ms, pickReply(n, PUZZLE.quizId)]; n = nodeAfter(PUZZLE.solution, ms); }
-    let guard = 0;
-    while (n && guard++ < 8) {
-      const w = expectedWhite(n);
-      if (!w) break;
-      ms = [...ms, w];
-      if (n.mate) break;
-      const reply = pickReply(n, PUZZLE.quizId);
-      ms = [...ms, reply];
-      n = n.lines[reply];
-    }
-    const g2 = { ...cur, moves: ms, status: 'revealed', tEnd: Date.now() };
+    if (cur.status !== 'playing') return;
+    const g2 = { ...cur, status: 'revealed', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0);
     endHold.hold();
@@ -812,7 +802,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
               {!playing
-                ? (won ? 'Checkmate.' : g.status === 'lost' ? `Not the move. ${PUZZLE.keySan} was the one.` : 'The solution is on the board.')
+                ? (won ? 'Checkmate.' : g.status === 'lost' ? 'Not the move. The mate is still there.' : 'You ended it there. The mate is still there.')
                 : awaitingReply
                   ? 'Black is thinking...'
                   : movesLeft <= 1
@@ -839,29 +829,53 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         )}
 
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-              Tap a white piece, then tap where it goes. There is no take-back.
-            </span>
-            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and plays the answer' : 'Reveal & end'}
-              </button>
-              <button onClick={() => { if (armRestart) { setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(true); } }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <RotateCcw size={13} /> {armRestart ? 'Tap again — records a 0 and resets the board' : 'Restart'}
-              </button>
-            </span>
+          /* Armed labels stay SHORT and each button reserves a fixed width: the
+             old armed copy was far wider than the resting label, so the row
+             reflowed on the first tap and the button slid out from under the
+             reader's finger. The consequence prints below the row instead. */
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+                Tap a white piece, then tap where it goes. There is no take-back.
+              </span>
+              <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
+                  title={armReveal ? 'Ends the puzzle and scores nothing' : 'End the puzzle now, scoring nothing'}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}>
+                  <Eye size={13} style={{ flexShrink: 0 }} /> {armReveal ? 'Press again' : 'Give up'}
+                </button>
+                <button onClick={() => { if (armRestart) { setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(true); } }}
+                  title={armRestart ? 'Records a 0 and resets the board' : 'Record a 0 and reset the board'}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}>
+                  <RotateCcw size={13} style={{ flexShrink: 0 }} /> {armRestart ? 'Press again' : 'Restart'}
+                </button>
+              </span>
+            </div>
+            {(armReveal || armRestart) && (
+              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.rust, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+                {armReveal ? 'Ends the puzzle and scores nothing.' : 'Records a 0 and resets the board.'}
+              </div>
+            )}
           </div>
         )}
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              The key: <span style={{ color: COLORS.accent }}>{PUZZLE.keySan}</span>.
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}.</div>
+            {/* The key move and the mating pattern are shown ONLY to a solver.
+                The position is replayable, so naming the move to someone who
+                missed it spends the puzzle for good. */}
+            {won ? (
+              <>
+                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                  The key: <span style={{ color: COLORS.accent }}>{PUZZLE.keySan}</span>.
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}.</div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '8px 0 0', lineHeight: 1.5 }}>
+                We are not printing the move. The forced mate is still there in the position, so take another run at it.
+              </div>
+            )}
             {PUZZLE.sunday && (
               <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a mate in three.</div>
             )}
@@ -952,8 +966,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           headline={won ? <>Checkmate!</> : g.status === 'lost' ? <>You missed it.</> : <>You scored 0%</>}
           subline={won
             ? <>10/10 &middot; found the key &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-            : g.status === 'lost' ? <>0/10 &middot; {PUZZLE.keySan} was the move</>
-            : <>0/10 &middot; the winning line is on the board</>}
+            : g.status === 'lost' ? <>0/10 &middot; that was not the move</>
+            : <>0/10 &middot; the mate is still in the position</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}

@@ -598,7 +598,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
       if (g.status === 'lost') return view.score.mine === view.score.theirs
         ? `Board counted. Level at ${view.score.mine}, and level is not a win.`
         : `Board counted. The engine takes it ${view.score.theirs} to ${view.score.mine}.`;
-      return 'The winning square is ringed on the board.';
+      return 'You ended it there. The winning square is still in the position.';
     }
     if (thinking || view.turn === 2) return 'The engine is answering...';
     if (!started) return 'Ready when you are.';
@@ -608,7 +608,10 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
   };
 
   // ── board ────────────────────────────────────────────────────────────────
-  const revealKey = !playing;
+  // The winning square is ringed ONLY for a player who actually found it. Turn
+  // is a replayable position, so ringing the key square for someone who lost or
+  // gave up hands them the answer and spends the puzzle for good.
+  const revealKey = won;
   const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
   const squares = [];
@@ -670,7 +673,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.tn-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .tn-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accent};background:var(--white);color:${COLORS.accent};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .tn-btn:hover{background:${COLORS.accentSoft};}
-          .tn-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .tn-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:118px;box-sizing:border-box;}
           .tn-sq{-webkit-tap-highlight-color:transparent;transition:background .12s ease;}
           .tn-disc{display:block;}
           .tn-fresh{animation:tnpop .28s ease;}
@@ -767,10 +770,10 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.faded }}>No take-back. Every square you play is played.</div>
               <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <button className="tn-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
-                  <Eye size={14} /> {armReveal ? 'Tap again to end' : 'Give up'}
+                  <Eye size={14} /> {armReveal ? 'Press again' : 'Give up'}
                 </button>
                 <button className="tn-tool" onClick={restartGame} title="Record this as a loss and deal the same board again" style={{ borderColor: armRestart ? COLORS.rust : undefined, color: armRestart ? COLORS.rust : undefined }}>
-                  <RotateCcw size={14} /> {armRestart ? 'Tap again to restart' : 'Restart'}
+                  <RotateCcw size={14} /> {armRestart ? 'Press again' : 'Restart'}
                 </button>
               </span>
             </div>
@@ -778,10 +781,20 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
 
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
-              <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
-                The key: <span style={{ color: COLORS.accent }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+              {/* The key square and the idea behind it go only to a solver, so
+                  a player who lost can come back to the position intact. */}
+              {won ? (
+                <>
+                  <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
+                    The key: <span style={{ color: COLORS.accent }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+                </>
+              ) : (
+                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
+                  We are not naming the square. The win is still sitting in this position, so take another run at it.
+                </div>
+              )}
               {PUZZLE.sunday && (
                 <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, with two more squares to read.</div>
               )}

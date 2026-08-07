@@ -516,36 +516,16 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
     say('Two columns that do not win are now greyed out. The rest is on you.');
   }
 
-  // Give up: if the win is still there, play it out so the answer is visible on
-  // the board. Either way the puzzle ends and scores nothing.
+  // Give up: the round ends and scores nothing, and the board is left exactly as
+  // it stands. This used to play the win out so the answer sat on the board, but
+  // these positions are worth replaying and printing the answer spends the
+  // puzzle for good, so the key is now shown only to a player who found it.
   function revealEnd() {
     const cur = gRef.current;
-    let ms = cur.moves.slice();
-    let b = boardFrom(PUZZLE.cells, ms);
-    if (ms.length % 2 === 1) {
-      const em = engineMove(b, PUZZLE.quizId);
-      if (em) { ms = [...ms, em.col]; b = boardFrom(PUZZLE.cells, ms); }
-    }
-    let guard = 0;
-    while (guard++ < 24) {
-      const scored = scoreMoves(b);
-      if (!scored.length) break;
-      let best = null;
-      for (const s of scored) if (!best || s.score > best.score) best = s;
-      if (best.score <= 0) break;                       // no win left to show
-      const r = b.heights[best.col];
-      const iWin = winsAt(b, best.col, r, 1);
-      ms = [...ms, best.col];
-      b = boardFrom(PUZZLE.cells, ms);
-      if (iWin) break;
-      const em = engineMove(b, PUZZLE.quizId);
-      if (!em) break;
-      ms = [...ms, em.col];
-      b = boardFrom(PUZZLE.cells, ms);
-    }
+    if (cur.status !== 'playing') return;
     if (replyTimer.current) clearTimeout(replyTimer.current);
     setThinking(false);
-    const g2 = { ...cur, moves: ms, status: 'gaveup', tEnd: Date.now() };
+    const g2 = { ...cur, status: 'gaveup', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0);
     endHold.hold();
@@ -635,7 +615,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
       if (won) return 'Four in a row. That is the win.';
       if (drawn) return 'Board full. Drawn.';
       if (g.status === 'lost') return 'The engine got there first.';
-      return 'The winning line is on the board.';
+      return 'You ended it there. The win is still in the position.';
     }
     if (thinking || awaitingReply) return 'The engine is thinking...';
     if (val > 0) return winLeft <= 1 ? 'Drop the winner.' : `Your move. The win takes ${winLeft} more.`;
@@ -798,29 +778,56 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
         )}
 
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-              Tap a column to drop. There is no take-back.
-            </span>
-            <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={13} /> {armReveal ? 'Tap again — ends the game and scores nothing' : (val > 0 ? 'Reveal & end' : 'Give up')}
-              </button>
-              <button onClick={() => { if (armRestart) { setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(true); } }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <RotateCcw size={13} /> {armRestart ? 'Tap again — records a loss and deals a fresh board' : 'Restart'}
-              </button>
-            </span>
+          /* Both controls arm on the first tap and fire on the second. The armed
+             label is deliberately SHORT and each button reserves a fixed width,
+             because the old armed copy ("Tap again — records a loss and deals a
+             fresh board") was far wider than "Restart": the row reflowed on the
+             first tap and the button slid out from under the reader's finger, so
+             the confirming tap landed on nothing. The consequence now prints on
+             its own line BELOW the row, where it cannot move either button. */
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+                Tap a column to drop. There is no take-back.
+              </span>
+              <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
+                  title={armReveal ? 'Ends the game and scores nothing' : 'End the game now, scoring nothing'}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}>
+                  <Eye size={13} style={{ flexShrink: 0 }} /> {armReveal ? 'Press again' : 'Give up'}
+                </button>
+                <button onClick={() => { if (armRestart) { setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(true); } }}
+                  title={armRestart ? 'Records a loss and deals a fresh board' : 'Record a loss and deal a fresh board'}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}>
+                  <RotateCcw size={13} style={{ flexShrink: 0 }} /> {armRestart ? 'Press again' : 'Restart'}
+                </button>
+              </span>
+            </div>
+            {(armReveal || armRestart) && (
+              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.rust, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+                {armReveal ? 'Ends the game and scores nothing.' : 'Records a loss and deals a fresh board.'}
+              </div>
+            )}
           </div>
         )}
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              The key: <span style={{ color: COLORS.accent }}>column {PUZZLE.key + 1}</span>.
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}</div>
+            {/* The key and the idea behind it are shown ONLY to a player who
+                found it. Four is a replayable position, so naming the column to
+                someone who lost or gave up spends the puzzle for good. */}
+            {won ? (
+              <>
+                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                  The key: <span style={{ color: COLORS.accent }}>column {PUZZLE.key + 1}</span>.
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}</div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '8px 0 0', lineHeight: 1.5 }}>
+                We are not printing the column. The win is still sitting in this position, so take another run at it.
+              </div>
+            )}
             {PUZZLE.sunday && (
               <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition, a win in five.</div>
             )}
@@ -914,8 +921,8 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
             : drawn
               ? <>4/10 &middot; the win went, you held the draw</>
               : g.status === 'lost'
-                ? <>0/10 &middot; column {PUZZLE.key + 1} was the one</>
-                : <>0/10 &middot; the winning line is on the board</>}
+                ? <>0/10 &middot; that was not the column</>
+                : <>0/10 &middot; the win is still in the position</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
