@@ -1980,6 +1980,22 @@ export default function DailyEndCard({
           .dec-arcring,.dec-arcring svg{width:44px;height:44px;}
           .dec-arcring .num{font-size:11px;}
           .dec-tile-mx{top:8px;right:5px;}
+          /* The three tiles are grid cells of equal height, but .dec-tile is a
+             <button>, and a button vertically CENTRES its content box. The
+             archive tile is the tallest (a 44px ring where the others have a
+             32px numeral), so the two rank tiles were centring their shorter
+             content and their titles floated ~10px lower than the archive's.
+             Making the tile a flex column pins all three titles to the top
+             deterministically, and margin-top:auto on the footnote pins the
+             three "of N players" lines to the bottom, so the numeral and the
+             ring float between two aligned rails instead of dragging the
+             labels around with them. The ring also comes down to 40px so the
+             leftover slack in the middle is a few pixels, not a hole. */
+          .dec-tile{display:flex;flex-direction:column;justify-content:flex-start;}
+          .dec-tile-ring{height:40px;margin-top:2px;}
+          .dec-arcring,.dec-arcring svg{width:40px;height:40px;}
+          .dec-arcring .num{font-size:10.5px;}
+          .dec-tile-of{margin-top:auto;padding-top:2px;}
         }
       `}</style>
 
