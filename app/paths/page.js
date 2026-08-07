@@ -6,19 +6,21 @@ import { SITE_URL } from '@/lib/site';
 
 // Paths launched 2026-08-06 as the 50th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/paths is the canonical,
-// evergreen URL). Weekdays are a 9x9 lattice with eight towns; Sundays step up
-// to an 11x11 Edition with ten. Boards are gated by Eastern date here, so
+// evergreen URL). Boards ramp across the week (see the tier table in
+// puzzles.js): a 9x9 lattice with eight towns Monday to Wednesday, cliffs from
+// Thursday, old track and a ninth town on Friday and Saturday, and a 13x13
+// Sunday Edition with eleven towns. Boards are gated by Eastern date here, so
 // tomorrow's cheapest network never reaches the browser.
 
 export const metadata = {
   title: 'Paths — Free Daily Network Puzzle | Mind Loft',
   description:
-    'A free daily network puzzle. Link every town back to the depot for as little as you can, where ridge lanes cost double and river crossings cost triple. Every board carries a proven cheapest network, so a perfect score is real. New board daily, bigger 11x11 Edition on Sundays.',
+    'A free daily network puzzle. Link every town back to the depot for as little as you can, where ridge lanes cost double, river crossings cost triple, cliffs cannot be crossed at all and old track is free. Every board carries a proven cheapest network, so a perfect score is real. New board daily, harder as the week goes on, bigger 13x13 Edition on Sundays.',
   alternates: { canonical: '/paths' },
   openGraph: {
     title: 'Paths — A Daily Network Puzzle',
     description:
-      'One depot, eight towns, a river in the way. Link them all for as little as you can.',
+      'One depot, a scatter of towns, a river in the way. Link them all for as little as you can.',
     url: '/paths',
     type: 'website',
     siteName: 'Mind Loft',
@@ -37,7 +39,7 @@ const gameJsonLd = {
   alternateName: 'Paths — Daily Network Puzzle',
   url: `${SITE_URL}/paths`,
   description:
-    'A free daily network puzzle: lay track along a lattice of lanes until every town is linked back to the depot, spending as little as possible. An open lane costs one, a ridge lane costs two, and a river crossing costs three. Every board carries the exact cheapest network that exists on it, found by a Steiner-tree solver, so a perfect score is provable and nobody can beat it. Ties break on cost, then on time.',
+    'A free daily network puzzle: lay track along a lattice of lanes until every town is linked back to the depot, spending as little as possible. An open lane costs one, a ridge lane costs two, and a river crossing costs three. Later in the week cliffs block lanes outright and stretches of old track are free to run along. Every board carries the exact cheapest network that exists on it, found by a Steiner-tree solver, so a perfect score is provable and nobody can beat it. Ties break on cost, then on time.',
   genre: ['Logic puzzle', 'Network puzzle', 'Optimisation puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

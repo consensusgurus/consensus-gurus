@@ -2,11 +2,18 @@
 
 // Paths — the daily network puzzle.
 //
-// A lattice of dots, one depot, eight towns (ten on Sundays), a river and two
-// ridges. Lay track along the lattice lines until every town is linked back to
-// the depot, and do it for as little as you can. A plain lane costs 1, a ridge
-// lane costs 2, a river crossing costs 3, and a spur that goes nowhere still
-// costs you.
+// A lattice of dots, one depot, a handful of towns, and terrain in the way. Lay
+// track along the lattice lines until every town is linked back to the depot,
+// and do it for as little as you can. A plain lane costs 1, a ridge lane costs
+// 2, a river crossing costs 3, a cliff cannot be laid at all, old track is
+// free, and a spur that goes nowhere still costs you.
+//
+// Boards get harder across the week (PUZZLE.tier, set in puzzles.js). Monday to
+// Wednesday is open ground, ridge and river. Thursday adds cliffs. Friday and
+// Saturday add old track and a ninth town. Sunday is a 13x13 Edition with
+// eleven towns and every element at once. Everything below reads the terrain off
+// the board rather than assuming which elements are present, so a tier 1 board
+// simply draws no cliffs and shows no cliff chip in the legend.
 //
 // PERFECT is the exact cheapest network that exists on the board, proved by a
 // Dreyfus-Wagner Steiner-tree solve at bank time. PAR is the cushioned target
@@ -57,6 +64,10 @@ const COLORS = {
   ridgeInk: '#8a6a2f',
   river: '#bfdbfe',
   riverInk: '#1d4ed8',
+  cliff: '#4b5563',         // a wall, not a price
+  cliffInk: '#111827',
+  rail: '#0f766e',          // old track, free to run along
+  railSoft: '#99f6e4',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -183,17 +194,27 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   // Every lane on the lattice, priced once. Horizontal lanes come first, then
   // vertical, and the index into that list is the only handle the game state
   // keeps, so a saved board stays valid as long as the board size does.
+  // A blocked lane keeps its slot in the list so a saved board stays valid, it
+  // just can never be laid and never costs anything.
   const LANES = useMemo(() => {
     const hills = new Set(PUZZLE.hills), bridges = new Set(PUZZLE.bridges);
+    const cliffs = new Set(PUZZLE.cliffs || []), rails = new Set(PUZZLE.rails || []);
     const out = [];
     for (let y = 0; y < n; y++) for (let x = 0; x < n - 1; x++) out.push([y * n + x, y * n + x + 1]);
     for (let y = 0; y < n - 1; y++) for (let x = 0; x < n; x++) out.push([y * n + x, (y + 1) * n + x]);
-    return out.map(([a, b], i) => ({
-      i, a, b,
-      cost: bridges.has(eKey(a, b)) ? 3 : (hills.has(a) && hills.has(b)) ? 2 : 1,
-      horiz: b - a === 1,
-    }));
+    return out.map(([a, b], i) => {
+      const k = eKey(a, b);
+      const blocked = cliffs.has(k);
+      return {
+        i, a, b, blocked,
+        rail: rails.has(k),
+        cost: blocked ? 0 : rails.has(k) ? 0 : bridges.has(k) ? 3 : (hills.has(a) && hills.has(b)) ? 2 : 1,
+        horiz: b - a === 1,
+      };
+    });
   }, [PUZZLE, n]);
+  const HAS_CLIFFS = useMemo(() => LANES.some((l) => l.blocked), [LANES]);
+  const HAS_RAILS = useMemo(() => LANES.some((l) => l.rail), [LANES]);
   const LANE_BY_KEY = useMemo(() => {
     const m = {};
     LANES.forEach((l) => { m[eKey(l.a, l.b)] = l.i; });
@@ -441,6 +462,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   function setLane(idx, on) {
     const cur = gRef.current;
     if (cur.status !== 'playing') return;
+    if (LANES[idx] && LANES[idx].blocked) return;
     if (cur.e[idx] === (on ? 1 : 0)) return;
     if (!cur.t0) startGame();
     const e = cur.e.slice();
@@ -554,12 +576,15 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   }, []);
 
   // ---- board geometry ----
-  const CELL = n <= 9 ? 52 : 42;
+  const CELL = n <= 9 ? 52 : n <= 11 ? 42 : 36;
   const PAD = 26;
+  const TOWN_R = Math.max(9.5, CELL * 0.25);   // towns and depot shrink with the
+  const DEPOT_R = Math.max(11, CELL * 0.29);   // lattice so a 13x13 stays legible
   const SIZE = (n - 1) * CELL + PAD * 2;
   const X = (i) => PAD + (i % n) * CELL;
   const Y = (i) => PAD + Math.floor(i / n) * CELL;
   const HIT = Math.round(CELL * 0.42);
+  const TOLL = Math.round(CELL * 0.2);   // how far a toll number sits off its lane
   const riverPath = useMemo(() => {
     const pts = [];
     for (let y = 0; y < n; y++) {
@@ -581,6 +606,19 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
     return out;
   }, [PUZZLE, n]);
 
+  // A cliff is drawn as a bar sitting across the lane it blocks, so it reads as
+  // a wall in the gap rather than as a missing line.
+  const cliffBars = useMemo(() => LANES.filter((l) => l.blocked).map((l) => {
+    const mx = (X(l.a) + X(l.b)) / 2, my = (Y(l.a) + Y(l.b)) / 2;
+    // full-cell span, so a run of blocked lanes reads as one unbroken wall
+    // rather than a dashed line
+    const len = CELL, thick = Math.max(5.5, CELL * 0.15);
+    return l.horiz
+      ? { i: l.i, x: mx - thick / 2, y: my - len / 2, w: thick, h: len }
+      : { i: l.i, x: mx - len / 2, y: my - thick / 2, w: len, h: thick };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [LANES, CELL, n]);
+
   const rulesBody = (
     <DailyRules
       accent={COLORS.accent}
@@ -590,16 +628,20 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
         { label: 'Open 1', tone: 'grey' },
         { label: 'Ridge 2', style: { background: COLORS.ridge, border: `1.5px solid ${COLORS.ridgeInk}`, color: COLORS.ridgeInk } },
         { label: 'Crossing 3', style: { background: COLORS.river, border: `1.5px solid ${COLORS.riverInk}`, color: COLORS.riverInk } },
+        ...(HAS_RAILS ? [{ label: 'Old track 0', style: { background: COLORS.railSoft, border: `1.5px solid ${COLORS.rail}`, color: COLORS.rail } }] : []),
+        ...(HAS_CLIFFS ? [{ label: 'Cliff, no way through', style: { background: '#e5e7eb', border: `1.5px solid ${COLORS.cliff}`, color: COLORS.cliffInk } }] : []),
       ]}
-      sub={<>Tan shading marks every lane that charges 2, which needs <b>both</b> ends on the ridge, so skirting the edge is free. The river is one unbroken barrier.</>}
+      sub={<>Tan shading marks every lane that charges 2, which needs <b>both</b> ends on the ridge, so skirting the edge is free. The river is one unbroken barrier.{HAS_CLIFFS ? <> A dark bar is a <b>cliff</b>: that lane cannot be laid at any price, so route around it.</> : null}{HAS_RAILS ? <> A dashed green lane is <b>old track</b>, already on the ground: run along it and it costs you nothing.</> : null}</>}
       steps={[
         <>Drag or tap a lane to <b>lay track</b>, drag back over your track to lift it. Towns turn green as they connect.</>,
         <>Link all {TOWNS.length} towns, then keep <b>trimming</b>: your first network is never the cheapest, and dead-end spurs still cost you.</>,
         <><b>Undo</b> (Ctrl+Z) and <b>Clear</b> are free and unlimited. One free <b>hint</b>, on your first ever play, lays a lane of a cheapest network.</>,
         <>Linking everything does not end the round: press <b>Finish</b> when you cannot trim any further.</>,
       ]}
-      knack="Share one crossing. You pay the river somewhere, and two lanes of detour on open ground beats paying 3 again."
-      footer={<><b>Perfect</b>, the solver-proved cheapest network on the board, scores 10; a point comes off per {step} over, so par is 8. Ties break on cost, then time. Sundays are an 11&times;11 Edition with ten towns.</>}
+      knack={HAS_RAILS
+        ? 'Follow the old track. A free lane is worth a detour to reach, and the network that uses it rarely looks like the short one.'
+        : 'Share one crossing. You pay the river somewhere, and two lanes of detour on open ground beats paying 3 again.'}
+      footer={<><b>Perfect</b>, the solver-proved cheapest network on the board, scores 10; a point comes off per {step} over, so par is 8. Ties break on cost, then time. Boards get harder across the week: cliffs from Thursday, old track and a ninth town on Friday and Saturday, and a 13&times;13 Sunday Edition with eleven towns.</>}
     />
   );
 
@@ -629,7 +671,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 11&times;11</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {n}&times;{n}</span>}
           blocks={'PATHS'.split('').map((ch, i) => (
             <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
@@ -640,7 +682,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Paths is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Link all {TOWNS.length} towns to the depot for as little as you can. Ridge lanes cost 2, river crossings cost 3. Perfect is <b>{perfect}</b> and par is <b>{parTarget}</b>.</p>
+                <p style={{ margin: '0 0 6px' }}>Link all {TOWNS.length} towns to the depot for as little as you can. Ridge lanes cost 2, river crossings cost 3{HAS_RAILS ? ', old track is free' : ''}{HAS_CLIFFS ? ', and a cliff cannot be crossed at all' : ''}. Perfect is <b>{perfect}</b> and par is <b>{parTarget}</b>.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -679,10 +721,20 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               {/* the river, one continuous barrier */}
               <path d={riverPath} fill="none" stroke={COLORS.river} strokeWidth={11} strokeLinejoin="round" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
               <path d={riverPath} fill="none" stroke="#7fb2f5" strokeWidth={2.4} opacity={0.7} strokeLinejoin="round" style={{ pointerEvents: 'none' }} />
-              {/* bare lanes */}
+              {/* bare lanes. A cliff lane is drawn faintly and then walled off
+                  below, so the lattice still reads as a grid */}
               {LANES.map((l) => (
                 <line key={`l${l.i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
-                  stroke="#dfe4ec" strokeWidth={2} strokeLinecap="round" opacity={l.cost > 1 ? 0.5 : 1} style={{ pointerEvents: 'none' }} />
+                  stroke="#dfe4ec" strokeWidth={2} strokeLinecap="round" opacity={l.blocked ? 0.25 : l.cost > 1 ? 0.5 : 1} style={{ pointerEvents: 'none' }} />
+              ))}
+              {/* old track: already on the ground, free to run along */}
+              {LANES.filter((l) => l.rail).map((l) => (
+                <g key={`rl${l.i}`} style={{ pointerEvents: 'none' }}>
+                  <line x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
+                    stroke={COLORS.railSoft} strokeWidth={Math.max(6, CELL * 0.17)} strokeLinecap="round" />
+                  <line x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
+                    stroke={COLORS.rail} strokeWidth={2.4} strokeDasharray="3 4" strokeLinecap="round" />
+                </g>
               ))}
               {/* a cheapest network, shown only after the round ends */}
               {showPar && SOL.map((i) => {
@@ -696,10 +748,22 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                   stroke={COLORS.track} strokeWidth={6} strokeLinecap="round" style={{ pointerEvents: 'none' }} />
               ) : null))}
               {/* what a crossing charges. The ridge says 2 with its shading */}
-              {LANES.filter((l) => l.cost === 3).map((l) => (
-                <text key={`c${l.i}`} x={(X(l.a) + X(l.b)) / 2 + (l.horiz ? 0 : 10)} y={(Y(l.a) + Y(l.b)) / 2 - (l.horiz ? 10 : 0)}
-                  fill={l.cost === 3 ? COLORS.riverInk : COLORS.ridgeInk} fontFamily={MONO} fontSize={10} fontWeight="500"
-                  textAnchor="middle" dominantBaseline="central" style={{ pointerEvents: 'none', userSelect: 'none' }}>{l.cost}</text>
+              {LANES.filter((l) => l.cost === 3 && !l.blocked).map((l) => (
+                <text key={`c${l.i}`} x={(X(l.a) + X(l.b)) / 2 + (l.horiz ? 0 : TOLL)} y={(Y(l.a) + Y(l.b)) / 2 - (l.horiz ? TOLL : 0)}
+                  fill={COLORS.riverInk} fontFamily={MONO} fontSize={10} fontWeight="500"
+                  textAnchor="middle" dominantBaseline="central" style={{ pointerEvents: 'none', userSelect: 'none' }}>3</text>
+              ))}
+              {/* the old track says 0, the same way a crossing says 3 */}
+              {LANES.filter((l) => l.rail).map((l) => (
+                <text key={`z${l.i}`} x={(X(l.a) + X(l.b)) / 2 + (l.horiz ? 0 : TOLL)} y={(Y(l.a) + Y(l.b)) / 2 - (l.horiz ? TOLL : 0)}
+                  fill={COLORS.rail} fontFamily={MONO} fontSize={10} fontWeight="500"
+                  textAnchor="middle" dominantBaseline="central" style={{ pointerEvents: 'none', userSelect: 'none' }}>0</text>
+              ))}
+              {/* cliffs: a wall across the lane, drawn over everything so it is
+                  never mistaken for track you could lay */}
+              {cliffBars.map((c) => (
+                <rect key={`x${c.i}`} x={c.x} y={c.y} width={c.w} height={c.h} rx={2}
+                  fill={COLORS.cliff} stroke={COLORS.cliffInk} strokeWidth={1} style={{ pointerEvents: 'none' }} />
               ))}
               {/* plain dots */}
               {Array.from({ length: n * n }).map((_, k) => (PUZZLE.terms.includes(k) ? null : (
@@ -707,21 +771,21 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               )))}
               {/* depot */}
               <g style={{ pointerEvents: 'none' }}>
-                <rect x={X(DEPOT) - 15} y={Y(DEPOT) - 15} width={30} height={30} rx={9} fill={COLORS.ink} />
-                <rect x={X(DEPOT) - 6} y={Y(DEPOT) - 6} width={12} height={12} rx={3} fill={T.white} />
+                <rect x={X(DEPOT) - DEPOT_R} y={Y(DEPOT) - DEPOT_R} width={DEPOT_R * 2} height={DEPOT_R * 2} rx={DEPOT_R * 0.3} fill={COLORS.ink} />
+                <rect x={X(DEPOT) - DEPOT_R * 0.4} y={Y(DEPOT) - DEPOT_R * 0.4} width={DEPOT_R * 0.8} height={DEPOT_R * 0.8} rx={3} fill={T.white} />
               </g>
               {/* towns */}
               {TOWNS.map((t, k) => {
                 const on = reached.has(t);
                 return (
                   <g key={`t${t}`} style={{ pointerEvents: 'none' }}>
-                    <circle cx={X(t)} cy={Y(t)} r={13} fill={on ? COLORS.green : T.white} stroke={on ? COLORS.green : COLORS.ink} strokeWidth={2.5} />
-                    <text x={X(t)} y={Y(t)} fill={on ? T.white : COLORS.ink} fontFamily={SANS} fontSize={11.5} fontWeight="800" textAnchor="middle" dominantBaseline="central">{townLetter(k)}</text>
+                    <circle cx={X(t)} cy={Y(t)} r={TOWN_R} fill={on ? COLORS.green : T.white} stroke={on ? COLORS.green : COLORS.ink} strokeWidth={2.5} />
+                    <text x={X(t)} y={Y(t)} fill={on ? T.white : COLORS.ink} fontFamily={SANS} fontSize={Math.max(10, TOWN_R * 0.88)} fontWeight="800" textAnchor="middle" dominantBaseline="central">{townLetter(k)}</text>
                   </g>
                 );
               })}
               {/* hit targets last so they always take the drag */}
-              {playing && LANES.map((l) => (
+              {playing && LANES.filter((l) => !l.blocked).map((l) => (
                 <line key={`h${l.i}`} className="pt-hit" data-lane={l.i}
                   x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)} strokeWidth={HIT} />
               ))}
@@ -732,6 +796,12 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 3, borderRadius: 2, background: '#c9d0dc' }} /> open 1</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 9, borderRadius: 3, background: COLORS.ridge }} /> ridge 2</span>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: COLORS.river }} /> crossing 3</span>
+            {HAS_RAILS && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: COLORS.railSoft, borderTop: `2px dashed ${COLORS.rail}` }} /> old track 0</span>
+            )}
+            {HAS_CLIFFS && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 5, height: 13, borderRadius: 2, background: COLORS.cliff }} /> cliff, no way through</span>
+            )}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: COLORS.ink }} /> depot</span>
           </div>
           {playing && (
@@ -779,10 +849,10 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               {showPar ? 'Hide the cheapest network' : 'Show a cheapest network'}
             </button>
             <div style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '8px 0 0' }}>
-              Shown in gold, one network that costs {perfect}. Two staircases between the same dots always tie, so it is <i>a</i> cheapest network rather than the only one, but every ridge lane and crossing in it is forced.
+              Shown in gold, one network that costs {perfect}. Two staircases between the same dots always tie, so it is <i>a</i> cheapest network rather than the only one, but every ridge lane and crossing in it is forced.{HAS_RAILS ? ' Notice where it runs along the old track.' : ''}
             </div>
             {PUZZLE.sunday && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '10px 0 0' }}>The Sunday Edition &mdash; a bigger 11&times;11 board with ten towns.</div>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '10px 0 0' }}>The Sunday Edition &mdash; a bigger {n}&times;{n} board with {TOWNS.length} towns and every element at once.</div>
             )}
             {isTodays && myStats.cur >= 2 && (
               <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -904,13 +974,13 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Paths</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Paths is a free daily network puzzle from Mind Loft. One depot, eight towns, a river and two ridges, and the job is to link every town back to the depot for as little as you can. Ridge lanes cost double and crossings cost triple, so the shortest route and the cheapest one are rarely the same thing.
+          Paths is a free daily network puzzle from Mind Loft. One depot, a scatter of towns, a river and two ridges, and the job is to link every town back to the depot for as little as you can. Ridge lanes cost double and crossings cost triple, so the shortest route and the cheapest one are rarely the same thing. Later in the week the map gets harder: cliffs block lanes outright, and stretches of old track are free to run along if you spot them.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The trick is that towns are cheaper to link in bunches than one at a time. A lane you lay to reach one town is free for the next town that runs along it, which is why the obvious connect-the-nearest-town network is always several over, and why one shared trunk line through a single crossing usually beats three separate detours around the river.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every board carries a proven cheapest network, so a perfect score is real and nobody beats it. A new board drops at midnight Eastern, and Sundays step up to an 11&times;11 Edition with ten towns. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/hedge" style={{ color: COLORS.ink, fontWeight: 800 }}>Hedge</a>, our daily loop, <a href="/parker" style={{ color: COLORS.ink, fontWeight: 800 }}>Parker</a>, our gridlock puzzle, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border chain.
+          Every board carries a proven cheapest network, so a perfect score is real and nobody beats it. A new board drops at midnight Eastern, and the week ramps: open ground Monday to Wednesday, cliffs from Thursday, old track and a ninth town on Friday and Saturday, and a 13&times;13 Sunday Edition with eleven towns and every element at once. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/hedge" style={{ color: COLORS.ink, fontWeight: 800 }}>Hedge</a>, our daily loop, <a href="/parker" style={{ color: COLORS.ink, fontWeight: 800 }}>Parker</a>, our gridlock puzzle, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border chain.
         </p>
       </section>
 
