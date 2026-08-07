@@ -658,6 +658,16 @@ export default function DailyEndCard({
   const total = DAILY_GAMES.length;
   const doneCount = DAILY_GAMES.filter((g) => doneKeys.has(g.key)).length;
 
+  // Slate strip cells, PACKED. Rendering DAILY_GAMES in its own order put the
+  // filled cells wherever those games happen to sit in the list, so the strip
+  // read as scattered noise rather than as progress. Finished games come
+  // first, then this one (the cell that just lit up), then everything left.
+  const slateCells = [
+    ...DAILY_GAMES.filter((g) => g.key !== self && doneKeys.has(g.key)),
+    ...DAILY_GAMES.filter((g) => g.key === self),
+    ...DAILY_GAMES.filter((g) => g.key !== self && !doneKeys.has(g.key)),
+  ];
+
   // Still-to-play games, launch-pinned to the front during a new game's window.
   let todo = DAILY_GAMES.filter((g) => !doneKeys.has(g.key));
   if (etTodayEC() <= LAUNCH_PIN.until) {
@@ -1901,6 +1911,49 @@ export default function DailyEndCard({
           .dec-iqhero-sub{display:flex;font-size:11.5px;}
           .dec-day{margin-bottom:11px;}
         }
+
+        /* ---- tightening + action grid (owner, 2026-08-06) ----------------
+           The card had accumulated slack: every block carried its own comfy
+           padding from when it was a white panel, and on a dark ground the
+           borders already do the separating, so the same gaps read as holes.
+           Roughly 60px comes out of the desktop card and 50px off a phone.
+           Card padding and the cap's negative bleed margins MUST move
+           together, or the cap stops reaching the card's edges. */
+        .dec-card{padding:18px 20px 14px;}
+        .dec-cap{margin:-18px -20px 0;padding:9px 52px 9px 18px;}
+        .dec-hero{padding:12px 0 13px;}
+        .dec-iqhero{margin:11px 0 0;}
+        .dec-iqhero-rule{margin:2px 0;}
+        .dec-grouplbl{padding:13px 0 0;}
+        .dec-tiles{margin:9px 0 0;}
+        .dec-tile{padding:11px 10px 10px;}
+        .dec-day{margin:9px 0 11px;padding:10px 12px;}
+        .dec-day .v{margin-top:3px;}
+        .dec-day .f{margin-top:3px;}
+        .dec-dots{gap:6px;}
+        .dec-expand{margin-top:9px;}
+
+        /* Replay now lives in the action grid. Desktop keeps it as a full
+           width bar under share + back; the phone puts it beside Back to
+           Main. :has() lets Back go full width when a caller passes no
+           onReplay, and a browser without :has() just gets the safe
+           full-width fallback. */
+        .dec-replay{grid-column:1/-1;margin-bottom:0;}
+
+        @media(max-width:640px){
+          .dec-card{padding:16px 14px 12px;}
+          .dec-cap{margin:-16px -14px 0;padding:8px 46px 8px 14px;}
+          .dec-hero{padding:11px 0 12px;}
+          .dec-day{margin:8px 0 10px;padding:9px 11px;}
+          .dec-grouplbl{padding:11px 0 0;}
+          .dec-tiles{margin:8px 0 0;}
+          .dec-actions{grid-template-columns:1fr 1fr;gap:7px;}
+          .dec-sharebar{grid-column:1/-1;order:1;}
+          .dec-fine{grid-column:1/-1;order:2;}
+          .dec-back{order:3;grid-column:1/-1;}
+          .dec-back:has(~ .dec-replay){grid-column:auto;}
+          .dec-replay{order:4;grid-column:auto;margin-bottom:0;}
+        }
       `}</style>
 
       {/* ---- 0. cap band ---- */}
@@ -2122,7 +2175,7 @@ export default function DailyEndCard({
         </div>
         <div className="dec-dots">
           <div className="dec-dotrow" aria-hidden="true">
-            {DAILY_GAMES.map((g) => (
+            {slateCells.map((g) => (
               <span
                 key={g.key}
                 className={`dec-dt${g.key === self ? ' now' : (doneKeys.has(g.key) ? ' on' : '')}`}
@@ -2195,19 +2248,20 @@ export default function DailyEndCard({
             <a href="/quizzes/contest">See rules</a>.
           </p>
         ) : null}
+        {/* ---- 4b. quick replay ---- */}
+        {/* Inside the action grid (owner 2026-08-06) so it can sit BESIDE
+            Back to Main on a phone instead of taking a third full-width row.
+            A replay is free practice: the first completed attempt is what the
+            leaderboard and streak keep, so a second run never overwrites the
+            recorded score. */}
+        {onReplay ? (
+          <button type="button" className="dec-replay" onClick={goReplay}>
+            <RefreshCw size={15} strokeWidth={2.2} />
+            <span>Replay today’s {selfGame ? selfGame.name : 'puzzle'}</span>
+            <span className="rs">Practice run</span>
+          </button>
+        ) : null}
       </div>
-
-      {/* ---- 4b. quick replay ---- */}
-      {/* Only for callers that pass onReplay. A replay is free practice: the
-          first completed attempt is what the leaderboard and streak keep, so
-          a second run never overwrites the recorded score. */}
-      {onReplay ? (
-        <button type="button" className="dec-replay" onClick={goReplay}>
-          <RefreshCw size={15} strokeWidth={2.2} />
-          <span>Replay today’s {selfGame ? selfGame.name : 'puzzle'}</span>
-          <span className="rs">Practice run</span>
-        </button>
-      ) : null}
 
       {/* ---- 5. up next + easiest leaderboard ---- */}
       {/* Both cards are completion-derived, so each shows a shimmer skeleton until
