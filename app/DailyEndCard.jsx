@@ -1057,13 +1057,13 @@ export default function DailyEndCard({
     <div className="dec-card" style={modal ? { position: 'relative', maxHeight: '92vh', overflowY: 'auto' } : undefined}>
       {modal && (
         <button type="button" className="dec-x" onClick={onClose} aria-label="Close">
-          <X size={18} strokeWidth={2.4} />
+          <X size={14} strokeWidth={2.6} />
         </button>
       )}
       <style>{`
         .dec-card{background:var(--white);border:1px solid ${BORD};border-radius:16px;padding:20px 22px 16px;max-width:760px;width:100%;margin:0 auto;font-family:${SANS};color:${INK};}
         .dec-backdrop{position:fixed;inset:0;z-index:85;background:rgba(20,22,28,0.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
-        .dec-x{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:9px;background:var(--white);border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:3;}
+        .dec-x{position:absolute;top:7px;right:13px;width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:7px;background:var(--white);border:1px solid ${BORD};color:${SLATE};cursor:pointer;z-index:3;}
         .dec-x:hover{color:${INK};background:var(--surface);}
         /* Modal scroller: round the track to match the card's 16px corners
            (owner 2026-07-31). The track margin insets it below the curve so the
@@ -1774,7 +1774,7 @@ export default function DailyEndCard({
         .dec-eye,.dec-rz,.dec-gh{color:#8ea9d6;}
 
         @media(max-width:640px){
-          .dec-cap{margin:-18px -16px 0;padding:9px 46px 9px 14px;}
+          .dec-cap{margin:-18px -16px 0;padding:9px 40px 9px 14px;}
           /* Hero collapses to one centred column. It was always going to
              be one column on a phone, so the centred desktop composition
              is simply what mobile already wanted: the two viewports now
@@ -1920,7 +1920,7 @@ export default function DailyEndCard({
            Card padding and the cap's negative bleed margins MUST move
            together, or the cap stops reaching the card's edges. */
         .dec-card{padding:18px 20px 14px;}
-        .dec-cap{margin:-18px -20px 0;padding:9px 52px 9px 18px;}
+        .dec-cap{margin:-18px -20px 0;padding:9px 44px 9px 18px;}
         .dec-hero{padding:12px 0 13px;}
         .dec-iqhero{margin:11px 0 0;}
         .dec-iqhero-rule{margin:2px 0;}
@@ -1942,7 +1942,9 @@ export default function DailyEndCard({
 
         @media(max-width:640px){
           .dec-card{padding:16px 14px 12px;}
-          .dec-cap{margin:-16px -14px 0;padding:8px 46px 8px 14px;}
+          .dec-cap{margin:-16px -14px 0;padding:8px 40px 8px 14px;}
+          /* Cap band is 35px tall on a phone; keep the button centred in it. */
+          .dec-x{top:6px;right:10px;}
           .dec-hero{padding:11px 0 12px;}
           .dec-day{margin:8px 0 10px;padding:9px 11px;}
           .dec-grouplbl{padding:11px 0 0;}
