@@ -50,6 +50,7 @@ import { PUZZLES as REDACT_FULL } from '../redact/puzzles';
 import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
 import { PUZZLES as PATHS_FULL } from '../paths/puzzles';
 import { PUZZLES as DEEP_FULL } from '../deep/puzzles';
+import { PUZZLES as ANON_FULL } from '../anon/puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
@@ -96,6 +97,7 @@ const REDACT = REDACT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const PATHS = PATHS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DEEP = DEEP_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const ANON = ANON_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HANDS = HANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
@@ -190,6 +192,7 @@ const GAMES = [
   { key: 'redact', name: 'Redact', path: '/redact', tag: 'Uncover the story', accent: '#27272a', bg: '#f4f4f5', border: 'rgba(39,39,42,0.4)', src: REDACT },
   { key: 'paths', name: 'Paths', path: '/paths', tag: 'Link every town', accent: '#065f46', bg: '#e6f4ee', border: 'rgba(6,95,70,0.4)', src: PATHS },
   { key: 'deep', name: 'Deep', path: '/deep', tag: 'One topic, fifteen questions', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)', src: DEEP },
+  { key: 'anon', name: 'Anon', path: '/anon', tag: 'A passage nobody signed', accent: '#8c2f39', bg: '#f8ecee', border: 'rgba(140,47,57,0.4)', src: ANON },
   { key: 'strata', name: 'Strata', path: '/strata', tag: 'Dig the words out', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)', src: STRATA },
 ];
 
