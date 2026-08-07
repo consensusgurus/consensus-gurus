@@ -340,7 +340,9 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     try { localStorage.removeItem(REC_KEY); } catch (e) {}
   }
   function copyShare() {
-    const line = `Anon #${PUZZLE.num} — ${won ? 'named' : `${nSolved}/${TOTAL}`} ${won ? `in ${elapsed}` : ''}`.trim();
+    const line = won
+      ? `Anon #${PUZZLE.num} — the clueless acrostic\nNamed it in ${elapsed}`
+      : `Anon #${PUZZLE.num} — the clueless acrostic\n${nSolved}/${TOTAL} answers`;
     try {
       navigator.clipboard.writeText(`${line}\nmindloftdaily.com/anon`);
       setCopied(true); setTimeout(() => setCopied(false), 1800);
