@@ -136,6 +136,17 @@ function fmtLocalTime(iso, tz) {
   }
 }
 
+// Time of day only, in Eastern. The top-players board covers a single day, so
+// repeating the date on every row would be noise.
+function fmtEtClock(iso) {
+  if (!iso) return '\u2014';
+  try {
+    return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' });
+  } catch {
+    return '\u2014';
+  }
+}
+
 // One labeled stat in the expanded player summary grid.
 function Stat({ label, value }) {
   return (
@@ -451,7 +462,7 @@ function mapsPlaceUrl(name) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleaned)}`;
 }
 
-export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, initialTimeByDay = { series: [], totals: {} }, initialNewUsers = { series: [], totals: {} }, initialDailyByGame = { games: [], totals: {} } }) {
+export default function AdminClient({ initialLists, initialExtras = [], initialComplaints = [], initialVoteStandings = [], initialVoteEvents = [], initialComments = [], initialAlerts = [], initialViews24h = [], initialEditorNotes = [], initialQuizSignups = [], initialQuizStats = [], initialAnonPlayers = [], initialActiveUsers = { players: { dau: 0, wau: 0, mau: 0 }, visitors: null }, initialGeoMap = null, initialDailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, initialTimeByDay = { series: [], totals: {} }, initialNewUsers = { series: [], totals: {} }, initialDailyByGame = { games: [], totals: {} }, initialTopPlayersToday = { day: null, players: [], totals: {} } }) {
   const router = useRouter();
   const [lists, setLists] = useState(initialLists);
   const [extras, setExtras] = useState(initialExtras);
@@ -865,7 +876,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} newUsers={initialNewUsers} dailyByGame={initialDailyByGame} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} newUsers={initialNewUsers} dailyByGame={initialDailyByGame} topPlayersToday={initialTopPlayersToday} />
         ) : tab === 'daily' ? (
           <DailyGamesPanel data={initialDailyByGame} />
         ) : tab === 'research' ? (
@@ -2060,7 +2071,7 @@ function ActiveUsersStrip({ data }) {
   );
 }
 
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, timeByDay = { series: [], totals: {} }, newUsers = { series: [], totals: {} }, dailyByGame = { games: [], totals: {} } }) {
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, timeByDay = { series: [], totals: {} }, newUsers = { series: [], totals: {} }, dailyByGame = { games: [], totals: {} }, topPlayersToday = { day: null, players: [], totals: {} } }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
@@ -2172,6 +2183,7 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
           ) : (
             <AllPlayersPanel signups={signups} anonPlayers={anonPlayers} />
           )}
+          <TopPlayersTodayPanel data={topPlayersToday} />
           <TimeByDayPanel data={timeByDay} />
           <NewUsersByDayPanel data={newUsers} />
           <GamesRankedPanel data={dailyByGame} />
@@ -2828,6 +2840,114 @@ function DailyGameTile({ g }) {
     </div>
   );
 }
+// ---- Analytics -> Quiz Plays: today's ten most engaged players --------------
+// Ranked by ENGAGED TIME: the seconds a player spent finishing games today
+// (Eastern), summed with each individual play capped by the server at
+// data.capSeconds, so one tab left idle on a solved puzzle cannot buy the top
+// spot. Where a player's uncapped total differs, it is shown in muted text
+// next to the capped figure rather than hidden.
+function TopPlayersTodayPanel({ data }) {
+  const players = (data && data.players) || [];
+  const totals = (data && data.totals) || {};
+  const capMin = Math.round(((data && data.capSeconds) || 1200) / 60);
+  const top = players.length ? players[0].seconds : 0;
+
+  const exportCsv = () => {
+    const head = ['Rank', 'Player', 'Type', 'Email', 'Engaged seconds (capped)', 'Engaged time', 'Raw seconds', 'Plays', 'Games', 'Plays over cap', 'Longest game', 'First play', 'Last play', 'Device', 'Location'];
+    const rows = players.map((r, i) => [
+      i + 1, r.name, r.type, r.email || '', r.seconds, tbdDur(r.seconds), r.rawSeconds, r.plays, r.games, r.capped,
+      r.topGame ? r.topGame.title : '', r.firstAt || '', r.lastAt || '', r.device || '', r.geo || '',
+    ]);
+    downloadCsvFile('sot-top-players-today', head, rows);
+  };
+
+  return (
+    <div>
+      <SectionHeading>Today&apos;s top players</SectionHeading>
+      <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
+        The ten players who spent the most time finishing games today, registered and anonymous alike.
+        {data && data.day ? <span> Today is <span style={{ color: COLORS.ink }}>{dgDayLabel(data.day)}</span> (Eastern).</span> : null}
+        {' '}Each individual game counts for at most {capMin} minutes, so a tab left idle on a solved puzzle cannot top the board. Where the uncapped total differs it is shown in grey.
+      </p>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+        <TimeByDayStat value={tbdHoursValue(totals.secondsToday || 0).value} unit={tbdHoursValue(totals.secondsToday || 0).unit} label="Engaged time today" accent={COLORS.ember} />
+        <TimeByDayStat value={(totals.playersToday || 0).toLocaleString()} unit="players" label="Players today" accent={COLORS.forest} />
+        <TimeByDayStat value={(totals.playsToday || 0).toLocaleString()} unit="games" label="Games finished today" accent={COLORS.ink} />
+        <TimeByDayStat value={tbdDur(totals.avgSecondsPerPlayer || 0)} unit="each" label="Avg per player today" accent={COLORS.rust} />
+      </div>
+
+      {players.length ? (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <button
+              onClick={exportCsv}
+              title="Download today's top ten with engaged time, plays, games, and the longest single game"
+              style={{ padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}
+            >
+              &#8595; Today CSV
+            </button>
+          </div>
+
+          <div style={{ background: COLORS.paper, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: '6px 16px 10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '7px 0', borderBottom: `1px solid ${COLORS.line}` }}>
+              <span style={{ flex: '0 0 22px', textAlign: 'right' }}>#</span>
+              <span style={{ flex: '0 0 168px' }}>Player</span>
+              <span style={{ flex: 1, minWidth: 80 }}>Engaged time</span>
+              <span style={{ flex: '0 0 92px', textAlign: 'right' }}>Time</span>
+              <span style={{ flex: '0 0 44px', textAlign: 'right' }}>Games</span>
+              <span style={{ flex: '0 0 44px', textAlign: 'right' }}>Titles</span>
+              <span style={{ flex: '0 0 150px' }}>Longest game</span>
+              <span style={{ flex: '0 0 66px', textAlign: 'right' }}>Last</span>
+            </div>
+
+            {players.map((r, i) => {
+              const w = top ? Math.max(1.5, (r.seconds / top) * 100) : 0;
+              const reg = r.type === 'Registered';
+              const rawGap = r.rawSeconds > r.seconds + 30;
+              return (
+                <div
+                  key={r.key}
+                  title={`${r.name}${r.email ? ` (${r.email})` : ''}\n${tbdDur(r.seconds)} engaged across ${r.plays} game${r.plays === 1 ? '' : 's'} in ${r.games} title${r.games === 1 ? '' : 's'}${r.capped ? `\n${r.capped} game${r.capped === 1 ? '' : 's'} ran past the ${capMin}-minute cap (raw total ${tbdDur(r.rawSeconds)})` : ''}${r.device || r.geo ? `\n${[r.device, r.geo].filter(Boolean).join(' \u00b7 ')}` : ''}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 0', borderBottom: i < players.length - 1 ? `1px solid ${COLORS.ink}12` : 'none' }}
+                >
+                  <span style={{ flex: '0 0 22px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: i < 3 ? COLORS.ember : COLORS.faded }}>{i + 1}</span>
+
+                  <span style={{ flex: '0 0 168px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, fontWeight: 700, color: COLORS.ink }}>{r.name}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.06em', color: reg ? COLORS.ember : COLORS.faded }}>
+                      {reg ? 'Registered' : 'Anon'}{r.geo ? <span style={{ color: COLORS.faded, textTransform: 'none', letterSpacing: 0 }}>{' \u00b7 '}{r.geo}</span> : null}
+                    </span>
+                  </span>
+
+                  <span style={{ flex: 1, minWidth: 80, height: 10, background: `${COLORS.ink}0d`, borderRadius: 2, overflow: 'hidden' }}>
+                    <span style={{ display: 'block', width: `${w}%`, height: '100%', background: COLORS.ember, borderRadius: 2 }} />
+                  </span>
+
+                  <span style={{ flex: '0 0 92px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: COLORS.ember, fontVariantNumeric: 'tabular-nums' }}>
+                    {tbdDur(r.seconds)}
+                    {rawGap ? <span style={{ color: COLORS.faded, fontWeight: 400, fontSize: 9 }}>{' '}({tbdDur(r.rawSeconds)})</span> : null}
+                  </span>
+                  <span style={{ flex: '0 0 44px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{r.plays}</span>
+                  <span style={{ flex: '0 0 44px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{r.games}</span>
+                  <span style={{ flex: '0 0 150px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded }}>
+                    {r.topGame ? (
+                      <Link href={`/quiz/${encodeURIComponent(r.topGame.quizId)}`} target="_blank" style={{ color: COLORS.faded, textDecoration: 'none' }}>{r.topGame.title}</Link>
+                    ) : '\u2014'}
+                  </span>
+                  <span style={{ flex: '0 0 66px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{fmtEtClock(r.lastAt)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, fontStyle: 'italic' }}>No games finished yet today.</p>
+      )}
+    </div>
+  );
+}
+
 // ---- Analytics -> Quiz Plays: every daily game on one ranked chart ----------
 // Total plays, unique players, and time per play for each daily game, drawn as
 // ranked horizontal bars so the whole slate can be compared at a glance. Plays

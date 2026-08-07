@@ -447,6 +447,106 @@ function buildTimeByDay(rows) {
   };
 }
 
+// Analytics -> Quiz Plays: today's ten most engaged players.
+//
+// "Engaged time" is the sum of time_elapsed over the games a player finished
+// TODAY (Eastern, by when they played, not by which puzzle date they played).
+// A few rows record implausible times because a tab sat idle on a finished
+// puzzle, so each play is CAPPED at ENGAGED_CAP seconds before summing; one
+// abandoned tab can no longer buy the top spot. The uncapped total is returned
+// alongside as rawSeconds so nothing is hidden.
+//
+// Players are keyed the same way as everywhere else in the admin (registered
+// user_id, else browser anon_id, else the lone row id). Labels come from the
+// signup rows for registered players and from buildAnonPlayers' stable Guest
+// handles for anonymous browsers.
+const ENGAGED_CAP = 20 * 60;
+function buildTopPlayersToday(rows, signups, anonBase, quizTitles, limit = 10) {
+  const today = etParts(new Date()).day;
+  const nameById = new Map((signups || []).map((u) => [u.id, u.username || '(no name)']));
+  const emailById = new Map((signups || []).map((u) => [u.id, u.email || null]));
+  const labelByKey = new Map((anonBase || []).map((p) => [p.key, p.label]));
+
+  const byPlayer = new Map();
+  let playsToday = 0, secondsToday = 0, rawToday = 0;
+
+  for (const r of rows || []) {
+    if (!r.created_at) continue;
+    const d = new Date(r.created_at);
+    if (Number.isNaN(d.getTime())) continue;
+    if (etParts(d).day !== today) continue;
+
+    const key = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    let g = byPlayer.get(key);
+    if (!g) {
+      g = {
+        key,
+        type: r.user_id ? 'Registered' : 'Anonymous',
+        name: r.user_id ? (nameById.get(r.user_id) || '(deleted user)') : (labelByKey.get(key) || 'Guest'),
+        email: r.user_id ? (emailById.get(r.user_id) || null) : null,
+        seconds: 0, rawSeconds: 0, plays: 0, capped: 0,
+        games: new Set(), firstAt: '', lastAt: '', topGame: null,
+        device: null, geo: null,
+      };
+      byPlayer.set(key, g);
+    }
+    const t = r.time_elapsed;
+    const has = typeof t === 'number' && t >= 0;
+    const capped = has ? Math.min(t, ENGAGED_CAP) : 0;
+    g.seconds += capped;
+    g.rawSeconds += has ? t : 0;
+    if (has && t > ENGAGED_CAP) g.capped += 1;
+    g.plays += 1;
+    g.games.add(r.quiz_id);
+    const at = String(r.created_at);
+    if (!g.firstAt || at < g.firstAt) g.firstAt = at;
+    if (at > g.lastAt) g.lastAt = at;
+    const meta = playMeta(r);
+    if (!g.device && meta.device) g.device = meta.device;
+    if (!g.geo && meta.geo) g.geo = meta.geo;
+    if (!g.topGame || capped > g.topGame.seconds) {
+      g.topGame = { quizId: r.quiz_id, title: (quizTitles && quizTitles.get(r.quiz_id)) || r.quiz_id, seconds: capped };
+    }
+
+    playsToday += 1;
+    secondsToday += capped;
+    rawToday += has ? t : 0;
+  }
+
+  const players = Array.from(byPlayer.values())
+    .map((g) => ({
+      key: g.key,
+      type: g.type,
+      name: g.name,
+      email: g.email,
+      seconds: g.seconds,
+      rawSeconds: g.rawSeconds,
+      plays: g.plays,
+      capped: g.capped,
+      games: g.games.size,
+      firstAt: g.firstAt || null,
+      lastAt: g.lastAt || null,
+      topGame: g.topGame,
+      device: g.device,
+      geo: g.geo,
+    }))
+    .sort((a, b) => b.seconds - a.seconds || b.plays - a.plays || (a.name || '').localeCompare(b.name || ''))
+    .slice(0, limit);
+
+  return {
+    day: today,
+    capSeconds: ENGAGED_CAP,
+    players,
+    totals: {
+      playersToday: byPlayer.size,
+      playsToday,
+      secondsToday,
+      rawSecondsToday: rawToday,
+      avgSecondsPerPlayer: byPlayer.size ? Math.round(secondsToday / byPlayer.size) : 0,
+    },
+  };
+}
+
 // Daily Games tab (top-level "Daily Games"). Every daily-game play lands in
 // quiz_results under a per-puzzle quiz_id shaped "<game>-<M>-<D>-<YY>"
 // (e.g. crux-7-6-26), so the trailing date is the PUZZLE's own date.
@@ -932,6 +1032,15 @@ export default async function AdminPage() {
   // unique players / total plays / avg time per play, per day and per game.
   const dailyByGame = buildDailyByGame((quizResultsRes && quizResultsRes.data) || []);
 
+  // Analytics -> Quiz Plays: today's ten most engaged players, per-play time
+  // capped so an idle tab cannot top the board.
+  const topPlayersToday = buildTopPlayersToday(
+    (quizResultsRes && quizResultsRes.data) || [],
+    quizSignups,
+    anonPlayersBase,
+    quizTitles,
+  );
+
   return (
     <AdminClient
       initialLists={lists}
@@ -952,6 +1061,7 @@ export default async function AdminPage() {
       initialTimeByDay={timeByDay}
       initialNewUsers={newUsers}
       initialDailyByGame={dailyByGame}
+      initialTopPlayersToday={topPlayersToday}
     />
   );
 }
