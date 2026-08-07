@@ -712,6 +712,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // One expand bar per group, pushed here and ordered to the END of its own
     // group by CSS, exactly like the bands. A group with nothing hidden renders
     // no bar.
+    // The bar names how many rows are HIDDEN, not how many the group holds
+    // (owner, 2026-08-07): "Show all 38" made you do the subtraction against a
+    // band that already printed the total. A group that peeks nothing has no
+    // "more" to show, so it reads "Show all 10" there and "Show 3 more" here,
+    // and either way the number is the count you get by tapping it.
     const more = (grp, count) => (count > PHONE_PEEK[grp] ? (
       <button
         type="button"
@@ -722,7 +727,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       >
         {grpOpen[grp]
           ? <>Show fewer <ChevronUp size={14} strokeWidth={2.8} /></>
-          : <>Show all {count} <ChevronDown size={14} strokeWidth={2.8} /></>}
+          : <>{PHONE_PEEK[grp] > 0
+              ? `Show ${count - PHONE_PEEK[grp]} more`
+              : `Show all ${count}`} <ChevronDown size={14} strokeWidth={2.8} /></>}
       </button>
     ) : null);
     out.push(more('prog', nProg));
