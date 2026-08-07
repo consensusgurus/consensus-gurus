@@ -218,16 +218,22 @@ function sessionsFromPlays(plays) {
 // individual play history. Each session carries that day's context — device,
 // OS, browser, location, timezone, language, traffic source — since those can
 // change from one session to the next.
-function SessionTable({ plays }) {
-  const sessions = sessionsFromPlays(plays);
-  if (!sessions.length) return null;
+function SessionTable({ plays, limit = DETAIL_ROWS }) {
+  const all = sessionsFromPlays(plays);
+  const [showAll, setShowAll] = useState(false);
+  if (!all.length) return null;
+  const capped = limit != null && !showAll && all.length > limit;
+  const sessions = capped ? all.slice(0, limit) : all;
   const H = ({ label, flex, right }) => (
     <span style={{ flex, textAlign: right ? 'right' : 'left' }}>{label}</span>
   );
   return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, margin: '2px 0 6px' }}>
-        Sessions · {sessions.length}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '2px 0 6px' }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>
+          Sessions · {capped ? `${sessions.length} of ${all.length}` : all.length}
+        </span>
+        {all.length > limit ? <MoreButton open={showAll} n={all.length} noun="session" onClick={() => setShowAll((v) => !v)} /> : null}
       </div>
       <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
         <div style={{ display: 'flex', gap: 12, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
@@ -262,6 +268,77 @@ function SessionTable({ plays }) {
     </div>
   );
 }
+
+// ---- Shared expanded-row detail -------------------------------------------
+// A player row expands to a summary + sessions + the games they played. Both
+// inner tables show only the most recent DETAIL_ROWS entries; the rest are one
+// click away, so opening a heavy player no longer dumps hundreds of rows.
+const DETAIL_ROWS = 5;
+
+function MoreButton({ open, n, noun, onClick }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      style={{ padding: '2px 8px', background: 'transparent', border: `1px solid ${COLORS.line}`, borderRadius: 999, color: COLORS.ember, fontFamily: 'DM Mono, monospace', fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}
+    >
+      {open ? 'Show fewer' : `Show all ${n} ${noun}${n === 1 ? '' : 's'}`}
+    </button>
+  );
+}
+
+// The per-play history table, shared by the registered / anonymous / all-player
+// tables (it used to be copy-pasted into each of the three).
+function PlayHistoryTable({ plays, limit = DETAIL_ROWS, emptyNote }) {
+  const all = plays || [];
+  const [showAll, setShowAll] = useState(false);
+  if (!all.length) {
+    return (
+      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>
+        {emptyNote || 'No completed games recorded.'}
+      </p>
+    );
+  }
+  const capped = limit != null && !showAll && all.length > limit;
+  const rows = capped ? all.slice(0, limit) : all;
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '2px 0 6px' }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded }}>
+          Games · {capped ? `${rows.length} of ${all.length}` : all.length}
+        </span>
+        {all.length > limit ? <MoreButton open={showAll} n={all.length} noun="game" onClick={() => setShowAll((v) => !v)} /> : null}
+      </div>
+      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper, maxHeight: showAll ? 420 : 'none', overflowY: showAll ? 'auto' : 'visible' }}>
+        <div style={{ display: 'flex', gap: 14, position: 'sticky', top: 0, background: COLORS.paper, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
+          <span style={{ flex: 3 }}>Quiz</span>
+          <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
+          <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
+          <span style={{ flex: '0 0 78px' }}>Device</span>
+          <span style={{ flex: '0 0 78px' }}>Geo</span>
+          <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Played</span>
+        </div>
+        {rows.map((x, j) => (
+          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < rows.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
+            <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" onClick={(e) => e.stopPropagation()} style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
+            </span>
+            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
+            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
+            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.device ? COLORS.ink : COLORS.faded }}>{x.device || '\u2014'}</span>
+            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.geo ? COLORS.ink : COLORS.faded }}>{x.geo || '\u2014'}</span>
+            <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{fmtShortDateTime(x.createdAt)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// The player tables open showing the 10 most recent players; everything else is
+// reachable by scrolling inside the box rather than pushing the charts below it
+// off the screen. The box grows when a row is expanded so the detail is legible.
+const PLAYERS_VIEW_H = 236;
+const PLAYERS_VIEW_H_OPEN = 680;
 
 // ----- Click-to-sort table infrastructure (shared by all analytics tables) ----
 // A header cell click sorts by that column. Re-clicking the active column flips
@@ -788,7 +865,7 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
         </div>
 
         {tab === 'analytics' ? (
-          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} newUsers={initialNewUsers} />
+          <AnalyticsPanel views={views24h} viewsTotal={views24hTotal} quizStats={quizStats} quizPlaysTotal={quizPlaysTotal} signups={quizSignups} anonPlayers={anonPlayers} activeUsers={initialActiveUsers} geoMap={initialGeoMap} dailyRetention={initialDailyRetention} timeByDay={initialTimeByDay} newUsers={initialNewUsers} dailyByGame={initialDailyByGame} />
         ) : tab === 'daily' ? (
           <DailyGamesPanel data={initialDailyByGame} />
         ) : tab === 'research' ? (
@@ -1135,7 +1212,7 @@ function SourceBreakdown({ state }) {
 function QuizSignupsPanel({ signups }) {
   const [query, setQuery] = useState('');
   const [expandedId, setExpandedId] = useState(null);
-  const sort = useSort('joined', 'desc');
+  const sort = useSort('recent', 'desc');
 
   // Enrich each signup with its last-played timestamp and distinct days played
   // (its "sessions"). Plays arrive newest-first from the server.
@@ -1210,7 +1287,7 @@ function QuizSignupsPanel({ signups }) {
       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
         Email signups from the quiz leaderboard join form.
         {' '}{signups.length} signup{signups.length === 1 ? '' : 's'} total.
-        {' '}Click a row for the player's full stats (best score, accuracy, timezone, traffic source, and more) and play history. Click a column header to sort.
+        {' '}The 10 most recently active are shown; scroll the box for the rest. Click a row for the player's full stats (best score, accuracy, timezone, traffic source, and more) plus their last {DETAIL_ROWS} sessions and games, with the full history one click further. Click a column header to sort.
       </p>
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <input
@@ -1262,7 +1339,7 @@ function QuizSignupsPanel({ signups }) {
           No matches.
         </div>
       ) : (
-        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: expandedId != null ? PLAYERS_VIEW_H_OPEN : PLAYERS_VIEW_H, overflowY: 'auto' }}>
           <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '5px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Username" k="name" sort={sort} flex={2} type="string" />
@@ -1316,49 +1393,7 @@ function QuizSignupsPanel({ signups }) {
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={s.stats} />
                     <SessionTable plays={plays} />
-                    {playCount === 0 ? (
-                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>
-                        Signed up but hasn&apos;t completed a quiz yet.
-                      </p>
-                    ) : (
-                      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
-                          <span style={{ flex: 3 }}>Quiz</span>
-                          <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
-                          <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
-                          <span style={{ flex: '0 0 78px' }}>Device</span>
-                          <span style={{ flex: '0 0 78px' }}>Geo</span>
-                          <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Played</span>
-                        </div>
-                        {plays.map((p, j) => (
-                          <div
-                            key={`${p.quizId}-${j}`}
-                            style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < plays.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}
-                          >
-                            <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              <Link href={`/quiz/${encodeURIComponent(p.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>
-                                {p.title}
-                              </Link>
-                            </span>
-                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>
-                              {p.score}{p.total != null ? `/${p.total}` : ''}
-                            </span>
-                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
-                              {formatClock(p.timeElapsed)}
-                            </span>
-                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: p.device ? COLORS.ink : COLORS.faded }}>
-                              {p.device || '—'}
-                            </span>
-                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: p.geo ? COLORS.ink : COLORS.faded }}>
-                              {p.geo || '—'}
-                            </span>
-                            <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
-                              {formatDayTime(p.createdAt)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <PlayHistoryTable plays={plays} emptyNote="Signed up but hasn&apos;t completed a quiz yet." />
                   </div>
                 )}
               </div>
@@ -1712,7 +1747,7 @@ function SectionHeading({ children }) {
 // Analytics tab: list page views and quiz views/plays, stacked into one view.
 function AnonPlayersPanel({ players }) {
   const [query, setQuery] = useState('');
-  const sort = useSort('plays', 'desc');
+  const sort = useSort('recent', 'desc');
   const [expandedKey, setExpandedKey] = useState(null);
   const list = players || [];
 
@@ -1748,13 +1783,13 @@ function AnonPlayersPanel({ players }) {
       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
         Players who completed quizzes without signing up, batched by browser and shown under a stable Guest handle.
         {' '}{list.length} anonymous player{list.length === 1 ? '' : 's'}, {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
-        {' '}Click a row to see every quiz that player played and when. Click a column header to sort.
+        {' '}The 10 most recently active are shown; scroll the box for the rest. Click a row to see that player&apos;s last {DETAIL_ROWS} sessions and games, with the full history one click further. Click a column header to sort.
       </p>
       <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by guest handle or number\u2026" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 10, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
       {visible.length === 0 ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>No matches.</div>
       ) : (
-        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: expandedKey != null ? PLAYERS_VIEW_H_OPEN : PLAYERS_VIEW_H, overflowY: 'auto' }}>
           <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '5px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Player" k="player" sort={sort} flex={2} type="string" />
@@ -1787,32 +1822,7 @@ function AnonPlayersPanel({ players }) {
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={p.stats} />
                     <SessionTable plays={history} />
-                    {history.length === 0 ? (
-                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
-                    ) : (
-                      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
-                          <span style={{ flex: 3 }}>Quiz</span>
-                          <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
-                          <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
-                          <span style={{ flex: '0 0 78px' }}>Device</span>
-                          <span style={{ flex: '0 0 78px' }}>Geo</span>
-                          <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Played</span>
-                        </div>
-                        {history.map((x, j) => (
-                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
-                            <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
-                            </span>
-                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
-                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
-                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.device ? COLORS.ink : COLORS.faded }}>{x.device || '—'}</span>
-                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.geo ? COLORS.ink : COLORS.faded }}>{x.geo || '—'}</span>
-                            <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatDayTime(x.createdAt)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <PlayHistoryTable plays={history} />
                   </div>
                 )}
               </div>
@@ -1912,13 +1922,13 @@ function AllPlayersPanel({ signups, anonPlayers }) {
       <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.faded, margin: '0 0 14px' }}>
         Every player, registered and anonymous, in one table.
         {' '}{rows.length} player{rows.length === 1 ? '' : 's'} ({regCount} registered, {anonCount} anonymous), {totalPlays} play{totalPlays === 1 ? '' : 's'} total.
-        {' '}Click a row to see that player&apos;s games. Click a column header to sort.
+        {' '}The 10 most recently active are shown; scroll the box for the rest. Click a row to see that player&apos;s last {DETAIL_ROWS} sessions and games, with the full history one click further. Click a column header to sort.
       </p>
       <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by name or email…" style={{ width: '100%', padding: '10px 12px', background: COLORS.paper, border: `1px solid ${COLORS.line}`, color: COLORS.ink, fontFamily: 'DM Mono, monospace', fontSize: 10, outline: 'none', boxSizing: 'border-box', marginBottom: 16 }} />
       {visible.length === 0 ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 16, color: COLORS.faded, border: `1px dashed ${COLORS.line}` }}>No matches.</div>
       ) : (
-        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12 }}>
+        <div style={{ border: `1px solid ${COLORS.line}`, background: COLORS.paper, borderRadius: 12, maxHeight: expandedKey != null ? PLAYERS_VIEW_H_OPEN : PLAYERS_VIEW_H, overflowY: 'auto' }}>
           <div style={{ display: 'flex', gap: 16, position: 'sticky', top: 0, zIndex: 1, background: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, padding: '5px 14px', borderBottom: `1px solid ${COLORS.line}` }}>
             <span style={{ flex: '0 0 28px' }}>#</span>
             <SortHead label="Player" k="name" sort={sort} flex={2} type="string" />
@@ -1959,32 +1969,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
                   <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
                     <PlayerSummary stats={r.stats} />
                     <SessionTable plays={history} />
-                    {history.length === 0 ? (
-                      <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>No completed games recorded.</p>
-                    ) : (
-                      <div style={{ border: `1px solid ${COLORS.ink}33`, background: COLORS.paper }}>
-                        <div style={{ display: 'flex', gap: 14, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, padding: '3px 12px', borderBottom: `1px solid ${COLORS.ink}33` }}>
-                          <span style={{ flex: 3 }}>Quiz</span>
-                          <span style={{ flex: '0 0 76px', textAlign: 'right' }}>Score</span>
-                          <span style={{ flex: '0 0 56px', textAlign: 'right' }}>Time</span>
-                          <span style={{ flex: '0 0 78px' }}>Device</span>
-                          <span style={{ flex: '0 0 78px' }}>Geo</span>
-                          <span style={{ flex: '0 0 130px', textAlign: 'right' }}>Played</span>
-                        </div>
-                        {history.map((x, j) => (
-                          <div key={`${x.quizId}-${j}`} style={{ display: 'flex', gap: 14, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 12px', borderBottom: j < history.length - 1 ? `1px solid ${COLORS.ink}1a` : 'none' }}>
-                            <span style={{ flex: 3, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              <Link href={`/quiz/${encodeURIComponent(x.quizId)}`} target="_blank" style={{ color: COLORS.ink, textDecoration: 'none' }}>{x.title}</Link>
-                            </span>
-                            <span style={{ flex: '0 0 76px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10 }}>{x.score}{x.total != null ? `/${x.total}` : ''}</span>
-                            <span style={{ flex: '0 0 56px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{formatClock(x.timeElapsed)}</span>
-                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.device ? COLORS.ink : COLORS.faded }}>{x.device || '—'}</span>
-                            <span style={{ flex: '0 0 78px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: x.geo ? COLORS.ink : COLORS.faded }}>{x.geo || '—'}</span>
-                            <span style={{ flex: '0 0 130px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{fmtShortDateTime(x.createdAt)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <PlayHistoryTable plays={history} />
                   </div>
                 )}
               </div>
@@ -2075,7 +2060,7 @@ function ActiveUsersStrip({ data }) {
   );
 }
 
-function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, timeByDay = { series: [], totals: {} }, newUsers = { series: [], totals: {} } }) {
+function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups, anonPlayers, activeUsers, geoMap, dailyRetention = { games: [], breadth: { total: 0, histogram: [] } }, timeByDay = { series: [], totals: {} }, newUsers = { series: [], totals: {} }, dailyByGame = { games: [], totals: {} } }) {
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
@@ -2084,12 +2069,12 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   const listCount = (views || []).length;
   const quizCount = (quizStats || []).length;
   const retentionTotal = (dailyRetention && dailyRetention.breadth && dailyRetention.breadth.total) || 0;
-  const timeDays = (timeByDay && timeByDay.totals && timeByDay.totals.activeDays) || 0;
+  // Time Played is no longer its own tab: its chart, the new-users chart, and
+  // the per-game comparison all live under Quiz Plays, below the player table.
   const tabs = [
     ['plays', 'Quiz Plays', regCount + anonCount],
     ['pageviews', 'Page Views', listCount + quizCount],
     ['retention', 'Return Play', retentionTotal],
-    ['time', 'Time Played', timeDays],
     ['map', 'Player Map', (geoMap && geoMap.totals && geoMap.totals.locatedPlayers) || 0],
   ];
   const playsSub = [
@@ -2179,24 +2164,22 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
         </div>
       ) : null}
       {view === 'plays' ? (
-        playsView === 'registered' ? (
-          <QuizSignupsPanel signups={signups} />
-        ) : playsView === 'anonymous' ? (
-          <AnonPlayersPanel players={anonPlayers} />
-        ) : (
-          <AllPlayersPanel signups={signups} anonPlayers={anonPlayers} />
-        )
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 44 }}>
+          {playsView === 'registered' ? (
+            <QuizSignupsPanel signups={signups} />
+          ) : playsView === 'anonymous' ? (
+            <AnonPlayersPanel players={anonPlayers} />
+          ) : (
+            <AllPlayersPanel signups={signups} anonPlayers={anonPlayers} />
+          )}
+          <TimeByDayPanel data={timeByDay} />
+          <NewUsersByDayPanel data={newUsers} />
+          <GamesRankedPanel data={dailyByGame} />
+        </div>
       ) : view === 'pageviews' ? (
         <PageViewsPanel lists={views} quizzes={quizStats} mode={pvView} />
       ) : view === 'retention' ? (
         <RetentionPanel data={dailyRetention} />
-      ) : view === 'time' ? (
-        <>
-          <TimeByDayPanel data={timeByDay} />
-          <div style={{ marginTop: 44 }}>
-            <NewUsersByDayPanel data={newUsers} />
-          </div>
-        </>
       ) : (
         <GeoMapPanel data={geoMap} />
       )}
@@ -2845,6 +2828,157 @@ function DailyGameTile({ g }) {
     </div>
   );
 }
+// ---- Analytics -> Quiz Plays: every daily game on one ranked chart ----------
+// Total plays, unique players, and time per play for each daily game, drawn as
+// ranked horizontal bars so the whole slate can be compared at a glance. Plays
+// and players share one scale (players is always a subset of plays, so the gap
+// between the two bars reads as repeat play); time per play has its own scale
+// in the right-hand column. Data is the same buildDailyByGame() payload the
+// Daily Games tab uses, so nothing new is queried.
+function GamesRankedPanel({ data }) {
+  const all = (data && data.games) || [];
+  const totals = (data && data.totals) || {};
+  const [metric, setMetric] = useState('plays');
+  const [showQuiet, setShowQuiet] = useState(false);
+
+  const games = useMemo(() => {
+    const live = showQuiet ? all : all.filter((g) => g.plays > 0);
+    const by = {
+      plays: (g) => g.plays || 0,
+      players: (g) => g.players || 0,
+      time: (g) => (g.avgTime == null ? -1 : g.avgTime),
+    }[metric];
+    return [...live].sort((a, b) => by(b) - by(a) || (a.title || '').localeCompare(b.title || ''));
+  }, [all, metric, showQuiet]);
+
+  const quietCount = all.length - all.filter((g) => g.plays > 0).length;
+  const maxPlays = games.reduce((m, g) => Math.max(m, g.plays || 0), 0);
+  const maxTime = games.reduce((m, g) => Math.max(m, g.avgTime || 0), 0);
+
+  const pillStyle = (on) => ({
+    padding: '6px 12px',
+    background: on ? `${COLORS.ember}1a` : 'transparent',
+    border: `1px solid ${on ? COLORS.ember : COLORS.line}`,
+    color: on ? COLORS.ember : COLORS.faded,
+    fontFamily: 'DM Mono, monospace',
+    fontSize: 10,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    cursor: 'pointer',
+  });
+
+  const exportCsv = () => {
+    const head = ['Game', 'Total plays', 'Unique players', 'Plays per player', 'Avg seconds/play', 'Avg time/play', 'Days active'];
+    const rows = games.map((g) => [
+      g.title, g.plays, g.players,
+      g.players ? (g.plays / g.players).toFixed(2) : '',
+      g.avgTime == null ? '' : g.avgTime, dgDur(g.avgTime), g.daysActive,
+    ]);
+    downloadCsvFile('sot-games-plays-players-time', head, rows);
+  };
+
+  if (!all.length) {
+    return (
+      <div>
+        <SectionHeading>Games at a glance</SectionHeading>
+        <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: COLORS.faded, fontStyle: 'italic' }}>No daily-game plays recorded yet.</p>
+      </div>
+    );
+  }
+
+  const LegendKey = ({ color, label }) => (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <span style={{ width: 14, height: 8, borderRadius: 2, background: color, display: 'inline-block' }} />
+      <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{label}</span>
+    </span>
+  );
+
+  return (
+    <div>
+      <SectionHeading>Games at a glance</SectionHeading>
+      <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
+        All {all.length} daily games ranked together: total plays, unique players, and average time per play.
+        Plays and players share a scale, so the gap between the two bars is repeat play. Registered and anonymous plays both count.
+      </p>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
+        <TimeByDayStat value={(totals.totalPlays || 0).toLocaleString()} unit="plays" label="Total plays (all games)" accent={COLORS.ember} />
+        <TimeByDayStat value={(totals.totalPlayers || 0).toLocaleString()} unit="players" label="Unique players (all-time)" accent={COLORS.forest} />
+        <TimeByDayStat value={dgDur(totals.avgTime)} unit="per play" label="Avg time / play" accent={COLORS.rust} />
+        <TimeByDayStat value={games.length.toLocaleString()} unit={`of ${all.length}`} label="Games with plays" accent={COLORS.ink} />
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginRight: 2 }}>Rank by</span>
+        {[['plays', 'Plays'], ['players', 'Players'], ['time', 'Time / play']].map(([key, label]) => (
+          <button key={key} onClick={() => setMetric(key)} style={pillStyle(metric === key)}>{label}</button>
+        ))}
+        {quietCount ? (
+          <button onClick={() => setShowQuiet((v) => !v)} style={{ ...pillStyle(showQuiet), marginLeft: 8 }}>
+            {showQuiet ? 'Hide' : 'Show'} {quietCount} unplayed
+          </button>
+        ) : null}
+        <button
+          onClick={exportCsv}
+          title="Download plays, players, plays per player, and time per play for every game shown"
+          style={{ marginLeft: 'auto', padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}
+        >
+          &#8595; By-game CSV
+        </button>
+      </div>
+
+      <div style={{ background: COLORS.paper, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: '14px 16px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, paddingBottom: 10, marginBottom: 8, borderBottom: `1px solid ${COLORS.line}` }}>
+          <LegendKey color={COLORS.ember} label="Total plays" />
+          <LegendKey color={COLORS.forest} label="Unique players" />
+          <LegendKey color={COLORS.rust} label="Avg time / play" />
+        </div>
+
+        {games.map((g, i) => {
+          const playW = maxPlays ? Math.max(g.plays > 0 ? 1.5 : 0, (g.plays / maxPlays) * 100) : 0;
+          const playerW = maxPlays ? Math.max(g.players > 0 ? 1.5 : 0, (g.players / maxPlays) * 100) : 0;
+          const timeW = maxTime && g.avgTime ? Math.max(2, (g.avgTime / maxTime) * 100) : 0;
+          const perPlayer = g.players ? g.plays / g.players : 0;
+          return (
+            <div
+              key={g.key}
+              title={`${g.title}\n${g.plays.toLocaleString()} play${g.plays === 1 ? '' : 's'} \u00b7 ${g.players.toLocaleString()} player${g.players === 1 ? '' : 's'}${perPlayer ? ` (${perPlayer.toFixed(1)} plays each)` : ''}\nAvg ${dgDur(g.avgTime)} per play \u00b7 ${g.daysActive.toLocaleString()} active day${g.daysActive === 1 ? '' : 's'}`}
+              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '5px 0', borderBottom: i < games.length - 1 ? `1px solid ${COLORS.ink}12` : 'none', opacity: g.plays ? 1 : 0.45 }}
+            >
+              <span style={{ flex: '0 0 22px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, textAlign: 'right' }}>{i + 1}</span>
+              <span style={{ flex: '0 0 132px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, fontWeight: 700, color: COLORS.ink }}>{g.title}</span>
+
+              <span style={{ flex: 1, minWidth: 90, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ display: 'block', height: 9, background: `${COLORS.ink}0d`, borderRadius: 2, overflow: 'hidden' }}>
+                  <span style={{ display: 'block', width: `${playW}%`, height: '100%', background: COLORS.ember, borderRadius: 2 }} />
+                </span>
+                <span style={{ display: 'block', height: 9, background: `${COLORS.ink}0d`, borderRadius: 2, overflow: 'hidden' }}>
+                  <span style={{ display: 'block', width: `${playerW}%`, height: '100%', background: COLORS.forest, borderRadius: 2 }} />
+                </span>
+              </span>
+
+              <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: g.plays ? COLORS.ember : COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{g.plays.toLocaleString()}</span>
+              <span style={{ flex: '0 0 52px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: g.players ? COLORS.forest : COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{g.players.toLocaleString()}</span>
+              <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{perPlayer ? `${perPlayer.toFixed(1)}\u00d7` : '\u2014'}</span>
+
+              <span style={{ flex: '0 0 108px', display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ flex: 1, height: 6, background: `${COLORS.ink}0d`, borderRadius: 2, overflow: 'hidden' }}>
+                  <span style={{ display: 'block', width: `${timeW}%`, height: '100%', background: COLORS.rust, borderRadius: 2 }} />
+                </span>
+                <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: g.avgTime ? COLORS.rust : COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{dgDur(g.avgTime)}</span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, margin: '10px 0 0', lineHeight: 1.6 }}>
+        The middle figures are total plays, unique players, and plays per player. A player who plays several games counts once in each game, so the per-game player counts sum to more than the site total.
+      </p>
+    </div>
+  );
+}
+
 function DailyGamesPanel({ data }) {
   const games = (data && data.games) || [];
   const totals = (data && data.totals) || {};
@@ -2862,7 +2996,7 @@ function DailyGamesPanel({ data }) {
     <div>
       <SectionHeading>Daily games</SectionHeading>
       <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
-        Every completed play of the 21 daily games (registered and anonymous), one tile per game, most-played first. Averages are per active puzzle day across all time.
+        Every completed play of the {games.length} daily games (registered and anonymous), one tile per game, most-played first. Averages are per active puzzle day across all time.
         {totals.today ? <span> Today is <span style={{ color: COLORS.ink }}>{dgDayLabel(totals.today)}</span>.</span> : null}
       </p>
 
