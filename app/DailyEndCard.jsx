@@ -1954,6 +1954,33 @@ export default function DailyEndCard({
           .dec-back:has(~ .dec-replay){grid-column:auto;}
           .dec-replay{order:4;grid-column:auto;margin-bottom:0;}
         }
+
+        /* ---- rank tiles, DESKTOP ONLY (owner, 2026-08-06) ----------------
+           The tiles read as mostly empty: a 10px label floating at the top,
+           then a 14px hole, then the numeral. Two causes, both fixed here.
+           The label was sized for a caption when it is really the tile's
+           title, so it goes to 13px; and .dec-tile-lbl carried a 26px
+           min-height to keep the three numerals level when a long game name
+           wrapped to two lines, which spent that space on EVERY tile to
+           insure against a case the current roster never hits (the longest
+           label is a short game name plus " All Time"). The 2-line clamp
+           stays as the safety net, so a future long name still truncates
+           rather than shoving one numeral out of line.
+
+           Scoped to min-width:641px on purpose: the phone lays these out as
+           two-up rows with the label and numeral on ONE line, where none of
+           this applies and 9.5px is correct. */
+        @media(min-width:641px){
+          .dec-tiles{margin:7px 0 0;}
+          .dec-tile{padding:10px 10px 9px;}
+          .dec-tile-lbl{font-size:13px;font-weight:800;letter-spacing:.03em;line-height:1.25;min-height:0;padding:0 18px;}
+          .dec-tile-rk{font-size:32px;margin-top:3px;}
+          .dec-tile-of{font-size:12px;margin-top:2px;}
+          .dec-tile-ring{height:44px;margin-top:2px;}
+          .dec-arcring,.dec-arcring svg{width:44px;height:44px;}
+          .dec-arcring .num{font-size:11px;}
+          .dec-tile-mx{top:8px;right:5px;}
+        }
       `}</style>
 
       {/* ---- 0. cap band ---- */}
