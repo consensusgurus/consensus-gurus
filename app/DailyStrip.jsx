@@ -387,6 +387,17 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     return best ? { game: best, players: bestN } : (open[0] ? { game: open[0], players: null } : null);
   })();
 
+  // The field-size note the cap's two halves share. Up next used to show its
+  // tagline alone while Easiest carried a count, which made the pair look
+  // lopsided, so both now hang off one helper (owner, 2026-08-06). A game with
+  // no board payload yet gets no note rather than a zero.
+  const fieldNote = (players) => (players == null
+    ? ''
+    : ` \u00b7 ${players === 0 ? 'no players today' : `${players.toLocaleString()} ${players === 1 ? 'player' : 'players'} today`}`);
+  const nextPlayers = nextGame && byKey[nextGame.key] && typeof byKey[nextGame.key].field === 'number'
+    ? byKey[nextGame.key].field
+    : null;
+
   // The player's row on a game's per-game board (their score/rank today).
   const myRow = (key) => {
     if (!meKey) return null;
@@ -801,7 +812,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
   return (
     <div className={'dhome' + (selGame ? ' open' : '') + (slate ? ' slate' : '')}>
-      <style>{`
+      {/* RAW, not a JSX text child: React escapes `>` in a text node, so as
+          `{`...`}` every child-combinator selector in here reached the browser
+          as `.dh-cell &gt; img` and was dropped as invalid until hydration
+          replaced the node. Nine rules were dead on first paint, among them
+          the two that hide the cap's tile art and the one that sizes it, so
+          the cap flashed two full-size game tiles on every load (owner,
+          2026-08-06). Nothing inside contains `</`, so raw insertion is safe. */}
+      <style dangerouslySetInnerHTML={{ __html: `
         .dhome{position:relative;margin-bottom:16px;font-family:'Manrope',system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;min-height:100%;}
         /* ── stats bar, welded onto the grid ── */
         .dh-sbar{container-type:inline-size;position:relative;z-index:3;flex-wrap:nowrap;display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-bottom:none;border-radius:13px 13px 0 0;padding:10px 12px;color:var(--ink);border-bottom:1px solid #eef0f4;}
@@ -1244,7 +1262,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dh-bun{font-size:13px;}
           .dh-cell .dh-play{padding:8px 8px;font-size:11px;}
         }
-      `}</style>
+      ` }} />
 
       {/* The cap. Welded directly onto the grid below (rounded top corners only,
           no margin), split into two equal halves: Up next on the left, Easiest
@@ -1264,7 +1282,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               <div className="dh-bupt">
                 <div className="dh-bue up">Up next</div>
                 <div className="dh-bun">{nextGame.name}</div>
-                <div className="dh-busub">{nextGame.tag}</div>
+                <div className="dh-busub">{nextGame.tag}{fieldNote(nextPlayers)}</div>
               </div>
               <a href={nextGame.href} className="dh-play">
                 <Play size={11} fill="currentColor" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}
@@ -1291,14 +1309,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 {/* The game's own description leads, the same as Up next, and
                     the field size follows it (owner, 2026-08-03). The count on
                     its own said nothing about what the game IS. */}
-                <div className="dh-busub">
-                  {easiest.game.tag}
-                  {easiest.players != null
-                    ? ` \u00b7 ${easiest.players === 0
-                        ? 'no players today'
-                        : `${easiest.players.toLocaleString()} ${easiest.players === 1 ? 'player' : 'players'} today`}`
-                    : ''}
-                </div>
+                <div className="dh-busub">{easiest.game.tag}{fieldNote(easiest.players)}</div>
               </div>
               <a href={easiest.game.href} className="dh-play">
                 <Play size={11} fill="currentColor" strokeWidth={0} />{inprog.has(easiest.game.key) ? 'Resume' : 'Play'}
