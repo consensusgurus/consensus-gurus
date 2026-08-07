@@ -1273,8 +1273,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;}
           .sl-head{display:none;}
           .sl-row{grid-template-columns:40px minmax(0,1fr) auto auto;gap:9px;padding:8px 12px;}
-          .dh-board.pins .sl-row{grid-template-columns:24px 40px minmax(0,1fr) auto auto;gap:8px;padding:8px 9px;}
-          .sl-favb{width:22px;height:22px;}
+          /* Phone: the star is 20px on a 7px gap, and it is paid for rather than
+             added on. The decorative game icon drops 40->30, the gap 9->7 and the
+             side padding 12->8, which hands the reclaimed space to the name.
+             Measured in a 390px frame: the name column lands at 185px against
+             188px with no star column at all, and the number of truncated
+             subtitles goes 9 -> 10 out of 49, so the star is effectively free.
+             Untuned (24px star, 40px icon, 9px padding) it cost 23px and pushed
+             that count to 21, which is why these five rules exist. */
+          .dh-board.pins .sl-row{grid-template-columns:20px 30px minmax(0,1fr) auto auto;gap:7px;padding:8px 8px;}
+          .dh-board.pins .sl-ic{height:30px;}
+          .dh-board.pins .sl-ic img{height:20px;max-width:26px;}
+          .sl-favb{width:20px;height:20px;}
+          .sl-favb svg{width:12px;height:12px;}
           .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
           /* the archive control survives on a phone as an icon, so the stats and
              archive drawer stays reachable with the columns gone */
