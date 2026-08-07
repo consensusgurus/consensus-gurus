@@ -1872,15 +1872,28 @@ byte-identical.
   column` on a phone for this. A row and its own drawer carry the SAME order value and
   equal-order flex items keep source order, so a drawer never leaves its row: any new per-row
   element must follow that rule or it will float out of its group.
-- **Row shape:** no icon plate (`.sl-ic` is hidden); a 4px `box-shadow:inset` left rule in the
-  game's category blue, fed by a `--rc` custom property set on the row (amber when in progress,
-  green when done); the category as a 9px uppercase eyebrow ABOVE the name; the leader riding in
-  the sub line after the tagline; the play count as a stacked right-edge figure; then the status
-  button and the archive chevron.
-- **One element, two readings:** `.sl-pl` wraps its number in `<b>` and carries an `<i>` label, and
-  both are neutralised at base so the desktop Players column still renders a bare centred number.
-  Same trick for `.sl-cm` / `.sl-mld`, which are `display:none` above 900px, which is why the JSX
-  can reorder them freely.
+- **Row shape:** a compact 28px tile plate; a 4px `box-shadow:inset` left rule in the game's
+  category blue, fed by a `--rc` custom property set on the row (amber when in progress, green
+  when done); the category as an 8.5px uppercase eyebrow ABOVE the name; the play count small and
+  quiet INSIDE the name line (`.sl-npl`); the leader riding in the sub line after the tagline;
+  then the status button and the archive chevron. Four grid tracks, tile / name / status /
+  archive, five with pins. The row's height comes from the explicit tight line boxes on
+  `.sl-cm` / `.sl-nm b` / `.sl-sub` plus 6px of vertical padding: a right-edge players figure and
+  looser line boxes shipped first and the owner found the rows too tall (2026-08-07), so keep any
+  new per-row element inside one of the three existing lines rather than adding a fourth.
+- **The category filter is a dark strip of pills** (`#2c4fa8` ground, white pill for the active
+  one), so it reads as part of the navy slate header above it. Desktop keeps its light underline
+  tabs.
+- **One element per width, never a shared one that has to compromise:** the phone count is
+  `.sl-npl` inside the name line and the desktop count is the `.sl-pl` column, each
+  `display:none` at the other width, so neither is announced twice and neither constrains the
+  other. Same for `.sl-cm` / `.sl-mld` / `.sl-tg`, all `display:none` above 900px, which is why the
+  JSX can reorder them freely. `.sl-pl` still wraps its number in `<b>` with an `<i>` label from
+  the first pass; both are neutralised at base so the desktop column renders a bare centred
+  number.
+- **The sub line is a flex row** with the tagline (`.sl-tg`) as the shrinking item and the leader
+  chip `flex:none`, so a long tagline ellipsizes itself instead of pushing the leader out of the
+  line.
 - **A tap anywhere on the row opens the stats + archive drawer, and Play / Resume is the only
   control that still navigates into the game.** Implemented as an `onClick` on `.sl-row` gated
   with `matchMedia('(max-width: 900px)')` at CLICK time, not on a rendered flag, so the markup is

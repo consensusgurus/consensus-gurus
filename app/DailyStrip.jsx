@@ -776,7 +776,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               .sl-mpl is gone. */}
           <a className="sl-nm" href={g.href}>
             <i className="sl-cm" style={{ color: col }}>{cat}</i>
-            <b>{g.name}</b>
+            {/* The count sits INSIDE the name line on a phone, small and quiet
+                (owner, 2026-08-07): as a right-edge figure it cost a whole
+                column and made every row taller. Desktop still reads it from
+                the .sl-pl column below, which is why there are two of them and
+                each is display:none at the other width. */}
+            <b>{g.name}{pl != null ? <i className="sl-npl">{`${fmtPlays(pl)} playing`}</i> : null}</b>
             <span className="sl-sub">
               {/* The tagline is WRAPPED so it can be the flex item that yields.
                   As a bare text node the sub line's single ellipsis fell at the
@@ -1317,6 +1322,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* The tagline's wrapper. Desktop renders it as the plain inline text it
            has always been; only the phone makes it a shrinking flex item. */
         .sl-tg{font-style:normal;}
+        /* Phone-only play count, inside the name line. */
+        .sl-npl{display:none;font-style:normal;}
         .sl-mld{display:none;font-style:normal;}
         .sl-cat{display:flex;justify-content:center;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
@@ -1374,40 +1381,53 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-row.inprog,.sl-drawer.inprog{order:2;}
           .sl-row.done,.sl-drawer.done{order:6;}
           /* The whole row is the expand target, so it takes the pointer; only
-             Play / Resume still navigates (see the row's onClick). */
-          .sl-row{grid-template-columns:minmax(0,1fr) auto auto auto;gap:10px;padding:9px 12px 9px 16px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
+             Play / Resume still navigates (see the row's onClick).
+             Four tracks: tile, name, status, archive. The players figure went
+             back into the name line (owner, 2026-08-07), so it costs no column,
+             and the padding and line boxes are tight enough that a three-line
+             row lands near the two-line row it replaced. */
+          .sl-row{grid-template-columns:28px minmax(0,1fr) auto auto;gap:9px;padding:6px 11px 6px 15px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
           .sl-row.inprog{box-shadow:inset 4px 0 0 var(--gold);}
           .sl-row.done{box-shadow:inset 4px 0 0 #16a34a;}
           /* Pins add one 20px star track. The icon plate is gone here, so the
              star is paid for out of the space it freed rather than out of the
              name column. */
-          .dh-board.pins .sl-row{grid-template-columns:20px minmax(0,1fr) auto auto auto;gap:8px;padding:9px 8px 9px 14px;}
+          .dh-board.pins .sl-row{grid-template-columns:20px 28px minmax(0,1fr) auto auto;gap:7px;padding:6px 8px 6px 13px;}
           .sl-favb{width:20px;height:20px;}
           .sl-favb svg{width:12px;height:12px;}
-          /* the 4px rule replaces the icon plate, exactly as it does in the cap */
-          .sl-ic{display:none;}
-          .sl-cat,.sl-st,.sl-ld{display:none;}
-          /* Players, as a right-edge figure rather than a column. */
-          .sl-pl{display:block;text-align:right;line-height:1;}
-          .sl-pl b{display:block;font-size:13px;font-weight:800;color:var(--ink);}
-          .sl-pl i{display:block;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:3px;}
+          /* The tile art stays (owner, 2026-08-07), on a compact 28px plate:
+             the 4px category rule reads as the row's colour, the tile as its
+             identity, and both fit because the players column is gone. */
+          .sl-ic{height:28px;}
+          .sl-ic img{height:20px;max-width:26px;}
+          .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
+          .sl-npl{display:inline;font-size:10.5px;font-weight:700;letter-spacing:0;color:var(--slate);margin-left:7px;}
           /* the archive control survives on a phone as an icon, so the stats and
              archive drawer stays reachable with the columns gone */
           .sl-arch{display:flex;}
           .sl-ab{padding:6px 7px;gap:0;}
           .sl-ab .sl-ring,.sl-ab-pct{display:none;}
-          /* eyebrow over name over sub, the cap bar's stack */
+          /* eyebrow over name over sub, the cap bar's stack. Line boxes are
+             explicit and tight: this is where the row's height comes from. */
           .sl-nm{display:flex;flex-direction:column;}
-          .sl-nm b{display:block;font-size:16px;line-height:1.2;}
-          .sl-cm{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0 0 1px;}
+          .sl-nm b{display:block;font-size:15.5px;line-height:1.2;}
+          .sl-cm{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.3;margin:0;}
           /* The sub line is a flex row: the tagline shrinks and ellipsizes, the
              leader chip is flex:none, so the leader is never the thing that gets
              cut off. It still caps at 38vw and ellipsizes its own long names. */
-          .sl-nm .sl-sub{display:flex;align-items:baseline;font-size:11.5px;}
+          .sl-nm .sl-sub{display:flex;align-items:baseline;font-size:11px;line-height:1.35;}
           .sl-tg{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
           .sl-mld{flex:none;display:inline-flex;align-items:center;gap:3px;margin-left:6px;font-size:11px;font-weight:700;color:var(--muted);max-width:38vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
           .sl-mld svg{flex:none;color:var(--gold-ink);}
           .sl-btn{width:64px;}
+          /* The category selector is a DARK strip of pills on a phone (owner,
+             2026-08-07), so it belongs to the navy slate header above it rather
+             than reading as a pale gap between the header and the first row.
+             Desktop keeps its light underline tabs. */
+          .sl-filt{background:#2c4fa8;border-bottom:none;gap:6px;padding:7px 8px;}
+          .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
+          .sl-filt button:hover{color:var(--white);}
+          .sl-filt button.on{background:var(--white);color:var(--blue-deep);border-bottom-color:transparent;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}
