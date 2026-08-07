@@ -1799,6 +1799,54 @@ export default function DailyEndCard({
           .dec-arcbar{display:block;height:7px;border-radius:4px;background:rgba(255,255,255,.13);overflow:hidden;margin-top:8px;}
           .dec-arcbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,${BLUE},#7fb4ff);}
         }
+
+        /* ---- post-ship corrections (2026-08-06) --------------------------
+           1. The "More of today's puzzles" rows still rendered their game
+              NAMES in near-black. The theme set .dec-row{color:var(--white)}
+              at specificity (0,1,0), but the original stylesheet sets
+              .dec-row .nm{color:${INK}} at (0,2,0), so the child won and the
+              names were black on navy glass. Anything the theme recolours by
+              inheritance needs the CHILD selector restated whenever the
+              original names that child explicitly. Same class of bug for the
+              tag line, the Play affordance and the two remaining light
+              surfaces (.dec-btn, .dec-slip variants). */
+        .dec-row .nm{color:var(--white);}
+        .dec-row .tg{color:#8ea9d6;}
+        .dec-row .play{color:#93c5fd;}
+        .dec-row .play.resume{color:#ffd08a;}
+        .dec-row.resume{border-color:rgba(255,208,138,.34);background:rgba(255,208,138,.08);}
+        .dec-gh .cnt{color:rgba(255,255,255,.85);}
+        .dec-btn{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border-color:rgba(147,197,253,.4);color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-btn:hover{background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,.09));border-color:rgba(147,197,253,.55);color:var(--white);}
+        .dec-btn:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 5px rgba(0,0,0,.3);}
+        .dec-btn.ink{background:var(--white);border-color:var(--white);color:#0b1c40;}
+        .dec-btn.ink:hover{background:#f4f7ff;border-color:#f4f7ff;color:#0b1c40;}
+        .dec-slip.info{background:rgba(147,197,253,.12);border-color:rgba(147,197,253,.32);}
+        .dec-slip.neutral{background:rgba(255,255,255,.06);}
+        .dec-slip.neutral:hover{background:rgba(255,255,255,.12);}
+        /* Cells are bordered, so without border-box the 42-cell strip is 2px
+           per cell wider than it measures, which is what pushed it onto a
+           second row on a phone. */
+        .dec-dt{box-sizing:border-box;}
+
+        @media(max-width:640px){
+          /* 2. The day bar wrapped to THREE rows: .dec-dots takes the full
+                width, and since it sits between the two figure blocks in the
+                DOM it pushed IQ rank below the strip. Ordering puts the two
+                figures together on row one and the strip on row two, and the
+                cells shrink to 5px so 42 of them still fit a single line at
+                365px and up. */
+          .dec-day{gap:10px;}
+          .dec-day .blk{order:1;}
+          .dec-day .rk{order:2;margin-left:auto;}
+          .dec-dots{order:3;flex-basis:100%;gap:5px;}
+          .dec-day .v{font-size:21px;}
+          .dec-day .f{font-size:11px;}
+          .dec-dotrow{gap:2px;}
+          .dec-dt{width:5px;height:5px;border-radius:1.5px;}
+          .dec-dots .cta{font-size:11px;}
+          .dec-dots .cta .pr{display:none;}
+        }
       `}</style>
 
       {/* ---- 0. cap band ---- */}
@@ -1958,8 +2006,8 @@ export default function DailyEndCard({
           </div>
           <div className="cta">
             {slateFull
-              ? <><b>Slate complete.</b> Every puzzle today is done.</>
-              : <><b>{total - doneCount} left today.</b> Finishing the slate fills the brain.</>}
+              ? <><b>Slate complete.</b> <span className="pr">Every puzzle today is done.</span></>
+              : <><b>{total - doneCount} left today.</b> <span className="pr">Finishing the slate fills the brain.</span></>}
             {iq && typeof iq.xp === 'number' ? <> {'\u00b7'} <b>{iq.xp.toLocaleString()}</b> IQ total</> : null}
             {showIqToday ? <> {'\u00b7'} <b>+{iq.todayGained.toLocaleString()}</b> today</> : null}
             {iq && iq.firstPlay ? <> {'\u00b7'} Your first IQ points are banking</> : null}
