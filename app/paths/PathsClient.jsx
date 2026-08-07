@@ -568,6 +568,17 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
     return pts.map((p, i) => `${i ? 'L' : 'M'} ${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ');
   }, [PUZZLE, n, CELL]);
   const townLetter = (i) => String.fromCharCode(65 + i);
+  // A cell whose four corners all stand on the ridge has all four of its lanes
+  // priced at 2, so filling it in is exactly as honest as the strips and reads
+  // as one landform rather than a tan lattice with holes in it.
+  const ridgeCells = useMemo(() => {
+    const hills = new Set(PUZZLE.hills), out = [];
+    for (let y = 0; y < n - 1; y++) for (let x = 0; x < n - 1; x++) {
+      const a = y * n + x;
+      if (hills.has(a) && hills.has(a + 1) && hills.has(a + n) && hills.has(a + n + 1)) out.push(a);
+    }
+    return out;
+  }, [PUZZLE, n]);
 
   const rulesBody = (
     <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -642,10 +653,14 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             <svg ref={svgRef} className="pt-svg" viewBox={`0 -6 ${SIZE} ${SIZE + 12}`} role="img"
               aria-label={`Paths network puzzle, ${n} by ${n} lattice, ${TOWNS.length} towns`}
               onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={endDrag}>
-              {/* ridge lanes: painted on exactly the lanes that charge 2 */}
+              {/* ridge: painted on exactly the lanes that charge 2, plus the
+                  cells those lanes enclose, so what you see is what you pay */}
+              {ridgeCells.map((a) => (
+                <rect key={`rc${a}`} x={X(a)} y={Y(a)} width={CELL} height={CELL} fill={COLORS.ridge} style={{ pointerEvents: 'none' }} />
+              ))}
               {LANES.filter((l) => l.cost === 2).map((l) => (
                 <line key={`r${l.i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
-                  stroke={COLORS.ridge} strokeWidth={CELL * 0.5} strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+                  stroke={COLORS.ridge} strokeWidth={CELL * 0.44} strokeLinecap="round" style={{ pointerEvents: 'none' }} />
               ))}
               {/* the river, one continuous barrier */}
               <path d={riverPath} fill="none" stroke={COLORS.river} strokeWidth={11} strokeLinejoin="round" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
@@ -666,8 +681,8 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                 <line key={`t${l.i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
                   stroke={COLORS.track} strokeWidth={6} strokeLinecap="round" style={{ pointerEvents: 'none' }} />
               ) : null))}
-              {/* what the dear lanes charge */}
-              {LANES.filter((l) => l.cost > 1).map((l) => (
+              {/* what a crossing charges. The ridge says 2 with its shading */}
+              {LANES.filter((l) => l.cost === 3).map((l) => (
                 <text key={`c${l.i}`} x={(X(l.a) + X(l.b)) / 2 + (l.horiz ? 0 : 10)} y={(Y(l.a) + Y(l.b)) / 2 - (l.horiz ? 10 : 0)}
                   fill={l.cost === 3 ? COLORS.riverInk : COLORS.ridgeInk} fontFamily={MONO} fontSize={10} fontWeight="500"
                   textAnchor="middle" dominantBaseline="central" style={{ pointerEvents: 'none', userSelect: 'none' }}>{l.cost}</text>
@@ -678,8 +693,8 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               )))}
               {/* depot */}
               <g style={{ pointerEvents: 'none' }}>
-                <rect x={X(DEPOT) - 14} y={Y(DEPOT) - 14} width={28} height={28} rx={8} fill={COLORS.ink} />
-                <text x={X(DEPOT)} y={Y(DEPOT)} fill={T.white} fontFamily={SANS} fontSize={12} fontWeight="800" textAnchor="middle" dominantBaseline="central">D</text>
+                <rect x={X(DEPOT) - 15} y={Y(DEPOT) - 15} width={30} height={30} rx={9} fill={COLORS.ink} />
+                <rect x={X(DEPOT) - 6} y={Y(DEPOT) - 6} width={12} height={12} rx={3} fill={T.white} />
               </g>
               {/* towns */}
               {TOWNS.map((t, k) => {
@@ -699,8 +714,14 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             </svg>
           </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap', fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 3, borderRadius: 2, background: '#c9d0dc' }} /> open 1</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 9, borderRadius: 3, background: COLORS.ridge }} /> ridge 2</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: COLORS.river }} /> crossing 3</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: COLORS.ink }} /> depot</span>
+          </div>
           {playing && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
               <button className="pt-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
                 <RotateCcw size={14} /> Undo
               </button>
