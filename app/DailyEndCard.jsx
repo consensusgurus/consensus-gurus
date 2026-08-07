@@ -1847,6 +1847,32 @@ export default function DailyEndCard({
           .dec-dots .cta{font-size:11px;}
           .dec-dots .cta .pr{display:none;}
         }
+
+        /* ---- layout revision (owner, 2026-08-06) -------------------------
+           The hero was verdict | gain | identity across one row. The owner
+           moved the identity up ONTO the verdict line and the gain below it,
+           which reads better because the verdict and the name are both
+           labels for the same thing ("who did what"), while the gain is the
+           result and wants its own space. The day bar also moved BELOW the
+           game ranks, under its own rule, so the card now reads: what you
+           did -> what you earned -> this game -> your day. */
+        .dec-hero{display:block;padding:14px 0 15px;}
+        .dec-toprow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+        .dec-topid{justify-self:auto;flex:0 1 auto;align-items:flex-end;margin-left:auto;}
+        .dec-iqhero{width:100%;margin:13px 0 0;justify-self:auto;padding:2px 10px 0;}
+        .dec-day{margin:11px 0 0;}
+
+        @media(max-width:640px){
+          /* One column, but NOT centred any more: with the chip beside it the
+             verdict is a left-aligned label row again, and only the gain
+             stays centred under it. */
+          .dec-hero{display:block;text-align:left;}
+          .dec-toprow{justify-content:space-between;gap:8px;}
+          .dec-titlerow{justify-content:flex-start;}
+          .dec-topid{justify-self:auto;align-items:flex-end;margin-left:auto;}
+          .dec-idsub{text-align:right;max-width:170px;}
+          .dec-iqhero{margin-top:11px;}
+        }
       `}</style>
 
       {/* ---- 0. cap band ---- */}
@@ -1880,6 +1906,23 @@ export default function DailyEndCard({
             <span className="dec-title">{finishTitle}</span>
             {score ? <span className="dec-detail">{score}</span> : null}
           </div>
+          {/* Identity on the SAME line as the verdict (owner 2026-08-06): the
+              player's chip, or for a guest the claim pill with the figures it
+              is protecting named under it. Naming the rank as well as the
+              points is the point, a guest can see the standing they would
+              lose. The gain then sits under this line, on its own. */}
+          <span className="dec-topid">
+            {idChip}
+            {!hasEmail && iq && (iq.rank || typeof iq.xp === 'number') ? (
+              <span className="dec-idsub">
+                <b>
+                  {iq.rank ? `#${iq.rank.toLocaleString()}` : null}
+                  {iq.rank && typeof iq.xp === 'number' ? ' and ' : null}
+                  {typeof iq.xp === 'number' ? `${iq.xp.toLocaleString()} IQ` : null}
+                </b>{' '}unclaimed
+              </span>
+            ) : null}
+          </span>
         </div>
         {/* Phone copy of the score: on a phone it sits on its own line under the
             title, because leaving it inside the title row inflated that row's
@@ -1965,60 +2008,6 @@ export default function DailyEndCard({
           <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
         </span>
       </div>
-        {/* Identity slot, hero right: the player's chip, or for a guest the
-            gold claim pill with the figures it is protecting named under it.
-            Naming the rank as well as the points is the point, a guest can
-            see the standing they are about to lose. */}
-        <span className="dec-topid">
-          {idChip}
-          {!hasEmail && iq && (iq.rank || typeof iq.xp === 'number') ? (
-            <span className="dec-idsub">
-              <b>
-                {iq.rank ? `#${iq.rank.toLocaleString()}` : null}
-                {iq.rank && typeof iq.xp === 'number' ? ' and ' : null}
-                {typeof iq.xp === 'number' ? `${iq.xp.toLocaleString()} IQ` : null}
-              </b>{' '}unclaimed
-            </span>
-          ) : null}
-        </span>
-      </div>
-
-      {/* ---- 2. your day: completion + IQ rank ---- */}
-      {/* These are the two figures that belong to the PLAYER rather than to
-          this game, and both used to be buried: rank in an 11.5px line under
-          the chip, completion in the words "N of M puzzles today" inside a
-          grey run. The 42 cells state the day in a way the number cannot,
-          and they mirror the slate rail in the page header behind the modal.
-          Built from DAILY_GAMES, so the strip tracks the live slate. */}
-      <div className="dec-day">
-        <div className="blk">
-          <div className="l">Puzzles today</div>
-          <div className="v">{doneCount}<small>/{total}</small></div>
-        </div>
-        <div className="dec-dots">
-          <div className="dec-dotrow" aria-hidden="true">
-            {DAILY_GAMES.map((g) => (
-              <span
-                key={g.key}
-                className={`dec-dt${g.key === self ? ' now' : (doneKeys.has(g.key) ? ' on' : '')}`}
-              />
-            ))}
-          </div>
-          <div className="cta">
-            {slateFull
-              ? <><b>Slate complete.</b> <span className="pr">Every puzzle today is done.</span></>
-              : <><b>{total - doneCount} left today.</b> <span className="pr">Finishing the slate fills the brain.</span></>}
-            {iq && typeof iq.xp === 'number' ? <> {'\u00b7'} <b>{iq.xp.toLocaleString()}</b> IQ total</> : null}
-            {showIqToday ? <> {'\u00b7'} <b>+{iq.todayGained.toLocaleString()}</b> today</> : null}
-            {iq && iq.firstPlay ? <> {'\u00b7'} Your first IQ points are banking</> : null}
-          </div>
-        </div>
-        <div className="vr" aria-hidden="true" />
-        <div className="blk rk">
-          <div className="l">IQ rank</div>
-          <div className="v">{iq && iq.rank ? `#${iq.rank.toLocaleString()}` : <span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span>}</div>
-          <div className="f">{iq && iq.total ? `of ${iq.total.toLocaleString()} players` : ' '}</div>
-        </div>
       </div>
 
       {/* ---- 3. this game ---- */}
@@ -2090,7 +2079,46 @@ export default function DailyEndCard({
           </div>
         );
       })() : null}
-      {/* ---- 3. guest claim banner ---- */}
+      {/* ---- 4. your day: completion + IQ rank ---- */}
+      {/* These are the two figures that belong to the PLAYER rather than to
+          this game, and both used to be buried: rank in an 11.5px line under
+          the chip, completion in the words "N of M puzzles today" inside a
+          grey run. The 42 cells state the day in a way the number cannot,
+          and they mirror the slate rail in the page header behind the modal.
+          Built from DAILY_GAMES, so the strip tracks the live slate. */}
+      <div className="dec-grouplbl">Your day</div>
+      <div className="dec-day">
+        <div className="blk">
+          <div className="l">Puzzles today</div>
+          <div className="v">{doneCount}<small>/{total}</small></div>
+        </div>
+        <div className="dec-dots">
+          <div className="dec-dotrow" aria-hidden="true">
+            {DAILY_GAMES.map((g) => (
+              <span
+                key={g.key}
+                className={`dec-dt${g.key === self ? ' now' : (doneKeys.has(g.key) ? ' on' : '')}`}
+              />
+            ))}
+          </div>
+          <div className="cta">
+            {slateFull
+              ? <><b>Slate complete.</b> <span className="pr">Every puzzle today is done.</span></>
+              : <><b>{total - doneCount} left today.</b> <span className="pr">Finishing the slate fills the brain.</span></>}
+            {iq && typeof iq.xp === 'number' ? <> {'\u00b7'} <b>{iq.xp.toLocaleString()}</b> IQ total</> : null}
+            {showIqToday ? <> {'\u00b7'} <b>+{iq.todayGained.toLocaleString()}</b> today</> : null}
+            {iq && iq.firstPlay ? <> {'\u00b7'} Your first IQ points are banking</> : null}
+          </div>
+        </div>
+        <div className="vr" aria-hidden="true" />
+        <div className="blk rk">
+          <div className="l">IQ rank</div>
+          <div className="v">{iq && iq.rank ? `#${iq.rank.toLocaleString()}` : <span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span>}</div>
+          <div className="f">{iq && iq.total ? `of ${iq.total.toLocaleString()} players` : ' '}</div>
+        </div>
+      </div>
+
+      {/* ---- 5. guest claim banner ---- */}
       {/* Sits DIRECTLY under the rank tiles (owner 2026-08-01), not below the
           share bar: an unregistered player reads their ranks and immediately
           learns those ranks are unclaimed. It is deliberately loud (pulsing
