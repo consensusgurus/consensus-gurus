@@ -30,7 +30,7 @@
 // all-time leaderboard. Everything past "today" comes from ONE lazy fetch of
 // /api/quiz/daily-game, cached per game by the parent.
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2, Users, Star } from 'lucide-react';
 import { notifyShareCredit } from './ShareCreditPop';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
@@ -69,7 +69,6 @@ export default function DailyTilePanel({
   todayRow = null, todayField = null, standings = [], meKey = null,
   data = null, canPin = false, pinned = false, onTogglePin = null, onClose,
 }) {
-  const rootRef = useRef(null);
   const todayISO = etTodayISO();
   const how = (DAILY_GAME_MAP[game.key] && DAILY_GAME_MAP[game.key].how) || game.tag;
 
@@ -118,19 +117,13 @@ export default function DailyTilePanel({
   const [view, setView] = useState(null);
   const showCrowd = crowdOffered && view !== 'trend';
 
-  // On a small screen the panel is IN FLOW and the grid is hidden beneath it,
-  // so a tile tapped low in a long grid can leave the page scrolled past where
-  // the panel now begins. 'nearest' only moves the page when the panel is
-  // actually out of view, so it never yanks the page on desktop.
-  useEffect(() => {
-    if (typeof window === 'undefined' || window.innerWidth > 980) return;
-    const el = rootRef.current;
-    if (!el) return;
-    const id = window.setTimeout(() => {
-      try { el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) {}
-    }, 40);
-    return () => window.clearTimeout(id);
-  }, [game.key]);
+  // NO AUTO-SCROLL ON OPEN (owner, 2026-08-07). There used to be a
+  // scrollIntoView here for small screens: back when the home board was a TILE
+  // GRID, the in-flow panel replaced tiles that were hidden beneath it, so a
+  // tile tapped low down could leave the page scrolled past where the panel
+  // now began. The slate opens this drawer directly under its own row and
+  // hides nothing, so the call had nothing left to correct and simply shifted
+  // the page down on every open. Do not reintroduce it.
 
   // Esc closes, matching the Close button.
   useEffect(() => {
@@ -198,7 +191,7 @@ export default function DailyTilePanel({
   const meInTodayTop = !!(meKey && todayTop.some((r) => r.userKey === meKey));
 
   return (
-    <div className="dtp" ref={rootRef} style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
+    <div className="dtp" style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
       <div className="dtp-hd">
         <span className="dtp-ic"><img src={game.img} alt="" aria-hidden="true" /></span>
         <div className="dtp-idt">
