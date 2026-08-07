@@ -1367,8 +1367,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            NOTHING in here escapes the media query: the desktop slate keeps its
            icon plate, its eight sortable columns and its centred cells. */
         @media(max-width:900px){
-          /* flex, so the bands and rows can be ordered into their groups */
-          .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;display:flex;flex-direction:column;}
+          /* flex, so the bands and rows can be ordered into their groups.
+             gap:0 IS LOAD-BEARING: the tile board sets gap:7px on .dh-board in
+             the 640px block, and as a flex container the slate inherited it as a
+             7px white band between every row (owner, 2026-08-07). The slate's
+             rows separate with their own 1px bottom border and nothing else. */
+          .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;display:flex;flex-direction:column;gap:0;}
           .sl-head{display:none;}
           /* order: prog band 1, prog rows 2, todo band 3, todo rows 4, done
              band 5, done rows 6. A drawer shares its row's value. */
@@ -1386,20 +1390,23 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              back into the name line (owner, 2026-08-07), so it costs no column,
              and the padding and line boxes are tight enough that a three-line
              row lands near the two-line row it replaced. */
-          .sl-row{grid-template-columns:28px minmax(0,1fr) auto auto;gap:9px;padding:6px 11px 6px 15px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
+          .sl-row{grid-template-columns:36px minmax(0,1fr) auto auto;gap:9px;padding:6px 11px 6px 15px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
           .sl-row.inprog{box-shadow:inset 4px 0 0 var(--gold);}
           .sl-row.done{box-shadow:inset 4px 0 0 #16a34a;}
           /* Pins add one 20px star track. The icon plate is gone here, so the
              star is paid for out of the space it freed rather than out of the
              name column. */
-          .dh-board.pins .sl-row{grid-template-columns:20px 28px minmax(0,1fr) auto auto;gap:7px;padding:6px 8px 6px 13px;}
+          .dh-board.pins .sl-row{grid-template-columns:20px 36px minmax(0,1fr) auto auto;gap:7px;padding:6px 8px 6px 13px;}
           .sl-favb{width:20px;height:20px;}
           .sl-favb svg{width:12px;height:12px;}
           /* The tile art stays (owner, 2026-08-07), on a compact 28px plate:
              the 4px category rule reads as the row's colour, the tile as its
              identity, and both fit because the players column is gone. */
-          .sl-ic{height:28px;}
-          .sl-ic img{height:20px;max-width:26px;}
+          /* The plate takes the space the row gap gave back (owner, 2026-08-07).
+             It is still shorter than the three-line name block beside it, so a
+             bigger tile costs the row no height at all. */
+          .sl-ic{height:36px;}
+          .sl-ic img{height:28px;max-width:34px;}
           .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
           .sl-npl{display:inline;font-size:10.5px;font-weight:700;letter-spacing:0;color:var(--slate);margin-left:7px;}
           /* the archive control survives on a phone as an icon, so the stats and

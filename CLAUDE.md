@@ -1869,7 +1869,9 @@ byte-identical.
   media query (prog band 1, prog rows 2, todo band 3, todo rows 4, done band 5, done rows 6), NOT
   interleaved in JS. That is what keeps the desktop source order, and therefore the sortable
   column headers, exactly as they were. `.dh-board.slate` becomes `display:flex;flex-direction:
-  column` on a phone for this. A row and its own drawer carry the SAME order value and
+  column;gap:0` on a phone for this, and **the `gap:0` is load-bearing**: the tile board sets
+  `gap:7px` on `.dh-board` in the 640px block, which a flex container reads as a 7px white band
+  between every row (that shipped once and the owner caught it). A row and its own drawer carry the SAME order value and
   equal-order flex items keep source order, so a drawer never leaves its row: any new per-row
   element must follow that rule or it will float out of its group.
 - **Row shape:** a compact 28px tile plate; a 4px `box-shadow:inset` left rule in the game's
