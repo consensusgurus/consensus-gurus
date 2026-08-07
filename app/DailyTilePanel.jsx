@@ -753,9 +753,9 @@ export default function DailyTilePanel({
           .dtp-col:nth-child(3){order:7;}
           .dtp-mclose{order:8;}
           /* The band. Same object as the slate's group bands, plus a chevron. */
-          .dtp-sec{display:flex;align-items:center;gap:8px;width:100%;padding:10px 13px;border:0;
+          .dtp-sec{display:flex;align-items:center;gap:8px;width:100%;padding:14px 13px;border:0;border-radius:0;
             border-bottom:1px solid rgba(255,255,255,.14);background:#2c4fa8;
-            font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+            font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
             color:var(--white);cursor:pointer;text-align:left;}
           .dtp-sec svg{margin-left:auto;flex:none;color:var(--blue-200);transition:transform .15s;}
           .dtp-sec.on{background:var(--accent);}
@@ -825,7 +825,7 @@ export default function DailyTilePanel({
              screen, so closing it should not mean scrolling back up to the
              chevron on the row that opened it. */
           .dtp-mclose{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
-            padding:13px;border:0;border-top:1px solid var(--border);background:var(--surface);
+            padding:13px;border:0;border-radius:0;border-top:1px solid var(--border);background:var(--surface);
             font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
             color:var(--slate);cursor:pointer;}
           .dtp-mclose:active{background:#eef1f6;color:var(--ink);}

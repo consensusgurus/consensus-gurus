@@ -1474,7 +1474,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* The expand bar: one full-width rectangle at the foot of its group,
              inked to its group's colour so the pair reads as one block. */
           .sl-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
-            padding:4px 13px;border:0;border-bottom:1px solid var(--border);background:var(--surface);
+            padding:4px 13px;border:0;border-radius:0;border-bottom:1px solid var(--border);background:var(--surface);
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#eef1f6;}
