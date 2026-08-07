@@ -1313,6 +1313,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-row.done{background:#f6fbf8;}
         .sl-row.inprog{background:#fffaeb;}
         .sl-row.open{background:var(--accent-soft);}
+        /* An OPEN row keeps its STATE colour (owner, 2026-08-07). .open sits
+           last in this list, so opening a paused or finished row repainted it
+           blue and threw away the amber or green that says what the row IS.
+           Open now DEEPENS the state tint instead of replacing it, and the left
+           rule was already immune. Applies at every width: the same swap was
+           happening on the desktop slate. */
+        .sl-row.inprog.open{background:#fdf3d6;}
+        .sl-row.done.open{background:#e6f6ee;}
         .sl-ic{display:flex;align-items:center;justify-content:center;height:34px;background:var(--surface-alt);border-radius:8px;}
         .sl-ic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
         .sl-nm{min-width:0;text-decoration:none;color:var(--ink);display:block;}
