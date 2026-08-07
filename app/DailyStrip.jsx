@@ -98,6 +98,7 @@ const GAMES = [
   { key: 'suffice', href: '/suffice', name: 'Suffice', img: '/games/btn-suffice.png', store: 'sot_suffice_day', tag: "Decide what is enough" , cat: 'Logic' },
   { key: 'strata', href: '/strata', name: 'Strata', img: '/games/btn-strata.png', store: 'sot_strata_day', tag: "Dig the words out" , cat: 'Word' },
   { key: 'redact', href: '/redact', name: 'Redact', img: '/games/btn-redact.png', store: 'sot_redact_day', tag: "Uncover the story" , cat: 'Trivia' },
+  { key: 'paths', href: '/paths', name: 'Paths', img: '/games/btn-paths.png', store: 'sot_paths_day', tag: "Link every town" , cat: 'Logic' },
 ];
 
 const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {});

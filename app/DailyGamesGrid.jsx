@@ -93,6 +93,7 @@ const GAMES = [
   { key: 'suffice', href: '/suffice', name: 'Suffice', tag: 'Decide what is enough', img: '/games/btn-suffice.png' },
   { key: 'strata', href: '/strata', name: 'Strata', tag: 'Dig the words out', img: '/games/btn-strata.png' },
   { key: 'redact', href: '/redact', name: 'Redact', tag: 'Uncover the story', img: '/games/btn-redact.png' },
+  { key: 'paths', href: '/paths', name: 'Paths', tag: 'Link every town', img: '/games/btn-paths.png' },
 ];
 const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 
@@ -106,7 +107,7 @@ const CATEGORIES = [
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge', 'crunch'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['streak', 'bracket', 'listed', 'redact', 'dating', 'extra'] },
-  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'park', 'fib', 'suffice'] },
+  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'park', 'fib', 'suffice', 'paths'] },
   { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'babel', 'chain', 'turn'] },
   { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
 ];
