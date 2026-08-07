@@ -1600,7 +1600,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             {slate ? renderSlate(slateList, false) : renderTiles(list, false)}
           </div>
         </div>
-        {metrics && metrics.maxOffset > 0 && !selGame ? (
+        {/* Row-window pager (the round chevron under the board). It belongs to
+            the TILE board only: the viewport height and the translateY shift
+            above are both gated on !slate, so on the slate it rendered a button
+            that moved nothing (owner, 2026-08-07). Gated to match, rather than
+            deleted, so it comes back on its own if the tile board ever returns.
+            All wiring stays: rowOffset/metrics state, the measure effect, and
+            the .dh-more CSS. */}
+        {!slate && metrics && metrics.maxOffset > 0 && !selGame ? (
           <button
             type="button"
             className="dh-more"
