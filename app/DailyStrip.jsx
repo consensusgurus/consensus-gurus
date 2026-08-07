@@ -174,6 +174,13 @@ for (const [k, v] of Object.entries(CAT_COLOR)) {
 const catCol = (cat) => CAT_COLOR[cat] || T.muted;
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
+// How many rows of each PHONE group show before its expand bar (owner,
+// 2026-08-07). The slate led with all 51 rows, which put the leaderboard rails
+// and the featured panel a very long scroll below the fold. Finished games peek
+// NOTHING: you already know how you did, so the band plus its bar is the whole
+// group until you ask for it. Desktop lists every row as before, since the
+// hide class and the bars are both inert above 900px.
+const PHONE_PEEK = { prog: 2, todo: 2, dn: 0 };
 // How far back Up next looks when deciding which game this viewer plays the
 // most. Long enough to survive a few skipped days, short enough that a habit
 // dropped last month stops winning.
@@ -324,6 +331,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Text columns default to A-Z, number columns to biggest first, because that
   // is what someone clicking "Players" or "Streak" is looking for.
   const [sort, setSort] = useState(null);
+  // Which phone groups the reader has expanded. Collapsed is the default on
+  // every load, deliberately: the point is what the FIRST screen shows.
+  const [grpOpen, setGrpOpen] = useState({ prog: false, todo: false, dn: false });
   const vpRef = useRef(null);
   const boardRef = useRef(null);
 
@@ -699,9 +709,36 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     out.push(band('prog', 'In progress', nProg));
     out.push(band('todo', 'Ready to play', nTodo));
     out.push(band('dn', 'Done today', nDone));
+    // One expand bar per group, pushed here and ordered to the END of its own
+    // group by CSS, exactly like the bands. A group with nothing hidden renders
+    // no bar.
+    const more = (grp, count) => (count > PHONE_PEEK[grp] ? (
+      <button
+        type="button"
+        className={`sl-more ${grp}`}
+        key={`more-${grp}`}
+        onClick={() => setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }))}
+        aria-expanded={grpOpen[grp]}
+      >
+        {grpOpen[grp]
+          ? <>Show fewer <ChevronUp size={14} strokeWidth={2.8} /></>
+          : <>Show all {count} <ChevronDown size={14} strokeWidth={2.8} /></>}
+      </button>
+    ) : null);
+    out.push(more('prog', nProg));
+    out.push(more('todo', nTodo));
+    out.push(more('dn', nDone));
+    // Counted in DOM order, which IS the visual order WITHIN a group (equal
+    // `order` values keep source order), so "the first two" means the same thing
+    // to the reader as it does here.
+    const seen = { prog: 0, todo: 0, dn: 0 };
     arr.forEach((g) => {
       const isDone = done.has(g.key);
       const ip = !isDone && inprog.has(g.key);
+      const grp = isDone ? 'dn' : (ip ? 'prog' : 'todo');
+      const gi = seen[grp];
+      seen[grp] = gi + 1;
+      const hid = !grpOpen[grp] && gi >= PHONE_PEEK[grp];
       const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
       const pl = playsOf(g.key);
       const bd = byKey[g.key];
@@ -715,7 +752,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       out.push(
         <div
           key={g.key}
-          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}`}
+          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}`}
           style={{ '--rc': col }}
           onClick={(e) => {
             // PHONE ONLY: a tap anywhere on the row opens the stats + archive
@@ -834,7 +871,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       );
       // The state class is what pairs the drawer with its row under the phone
       // `order` grouping; it has no effect above 900px.
-      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
+      // The drawer inherits sl-hid, so collapsing a group takes an open drawer
+      // with it rather than leaving a panel with no row above it.
+      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${hid ? ' sl-hid' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
     });
     return out;
   };
@@ -1341,9 +1380,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            renders the same bare centred number it always did. */
         .sl-pl b{font-weight:inherit;font-size:inherit;}
         .sl-pl i{display:none;}
-        /* Group bands. Phone-only furniture: they are in the DOM at every width
-           and only the <=900px block gives them a box and an order. */
+        /* Group bands and their expand bars. Phone-only furniture: both are in
+           the DOM at every width and only the <=900px block gives them a box,
+           an order, and (for .sl-hid) any effect at all. */
         .sl-band{display:none;}
+        .sl-more{display:none;}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
         .sl-st.none{color:#c3c8d1;}
         .sl-ld{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
@@ -1382,16 +1423,33 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              rows separate with their own 1px bottom border and nothing else. */
           .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;display:flex;flex-direction:column;gap:0;}
           .sl-head{display:none;}
-          /* order: prog band 1, prog rows 2, todo band 3, todo rows 4, done
-             band 5, done rows 6. A drawer shares its row's value. */
-          .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:3;}
+          /* Nine ordered slots, three per group: band, rows, expand bar.
+             prog 1-2-3, todo 4-5-6, done 7-8-9. A drawer shares its row's
+             value, and equal-order items keep source order, so a drawer stays
+             under its own row. */
+          .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--blue-200);font-variant-numeric:tabular-nums;}
           .sl-band.prog{order:1;}
-          .sl-band.dn{order:5;background:var(--success-deep);}
-          .sl-row,.sl-drawer{order:4;}
+          .sl-band.dn{order:7;background:var(--success-deep);}
+          .sl-row,.sl-drawer{order:5;}
           .sl-row.inprog,.sl-drawer.inprog{order:2;}
-          .sl-row.done,.sl-drawer.done{order:6;}
+          .sl-row.done,.sl-drawer.done{order:8;}
+          /* The rows a group is not peeking. Nothing else may set display on a
+             .sl-row inside the slate without excluding this class, or the row
+             comes back: see the :not(.sl-hid) on the .mcut rule in the 640px
+             block, which is more specific AND later in source. */
+          .sl-hid{display:none;}
+          /* The expand bar: one full-width rectangle at the foot of its group,
+             inked to its group's colour so the pair reads as one block. */
+          .sl-more{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+            padding:11px 13px;border:0;border-bottom:1px solid var(--border);background:var(--surface);
+            font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+            color:var(--blue-deep);cursor:pointer;}
+          .sl-more:active{background:#eef1f6;}
+          .sl-more.prog{order:3;color:#a16207;}
+          .sl-more.todo{order:6;}
+          .sl-more.dn{order:9;color:var(--success-deep);}
           /* The whole row is the expand target, so it takes the pointer; only
              Play / Resume still navigates (see the row's onClick).
              Four tracks: tile, name, status, archive. The players figure went
@@ -1469,7 +1527,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* the slate lists every game already, so it needs neither the row cut
              nor the show-all control */
           .dhome.slate .dh-mall{display:none;}
-          .dh-board.slate.mcut > .sl-row{display:grid;}
+          /* :not(.sl-hid) is load-bearing. This rule undoes the tile board's
+             eight-tile cut for slate rows, and it outranks .sl-hid on both
+             specificity and source order, so without the guard every collapsed
+             row reappears below 640px. */
+          .dh-board.slate.mcut > .sl-row:not(.sl-hid){display:grid;}
         }
         @media(max-width:430px){
           .dh-board{grid-template-columns:repeat(3,minmax(0,1fr));}

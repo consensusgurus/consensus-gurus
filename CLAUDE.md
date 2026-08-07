@@ -1874,6 +1874,16 @@ byte-identical.
   between every row (that shipped once and the owner caught it). A row and its own drawer carry the SAME order value and
   equal-order flex items keep source order, so a drawer never leaves its row: any new per-row
   element must follow that rule or it will float out of its group.
+- **Each group PEEKS a couple of rows and hides the rest behind a full-width expand bar**
+  (`PHONE_PEEK = { prog: 2, todo: 2, dn: 0 }`, owner 2026-08-07). Finished games peek NOTHING: you
+  already know how you did, so the band plus its bar is the whole group until you ask. The reason is
+  the rails, not tidiness: with all 51 rows listed, the leaderboard panels and Featured sat a very
+  long scroll below the fold. Collapsed is the default on every load, since the point is what the
+  first screen shows. Nine ordered slots now, three per group (band, rows, bar): prog 1-2-3, todo
+  4-5-6, done 7-8-9. A hidden row's drawer inherits `.sl-hid` so collapsing never leaves a panel
+  with no row above it. **Anything that sets `display` on a `.sl-row` inside the slate must exclude
+  `.sl-hid`** — the `.mcut` rule in the 640px block outranks it on specificity AND source order, so
+  it carries a `:not(.sl-hid)` guard.
 - **Row shape:** a compact 28px tile plate; a 4px `box-shadow:inset` left rule in the game's
   category blue, fed by a `--rc` custom property set on the row (amber when in progress, green
   when done); the category as an 8.5px uppercase eyebrow ABOVE the name; the play count small and
