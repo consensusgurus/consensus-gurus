@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mind Loft — phone drawer mock-ups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0c0e; --muted:#3f4757; --slate:#646c7a;
+  --accent:#1e3a8a; --white:#fff; --surface:#f7f8fa; --surface-alt:#eef2f7;
+  --border:#e5e7eb; --blue:#2563eb; --blue-deep:#1d4ed8; --blue-mid:#2c4fa8;
+  --blue-lite:#4d84f3; --blue-200:#bfdbfe; --pale:#dbe8ff;
+  --gold:#e8b43a; --gold-ink:#a16207; --success:#16a34a; --success-deep:#15803d;
+  --c-end:#475b78; --c-word:#1e3a8a; --c-logic:#3730a3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#111318;color:#e7ecf3;font-family:'Manrope',system-ui,sans-serif;padding:28px 22px 60px}
+h1{font-size:20px;font-weight:800;letter-spacing:-.4px;margin:0 0 6px}
+.lede{font-size:13px;color:#9aa6b8;max-width:960px;line-height:1.55;margin:0 0 12px}
+.lede b{color:#dbe8ff;font-weight:700}
+.now{font-size:12px;color:#8b93a3;max-width:960px;line-height:1.55;margin:0 0 26px;padding-left:11px;border-left:3px solid #3a4150}
+.rack{display:flex;gap:26px;align-items:flex-start;overflow-x:auto;padding-bottom:20px}
+.col{flex:0 0 auto;width:390px}
+.hd{margin:0 0 4px;font-size:14px;font-weight:800;color:#fff}
+.hd em{font-style:normal;color:#7fa6ee}
+.why{font-size:11.5px;line-height:1.5;color:#98a4b6;margin:0 0 12px;min-height:74px}
+.phone{width:390px;background:#fff;color:var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 18px 46px -12px rgba(0,0,0,.65)}
+.note{font-size:10.5px;color:#7f8b9d;margin:10px 0 0;line-height:1.5}
+
+/* ── the parent slate row, for context (shipped, unchanged) ── */
+.band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--blue-mid)}
+.band h3{margin:0;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.band .ct{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--blue-200);text-transform:uppercase}
+.row{display:grid;grid-template-columns:20px 36px minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:6px 8px 6px 13px;background:#fffaeb;box-shadow:inset 4px 0 0 var(--gold);border-bottom:1px solid #f0f2f6}
+.row .st{color:#c3c8d1;display:flex;justify-content:center}
+.row .ic{height:36px;display:flex;align-items:center;justify-content:center;background:var(--surface-alt);border-radius:8px}
+.row .mid{min-width:0}
+.row .eye{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--c-end);line-height:1.3}
+.row .nm{display:block;font-size:15.5px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+.row .nm i{font-style:normal;font-size:10.5px;font-weight:700;color:var(--slate);margin-left:7px}
+.row .sub{display:flex;align-items:baseline;font-size:11px;line-height:1.35;color:var(--slate)}
+.row .sub .tg{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.row .sub .ld{flex:none;margin-left:6px;color:var(--muted);font-weight:700;white-space:nowrap}
+.row .go{width:64px;text-align:center;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border:1px solid #f0d79a;background:#fdf2df;color:#a16207}
+.row .ch{width:26px;height:26px;border-radius:7px;border:1px solid #cddffb;color:var(--blue-deep);display:flex;align-items:center;justify-content:center;background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ══════════ shared drawer furniture (all three directions) ══════════ */
+.dw{border-bottom:1px solid var(--border)}
+/* the section band: the same object as IN PROGRESS / READY TO PLAY above */
+.sb{display:flex;align-items:center;gap:8px;padding:8px 13px;background:var(--blue-mid)}
+.sb h4{margin:0;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#fff}
+.sb svg{color:var(--blue-200);flex:none}
+.sb .ct{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums}
+/* chip strip */
+.chips{display:flex;align-items:center;gap:7px;padding:8px 13px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto}
+.chip{flex:none;display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.chip.fl{background:rgba(232,180,58,.16);border:1px solid rgba(232,180,58,.42);color:var(--gold-ink)}
+.chip.sh{background:rgba(232,180,58,.12);border:1px solid rgba(232,180,58,.42);color:var(--gold-ink)}
+.chip.pn{background:transparent;border:1px solid var(--border);color:#4d5872}
+/* the 4-up stat strip: the page header's own object */
+.st4{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.st4>div{flex:1;padding:9px 11px;border-right:1px solid var(--border);min-width:0}
+.st4>div:last-child{border-right:none}
+.st4 b{display:block;font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;font-variant-numeric:tabular-nums}
+.st4 span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* plain full-width rows */
+.fr{display:flex;align-items:center;gap:10px;padding:8px 13px;border-bottom:1px solid #f0f2f6;font-size:12.5px}
+.fr:last-child{border-bottom:none}
+.fr span{color:var(--muted);font-weight:600}
+.fr b{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+/* leaderboard rows */
+.lb{display:flex;align-items:center;gap:10px;padding:8px 13px;border-bottom:1px solid #f0f2f6;font-size:13px}
+.lb .pl{width:16px;font-size:11px;font-weight:800;color:#9aa2b1;font-variant-numeric:tabular-nums;flex:none;display:flex}
+.lb .pl svg{color:var(--gold-ink)}
+.lb .nm{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lb .sc{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+.lb.one{background:#fdf7e8;box-shadow:inset 3px 0 0 var(--gold)}
+.lb.one .nm{font-weight:800;color:var(--gold-ink)}
+.lb.one .sc{color:var(--gold-ink)}
+.lb.me{background:#eef3ff;box-shadow:inset 3px 0 0 var(--blue)}
+.lb.me .nm{font-weight:800;color:var(--blue-deep)}
+.lb.me .sc{color:var(--blue-deep)}
+.sfoot{display:flex;align-items:center;padding:8px 13px;border-bottom:1px solid var(--border);font-size:10.5px;font-weight:700;color:var(--slate)}
+.sfoot a{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep);text-decoration:none}
+/* calendar, edge to edge */
+.calhd{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid #f0f2f6}
+.calhd .mo{flex:1;text-align:center;font-size:14px;font-weight:800}
+.calhd button{width:28px;height:28px;border-radius:8px;border:1px solid #c8d0dc;background:transparent;color:var(--slate);display:flex;align-items:center;justify-content:center;flex:none}
+.wd{display:grid;grid-template-columns:repeat(7,1fr);padding:0 10px 4px}
+.wd span{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--slate);text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 10px 11px}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:700;border-radius:7px;color:#4b5563;font-variant-numeric:tabular-nums}
+.cell.none{color:#aab2c0}
+.cell.played{background:#dcfce7;border:1px solid rgba(34,197,94,.45);color:var(--success-deep)}
+.cell.open{background:var(--surface);border:1px solid #dbe1ea;color:var(--slate)}
+.cell.today{box-shadow:0 0 0 2px var(--gold)}
+.key{display:flex;gap:14px;padding:0 13px 11px;font-size:10.5px;font-weight:600;color:var(--slate)}
+.key span{display:inline-flex;align-items:center;gap:5px}
+.key i{width:10px;height:10px;border-radius:3px;flex:none}
+.key i.p{background:#dcfce7;border:1px solid rgba(34,197,94,.55)}
+.key i.o{background:var(--surface);border:1px solid #c8d0dc}
+.key i.t{background:transparent;border:2px solid var(--gold)}
+/* chart */
+.chwrap{padding:10px 13px 12px}
+.chkey{display:flex;gap:14px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:#5b6577;margin-bottom:8px}
+.chkey span{display:inline-flex;align-items:center;gap:5px}
+.chkey i.b{width:7px;height:11px;border-radius:2px;background:var(--c-end);opacity:.85}
+.chkey i.a{width:14px;border-top:1px dashed #8a9bb8}
+.bars{position:relative;height:112px;display:flex;align-items:flex-end;gap:4px;border-bottom:1px solid #dde3ec;padding-right:44px}
+.avg{position:absolute;left:0;right:44px;border-top:1px dashed #c8d0dc}
+.avg i{position:absolute;left:100%;bottom:-6px;margin-left:5px;font-style:normal;font-family:'DM Mono',monospace;font-size:8.5px;color:#5b6577;white-space:nowrap}
+.barw{flex:1;max-width:56px;height:100%;display:flex;align-items:flex-end;justify-content:center}
+.bar{width:100%;max-width:26px;background:var(--c-end);opacity:.85;border-radius:3px 3px 0 0}
+.bar.miss{height:5px;background:var(--surface);border-radius:2px}
+.dates{display:flex;gap:4px;padding-right:44px;margin-top:6px;font-family:'DM Mono',monospace;font-size:9.5px;color:#5b6577}
+.dates span{flex:1;max-width:56px;text-align:center}
+/* close bar */
+.close{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;background:var(--surface);border-top:1px solid var(--border);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--slate)}
+.play{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:var(--cta,#2563eb);color:#fff;font-size:14px;font-weight:800;letter-spacing:.04em}
+
+/* ══════════ C · hero opener ══════════ */
+.hero{position:relative;display:flex;align-items:center;gap:12px;padding:13px 14px 13px 22px;background:var(--blue);color:#fff}
+.hero::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.9)}
+.hero .eye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--pale)}
+.hero .big{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3}
+.hero .sub{font-size:11px;font-weight:600;color:var(--pale)}
+.hero .r{margin-left:auto;text-align:right;flex:none}
+.hero .r b{display:block;font-size:23px;font-weight:800;letter-spacing:-.6px;line-height:1.1;font-variant-numeric:tabular-nums}
+.hero .r span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pale);margin-top:2px}
+.st3{display:flex;background:var(--blue-lite);color:#fff}
+.st3>div{flex:1;padding:9px 12px;border-right:1px solid rgba(255,255,255,.22)}
+.st3>div:last-child{border-right:none}
+.st3 b{display:block;font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1;font-variant-numeric:tabular-nums}
+.st3 span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--pale);margin-top:3px}
+
+/* ══════════ B · navy console ══════════ */
+.b .dw{background:#16306e;color:#fff}
+.b .chips{background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.12)}
+.b .chip.pn{border-color:rgba(255,255,255,.28);color:#cfe0fb}
+.b .chip.fl,.b .chip.sh{background:rgba(232,180,58,.2);border-color:rgba(232,180,58,.5);color:var(--gold)}
+.b .sb{background:rgba(255,255,255,.09);border-bottom:1px solid rgba(255,255,255,.12)}
+.b .sb .ct{color:#9dbdf3}
+.b .st4{background:transparent;border-bottom:1px solid rgba(255,255,255,.12)}
+.b .st4>div{border-right-color:rgba(255,255,255,.14)}
+.b .st4 b{color:#fff}
+.b .st4 span{color:#9dbdf3}
+.b .fr{border-bottom-color:rgba(255,255,255,.09)}
+.b .fr span{color:#a8bfe8}
+.b .fr b{color:#fff}
+.b .lb{border-bottom-color:rgba(255,255,255,.09);color:#e9f0fb}
+.b .lb .pl{color:#7f9ad0}
+.b .lb .sc{color:#fff}
+.b .lb.one{background:rgba(232,180,58,.14);box-shadow:inset 3px 0 0 var(--gold)}
+.b .lb.one .nm,.b .lb.one .sc,.b .lb.one .pl{color:var(--gold)}
+.b .lb.me{background:rgba(255,255,255,.09);box-shadow:inset 3px 0 0 #fff}
+.b .lb.me .nm,.b .lb.me .sc{color:#fff}
+.b .sfoot{border-bottom-color:rgba(255,255,255,.12);color:#9dbdf3}
+.b .sfoot a{color:#fff}
+.b .calhd{border-bottom-color:rgba(255,255,255,.1)}
+.b .calhd button{border-color:rgba(255,255,255,.28);color:#cfe0fb}
+.b .wd span{color:#9dbdf3}
+.b .cell{color:#cfe0fb}
+.b .cell.none{color:#5d78b0}
+.b .cell.played{background:rgba(34,197,94,.26);border-color:rgba(74,222,128,.5);color:#bfe6cf}
+.b .cell.open{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#cfe0fb}
+.b .key{color:#9dbdf3}
+.b .key i.o{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.28)}
+.b .key i.p{background:rgba(34,197,94,.4);border-color:rgba(74,222,128,.6)}
+.b .chkey{color:#9dbdf3}
+.b .chkey i.b{background:#7f9ae0;opacity:1}
+.b .bars{border-bottom-color:rgba(255,255,255,.16)}
+.b .bar{background:#7f9ae0;opacity:1}
+.b .bar.miss{background:rgba(255,255,255,.14)}
+.b .avg{border-top-color:rgba(255,255,255,.3)}
+.b .avg i{color:#9dbdf3}
+.b .dates{color:#9dbdf3}
+.b .close{background:rgba(255,255,255,.08);border-top-color:rgba(255,255,255,.14);color:#cfe0fb}
+@media(max-width:1280px){.rack{flex-direction:column;align-items:center}}
+</style>
+</head>
+<body>
+
+<h1>Mind Loft &middot; the phone puzzle drawer, three directions</h1>
+<p class="lede">Same four moves as the slate above it: <b>full bleed, no card borders, dark section bands, one figure strip per idea</b>. All three drop the drawer's 13px panel padding and its five rounded bordered cards, so nothing floats in a white gutter, and each reuses an object the page already ships (the band from <code>IN PROGRESS</code>, the divided stat strip from the page header, the gold-ruled <code>#1</code> row from the rails).</p>
+<p class="now"><b>Today:</b> the drawer is a 13px-padded white panel holding five rounded, bordered cards, with the 2&times;2 stat tiles bordered again inside one of them. Three levels of nesting and a white gutter down both sides, immediately under rows that run edge to edge.</p>
+
+<div class="rack">
+
+<!-- ══════════════════════ A ══════════════════════ -->
+<div class="col">
+  <p class="hd">A &middot; <em>Banded sections</em></p>
+  <p class="why">The straight translation. Every card becomes a dark band plus edge-to-edge content: the 2&times;2 stat tiles become one 4-up divided strip (the page header's own object), the two leaderboards become full-width rows with the gold <code>#1</code> and blue <code>you</code> treatment from the rails, the calendar spans the full width so the cells get bigger, and the drawer closes with a full-width bar instead of a floating button.</p>
+  <div class="phone">
+    <div class="band"><h3>In progress</h3><span class="ct">5</span></div>
+    <div class="row">
+      <span class="st"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3l2.9 6 6.1.9-4.5 4.3 1.1 6-5.6-3-5.6 3 1.1-6L3 9.9l6.1-.9z"/></svg></span>
+      <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="#475b78"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      <span class="mid"><i class="eye">End game</i><b class="nm">Chain<i>132 playing</i></b><span class="sub"><span class="tg">Take them, or leav&hellip;</span><span class="ld">&#9819; LookAtLeo</span></span></span>
+      <span class="go">&#10073;&#10073;</span>
+      <span class="ch"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 15 6-6 6 6"/></svg></span>
+    </div>
+
+    <div class="dw">
+      <div class="chips">
+        <span class="chip fl">&#128293; 3</span>
+        <span class="chip sh">Share for credit</span>
+        <span class="chip pn">&#9734; Pin to your games</span>
+      </div>
+
+      <div class="sb"><h4>Your record</h4></div>
+      <div class="st4">
+        <div><b>&mdash;</b><span>Today</span></div>
+        <div><b>&mdash;</b><span>Rank</span></div>
+        <div><b>3</b><span>Streak</span></div>
+        <div><b>#4</b><span>All time</span></div>
+      </div>
+      <div class="fr"><span>Archive played</span><b>3 of 4 &middot; 75%</b></div>
+      <div class="fr"><span>Best day</span><b>9.5 pts</b></div>
+      <div class="fr"><span>Average day</span><b>5.8 pts</b></div>
+      <div class="fr"><span>Longest streak</span><b>3 days</b></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6v2H9z"/></svg><h4>Today</h4><span class="ct">19 playing</span></div>
+      <div class="lb one"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10"/></svg></span><span class="nm">LookAtLeo</span><span class="sc">14.4</span></div>
+      <div class="lb"><span class="pl">2</span><span class="nm">e4n</span><span class="sc">6.1</span></div>
+      <div class="lb"><span class="pl">3</span><span class="nm">Gator88</span><span class="sc">5.6</span></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6v2H9z"/></svg><h4>All time</h4><span class="ct">51 players</span></div>
+      <div class="lb one"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10"/></svg></span><span class="nm">LookAtLeo</span><span class="sc">42.5</span></div>
+      <div class="lb"><span class="pl">2</span><span class="nm">Gator88</span><span class="sc">32</span></div>
+      <div class="lb"><span class="pl">3</span><span class="nm">e4n</span><span class="sc">23.2</span></div>
+      <div class="lb me"><span class="pl">4</span><span class="nm">You</span><span class="sc">17.5</span></div>
+      <div class="sfoot">51 ranked<a href="#">Full standings &rarr;</a></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><h4>Archive</h4><span class="ct">3 of 4 played</span></div>
+      <div class="calhd">
+        <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m14 6-6 6 6 6"/></svg></button>
+        <span class="mo">August 2026</span>
+        <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m10 6 6 6-6 6"/></svg></button>
+      </div>
+      <div class="wd"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="cal">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span class="cell none">1</span>
+        <span class="cell none">2</span><span class="cell none">3</span><span class="cell played">4</span><span class="cell played">5</span><span class="cell played">6</span><span class="cell open today">7</span><span class="cell none">8</span>
+        <span class="cell none">9</span><span class="cell none">10</span><span class="cell none">11</span><span class="cell none">12</span><span class="cell none">13</span><span class="cell none">14</span><span class="cell none">15</span>
+        <span class="cell none">16</span><span class="cell none">17</span><span class="cell none">18</span><span class="cell none">19</span><span class="cell none">20</span><span class="cell none">21</span><span class="cell none">22</span>
+      </div>
+      <div class="key"><span><i class="p"></i>Played</span><span><i class="o"></i>Open</span><span><i class="t"></i>Today</span></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m3 17 6-6 4 4 8-8"/></svg><h4>Your last 4 days</h4><span class="ct">best 9.5 &middot; avg 5.8</span></div>
+      <div class="chwrap">
+        <div class="chkey"><span><i class="b"></i>Daily points</span><span><i class="a"></i>Average, 5.8</span></div>
+        <div class="bars">
+          <span class="avg" style="bottom:61%"><i>avg 5.8</i></span>
+          <span class="barw"><span class="bar" style="height:8%"></span></span>
+          <span class="barw"><span class="bar" style="height:82%"></span></span>
+          <span class="barw"><span class="bar" style="height:100%"></span></span>
+          <span class="barw"><span class="bar miss"></span></span>
+        </div>
+        <div class="dates"><span>Aug 4</span><span>Aug 5</span><span>Aug 6</span><span>Aug 7</span></div>
+      </div>
+
+      <div class="close">&times; Close</div>
+    </div>
+  </div>
+  <p class="note">Cheapest of the three: it is the existing markup with <code>.dtp</code> padding zeroed, <code>.dtp-col</code> borders dropped, and <code>.dtp-lab</code> restyled as the band. No new sections, no reordering.</p>
+</div>
+
+<!-- ══════════════════════ B ══════════════════════ -->
+<div class="col b">
+  <p class="hd">B &middot; <em>Navy console</em></p>
+  <p class="why">The drawer becomes a navy console, so opening a row visibly drops you into the game's own space and the white slate closes back over it. Same bands and strips as A, inverted: gold marks the leader, green the days you played, white the row that is you. Only one drawer is ever open, so the dark is contained rather than 51 rows of it.</p>
+  <div class="phone">
+    <div class="band"><h3>In progress</h3><span class="ct">5</span></div>
+    <div class="row">
+      <span class="st"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3l2.9 6 6.1.9-4.5 4.3 1.1 6-5.6-3-5.6 3 1.1-6L3 9.9l6.1-.9z"/></svg></span>
+      <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="#475b78"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      <span class="mid"><i class="eye">End game</i><b class="nm">Chain<i>132 playing</i></b><span class="sub"><span class="tg">Take them, or leav&hellip;</span><span class="ld">&#9819; LookAtLeo</span></span></span>
+      <span class="go">&#10073;&#10073;</span>
+      <span class="ch"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 15 6-6 6 6"/></svg></span>
+    </div>
+
+    <div class="dw">
+      <div class="chips">
+        <span class="chip fl">&#128293; 3</span>
+        <span class="chip sh">Share for credit</span>
+        <span class="chip pn">&#9734; Pin to your games</span>
+      </div>
+
+      <div class="sb"><h4>Your record</h4></div>
+      <div class="st4">
+        <div><b>&mdash;</b><span>Today</span></div>
+        <div><b>&mdash;</b><span>Rank</span></div>
+        <div><b>3</b><span>Streak</span></div>
+        <div><b>#4</b><span>All time</span></div>
+      </div>
+      <div class="fr"><span>Archive played</span><b>3 of 4 &middot; 75%</b></div>
+      <div class="fr"><span>Best day</span><b>9.5 pts</b></div>
+      <div class="fr"><span>Average day</span><b>5.8 pts</b></div>
+      <div class="fr"><span>Longest streak</span><b>3 days</b></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6v2H9z"/></svg><h4>Today</h4><span class="ct">19 playing</span></div>
+      <div class="lb one"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10"/></svg></span><span class="nm">LookAtLeo</span><span class="sc">14.4</span></div>
+      <div class="lb"><span class="pl">2</span><span class="nm">e4n</span><span class="sc">6.1</span></div>
+      <div class="lb"><span class="pl">3</span><span class="nm">Gator88</span><span class="sc">5.6</span></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6v2H9z"/></svg><h4>All time</h4><span class="ct">51 players</span></div>
+      <div class="lb one"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10"/></svg></span><span class="nm">LookAtLeo</span><span class="sc">42.5</span></div>
+      <div class="lb"><span class="pl">2</span><span class="nm">Gator88</span><span class="sc">32</span></div>
+      <div class="lb"><span class="pl">3</span><span class="nm">e4n</span><span class="sc">23.2</span></div>
+      <div class="lb me"><span class="pl">4</span><span class="nm">You</span><span class="sc">17.5</span></div>
+      <div class="sfoot">51 ranked<a href="#">Full standings &rarr;</a></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><h4>Archive</h4><span class="ct">3 of 4 played</span></div>
+      <div class="calhd">
+        <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m14 6-6 6 6 6"/></svg></button>
+        <span class="mo">August 2026</span>
+        <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m10 6 6 6-6 6"/></svg></button>
+      </div>
+      <div class="wd"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="cal">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span class="cell none">1</span>
+        <span class="cell none">2</span><span class="cell none">3</span><span class="cell played">4</span><span class="cell played">5</span><span class="cell played">6</span><span class="cell open today">7</span><span class="cell none">8</span>
+        <span class="cell none">9</span><span class="cell none">10</span><span class="cell none">11</span><span class="cell none">12</span><span class="cell none">13</span><span class="cell none">14</span><span class="cell none">15</span>
+        <span class="cell none">16</span><span class="cell none">17</span><span class="cell none">18</span><span class="cell none">19</span><span class="cell none">20</span><span class="cell none">21</span><span class="cell none">22</span>
+      </div>
+      <div class="key"><span><i class="p"></i>Played</span><span><i class="o"></i>Open</span><span><i class="t"></i>Today</span></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m3 17 6-6 4 4 8-8"/></svg><h4>Your last 4 days</h4><span class="ct">best 9.5 &middot; avg 5.8</span></div>
+      <div class="chwrap">
+        <div class="chkey"><span><i class="b"></i>Daily points</span><span><i class="a"></i>Average, 5.8</span></div>
+        <div class="bars">
+          <span class="avg" style="bottom:61%"><i>avg 5.8</i></span>
+          <span class="barw"><span class="bar" style="height:8%"></span></span>
+          <span class="barw"><span class="bar" style="height:82%"></span></span>
+          <span class="barw"><span class="bar" style="height:100%"></span></span>
+          <span class="barw"><span class="bar miss"></span></span>
+        </div>
+        <div class="dates"><span>Aug 4</span><span>Aug 5</span><span>Aug 6</span><span>Aug 7</span></div>
+      </div>
+
+      <div class="close">&times; Close</div>
+    </div>
+  </div>
+  <p class="note">Same structure as A, one extra colour block. Worth a look on a real phone in daylight before committing: green-on-navy for a played day and the pale bars are the two things that could read weak.</p>
+</div>
+
+<!-- ══════════════════════ C ══════════════════════ -->
+<div class="col">
+  <p class="hd">C &middot; <em>Hero opener, then bands</em></p>
+  <p class="why">A on the body, but the drawer OPENS with the cap bars' own shape: a blue slab naming where you stand in this game, its headline figure on the right, then today's three numbers on the lighter blue underneath. You learn your standing before any furniture. Below that it is identical to A, minus the "Your record" band the hero has absorbed.</p>
+  <div class="phone">
+    <div class="band"><h3>In progress</h3><span class="ct">5</span></div>
+    <div class="row">
+      <span class="st"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3l2.9 6 6.1.9-4.5 4.3 1.1 6-5.6-3-5.6 3 1.1-6L3 9.9l6.1-.9z"/></svg></span>
+      <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="#475b78"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      <span class="mid"><i class="eye">End game</i><b class="nm">Chain<i>132 playing</i></b><span class="sub"><span class="tg">Take them, or leav&hellip;</span><span class="ld">&#9819; LookAtLeo</span></span></span>
+      <span class="go">&#10073;&#10073;</span>
+      <span class="ch"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="m6 15 6-6 6 6"/></svg></span>
+    </div>
+
+    <div class="dw">
+      <div class="hero">
+        <div>
+          <div class="eye">Your standing</div>
+          <div class="big">4th of 51</div>
+          <div class="sub">3 day streak &middot; 3 of 4 archive played</div>
+        </div>
+        <div class="r"><b>17.5</b><span>your pts</span></div>
+      </div>
+      <div class="st3">
+        <div><b>&mdash;</b><span>Today</span></div>
+        <div><b>9.5</b><span>Best day</span></div>
+        <div><b>5.8</b><span>Average</span></div>
+      </div>
+      <div class="chips">
+        <span class="chip fl">&#128293; 3</span>
+        <span class="chip sh">Share for credit</span>
+        <span class="chip pn">&#9734; Pin to your games</span>
+      </div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6v2H9z"/></svg><h4>Today</h4><span class="ct">19 playing</span></div>
+      <div class="lb one"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10"/></svg></span><span class="nm">LookAtLeo</span><span class="sc">14.4</span></div>
+      <div class="lb"><span class="pl">2</span><span class="nm">e4n</span><span class="sc">6.1</span></div>
+      <div class="lb"><span class="pl">3</span><span class="nm">Gator88</span><span class="sc">5.6</span></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12v3a6 6 0 0 1-12 0z"/><path d="M9 14h6v2H9z"/></svg><h4>All time</h4><span class="ct">51 players</span></div>
+      <div class="lb one"><span class="pl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10"/></svg></span><span class="nm">LookAtLeo</span><span class="sc">42.5</span></div>
+      <div class="lb"><span class="pl">2</span><span class="nm">Gator88</span><span class="sc">32</span></div>
+      <div class="lb"><span class="pl">3</span><span class="nm">e4n</span><span class="sc">23.2</span></div>
+      <div class="lb me"><span class="pl">4</span><span class="nm">You</span><span class="sc">17.5</span></div>
+      <div class="sfoot">51 ranked<a href="#">Full standings &rarr;</a></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><h4>Archive</h4><span class="ct">3 of 4 played</span></div>
+      <div class="calhd">
+        <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m14 6-6 6 6 6"/></svg></button>
+        <span class="mo">August 2026</span>
+        <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m10 6 6 6-6 6"/></svg></button>
+      </div>
+      <div class="wd"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="cal">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span class="cell none">1</span>
+        <span class="cell none">2</span><span class="cell none">3</span><span class="cell played">4</span><span class="cell played">5</span><span class="cell played">6</span><span class="cell open today">7</span><span class="cell none">8</span>
+        <span class="cell none">9</span><span class="cell none">10</span><span class="cell none">11</span><span class="cell none">12</span><span class="cell none">13</span><span class="cell none">14</span><span class="cell none">15</span>
+        <span class="cell none">16</span><span class="cell none">17</span><span class="cell none">18</span><span class="cell none">19</span><span class="cell none">20</span><span class="cell none">21</span><span class="cell none">22</span>
+      </div>
+      <div class="key"><span><i class="p"></i>Played</span><span><i class="o"></i>Open</span><span><i class="t"></i>Today</span></div>
+
+      <div class="sb"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m3 17 6-6 4 4 8-8"/></svg><h4>Your last 4 days</h4><span class="ct">best 9.5 &middot; avg 5.8</span></div>
+      <div class="chwrap">
+        <div class="chkey"><span><i class="b"></i>Daily points</span><span><i class="a"></i>Average, 5.8</span></div>
+        <div class="bars">
+          <span class="avg" style="bottom:61%"><i>avg 5.8</i></span>
+          <span class="barw"><span class="bar" style="height:8%"></span></span>
+          <span class="barw"><span class="bar" style="height:82%"></span></span>
+          <span class="barw"><span class="bar" style="height:100%"></span></span>
+          <span class="barw"><span class="bar miss"></span></span>
+        </div>
+        <div class="dates"><span>Aug 4</span><span>Aug 5</span><span>Aug 6</span><span>Aug 7</span></div>
+      </div>
+
+      <div class="close">&times; Close</div>
+    </div>
+  </div>
+  <p class="note">Needs one new derived line ("4th of 51", your points) and folds four of the eight "Your record" figures into the hero and the 3-up strip; the other four stay as hairline rows. Slightly more work than A, and the only version where the drawer answers "how am I doing" in its first 90px.</p>
+</div>
+
+</div>
+</body>
+</html>

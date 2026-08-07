@@ -1905,6 +1905,27 @@ byte-identical.
   name link's navigation. `.sl-btn.done` is a static score chip, not a control, so it falls
   through and expands like the rest of the row.
 
+**Puzzle drawer (`app/DailyTilePanel.jsx`)**
+
+- The phone drawer follows the SAME rules, at the SAME 900px breakpoint as the slate (it was 720px,
+  which left 721-900px pairing a phone slate row with a desktop-shaped drawer). It was a 13px-padded
+  white panel holding five rounded, bordered cards, with the 2x2 stat tiles bordered again inside
+  one of them, directly under rows that run edge to edge.
+- **Every card becomes a dark band plus full-width content**, and each piece reuses an object the
+  page already ships: `.dtp-lab` becomes the slate's `.sl-band`; `.dtp-stats` becomes the page
+  header's 4-up divided strip; `.dtp-row` / `.dtp-lrow` become full-width hairline rows; the
+  leaderboard `#1` takes the rails' gold rule (`.first`, a class that is inert above 900px) and
+  `you` takes the blue one, with `.me` ordered AFTER `.first` so being #1 yourself reads as you.
+  The calendar spans the full width, so its cells grow.
+- **The chip line is navy and its buttons spread across the width.** `flex:1 1 auto`, NOT `1 1 0`:
+  an equal-thirds split sizes every chip to the longest label, which leaves the streak flame in a
+  third of empty space and can still truncate "Pin to your games". Growing from natural width spends
+  the slack evenly, fills the strip, and never truncates, at any chip count from two to four.
+- **A full-width Close bar sits at the FOOT** (`.dtp-mclose`, phone only). The row's chevron still
+  closes the drawer, but it runs past a screen, so closing should not mean scrolling back up to it.
+- The desktop drawer is untouched: three bordered cards side by side, equal heights driven by the
+  calendar's six padded week rows.
+
 **Rails (`app/HomeRails.jsx`)**
 
 - Each ranked panel promotes its **#1 into a hero slab** on a phone: eyebrow, big name, sub, big

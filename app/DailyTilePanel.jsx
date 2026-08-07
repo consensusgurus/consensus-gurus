@@ -266,7 +266,7 @@ export default function DailyTilePanel({
                 {todayTop.map((r, i) => {
                   const mineRow = meKey && r.userKey === meKey;
                   return (
-                    <div key={'t' + (r.userKey || i)} className={'dtp-lrow' + (mineRow ? ' me' : '')}>
+                    <div key={'t' + (r.userKey || i)} className={'dtp-lrow' + (i === 0 ? ' first' : '') + (mineRow ? ' me' : '')}>
                       <span className="pl">{r.rank === 1 ? <Crown size={12} /> : (r.rank || i + 1)}</span>
                       <b>{r.username || 'Player'}{mineRow ? ' (you)' : ''}</b>
                       <span className="sc">{fmtPts(r.points)}</span>
@@ -295,7 +295,7 @@ export default function DailyTilePanel({
             ) : board.length ? (
               <>
                 {board.map((r, i) => (
-                  <div key={r.userKey || i} className={'dtp-lrow' + (r.isMe ? ' me' : '')}>
+                  <div key={r.userKey || i} className={'dtp-lrow' + (i === 0 ? ' first' : '') + (r.isMe ? ' me' : '')}>
                     <span className="pl">{r.rank === 1 ? <Crown size={12} /> : r.rank}</span>
                     <b>{r.username || 'Player'}{r.isMe ? ' (you)' : ''}</b>
                     <span className="sc">{fmtPts(r.points)}</span>
@@ -452,6 +452,11 @@ export default function DailyTilePanel({
         )}
       </section>
 
+      {/* Phone-only, and deliberately at the very bottom: see .dtp-mclose. */}
+      <button type="button" className="dtp-mclose" onClick={onClose}>
+        <X size={13} strokeWidth={2.8} />Close
+      </button>
+
       <style>{`
         .dtp{position:absolute;inset:0;z-index:6;background:var(--white);border-radius:13px;color:var(--ink);
              padding:13px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;
@@ -482,6 +487,8 @@ export default function DailyTilePanel({
         .dtp-pinchip.on{background:var(--cta);border-color:var(--cta);color:var(--cta-ink);}
         .dtp-how{font-size:12.5px;line-height:1.4;color:var(--slate);font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
+        /* Phone-only close bar, revealed in the <=900px block. */
+        .dtp-mclose{display:none;}
         .dtp-play{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:15px;
                   border-radius:10px;padding:12px 24px;text-decoration:none;border:none;cursor:pointer;transition:background .12s,transform .12s;}
         .dtp-play:hover{background:var(--cta-hover);transform:translateY(-1px);}
@@ -517,7 +524,7 @@ export default function DailyTilePanel({
         .dtp-row:last-child{border-bottom:none;}
         .dtp-row span{color:var(--muted);font-weight:600;}
         .dtp-row b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
-        .dtp-row.beat b{color:#6ee7b7;}
+        .dtp-row.beat b{color:var(--success-deep);}
         .dtp-calhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;flex:none;}
         .dtp-mo{font-size:13px;font-weight:800;}
         .dtp-calhd button{width:25px;height:25px;display:flex;align-items:center;justify-content:center;border-radius:7px;border:1px solid #c8d0dc;background:transparent;color:var(--slate);cursor:pointer;}
@@ -530,7 +537,7 @@ export default function DailyTilePanel({
         .dtp-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border-radius:6px;color:#4b5563;text-decoration:none;font-variant-numeric:tabular-nums;}
         .dtp-cell.empty{background:transparent;}
         .dtp-cell.none{color:#3d4f70;}
-        a.dtp-cell.played{background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.45);color:#6ee7b7;}
+        a.dtp-cell.played{background:#dcfce7;border:1px solid rgba(34,197,94,0.45);color:var(--success-deep);}
         a.dtp-cell.open{background:var(--surface);border:1px solid #c8d0dc;color:var(--slate);}
         a.dtp-cell.open:hover{border-color:var(--gc);color:var(--ink);}
         a.dtp-cell.today{box-shadow:0 0 0 2px var(--gold);}
@@ -634,28 +641,107 @@ export default function DailyTilePanel({
           .dtp-grid{grid-template-columns:1fr 1fr;gap:16px;}
           .dtp-col:nth-child(3){grid-column:1/-1;}
         }
-        @media(max-width:720px){
-          .dtp{padding:13px;}
-          .dtp-hd{flex-wrap:wrap;gap:11px;}
-          .dtp-nm{font-size:19px;}
+        /* ── phone drawer: direction A, full bleed (owner-approved 2026-08-07) ──
+           Breakpoint is 900px, matching the SLATE's phone breakpoint, so the
+           drawer and the row it opens under switch layouts together. It was
+           720px, which left 721-900px showing the phone slate row with a
+           desktop-shaped drawer under it.
+
+           The whole point: the drawer used to be a 13px-padded white panel
+           holding five rounded, bordered cards, with the 2x2 stat tiles
+           bordered AGAIN inside one of them, sitting directly under rows that
+           run edge to edge. Here every card becomes a dark band plus
+           full-width content, and each piece reuses an object the page already
+           ships: the band is the slate's own .sl-band, the stat strip is the
+           page header's divided row, and the leaderboard's #1 and you rows are
+           the rails' gold and blue rules. Desktop is untouched. */
+        @media(max-width:900px){
+          /* no panel padding, no radius, no gap: the sections butt together and
+             each supplies its own edge */
+          .dtp{padding:0;border-radius:0;gap:0;}
           /* The drawer opens directly under the slate row, which ALREADY shows
              the tile art, the game name and a Play button, and the row's own
              chevron closes it again. Repeating all of that plus the one-line
              definition cost most of a phone screen before the first real stat,
-             so on a phone the drawer opens straight into "Your record" (owner,
-             2026-08-07). What survives is the chip line: Done today, the streak
-             flame, Share for credit and the pin, none of which the row repeats
-             in full. Desktop is unchanged. */
+             so on a phone the drawer opens straight into the chip line (owner,
+             2026-08-07): Done today, the streak flame, Share for credit and the
+             pin, none of which the row repeats in full. */
           .dtp-ic,.dtp-nmt,.dtp-how,.dtp-acts{display:none;}
-          /* With the icon gone the identity block is the whole header, and the
-             chip row needs no leading gap above the grid below it. */
-          .dtp-hd{gap:0;}
+          .dtp-hd{flex-wrap:wrap;gap:0;}
           .dtp-nm:empty{display:none;}
-          .dtp-grid{grid-template-columns:1fr;gap:15px;}
+          /* THE CHIP LINE IS NAVY AND ITS BUTTONS SPREAD ACROSS THE WIDTH
+             (owner, 2026-08-07). flex:1 1 auto, not 1 1 0: an equal-thirds
+             split makes every chip as wide as the longest label, so "Pin to
+             your games" fits while the streak flame sits in a third of empty
+             space. Growing from natural width spends the slack evenly, fills
+             the strip, and never truncates a label, at any chip count from two
+             to four. */
+          .dtp-nm{background:var(--accent);padding:9px 11px;gap:8px;font-size:0;}
+          .dtp-nm > *{flex:1 1 auto;justify-content:center;font-size:11px;}
+          .dtp-flame{background:rgba(232,180,58,0.2);border-color:rgba(232,180,58,0.5);color:var(--gold);}
+          .dtp-donechip{background:rgba(34,197,94,0.22);border-color:rgba(74,222,128,0.5);color:#bfe6cf;}
+          .dtp-sharechip{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:var(--gold);}
+          .dtp-pinchip{border-color:rgba(255,255,255,0.3);color:#cfe0fb;}
+          .dtp-pinchip.on{background:var(--white);border-color:var(--white);color:var(--accent);}
+          /* one column, and the cards stop being cards */
+          .dtp-grid{grid-template-columns:1fr;gap:0;}
+          .dtp-col{border:0;border-radius:0;padding:0;}
           .dtp-col:nth-child(3){grid-column:auto;}
+          /* every section label becomes the slate's band */
+          .dtp-lab,.dtp-lab.sm{margin:0;padding:8px 13px;background:#2c4fa8;
+            font-family:'Manrope',system-ui,sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--white);}
+          .dtp-lab svg{color:var(--blue-200);}
+          .dtp-labct{color:var(--blue-200);font-size:9.5px;}
+          /* the 2x2 bordered tiles become the header's 4-up divided strip */
+          .dtp-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:0;background:var(--surface);border-bottom:1px solid var(--border);}
+          .dtp-stats>div{min-width:0;background:transparent;border:0;border-right:1px solid var(--border);border-radius:0;padding:9px 8px;}
+          .dtp-stats>div:last-child{border-right:none;}
+          .dtp-stats span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          /* stat rows and leaderboard rows: full-width, hairline separated. The
+             desktop justify-content:space-between exists to stretch a card to
+             the calendar's height, which no longer applies in one column. */
+          .dtp-rows,.dtp-lb{display:block;margin-top:0;}
+          .dtp-row,.dtp-lrow{padding:8px 13px;border-bottom:1px solid #f0f2f6;font-size:12.5px;}
+          .dtp-lrow{font-size:13px;}
+          .dtp-lrow .sc{font-size:12.5px;}
+          .dtp-lrow.first{background:#fdf7e8;box-shadow:inset 3px 0 0 var(--gold);}
+          .dtp-lrow.first b,.dtp-lrow.first .sc{color:var(--gold-ink);}
+          /* .me AFTER .first, so being #1 yourself reads as you, not as the
+             leader you happen to be */
+          .dtp-lrow.me{margin:0;padding:8px 13px;border-radius:0;background:#eef3ff;box-shadow:inset 3px 0 0 var(--blue);}
+          .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:var(--blue-deep);}
+          .dtp-lfoot{margin-top:0;padding:8px 13px;border-bottom:1px solid var(--border);}
+          .dtp-lfoot a{color:var(--blue-deep);}
+          .dtp-empty{padding:10px 13px;}
+          /* calendar spans the full width, so the cells grow */
+          .dtp-calhd{margin:0;padding:9px 13px;border-bottom:1px solid #f0f2f6;}
+          .dtp-mo{flex:1;text-align:center;font-size:14px;}
+          .dtp-calhd button{width:28px;height:28px;}
+          .dtp-wd{margin:0;padding:6px 10px 4px;gap:4px;}
+          .dtp-wd span{font-size:9.5px;}
+          .dtp-cal{gap:4px;padding:0 10px 11px;}
+          .dtp-cell{font-size:12.5px;border-radius:7px;}
+          .dtp-key{margin:0;padding:0 13px 12px;}
+          /* the history chart keeps its own side padding now that the panel has none */
+          .dtp-trend{padding:0 0 12px;}
+          .dtp-tkey{margin:0;padding:10px 13px 8px;}
+          .dtp-bars{margin:0 13px;}
+          .dtp-daterow,.dtp-bx{margin:6px 13px 0;}
           /* One prompt per row on a phone: two 168px columns would truncate the
-             answer labels, which are the whole point of the view. */
+             answer labels, which are the whole point of the view. The crowd
+             cards stay cards, they are one-per-prompt rather than one-per-idea,
+             so the wrap supplies their inset instead. */
+          .dtp-cwrap{padding:10px 13px 2px;gap:8px;}
           .dtp-cg{grid-template-columns:1fr;}
+          .dtp-cfoot{padding:0 13px 10px;}
+          /* Close, full width, at the foot. The phone drawer runs past a
+             screen, so closing it should not mean scrolling back up to the
+             chevron on the row that opened it. */
+          .dtp-mclose{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+            padding:13px;border:0;border-top:1px solid var(--border);background:var(--surface);
+            font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+            color:var(--slate);cursor:pointer;}
+          .dtp-mclose:active{background:#eef1f6;color:var(--ink);}
         }
       `}</style>
     </div>
