@@ -1597,7 +1597,7 @@ export default function DailyEndCard({
         /* The three figures and the mobile footnote both moved into the
            day bar below, which states them at a readable size instead of
            trailing them in 12px grey. */
-        .dec-iqhero-rule,.dec-iqhero-stats,.dec-iqhero-sub,.dec-iqhero-slate,.dec-iqhero-mx{display:none;}
+        .dec-iqhero-slate,.dec-iqhero-mx{display:none;}
 
         /* Identity slot, hero right. A registered player gets their chip;
            a guest gets the gold claim pill (Alt A) with the figure it is
@@ -1873,6 +1873,34 @@ export default function DailyEndCard({
           .dec-idsub{text-align:right;max-width:170px;}
           .dec-iqhero{margin-top:11px;}
         }
+
+        /* ---- IQ figures rejoin the gain (owner, 2026-08-06) ---------------
+           They were split: the gain here, the rank and totals down in the day
+           bar. A number belongs beside the number it qualifies, so the
+           original -rule / -stats / -sub trio is un-hidden and restyled. That
+           trio already carried the responsive swap (three figures beside the
+           gain on desktop, a footnote row under it on a phone), so the phone
+           case comes back for free. The day bar is now purely completion:
+           the count and the 42 checks. */
+        .dec-iqhero{padding:2px 10px 4px;}
+        .dec-iqhero-rule{display:block;margin:4px 0;}
+        .dec-iqhero-stats{display:flex;flex:0 1 auto;align-items:center;gap:26px;grid-template-columns:none;}
+        .dec-iqhero-stats .k{font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.1em;}
+        .dec-iqhero-stats .v{font-size:24px;}
+        .dec-iqhero-stats .m{font-size:11px;}
+        .dec-iqhero-sub{font-size:12px;}
+        /* The bar sat flush against the share button below it. */
+        .dec-day{margin:11px 0 12px;}
+        .dec-day .blk{flex:0 0 auto;}
+
+        @media(max-width:640px){
+          /* Restated because the plain rules above sit AFTER the original
+             640 block and would otherwise beat it: on a phone the three
+             figures collapse to the footnote row under the gain. */
+          .dec-iqhero-rule,.dec-iqhero-stats{display:none;}
+          .dec-iqhero-sub{display:flex;font-size:11.5px;}
+          .dec-day{margin-bottom:11px;}
+        }
       `}</style>
 
       {/* ---- 0. cap band ---- */}
@@ -2105,16 +2133,7 @@ export default function DailyEndCard({
             {slateFull
               ? <><b>Slate complete.</b> <span className="pr">Every puzzle today is done.</span></>
               : <><b>{total - doneCount} left today.</b> <span className="pr">Finishing the slate fills the brain.</span></>}
-            {iq && typeof iq.xp === 'number' ? <> {'\u00b7'} <b>{iq.xp.toLocaleString()}</b> IQ total</> : null}
-            {showIqToday ? <> {'\u00b7'} <b>+{iq.todayGained.toLocaleString()}</b> today</> : null}
-            {iq && iq.firstPlay ? <> {'\u00b7'} Your first IQ points are banking</> : null}
           </div>
-        </div>
-        <div className="vr" aria-hidden="true" />
-        <div className="blk rk">
-          <div className="l">IQ rank</div>
-          <div className="v">{iq && iq.rank ? `#${iq.rank.toLocaleString()}` : <span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span>}</div>
-          <div className="f">{iq && iq.total ? `of ${iq.total.toLocaleString()} players` : ' '}</div>
         </div>
       </div>
 
