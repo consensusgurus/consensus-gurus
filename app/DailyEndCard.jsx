@@ -84,7 +84,7 @@ import {
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
-  Flame, Frame, Contrast, Layers, FileText, Waypoints,
+  Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
@@ -109,7 +109,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn']
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel', 'feud'], until: '2026-09-15' };
+const LAUNCH_PIN = { keys: ['deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -177,6 +177,7 @@ export const GAME_META = {
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
   redact: { accent: '#27272a', badgeBg: '#18181b', badgeInk: T.white, Fin: FileText },
   paths: { accent: '#065f46', badgeBg: '#065f46', badgeInk: T.white, Fin: Waypoints },
+  deep: { accent: '#0c4a6e', badgeBg: '#0c4a6e', badgeInk: T.white, Fin: Anchor },
 };
 
 // ---- the five families (type label + color shown on each tile/header) -------
@@ -243,6 +244,7 @@ export const DAILY_GAMES = [
   { key: 'taire',  cat: 'cards',       name: 'Taire',  tag: 'The daily solitaire',        blurb: 'A trimmed solitaire deal that always has a finish in it. Clear the board and beat par.', href: '/taire' },
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          blurb: 'A logic grid where exactly one clue is false. Find the lie, then solve the rest.', href: '/fib' },
   { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  blurb: 'Forty trivia questions, sudden death. One wrong answer ends the run for the day.', href: '/streak' },
+  { key: 'deep',   cat: 'trivia',    name: 'Deep',   tag: 'One topic, fifteen questions', blurb: 'One subject a day, fifteen questions on it, easy to expert. One wrong answer ends the dive.', href: '/deep' },
   { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            blurb: 'Name the answers real players gave most often. The most popular answers pay the most.', href: '/feud' },
   { key: 'babel',  cat: 'endgame',   name: 'Babel',  tag: 'The bag is empty',           blurb: 'A word tile game picked up at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
   { key: 'hands',  cat: 'cards',     name: 'Hands',  tag: 'The daily poker solitaire', blurb: 'Cards come one at a time into a grid where every row and column scores as a poker hand. Same deal for everybody, so it is decisions and not luck.', href: '/hands' },

@@ -45,6 +45,7 @@ const SLATE_KEYS = [
   'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'glyph', 'hedge',
   'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib', 'streak',
   'feud', 'babel', 'hands', 'chain', 'turn', 'suffice', 'strata', 'redact', 'paths',
+  'deep',
 ];
 
 export default function DailySlateRail({ current = null }) {

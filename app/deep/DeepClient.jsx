@@ -1,0 +1,704 @@
+'use client';
+
+// Deep — the daily single-topic trivia dive.
+//
+// One subject a day, fifteen questions, and they get harder the further you
+// go: three gimmes anyone could take, then three easy, three medium, three
+// hard, and three that only somebody who really knows the subject will have.
+// You have twenty seconds a question and one life. Answer wrong, or let the
+// clock hit zero, and the dive is over at whatever depth you reached.
+//
+// Streak asks whether you know a little about everything. Deep asks how far
+// down one thing you can go. Ties on the daily board break by time.
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { X, Smartphone, Anchor } from 'lucide-react';
+import Grain from '../Grain';
+import DailyRules from '../DailyRules';
+import Footer from '../Footer';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyChrome from '../DailyChrome';
+import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
+import { isMobileDevice } from '@/lib/is-mobile';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import { withRef } from '@/lib/referrals';
+import { notifyShareCredit } from '../ShareCreditPop';
+import DailyMasthead from '../DailyMasthead';
+import { T } from '@/lib/theme';
+
+const COLORS = {
+  cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
+  rust: T.danger, faded: T.muted,
+  accent: '#0c4a6e',        // Deep identity — deep water blue
+  accentSoft: '#e6f1f8', green: T.successDeep,
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_deep_help_seen';
+const STATS_KEY = 'sot_deep_stats';
+
+const Q_SECONDS = 20;
+const TOTAL_Q = 15;
+const PER_TIER = 3;
+const TIER_NAMES = ['Surface', 'Shallows', 'Midwater', 'Deep water', 'The bottom'];
+
+const isIosDevice = () =>
+  typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function msToMidnightET() {
+  try {
+    const now = new Date();
+    const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const next = new Date(et);
+    next.setHours(24, 0, 0, 0);
+    return next - et;
+  } catch (e) {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0);
+    return next - now;
+  }
+}
+function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  if (typeof window === 'undefined') return null;
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) {
+      a = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `a_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('sot_quiz_anon', a);
+    }
+    return a;
+  } catch (e) { return null; }
+}
+const EMPTY_BOARD = { plays: 0, best: null, topTime: null, leaderboard: [], leaderboardAll: [], leaderboardMobile: [], leaderboardFirst: [], leaderboards: {} };
+
+function getStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.v === 1 && s.rec) return s;
+  } catch (e) {}
+  return { v: 1, rec: {} };
+}
+function recordStat(num, entry) {
+  const s = getStats();
+  if (s.rec[num]) return s;
+  const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(s, todayNum) {
+  const rec = s && s.rec ? s.rec : {};
+  const nums = Object.keys(rec).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const perfect = nums.filter((n) => rec[n].won).length;
+  const best = nums.reduce((m, n) => Math.max(m, rec[n].s || 0), 0);
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    run = prev != null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  let cur = 0, at = rec[todayNum] ? todayNum : todayNum - 1;
+  while (rec[at]) { cur++; at--; }
+  return { played, perfect, cur, max, best };
+}
+function mergeServerStats(s, recent, puzzles) {
+  if (!s || !Array.isArray(recent) || !recent.length) return s;
+  const byQuiz = {};
+  for (const p of puzzles) byQuiz[p.quizId] = p;
+  let rec = s.rec, changed = false;
+  for (const m of recent) {
+    const p = m && byQuiz[m.quizId];
+    if (!p || m.attempt !== 1) continue;
+    if (rec[p.num]) continue;
+    const sc = Math.max(0, Math.min(TOTAL_Q, Math.round(((m.scorePct || 0) / 100) * TOTAL_Q)));
+    if (!changed) { rec = { ...rec }; changed = true; }
+    rec[p.num] = { s: sc, t: TOTAL_Q, won: !!m.perfect };
+  }
+  if (!changed) return s;
+  const s2 = { ...s, rec };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+
+const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
+function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+// i = index of the question currently being faced; every question below i was
+// answered correctly, so i IS the depth. status 'lost' keeps pick (the wrong
+// choice index, or null on a timeout) for the reveal.
+const freshState = () => ({ v: 1, i: 0, status: 'playing', t0: null, tEnd: null, pick: null, timedOut: false });
+
+export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const QUESTIONS = questionsByNum[PUZZLE.num] || [];
+  const TOPIC = PUZZLE.topic || 'Today’s topic';
+  const STORE_KEY = `sot_deep_${PUZZLE.num}`;
+
+  const [g, setG] = useState(() => freshState());
+  const gRef = useRef(g);
+  const [now, setNow] = useState(() => Date.now());
+  const [qStart, setQStart] = useState(null);   // Date.now() when current question appeared
+  const [lock, setLock] = useState(false);      // brief green flash between questions
+  const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  // eslint-disable-next-line no-unused-vars -- the player chip lives in
+  // DailyChrome (QuizNavHeader fetches its own identity); this fetch stays for
+  // the cross-device stats merge.
+  const [player, setPlayer] = useState(null);
+  const [countdown, setCountdown] = useState('');
+  const [installEvt, setInstallEvt] = useState(null);
+  const [showA2hsHelp, setShowA2hsHelp] = useState(false);
+  const [standalone, setStandalone] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const [showChrome, setShowChrome] = useState(false);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const viewedRef = useRef(false);
+  const qStartRef = useRef(null);
+  const lockRef = useRef(false);
+
+  const playing = g.status === 'playing';
+  const preStart = playing && !g.t0;
+  const started = playing && !!g.t0;
+  const focusMode = playing && !showChrome;
+  const won = g.status === 'won';
+  const depth = won ? TOTAL_Q : g.i;
+  const question = playing && started && g.i < TOTAL_Q ? QUESTIONS[g.i] : null;
+  const deadQuestion = g.status === 'lost' && g.i < TOTAL_Q ? QUESTIONS[g.i] : null;
+  const tierNum = Math.min(4, Math.floor((playing ? g.i : Math.min(g.i, TOTAL_Q - 1)) / PER_TIER));
+
+  useEffect(() => { gRef.current = g; }, [g]);
+  useEffect(() => { qStartRef.current = qStart; }, [qStart]);
+  useEffect(() => { lockRef.current = lock; }, [lock]);
+
+  useEffect(() => {
+    try {
+      setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
+      setMobileUi(isMobileDevice());
+    } catch {}
+    const onBip = (e) => { e.preventDefault(); setInstallEvt(e); };
+    const onInstalled = () => { setStandalone(true); setInstallEvt(null); };
+    window.addEventListener('beforeinstallprompt', onBip);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => { window.removeEventListener('beforeinstallprompt', onBip); window.removeEventListener('appinstalled', onInstalled); };
+  }, []);
+  const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && typeof saved.i === 'number') {
+          const next = { ...freshState(), ...saved };
+          gRef.current = next;
+          setG(next);
+          if (next.status === 'playing' && next.t0) setQStart(Date.now());
+        }
+      }
+      setGateRules(!localStorage.getItem(HELP_KEY));
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        const done = g.status !== 'playing';
+        if (done || g.t0) localStorage.setItem('sot_deep_day', JSON.stringify({ d: etToday(), done }));
+        else localStorage.removeItem('sot_deep_day');
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  useEffect(() => {
+    if (g.status === 'playing') return;
+    const tick = () => setCountdown(fmtCountdown(msToMidnightET()));
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [g.status]);
+
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    try {
+      const anon = getAnonId();
+      let em = '';
+      try {
+        const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+        if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
+      } catch (e) {}
+      if (anon || em) {
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
+            if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The question clock. Deadline math off Date.now so backgrounding the tab
+  // never pauses it — the clock is the anti-lookup mechanic, and on a
+  // single-topic day looking things up would be easy without it.
+  useEffect(() => {
+    if (!started || !playing) return undefined;
+    const iv = setInterval(() => {
+      setNow(Date.now());
+      const qs = qStartRef.current;
+      if (qs && !lockRef.current && Date.now() - qs >= Q_SECONDS * 1000) {
+        timeOut();
+      }
+    }, 100);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, playing, g.i]);
+
+  const elapsed = g.t0 ? fmtTime((g.tEnd || now) - g.t0) : '0:00';
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+  const remainMs = qStart ? Math.max(0, Q_SECONDS * 1000 - (now - qStart)) : Q_SECONDS * 1000;
+  const remainFrac = remainMs / (Q_SECONDS * 1000);
+
+  const REC_KEY = `sot_deep_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    const cur = gRef.current;
+    if (!cur.t0 || cur.status !== 'playing') return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (cur.t0 || Date.now())) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: cur.i, total: TOTAL_Q, correct: cur.i, guessesUsed: cur.i, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
+  function postResult(g2, score) {
+    abandon.markFlushed();
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    const answered = score + (g2.status === 'lost' ? 1 : 0);
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: TOTAL_Q, won: g2.status === 'won' })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: TOTAL_Q, correct: score, guessesUsed: answered, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  // "Play again": wipe the saved board and dive today's topic again as
+  // practice. The first completed attempt is what the daily leaderboard and
+  // the local streak keep (recordStat is write-once per puzzle number), so a
+  // replay never overwrites the recorded run.
+  function resetGame() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    setG(freshState());
+    setQStart(null);
+    setLock(false);
+    setEndClosed(false);
+  }
+
+  function commit(next) { gRef.current = next; setG(next); }
+  function startGame() {
+    const cur = gRef.current;
+    if (cur.t0) return;
+    commit({ ...cur, t0: Date.now() });
+    setQStart(Date.now());
+    setNow(Date.now());
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+  }
+
+  function answer(k) {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || !cur.t0 || lockRef.current) return;
+    const qq = QUESTIONS[cur.i];
+    if (!qq) return;
+    if (k === qq.correct) {
+      vibrate(HAPT.ok);
+      if (cur.i + 1 >= TOTAL_Q) {
+        const done = { ...cur, i: TOTAL_Q, status: 'won', tEnd: Date.now() };
+        vibrate(HAPT.win);
+        postResult(done, TOTAL_Q);
+        commit(done);
+        return;
+      }
+      setLock(true);
+      lockRef.current = true;
+      commit({ ...cur, lastRight: cur.i });
+      setTimeout(() => {
+        const c2 = gRef.current;
+        if (c2.status !== 'playing') { setLock(false); lockRef.current = false; return; }
+        commit({ ...c2, i: c2.i + 1, lastRight: null });
+        setQStart(Date.now());
+        setNow(Date.now());
+        setLock(false);
+        lockRef.current = false;
+      }, 450);
+    } else {
+      const done = { ...cur, status: 'lost', tEnd: Date.now(), pick: k, timedOut: false };
+      vibrate(HAPT.wrong);
+      postResult(done, done.i);
+      commit(done);
+    }
+  }
+
+  function timeOut() {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || !cur.t0) return;
+    const done = { ...cur, status: 'lost', tEnd: Date.now(), pick: null, timedOut: true };
+    vibrate(HAPT.wrong);
+    postResult(done, done.i);
+    commit(done);
+  }
+
+  function shareUrl() { return withRef(`mindloftdaily.com/deep${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
+  function shareText() {
+    const blocks = Math.floor(depth / PER_TIER);
+    const part = depth % PER_TIER >= 2 ? 1 : 0;
+    const bar = '\u{1F7E6}'.repeat(blocks) + (blocks < 5 && part ? '\u{1F7E7}' : '') + '⬜'.repeat(Math.max(0, 5 - blocks - part));
+    const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
+    const head = won
+      ? `Deep #${PUZZLE.num} · ${TOPIC} · hit the bottom, 15/15 · ${elapsed}${streakBit}`
+      : `Deep #${PUZZLE.num} · ${TOPIC} · ${depth} deep · ${elapsed}${streakBit}`;
+    return `${head}\n${bar}\n${shareUrl()}`;
+  }
+  function copyShare() {
+    const text = playing
+      ? `Deep #${PUZZLE.num} — one topic, fifteen questions, one life. Today it is ${TOPIC}.\n${shareUrl()}`
+      : shareText();
+    if (notifyShareCredit(text)) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) { navigator.share({ text }).catch(() => {}); return; }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); });
+    } catch (e) {}
+  }
+
+  const rulesBody = (
+    <DailyRules
+      accent={COLORS.accent} accentSoft={COLORS.accentSoft}
+      lead="One topic. Fifteen questions. One life."
+      steps={[
+        <>Every question today is about <b>the same subject</b>, and you are told what it is before you start.</>,
+        <>They get harder as you descend: <b>five rounds of three</b>, from questions anyone could take to questions only a specialist will have.</>,
+        <>A wrong answer, or a clock at zero, <b>ends the dive on the spot</b>. Every question you clear is a point.</>,
+        <>You get <b>{Q_SECONDS} seconds a question</b>, and the clock does not pause, so looking things up costs the dive.</>,
+      ]}
+      knack="Nobody knows every subject. The skill is holding your nerve on the round where you stop being sure."
+      footer="Everyone dives the same fifteen in the same order. Ties on the daily board break by time. Clear all fifteen and you hit the bottom."
+    />
+  );
+
+  const scoreRow = (label, value, accent) => (
+    <span style={{ whiteSpace: 'nowrap' }}>{label} <b style={{ color: accent || COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{value}</b></span>
+  );
+
+  const choiceBtn = (qq, k, dead) => {
+    const isRight = k === qq.correct;
+    const isPick = dead ? g.pick === k : false;
+    const flash = !dead && lock && g.lastRight != null && isRight;
+    let bg = T.white, border = 'rgba(28,30,36,0.4)', color = COLORS.ink;
+    if (flash) { bg = '#e7f3ec'; border = COLORS.green; color = COLORS.green; }
+    if (dead && isRight) { bg = '#e7f3ec'; border = COLORS.green; color = '#0f5c2e'; }
+    if (dead && isPick && !isRight) { bg = '#fdecef'; border = COLORS.rust; color = COLORS.rust; }
+    return (
+      <button
+        key={k}
+        className="dp-choice"
+        disabled={dead || lock}
+        onClick={() => answer(k)}
+        style={{ background: bg, borderColor: border, color, cursor: dead || lock ? 'default' : 'pointer' }}
+      >
+        <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, color: 'inherit', opacity: 0.65, marginRight: 9 }}>{String.fromCharCode(65 + k)}</span>
+        {qq.choices[k]}
+      </button>
+    );
+  };
+
+  const qCard = (qq, dead) => (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.accent }}>{TOPIC}</span>
+        <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.faded, opacity: 0.75 }}>{TIER_NAMES[qq.tier - 1]}</span>
+      </div>
+      <div style={{ fontFamily: SANS, fontSize: 18.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.4, marginBottom: 13 }}>{qq.q}</div>
+      <div className="dp-grid">
+        {[0, 1, 2, 3].map((k) => choiceBtn(qq, k, dead))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+      <Grain />
+      {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
+          today's slate rail, collapsing to one line once the clock runs. Outside
+          the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      <DailyChrome slug="deep" name="Deep" collapsed={started} />
+      <div className="dp-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.dp-wrap{padding-left:10px !important;padding-right:10px !important;}}
+          .dp-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .dp-btn:hover{background:var(--accent-soft);}
+          .dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+          @media(max-width:560px){.dp-grid{grid-template-columns:1fr;}}
+          .dp-choice{font-family:${SANS};font-weight:700;font-size:14.5px;text-align:left;border:2px solid;border-radius:9px;padding:12px 13px;line-height:1.35;transition:background .12s ease,border-color .12s ease;}
+          .dp-choice:not(:disabled):hover{background:${COLORS.paper};}
+          .dp-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
+          .dp-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
+          .dp-topic{font-family:${SANS};font-weight:900;font-size:22px;color:${COLORS.accent};line-height:1.2;}
+        `}</style>
+
+        <div style={{ maxWidth: 660, margin: '0 auto' }}>
+
+        <DailyMasthead
+          slug="deep" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
+          blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
+          blocks={'DEEP'.split('').map((ch, i) => (
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+          ))}
+        />
+
+        {preStart && (
+          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 5 }}>Today&rsquo;s topic</div>
+            <div className="dp-topic" style={{ marginBottom: 14 }}>{TOPIC}</div>
+            {gateRules ? rulesBody : (
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <p style={{ margin: '0 0 6px' }}>Fifteen questions on that one subject, easy to expert, {Q_SECONDS} seconds each, and one life. Answer until you miss; every question you clear is a point. The clock starts when you do.</p>
+              </div>
+            )}
+            <div style={{ marginTop: 18 }}>
+              <button className="dp-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Dive</button>
+              <div style={{ marginTop: 10 }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!preStart && (
+        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Anchor size={13} style={{ color: COLORS.accent }} />
+              <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{depth}</b>
+              <span>deep</span>
+            </span>
+            {scoreRow('time', elapsed)}
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>round <b style={{ color: COLORS.accent, fontWeight: 500 }}>{tierNum + 1}/5</b> · {TIER_NAMES[tierNum]}</span>
+          </div>
+
+          {playing && question && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 11 }}>
+                <div className="dp-timebar" style={{ flex: 1 }}>
+                  <div className="dp-timefill" style={{ width: `${Math.round(remainFrac * 100)}%`, background: remainFrac > 0.4 ? COLORS.green : remainFrac > 0.18 ? '#b45309' : COLORS.rust }} />
+                </div>
+                <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: remainFrac > 0.18 ? COLORS.faded : COLORS.rust, fontVariantNumeric: 'tabular-nums', width: 30, textAlign: 'right' }}>{Math.ceil(remainMs / 1000)}s</span>
+              </div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, opacity: 0.75, marginBottom: 6 }}>Question {g.i + 1} of {TOTAL_Q}</div>
+              {qCard(question, false)}
+            </div>
+          )}
+
+          {g.status === 'lost' && deadQuestion && (
+            <div>
+              <div style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 800, color: COLORS.rust, marginBottom: 10 }}>
+                {g.timedOut ? 'Time ran out.' : 'Wrong answer.'} The dive ends at {depth}.
+              </div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, opacity: 0.75, marginBottom: 6 }}>Question {g.i + 1} of {TOTAL_Q} — the one that stopped you</div>
+              {qCard(deadQuestion, true)}
+            </div>
+          )}
+
+          {won && (
+            <div style={{ textAlign: 'center', padding: '18px 6px 10px' }}>
+              <div style={{ fontSize: 26, fontWeight: 900, color: COLORS.green, marginBottom: 6 }}>15 for 15.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.faded }}>You hit the bottom of {TOPIC} in {elapsed}. Nobody knows it better today.</div>
+            </div>
+          )}
+        </div>
+        )}
+
+        {started && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>One wrong answer ends the dive. Everything you clear is banked.</span>
+          </div>
+        )}
+
+        {!playing && (
+          <div style={{ maxWidth: 472, margin: '0 auto' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+              {won ? <>A clean dive: <span style={{ color: COLORS.accent }}>all 15</span> on {TOPIC}.</> : <>You went <span style={{ color: COLORS.accent }}>{depth} of {TOTAL_Q}</span> deep on {TOPIC}.</>}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
+              {won
+                ? 'Nobody can beat that score. They can only tie it faster.'
+                : depth >= 13 ? 'Into the last round. That is specialist territory.'
+                : depth >= 10 ? 'You cleared the hard round. Most people do not.'
+                : depth >= 7 ? 'Through the middle and into the real questions.'
+                : depth >= 4 ? 'Past the gimmes. The subject bites back quickly.'
+                : 'A shallow one today. Tomorrow is a different subject entirely.'}
+            </div>
+            {isTodays && myStats.cur >= 2 && (
+              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+              </div>
+            )}
+            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              {isTodays ? (
+                <>
+                  {countdown ? <>A new topic in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new topic drops at midnight Eastern.'}
+                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/deep?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>dive yesterday&rsquo;s topic &rarr;</a></>)}
+                </>
+              ) : (
+                <>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/deep" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Deep &rarr;</a>
+                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {focusMode && (
+          <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
+          </div>
+        )}
+        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          <DailyGamesGrid replay={!playing ? resetGame : null} self="deep" maxWidth={620}
+            challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+            share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light
+            boardSlot={<DailyBoardPanel self="deep" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
+            divider />
+          {mobileUi && !standalone && (
+            <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
+            </button>
+          )}
+        </div>
+        {showA2hsHelp && (
+          <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Deep to your Home Screen</div>
+              {isIosDevice() ? (
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
+                  <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+                  <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s topic, every day.</li>
+                </ol>
+              ) : (
+                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s topic, every day.</p>
+              )}
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
+            </div>
+          </div>
+        )}
+        {!focusMode && !identity && (
+          <div id="daily-join" style={{ margin: '18px auto 0' }}>
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
+          </div>
+        )}
+        </div>
+      </div>
+
+      {!playing && !endClosed && (
+        <DailyEndCard modal self="deep" won={won}
+          headline={won ? <>You hit the bottom.</> : depth >= 10 ? <>A deep dive.</> : <>The subject stopped you.</>}
+          subline={won
+            ? <>15/15 on {TOPIC} &middot; {elapsed}</>
+            : <>{depth}/{TOTAL_Q} on {TOPIC} &middot; {g.timedOut ? 'the clock got you' : 'one wrong answer'} &middot; {elapsed}</>}
+          onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)} />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            {rulesBody}
+            <button className="dp-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Deep</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Deep is a free daily trivia game from Mind Loft. Every day it picks one subject, from Ancient Rome to the periodic table, and asks fifteen questions about it that get harder the further you go. The first three are gimmes. The last three are for people who really know the thing. One wrong answer ends the dive, so your score is simply how far down you got.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          Everyone plays the same fifteen questions in the same order each day, so the daily leaderboard is a straight fight: deepest dive wins, and ties break by time. Twenty seconds a question keeps it honest, and the clock does not pause when you switch tabs.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+          A new topic drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. If you would rather range across everything than go down one subject, try <a href="/streak" style={{ color: COLORS.ink, fontWeight: 800 }}>Streak</a>, our forty-question gauntlet. More dailies: <a href="/redact" style={{ color: COLORS.ink, fontWeight: 800 }}>Redact</a> and <a href="/listed" style={{ color: COLORS.ink, fontWeight: 800 }}>Listed</a>.
+        </p>
+      </section>
+
+      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+    </div>
+  );
+}
