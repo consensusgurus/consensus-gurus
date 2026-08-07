@@ -1006,6 +1006,7 @@ export default function DailyEndCard({
         </span>
       </div>
       <div className="dec-tile-of">{totalDrops ? <>{playedCount} of {totalDrops} played</> : ' '}</div>
+      <div className="dec-arcbar" aria-hidden="true"><i style={{ width: `${Math.max(2, archivePct || 0)}%` }} /></div>
       <span className="dec-tile-mx">
         <ChevronDown size={15} strokeWidth={2.4} style={{ transform: calOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
       </span>
@@ -1515,9 +1516,306 @@ export default function DailyEndCard({
           .dec-foot{flex-direction:column;gap:7px;}
           .dec-foot .dec-btn{width:100%;}
         }
+
+        /* ============================================================
+           SCOREBOARD THEME (owner direction, 2026-08-06)
+           ------------------------------------------------------------
+           The card used to be a white panel with a dark navy IQ hero
+           inside it, plus a blue share bar, a grey back button and two
+           tinted duo cards: seven surfaces, none of which appear
+           anywhere else on the site. The owner picked the "scoreboard"
+           direction from the 2026-08-06 mockups, so the whole card is
+           now ONE navy surface built from the header's own gradient,
+           and every child is a translucent glass panel ranked by
+           opacity rather than by colour.
+
+           This block deliberately sits at the END of the stylesheet and
+           overrides the light rules above rather than rewriting them in
+           place. Two reasons: the light rules still encode a lot of
+           hard-won layout (tile clamps, the phone title-row fix, the
+           action-row ordering) that has nothing to do with colour, and
+           keeping the override contiguous makes the theme reversible by
+           deleting one block. Colour and depth live here; geometry
+           stays above.
+
+           Mockups: end-game-modal-navy-buttons.html (P1 buttons),
+           end-game-modal-C-centered-hero.html, -C-day-and-iqrank.html,
+           -C-mobile-ranks-2up.html, -C-altA-manrope.html.
+           ============================================================ */
+
+        .dec-card{background:linear-gradient(178deg,#1a3573 0%,#12295e 46%,#0a1a3d 100%);border:1px solid rgba(147,197,253,.22);color:#fff;overflow:hidden;}
+        .dec-card{scrollbar-color:#3f5fa8 transparent;}
+        .dec-card::-webkit-scrollbar-thumb{background:#3f5fa8;border-color:transparent;}
+        .dec-card::-webkit-scrollbar-thumb:hover{background:#5378c4;}
+        .dec-x{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#cfe0ff;}
+        .dec-x:hover{background:rgba(255,255,255,.18);color:#fff;}
+
+        /* Cap band: the ONLY place the card names itself. Full-bleed via
+           negative margins against .dec-card's padding, so it reads as a
+           masthead rather than a chip. A screenshot of the card is now
+           branded, which it never was. */
+        .dec-cap{display:flex;align-items:center;gap:10px;margin:-20px -22px 0;padding:10px 52px 10px 18px;background:${NAVY};}
+        .dec-cap .mk{width:19px;height:19px;border-radius:5px;background:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dec-cap .wm{font-family:${SANS};font-size:13px;font-weight:800;letter-spacing:-.01em;color:var(--white);}
+        .dec-cap .wm i{font-style:normal;color:#60a5fa;}
+        .dec-cap .gm{font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#a9c0f0;border-left:1px solid rgba(255,255,255,.22);padding-left:10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+        /* Hero: verdict | gain | identity, on one line. The gain used to
+           sit stacked under the verdict inside its own filled panel,
+           which left a wide dead zone in the middle of the card and put
+           its biggest number off to one side. Centring it fills the gap
+           AND removes a row, so the hero is ~45px shorter than it was. */
+        .dec-hero{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding:15px 0 16px;margin-bottom:0;border-bottom:1px solid rgba(147,197,253,.2);}
+        .dec-head{margin-bottom:0;min-width:0;}
+        .dec-toprow{padding-right:0;margin-bottom:0;}
+        .dec-title{color:var(--white);font-size:26px;}
+        .dec-detail,.dec-detailm{color:#93aae0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+        .dec-sub{color:#93aae0;}
+        .dec-sub b{color:var(--white);}
+        .dec-check{background:rgba(126,226,184,.16);color:#7ee2b8;box-shadow:inset 0 0 0 1.5px rgba(70,197,142,.55);}
+        .dec-check.loss{background:rgba(240,164,160,.14);color:#f0a4a0;box-shadow:inset 0 0 0 1.5px rgba(240,164,160,.45);}
+        .dec-check.near{background:rgba(250,204,21,.14);color:#facc15;box-shadow:inset 0 0 0 1.5px rgba(250,204,21,.45);}
+        .dec-answer-lbl{font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.11em;color:#8ab2ee;}
+        .dec-answer-word{color:#ffd76b;}
+
+        /* The gain: no longer a filled panel, just the number. On one
+           navy surface a panel-within-a-panel is noise, and the glow
+           carries the emphasis the fill used to. */
+        .dec-iqhero{border:none;background:none;box-shadow:none;border-radius:14px;padding:4px 10px;margin-bottom:0;width:auto;justify-self:center;}
+        .dec-iqhero.full,.dec-iqhero:hover,.dec-iqhero.full:hover{border:none;background:none;box-shadow:none;}
+        .dec-iqhero.open{box-shadow:0 0 0 1px rgba(147,197,253,.55);}
+        .dec-iqhero.full.open{box-shadow:0 0 0 1px rgba(134,239,172,.55);}
+        .dec-iqhero-in{justify-content:center;gap:13px;}
+        .dec-iqhero-lead{gap:13px;}
+        .dec-iqhero-txt{align-items:flex-start;}
+        .dec-brain,.dec-brain img,.dec-brain-fill{width:58px;height:52px;}
+        .dec-brain-base{opacity:.20;filter:grayscale(1) brightness(3.6);}
+        .dec-brain-fill img{filter:brightness(1.75) saturate(1.25);}
+        .dec-iqhero-lbl{font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#8ab2ee;}
+        .dec-iqhero-gain{font-size:52px;letter-spacing:-.045em;color:#dbeafe;text-shadow:0 0 32px rgba(147,197,253,.6);}
+        .dec-iqhero.full .dec-iqhero-gain{color:#d6f7e4;text-shadow:0 0 32px rgba(134,239,172,.55);}
+        /* The three figures and the mobile footnote both moved into the
+           day bar below, which states them at a readable size instead of
+           trailing them in 12px grey. */
+        .dec-iqhero-rule,.dec-iqhero-stats,.dec-iqhero-sub,.dec-iqhero-slate,.dec-iqhero-mx{display:none;}
+
+        /* Identity slot, hero right. A registered player gets their chip;
+           a guest gets the gold claim pill (Alt A) with the figure it is
+           protecting named underneath. Gold is the one colour on a navy
+           card that outranks white without shouting, and it appears
+           exactly twice: here and on the $50 inside the share bar. */
+        .dec-topid{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0;}
+        a.dec-idbox{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18);color:var(--white);}
+        a.dec-idbox:hover{background:rgba(255,255,255,.16);}
+        button.dec-idbox{background:${GOLD};border-color:${GOLD};color:#3a2c00;font-weight:900;font-size:13px;border-radius:11px;padding:10px 15px;box-shadow:0 4px 14px rgba(255,215,107,.3);}
+        button.dec-idbox:hover{background:#ffe08c;border-color:#ffe08c;}
+        .dec-idsub{font-family:${SANS};font-size:11.5px;font-weight:700;color:#e5d3a4;text-align:right;line-height:1.35;max-width:190px;}
+        .dec-idsub b{color:${GOLD};}
+
+        /* ---- "Your day" bar -------------------------------------------
+           IQ rank and today's completion are the two figures that belong
+           to the PLAYER rather than to this game, and both were buried:
+           rank in an 11.5px line under the chip, completion in the words
+           "N of M puzzles today" inside a grey run. They now get a band
+           of their own, and the 42 cells state the day the way a number
+           cannot: 38 empty cells under a finished puzzle is the most
+           honest "keep going" prompt on the card. The strip is built from
+           the live slate, so it tracks DAILY_GAMES rather than a
+           hardcoded count, and it mirrors the slate rail in the page
+           header directly behind the modal. */
+        .dec-day{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.05);border:1px solid rgba(147,197,253,.2);border-radius:14px;padding:12px 13px;margin:13px 0 0;}
+        .dec-day .blk{flex:0 0 auto;min-width:0;}
+        .dec-day .l{font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#8ab2ee;white-space:nowrap;}
+        .dec-day .v{font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--white);margin-top:5px;line-height:1;font-variant-numeric:tabular-nums;}
+        .dec-day .v small{font-size:14px;font-weight:700;color:#8ea9d6;margin-left:1px;}
+        .dec-day .f{font-size:11.5px;font-weight:700;color:#8ea9d6;margin-top:4px;white-space:nowrap;}
+        .dec-day .vr{width:1px;align-self:stretch;background:rgba(147,197,253,.2);flex:0 0 auto;}
+        .dec-day .rk{text-align:right;margin-left:auto;}
+        .dec-dots{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:7px;}
+        .dec-dotrow{display:flex;gap:3px;flex-wrap:wrap;}
+        .dec-dt{width:11px;height:11px;border-radius:3px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.07);flex:none;}
+        .dec-dt.on{background:#5fd39b;border-color:#5fd39b;box-shadow:0 0 6px rgba(95,211,155,.5);}
+        .dec-dt.now{background:var(--white);border-color:var(--white);box-shadow:0 0 8px rgba(255,255,255,.7);}
+        .dec-dots .cta{font-size:11.5px;font-weight:700;color:#9dc0ef;}
+        .dec-dots .cta b{color:#cfe3ff;}
+        .dec-delta{display:inline-flex;font-size:11px;font-weight:800;color:#5fd39b;background:rgba(95,211,155,.14);border:1px solid rgba(95,211,155,.32);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:3px;}
+        .dec-delta.dn{color:#f0a4a0;background:rgba(240,164,160,.12);border-color:rgba(240,164,160,.3);}
+
+        /* Group rule: the card carries two kinds of number and never said
+           so. "This game" separates the Crux ranks from the day bar's
+           site-wide figures above it. */
+        .dec-grouplbl{display:flex;align-items:center;gap:10px;font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#7e9fd4;padding:15px 0 0;}
+        .dec-grouplbl::after{content:'';flex:1;height:1px;background:rgba(147,197,253,.16);}
+
+        /* Rank tiles as glass. On a dark ground the old white tiles were
+           the brightest thing on the card, which put three secondary
+           figures above the share bar in the visual order. */
+        .dec-tiles{margin:11px 0 10px;}
+        .dec-tile{background:rgba(255,255,255,.07);border:1px solid rgba(147,197,253,.24);box-shadow:none;border-radius:12px;padding:12px 10px 11px;}
+        .dec-tile::before{display:none;}
+        .dec-tile:hover{border-color:rgba(147,197,253,.55);background:rgba(255,255,255,.11);box-shadow:none;transform:translateY(-1px);}
+        .dec-tile.open{border-color:#93c5fd;box-shadow:0 0 0 1px #93c5fd;background:rgba(255,255,255,.11);}
+        .dec-tile-lbl{font-size:10px;letter-spacing:.09em;color:#8ab2ee;padding:0 16px;min-height:26px;}
+        .dec-tile-rk{font-size:30px;color:var(--white);margin-top:4px;}
+        .dec-tile-rk .dash{color:#5f7cb0;}
+        .dec-tile-of{font-size:11.5px;color:#8ea9d6;}
+        .dec-tile-mx{color:#7e9fd4;}
+        .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:#cfe3ff;}
+        /* Podium tint survives, restated for a dark ground. */
+        .dec-tile.m1{background:rgba(255,215,107,.11);border-color:rgba(255,215,107,.45);box-shadow:none;}
+        .dec-tile.m1 .dec-tile-lbl{color:#e8cd8b;}
+        .dec-tile.m1 .dec-tile-rk{color:#ffe08c;}
+        .dec-tile.m1 .dec-tile-of{color:#d3bd85;}
+        .dec-tile.m2{background:rgba(226,232,240,.11);border-color:rgba(226,232,240,.42);box-shadow:none;}
+        .dec-tile.m2 .dec-tile-lbl{color:#cbd5e1;}
+        .dec-tile.m2 .dec-tile-rk{color:#f1f5f9;}
+        .dec-tile.m3{background:rgba(226,150,95,.12);border-color:rgba(226,150,95,.42);box-shadow:none;}
+        .dec-tile.m3 .dec-tile-lbl{color:#e0b08b;}
+        .dec-tile.m3 .dec-tile-rk{color:#f3c8a4;}
+        .dec-tile-arc.open{border-color:#93c5fd;box-shadow:0 0 0 1px #93c5fd;}
+        .dec-tile-ring{height:52px;}
+        .dec-arcring,.dec-arcring svg{width:52px;height:52px;}
+        .dec-arcring .num{color:var(--white);}
+        .dec-arcring svg circle:first-child{stroke:rgba(255,255,255,.16);}
+        .dec-arcring svg circle+circle{stroke:#7fb4ff;}
+        /* Desktop keeps the ring; the phone swaps it for a full-width bar
+           (see the 640px block), because Archive is a COMPLETION, not a
+           rank, and it was showing "63%" in a slot shaped for "#58". */
+        .dec-arcbar{display:none;}
+        .dec-tiles-loading{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:#8ab2ee;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.09em;}
+        .dec-tiles-loading::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);}
+        .dec-tile-cal{color:#7e9fd4;}
+
+        /* Expanded leaderboard panel. */
+        .dec-expand{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:var(--white);}
+        .dec-expand-ti{color:var(--white);}
+        .dec-expand-full{color:#93c5fd;}
+        .dec-lbempty,.dec-note,.dec-lbswipe{color:#8ea9d6;}
+        .dec-lbrow,.dec-lbgrow{border-color:rgba(147,197,253,.14);color:#dbeafe;}
+        .dec-lbrow .rk,.dec-lbg .rk{color:#8ab2ee;}
+        .dec-lbrow .nm,.dec-lbg .nm{color:var(--white);}
+        .dec-lbrow .vl,.dec-lbg .num,.dec-lbg .pts{color:#cfe3ff;}
+        .dec-lbghead .h{color:#8ab2ee;}
+        .dec-lbrow.me,.dec-lbgrow.me{background:rgba(147,197,253,.16);}
+        .dec-cal{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:var(--white);}
+        .dec-cal-mo,.dec-cal-wd,.dec-cal-key{color:#8ea9d6;}
+        .dec-cal-cell{border-color:rgba(147,197,253,.2);color:#dbeafe;background:rgba(255,255,255,.05);}
+        .dec-cal-nav button{color:#cfe3ff;border-color:rgba(147,197,253,.28);background:rgba(255,255,255,.07);}
+
+        /* Guest claim banner, restated on navy. Gold ground, blue is NOT
+           used for the CTA here because the share bar below already owns
+           the one solid non-gold fill on the card. */
+        .dec-claim{background:linear-gradient(135deg,rgba(255,215,107,.19),rgba(255,215,107,.08));border-color:rgba(255,215,107,.5);color:var(--white);}
+        .dec-claim .ic{background:rgba(255,215,107,.2);color:${GOLD};box-shadow:inset 0 0 0 1px rgba(255,215,107,.42);}
+        .dec-claim .t{color:var(--white);}
+        .dec-claim .s{color:#e5d3a4;}
+        .dec-claim .cta{background:${GOLD};color:#3a2c00;}
+        .dec-claim::after{background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.22) 50%,transparent 68%);}
+        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,107,.4);}55%{box-shadow:0 0 0 7px rgba(255,215,107,0);}}
+
+        /* ---- P1 buttons ------------------------------------------------
+           The secondary buttons had NO fill, just a 1.5px hairline, so on
+           a gradient the "button" was the same colour as the card behind
+           it: the weakest control there is. P1 gives them a real body.
+           The numbers matter: on a dark ground rgba(255,255,255,.06) is
+           invisible and .08 is a smudge, the step change is around
+           .13, and it needs the inset top highlight or the shape reads
+           as a hole cut in the card rather than something raised. Every
+           raised control also loses its shadow on :active, or the lift is
+           decoration rather than feedback. The share bar stays the ONLY
+           solid fill on the card at every level. */
+        .dec-sharebar{background:var(--white);border-color:var(--white);color:${NAVY};box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 6px 20px rgba(0,0,0,.42);}
+        .dec-sharebar:hover{filter:brightness(1);background:#f4f7ff;border-color:#f4f7ff;}
+        .dec-sharebar .ic{background:#eaf0fd;color:${BLUE};}
+        .dec-sharebar .t{color:#0b1c40;}
+        .dec-sharebar .t .pz{color:#a37800;}
+        .dec-sharebar .s{color:#5a6a8c;}
+        .dec-sharebar:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 10px rgba(0,0,0,.42);}
+        .dec-back,.dec-replay{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border:2px solid rgba(147,197,253,.4);color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-back:hover,.dec-replay:hover{filter:none;background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,.09));border-color:rgba(147,197,253,.55);color:var(--white);}
+        .dec-back:active,.dec-replay:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 5px rgba(0,0,0,.3);}
+        .dec-back .bi{color:#93c5fd;}
+        .dec-replay .rs{color:#8ea9d6;}
+        .dec-fine{color:#7e9fd4;}
+        .dec-fine a{color:#93c5fd;}
+
+        /* Up next / Easiest, as glass rather than tinted paper. */
+        .dec-nx,.dec-ez{background:rgba(255,255,255,.07);border:1.5px solid rgba(147,197,253,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 3px 12px rgba(0,0,0,.26);color:var(--white);}
+        .dec-ez{background:rgba(255,215,107,.09);border-color:rgba(255,215,107,.34);}
+        .dec-nx-fam,.dec-ez-fam{color:#8ab2ee;}
+        .dec-ez-fam{color:#e0c98a;}
+        .dec-nx-name,.dec-ez-name{color:var(--white);}
+        .dec-nx-cd,.dec-blurb{color:#9dc0ef;}
+        .dec-ez .dec-blurb{color:#dcc79a;}
+        .dec-nx-ico,.dec-ez-ico{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);}
+        .dec-nx-btns .dec-btn,.dec-ez-btn{border-color:rgba(147,197,253,.4);color:#dbeafe;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-nx-btns .dec-btn:active,.dec-ez-btn:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 5px rgba(0,0,0,.3);}
+        .dec-sk{background:rgba(255,255,255,.09);}
+        .dec-sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);}
+
+        /* Still-to-play grid, month slip and the popular-quiz block. */
+        .dec-morehd,.dec-more-count,.dec-more-eye,.dec-group,.dec-col{color:#8ea9d6;}
+        .dec-row{background:rgba(255,255,255,.07);border-color:rgba(147,197,253,.22);color:var(--white);}
+        .dec-row:hover{background:rgba(255,255,255,.12);border-color:rgba(147,197,253,.45);}
+        .dec-row .pl{color:#8ea9d6;}
+        .dec-slip{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:var(--white);}
+        .dec-slip-pct,.dec-slip-right{color:#9dc0ef;}
+        .dec-foot .dec-btn{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border-color:rgba(147,197,253,.4);color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-eye,.dec-rz,.dec-gh{color:#8ea9d6;}
+
+        @media(max-width:640px){
+          .dec-cap{margin:-18px -16px 0;padding:9px 46px 9px 14px;}
+          /* Hero collapses to one centred column. It was always going to
+             be one column on a phone, so the centred desktop composition
+             is simply what mobile already wanted: the two viewports now
+             share a layout instead of diverging. Order is
+             verdict -> gain -> identity, which is the right priority. */
+          .dec-hero{grid-template-columns:1fr;justify-items:center;text-align:center;gap:11px;padding:13px 0 14px;}
+          .dec-toprow{justify-content:center;}
+          .dec-titlerow{justify-content:center;}
+          .dec-title{font-size:23px;}
+          .dec-topid{justify-self:center;align-items:center;margin-left:0;}
+          .dec-idsub{text-align:center;max-width:100%;}
+          .dec-iqhero-gain{font-size:44px;}
+          .dec-brain,.dec-brain img,.dec-brain-fill{width:50px;height:45px;}
+          .dec-day{flex-wrap:wrap;gap:12px;padding:11px 12px;}
+          .dec-day .vr{display:none;}
+          .dec-dots{flex-basis:100%;}
+          .dec-dt{width:7px;height:7px;border-radius:2px;}
+          /* Today + All Time pair naturally (both are a rank out of a
+             field) and read fine at half width. Archive is a completion,
+             so it takes the full row as a bar. Saves ~34px, which is the
+             difference between the share bar starting above or below the
+             fold on a 780px viewport. */
+          .dec-tiles{grid-template-columns:1fr 1fr;}
+          .dec-tile{padding:9px 11px;text-align:left;}
+          .dec-tile-lbl{padding:0 18px 0 0;min-height:0;font-size:9.5px;}
+          .dec-tile-rk{font-size:23px;margin-top:5px;display:inline-block;}
+          .dec-tile-of{display:inline-block;margin:0 0 0 6px;font-size:10.5px;}
+          .dec-tile-mx{top:8px;right:5px;}
+          .dec-tile-arc{grid-column:1/-1;}
+          .dec-tile-arc .dec-tile-ring{display:none;}
+          .dec-tile-arc .dec-tile-lbl{display:inline-block;}
+          .dec-arcbar{display:block;height:7px;border-radius:4px;background:rgba(255,255,255,.13);overflow:hidden;margin-top:8px;}
+          .dec-arcbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,${BLUE},#7fb4ff);}
+        }
       `}</style>
 
-      {/* ---- 1. header ---- */}
+      {/* ---- 0. cap band ---- */}
+      {/* The card never named itself, so a screenshot of it was unbranded.
+          Full-bleed navy cap, the one piece of the page header carried
+          into the modal. */}
+      <div className="dec-cap">
+        <span className="mk" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 3 4 9v11h6v-6h4v6h6V9z" fill="#1e3a8a" /><path d="M12 3 4 9h16z" fill="#2563eb" /></svg>
+        </span>
+        <span className="wm">Mind <i>Loft</i></span>
+        <span className="gm">{selfName} {'\u00b7'} {MONTH_NAMES[Number(todayISO.slice(5, 7)) - 1]} {Number(todayISO.slice(8, 10))}</span>
+      </div>
+
+      {/* ---- 1. hero: verdict | gain | identity ---- */}
+      <div className="dec-hero">
+      {/* ---- 1a. verdict ---- */}
       <div className="dec-head">
         {/* Title on the left, the player's chip on the right of the SAME line
             (owner 2026-08-01), clear of the modal's close button. */}
@@ -1534,7 +1832,6 @@ export default function DailyEndCard({
             <span className="dec-title">{finishTitle}</span>
             {score ? <span className="dec-detail">{score}</span> : null}
           </div>
-          <span className="dec-topid">{idChip}</span>
         </div>
         {/* Phone copy of the score: on a phone it sits on its own line under the
             title, because leaving it inside the title row inflated that row's
@@ -1620,6 +1917,64 @@ export default function DailyEndCard({
           <ChevronDown size={15} strokeWidth={2.4} style={{ transform: openTile === 'iq' ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
         </span>
       </div>
+        {/* Identity slot, hero right: the player's chip, or for a guest the
+            gold claim pill with the figures it is protecting named under it.
+            Naming the rank as well as the points is the point, a guest can
+            see the standing they are about to lose. */}
+        <span className="dec-topid">
+          {idChip}
+          {!hasEmail && iq && (iq.rank || typeof iq.xp === 'number') ? (
+            <span className="dec-idsub">
+              <b>
+                {iq.rank ? `#${iq.rank.toLocaleString()}` : null}
+                {iq.rank && typeof iq.xp === 'number' ? ' and ' : null}
+                {typeof iq.xp === 'number' ? `${iq.xp.toLocaleString()} IQ` : null}
+              </b>{' '}unclaimed
+            </span>
+          ) : null}
+        </span>
+      </div>
+
+      {/* ---- 2. your day: completion + IQ rank ---- */}
+      {/* These are the two figures that belong to the PLAYER rather than to
+          this game, and both used to be buried: rank in an 11.5px line under
+          the chip, completion in the words "N of M puzzles today" inside a
+          grey run. The 42 cells state the day in a way the number cannot,
+          and they mirror the slate rail in the page header behind the modal.
+          Built from DAILY_GAMES, so the strip tracks the live slate. */}
+      <div className="dec-day">
+        <div className="blk">
+          <div className="l">Puzzles today</div>
+          <div className="v">{doneCount}<small>/{total}</small></div>
+        </div>
+        <div className="dec-dots">
+          <div className="dec-dotrow" aria-hidden="true">
+            {DAILY_GAMES.map((g) => (
+              <span
+                key={g.key}
+                className={`dec-dt${g.key === self ? ' now' : (doneKeys.has(g.key) ? ' on' : '')}`}
+              />
+            ))}
+          </div>
+          <div className="cta">
+            {slateFull
+              ? <><b>Slate complete.</b> Every puzzle today is done.</>
+              : <><b>{total - doneCount} left today.</b> Finishing the slate fills the brain.</>}
+            {iq && typeof iq.xp === 'number' ? <> {'\u00b7'} <b>{iq.xp.toLocaleString()}</b> IQ total</> : null}
+            {showIqToday ? <> {'\u00b7'} <b>+{iq.todayGained.toLocaleString()}</b> today</> : null}
+            {iq && iq.firstPlay ? <> {'\u00b7'} Your first IQ points are banking</> : null}
+          </div>
+        </div>
+        <div className="vr" aria-hidden="true" />
+        <div className="blk rk">
+          <div className="l">IQ rank</div>
+          <div className="v">{iq && iq.rank ? `#${iq.rank.toLocaleString()}` : <span className="dash">{iqResolved ? '\u2014' : '\u00b7'}</span>}</div>
+          <div className="f">{iq && iq.total ? `of ${iq.total.toLocaleString()} players` : ' '}</div>
+        </div>
+      </div>
+
+      {/* ---- 3. this game ---- */}
+      <div className="dec-grouplbl">This game</div>
       {ranksLoading ? (
         <div className="dec-tiles-loading" role="status" aria-live="polite">Loading your rankings…</div>
       ) : null}
