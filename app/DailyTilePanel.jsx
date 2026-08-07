@@ -685,11 +685,15 @@ export default function DailyTilePanel({
              without moving it in the JSX. */
           .dtp-idt,.dtp-nm{display:contents;}
           .dtp-hd > *,.dtp-nm > *{flex:1 1 auto;min-width:0;justify-content:center;font-size:11px;}
-          /* Play leads the strip. */
-          .dtp-acts{order:-1;display:flex;gap:8px;}
+          /* Play leads the strip and takes a LINE OF ITS OWN (owner,
+             2026-08-07). flex-basis 100% is what breaks the line: it is the one
+             thing in the drawer that starts the game, and sharing a row with
+             four pill chips sized it like a fourth chip. The chips wrap
+             underneath and still spread across the width between them. */
+          .dtp-acts{order:-1;flex:1 1 100%;display:flex;gap:8px;}
           .dtp-play{flex:1 1 auto;background:var(--white);color:var(--blue-deep);
-            font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
-            border-radius:999px;padding:6px 16px;gap:5px;}
+            font-size:14px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+            border-radius:10px;padding:12px 18px;gap:7px;}
           .dtp-play:hover{background:var(--blue-200);transform:none;}
           /* A touch taller than the desktop chips (owner, 2026-08-07): these are
              the drawer's real controls on a phone, not decoration beside a name. */

@@ -1940,7 +1940,10 @@ byte-identical.
 - **Play is at the top of the drawer, first in the navy strip** (owner, 2026-08-07), because the
   slate row no longer carries one. `.dtp-idt` and `.dtp-nm` go `display:contents` so the chips and
   Play are flex items of ONE strip rather than two nested boxes, which is what lets Play join the
-  chip row without moving it in the JSX; `.dtp-acts` takes `order:-1` to lead. The top Close
+  chip row without moving it in the JSX; `.dtp-acts` takes `order:-1` to lead and
+  `flex-basis:100%` to claim a LINE OF ITS OWN, with the chips wrapping underneath. That basis is
+  the whole point: it is the one control in the drawer that starts the game, and sharing a row with
+  four pill chips sized it like a fifth chip (owner, 2026-08-07). The top Close
   (`.dtp-shrink`) leaves, since the drawer ends in a full-width Close bar.
 - **The button strip is navy and its buttons spread across the width.** `flex:1 1 auto`, NOT `1 1 0`:
   an equal-thirds split sizes every chip to the longest label, which leaves the streak flame in a
