@@ -498,7 +498,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           {preStart && (
             <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
               <h2 style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, margin: '0 0 8px' }}>
-                A passage nobody signed, in {N} letters.
+                A clueless acrostic: a passage nobody signed, in {N} letters.
               </h2>
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: COLORS.faded, fontWeight: 600, margin: '0 0 12px' }}>
                 Every box belongs to one answer below, so a letter you type appears in both halves at once.
