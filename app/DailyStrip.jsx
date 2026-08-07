@@ -778,7 +778,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             <i className="sl-cm" style={{ color: col }}>{cat}</i>
             <b>{g.name}</b>
             <span className="sl-sub">
-              {g.tag}
+              {/* The tagline is WRAPPED so it can be the flex item that yields.
+                  As a bare text node the sub line's single ellipsis fell at the
+                  end, which meant a long tagline (Emcee, Garble, Hands) ate the
+                  leader chip instead of truncating itself. */}
+              <i className="sl-tg">{g.tag}</i>
               <i className="sl-mld">{lead ? <><Crown size={9} strokeWidth={2.6} />{lead}</> : 'Be the first'}</i>
             </span>
           </a>
@@ -1310,6 +1314,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-nm .sl-sub{display:block;font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-cm{display:none;}
+        /* The tagline's wrapper. Desktop renders it as the plain inline text it
+           has always been; only the phone makes it a shrinking flex item. */
+        .sl-tg{font-style:normal;}
         .sl-mld{display:none;font-style:normal;}
         .sl-cat{display:flex;justify-content:center;}
         .sl-cat > span{display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 6px;border-radius:5px;max-width:100%;overflow:hidden;white-space:nowrap;}
@@ -1393,8 +1400,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-nm{display:flex;flex-direction:column;}
           .sl-nm b{display:block;font-size:16px;line-height:1.2;}
           .sl-cm{display:block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:0 0 1px;}
-          .sl-nm .sl-sub{font-size:11.5px;}
-          .sl-mld{display:inline-flex;align-items:center;gap:3px;margin-left:6px;font-size:11px;font-weight:700;color:var(--muted);max-width:38vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:baseline;}
+          /* The sub line is a flex row: the tagline shrinks and ellipsizes, the
+             leader chip is flex:none, so the leader is never the thing that gets
+             cut off. It still caps at 38vw and ellipsizes its own long names. */
+          .sl-nm .sl-sub{display:flex;align-items:baseline;font-size:11.5px;}
+          .sl-tg{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+          .sl-mld{flex:none;display:inline-flex;align-items:center;gap:3px;margin-left:6px;font-size:11px;font-weight:700;color:var(--muted);max-width:38vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
           .sl-mld svg{flex:none;color:var(--gold-ink);}
           .sl-btn{width:64px;}
         }

@@ -417,9 +417,10 @@ export default function HomeRails({
               hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
               hero={{
                 eyebrow: showContest ? 'Contest leader' : 'Top community member',
-                sub: showContest
-                  ? `${COPY.prizeLine} \u00b7 ${COPY.formulaLine}`
-                  : 'New players brought in, last 90 days',
+                // Prize line only, no formula: the slab's sub is one nowrap
+                // line and the pair clipped mid-word on a 390px frame. The
+                // countdown already rides in the panel header beside the title.
+                sub: showContest ? COPY.prizeLine : 'New players brought in, last 90 days',
                 unit: showContest ? 'score' : 'brought in',
               }}
             />
