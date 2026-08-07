@@ -682,8 +682,42 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const col = catCol(g.cat);
       const cat = CAT_SHORT[g.cat] || g.cat;
       const open = sel === g.key;
+      const fav = favSet.has(g.key);
       out.push(
         <div key={g.key} className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}`}>
+          {/* Pin. Restored to the row on 2026-08-07: the star used to live in a
+              tile corner, and when the tile board was retired for the slate the
+              only surviving control was the one inside the expanded drawer,
+              which nobody found. Registered viewers only (a guest has no row to
+              store the set on), so the column and its grid track both disappear
+              for everyone else rather than leaving a dead gutter. */}
+          {myGamesOn ? (
+            <span className="sl-fav">
+              <button
+                type="button"
+                className={`sl-favb${fav ? ' on' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // A tap leaves the button focused and phones keep painting it,
+                  // which reads as a smudge stuck behind the star (same fix the
+                  // tile star carried).
+                  if (e.currentTarget && e.currentTarget.blur) e.currentTarget.blur();
+                  toggleFavorite(g.key);
+                }}
+                disabled={!fav && favFull}
+                aria-pressed={fav}
+                aria-label={fav ? `Unpin ${g.name} from your games` : `Pin ${g.name} to the top of your board`}
+                title={fav
+                  ? 'One of your games. Unpin it here.'
+                  : (favFull
+                    ? `You have ${favMax} games pinned. Unpin one first.`
+                    : 'Pin to your games. Your board reorders next visit.')}
+              >
+                <Star size={13} strokeWidth={2.4} fill={fav ? T.gold : 'none'} aria-hidden="true" />
+              </button>
+            </span>
+          ) : null}
           <a className="sl-ic" href={g.href} aria-label={g.name}><img src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} /></a>
           <a className="sl-nm" href={g.href}>
             <b>{g.name}</b><i className="sl-cm" style={{ color: col }}>{cat}</i>
@@ -1175,6 +1209,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
+        /* Pinnable board: one 26px star column at the far left, 36px including
+           its gap, taken back out of Category (-4), Players (-4), Streak (-6),
+           Leader (-14) and Archive (-8). The 1fr name column is deliberately
+           untouched, so adding the star costs the row nothing. */
+        .dh-board.pins .sl-head,.dh-board.pins .sl-row{grid-template-columns:26px 44px minmax(0,1fr) 70px 68px 58px 118px 88px 104px;}
+        .sl-fav{display:flex;align-items:center;justify-content:center;}
+        .sl-favb{width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:#c3c8d1;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .12s,background .12s,transform .12s;}
+        .sl-favb:hover{color:var(--gold-ink);background:#fdf4dc;transform:scale(1.12);}
+        .sl-favb.on{color:var(--gold-ink);}
+        .sl-favb:disabled{cursor:default;opacity:.3;}
+        .sl-favb:disabled:hover{color:#c3c8d1;background:transparent;transform:none;}
+        .sl-favb:focus-visible{outline:2px solid var(--blue);outline-offset:1px;}
         .sl-head .r,.sl-row .r{text-align:right;}
         .sl-head .c{display:flex;align-items:center;justify-content:center;text-align:center;}
         .sl-sort{display:inline-flex;align-items:center;gap:4px;border:0;border-radius:0;background:transparent;padding:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;white-space:nowrap;}
@@ -1227,6 +1273,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;}
           .sl-head{display:none;}
           .sl-row{grid-template-columns:40px minmax(0,1fr) auto auto;gap:9px;padding:8px 12px;}
+          .dh-board.pins .sl-row{grid-template-columns:24px 40px minmax(0,1fr) auto auto;gap:8px;padding:8px 9px;}
+          .sl-favb{width:22px;height:22px;}
           .sl-cat,.sl-pl,.sl-st,.sl-ld{display:none;}
           /* the archive control survives on a phone as an icon, so the stats and
              archive drawer stays reachable with the columns gone */
@@ -1490,7 +1538,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           ) : null}
           <div
             ref={boardRef}
-            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '')}
+            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '')}
             role="navigation"
             aria-label="Daily puzzles"
             aria-hidden={selGame && !slate ? 'true' : undefined}
@@ -1500,6 +1548,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           >
             {slate ? (
               <div className="sl-head" role="row">
+                {myGamesOn ? <span /> : null}
                 <span />
                 {[['game', 'Game', ''], ['cat', 'Category', 'c'], ['players', 'Players', 'c'],
                   ['streak', 'Streak', 'c'], ['leader', 'Leader', 'c'], ['status', 'Status', 'c'],
