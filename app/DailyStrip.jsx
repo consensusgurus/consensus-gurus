@@ -387,16 +387,23 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     return best ? { game: best, players: bestN } : (open[0] ? { game: open[0], players: null } : null);
   })();
 
-  // The field-size note the cap's two halves share. Up next used to show its
-  // tagline alone while Easiest carried a count, which made the pair look
-  // lopsided, so both now hang off one helper (owner, 2026-08-06). A game with
-  // no board payload yet gets no note rather than a zero.
-  const fieldNote = (players) => (players == null
+  // The cap's two halves count DIFFERENT things, deliberately (owner ruling,
+  // 2026-08-06). Up next prints PLAYS, the very figure the board's Players
+  // column shows for that game, so the two can never contradict each other.
+  // Easiest leaderboard keeps the FIELD, the number of scored entries, because
+  // that is what "easiest to place on" actually measures: Jester ran 430 plays
+  // today against a field of 38, and ranking it by plays would call the day's
+  // busiest game an easy board. Its note is worded "on the leaderboard" so the
+  // smaller number reads as a different measure rather than a wrong one.
+  // Either note is dropped entirely when no board payload has arrived, rather
+  // than rendering a zero.
+  const playsNote = (n) => (n == null
     ? ''
-    : ` \u00b7 ${players === 0 ? 'no players today' : `${players.toLocaleString()} ${players === 1 ? 'player' : 'players'} today`}`);
-  const nextPlayers = nextGame && byKey[nextGame.key] && typeof byKey[nextGame.key].field === 'number'
-    ? byKey[nextGame.key].field
-    : null;
+    : ` \u00b7 ${n === 0 ? 'no players today' : `${n.toLocaleString()} ${n === 1 ? 'player' : 'players'} today`}`);
+  const fieldNote = (n) => (n == null
+    ? ''
+    : ` \u00b7 ${n === 0 ? 'nobody on the leaderboard yet' : `${n.toLocaleString()} on the leaderboard`}`);
+  const nextPlays = nextGame ? playsOf(nextGame.key) : null;
 
   // The player's row on a game's per-game board (their score/rank today).
   const myRow = (key) => {
@@ -1282,7 +1289,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               <div className="dh-bupt">
                 <div className="dh-bue up">Up next</div>
                 <div className="dh-bun">{nextGame.name}</div>
-                <div className="dh-busub">{nextGame.tag}{fieldNote(nextPlayers)}</div>
+                <div className="dh-busub">{nextGame.tag}{playsNote(nextPlays)}</div>
               </div>
               <a href={nextGame.href} className="dh-play">
                 <Play size={11} fill="currentColor" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}
@@ -1308,7 +1315,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 <div className="dh-bun">{easiest.game.name}</div>
                 {/* The game's own description leads, the same as Up next, and
                     the field size follows it (owner, 2026-08-03). The count on
-                    its own said nothing about what the game IS. */}
+                    its own said nothing about what the game IS. This half counts
+                    the leaderboard field, NOT plays: see playsNote/fieldNote. */}
                 <div className="dh-busub">{easiest.game.tag}{fieldNote(easiest.players)}</div>
               </div>
               <a href={easiest.game.href} className="dh-play">
