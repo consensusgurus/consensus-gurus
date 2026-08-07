@@ -616,14 +616,29 @@ function buildDailyByGame(rows) {
     }
   }
 
+  // Days LIVE, not days active: the span from a game's first puzzle to today,
+  // so a game with quiet days is not flattered by dividing through a smaller
+  // denominator. This is the divisor behind the chart's "per day live" basis.
+  const daysBetween = (from, to) => {
+    const a = Date.parse(`${from}T00:00:00Z`), b = Date.parse(`${to}T00:00:00Z`);
+    if (!(a >= 0) || !(b >= 0)) return 0;
+    return Math.max(1, Math.round((b - a) / 86400000) + 1);
+  };
   const games = DAILY_GAMES.map((g) => {
     const s = stats.get(g.key);
+    const dayList = Array.from(s.days).sort();
+    const firstDay = dayList[0] || null;
+    const lastDay = dayList.length ? dayList[dayList.length - 1] : null;
+    const daysLive = firstDay ? daysBetween(firstDay, today) : 0;
     return {
       key: s.key,
       title: s.title,
       plays: s.plays,
       players: s.players.size,
       daysActive: s.days.size,
+      firstDay,
+      lastDay,
+      daysLive,
       avgPlays: s.days.size ? Math.round((s.plays / s.days.size) * 10) / 10 : null,
       avgTime: s.timeN ? Math.round(s.timeSum / s.timeN) : null,
       today: {

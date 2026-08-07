@@ -2955,24 +2955,40 @@ function TopPlayersTodayPanel({ data }) {
 // between the two bars reads as repeat play); time per play has its own scale
 // in the right-hand column. Data is the same buildDailyByGame() payload the
 // Daily Games tab uses, so nothing new is queried.
+//
+// LIFETIME TOTALS ARE NOT COMPARABLE ACROSS GAMES. The slate was built up over
+// months, so an older game has simply had more days to bank plays (Crux shipped
+// first and tops every lifetime chart for that reason alone). The basis toggle
+// fixes this: "Per day live" divides plays and players by daysLive, the span
+// from a game's first puzzle to today, so a game launched last week is judged
+// at the same rate as one that launched in June. Per day live is the DEFAULT
+// because it is the honest comparison; Total is there when you want raw volume.
+// Days live is shown as its own column so the divisor is never hidden.
 function GamesRankedPanel({ data }) {
   const all = (data && data.games) || [];
   const totals = (data && data.totals) || {};
   const [metric, setMetric] = useState('plays');
+  const [basis, setBasis] = useState('rate');
   const [showQuiet, setShowQuiet] = useState(false);
+  const rate = basis === 'rate';
+
+  // The value each bar and number shows, under the current basis.
+  const playsOf = (g) => (rate ? (g.daysLive ? (g.plays || 0) / g.daysLive : 0) : g.plays || 0);
+  const playersOf = (g) => (rate ? (g.daysLive ? (g.players || 0) / g.daysLive : 0) : g.players || 0);
+  const fmtVal = (v) => (rate ? v.toFixed(1) : Math.round(v).toLocaleString());
 
   const games = useMemo(() => {
     const live = showQuiet ? all : all.filter((g) => g.plays > 0);
     const by = {
-      plays: (g) => g.plays || 0,
-      players: (g) => g.players || 0,
+      plays: playsOf,
+      players: playersOf,
       time: (g) => (g.avgTime == null ? -1 : g.avgTime),
     }[metric];
     return [...live].sort((a, b) => by(b) - by(a) || (a.title || '').localeCompare(b.title || ''));
-  }, [all, metric, showQuiet]);
+  }, [all, metric, showQuiet, basis]);
 
   const quietCount = all.length - all.filter((g) => g.plays > 0).length;
-  const maxPlays = games.reduce((m, g) => Math.max(m, g.plays || 0), 0);
+  const maxPlays = games.reduce((m, g) => Math.max(m, playsOf(g)), 0);
   const maxTime = games.reduce((m, g) => Math.max(m, g.avgTime || 0), 0);
 
   const pillStyle = (on) => ({
@@ -2989,11 +3005,13 @@ function GamesRankedPanel({ data }) {
   });
 
   const exportCsv = () => {
-    const head = ['Game', 'Total plays', 'Unique players', 'Plays per player', 'Avg seconds/play', 'Avg time/play', 'Days active'];
+    const head = ['Game', 'First puzzle', 'Days live', 'Days active', 'Total plays', 'Unique players', 'Plays per day live', 'Players per day live', 'Plays per player', 'Avg seconds/play', 'Avg time/play'];
     const rows = games.map((g) => [
-      g.title, g.plays, g.players,
+      g.title, g.firstDay || '', g.daysLive || 0, g.daysActive, g.plays, g.players,
+      g.daysLive ? (g.plays / g.daysLive).toFixed(2) : '',
+      g.daysLive ? (g.players / g.daysLive).toFixed(2) : '',
       g.players ? (g.plays / g.players).toFixed(2) : '',
-      g.avgTime == null ? '' : g.avgTime, dgDur(g.avgTime), g.daysActive,
+      g.avgTime == null ? '' : g.avgTime, dgDur(g.avgTime),
     ]);
     downloadCsvFile('sot-games-plays-players-time', head, rows);
   };
@@ -3018,8 +3036,11 @@ function GamesRankedPanel({ data }) {
     <div>
       <SectionHeading>Games at a glance</SectionHeading>
       <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: COLORS.faded, margin: '0 0 18px', lineHeight: 1.6 }}>
-        All {all.length} daily games ranked together: total plays, unique players, and average time per play.
+        All {all.length} daily games ranked together: plays, unique players, and average time per play.
         Plays and players share a scale, so the gap between the two bars is repeat play. Registered and anonymous plays both count.
+        {rate
+          ? ' Shown per day live: each game\u2019s plays and players divided by the days since its first puzzle, so an older game is not credited for simply having existed longer.'
+          : ' Shown as lifetime totals, which favour the games that launched earliest. Switch to per day live to compare them fairly.'}
       </p>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -3030,7 +3051,20 @@ function GamesRankedPanel({ data }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginRight: 2 }}>Rank by</span>
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginRight: 2 }}>Show</span>
+        {[['rate', 'Per day live'], ['total', 'Lifetime total']].map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setBasis(key)}
+            title={key === 'rate'
+              ? 'Divide plays and players by the days since each game\u2019s first puzzle, so games of different ages compare fairly'
+              : 'Raw lifetime counts, which favour whichever games launched earliest'}
+            style={pillStyle(basis === key)}
+          >
+            {label}
+          </button>
+        ))}
+        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, margin: '0 2px 0 10px' }}>Rank by</span>
         {[['plays', 'Plays'], ['players', 'Players'], ['time', 'Time / play']].map(([key, label]) => (
           <button key={key} onClick={() => setMetric(key)} style={pillStyle(metric === key)}>{label}</button>
         ))}
@@ -3050,24 +3084,30 @@ function GamesRankedPanel({ data }) {
 
       <div style={{ background: COLORS.paper, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: '14px 16px 10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, paddingBottom: 10, marginBottom: 8, borderBottom: `1px solid ${COLORS.line}` }}>
-          <LegendKey color={COLORS.ember} label="Total plays" />
-          <LegendKey color={COLORS.forest} label="Unique players" />
+          <LegendKey color={COLORS.ember} label={rate ? 'Plays / day live' : 'Total plays'} />
+          <LegendKey color={COLORS.forest} label={rate ? 'Players / day live' : 'Unique players'} />
           <LegendKey color={COLORS.rust} label="Avg time / play" />
+          <span style={{ marginLeft: 'auto', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>
+            {rate ? 'Rates are per day since each game\u2019s first puzzle' : 'Raw lifetime counts \u00b7 older games are flattered'}
+          </span>
         </div>
 
         {games.map((g, i) => {
-          const playW = maxPlays ? Math.max(g.plays > 0 ? 1.5 : 0, (g.plays / maxPlays) * 100) : 0;
-          const playerW = maxPlays ? Math.max(g.players > 0 ? 1.5 : 0, (g.players / maxPlays) * 100) : 0;
+          const pv = playsOf(g);
+          const uv = playersOf(g);
+          const playW = maxPlays ? Math.max(pv > 0 ? 1.5 : 0, (pv / maxPlays) * 100) : 0;
+          const playerW = maxPlays ? Math.max(uv > 0 ? 1.5 : 0, (uv / maxPlays) * 100) : 0;
           const timeW = maxTime && g.avgTime ? Math.max(2, (g.avgTime / maxTime) * 100) : 0;
           const perPlayer = g.players ? g.plays / g.players : 0;
           return (
             <div
               key={g.key}
-              title={`${g.title}\n${g.plays.toLocaleString()} play${g.plays === 1 ? '' : 's'} \u00b7 ${g.players.toLocaleString()} player${g.players === 1 ? '' : 's'}${perPlayer ? ` (${perPlayer.toFixed(1)} plays each)` : ''}\nAvg ${dgDur(g.avgTime)} per play \u00b7 ${g.daysActive.toLocaleString()} active day${g.daysActive === 1 ? '' : 's'}`}
+              title={`${g.title}\nLifetime: ${g.plays.toLocaleString()} play${g.plays === 1 ? '' : 's'} \u00b7 ${g.players.toLocaleString()} player${g.players === 1 ? '' : 's'}${perPlayer ? ` (${perPlayer.toFixed(1)} plays each)` : ''}\nPer day live: ${g.daysLive ? (g.plays / g.daysLive).toFixed(1) : '0'} plays \u00b7 ${g.daysLive ? (g.players / g.daysLive).toFixed(1) : '0'} players\nLive ${g.daysLive.toLocaleString()} day${g.daysLive === 1 ? '' : 's'} since ${g.firstDay || 'launch'} \u00b7 ${g.daysActive.toLocaleString()} with plays\nAvg ${dgDur(g.avgTime)} per play`}
               style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '5px 0', borderBottom: i < games.length - 1 ? `1px solid ${COLORS.ink}12` : 'none', opacity: g.plays ? 1 : 0.45 }}
             >
               <span style={{ flex: '0 0 22px', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, textAlign: 'right' }}>{i + 1}</span>
               <span style={{ flex: '0 0 132px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 12, fontWeight: 700, color: COLORS.ink }}>{g.title}</span>
+              <span style={{ flex: '0 0 42px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{g.daysLive ? `${g.daysLive}d` : '\u2014'}</span>
 
               <span style={{ flex: 1, minWidth: 90, display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <span style={{ display: 'block', height: 9, background: `${COLORS.ink}0d`, borderRadius: 2, overflow: 'hidden' }}>
@@ -3078,8 +3118,8 @@ function GamesRankedPanel({ data }) {
                 </span>
               </span>
 
-              <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: g.plays ? COLORS.ember : COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{g.plays.toLocaleString()}</span>
-              <span style={{ flex: '0 0 52px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: g.players ? COLORS.forest : COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{g.players.toLocaleString()}</span>
+              <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 700, color: g.plays ? COLORS.ember : COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{fmtVal(pv)}</span>
+              <span style={{ flex: '0 0 52px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 11, color: g.players ? COLORS.forest : COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{fmtVal(uv)}</span>
               <span style={{ flex: '0 0 46px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, fontVariantNumeric: 'tabular-nums' }}>{perPlayer ? `${perPlayer.toFixed(1)}\u00d7` : '\u2014'}</span>
 
               <span style={{ flex: '0 0 108px', display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -3093,7 +3133,7 @@ function GamesRankedPanel({ data }) {
         })}
       </div>
       <p style={{ fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded, margin: '10px 0 0', lineHeight: 1.6 }}>
-        The middle figures are total plays, unique players, and plays per player. A player who plays several games counts once in each game, so the per-game player counts sum to more than the site total.
+        Columns: days live, then {rate ? 'plays per day live, players per day live' : 'total plays, unique players'}, then plays per player (lifetime, so it does not move with the basis). A player who plays several games counts once in each game, so the per-game player counts sum to more than the site total.
       </p>
     </div>
   );
