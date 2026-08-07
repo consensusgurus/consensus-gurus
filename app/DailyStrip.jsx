@@ -1216,10 +1216,17 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-board.pins .sl-head,.dh-board.pins .sl-row{grid-template-columns:26px 44px minmax(0,1fr) 70px 68px 58px 118px 88px 104px;}
         .sl-fav{display:flex;align-items:center;justify-content:center;}
         .sl-favb{width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;background:transparent;color:#c3c8d1;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:color .12s,background .12s,transform .12s;}
-        .sl-favb:hover{color:var(--gold-ink);background:#fdf4dc;transform:scale(1.12);}
+        /* HOVER STAYS BEHIND @media(hover:hover). A tap applies :hover on a
+           phone and the browser keeps painting it until you tap elsewhere, so
+           an unstar left the gold #fdf4dc block sitting behind the star (owner,
+           2026-08-07). Same rule the retired tile star carried; any new
+           row-level control needs it too. */
+        @media(hover:hover){
+          .sl-favb:hover{color:var(--gold-ink);background:#fdf4dc;transform:scale(1.12);}
+          .sl-favb:disabled:hover{color:#c3c8d1;background:transparent;transform:none;}
+        }
         .sl-favb.on{color:var(--gold-ink);}
         .sl-favb:disabled{cursor:default;opacity:.3;}
-        .sl-favb:disabled:hover{color:#c3c8d1;background:transparent;transform:none;}
         .sl-favb:focus-visible{outline:2px solid var(--blue);outline-offset:1px;}
         .sl-head .r,.sl-row .r{text-align:right;}
         .sl-head .c{display:flex;align-items:center;justify-content:center;text-align:center;}

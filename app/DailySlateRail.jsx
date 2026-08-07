@@ -63,8 +63,14 @@ export default function DailySlateRail({ current = null }) {
   // but the jester row's route is /jesters (the directory was pluralised, the
   // key never was), so the derived /jester would 404. Corrected here rather
   // than in the shared registry, where the derived href has other consumers.
+  // Sorted A-Z by display name (owner, 2026-08-07). SLATE_KEYS keeps the home
+  // board's order, which is meaningful there but makes a 49-name rail a linear
+  // search: you cannot find the game you want without reading every chip. The
+  // key list stays as-is (it is still the roster, see the header note); only
+  // the render order changes.
   const games = SLATE_KEYS.map((k) => DAILY_GAME_MAP[k]).filter(Boolean)
-    .map((g) => (g.key === 'jester' ? { ...g, href: '/jesters' } : g));
+    .map((g) => (g.key === 'jester' ? { ...g, href: '/jesters' } : g))
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
   const played = games.filter((g) => done.has(g.key)).length;
 
   // Park the current game near the left edge so the games either side of it are

@@ -203,7 +203,7 @@ export default function DailyTilePanel({
         <span className="dtp-ic"><img src={game.img} alt="" aria-hidden="true" /></span>
         <div className="dtp-idt">
           <div className="dtp-nm">
-            {game.name}
+            <span className="dtp-nmt">{game.name}</span>
             {streak >= 2 ? <span className="dtp-flame"><Flame size={12} strokeWidth={2.6} />{streak}</span> : null}
             {isDone ? <span className="dtp-donechip">Done today</span> : null}
             {/* Shares THIS game rather than the quizzes home the panel sits on,
@@ -644,9 +644,20 @@ export default function DailyTilePanel({
         @media(max-width:720px){
           .dtp{padding:13px;}
           .dtp-hd{flex-wrap:wrap;gap:11px;}
-          .dtp-acts{width:100%;}
-          .dtp-play{flex:1;font-size:14px;padding:12px 16px;}
           .dtp-nm{font-size:19px;}
+          /* The drawer opens directly under the slate row, which ALREADY shows
+             the tile art, the game name and a Play button, and the row's own
+             chevron closes it again. Repeating all of that plus the one-line
+             definition cost most of a phone screen before the first real stat,
+             so on a phone the drawer opens straight into "Your record" (owner,
+             2026-08-07). What survives is the chip line: Done today, the streak
+             flame, Share for credit and the pin, none of which the row repeats
+             in full. Desktop is unchanged. */
+          .dtp-ic,.dtp-nmt,.dtp-how,.dtp-acts{display:none;}
+          /* With the icon gone the identity block is the whole header, and the
+             chip row needs no leading gap above the grid below it. */
+          .dtp-hd{gap:0;}
+          .dtp-nm:empty{display:none;}
           .dtp-grid{grid-template-columns:1fr;gap:15px;}
           .dtp-col:nth-child(3){grid-column:auto;}
           /* One prompt per row on a phone: two 168px columns would truncate the
