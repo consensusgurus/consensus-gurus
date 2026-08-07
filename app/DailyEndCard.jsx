@@ -253,7 +253,7 @@ export const DAILY_GAMES = [
   { key: 'bracket', cat: 'trivia',   name: 'Bracket', tag: 'Name every winner',        blurb: 'A real tournament bracket, empty. Fill in every winner round by round from memory.', href: '/bracket' },
   { key: 'lode',    cat: 'word',     name: 'Lode',    tag: 'Seven letters, rare words pay',     blurb: 'Seven letters and unlimited words. The rarer the word you find, the bigger it scores.', href: '/lode' },
   { key: 'etch',    cat: 'logic',    name: 'Etch',    tag: 'A picture in the numbers',   blurb: 'A nonogram: follow the row and column counts to uncover the picture hidden in the grid.', href: '/etch' },
-  { key: 'hedge',   cat: 'numbers',  name: 'Hedge',   tag: 'Draw one closed loop',       blurb: 'Draw a single unbroken loop that satisfies every number printed on the board.', href: '/hedge' },
+  { key: 'hedge',   cat: 'logic',    name: 'Hedge',   tag: 'Draw one closed loop',       blurb: 'Draw a single unbroken loop that satisfies every number printed on the board.', href: '/hedge' },
   { key: 'glyph',   cat: 'word',     name: 'Glyph',   tag: 'A crossword with no clues',  blurb: 'A codeword: every letter is a number, and two given letters are all you get to crack the alphabet.', href: '/glyph' },
 ];
 

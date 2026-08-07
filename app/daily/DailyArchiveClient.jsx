@@ -40,10 +40,10 @@ const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'hedge', 'crunch'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'crunch'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['streak', 'bracket', 'listed', 'redact', 'dating', 'extra'] },
-  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'park', 'fib', 'suffice', 'paths'] },
+  { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths'] },
   { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'babel', 'chain', 'turn'] },
   { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
   // Retired games keep their full archives playable here, at the bottom of the
