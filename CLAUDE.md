@@ -1874,8 +1874,13 @@ byte-identical.
   between every row (that shipped once and the owner caught it). A row and its own drawer carry the SAME order value and
   equal-order flex items keep source order, so a drawer never leaves its row: any new per-row
   element must follow that rule or it will float out of its group.
-- **Each group PEEKS a couple of rows and hides the rest behind a full-width expand bar**
-  (`PHONE_PEEK = { prog: 3, todo: 3, dn: 0 }`, owner 2026-08-07). Finished games peek NOTHING: you
+- **The peek is a BUDGET of six games, not a per-group count** (`PHONE_ROWS = 6`,
+  `PHONE_PROG_MAX = 3`, owner 2026-08-07): the reader always sees six games across paused +
+  unplayed, however the day is split. Paused takes what it needs up to three, unplayed takes the
+  rest, so no in-progress games means six ready to play and that band disappears entirely, one means
+  five, three means three. A fixed count per group made the first screen swing by a whole group's
+  worth of rows depending on how many games you happened to have paused. Finished games sit outside
+  the budget and peek NOTHING: you
   already know how you did, so the band plus its bar is the whole group until you ask. The reason is
   the rails, not tidiness: with all 51 rows listed, the leaderboard panels and Featured sat a very
   long scroll below the fold. Collapsed is the default on every load, since the point is what the
