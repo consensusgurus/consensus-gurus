@@ -692,6 +692,15 @@ export default function DailyTilePanel({
             font-family:'Manrope',system-ui,sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--white);}
           .dtp-lab svg{color:var(--blue-200);}
           .dtp-labct{color:var(--blue-200);font-size:9.5px;}
+          /* Two things ride INSIDE a label, so they have to come along onto the
+             navy: the trend summary (all-time best / avg) and the crowd-vs-
+             history toggle. Both shipped in their white-panel colours and the
+             summary was near-invisible on the band (owner, 2026-08-07). */
+          .dtp-tsum{color:var(--blue-200);}
+          .dtp-tabs{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.26);}
+          .dtp-tabs button{color:#cfe0fb;}
+          .dtp-tabs button:hover{color:var(--white);}
+          .dtp-tabs button.on{background:var(--white);color:var(--accent);box-shadow:none;}
           /* the 2x2 bordered tiles become the header's 4-up divided strip */
           .dtp-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:0;background:var(--surface);border-bottom:1px solid var(--border);}
           .dtp-stats>div{min-width:0;background:transparent;border:0;border-right:1px solid var(--border);border-radius:0;padding:9px 8px;}
