@@ -168,6 +168,11 @@ for (const [k, v] of Object.entries(CAT_COLOR)) {
 const catCol = (cat) => CAT_COLOR[cat] || T.muted;
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
+// How far back Up next looks when deciding which game this viewer plays the
+// most. Long enough to survive a few skipped days, short enough that a habit
+// dropped last month stops winning.
+const RECENT_DAYS = 30;
+
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -196,6 +201,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [inprog, setInprog] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
   const [archive, setArchive] = useState({}); // per-game { played, total }, from the same payload
+  // Per-game plays by THIS viewer over the last RECENT_DAYS ET days, derived
+  // client side from the same daily-status payload (its `played` array is a
+  // list of dated quiz ids). Drives Up next: the game you actually play most.
+  const [recent, setRecent] = useState({});
   // NOTE the day figures this component used to own (IQ Points earned today,
   // the day's move on the IQ board, the cross-game day streak) moved into the
   // page header on 2026-08-03 and are read there from useDayStats. Do not
@@ -344,6 +353,24 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           }
           return next;
         });
+        // Recent habit, for Up next. `played` holds every dated id this player
+        // has finished, so counting the ones inside the last RECENT_DAYS ET days
+        // costs one pass and no extra request. Today's own row is included and
+        // harmless: a game played today is not an Up next candidate anyway.
+        try {
+          const days = new Set();
+          const et = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+          for (let i = 0; i < RECENT_DAYS; i++) {
+            const d = new Date(et); d.setDate(et.getDate() - i);
+            days.add(`${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear() % 100}`);
+          }
+          const counts = {};
+          for (const qid of played) {
+            const m = /^([a-z]+)-(\d+-\d+-\d+)$/.exec(qid);
+            if (m && days.has(m[2])) counts[m[1]] = (counts[m[1]] || 0) + 1;
+          }
+          setRecent(counts);
+        } catch (e) {}
       })
       .catch(() => {});
     return () => { alive = false; };
@@ -352,10 +379,29 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const n = GAMES.filter((g) => done.has(g.key)).length;
   const pct = Math.round((n / GAMES.length) * 100);
   const left = GAMES.length - n;
-  // Up Next = the first unfinished game in display order (an in-progress game
-  // counts as unfinished, so it becomes a Resume target). It still renders as a
-  // tile in the board too (owner mockup shows all 30 tiles).
-  const nextGame = games.find((g) => !done.has(g.key)) || null;
+  // Up Next = the unfinished game THIS VIEWER plays the most (owner, 2026-08-07).
+  // It used to be simply the first unfinished game in board order, which is the
+  // day's most played game globally, so a regular with three games they actually
+  // play was pointed at whatever the crowd was doing. Ranked by plays over the
+  // last RECENT_DAYS ET days (a changing habit beats an old one), all time days
+  // played as the tiebreak, board order last, so the pick is stable within a day.
+  // An in-progress game still counts as unfinished and becomes a Resume target.
+  // A viewer with NO history on any open game (a guest, or a first visit) falls
+  // back to the old behaviour: first unfinished in board order. It still renders
+  // as a tile in the board too.
+  const nextGame = (() => {
+    const open = games.filter((g) => !done.has(g.key));
+    if (!open.length) return null;
+    const scoreOf = (g) => [recent[g.key] || 0, (archive[g.key] && archive[g.key].played) || 0];
+    let best = null, bestScore = [0, 0];
+    // `open` is already in board order, and every comparison below is strict, so
+    // a tie keeps the game that sits higher on the board.
+    for (const g of open) {
+      const sc = scoreOf(g);
+      if (sc[0] > bestScore[0] || (sc[0] === bestScore[0] && sc[1] > bestScore[1])) { best = g; bestScore = sc; }
+    }
+    return best || open[0];
+  })();
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   // bgames / byKey / hasBoard are built above, beside the display order.
