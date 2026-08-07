@@ -9,10 +9,19 @@
 // dailies one tap away from inside any game, marks the ones you have already
 // finished today, and highlights the one you are on.
 //
-// COLOUR: #eef3ff on #cddffb (accentSoft / accentBorder) — NOT a new blue. It
-// is the exact shade the home page already uses for its own "Today's Slate"
-// panel header, so the page reads as three layers of one header: #1e3a8a
-// masthead, #16307a stat bar, #eef3ff slate. Do not retint it in isolation.
+// COLOUR (owner, 2026-08-07): the rail is the THIRD NAVY BAND, #12276b, one
+// step darker than the stat bar above it, so the whole masthead group reads as
+// one continuous block: #1e3a8a masthead, #16307a stat bar, #12276b slate.
+// It was #eef3ff (accentSoft) until now, borrowed from the home page's own
+// "Today's Slate" panel. That made the rail rhyme with the HOME PAGE but read
+// as a separate object stuck under the HEADER, which is what the owner asked
+// to fix. The chips are translucent white on the navy rather than a new blue,
+// so the band stays one colour no matter how many games sit in it, and the
+// 3px var(--blue) rule under the stat bar (.qchm-r2 in QuizCommandHeader,
+// shared with the quiz surfaces so it is NOT ours to change) becomes the seam
+// between the two navy bands. Done stays green and the current game stays
+// var(--blue); both are simply retuned to read on navy. Do not retint any of
+// this in isolation: the three bands are one system.
 //
 // NOTHING HERE IS PINNED. The rail scrolls away with the rest of the chrome:
 // the board must be able to own the viewport (owner rule, 2026-08-04).
@@ -93,19 +102,19 @@ export default function DailySlateRail({ current = null }) {
   return (
     <div className="dsr">
       <style>{`
-        .dsr{background:var(--accent-soft);border-bottom:1px solid var(--accent-border);position:relative;z-index:2;}
+        .dsr{background:#12276b;border-bottom:1px solid #0d1e56;position:relative;z-index:2;}
         .dsr-in{max-width:1560px;margin:0 auto;padding:7px clamp(14px,2.5vw,34px);display:flex;align-items:center;gap:11px;}
-        .dsr-k{font-family:${SANS};font-size:9px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#4a63a8;white-space:nowrap;flex:none;}
-        .dsr-btn{width:24px;height:24px;border-radius:50%;background:var(--white);border:1px solid var(--accent-border);color:var(--accent);display:flex;align-items:center;justify-content:center;font:inherit;font-size:13px;font-weight:800;line-height:1;cursor:pointer;flex:none;padding:0;}
-        .dsr-btn:hover{background:#dfe9ff;}
+        .dsr-k{font-family:${SANS};font-size:9px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#93aae2;white-space:nowrap;flex:none;}
+        .dsr-btn{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.10);border:1px solid #35529e;color:#dbe6ff;display:flex;align-items:center;justify-content:center;font:inherit;font-size:13px;font-weight:800;line-height:1;cursor:pointer;flex:none;padding:0;}
+        .dsr-btn:hover{background:rgba(255,255,255,.22);border-color:#5f80cf;}
         .dsr-rail{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;}
         .dsr-rail::-webkit-scrollbar{display:none;}
         .dsr-row{display:flex;gap:6px;width:max-content;padding:1px 0;}
-        .dsr-g{background:var(--white);border:1px solid var(--accent-border);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;color:var(--accent);white-space:nowrap;text-decoration:none;flex:none;}
-        .dsr-g:hover{background:#dfe9ff;}
-        .dsr-g.is-done{background:#e3f4ec;border-color:#bfe4d2;color:#12805a;}
-        .dsr-g.is-now{background:var(--blue);border-color:var(--blue);color:var(--white);box-shadow:0 1px 3px rgba(37,99,235,.35);}
-        .dsr-n{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;flex:none;}
+        .dsr-g{background:rgba(255,255,255,.10);border:1px solid #35529e;border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;color:#dbe6ff;white-space:nowrap;text-decoration:none;flex:none;}
+        .dsr-g:hover{background:rgba(255,255,255,.22);border-color:#5f80cf;}
+        .dsr-g.is-done{background:rgba(52,211,153,.15);border-color:#2f7d5e;color:#8ff0c4;}
+        .dsr-g.is-now{background:var(--blue);border-color:#6d9bff;color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,.35);}
+        .dsr-n{font-size:11px;font-weight:800;color:#a9bee8;white-space:nowrap;flex:none;}
         @media(max-width:860px){.dsr-btn{display:none;}.dsr-in{gap:9px;padding-left:12px;padding-right:12px;}}
         @media(max-width:520px){.dsr-k{display:none;}}
       `}</style>
