@@ -805,15 +805,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}`}
           style={{ '--rc': col }}
           onClick={(e) => {
-            // PHONE ONLY: a tap anywhere on the row opens the stats + archive
-            // drawer, and Play / Resume is the only control that still
-            // navigates into the game (owner, 2026-08-07). Gated with
-            // matchMedia at CLICK time rather than on a rendered flag, so the
-            // markup is identical on the server and the desktop row keeps its
-            // old behaviour (name links to the game, chevron opens the drawer)
-            // with no hydration branch.
-            if (typeof window === 'undefined' || !window.matchMedia) return;
-            if (!window.matchMedia('(max-width: 900px)').matches) return;
+            // A click anywhere on the row, the emblem included, opens the stats
+            // and archive drawer, and Play / Resume is the only control that
+            // navigates into the game. This was phone-only behaviour from
+            // 2026-08-07; desktop joined it 2026-08-08 when the row lost its
+            // chevron along with the rest of its columns, so selecting the game
+            // tile still expands exactly as it did.
             // .sl-btn.done is a static score chip, not a control, so it falls
             // through and expands like the rest of the row.
             if (e.target.closest && e.target.closest('.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb')) return;
@@ -1461,6 +1458,75 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-ring i{width:13px;height:13px;border-radius:50%;background:var(--white);display:block;}
         .sl-ab.on .sl-ring i{background:var(--blue);}
         .sl-drawer{border-bottom:1px solid var(--border);background:#fbfcfe;}
+        /* ── desktop slate: the phone's grouping and its three-track row, in
+           TWO columns (owner, 2026-08-08) ─────────────────────────────────
+           The console keeps the height cap and the inner scroller it already
+           had; two columns of a shorter row simply mean it holds roughly twice
+           as many games before you reach for the scrollbar, so the panel is
+           full rather than a tall thin ribbon.
+           Nothing here is a second implementation of the row: the bands, the
+           category eyebrow, the leader on the sub line and the stacked crowd
+           figure are the same elements the phone renders, restated for this
+           width. The two media queries are mutually exclusive, so the phone
+           block below is untouched and neither can leak into the other.
+           What leaves the row: the star, the Category, Streak, Leader and
+           Archive columns, and the column header (and with it desktop column
+           sorting, which the filter strip and the grouping now cover). Each was
+           saying something the band above the group, the eyebrow beside the
+           name or the sub line says already. Play fades in over the crowd
+           figure on hover, so a mouse still starts a game in one click without
+           forty blue buttons sitting on the page; where there is no hover,
+           Play leads the drawer exactly as it does on a phone. */
+        @media(min-width:901px){
+          .dh-board.slate{display:grid;grid-template-columns:1fr 1fr;align-content:start;gap:0;
+            background:linear-gradient(to right,transparent calc(50% - .5px),#eef0f4 calc(50% - .5px),#eef0f4 calc(50% + .5px),transparent calc(50% + .5px));}
+          .dh-board.slate .sl-head{display:none;}
+          /* Bands and the open drawer are the only full-width items. A band is
+             sticky inside the scroll port, so the group you are reading always
+             names itself. */
+          .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;position:sticky;top:0;z-index:3;order:4;}
+          .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
+          .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
+          .sl-band.prog{order:1;}
+          .sl-band.dn{order:7;background:var(--success-deep);}
+          .sl-drawer{grid-column:1/-1;}
+          /* Same order scheme the phone uses, since grid honours it too: a row
+             and its own drawer carry the same value and equal-order items keep
+             source order, so a drawer never leaves its row. */
+          .sl-row,.sl-drawer{order:5;}
+          .sl-row.inprog,.sl-drawer.inprog{order:2;}
+          .sl-row.done,.sl-drawer.done{order:8;}
+          /* THREE tracks: emblem, name, crowd size. Pins add no track, the same
+             call the phone made: the star left the row and the pin control is
+             the chip at the top of the drawer. */
+          .dh-board.slate .sl-row,.dh-board.pins .sl-row{grid-template-columns:30px minmax(0,1fr) auto;gap:11px;padding:7px 14px;position:relative;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
+          .sl-fav,.sl-cat,.sl-st,.sl-ld,.sl-arch,.sl-npl{display:none;}
+          .sl-row.inprog{box-shadow:inset 4px 0 0 var(--gold);}
+          .sl-row.done{box-shadow:inset 4px 0 0 #16a34a;}
+          .sl-ic{order:1;height:30px;background:transparent;border-radius:0;}
+          .sl-ic img{height:26px;max-width:30px;}
+          .sl-nm{order:2;display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:7px;}
+          .sl-nm b{order:1;min-width:0;display:block;font-size:15px;line-height:1.2;}
+          .sl-cm{order:2;flex:none;display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;line-height:1.2;margin:0;}
+          .sl-nm .sl-sub{order:3;flex:1 1 100%;min-width:0;display:flex;align-items:baseline;font-size:11px;line-height:1.35;margin-top:1px;}
+          .sl-tg{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+          .sl-dot{display:inline;flex:none;margin:0 5px;color:#c3c8d1;}
+          .sl-mld{flex:none;display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted);max-width:10vw;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+          .sl-mld svg{flex:none;color:var(--gold-ink);}
+          .sl-pl{order:3;display:block;text-align:right;line-height:1;min-width:38px;}
+          .sl-pl b{display:block;font-size:13px;font-weight:800;color:var(--ink);}
+          .sl-pl i{display:block;font-style:normal;font-size:8px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:3px;}
+          /* A finished row has a score to report, so its chip is permanent and
+             takes the figure's place rather than waiting for a hover. */
+          .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);opacity:0;}
+          .sl-row.done .sl-status{opacity:1;}
+          .sl-row.done .sl-pl{visibility:hidden;}
+          .sl-btn{width:64px;}
+        }
+        @media(min-width:901px) and (hover:hover){
+          .sl-row:not(.done):hover .sl-status{opacity:1;}
+          .sl-row:not(.done):hover .sl-pl{opacity:0;}
+        }
         /* ── phone slate: direction B (owner-approved 2026-08-07) ──────────
            Replaces the 2026-08-03 phone row (icon plate, category beside the
            name, play count in the subtitle, status button on the right edge).
