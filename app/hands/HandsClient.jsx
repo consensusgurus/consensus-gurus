@@ -262,6 +262,11 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
   const current = consumed < PUZZLE.deck.length ? PUZZLE.deck[consumed] : null;
   const muckLeft = g.muckAt < 0;
   const playing = g.status === 'playing';
+  // Focus mode: while the puzzle is live the leaderboard / share / other-games
+  // block is folded away behind one button, the same arrangement every other
+  // daily uses (owner rule, 2026-08-08). setShowChrome unfolds it for good.
+  const [showChrome, setShowChrome] = useState(false);
+  const focusMode = playing && !showChrome;
   const started = !!g.t0;
   const preStart = !started && playing;
   const done = g.status === 'done';
@@ -666,14 +671,20 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-        <div style={{ margin: '30px auto 0' }}>
+        {focusMode && (
+          <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
+          </div>
+        )}
+        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           <DailyGamesGrid replay={done ? resetGame : null} self="hands" maxWidth={620}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
             share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light
             boardSlot={<DailyBoardPanel self="hands" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider />
         </div>
-        {!identity && (
+        {!focusMode && !identity && (
           <div id="daily-join" style={{ margin: '18px auto 0' }}>
             <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => setIdentity(id)} />
           </div>
@@ -714,7 +725,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Hands</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Hands is a free daily poker puzzle from Mind Loft. Twenty five cards arrive one at a time and you place each one on a five by five grid, which is read as ten poker hands: five rows and five columns, with every card counting in two of them. A card you have placed never moves, so the whole game is deciding where it goes while the rest of the deal is still hidden.
@@ -727,7 +738,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

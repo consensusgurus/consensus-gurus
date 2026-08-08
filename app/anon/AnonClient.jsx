@@ -181,6 +181,11 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
 
   const fill = g.fill || new Array(N).fill('');
   const playing = g.status === 'playing';
+  // Focus mode: while the puzzle is live the leaderboard / share / other-games
+  // block is folded away behind one button, the same arrangement every other
+  // daily uses (owner rule, 2026-08-08). setShowChrome unfolds it for good.
+  const [showChrome, setShowChrome] = useState(false);
+  const focusMode = playing && !showChrome;
   // The pinned keys, and the page padding that keeps content out from under them.
   const railUp = touchInput && playing && !!g.t0;
   const preStart = playing && !g.t0;
@@ -637,7 +642,13 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
             </>
           )}
 
-          <div style={{ margin: '30px auto 0', maxWidth: 640 }}>
+        {focusMode && (
+          <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
+          </div>
+        )}
+          <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             <DailyGamesGrid
               self="anon"
               maxWidth={640}
@@ -752,7 +763,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <Footer />
+      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

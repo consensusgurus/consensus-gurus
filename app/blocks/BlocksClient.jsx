@@ -180,6 +180,11 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
+  // Focus mode: while the puzzle is live the leaderboard / share / other-games
+  // block is folded away behind one button, the same arrangement every other
+  // daily uses (owner rule, 2026-08-08). setShowChrome unfolds it for good.
+  const [showChrome, setShowChrome] = useState(false);
+  const focusMode = playing && !showChrome;
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const over = g.status !== 'playing';
@@ -754,10 +759,17 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-        <div id="daily-join" style={{ marginTop: 20 }}>
+        {focusMode && (
+          <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
+            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
+          </div>
+        )}
+        <div id="daily-join" style={{ display: focusMode ? 'none' : 'block', marginTop: 20 }}>
           <JoinLeaderboardForm hideIcon heading="Put your name on today&rsquo;s board" identity={identity} onJoined={(u) => setIdentity(u)} />
         </div>
 
+        <div style={{ display: focusMode ? 'none' : 'block' }}>
         <DailyGamesGrid
           self="blocks"
           maxWidth={620}
@@ -767,8 +779,9 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           divider
           boardSlot={<DailyBoardPanel self="blocks" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
         />
+        </div>
 
-        <section style={{ maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: COLORS.faded }}>
+        <section style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: COLORS.faded }}>
           <h2 style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '0 0 8px' }}>About Blocks</h2>
           <p style={{ margin: '0 0 9px' }}>
             Blocks is a daily falling-shapes puzzle. Everyone plays the same order of shapes on the same day, so the
@@ -855,7 +868,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         }
       `}</style>
 
-      <Footer />
+      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

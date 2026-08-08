@@ -219,7 +219,11 @@ export default function GlyphClient({ puzzles, forceNum }) {
   const playing = g.status === 'playing';
   const won = g.status === 'won';
   const preStart = playing && !g.t0;
-  const focusMode = false;
+  // Focus mode: while the puzzle is live the leaderboard / share / other-games
+  // block is folded away behind one button, the same arrangement every other
+  // daily uses (owner rule, 2026-08-08). setShowChrome unfolds it for good.
+  const [showChrome, setShowChrome] = useState(false);
+  const focusMode = playing && !showChrome;
 
   useEffect(() => { gRef.current = g; }, [g]);
 
@@ -651,6 +655,13 @@ export default function GlyphClient({ puzzles, forceNum }) {
             </div>
           )}
 
+          {focusMode && (
+            <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
+              <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
+            </div>
+          )}
+          <div style={{ display: focusMode ? 'none' : 'block' }}>
           <DailyGamesGrid replay={!playing ? resetGame : null}
             self="glyph"
             maxWidth={620}
@@ -660,7 +671,8 @@ export default function GlyphClient({ puzzles, forceNum }) {
             boardSlot={<DailyBoardPanel self="glyph" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
-          {mobileUi && !standalone && (
+          </div>
+          {!focusMode && mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>
@@ -686,7 +698,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
             </div>
           )}
 
-          {!identity && (
+          {!focusMode && !identity && (
             <div id="daily-join" style={{ margin: '18px auto 0' }}>
               <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(id) => { setIdentity(id); if (id && id.username) setPlayer((p) => p || { name: id.username, rank: null }); }} />
             </div>
@@ -732,7 +744,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Glyph</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Glyph is a free daily codeword from Mind Loft, the crossword with no clues at all. Every letter in the grid has been replaced by a number from 1 to 26, the same number standing for the same letter everywhere, and your job is to work out the whole alphabet from two or three given letters.
@@ -745,7 +757,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
         </p>
       </section>
 
-      <Footer />
+      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }
