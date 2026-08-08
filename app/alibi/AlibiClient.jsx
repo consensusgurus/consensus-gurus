@@ -645,7 +645,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             .al-wrap{padding-bottom:186px !important;}
             /* Everything above the board is a pixel you scroll past to reach
                the board, so on a phone it all gets smaller or folds. */
-            .al-story.fold{max-height:44px;overflow:hidden;line-height:22px !important;padding-bottom:0 !important;}
+            .al-story.fold{max-height:56px;overflow:hidden;line-height:22px !important;padding-bottom:0 !important;}
             .al-wrap .al-storybtn{display:block;margin:-2px 0 10px;}
             
             .al-statline{font-size:10.5px !important;gap:10px !important;margin-bottom:8px !important;}
