@@ -105,19 +105,6 @@ function Rows({ rows, fmt, open, hrefFor, hero, cap }) {
         <div className="hr-hval"><b>{fmt(lead.value)}</b><span>{hero.unit || 'score'}</span></div>
       </div>
     ) : null}
-    {/* The DESKTOP lead bar (owner, 2026-08-08). The #1 used to be an ordinary
-        table row wearing a cream tint and a gold inset, which read as a
-        highlighted row rather than the panel's answer, and it looked different
-        in each of the three boards depending on how long the name was. It is
-        one element now, identical in all three, and the table below it starts
-        at 2. The phone slab above is untouched. */}
-    {lead ? (
-      <div className="hr-lead">
-        <CrownIcon />
-        <span className="hr-ln"><Link href={hrefFor(lead.name)}>{lead.name}</Link></span>
-        <span className="hr-lv">{fmt(lead.value)}</span>
-      </div>
-    ) : null}
     <table className={`hr-tbl${cap ? ' cap3' : ''}`}><tbody>
       {rows.map((r, i) => (
         <tr key={`${r.name}-${i}`} className={i === 0 ? 'lead1' : undefined}>
@@ -149,7 +136,7 @@ function useFlip(count, ms) {
 
 // The pill naming the visible face, plus its clickable dots. Rendered into the
 // panel's navy header band, where the flip control has always lived.
-function FlipPill({ labels, ix, setIx, holdRef }) {
+function FlipPill({ labels, ix, setIx, holdRef, dotsOnly }) {
   if (labels.length < 2) return null;
   return (
     <span
@@ -157,7 +144,7 @@ function FlipPill({ labels, ix, setIx, holdRef }) {
       onMouseEnter={() => { holdRef.current = true; }}
       onMouseLeave={() => { holdRef.current = false; }}
     >
-      <span className="hr-lbl">{labels[ix]}</span>
+      {dotsOnly ? null : <span className="hr-lbl">{labels[ix]}</span>}
       <span className="hr-dots">
         {labels.map((l, i) => (
           <i
@@ -184,9 +171,13 @@ function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
   return (
     <section className="hr-panel hr-flex">
       <div className="hr-ph">
-        <span className="hr-pi">{icon}</span>
-        <h2>{title}</h2>
-        <FlipPill labels={faces.map((f) => f.label)} ix={ix} setIx={setIx} holdRef={holdRef} />
+        <span className="hr-pi">{face.icon || icon}</span>
+        {/* The <h2> names the face, so the pill drops its text label and keeps
+            only the dots: at 284px a title, a worded pill, five dots and the
+            contest countdown do not fit on one line together. */}
+        <h2>{face.title || title}</h2>
+        {face.chip ? <span className="hr-chip">{face.chip}</span> : null}
+        <FlipPill labels={faces.map((f) => f.label)} ix={ix} setIx={setIx} holdRef={holdRef} dotsOnly />
       </div>
       <div className="hr-sub">{face.sub}</div>
       <div className="hr-scroll hr-flex">
@@ -203,8 +194,10 @@ function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
           <button type="button" className="hr-exp" onClick={onToggle}>
             {open ? 'Show fewer' : `Show top ${ROWS_OPEN}`}
           </button>
+        ) : face.altExp ? (
+          <button type="button" className="hr-exp" onClick={face.altExp.onClick}>{face.altExp.label}</button>
         ) : <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">·</span>}
-        <Link href={face.href} className="hr-link">Full leaderboard &rarr;</Link>
+        <Link href={face.href} className="hr-link">{face.linkLabel || 'Full leaderboard'} &rarr;</Link>
       </div>
     </section>
   );
@@ -226,7 +219,7 @@ export default function HomeRails({
   onAllLive,
   featured = [],
 }) {
-  const [open, setOpen] = useState({ com: false, tl: false, tp: false });
+  const [open, setOpen] = useState({ lb: false });
   const toggle = (k) => setOpen((p) => ({ ...p, [k]: !p[k] }));
 
   // ── LEFT ──────────────────────────────────────────────────────────────────
@@ -358,22 +351,14 @@ export default function HomeRails({
       .hr-tbl tr:hover{background:var(--surface);}
       .hr-tbl td.r{text-align:right;}
       .hr-tbl td.rk{font-size:11px;font-weight:800;width:24px;color:#9aa2b1;font-variant-numeric:tabular-nums;}
-      /* The #1 is the .hr-lead bar now, at both widths (the slab on a phone,
-         this bar on desktop), so its table row is always hidden and the list
-         starts at 2. cap3 then holds the desktop panel to a top THREE, so three
-         boards fit the rail without the reader scrolling for the center console
-         (owner, 2026-08-08). The phone lifts the cap again below: it stacks, so
-         it has the height to spare, and its five-row lists were not the
-         complaint. */
+      /* The #1 is the slab at BOTH widths now, so its table row is always
+         hidden and the list starts at 2, and cap3 holds the desktop panel to a
+         hero plus a top THREE (owner, 2026-08-08). That is what the merge into
+         one panel buys: the slab and three names fit in the height one of the
+         three old panels used. The phone lifts the cap again below, because it
+         stacks and has the height to spare. */
       .hr-tbl tr.lead1{display:none;}
       .hr-tbl.cap3 tr:nth-child(n+4){display:none;}
-      .hr-lead{display:flex;align-items:center;gap:8px;position:relative;padding:8px 13px 8px 17px;background:#fdf7e8;border-bottom:1px solid #f0f2f6;}
-      .hr-lead::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold);}
-      .hr-lead > svg{flex:none;color:var(--gold-ink);}
-      .hr-ln{flex:1 1 auto;min-width:0;font-size:14px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .hr-ln a{color:var(--ink);text-decoration:none;}
-      .hr-ln a:hover{text-decoration:underline;}
-      .hr-lv{flex:none;font-size:15px;font-weight:800;letter-spacing:-.3px;font-variant-numeric:tabular-nums;color:var(--ink);}
       .hr-nm{color:var(--ink);text-decoration:none;}
       .hr-nm:hover{text-decoration:underline;}
       .hr-v{font-weight:700;font-variant-numeric:tabular-nums;}
@@ -390,7 +375,7 @@ export default function HomeRails({
          edge between them. Blue over navy is the same pairing the two cap bars
          already use, and the gold rule marks this one as a leaderboard #1
          rather than a "go play this". */
-      .hr-hero{display:none;position:relative;align-items:center;gap:12px;padding:14px 14px 14px 22px;background:var(--blue);color:var(--white);}
+      .hr-hero{display:flex;position:relative;align-items:center;gap:12px;padding:14px 14px 14px 22px;background:var(--blue);color:var(--white);}
       .hr-hero::before{content:'';position:absolute;left:10px;top:13px;bottom:13px;width:4px;border-radius:2px;background:var(--gold);}
       .hr-hero.lite{background:#4d84f3;}
       .hr-htxt{min-width:0;}
@@ -403,6 +388,7 @@ export default function HomeRails({
       .hr-hval{margin-left:auto;flex:none;text-align:right;}
       .hr-hval b{display:block;font-size:23px;font-weight:800;letter-spacing:-.6px;line-height:1.1;font-variant-numeric:tabular-nums;}
       .hr-hval span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-200);margin-top:2px;}
+      .hr-panel:has(.hr-hero) .hr-sub{display:none;}
       .hr-foot{display:flex;align-items:center;gap:10px;padding:7px 13px;border-top:1px solid var(--border);flex:none;}
       .hr-exp{border:0;background:none;padding:0;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--slate);cursor:pointer;white-space:nowrap;flex:none;}
       .hr-exp:hover{color:var(--blue-deep);}
@@ -503,10 +489,7 @@ export default function HomeRails({
          sitting as tiles inside the page gutter (owner, 2026-08-03). */
       @media(max-width:900px){
         .hr-panel{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-left:none;border-right:none;border-radius:0;box-shadow:none;}
-        .hr-hero{display:flex;}
-        .hr-lead{display:none;}
         .hr-tbl.cap3 tr:nth-child(n+4){display:table-row;}
-        .hr-panel:has(.hr-hero) .hr-sub{display:none;}
         .hr-share{display:flex;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:100vw;max-width:none;}
         /* The panels butt against each other on a phone (the rail gap is zeroed
            in QuizHomeClient), so the second of any adjacent pair would otherwise
@@ -520,55 +503,99 @@ export default function HomeRails({
     return (
       <>
         {CSS}
-        {/* Top-left panel. While the referral contest is live this slot shows
-            the CONTEST board instead of the rolling 90-day community board, and
-            reverts on its own the moment the contest ends (owner, 2026-08-05).
-            A swap rather than a second panel: both answer "who is bringing
-            people in", and side by side they would show two different rankings
-            of the same thing (rolling credits vs fixed-window weighted score)
-            with no way for a reader to tell which one counted. */}
-        <section className="hr-panel hr-flex">
-          <div className="hr-ph">
-            <span className="hr-pi"><CrownIcon /></span>
-            {/* Keeps the Community Leaderboard name while the contest runs,
-                with a ($) marking that there is prize money on it (owner,
-                2026-08-05). Renaming the panel outright would have read as a
-                different board appearing, when it is the same question with
-                stakes attached. The /quizzes/community PAGE is unaffected and
-                keeps its rolling 90-day board. */}
-            <h2>{showContest ? 'Community Leaderboard ($)' : 'Top community member'}</h2>
-            {showContest && contestDays ? <span className="hr-chip">{contestDays}d left</span> : null}
-          </div>
-          <div className="hr-sub">
-            {showContest
-              ? `${COPY.prizeLine} · ${COPY.formulaLine}`
-              : 'New players brought in, last 90 days'}
-          </div>
-          <div className="hr-scroll hr-flex">
-            <Rows
-              rows={boardSlice(communityRows, open.com)}
-              cap={!open.com}
-              fmt={showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`}
-              hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
-              hero={{
-                eyebrow: showContest ? 'Contest leader' : 'Top community member',
-                // Prize line only, no formula: the slab's sub is one nowrap
-                // line and the pair clipped mid-word on a 390px frame. The
-                // countdown already rides in the panel header beside the title.
-                sub: showContest ? COPY.prizeLine : 'New players brought in, last 90 days',
-                unit: showContest ? 'score' : 'brought in',
-              }}
-            />
-          </div>
-          <div className="hr-foot">
-            {hasMore(communityRows)
-              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? 'Show fewer' : `Show top ${ROWS_OPEN}`}</button>
-              : <button type="button" className="hr-exp" onClick={onCredit}>Get credit</button>}
-            <Link href={showContest ? '/quizzes/contest' : '/quizzes/community'} className="hr-link">
-              {showContest ? 'Board and rules' : 'Full leaderboard'} &rarr;
-            </Link>
-          </div>
-        </section>
+        {/* ONE leaderboard panel, not three (owner, 2026-08-08). Community,
+            Today's leaders and Top player were three headers, three grey
+            sub-strips and three footers asking the same question, and stacked
+            they pushed the rail well past the center console. They are faces of
+            a single FlipPanel now, which is the object the last two were
+            already built on: the <h2> names the face, the dots select it, and
+            the height that frees is what pays for the hero slab plus a top 3
+            in the space one of the old panels used.
+            The contest board is face 0, so it is what a reader lands on while
+            there is prize money on it. While the contest runs this face shows
+            the CONTEST board instead of the rolling 90-day community board and
+            reverts on its own the moment it ends (owner, 2026-08-05): a swap
+            rather than a second face, since side by side they would show two
+            different rankings of the same question with no way to tell which
+            one counted. */}
+        <FlipPanel
+          icon={<CrownIcon />}
+          title="Leaderboards"
+          open={open.lb}
+          onToggle={() => toggle('lb')}
+          faces={[
+            {
+              label: showContest ? 'Contest' : 'Community',
+              // Keeps the Community Leaderboard name while the contest runs,
+              // with a ($) marking that there is prize money on it (owner,
+              // 2026-08-05). The /quizzes/community PAGE is unaffected and
+              // keeps its rolling 90-day board.
+              title: showContest ? 'Community Leaderboard ($)' : 'Top community member',
+              chip: showContest && contestDays ? `${contestDays}d left` : null,
+              icon: <CrownIcon />,
+              eyebrow: showContest ? 'Contest leader' : 'Top community member',
+              unit: showContest ? 'score' : 'brought in',
+              // Prize line only, no formula: the slab's sub is one nowrap line
+              // and the pair clipped mid-word on a 390px frame. The countdown
+              // rides in the header and the full rules are one link away.
+              sub: showContest ? COPY.prizeLine : 'New players brought in, last 90 days',
+              rows: communityRows,
+              fmt: showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`,
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: showContest ? '/quizzes/contest' : '/quizzes/community',
+              linkLabel: showContest ? 'Board and rules' : 'Full leaderboard',
+              altExp: { label: 'Get credit', onClick: onCredit },
+            },
+            {
+              label: 'Daily games',
+              title: "Today's leaders",
+              icon: <FlameIcon />,
+              eyebrow: "Today's leader",
+              unit: 'points',
+              sub: 'Combined daily games score',
+              rows: dailyRows,
+              fmt: (v) => (Math.round((v || 0) * 10) / 10).toLocaleString(),
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: '/quizzes/hub?tab=daily',
+            },
+            ...(xpToday.length ? [{
+              label: 'IQ gainers',
+              title: "Today's IQ gainers",
+              icon: <FlameIcon />,
+              eyebrow: "Today's top gainer",
+              unit: 'IQ pts',
+              sub: 'IQ points earned today',
+              rows: xpToday,
+              fmt: num,
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: '/quizzes/hub?tab=player',
+            }] : []),
+            {
+              label: 'All time',
+              title: 'Top player, all time',
+              icon: <StarIcon />,
+              eyebrow: 'Top player, all time',
+              unit: 'IQ pts',
+              sub: 'Lifetime IQ points',
+              rows: xpAll.length ? xpAll : xp30,
+              fmt: num,
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: '/quizzes/hub?tab=player',
+            },
+            {
+              label: '30 days',
+              title: 'Top player, 30 days',
+              icon: <StarIcon />,
+              eyebrow: 'Top player, 30 days',
+              unit: 'IQ pts',
+              sub: 'IQ points, last 30 days',
+              rows: xp30.length ? xp30 : xpAll,
+              fmt: num,
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: '/quizzes/hub?tab=player',
+            },
+          ]}
+        />
 
         {/* Phone-only share bar, directly under the board it explains. The
             headline names the prize only while the contest is actually running,
@@ -582,65 +609,6 @@ export default function HomeRails({
           <span className="hr-sharr" aria-hidden="true">&rsaquo;</span>
         </button>
 
-        <FlipPanel
-          icon={<FlameIcon />}
-          title="Today's leaders"
-          open={open.tl}
-          onToggle={() => toggle('tl')}
-          faces={[
-            {
-              label: 'Daily games',
-              eyebrow: "Today's leader",
-              unit: 'points',
-              tone: 'lite',
-              sub: 'Combined daily games score',
-              rows: dailyRows,
-              fmt: (v) => (Math.round((v || 0) * 10) / 10).toLocaleString(),
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=daily',
-            },
-            ...(xpToday.length ? [{
-              label: 'IQ gainers',
-              eyebrow: "Today's top gainer",
-              unit: 'IQ pts',
-              tone: 'lite',
-              sub: 'IQ points earned today',
-              rows: xpToday,
-              fmt: num,
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=player',
-            }] : []),
-          ]}
-        />
-
-        <FlipPanel
-          icon={<StarIcon />}
-          title="Top player"
-          open={open.tp}
-          onToggle={() => toggle('tp')}
-          faces={[
-            {
-              label: 'All time',
-              eyebrow: 'Top player, all time',
-              unit: 'IQ pts',
-              sub: 'Lifetime IQ points',
-              rows: xpAll.length ? xpAll : xp30,
-              fmt: num,
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=player',
-            },
-            {
-              label: '30 days',
-              eyebrow: 'Top player, 30 days',
-              unit: 'IQ pts',
-              sub: 'IQ points, last 30 days',
-              rows: xp30.length ? xp30 : xpAll,
-              fmt: num,
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=player',
-            },
-          ]}
-        />
       </>
     );
   }
