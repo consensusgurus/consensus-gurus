@@ -207,6 +207,16 @@ function etToday() {
   catch (e) { return new Date().toISOString().slice(0, 10); }
 }
 
+function etDateLabel() {
+  const o = { timeZone: 'America/New_York' };
+  try {
+    return {
+      long: new Date().toLocaleDateString('en-US', { ...o, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }),
+      short: new Date().toLocaleDateString('en-US', { ...o, weekday: 'short', month: 'short', day: 'numeric' }),
+    };
+  } catch (e) { return { long: '', short: '' }; }
+}
+
 function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 
 // A player's game-native score line for the panel's "Today" figure, from the
@@ -330,6 +340,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // The two lead-in bars drop their game icon on a phone (they carry a white
   // rule instead). Hiding it in CSS still let the browser lay it out and paint
   // it for a frame, which read as a flicker, so it is not rendered at all.
+  const [etLabel, setEtLabel] = useState({ long: '', short: '' });
+  useEffect(() => { setEtLabel(etDateLabel()); }, []);
   const [phone, setPhone] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
@@ -595,7 +607,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   ));
   const slateCats = [];
   for (const g of games) if (!slateCats.includes(g.cat)) slateCats.push(g.cat);
-  const slatePlays = games.reduce((n, g) => n + (playsOf(g.key) || 0), 0);
   const shift = metrics ? Math.min(rowOffset, metrics.maxOffset) : 0;
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
@@ -1391,7 +1402,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
         .dhome.slate{border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);}
-        .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);}
+        .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
+        .sl-dt{font-style:normal;}
+        .sl-dt.p{display:none;}
         .sl-filt{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
         .sl-filt::-webkit-scrollbar{display:none;}
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
@@ -1715,6 +1728,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              2026-08-07), so it belongs to the navy slate header above it rather
              than reading as a pale gap between the header and the first row.
              Desktop keeps its light underline tabs. */
+          .sl-dt.d{display:none;}
+          .sl-dt.p{display:inline;}
           .sl-filt{background:#2c4fa8;border-bottom:none;gap:6px;padding:7px 8px;}
           .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
           .sl-filt button:hover{color:var(--white);}
@@ -1808,7 +1823,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       {slate ? (
         <div className="sl-bar">
           <span className="sl-ttl">Today&rsquo;s slate</span>
-          <span className="sl-count">{games.length} games &middot; {slatePlays.toLocaleString()} plays</span>
+          <span className="sl-count">{games.length} games{etLabel.long ? <> &middot; <i className="sl-dt d">{etLabel.long}</i><i className="sl-dt p">{etLabel.short}</i></> : null}</span>
         </div>
       ) : null}
       <div className="dh-sbar">
