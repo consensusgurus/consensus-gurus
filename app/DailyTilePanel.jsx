@@ -733,26 +733,27 @@ export default function DailyTilePanel({
              without moving it in the JSX. */
           .dtp-idt,.dtp-nm{display:contents;}
           .dtp-hd > *,.dtp-nm > *{flex:1 1 auto;min-width:0;justify-content:center;font-size:11px;}
-          /* SHARE AND PLAY ARE TWO FLUSH HALF-WIDTH RECTANGLES, edge to edge,
-             Play on the right (owner, 2026-08-07). flex:0 0 50% on each is what
-             reserves the line for exactly those two: they fill it, so every
-             remaining chip wraps below them. The strip therefore carries NO side
-             padding, and the chips on the second line supply their own inset as
-             margins instead. */
-          .dtp-hd{padding:0;gap:0;align-items:stretch;}
-          .dtp-sharechip{order:-2;flex:0 0 50%;box-sizing:border-box;justify-content:center;
-            border:0;border-right:1px solid rgba(255,255,255,.22);border-radius:0;
-            padding:15px 8px;font-size:12px;letter-spacing:.03em;
+          /* SHARE AND PLAY SPLIT THE WIDTH, Play on the right (owner,
+             2026-08-07). They shipped flush and hard-edged first and read as two
+             slabs jammed together, so both take the site's 8px radius, the strip
+             keeps an even 8px inset around them, and Share carries a hairline
+             outline: its fill is a translucent gold that needs an edge to read as
+             a button, where Play's solid white does not.
+             flex-basis calc(50% - 4px) plus the 8px gap is what reserves the line
+             for exactly those two, so every remaining chip wraps below them. */
+          .dtp-hd{padding:8px;gap:8px;align-items:stretch;}
+          .dtp-sharechip{order:-2;flex:1 1 calc(50% - 4px);box-sizing:border-box;justify-content:center;
+            border:0;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.32);
+            padding:14px 8px;font-size:12px;letter-spacing:.03em;
             background:rgba(232,180,58,.2);color:var(--gold);}
           .dtp-sharechip:hover{background:rgba(232,180,58,.3);color:var(--gold);}
           .dtp-sharechip:hover svg{color:var(--gold);}
-          .dtp-acts{order:-1;flex:0 0 50%;box-sizing:border-box;display:flex;gap:0;}
+          .dtp-acts{order:-1;flex:1 1 calc(50% - 4px);box-sizing:border-box;display:flex;gap:0;}
           .dtp-play{flex:1 1 auto;background:var(--white);color:var(--blue-deep);
             font-size:13.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
-            border-radius:0;padding:15px 8px;gap:7px;}
-          /* Line two: the status chips, wearing the inset the strip gave up. */
-          .dtp-flame,.dtp-donechip,.dtp-pinchip{flex:1 1 auto;margin:9px 0 9px 8px;}
-          .dtp-flame:last-child,.dtp-donechip:last-child,.dtp-pinchip:last-child{margin-right:8px;}
+            border-radius:8px;padding:14px 8px;gap:7px;}
+          /* Line two: the status chips, spaced by the strip's own gap. */
+          .dtp-flame,.dtp-donechip,.dtp-pinchip{flex:1 1 auto;margin:0;}
           .dtp-play:hover{background:var(--blue-200);transform:none;}
           /* A touch taller than the desktop chips (owner, 2026-08-07): these are
              the drawer's real controls on a phone, not decoration beside a name.
