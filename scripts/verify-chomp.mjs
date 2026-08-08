@@ -25,7 +25,8 @@
 //   pellets     one per cast member, in bounds, distinct, never on the start
 //   floor       equals the recomputed Manhattan leg sum
 //   sunday      true if and only if `live` really is a Sunday, and spread wider
-//   difficulty  no unplanned line may clear the board
+//   difficulty  no unplanned line may clear the board, and from 2026-08-09 the
+//               myopic line may not get more than 60% of the way down it
 //   variety     start cells and mascot cells spread across the bank, and the
 //               cast order must actually rotate
 import { PUZZLES, MASCOTS } from '../app/chomp/puzzles.js';
@@ -38,6 +39,21 @@ const W = 13, H = 13, CELLS = W * H;
 // whole cast on a Sunday.
 const FIRST_MASCOT = 'bulldog';
 const CAST_MIN = 5, CAST_MAX = 8;
+// HARDNESS GATE (owner, 2026-08-08). Not clearing was never enough: a board the
+// myopic line got five-of-six on is a board a person walks, which is how the
+// launch week came out too easy. The line must now be stopped inside the first
+// 60% of the cast.
+//
+// 60 rather than 50, and that was measured rather than picked: at a 50% gate
+// only 1 candidate in 70 was still solvable inside the search budget, because
+// the boards that stop a shortest-path bot early are the same boards nothing can
+// route through. 60% keeps the gate biting (the bot averaged 70% before it) while
+// leaving boards a person can actually finish.
+//
+// Day one shipped before any of this and is frozen, so the gate runs from day
+// two on.
+const MYOPIC_MAX_SHARE = 0.6;
+const HARD_FLOOR_FROM = '2026-08-09';
 const SOLVER_CAP = 400000;
 
 let BAD = 0;
@@ -256,7 +272,7 @@ function unplanned(p, mode) {
 
 // ---------- 5. difficulty: no unplanned line clears it ----------------------
 (function difficulty() {
-  const soft = [];
+  const soft = [], tooFar = [];
   let bfsCaught = [];
   let rows = 0;
   for (const p of PUZZLES) {
@@ -264,13 +280,17 @@ function unplanned(p, mode) {
     rows += 1;
     const lines = ['axis', 'straight', 'bfs'].map((m) => unplanned(p, m));
     if (lines.some((r) => r.cleared)) soft.push(`#${p.num} (${p.live})`);
+    if (p.live >= HARD_FLOOR_FROM && lines[2].caught > Math.floor(p.cast.length * MYOPIC_MAX_SHARE)) {
+      tooFar.push(`#${p.num} (${p.live}) myopic got ${lines[2].caught}/${p.cast.length}`);
+    }
     bfsCaught.push({ got: lines[2].caught, of: p.cast.length });
   }
   if (soft.length) fail('difficulty', `an unplanned line clears these: ${soft.slice(0, 6).join(', ')}`);
-  else {
+  if (tooFar.length) fail('difficulty', `the myopic line gets more than ${Math.round(MYOPIC_MAX_SHARE * 100)}% of the way down these, so they play too easily: ${tooFar.slice(0, 6).join(', ')}`);
+  if (!soft.length && !tooFar.length) {
     // reported as a SHARE, since the cast length now differs day to day
     const share = (bfsCaught.reduce((a, b) => a + b.got / b.of, 0) / bfsCaught.length * 100).toFixed(0);
-    ok('difficulty', `no board falls to an unplanned line across ${rows}; the myopic player gets ${share}% of the way down the cast before it walls itself in`);
+    ok('difficulty', `no board falls to an unplanned line across ${rows}, and from ${HARD_FLOOR_FROM} none lets it past ${Math.round(MYOPIC_MAX_SHARE * 100)}% of the cast; it averages ${share}% of the way down before it walls itself in`);
   }
 })();
 
