@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin } from 'lucide-react';
+import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin, ShieldAlert } from 'lucide-react';
 import { LISTS } from '@/lib/data';
 import Grain from '@/app/Grain';
 import GeoMapPanel from './GeoMapPanel';
@@ -797,6 +797,28 @@ export default function AdminClient({ initialLists, initialExtras = [], initialC
             </h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Referral-contest fraud review: who brought in people who look like one person. */}
+          <Link
+            href="/admin/contest"
+            style={{
+              background: 'transparent',
+              color: COLORS.ink,
+              border: `1px solid ${COLORS.line}`,
+              padding: '8px 14px',
+              fontFamily: 'DM Mono, monospace',
+              fontSize: 10,
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <ShieldAlert size={12} strokeWidth={2.5} />
+            Contest
+          </Link>
           {/* Offline / print campaign attribution (?c= codes: QR flyers, stickers). */}
           <Link
             href="/admin/campaigns"

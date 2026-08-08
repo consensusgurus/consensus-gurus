@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { buildLeaderboardMatrix, playerPlacement } from '@/lib/quiz-anon';
-import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost, INTERNAL_HOST } from '@/lib/ua';
+import { parseUa, countryFromRequest, regionFromRequest, cityFromRequest, timezoneFromRequest, languageFromRequest, referrerHost, ipHashFromRequest, INTERNAL_HOST } from '@/lib/ua';
 import { creditReferral } from '@/lib/referrals-server';
 import { normalizeRefCode } from '@/lib/referrals';
 import { normalizeCampaign } from '@/lib/campaigns';
@@ -69,6 +69,10 @@ export async function POST(request) {
     // a bare host. A self-referral (our own host) is labeled "internal"; an empty
     // referrer is "direct".
     const city = cityFromRequest(request);
+    // Salted one-way hash of the request IP (migration 49), for the contest
+    // fraud review only. The address itself is never stored. Its own insert
+    // tier below, so a database without the column simply drops it.
+    const ipHash = ipHashFromRequest(request);
     const timezone = timezoneFromRequest(request);
     const language = languageFromRequest(request);
     let referrer = null;
@@ -141,7 +145,9 @@ export async function POST(request) {
     // without the column simply drops it.
     const campaign = normalizeCampaign(request.cookies.get('sot_camp')?.value);
     const withCampaign = campaign ? { campaign } : {};
+    const withIpHash = ipHash ? { ip_hash: ipHash } : {};
     const attempts = [
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign, ...withIpHash },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses },
