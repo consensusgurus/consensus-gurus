@@ -610,7 +610,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-td.x{color:#b9b2a6;}
           .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
           .al-grids{display:grid;grid-template-columns:1fr;gap:0;}
-          @media(min-width:900px){.al-cols{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start;}}
+          .al-cols{max-width:620px;margin:0 auto;}
         `}</style>
 
         <div style={{ maxWidth: 940, margin: '0 auto' }}>
