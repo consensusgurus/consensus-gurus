@@ -246,7 +246,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
-  const [clueIdx, setClueIdx] = useState(0);   // which statement the phone dock is showing
+  const [clueIdx, setClueIdx] = useState(0);
+  const [storyOpen, setStoryOpen] = useState(false);  // the case brief is folded on a phone   // which statement the phone dock is showing
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -642,7 +643,16 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             .al-witness{order:2;margin-bottom:0 !important;}
             .al-story{margin-bottom:8px !important;padding:10px 13px !important;font-size:13.5px !important;}
             .al-wrap{padding-bottom:186px !important;}
+            /* Everything above the board is a pixel you scroll past to reach
+               the board, so on a phone it all gets smaller or folds. */
+            .al-story.fold{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+            .al-storybtn{display:inline-block;}
+            .al-statline{font-size:10.5px !important;gap:10px !important;margin-bottom:8px !important;}
+            .al-boardlab{display:none !important;}
+            .al-boardhint{display:none !important;}
+            .al-cluehint{font-size:11px !important;}
           }
+          .al-storybtn{display:none;background:none;border:0;padding:4px 0 0;font-family:${SANS};font-size:12px;font-weight:800;color:${COLORS.accent};cursor:pointer;}
         `}</style>
 
         <div style={{ maxWidth: 940, margin: '0 auto' }}>
@@ -686,14 +696,19 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
         {/* the story */}
         {!preStart && (
-        <div className="al-story" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
+        <div className={`al-story${storyOpen ? '' : ' fold'}`} onClick={() => setStoryOpen((v) => !v)} style={{ cursor: 'pointer', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 5 ? 'Five' : 'Four'} guests &mdash; {PUZZLE.suspects.slice(0, -1).join(', ')} and {PUZZLE.suspects[N - 1]} &mdash; were each alone in a different room, each left at a different hour, and each was carrying one curious item. Work out who was where, when they left, and what they carried. Every statement below is true.
         </div>
+        )}
+        {!preStart && (
+          <button type="button" className="al-storybtn" onClick={() => setStoryOpen((v) => !v)}>
+            {storyOpen ? 'Hide the case brief' : 'Read the case brief'}
+          </button>
         )}
 
         {/* status bar */}
         {started && (
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <div className="al-statline" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>confirmed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{TOTAL}</span>
           <span>wrong accusations <b style={{ color: g.wrong ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.wrong}</b></span>
           {playing && (
@@ -741,14 +756,14 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
                 <b>{i + 1}.</b> {clueText(c)}
               </div>
             ))}
-            <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.5, marginTop: 8 }}>
+            <div className="al-cluehint" style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.5, marginTop: 8 }}>
               Tap a statement to cross it off. Tap a board cell to toggle ✗ (impossible); long-press it (or right-click on a computer) to mark ● (confirmed). Each suspect gets exactly one ● per board.
             </div>
           </div>
 
           {/* detective's boards */}
           <div className="al-boardcol">
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Detective&rsquo;s board</div>
+            <div className="al-boardlab" style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Detective&rsquo;s board</div>
             {/* ROTATED FOR THE PHONE (owner-approved 2026-08-07). This was three
                 stacked 4x4 tables, suspects down and options across, which on a
                 phone forced a 20px cell and about 620px of stack. A phone is
@@ -798,7 +813,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             </table>
 
             {started && (
-              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 2px', lineHeight: 1.5 }}>
+              <div className="al-boardhint" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 2px', lineHeight: 1.5 }}>
                 Tap a cell to cross it off. Hold it (or right-click) to confirm a &#9679;.
               </div>
             )}
