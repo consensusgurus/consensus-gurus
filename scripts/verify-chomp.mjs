@@ -20,8 +20,11 @@
 //
 // Ranges enforced (documented in app/chomp/puzzles.js):
 //   board       10x10 from day two; day one is a frozen 13x13
-//   cast        5 to 8 mascots, no repeats, always opening with the bulldog,
-//               and the FULL cast on a Sunday
+//   cast        set by the weekday ramp (5 on Mon/Tue up to the full 8 on
+//               Sunday), no repeats, always opening with the bulldog
+//   ramp        board size AND cast size must match the weekday, and the week
+//               must actually get harder: Monday to Sunday spans 30+ points of
+//               careful-player progress and never trends back up
 //   pellets     one per cast member, in bounds, distinct, never on the start
 //   floor       equals the recomputed Manhattan leg sum
 //   sunday      true if and only if `live` really is a Sunday, and spread wider
@@ -39,6 +42,18 @@ const CHOMP_RULES_FROM = '2026-08-08';   // the launch day: nothing grandfathere
 // whole cast on a Sunday.
 const FIRST_MASCOT = 'bulldog';
 const CAST_MIN = 5, CAST_MAX = 8;
+// THE WEEKDAY RAMP (owner, 2026-08-08): board size and mascot count together.
+// Indexed by getUTCDay, so index 0 is Sunday. Day one predates the ramp.
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const RAMP = [
+  { w: 9, cast: 8 },   // Sun: smallest board, whole cast
+  { w: 11, cast: 5 },  // Mon: roomiest, fewest to chase
+  { w: 10, cast: 5 },
+  { w: 10, cast: 6 },
+  { w: 10, cast: 6 },
+  { w: 10, cast: 7 },
+  { w: 10, cast: 7 },  // Sat
+];
 // THE HARDNESS GATE, third and final version (owner, 2026-08-08, twice).
 //
 // Gating on a MYOPIC bot was the mistake, twice over. Boards that beat a
@@ -274,8 +289,12 @@ function carefulClears(p) {
     prevNum = p.num;
     if (p.live <= prevLive) why.push('live date not strictly increasing');
     prevLive = p.live;
-    const wantW = p.live < '2026-08-09' ? 13 : 10;
-    if (p.w !== wantW || p.h !== wantW) why.push(`board is ${p.w}x${p.h}, expected ${wantW}x${wantW}`);
+    // board size and cast size are the weekday RAMP, so both are checked against
+    // the day of the week rather than against one fixed value
+    const dow = new Date(`${p.live}T12:00:00Z`).getUTCDay();
+    const rung = p.live < '2026-08-09' ? { w: 13, cast: 6 } : RAMP[dow];
+    if (p.w !== rung.w || p.h !== rung.w) why.push(`board is ${p.w}x${p.h}, expected ${rung.w}x${rung.w} on a ${DOW[dow]}`);
+    if (p.cast && p.cast.length !== rung.cast) why.push(`cast of ${p.cast.length}, expected ${rung.cast} on a ${DOW[dow]}`);
     const d = new Date(`${p.live}T12:00:00Z`);
     const want = `chomp-${d.getUTCMonth() + 1}-${d.getUTCDate()}-${String(d.getUTCFullYear()).slice(2)}`;
     if (p.quizId !== want) why.push(`quizId ${p.quizId}, expected ${want}`);
@@ -285,7 +304,7 @@ function carefulClears(p) {
       if (p.cast[0] !== FIRST_MASCOT) why.push(`opens with ${p.cast[0]}, not the bulldog`);
       if (new Set(p.cast).size !== p.cast.length) why.push('cast repeats a mascot');
       for (const m of p.cast) if (!MASCOTS.includes(m)) why.push(`unknown mascot ${m}`);
-      if (p.sunday && p.cast.length !== MASCOTS.length) why.push(`Sunday carries ${p.cast.length} of ${MASCOTS.length} mascots`);
+
     }
     if (p.pellets.length !== (p.cast || []).length) why.push('pellets and cast are different lengths');
     const seen = new Set([idxOf(p, p.start[0], p.start[1])]);
@@ -338,19 +357,29 @@ function carefulClears(p) {
 })();
 
 // ---------- 4. the Sunday Edition ------------------------------------------
+// Sunday is now the TOP RUNG of the weekday ramp rather than a separate rule:
+// the smallest board of the week carrying the whole cast. The old check compared
+// Manhattan floors, which is wrong now, because a 9x9 board has a shorter floor
+// than a 10x10 one even though it is far harder. Check the ramp instead.
 (function sunday() {
   const bad = [];
   for (const p of PUZZLES) {
     const really = new Date(`${p.live}T12:00:00Z`).getUTCDay() === 0;
     if (!!p.sunday !== really) bad.push(`#${p.num} ${p.live} sunday=${!!p.sunday} but the date says ${really}`);
   }
-  const sun = PUZZLES.filter((p) => p.sunday), wk = PUZZLES.filter((p) => !p.sunday);
+  const sun = PUZZLES.filter((p) => p.sunday);
+  const wk = PUZZLES.filter((p) => !p.sunday && p.live >= HARD_FLOOR_FROM);
   if (!sun.length) bad.push('the bank authors no Sunday Edition at all');
-  const avg = (a) => a.reduce((s, p) => s + p.floor, 0) / a.length;
-  if (sun.length && wk.length && avg(sun) <= avg(wk)) bad.push('Sundays are not spread wider than weekdays');
-  for (const p of sun) if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast`);
+  for (const p of sun) {
+    if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast`);
+    if (p.w !== Math.min(...PUZZLES.filter((q) => q.live >= HARD_FLOOR_FROM).map((q) => q.w))) {
+      bad.push(`#${p.num} Sunday is not on the smallest board of the week`);
+    }
+  }
+  const maxWeekdayCast = Math.max(...wk.map((p) => p.cast.length));
+  if (sun.length && maxWeekdayCast >= MASCOTS.length) bad.push('a weekday fields the full cast, so Sunday is not the peak');
   if (bad.length) fail('sunday', bad.slice(0, 4).join('; '));
-  else ok('sunday', `${sun.length} Sunday Editions, every one the full cast of ${MASCOTS.length}, mean floor ${Math.round(avg(sun))} against a weekday ${Math.round(avg(wk))}, flags match the calendar`);
+  else ok('sunday', `${sun.length} Sunday Editions, every one ${sun[0].w}x${sun[0].w} with the full cast of ${MASCOTS.length}, against a weekday peak of ${maxWeekdayCast}`);
 })();
 
 // ---------- 5. difficulty: no unplanned line clears it ----------------------
@@ -378,6 +407,39 @@ function carefulClears(p) {
     const pshare = plannerStops.length ? (plannerStops.reduce((a, b) => a + b, 0) / plannerStops.length * 100).toFixed(0) : '-';
     ok('difficulty', `across ${rows}: no unplanned line clears any board (the myopic one averages ${share}% of the cast), and from ${HARD_FLOOR_FROM} a CAREFUL player cannot clear one either, stalling at ${pshare}% of the cast on average`);
   }
+})();
+
+// ---------- 5b. the ramp must actually RAMP ---------------------------------
+// Board size and cast size alone do NOT produce a ramp. Every rung defeats the
+// careful player by construction, so selecting only on that normalises every day
+// to "just barely beats it" and the week comes out flat: measured 68% on Monday
+// against 65% on Sunday on the first attempt. What separates the days is HOW FAR
+// that player gets before it is stuck, which the generator targets per weekday.
+// This checks the result rather than trusting it.
+(function ramp() {
+  const rows = PUZZLES.filter((p) => p.live >= HARD_FLOOR_FROM);
+  const by = {};
+  for (const p of rows) {
+    const d = new Date(`${p.live}T12:00:00Z`).getUTCDay();
+    const r = carefulClears(p);
+    (by[d] = by[d] || []).push(r.caught / p.cast.length);
+  }
+  const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+  const order = [1, 2, 3, 4, 5, 6, 0];   // Mon..Sun
+  const got = order.map((d) => (by[d] ? mean(by[d]) : null));
+  const bad = [];
+  for (const [i, v] of got.entries()) if (v == null) bad.push(`no boards on ${DOW[order[i]]}`);
+  if (!bad.length) {
+    // Monday must be clearly easier than Sunday, and the week must trend down.
+    // A small wobble between adjacent days is fine (the windows touch); a day
+    // that is easier than the one two rungs before it is not.
+    if (got[0] - got[6] < 0.30) bad.push(`Monday to Sunday only spans ${Math.round((got[0] - got[6]) * 100)} points, so the ramp is flat`);
+    for (let i = 2; i < got.length; i++) {
+      if (got[i] > got[i - 2]) bad.push(`${DOW[order[i]]} (${Math.round(got[i] * 100)}%) plays easier than ${DOW[order[i - 2]]} (${Math.round(got[i - 2] * 100)}%)`);
+    }
+  }
+  if (bad.length) fail('ramp', bad.slice(0, 4).join('; '));
+  else ok('ramp', `careful player gets ${order.map((d, i) => `${DOW[d]} ${Math.round(got[i] * 100)}%`).join(', ')}`);
 })();
 
 // ---------- 6. pool variety across the whole bank ---------------------------
