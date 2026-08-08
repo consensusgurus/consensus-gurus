@@ -63,6 +63,26 @@ function etTodayISO() {
   catch (e) { return new Date().toISOString().slice(0, 10); }
 }
 function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+// m:ss, or h:mm:ss on the rare long one. A board row's timeElapsed is wall clock
+// from open to finish, so a puzzle someone left in a tab can genuinely run hours.
+function mmss(sec) {
+  const x = Math.max(0, Math.round(Number(sec) || 0));
+  if (!x) return null;
+  const h = Math.floor(x / 3600), m = Math.floor((x % 3600) / 60), s = x % 60;
+  const two = (v) => String(v).padStart(2, '0');
+  return h ? h + ':' + two(m) + ':' + two(s) : m + ':' + two(s);
+}
+// The game's own result for one board row, under the name: what they actually
+// scored, not just the 0-15 points that rank them. Every field is optional, so a
+// game that reports no guesses or no clock simply shows less.
+function gameStats(r) {
+  if (!r || r.score == null || !r.total) return null;
+  const bits = [r.score + '/' + r.total];
+  if (r.guessesUsed != null) bits.push(r.guessesUsed + (r.guessesUsed === 1 ? ' guess' : ' guesses'));
+  const clock = mmss(r.timeElapsed);
+  if (clock) bits.push(clock);
+  return bits.join(' \u00b7 ');
+}
 
 export default function DailyTilePanel({
   game, accent, isDone = false, inProgress = false, streak = 0,
@@ -212,7 +232,7 @@ export default function DailyTilePanel({
                 const base = (typeof window !== 'undefined' && window.location) ? window.location.origin : '';
                 notifyShareCredit('', base + game.href);
               }}
-            ><Share2 size={11} strokeWidth={2.6} />Share for credit</button>
+            ><Share2 size={11} strokeWidth={2.6} />Share for $20*</button>
             {/* Pin this game to the top of the home board (owner, 2026-08-02).
                 This is the ONLY pin control for a FINISHED game: that tile is
                 itself a button, so it can only carry a static star, and the
@@ -292,6 +312,7 @@ export default function DailyTilePanel({
                       <span className="pl">{r.rank === 1 ? <Crown size={12} /> : (r.rank || i + 1)}</span>
                       <b>{r.username || 'Player'}{mineRow ? ' (you)' : ''}</b>
                       <span className="sc">{fmtPts(r.points)}</span>
+                      {gameStats(r) ? <span className="dtp-lst">{gameStats(r)}</span> : null}
                     </div>
                   );
                 })}
@@ -300,6 +321,7 @@ export default function DailyTilePanel({
                     <span className="pl">{todayRow.rank || '—'}</span>
                     <b>You</b>
                     <span className="sc">{todayRow.points != null ? fmtPts(todayRow.points) : '—'}</span>
+                    {gameStats(todayRow) ? <span className="dtp-lst">{gameStats(todayRow)}</span> : null}
                   </div>
                 ) : null}
               </>
@@ -579,6 +601,9 @@ export default function DailyTilePanel({
         .dtp-lrow .pl svg{color:var(--gold-ink);}
         .dtp-lrow b{color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;}
         .dtp-lrow .sc{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:var(--ink);flex:none;}
+        /* The game's own result, under the name. Phone-only: the desktop column
+           is 320px wide and already tight with three cells on one line. */
+        .dtp-lst{display:none;}
         .dtp-lrow.me{background:#fdf4dd;border-radius:6px;padding:3px 8px;border-bottom:none;margin:1px -8px;}
         .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:#8a5300;}
         .dtp-lfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:9px;font-size:10.5px;color:var(--muted);font-weight:600;flex:none;}
@@ -708,19 +733,32 @@ export default function DailyTilePanel({
              without moving it in the JSX. */
           .dtp-idt,.dtp-nm{display:contents;}
           .dtp-hd > *,.dtp-nm > *{flex:1 1 auto;min-width:0;justify-content:center;font-size:11px;}
-          /* Play leads the strip and takes a LINE OF ITS OWN (owner,
-             2026-08-07). flex-basis 100% is what breaks the line: it is the one
-             thing in the drawer that starts the game, and sharing a row with
-             four pill chips sized it like a fourth chip. The chips wrap
-             underneath and still spread across the width between them. */
-          .dtp-acts{order:-1;flex:1 1 100%;display:flex;gap:8px;}
+          /* SHARE AND PLAY ARE TWO FLUSH HALF-WIDTH RECTANGLES, edge to edge,
+             Play on the right (owner, 2026-08-07). flex:0 0 50% on each is what
+             reserves the line for exactly those two: they fill it, so every
+             remaining chip wraps below them. The strip therefore carries NO side
+             padding, and the chips on the second line supply their own inset as
+             margins instead. */
+          .dtp-hd{padding:0;gap:0;align-items:stretch;}
+          .dtp-sharechip{order:-2;flex:0 0 50%;box-sizing:border-box;justify-content:center;
+            border:0;border-right:1px solid rgba(255,255,255,.22);border-radius:0;
+            padding:15px 8px;font-size:12px;letter-spacing:.03em;
+            background:rgba(232,180,58,.2);color:var(--gold);}
+          .dtp-sharechip:hover{background:rgba(232,180,58,.3);color:var(--gold);}
+          .dtp-sharechip:hover svg{color:var(--gold);}
+          .dtp-acts{order:-1;flex:0 0 50%;box-sizing:border-box;display:flex;gap:0;}
           .dtp-play{flex:1 1 auto;background:var(--white);color:var(--blue-deep);
-            font-size:14px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
-            border-radius:10px;padding:12px 18px;gap:7px;}
+            font-size:13.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+            border-radius:0;padding:15px 8px;gap:7px;}
+          /* Line two: the status chips, wearing the inset the strip gave up. */
+          .dtp-flame,.dtp-donechip,.dtp-pinchip{flex:1 1 auto;margin:9px 0 9px 8px;}
+          .dtp-flame:last-child,.dtp-donechip:last-child,.dtp-pinchip:last-child{margin-right:8px;}
           .dtp-play:hover{background:var(--blue-200);transform:none;}
           /* A touch taller than the desktop chips (owner, 2026-08-07): these are
-             the drawer's real controls on a phone, not decoration beside a name. */
-          .dtp-flame,.dtp-donechip,.dtp-sharechip,.dtp-pinchip{padding:6px 12px;}
+             the drawer's real controls on a phone, not decoration beside a name.
+             .dtp-sharechip is excluded: it is a half-width rectangle now, sized
+             with Play above. */
+          .dtp-flame,.dtp-donechip,.dtp-pinchip{padding:6px 12px;}
           .dtp-flame{background:rgba(232,180,58,0.2);border-color:rgba(232,180,58,0.5);color:var(--gold);}
           .dtp-donechip{background:rgba(34,197,94,0.22);border-color:rgba(74,222,128,0.5);color:#bfe6cf;}
           .dtp-sharechip{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:var(--gold);}
@@ -797,6 +835,13 @@ export default function DailyTilePanel({
              leader you happen to be */
           .dtp-lrow.me{margin:0;padding:8px 13px;border-radius:0;background:#eef3ff;box-shadow:inset 3px 0 0 var(--blue);}
           .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:var(--blue-deep);}
+          /* The game stats take their own line under the name, indented past the
+             rank cell. flex-wrap plus a 100% basis, so no wrapper element and no
+             change to the desktop row. */
+          .dtp-lrow{flex-wrap:wrap;}
+          .dtp-lst{display:block;flex:1 1 100%;margin:1px 0 0 26px;
+            font-size:10.5px;font-weight:600;color:var(--slate);font-variant-numeric:tabular-nums;}
+          .dtp-lrow.me .dtp-lst{color:var(--blue-deep);opacity:.85;}
           .dtp-lfoot{margin-top:0;padding:8px 13px;border-bottom:1px solid var(--border);}
           .dtp-lfoot a{color:var(--blue-deep);}
           .dtp-empty{padding:10px 13px;}

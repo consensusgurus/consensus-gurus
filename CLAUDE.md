@@ -1956,6 +1956,15 @@ byte-identical.
   leaderboard `#1` takes the rails' gold rule (`.first`, a class that is inert above 900px) and
   `you` takes the blue one, with `.me` ordered AFTER `.first` so being #1 yourself reads as you.
   The calendar spans the full width, so its cells grow.
+- **Share and Play are two flush half-width rectangles at the top, Play on the right** (owner,
+  2026-08-07). `flex:0 0 50%` on each reserves the line for exactly those two, so every remaining
+  chip wraps below; the strip therefore carries no side padding and the second-line chips supply
+  their own inset as margins. Share reads **"Share for $20*"**, naming the contest prize.
+- **Today's leaderboard rows carry the GAME stats** (score, guesses, clock) on their own line under
+  the name, via `gameStats(r)` over the board row's `score` / `total` / `guessesUsed` /
+  `timeElapsed`, alongside the 0-15 ranking points. Phone only (`.dtp-lst`): the desktop column is
+  320px and already tight with three cells on one line. Implemented with `flex-wrap` plus a 100%
+  basis rather than a wrapper element, so the desktop row is untouched.
 - **Play is at the top of the drawer, first in the navy strip** (owner, 2026-08-07), because the
   slate row no longer carries one. `.dtp-idt` and `.dtp-nm` go `display:contents` so the chips and
   Play are flex items of ONE strip rather than two nested boxes, which is what lets Play join the
