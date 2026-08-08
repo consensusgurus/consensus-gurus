@@ -820,9 +820,16 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
           </div>
         )}
-        <div id="daily-join" style={{ display: focusMode ? 'none' : 'block', marginTop: 20 }}>
-          <JoinLeaderboardForm hideIcon heading="Put your name on today&rsquo;s board" identity={identity} onJoined={(u) => setIdentity(u)} />
-        </div>
+        {/* Only for players who have NOT joined. This was gated on focusMode
+            alone, so a player who had already signed up was still asked to sign
+            up under the board every day. Every other daily gates on !identity;
+            Blocks was the last one that did not, and Chomp inherited the bug by
+            being copied from here. */}
+        {!focusMode && !identity && (
+          <div id="daily-join" style={{ marginTop: 20 }}>
+            <JoinLeaderboardForm hideIcon heading="Put your name on today&rsquo;s board" identity={identity} onJoined={(u) => setIdentity(u)} />
+          </div>
+        )}
 
         <div style={{ display: focusMode ? 'none' : 'block' }}>
         <DailyGamesGrid
