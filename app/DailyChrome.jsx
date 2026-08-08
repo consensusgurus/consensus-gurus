@@ -68,7 +68,7 @@ export default function DailyChrome({ slug, compact = false, band = null }) {
         @media(max-width:899px){
           .dch-compact .dsr{display:none;}
           .dch-compact .qchm-r2{display:none;}
-          .dch-band{display:flex;align-items:center;gap:9px;height:40px;padding:0 13px;background:#16307a;color:#fff;overflow:hidden;}
+          .dch-compact .dch-band{display:flex;align-items:center;gap:9px;height:40px;padding:0 13px;background:#16307a;color:#fff;overflow:hidden;}
         }
         .dch-band{display:none;}`}</style>
       <QuizNavHeader />
