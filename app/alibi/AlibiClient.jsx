@@ -367,9 +367,17 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       // floor where a row stops being tappable and the board scrolls instead
       const tbl = el.querySelector('.al-tbl');
       if (tbl) {
-        const chrome = 30 + 3 * 20 + 8;   // header row + three bands + borders
-        const row = Math.max(19, Math.min(34, Math.floor((h - chrome) / 12)));
+        // Estimating the non-row height was 9px light and the board still
+        // overflowed, so it is measured: set a row, see what the table
+        // actually became, and take the difference out of the row. One
+        // corrective pass settles it because the error is linear in the row.
+        let row = Math.max(19, Math.min(34, Math.floor((h - 98) / 12)));
         tbl.style.setProperty('--alrow', row + 'px');
+        const over = Math.ceil(tbl.getBoundingClientRect().height) - h;
+        if (over > 0) {
+          row = Math.max(19, row - Math.ceil(over / 12));
+          tbl.style.setProperty('--alrow', row + 'px');
+        }
       }
     };
     fit();
