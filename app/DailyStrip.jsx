@@ -1579,7 +1579,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              has gone a strange colour. The emblem drops for the same reason it
              drops on the cap: at this size on a saturated ground it is
              unreadable, and the rule does its job. */
-          .sl-row.inprog,.sl-row.inprog.open{grid-template-columns:minmax(0,1fr) auto auto;gap:12px;
+          .dh-board.slate .sl-row.inprog,.dh-board.slate .sl-row.inprog.open{grid-template-columns:minmax(0,1fr) auto auto;gap:12px;
             padding:13px 16px 13px 26px;background:var(--gold);box-shadow:inset 4px 0 0 #8a5306;}
           .sl-row.inprog:hover{background:#e0a92c;}
           .sl-row.inprog .sl-ic{display:none;}
