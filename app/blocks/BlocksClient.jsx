@@ -242,7 +242,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return {
       quizId: PUZZLE.quizId, score: scoreOutOfTen(cur.lines, PAR), total: 10,
-      correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true,
+      correct: 0, guessesUsed: cur.pieces, timeElapsed: el, abandoned: true,
       email: (identity && identity.email) || undefined, anonId: getAnonId(),
       isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : ''),
     };
@@ -252,13 +252,13 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     abandon.markFlushed();
     const sc = scoreOutOfTen(g2.lines, PAR);
     const el = Math.max(1, Math.round(g2.ms / 1000));
-    try { setStats(recordStat(PUZZLE.num, { s: sc, t: 10, g: null, won: sc >= 10 })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: 10, g: g2.pieces, won: sc >= 10 })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quizId: PUZZLE.quizId, score: sc, total: 10, correct: sc >= 10 ? 1 : 0,
-          guessesUsed: 0, timeElapsed: el,   // no miss figure: ties break on time
+          guessesUsed: g2.pieces, timeElapsed: el,   // shapes: ties break on fewest, then time
           email: (identity && identity.email) || undefined, anonId: getAnonId(),
           isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : ''),
         }),
@@ -613,7 +613,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         <><b>Pause</b> whenever. The board is saved, so you can come back through the day and pick the same run up where you left it.</>,
       ]}
       knack="It never speeds up. The well is only 16 rows and the drop rate is the same on shape 400 as on shape one, so runs end because of a hole you left three shapes ago, not because your hands gave out."
-      footer={`One life a day, scored on ROWS CLEARED: clearing ${nf(PAR)} rows is a full 10, above that still scores 10, and ties break on the faster run. The points figure on screen (100, 300, 500 and 800 a line, 1,200 for a quad, plus a combo bonus) is there to play against, not to be scored on. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
+      footer={`One life a day, scored on ROWS CLEARED: clearing ${nf(PAR)} rows is a full 10, above that still scores 10, and ties break on FEWEST SHAPES USED, then on time. Same rows off fewer shapes is the tidier run. The points figure on screen (100, 300, 500 and 800 a line, 1,200 for a quad, plus a combo bonus) is there to play against, not to be scored on. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
     />
   );
 
