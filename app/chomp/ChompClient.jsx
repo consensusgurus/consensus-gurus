@@ -380,6 +380,13 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   };
 
   // ---- canvas --------------------------------------------------------------
+  // sizeBoard redraws through drawRef rather than closing over `draw`. It only
+  // depends on the board dimensions, so a captured `draw` would be the one from
+  // first render, back when the mascot art had not loaded. On desktop nothing
+  // resizes after that and the state-driven redraw covers it, but a phone fires
+  // resize every time the address bar hides, which repainted the board with an
+  // empty sprite table and made the mascots vanish mid-run.
+  const drawRef = useRef(null);
   const sizeBoard = useCallback(() => {
     const box = boxRef.current, cvs = cvsRef.current;
     if (!box || !cvs) return;
@@ -391,8 +398,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     cvs.width = PUZZLE.w * cell * dpr; cvs.height = PUZZLE.h * cell * dpr;
     cvs.style.width = `${PUZZLE.w * cell}px`; cvs.style.height = `${PUZZLE.h * cell}px`;
     cvs.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
-    draw();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (drawRef.current) drawRef.current();
   }, [PUZZLE.w, PUZZLE.h]);
 
   const draw = useCallback(() => {
@@ -436,7 +442,20 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       }
       const im = sprites[CAST[i]];
       ctx.globalAlpha = next ? 1 : 0.7;
-      if (im && im.complete && im.naturalWidth) ctx.drawImage(im, px * cell + 2, py * cell + 2, cell - 4, cell - 4);
+      if (im && im.complete && im.naturalWidth) {
+        ctx.drawImage(im, px * cell + 2, py * cell + 2, cell - 4, cell - 4);
+      } else {
+        // never leave a mascot square blank: if the art has not landed yet, or
+        // failed, fall back to a numbered disc so the board is always playable
+        ctx.beginPath();
+        ctx.arc(px * cell + cell / 2, py * cell + cell / 2, cell * 0.34, 0, 7);
+        ctx.fillStyle = next ? COLORS.accent : '#c4ccd8';
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `700 ${Math.round(cell * 0.44)}px ${SANS}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(String(i + 1), px * cell + cell / 2, py * cell + cell / 2 + 0.5);
+      }
       ctx.globalAlpha = 1;
     }
 
@@ -449,7 +468,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     }
   }, [PUZZLE.w, PUZZLE.h, PUZZLE.pellets, CAST, sprites]);
 
-  useEffect(() => { blockRef.current = blocked; draw(); }, [draw, g, blocked, sprites]);
+  useEffect(() => { drawRef.current = draw; blockRef.current = blocked; draw(); }, [draw, g, blocked, sprites]);
+  // the art arriving must repaint at the CURRENT size, not just on next state
+  useEffect(() => { if (drawRef.current) drawRef.current(); }, [sprites]);
   useEffect(() => {
     if (!blocked) return;
     const t = setTimeout(() => setBlocked(null), BLOCK_MS);
@@ -643,9 +664,14 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-        <div id="daily-join" style={{ marginTop: 20 }}>
-          <JoinLeaderboardForm hideIcon heading="Put your name on today&rsquo;s board" identity={identity} onJoined={(u) => setIdentity(u)} />
-        </div>
+        {/* Only for players who have not joined. Rendering this unconditionally
+            is the bug that makes a signed-in player get asked to sign up on
+            every board; Turn and Paths gate it on !identity and so does this. */}
+        {!identity && (
+          <div id="daily-join" style={{ marginTop: 20 }}>
+            <JoinLeaderboardForm hideIcon heading="See your stats and join the leaderboard" identity={identity} onJoined={(u) => setIdentity(u)} />
+          </div>
+        )}
 
         <DailyGamesGrid
           self="chomp"
