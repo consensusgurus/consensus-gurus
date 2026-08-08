@@ -35,9 +35,21 @@ import React from 'react';
 import QuizNavHeader from './quizzes/QuizNavHeader';
 import DailySlateRail from './DailySlateRail';
 
-export default function DailyChrome({ slug }) {
+// OPT-IN SLIM CHROME (2026-08-08). `compact` is off by default, so every game
+// that does not ask for it renders through the identical code path it always
+// has. Alibi is the only caller today. Below the phone breakpoint it folds the
+// slate rail and the player stat bar away, which is about 108px, and on a game
+// page those 108px are the difference between seeing your whole board and
+// scrolling it. Desktop is untouched at any setting: the media query is the
+// only place compact does anything.
+//
+// What it costs: on a phone the slate rail is how you hop to the next game and
+// the stat bar is where your rank sits. The Today pill in the top band still
+// gets you back to the slate. If this sticks, the mockup replaces both with a
+// single 10/51 chip in the top band rather than just hiding them.
+export default function DailyChrome({ slug, compact = false }) {
   return (
-    <div className="dch-wrap">
+    <div className={`dch-wrap${compact ? ' dch-compact' : ''}`}>
       {/* STACKING: the wrapper caps the whole header group at z-index 5. The
           shared navy bar carries z-index 90 for the quiz surfaces, which on a
           daily page paints OVER the end-of-game card (its backdrop is 85) and
@@ -46,7 +58,11 @@ export default function DailyChrome({ slug }) {
           overlay on the page lands above the header, while 5 still clears the
           fixed Grain wash at z-index 1 and the page column at 2. Do not raise
           this without checking dec-backdrop in DailyEndCard. */}
-      <style>{'.dch-wrap{position:relative;z-index:5;}'}</style>
+      <style>{`.dch-wrap{position:relative;z-index:5;}
+        @media(max-width:899px){
+          .dch-compact .dsr{display:none;}
+          .dch-compact .qchm-r2{display:none;}
+        }`}</style>
       <QuizNavHeader />
       <DailySlateRail current={slug} />
     </div>

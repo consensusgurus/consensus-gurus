@@ -612,7 +612,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="alibi" name="Alibi" collapsed={started} />
+      <DailyChrome slug="alibi" name="Alibi" collapsed={started} compact />
       <div className="al-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.al-wrap{padding-left:12px !important;padding-right:12px !important;}}
