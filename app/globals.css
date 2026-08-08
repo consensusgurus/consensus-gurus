@@ -38,12 +38,22 @@
 
 body {
   margin: 0;
-  /* WHITE, and it must stay white. Navy was tried here to make Safari tint the
-     status-bar strip, and it worked, but Safari tints its BOTTOM bar from the
-     same colour: the address bar went from translucent to solid navy and the
-     page could no longer be seen through it. The dome is handled by .dch-dome
-     in app/DailyChrome.jsx instead. See the note below. */
-  background: var(--white);
+  /* NAVY ON PURPOSE, and this single declaration is what colours the browser
+     chrome on iPhone. Safari tints the strip behind the status bar (the "dome")
+     from the page background when nothing sticky tops the viewport, and it
+     tints its bottom address bar from the same value. Both go brand navy, which
+     is the owner's call (2026-08-08): the solid navy address bar is accepted in
+     exchange for the matching dome. Reverting this to white was tried and the
+     dome went straight back to white, so it is load-bearing, not decorative.
+
+     NO PAGE LOOKS NAVY, because every route paints its own opaque ground over
+     the whole viewport. Verified by forcing body magenta on a daily game, the
+     homepage, /quizzes, /lists and a list detail page and confirming not one
+     pixel showed. Re-run that test before assuming a new route can rely on
+     body's colour. min-height keeps body covering the viewport on a short
+     page. */
+  min-height: 100vh;
+  background: var(--accent);
   color: var(--ink);
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
@@ -58,12 +68,11 @@ body {
    none so it never eats a tap.
 
    THIS BAND IS NOT WHAT COLOURS THE DOME IN ORDINARY SAFARI, and do not try to
-   make it do that job by giving it a height floor. Safari tints its own top
-   strip from the fixed or sticky element topping the viewport, falling back to
-   the page background; a 4px floor here was tried and ignored, because a
-   decorative sliver is not what it samples. That job belongs to .dch-dome in
-   app/DailyChrome.jsx. theme-color is not the mechanism either: it is set
-   globally to #1e3a8a and every page carries it. */
+   make it do that job by giving it a height floor. A 4px floor here was tried
+   and ignored, because a decorative sliver is not what Safari samples. The dome
+   is body's background above, backed up by .dch-dome in app/DailyChrome.jsx.
+   theme-color is not the mechanism either: it is set globally to #1e3a8a and
+   every page carries it. */
 body::before {
   content: '';
   position: fixed;
@@ -77,6 +86,11 @@ body::before {
 }
 
 html {
+  /* Matches body so overscroll never flashes white. On its own this does
+     NOTHING for the dome: setting the colour only here was tried and Safari
+     ignored it, which is how we know it reads body's background, not the
+     canvas. */
+  background: var(--accent);
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
   /* Disable mobile-browser font boosting: long un-wrappable labels and the
