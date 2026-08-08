@@ -1693,7 +1693,7 @@ export default function QuizClient({ quizId }) {
                         ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
                         : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
                     </p>
-                    <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display Name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+                    <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
                     <input value={jEmail} onChange={(e) => setJEmail(e.target.value)} type="email" placeholder="Email (optional, required for prizes)" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{ ...fieldStyle, marginTop: 10 }} />
                     <button onClick={submitClaim} disabled={claimBusy} style={{ ...stackBtn, marginTop: 12, background: T.cta, color: T.ctaInk, opacity: claimBusy ? 0.6 : 1 }}>{claimBusy ? (canReveal ? 'Revealing…' : 'Posting…') : (canReveal ? 'Reveal the answers' : 'Post this to the leaderboard')}</button>
                   </div>

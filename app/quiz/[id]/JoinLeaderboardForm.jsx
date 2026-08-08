@@ -132,7 +132,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
         Your display name is shown publicly. Email is optional, required only for prizes, and kept private.
       </p>
       <label style={labelStyle}>Display name</label>
-      <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="e.g. dealwatcher" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
+      <input value={jName} onChange={(e) => setJName(e.target.value)} maxLength={15} placeholder="Display name" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={fieldStyle} />
       <label style={{ ...labelStyle, marginTop: 16 }}>
         {recover ? 'Email (enter the one you signed up with)' : 'Email (optional, required for prizes)'}
       </label>
