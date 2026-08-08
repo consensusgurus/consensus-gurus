@@ -189,11 +189,12 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Desktop lists every row as before: the hide class and the bars are both inert
 // above 900px.
 const PHONE_ROWS = 6;     // games visible across paused + unplayed
-const PHONE_PROG_MAX = 3; // ...of which never more than three are paused
+const PHONE_PROG_MAX = 2; // ...of which never more than two are paused
 // Desktop shows at most this many In progress rows before the expand bar takes
-// over. Two, because the slate runs two columns there, so a paused game is
-// either the full width of the console or half of it, never a third row of
-// gold competing with the games you have not started (owner, 2026-08-08).
+// over. Two, matching the phone: the slate runs two columns there, so a paused
+// game is either the full width of the console or half of it, and a third card
+// would push the games you have NOT started off the first screen. Two paused is
+// the rule at every width (owner, 2026-08-08).
 const DESK_PROG_MAX = 2;
 
 // How far back Up next looks when deciding which game this viewer plays the
@@ -917,6 +918,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               : ip
                 ? <a className="sl-btn prog" href={g.href} aria-label={`Resume ${g.name}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg>
+                    {/* The word rides with the triangle only where the paused
+                        row is a cap-shaped card with a cap-sized button to put
+                        it in; everywhere else the chip stays icon-only. */}
+                    <i className="sl-rz">Resume</i>
                   </a>
                 : <a className="sl-btn play" href={g.href}>Play</a>}
           </span>
@@ -1475,6 +1480,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
         .sl-arch{display:flex;justify-content:center;}
+        .sl-rz{display:none;font-style:normal;}
         .sl-ab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:7px;padding:5px 9px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}
         .sl-ab:hover{background:var(--accent-soft);}
         .sl-ab.on{background:var(--blue);border-color:var(--blue);color:var(--white);}
@@ -1548,29 +1554,50 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              is actually showing. */
           .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);opacity:0;pointer-events:none;}
           .sl-row.done .sl-status{opacity:1;pointer-events:auto;}
-          /* IN PROGRESS IS GOLD (owner, 2026-08-08). A paused game is the one
-             thing on the slate with a claim on you, and a cream wash behind an
-             otherwise ordinary row was not making that case. Filled gold, white
-             type, the same pairing the cap bars use for blue, and the band above
-             takes a deeper gold so the group reads as one block. Capped at two
-             and full width when there is only one, so it stays an invitation
-             rather than a wall. */
           .sl-dhid{display:none;}
           .sl-row.sl-wide{grid-column:1/-1;}
-          .sl-band.prog{background:#7c4a06;}
-          .sl-band.prog .sl-bc{color:#f0d9a0;}
-          .sl-more.prog{display:flex;grid-column:1/-1;order:3;}
           .sl-mtxt.p{display:none;}
-          .sl-row.inprog,.sl-row.inprog.open{background:var(--gold-ink);box-shadow:inset 4px 0 0 rgba(255,255,255,.92);}
-          .sl-row.inprog:hover{background:#8a5306;}
-          .sl-row.inprog .sl-nm b,.sl-row.inprog .sl-pl b{color:var(--white);}
+          /* The expand bar is the PHONE'S bar, restated. It was inheriting
+             nothing but display, so it rendered as a raw <button> carrying a UA
+             border in the middle of the console (owner, 2026-08-08). The band
+             above it stays the same blue as every other band: the gold belongs
+             to the cards, not to the furniture around them. */
+          .sl-more.prog{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;grid-column:1/-1;order:3;
+            padding:6px 13px;border:0;border-radius:0;border-bottom:1px solid var(--border);background:var(--surface);
+            font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+            line-height:1.5;color:var(--gold-ink);cursor:pointer;}
+          .sl-more.prog:hover{background:#eef1f6;}
+          /* A PAUSED GAME IS A CAP-SHAPED CARD (owner, 2026-08-08). The first
+             pass filled the ordinary row with #a16207, which came out muddy
+             brown against a page of blue and read as a warning rather than an
+             invitation. It takes the CAP BARS' shape instead, the two cells
+             directly above it: same padding, same 4px rule where the emblem
+             would be, an eyebrow over a 20px name over a sub line, and the same
+             wide button on the right edge. Only the ground differs, the brand
+             gold the phone's share bar already pairs with #3a2a05 ink, so a
+             paused game reads as one more of those cards rather than a row that
+             has gone a strange colour. The emblem drops for the same reason it
+             drops on the cap: at this size on a saturated ground it is
+             unreadable, and the rule does its job. */
+          .sl-row.inprog,.sl-row.inprog.open{grid-template-columns:minmax(0,1fr) auto auto;gap:12px;
+            padding:13px 16px 13px 26px;background:var(--gold);box-shadow:inset 4px 0 0 #8a5306;}
+          .sl-row.inprog:hover{background:#e0a92c;}
+          .sl-row.inprog .sl-ic{display:none;}
+          .sl-row.inprog .sl-nm b{font-size:20px;color:#2a1f04;}
           /* The eyebrow's colour is an inline style (the category hue), so this
              is the one place the desktop block has to outrank it. */
-          .sl-row.inprog .sl-cm{color:#f7e3b0 !important;}
-          .sl-row.inprog .sl-tg,.sl-row.inprog .sl-dot,.sl-row.inprog .sl-pl i{color:#f0d9a0;}
-          .sl-row.inprog .sl-mld{color:#fbeeca;}
-          .sl-row.inprog .sl-mld svg{color:var(--gold);}
-          .sl-row.inprog .sl-btn.prog{background:var(--white);border-color:var(--white);color:var(--gold-ink);}
+          .sl-row.inprog .sl-cm{color:#7a5a10 !important;}
+          .sl-row.inprog .sl-tg,.sl-row.inprog .sl-dot{color:#6b5210;}
+          .sl-row.inprog .sl-mld{color:#4a3708;}
+          .sl-row.inprog .sl-mld svg{color:#8a6a12;}
+          .sl-row.inprog .sl-pl b{color:#2a1f04;}
+          .sl-row.inprog .sl-pl i{color:#6b5210;}
+          /* The one row whose control is permanent: it is the reason the card is
+             there, so it never waits for a hover. */
+          .sl-row.inprog .sl-status{position:static;transform:none;opacity:1;pointer-events:auto;}
+          .sl-row.inprog .sl-btn.prog{width:104px;padding:11px 0;gap:7px;border-radius:8px;
+            background:var(--white);border-color:var(--white);color:#8a5306;font-size:12px;letter-spacing:.05em;}
+          .sl-row.inprog .sl-rz{display:inline;}
           .sl-row.done .sl-pl{visibility:hidden;}
           .sl-btn{width:64px;}
         }
