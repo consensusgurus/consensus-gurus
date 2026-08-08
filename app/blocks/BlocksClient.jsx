@@ -716,21 +716,18 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
               <span style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 800, color: COLORS.ink }}>{score10}<em style={{ fontStyle: 'normal', fontSize: 10, color: '#94a3b8' }}>/10</em></span>
             </div>
 
-            {/* Two clusters, one per thumb: movement on the left, rotation and
-                drop on the right, tight enough that neither hand has to travel.
-                The old flat five-across row spread the arrows over the whole
-                width, which is a long way for a thumb between a left and a
-                right step. */}
+            {/* The pad is the T piece: [[0,1,0],[1,1,1]]. Up rotates, left and
+                right move, the middle steps it down, and Drop is the bar under
+                it. One rotate button, not two, because a second direction is a
+                decision nobody wants to make with a shape falling. Centered at
+                every width. */}
             <div className="bl-dock">
               <div className="bl-pad">
-                <button style={dockBtn} {...holdProps('left')} aria-label="Move left">&#9664;</button>
-                <button style={dockBtn} {...holdProps('down')} aria-label="Soft drop">&#9660;</button>
-                <button style={dockBtn} {...holdProps('right')} aria-label="Move right">&#9654;</button>
-              </div>
-              <div className="bl-acts">
-                <button style={dockBtn} {...tapProps('ccw')} aria-label="Rotate left">&#10558;</button>
-                <button style={dockBtn} {...tapProps('cw')} aria-label="Rotate right">&#10559;</button>
-                <button className="bl-drop" style={{ ...dockBtn, width: 'auto', padding: '0 16px', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' }} {...tapProps('drop')}>Drop</button>
+                <button className="bl-rot" style={dockBtn} {...tapProps('cw')} aria-label="Rotate">&#8635;</button>
+                <button className="bl-lft" style={dockBtn} {...holdProps('left')} aria-label="Move left">&#9664;</button>
+                <button className="bl-dwn" style={dockBtn} {...holdProps('down')} aria-label="Soft drop">&#9660;</button>
+                <button className="bl-rgt" style={dockBtn} {...holdProps('right')} aria-label="Move right">&#9654;</button>
+                <button className="bl-drop" style={{ ...dockBtn, width: 'auto', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' }} {...tapProps('drop')}>Drop</button>
               </div>
             </div>
             <div className="bl-keys" style={{ textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
@@ -822,19 +819,31 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
       )}
 
       <style>{`
-        .bl-dock { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 12px; }
-        .bl-pad, .bl-acts { display: flex; gap: 6px; }
+        /* the T piece, as a pad: rotate on top, move-left / down / move-right
+           across the middle, Drop as the bar beneath. Centered at every width. */
+        .bl-dock { display: flex; justify-content: center; margin-top: 12px; }
+        .bl-pad {
+          display: grid;
+          grid-template-areas: ". rot ." "lft dwn rgt" "drp drp drp";
+          grid-template-columns: repeat(3, 58px);
+          gap: 5px;
+          justify-content: center;
+        }
+        .bl-rot { grid-area: rot; }
+        .bl-lft { grid-area: lft; }
+        .bl-dwn { grid-area: dwn; }
+        .bl-rgt { grid-area: rgt; }
+        .bl-drop { grid-area: drp; }
+        .bl-pad button { width: 100% !important; }
         @media (max-width: 640px) {
           .bl-ladder { display: none !important; }
           .bl-strip { display: flex !important; }
           .bl-keys { display: none !important; }
           .bl-touchhint { display: block !important; }
-          /* one cluster per thumb, hard against its own edge */
-          .bl-dock { justify-content: space-between; gap: 10px; margin-top: 8px; }
-          .bl-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; flex: 1 1 0; max-width: 46%; }
-          .bl-acts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; flex: 1 1 0; max-width: 46%; }
-          .bl-dock button { width: 100% !important; height: 54px !important; }
-          .bl-acts .bl-drop { grid-column: span 2; height: 46px !important; padding: 0 !important; }
+          .bl-dock { margin-top: 10px; }
+          .bl-pad { grid-template-columns: repeat(3, 64px); gap: 6px; }
+          .bl-pad button { height: 56px !important; }
+          .bl-drop { height: 48px !important; }
         }
       `}</style>
 
