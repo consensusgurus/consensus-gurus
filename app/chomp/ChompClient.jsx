@@ -262,6 +262,10 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const playing = g.status === 'playing';
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
+  // `started` means "mid-run" and goes false the instant a run ends, so it is
+  // the WRONG gate for the footer controls: it took Try again down with it and
+  // left no way back onto the board. `engaged` means "has been started at all".
+  const engaged = !!g.t0;
   const cleared = g.pi >= NPEL;
   const over = g.status !== 'playing';
   const score10 = scoreOf(g.pi, NPEL);
@@ -775,11 +779,11 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               Use the pad to move &middot; hold an arrow to keep going
             </div>
 
-            {started && (
+            {engaged && (
               <div style={{ marginTop: 12, paddingTop: 11, borderTop: `1px solid ${COLORS.line}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
-                    Where you have been is a wall. There is no take-back.
+                    {playing ? 'Where you have been is a wall. There is no take-back.' : 'Your result is recorded. Play it again as often as you like.'}
                   </span>
                   <span style={{ marginLeft: 'auto' }}>
                     {playing ? (
@@ -866,6 +870,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             : <>Boxed in on the {LABEL[CAST[g.pi]] || 'next one'} &middot; {nf(g.moves)} moves &middot; board {fillPct}% full</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={tryAgain}
           onClose={() => setEndClosed(true)}
         />
       )}
