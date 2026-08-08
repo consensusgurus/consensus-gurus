@@ -321,8 +321,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
                 dayRank
                   ? <>{`#${fmtK(dayRank)}`}{dayXp ? <i>{` \u00b7 ${dayXp.toLocaleString()} IQ`}</i> : null}</>
                   : <>{'\u2014'}</>,
+                // The phone hides the little cell LABELS (.qchm-k), so without the
+                // word here this column is a bare "#32" sitting two boxes from the
+                // lifetime rank's bare "#1" and there is nothing to tell them apart.
                 dayRank
-                  ? (dayField ? `of ${dayField.toLocaleString()} today` : 'on today\u2019s board')
+                  ? (dayField ? `daily rank of ${dayField.toLocaleString()}` : 'daily rank today')
                   : 'play to rank today',
                 dayRank ? 'qchm-up' : '',
               )}
