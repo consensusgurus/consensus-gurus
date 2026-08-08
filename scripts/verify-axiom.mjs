@@ -20,6 +20,12 @@
 //     thinking player is not hunting one needle in 171
 //   - C10 bank-wide: the answer is spread across the candidate slots, and no
 //     rule kind that appears often is a free cross-out
+//   - C11 no near-miss tiles on a set or hidden-word board (see NEAR below).
+//     The candidates stopped printing their array on 2026-08-08, so a player now
+//     supplies the knowledge themselves. That is only fair while the board never
+//     contains a word whose real-world classification disagrees with the array:
+//     ANTELOPE under "it is a mammal" scored false and made correct reasoning
+//     wrong. Boards live before NEAR_FROM are already played and are exempt.
 // Run: node scripts/verify-axiom.mjs
 import { PUZZLES } from '../app/axiom/puzzles.js';
 
@@ -197,6 +203,52 @@ if (v2.length >= 12) {
     if (rate > 0.75) fail(`bank: "${k}" is the answer ${isAnswer} of the ${appears} times it appears (${(100 * rate).toFixed(0)}%), so picking it on sight is a free win`);
   });
 }
+
+// ─── C11: no near-miss tiles ────────────────────────────────────────────────
+// Words a reasonable person puts in the set that the array leaves out. A tile
+// like this makes correct real-world reasoning give the wrong answer, which is
+// exactly what the printed roster used to paper over. Grow these lists whenever
+// a set gains a board; a false positive here costs one tile swap, a miss costs a
+// player their round. Note the gaps this encodes: SETS.ballsport has no
+// volleyball or basketball, HIDDEN.body no foot/leg/hand/head, HIDDEN.animal no
+// ass. Either add the word to the array or keep it off the board.
+const NEAR_FROM = '2026-08-09';   // boards live before this are already played
+const NEAR = {
+  mammal: ['ANTELOPE','BISON','BUFFALO','LLAMA','ALPACA','FERRET','SQUIRREL','CHIPMUNK','HEDGEHOG','PORCUPINE','ARMADILLO','ANTEATER','PLATYPUS','KANGAROO','WOMBAT','LEMUR','BABOON','CHIMP','CHIMPANZEE','ORCA','MANATEE','NARWHAL','BOAR','STOAT','MINK','SKUNK','OPOSSUM','POSSUM','MARMOT','GAZELLE','IMPALA','ORYX','YAK','BULL','CALF','LAMB','PONY','MULE','KITTEN','PUPPY','HUMAN','BUCK','FAWN','STAG','HYENA','JACKAL','COYOTE','DINGO','BOBCAT','OCELOT','CHEETAH','PANTHER','GRIZZLY','REINDEER','CARIBOU','TAPIR','OKAPI','SHREW','VOLE','GERBIL','CHINCHILLA','MEERKAT','MONGOOSE','LEMMING','MUSKRAT','PORPOISE','WARTHOG'],
+  bird: ['SEAGULL','GULL','CANARY','BLUEJAY','JAY','CARDINAL','ORIOLE','STARLING','SWALLOW','THRUSH','LARK','NIGHTINGALE','WOODPECKER','KINGFISHER','FLAMINGO','PEACOCK','PHEASANT','PARTRIDGE','GROUSE','ALBATROSS','CORMORANT','SANDPIPER','PLOVER','CURLEW','BUZZARD','KESTREL','OSPREY','MACAW','COCKATOO','BUDGIE','CUCKOO','SWIFT','WAGTAIL','CHAFFINCH','GOLDFINCH','ROOSTER','CHICK','DUCKLING','GOSLING','CYGNET','RHEA','CASSOWARY','KOOKABURRA','HORNBILL','IBIS','CRANE','GREBE','COOT','MOORHEN','TERN','GANNET'],
+  fish: ['RAY','SOLE','HAKE','SNAPPER','MACKEREL','HALIBUT','FLOUNDER','STURGEON','TILAPIA','CATFISH','GOLDFISH','SWORDFISH','BARRACUDA','PIRANHA','GROUPER','MULLET','BREAM','ROACH','TENCH','WHITING','HADDOCK','POLLOCK','PLAICE','TURBOT','MONKFISH','ANGLERFISH','MOLLY','TETRA','BETTA','KOI','WAHOO','TARPON','LAMPREY','MORAY','CONGER','SKATE','DOGFISH'],
+  fruit: ['TOMATO','AVOCADO','CUCUMBER','PUMPKIN','OLIVE','COCONUT','PINEAPPLE','STRAWBERRY','RASPBERRY','BLUEBERRY','BLACKBERRY','CRANBERRY','WATERMELON','NECTARINE','POMEGRANATE','RHUBARB','TANGERINE','CLEMENTINE','SATSUMA','PERSIMMON','QUINCE','PLANTAIN','CANTALOUPE','HONEYDEW','STARFRUIT','JACKFRUIT','KUMQUAT','GOOSEBERRY','ELDERBERRY','MULBERRY','CURRANT','PRUNE','RAISIN','SULTANA','KIWI','PAWPAW','TAMARIND','POMELO'],
+  vegetable: ['TOMATO','AVOCADO','CUCUMBER','MUSHROOM','LETTUCE','BROCCOLI','CAULIFLOWER','ASPARAGUS','ZUCCHINI','COURGETTE','EGGPLANT','AUBERGINE','ARTICHOKE','YAM','CHARD','ENDIVE','SHALLOT','SCALLION','CHIVE','FENNEL','SWEDE','RUTABAGA','PUMPKIN','MARROW','SPROUT','WATERCRESS','ARUGULA','ROCKET','CASSAVA','TARO','LENTIL','CHICKPEA','SOYBEAN','EDAMAME','KOHLRABI'],
+  drink: ['SMOOTHIE','LEMONADE','WHISKEY','WHISKY','VODKA','RUM','GIN','ALE','PUNCH','BRANDY','SHERRY','ESPRESSO','CHAI','KEFIR','SAKE','MEAD','TONIC','SELTZER','BROTH','LIQUEUR','CHAMPAGNE','PROSECCO','BOURBON','SCOTCH','TEQUILA','MEZCAL','ABSINTHE','VERMOUTH','STOUT','LAGER','PILSNER','SHANDY','SANGRIA','MARTINI','MOJITO','MILKSHAKE','EGGNOG','HORCHATA','KOMBUCHA','LASSI','CORDIAL'],
+  country: ['TAIWAN','WALES','SCOTLAND','ENGLAND','PALESTINE','KOSOVO','TIBET','GREENLAND','VATICAN','KOREA','CONGO','HOLLAND','PERSIA','BURMA','SIAM','PRUSSIA','CATALONIA','BAVARIA','QUEBEC','TEXAS','BRITAIN','ULSTER','MACAU','SCOTIA','EIRE','ARUBA','BERMUDA','GIBRALTAR','MONACO','ANDORRA','MALTA','CYPRUS','LUXEMBOURG','LIECHTENSTEIN','NEPAL','BHUTAN','LAOS','VIETNAM','CAMBODIA','PANAMA','BOLIVIA','ECUADOR','URUGUAY','SENEGAL','ZAMBIA','MALAWI','TUNISIA','ALGERIA','LEBANON','JORDAN','OMAN','QATAR','KUWAIT','LATVIA','ESTONIA','CROATIA','SERBIA','ALBANIA','SLOVAKIA','SLOVENIA','ROMANIA','BULGARIA','UKRAINE','BELARUS','GEORGIA','ARMENIA','MONGOLIA','NAMIBIA','BOTSWANA','UGANDA','RWANDA','GHANA','ANGOLA','SUDAN','LIBYA','IRAQ','IRAN','SYRIA','ISRAEL','YEMEN','NEPALESE'],
+  ballsport: ['VOLLEYBALL','BASKETBALL','BADMINTON','PINGPONG','TABLETENNIS','RACQUETBALL','PADEL','BOWLS','HOCKEY','FIELDHOCKEY','PICKLEBALL','ROUNDERS','STICKBALL','PAINTBALL','TETHERBALL','WIFFLEBALL','SKEEBALL','JAIALAI','CURLING','SHUFFLEBOARD','CAMOGIE','POLOCROSSE'],
+};
+const HIDDEN_NEAR = {
+  animal: ['ASS','DOE','KID','CUB','PUP','COD','EEL','ROE','TIT','JAY','GNU','YAK','BOA','ASP','FLY','BUG','CRAB','FROG','TOAD','WORM','MOTH','WASP','SEAL','LION','BEAR','WOLF','DEER','GOAT','MULE','FOAL','LAMB','CALF','CROW','DOVE','DUCK','SWAN','HAWK','MOLE','HARE','LYNX','PUMA','GOOSE','SHEEP','HORSE','MOUSE'],
+  body: ['LEG','NAIL','HAIR','HAND','FOOT','HEAD','BACK','KNEE','NOSE','FACE','CHEEK','WRIST','ANKLE','THUMB','SPINE','LIVER','HEART','BRAIN','THIGH','PALM','TOOTH','TONGUE','THROAT','ELBOW','WAIST','CHEST','BELLY','KIDNEY','MUSCLE'],
+  number: ['THREE','SEVEN','EIGHT','ZERO','ELEVEN','TWELVE','TWENTY','HUNDRED','MILLION','BILLION','DOZEN','SCORE','ONCE','TWICE'],
+};
+PUZZLES.forEach((p) => {
+  if (p.live < NEAR_FROM) return;
+  p.rules.forEach((r) => {
+    if (r.k === 'in') {
+      const near = NEAR[r.set] || [];
+      p.tiles.forEach((t) => {
+        if (!SETS[r.set].includes(t.w) && near.includes(t.w))
+          fail(`C11 #${p.num} ${p.live}: "${t.w}" reads as ${r.set} but SETS.${r.set} leaves it out, so the board scores it false and correct reasoning loses. Swap the tile or add the word to the set.`);
+      });
+    }
+    if (r.k === 'hides') {
+      const near = (HIDDEN_NEAR[r.set] || []).filter((w) => !HIDDEN[r.set].includes(w));
+      p.tiles.forEach((t) => {
+        if (HIDDEN[r.set].some((h) => t.w.includes(h))) return;
+        const seems = near.filter((h) => t.w.includes(h));
+        if (seems.length)
+          fail(`C11 #${p.num} ${p.live}: "${t.w}" looks like it hides ${seems.join('/')} (${r.set}) but HIDDEN.${r.set} leaves that out, so the board scores it false. Swap the tile or add the word.`);
+      });
+    }
+  });
+});
 
 if (fails) { console.error(`\nverify-axiom: ${fails} FAILURE(S)`); process.exit(1); }
 console.log(`verify-axiom: all ${PUZZLES.length} boards pass (unique rule, gift greens neutral, perfect 2, structure OK)`);

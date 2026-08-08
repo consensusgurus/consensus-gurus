@@ -35,6 +35,12 @@
 //      common rule kind is a free cross-out. Candidate order is shuffled per
 //      board, and the topic / hidden-word rules are decoys about as often as
 //      they are the answer.
+//   C11 no near-miss tiles: on a board carrying a set or hidden-word rule, no
+//      tile may be a word a reasonable person would classify INTO that set when
+//      the array leaves it out. The rules no longer print their array, so the
+//      player supplies the knowledge, and it has to be the obvious kind. Boards
+//      live before 2026-08-09 are exempt (already played): #2 GLASSES and #12
+//      BASSES both hide ASS, the donkey, which HIDDEN.animal does not list.
 // Boards 1-6 predate these and are frozen; the verifier exempts them.
 // Validate with scripts/verify-axiom.mjs after ANY edit.
 export const PUZZLES = [
@@ -679,7 +685,7 @@ export const PUZZLES = [
       { w: 'RUBBER', t: 1 }, { w: 'HUMBLING', t: 0, g: 1 }, { w: 'INITIAL', t: 0 }, { w: 'UPDATES', t: 0 },
       { w: 'SIXERS', t: 1, g: 1 }, { w: 'HONESTLY', t: 0 }, { w: 'HAVING', t: 0 }, { w: 'TENANT', t: 1, g: 1 },
       { w: 'NEWTON', t: 1 }, { w: 'STONES', t: 1, g: 1 }, { w: 'INHUMANE', t: 0 }, { w: 'HADES', t: 0 },
-      { w: 'PHONE', t: 0, g: 1 }, { w: 'SCORERS', t: 1 }, { w: 'FRANTIC', t: 0 }, { w: 'TAUGHT', t: 1 },
+      { w: 'PHONE', t: 0, g: 1 }, { w: 'SISTERS', t: 1 }, { w: 'FRANTIC', t: 0 }, { w: 'TAUGHT', t: 1 },
     ],
   },
   {
@@ -702,7 +708,7 @@ export const PUZZLES = [
     tiles: [
       { w: 'TACO', t: 0 }, { w: 'HAPPENED', t: 1 }, { w: 'IDEOLOGY', t: 0 }, { w: 'ANALYZES', t: 1 },
       { w: 'BROKERS', t: 0 }, { w: 'GIRAFFE', t: 1, g: 1 }, { w: 'LAUNCHER', t: 1 }, { w: 'ACCOUNT', t: 1 },
-      { w: 'ANTELOPE', t: 0 }, { w: 'COUNCIL', t: 1 }, { w: 'OBVIOUS', t: 0 }, { w: 'BEING', t: 0 },
+      { w: 'ELEVATOR', t: 0 }, { w: 'COUNCIL', t: 1 }, { w: 'OBVIOUS', t: 0 }, { w: 'BEING', t: 0 },
       { w: 'POLISHED', t: 1 }, { w: 'RACCOON', t: 1, g: 1 }, { w: 'FEDEX', t: 0 }, { w: 'PROCEED', t: 1 },
       { w: 'BODILY', t: 0 }, { w: 'GORILLA', t: 1, g: 1 }, { w: 'SIGHT', t: 0 }, { w: 'CRUMBLE', t: 0, g: 1 },
       { w: 'NEEDLE', t: 1 }, { w: 'BAT', t: 0, g: 1 }, { w: 'CASINO', t: 1 }, { w: 'ROBIN', t: 0 },
@@ -824,7 +830,7 @@ export const PUZZLES = [
       { w: 'MAINLAND', t: 0 }, { w: 'OVERLAND', t: 1 }, { w: 'LIGHT', t: 0, g: 1 }, { w: 'TYPE', t: 0 },
       { w: 'EARNINGS', t: 1 }, { w: 'ARGUMENT', t: 1 }, { w: 'UNHEARD', t: 1, g: 1 }, { w: 'EYEBALL', t: 1 },
       { w: 'EARNING', t: 1, g: 1 }, { w: 'CLEMENT', t: 0 }, { w: 'ORDINARY', t: 1 }, { w: 'OLIVE', t: 1 },
-      { w: 'HOLD', t: 0 }, { w: 'JUNKIE', t: 0 }, { w: 'BIGFOOT', t: 0 }, { w: 'APPEAR', t: 1 },
+      { w: 'HOLD', t: 0 }, { w: 'JUNKIE', t: 0 }, { w: 'RAILWAY', t: 0 }, { w: 'APPEAR', t: 1 },
     ],
   },
   {

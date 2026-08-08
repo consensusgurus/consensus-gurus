@@ -137,16 +137,16 @@ function ruleLabel(r) {
     default: return 'Unknown rule';
   }
 }
-// The hidden-word and topic rules run off CLOSED lists, so the whole list goes
-// on the table. Showing six members and "and so on" was the one place Axiom was
-// not solvable by pure deduction: a player could not know whether SOW or EWE
-// counted as a hidden animal, or whether a given creature was in the mammal set.
-// Nothing here should ever be a judgement call.
-function ruleNote(r) {
-  if (r.k === 'hides') return 'counts as ' + HIDDEN_NAME[r.set] + ': ' + HIDDEN[r.set].map((h) => h.toLowerCase()).join(', ');
-  if (r.k === 'in') return 'the full list: ' + SETS[r.set].map((h) => h.toLowerCase()).join(', ');
-  return null;
-}
+// The set and hidden-word rules used to print their whole array under the
+// candidate. That made the board pure deduction, but it also printed an answer
+// key: it told the player exactly which tiles the rule covered, and on a board
+// like #16 it killed a candidate for free before the first test. These rules are
+// meant to be a trivia beat, so the list is gone and the player supplies the
+// knowledge. What makes that fair is C11 in scripts/verify-axiom.mjs: a board may
+// not carry a tile that a reasonable person would classify INTO the set when the
+// array leaves it out (ANTELOPE against SETS.mammal, BIGFOOT against a hidden
+// body part). No near-miss on the board means no judgement call, so the only
+// knowledge ever asked for is the obvious kind.
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -684,7 +684,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           <div style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 5 }}>Find the one rule that fits every word on the board.</div>
           <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. All {PUZZLE.tiles.length} words are already one or the other; grey just means you have not uncovered it yet. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
-          <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate still standing when you name the answer costs you {UNPROVEN_COST} points, so cross them off before you commit.</div>
+          <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate the revealed words cannot yet rule out costs you {UNPROVEN_COST} points when you name the answer, so keep testing until one rule is left standing.</div>
         </div>
         )}
 
@@ -778,7 +778,6 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             {PUZZLE.rules.map((r, i) => {
               const dead = !playing && i !== ANSWER;
               const winner = !playing && i === ANSWER;
-              const note = ruleNote(r);
               return (
                 <button
                   key={i}
@@ -790,7 +789,6 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                   <span className="ax-chip">{String.fromCharCode(65 + i)}</span>
                   <span style={{ flex: '1 1 auto', minWidth: 0 }}>
                     <span className="ax-rule-t" style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.4 }}>{ruleLabel(r)}</span>
-                    {note && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: COLORS.faded, marginTop: 2 }}>{note}</span>}
                   </span>
                   {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.green, background: T.white, borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
                 </button>
