@@ -94,39 +94,87 @@ function scoreOf(eaten, total) {
 }
 
 // ---- the gator's head ------------------------------------------------------
-// A circle with a wedge of jaw bitten out of the leading edge, which is the one
-// shape that still reads as an open mouth at thirty pixels. It gapes wider on
-// the move that swallows a mascot and the eye becomes an X when the run ends.
+// Drawn in LOCAL coordinates with +x pointing the way it is travelling, then
+// rotated into place. Everything below is therefore written as if the gator
+// always faces right, which is the only way jaw geometry stays readable.
+//
+// It is a long snout rather than a disc: two jaw halves hinged at the back, with
+// teeth along the bite line, an eye ridge sitting proud on top, and a nostril at
+// the tip. The jaws swing open on the move that swallows a mascot and clamp shut
+// when the run ends.
+const GATOR = { skin: '#3f8f3f', dark: '#2a6b2a', belly: '#8fca7a', teeth: '#ffffff' };
 function drawHead(ctx, cellXY, facing, cell, dead, chewing) {
   const [hx, hy] = cellXY;
   const f = facing && (facing[0] || facing[1]) ? facing : [1, 0];
-  const [fx, fy] = f;
   const cx = hx * cell + cell / 2, cy = hy * cell + cell / 2;
-  const R = cell * 0.46;
-  const ang = Math.atan2(fy, fx);
-  const gape = dead ? 0.16 : chewing ? 0.85 : 0.5;
-  ctx.fillStyle = COLORS.ink;
-  ctx.beginPath();
-  ctx.arc(cx, cy, R, ang + gape, ang - gape + Math.PI * 2);
-  ctx.lineTo(cx, cy);
-  ctx.closePath();
-  ctx.fill();
-  const px = -fy, py = fx;
-  const ex = cx - fx * cell * 0.10 + px * cell * 0.19;
-  const ey = cy - fy * cell * 0.10 + py * cell * 0.19;
-  const r = Math.max(1.7, cell * 0.115);
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath(); ctx.arc(ex, ey, r, 0, 7); ctx.fill();
-  if (dead) {
-    ctx.strokeStyle = COLORS.ink; ctx.lineWidth = Math.max(1.2, cell * 0.05);
+  const c = cell;
+  const gape = dead ? 0.04 : chewing ? 0.46 : 0.26;   // radians, per jaw
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(Math.atan2(f[1], f[0]));
+
+  // one jaw: a wedge from the hinge out to the snout, drawn either side of the
+  // bite line. `sign` is -1 for the upper jaw, +1 for the lower.
+  const jaw = (sign, len, thick, fill) => {
+    ctx.save();
+    ctx.rotate(sign * gape);
     ctx.beginPath();
-    ctx.moveTo(ex - r * 0.62, ey - r * 0.62); ctx.lineTo(ex + r * 0.62, ey + r * 0.62);
-    ctx.moveTo(ex + r * 0.62, ey - r * 0.62); ctx.lineTo(ex - r * 0.62, ey + r * 0.62);
+    ctx.moveTo(-c * 0.34, 0);
+    ctx.lineTo(len, 0);
+    ctx.quadraticCurveTo(len + c * 0.05, sign * thick * 0.5, len - c * 0.06, sign * thick);
+    ctx.lineTo(-c * 0.26, sign * thick * 1.05);
+    ctx.quadraticCurveTo(-c * 0.40, sign * thick * 0.6, -c * 0.34, 0);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    // teeth along the bite line, biggest at the front
+    if (gape > 0.10) {
+      ctx.fillStyle = GATOR.teeth;
+      for (let i = 0; i < 4; i++) {
+        const x = len - c * 0.10 - i * c * 0.10;
+        const w = c * (0.055 - i * 0.006);
+        ctx.beginPath();
+        ctx.moveTo(x - w, 0);
+        ctx.lineTo(x + w, 0);
+        ctx.lineTo(x, sign * c * 0.11);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  };
+
+  jaw(1, c * 0.46, c * 0.20, GATOR.belly);   // lower jaw, paler, drawn first
+  jaw(-1, c * 0.52, c * 0.26, GATOR.skin);   // upper jaw, on top
+
+  // the eye ridge, sitting proud on the skull behind the snout
+  ctx.save();
+  ctx.rotate(-gape);
+  const ex = -c * 0.14, ey = -c * 0.24;
+  ctx.fillStyle = GATOR.skin;
+  ctx.beginPath(); ctx.arc(ex, ey, c * 0.13, 0, 7); ctx.fill();
+  ctx.fillStyle = dead ? GATOR.dark : '#ffffff';
+  ctx.beginPath(); ctx.arc(ex, ey, c * 0.085, 0, 7); ctx.fill();
+  if (dead) {
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(1, c * 0.035);
+    ctx.beginPath();
+    ctx.moveTo(ex - c * 0.05, ey - c * 0.05); ctx.lineTo(ex + c * 0.05, ey + c * 0.05);
+    ctx.moveTo(ex + c * 0.05, ey - c * 0.05); ctx.lineTo(ex - c * 0.05, ey + c * 0.05);
     ctx.stroke();
   } else {
-    ctx.fillStyle = COLORS.ink;
-    ctx.beginPath(); ctx.arc(ex + fx * r * 0.36, ey + fy * r * 0.36, Math.max(0.9, r * 0.46), 0, 7); ctx.fill();
+    // a slit pupil, because a round one reads as a frog
+    ctx.fillStyle = '#0b0c0e';
+    ctx.beginPath();
+    ctx.ellipse(ex, ey, Math.max(0.7, c * 0.022), c * 0.062, 0, 0, 7);
+    ctx.fill();
   }
+  // nostril at the very tip of the snout
+  ctx.fillStyle = GATOR.dark;
+  ctx.beginPath(); ctx.arc(c * 0.40, -c * 0.13, Math.max(0.8, c * 0.032), 0, 7); ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
 }
 
 // ---- stats (identical shape to every other daily) --------------------------
@@ -358,29 +406,12 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     onContextMenu: (e) => e.preventDefault(),
   });
 
-  const swRef = useRef(null);
-  const boardProps = {
-    onPointerDown: (e) => {
-      if (gRef.current.status !== 'playing' || !gRef.current.t0) return;
-      e.preventDefault();
-      swRef.current = { ax: e.clientX, ay: e.clientY };
-      e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId);
-    },
-    onPointerMove: (e) => {
-      const s = swRef.current;
-      if (!s) return;
-      const cell = Math.max(16, cellRef.current);
-      const dx = e.clientX - s.ax, dy = e.clientY - s.ay;
-      if (Math.abs(dx) >= cell && Math.abs(dx) >= Math.abs(dy)) {
-        move(dx > 0 ? 'right' : 'left'); s.ax += dx > 0 ? cell : -cell; s.ay = e.clientY;
-      } else if (Math.abs(dy) >= cell) {
-        move(dy > 0 ? 'down' : 'up'); s.ay += dy > 0 ? cell : -cell; s.ax = e.clientX;
-      }
-    },
-    onPointerUp: () => { swRef.current = null; },
-    onPointerCancel: () => { swRef.current = null; },
-    onContextMenu: (e) => e.preventDefault(),
-  };
+  // NO drag-to-move on the board (owner, 2026-08-08). The swipe handler that
+  // used to live here captured pointer events over the canvas, so a thumb trying
+  // to SCROLL THE PAGE dragged the gator the length of the board instead. On a
+  // phone the d-pad is the only movement control; the canvas is now inert and
+  // `touchAction` is left alone so the page scrolls over it like any other
+  // element.
 
   // ---- canvas --------------------------------------------------------------
   // sizeBoard redraws through drawRef rather than closing over `draw`. It only
@@ -663,7 +694,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             </div>
 
             <div ref={boxRef} style={{ display: 'flex', justifyContent: 'center' }}>
-              <canvas ref={cvsRef} {...boardProps} style={{ display: 'block', touchAction: 'none' }} />
+              <canvas ref={cvsRef} style={{ display: 'block' }} />
             </div>
 
             <div className="ch-dock">
@@ -679,7 +710,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               &larr; &uarr; &darr; &rarr; or WASD &middot; hold to keep going &middot; a blocked move is refused, not fatal
             </div>
             <div className="ch-touchhint" style={{ display: 'none', textAlign: 'center', marginTop: 8, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
-              Swipe the board or use the pad &middot; hold an arrow to keep going
+Use the pad to move &middot; hold an arrow to keep going
             </div>
           </div>
         )}
