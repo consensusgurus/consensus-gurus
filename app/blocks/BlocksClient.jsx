@@ -148,7 +148,7 @@ const KICKS = [[0, 0], [-1, 0], [1, 0], [-2, 0], [2, 0], [0, -1], [-1, -1], [1, 
 export default function BlocksClient({ puzzles = [], forceNum = null }) {
   const searchParams = useSearchParams();
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
-  const COLS = PUZZLE.cols, ROWS = PUZZLE.rows, PAR = PUZZLE.par;
+  const COLS = PUZZLE.cols, ROWS = PUZZLE.rows, PAR = PUZZLE.par;   // par is ROWS
   const SEQ = useMemo(() => buildSequence(PUZZLE.quizId), [PUZZLE.quizId]);
   const STORE_KEY = `sot_blocks_${PUZZLE.num}`;
   const REC_KEY = `sot_blocks_rec_${PUZZLE.num}`;
@@ -182,7 +182,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const over = g.status !== 'playing';
-  const score10 = scoreOutOfTen(g.raw, PAR);
+  const score10 = scoreOutOfTen(g.lines, PAR);   // rows cleared, not points
   const won = over && score10 >= 10;
   const myStats = useMemo(() => deriveStats(stats || { rec: {} }, PUZZLE.num), [stats, PUZZLE.num]);
 
@@ -241,8 +241,8 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     const el = Math.min(36000, Math.max(1, Math.round(cur.ms / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
     return {
-      quizId: PUZZLE.quizId, score: scoreOutOfTen(cur.raw, PAR), total: 10,
-      correct: 0, guessesUsed: cur.pieces, timeElapsed: el, abandoned: true,
+      quizId: PUZZLE.quizId, score: scoreOutOfTen(cur.lines, PAR), total: 10,
+      correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true,
       email: (identity && identity.email) || undefined, anonId: getAnonId(),
       isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : ''),
     };
@@ -250,15 +250,15 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
 
   const postResult = useCallback((g2) => {
     abandon.markFlushed();
-    const sc = scoreOutOfTen(g2.raw, PAR);
+    const sc = scoreOutOfTen(g2.lines, PAR);
     const el = Math.max(1, Math.round(g2.ms / 1000));
-    try { setStats(recordStat(PUZZLE.num, { s: sc, t: 10, g: g2.pieces, won: sc >= 10 })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: 10, g: null, won: sc >= 10 })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quizId: PUZZLE.quizId, score: sc, total: 10, correct: sc >= 10 ? 1 : 0,
-          guessesUsed: g2.pieces, timeElapsed: el,
+          guessesUsed: 0, timeElapsed: el,   // no miss figure: ties break on time
           email: (identity && identity.email) || undefined, anonId: getAnonId(),
           isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : ''),
         }),
@@ -570,7 +570,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   // ---- share ---------------------------------------------------------------
   function shareText() {
     const sun = PUZZLE.sunday ? ' · Sunday' : '';
-    return `Blocks #${PUZZLE.num}${sun} · ${score10}/10 · ${nf(g.raw)} points · ${g.lines} lines\nmindloftdaily.com/blocks`;
+    return `Blocks #${PUZZLE.num}${sun} · ${score10}/10 · ${g.lines} rows · ${nf(g.raw)} points\nmindloftdaily.com/blocks`;
   }
   function copyShare() {
     const txt = shareText();
@@ -613,7 +613,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         <><b>Pause</b> whenever. The board is saved, so you can come back through the day and pick the same run up where you left it.</>,
       ]}
       knack="It never speeds up. The well is only 16 rows and the drop rate is the same on shape 400 as on shape one, so runs end because of a hole you left three shapes ago, not because your hands gave out."
-      footer={`One life a day. Reaching par (${nf(PAR)} points) scores the full 10, and above par still scores 10 with ties split on raw score. Lines pay 100, 300, 500 and 800, a four-line quad pays 1,200, and consecutive clears add a combo bonus. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
+      footer={`One life a day, scored on ROWS CLEARED: clearing ${nf(PAR)} rows is a full 10, above that still scores 10, and ties break on the faster run. The points figure on screen (100, 300, 500 and 800 a line, 1,200 for a quad, plus a combo bonus) is there to play against, not to be scored on. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
     />
   );
 
@@ -705,14 +705,14 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                 ))}
                 <div style={{ marginTop: 'auto', paddingTop: 9, borderTop: `1px solid ${COLORS.line}` }}>
                   <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>{score10}<em style={{ fontStyle: 'normal', fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>/10</em></div>
-                  <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', color: '#94a3b8', marginTop: 3 }}>{nf(g.raw)} pts &middot; {g.lines} lines</div>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', color: '#94a3b8', marginTop: 3 }}>{g.lines} of {nf(PAR)} rows</div>
                 </div>
               </aside>
             </div>
 
             <div className="bl-strip" style={{ display: 'none', marginTop: 10, paddingTop: 9, borderTop: `1px solid ${COLORS.line}`, alignItems: 'center', gap: 10, fontSize: 11.5, color: COLORS.faded }}>
               <span style={{ fontWeight: 800, color: COLORS.accent }}>You #{ladder.rank}</span>
-              <span>{nf(g.raw)} pts &middot; {g.lines} lines</span>
+              <span>{g.lines} of {nf(PAR)} rows</span>
               <span style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 800, color: COLORS.ink }}>{score10}<em style={{ fontStyle: 'normal', fontSize: 10, color: '#94a3b8' }}>/10</em></span>
             </div>
 
@@ -745,7 +745,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                     Saved. Come back any time before midnight and pick this run up where you left it.
                   </p>
                   <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>{score10}<span style={{ fontSize: 19, color: '#94a3b8' }}>/10</span></div>
-                  <p style={{ margin: '7px 0 13px', fontSize: 13, color: COLORS.faded }}>{nf(g.raw)} points &middot; {nf(g.lines)} lines &middot; shape {nf(g.idx)} &middot; {fmtTime(g.ms)}</p>
+                  <p style={{ margin: '7px 0 13px', fontSize: 13, color: COLORS.faded }}>{nf(g.lines)} of {nf(PAR)} rows &middot; {nf(g.raw)} points &middot; shape {nf(g.idx)} &middot; {fmtTime(g.ms)}</p>
                   <button onClick={togglePause} style={{ ...btn, background: T.cta, borderColor: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Resume</button>
                 </div>
               </div>
@@ -804,7 +804,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           won={won}
           quizId={PUZZLE.quizId}
           headline={won ? <>Par cleared!</> : <>You scored {score10}/10</>}
-          subline={<>{nf(g.raw)} points &middot; {nf(g.lines)} lines &middot; {nf(g.quads)} quad{g.quads === 1 ? '' : 's'} &middot; best combo {nf(g.bestCombo)} &middot; {nf(g.pieces)} shapes</>}
+          subline={<>{nf(g.lines)} rows &middot; {nf(g.raw)} points &middot; {nf(g.quads)} quad{g.quads === 1 ? '' : 's'} &middot; best combo {nf(g.bestCombo)} &middot; {nf(g.pieces)} shapes</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onClose={() => setEndClosed(true)}

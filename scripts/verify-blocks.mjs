@@ -71,8 +71,8 @@ const CELLS  = { I:4, O:4, T:4, S:4, Z:4, J:4, L:4, C:3, P:5 };
     if (p.rows !== 16) fail('frame', `${at} rows=${p.rows}, the well is always 16 deep`);
     const wantCols = p.sunday ? 8 : 10;
     if (p.cols !== wantCols) fail('frame', `${at} cols=${p.cols}, a ${p.sunday ? 'Sunday' : 'weekday'} well is ${wantCols} wide`);
-    if (!(p.par > 1000 && p.par < 100000)) fail('frame', `${at} par ${p.par} is out of range`);
-    if (p.sunday && p.par >= 24000) fail('frame', `${at} Sunday par should sit below the weekday par (a narrower well clears less)`);
+    if (!(p.par >= 20 && p.par <= 400)) fail('frame', `${at} par ${p.par} rows is out of range`);
+    if (p.sunday && p.par >= 100) fail('frame', `${at} Sunday par should sit below the weekday par (a narrower well ends runs sooner)`);
   });
   if (BAD === bad) ok('frame', `${PUZZLES.length} days, ${PUZZLES[0].live} to ${PUZZLES[PUZZLES.length - 1].live}, ids/labels/weekdays all agree`);
 })();
@@ -136,17 +136,17 @@ const CELLS  = { I:4, O:4, T:4, S:4, Z:4, J:4, L:4, C:3, P:5 };
 (function scoring() {
   const p = PUZZLES[0];
   const checks = [[0,0],[1,1],[p.par,10],[p.par*2,10],[Math.round(p.par/2),5]];
-  for (const [raw, want] of checks) {
-    const got = scoreOutOfTen(raw, p.par);
-    if (got !== want) fail('scoring', `raw ${raw} against par ${p.par} scored ${got}, expected ${want}`);
+  for (const [rows, want] of checks) {
+    const got = scoreOutOfTen(rows, p.par);
+    if (got !== want) fail('scoring', `${rows} rows against par ${p.par} scored ${got}, expected ${want}`);
   }
   let prev = -1;
-  for (let raw = 0; raw <= 60000; raw += 137) {
-    const s = scoreOutOfTen(raw, p.par);
-    if (s < prev) { fail('scoring', 'score is not monotonic in raw points'); break; }
+  for (let rows = 0; rows <= 1200; rows += 1) {
+    const s = scoreOutOfTen(rows, p.par);
+    if (s < prev) { fail('scoring', 'score is not monotonic in rows cleared'); break; }
     prev = s;
   }
-  if (!BAD) ok('scoring', `0-10 against par, monotonic, capped (par ${p.par} weekday / ${PUZZLES.find(x=>x.sunday).par} Sunday)`);
+  if (!BAD) ok('scoring', `rows -> 0-10 against par, monotonic, capped (par ${p.par} rows weekday / ${PUZZLES.find(x=>x.sunday).par} Sunday)`);
 })();
 
 // ---------- 6. US spellings in reader-facing strings -------------------------
