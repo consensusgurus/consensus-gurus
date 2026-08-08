@@ -396,19 +396,26 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (cur.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
-    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
 
+  // The board's `guessesUsed` column is headed "Cost" for Paths (lib/daily-games.js),
+  // and it carries the RAW spend, not the amount over perfect. A reader should not
+  // have to know the board's perfect to tell how a run went, and the end card
+  // headline already says "Linked for <cost>". Ordering is untouched by the choice:
+  // `perfect` is a constant for a given board, so sorting on cost and sorting on
+  // cost-minus-perfect produce the identical order, and nothing scores off this
+  // field (it is a tiebreak and a display value only).
   function postResult(g2, score, spend) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: Math.max(0, spend - perfect), won: score === 10 })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: score, t: 10, g: spend, won: score === 10 })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: g2.status === 'won' ? 1 : 0, guessesUsed: Math.max(0, spend - perfect), timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: g2.status === 'won' ? 1 : 0, guessesUsed: spend, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
