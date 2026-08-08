@@ -32,6 +32,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import DailyRules from '../DailyRules';
 import { T as THEME } from '@/lib/theme';
+import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
   cream: THEME.surface, paper: THEME.paper, ink: THEME.ink, ember: THEME.accent, rust: THEME.danger, faded: THEME.muted,
@@ -270,7 +271,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       const anon = getAnonId(); let em = '';
       try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`; } catch (e) {}
       if (anon || em) {
-        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`).then((r) => r.json()).then((d) => {
+        meRequest(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`).then((r) => r.json()).then((d) => {
           if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
           if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
         }).catch(() => {});

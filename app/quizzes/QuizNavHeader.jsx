@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import QuizCommandHeader from './QuizCommandHeader';
 import { T } from '@/lib/theme';
 import SigninHelp, { isLockedOut } from '../SigninHelp';
+import { meRequest } from '@/app/quizMeClient';
 
 // Self-contained command-bar header for the inner quiz surfaces (individual
 // quiz boards, Challenge, Duel, Business News, Community, Stat Hub, player
@@ -87,7 +88,10 @@ export default function QuizNavHeader() {
     if (anonId) params.set('anonId', anonId);
     if (email) params.set('email', email);
     params.set('light', '1');
-    fetch(`/api/quiz/me?${params.toString()}`).then((r) => r.json()).then((d) => setMe(d || null)).catch(() => setMe(null));
+    // Coalesced: on a daily game page the game client is asking the same
+    // question in the same tick for the same player, and this rides along on
+    // that one request instead of opening a second. See app/quizMeClient.js.
+    meRequest(`/api/quiz/me?${params.toString()}`).then((r) => r.json()).then((d) => setMe(d || null)).catch(() => setMe(null));
   }, []);
   return (
     <>

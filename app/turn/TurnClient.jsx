@@ -38,6 +38,7 @@ import DailyRules from '../DailyRules';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { makeGame, idOrder, engineMove, SQ_NAME } from './othello';
 import { T } from '@/lib/theme';
+import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
   cream: T.surface,
@@ -313,7 +314,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
       if (anon) qs.set('anonId', anon);
       if (id && id.email) qs.set('email', id.email);
       qs.set('history', '1');
-      fetch(`/api/quiz/me?${qs.toString()}`)
+      meRequest(`/api/quiz/me?${qs.toString()}`)
         .then((r) => r.json())
         .then((d) => {
           if (d && d.player) setPlayer(d.player);

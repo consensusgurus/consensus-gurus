@@ -39,6 +39,7 @@ import {
   PIECES, ROT, shapeAt, buildSequence, GRAVITY_MS,
   LINE_POINTS, QUAD_BONUS, COMBO_STEP, scoreOutOfTen, PIECE_LABEL,
 } from '@/lib/blocks-seq';
+import { meRequest } from '@/app/quizMeClient';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -207,7 +208,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     const anon = getAnonId();
     let em = '';
     try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity')); if (id && id.email) em = `&email=${encodeURIComponent(id.email)}`; } catch (e) {}
-    fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+    meRequest(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
       .then((r) => r.json())
       .then((d) => { if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles)); })
       .catch(() => {});

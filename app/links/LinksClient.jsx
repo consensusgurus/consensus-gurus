@@ -31,6 +31,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { T } from '@/lib/theme';
+import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
   cream: T.surface,
@@ -298,7 +299,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
       } catch (e) {}
       if (anon || em) {
-        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
+        meRequest(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
           .then((r) => r.json())
           .then((d) => {
             if (d && Array.isArray(d.recent)) {

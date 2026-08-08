@@ -36,6 +36,7 @@ import DailyRules from '../DailyRules';
 import { T } from '@/lib/theme';
 import { ruleFn, ruleLabel, usesFacts } from '@/lib/venn-rules';
 import { domainNote } from '@/lib/venn-facts';
+import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
   cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent, rust: T.danger, faded: T.muted,
@@ -232,7 +233,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       const anon = getAnonId(); let em = '';
       try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`; } catch (e) {}
       if (anon || em) {
-        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`).then((r) => r.json()).then((d) => {
+        meRequest(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`).then((r) => r.json()).then((d) => {
           if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles));
           if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null });
         }).catch(() => {});

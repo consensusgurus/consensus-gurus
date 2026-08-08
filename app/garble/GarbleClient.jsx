@@ -27,6 +27,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { T } from '@/lib/theme';
+import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
   cream: T.surface,
@@ -221,7 +222,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       let em = '';
       try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`; } catch (e) {}
       if (anon || em) {
-        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
+        meRequest(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
           .then((r) => r.json())
           .then((d) => { if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles)); if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null }); })
           .catch(() => {});
