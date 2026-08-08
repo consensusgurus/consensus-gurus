@@ -1594,7 +1594,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-row.inprog .sl-pl i{color:#6b5210;}
           /* The one row whose control is permanent: it is the reason the card is
              there, so it never waits for a hover. */
-          .sl-row.inprog .sl-status{position:static;transform:none;opacity:1;pointer-events:auto;}
+          .sl-row.inprog .sl-status{order:4;position:static;transform:none;opacity:1;pointer-events:auto;}
           .sl-row.inprog .sl-btn.prog{width:104px;padding:11px 0;gap:7px;border-radius:8px;
             background:var(--white);border-color:var(--white);color:#8a5306;font-size:12px;letter-spacing:.05em;}
           .sl-row.inprog .sl-rz{display:inline;}
