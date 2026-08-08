@@ -246,6 +246,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  const [clueIdx, setClueIdx] = useState(0);   // which statement the phone dock is showing
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -619,11 +620,28 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
              The board is the work, so it goes first and the statements read
              underneath it. The story also loses its bottom margin, since on a
              phone every pixel above the board is a pixel you have to scroll. */
+          /* THE DOCK (owner-approved direction, first game 2026-08-08). On a
+             phone the things you touch over and over, the statement you are
+             working and the three actions, leave the flow of the page and pin
+             to the bottom of the viewport, so the board can own the screen and
+             you never scroll to make a move. The page keeps scrolling behind
+             it; only the controls are pinned. Desktop is untouched. */
+          .al-dock{display:none;}
           @media(max-width:899px){
+            .al-dock{display:block;position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--white);border-top:1px solid rgba(28,30,36,0.14);box-shadow:0 -8px 24px -14px rgba(16,24,40,0.5);padding:8px 12px calc(10px + env(safe-area-inset-bottom));}
+            .al-dock .rail{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+            .al-dock .arw{flex:0 0 auto;width:34px;height:50px;border-radius:9px;border:1px solid rgba(28,30,36,0.2);background:var(--white);font-family:${SANS};font-weight:800;font-size:16px;color:${COLORS.faded};cursor:pointer;}
+            .al-dock .cur{flex:1;min-width:0;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:7px 10px;font-family:${SANS};font-size:13.5px;font-weight:600;line-height:1.35;min-height:50px;display:flex;align-items:center;background:var(--white);}
+            .al-dock .cur.done{opacity:0.45;text-decoration:line-through;}
+            .al-dock .n{font-family:${MONO};font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+            .al-dock .acts{display:flex;gap:6px;}
+            .al-dock .acts .al-btn{flex:1;justify-content:center;padding:11px 8px;font-size:13px;}
+            .al-deskacts{display:none;}
             .al-cols{display:flex;flex-direction:column;}
             .al-boardcol{order:1;}
             .al-witness{order:2;margin-bottom:0 !important;}
             .al-story{margin-bottom:8px !important;padding:10px 13px !important;font-size:13.5px !important;}
+            .al-wrap{padding-bottom:186px !important;}
           }
         `}</style>
 
@@ -685,6 +703,31 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             </label>
           )}
         </div>
+        )}
+
+        {playing && !preStart && (
+          <div className="al-dock">
+            <div className="n">
+              <span>Statement {Math.min(clueIdx + 1, PUZZLE.clues.length)} of {PUZZLE.clues.length}</span>
+              <span style={{ marginLeft: 'auto', letterSpacing: 0, textTransform: 'none' }}>{g.struck.length} crossed off</span>
+            </div>
+            <div className="rail">
+              <button type="button" className="arw" aria-label="Previous statement"
+                onClick={() => setClueIdx((i) => (i - 1 + PUZZLE.clues.length) % PUZZLE.clues.length)}>&#8249;</button>
+              <div className={`cur${g.struck.includes(clueIdx) ? ' done' : ''}`} role="button" tabIndex={0}
+                onClick={() => toggleClue(clueIdx)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleClue(clueIdx); } }}
+                title="Tap to cross this statement off">{clueText(PUZZLE.clues[clueIdx])}</div>
+              <button type="button" className="arw" aria-label="Next statement"
+                onClick={() => setClueIdx((i) => (i + 1) % PUZZLE.clues.length)}>&#8250;</button>
+            </div>
+            <div className="acts">
+              <button type="button" className="al-btn" onClick={undo} disabled={!canUndo}
+                style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf' }}><Undo2 size={14} /> Undo</button>
+              <button type="button" className="al-btn" onClick={resetBoards}><Eraser size={14} /> Reset</button>
+              <button type="button" className="al-btn primary" onClick={accuse}><Search size={14} strokeWidth={2.6} /> Accuse</button>
+            </div>
+          </div>
         )}
 
         {!preStart && (
@@ -766,7 +809,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             {playing && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+              <div className="al-deskacts" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                 <button type="button" className="al-btn primary" onClick={accuse}><Search size={14} strokeWidth={2.6} /> Check my accusation</button>
                 <button type="button" className="al-btn" onClick={undo} disabled={!canUndo}
                   aria-label="Undo last move"
