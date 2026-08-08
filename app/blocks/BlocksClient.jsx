@@ -202,25 +202,41 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
-    // ONE-TIME REPLAY GRANT (see `resetAt` in puzzles.js). A run that FINISHED
-    // before the stamp is dropped here so the player gets their life back: the
-    // board, the recorded-result guard, the hub's done flag and the local stats
-    // row all go, or the page would reopen the end card and recordStat would
-    // refuse the re-run (it never overwrites an existing entry). An in-progress
-    // run is left alone: it has posted nothing and will post when it ends.
-    if (saved && PUZZLE.resetAt && saved.status !== 'playing'
-        && (saved.tEnd || saved.t0 || 0) < Date.parse(PUZZLE.resetAt)) {
-      saved = null;
-      try {
-        localStorage.removeItem(STORE_KEY);
-        localStorage.removeItem(REC_KEY);
-        localStorage.removeItem('sot_blocks_day');
-        const st = JSON.parse(localStorage.getItem(STATS_KEY) || 'null');
-        if (st && st.rec && st.rec[PUZZLE.num] != null) {
-          delete st.rec[PUZZLE.num];
-          localStorage.setItem(STATS_KEY, JSON.stringify(st));
-        }
-      } catch (e) {}
+    // ONE-TIME REPLAY GRANT (see `resetAt` in puzzles.js). `finishedSince` is
+    // the one thing that means this browser is already square with the reset:
+    // it holds a run that ENDED after it.
+    if (PUZZLE.resetAt) {
+      const stamp = Date.parse(PUZZLE.resetAt);
+      const ended = !!saved && saved.status !== 'playing';
+      const finishedSince = ended && (saved.tEnd || 0) >= stamp;
+      // A run that finished BEFORE the reset is dropped outright, so the well
+      // opens fresh and the player gets their life back. The board, the
+      // recorded-result guard and the hub's done flag go together, or the page
+      // would simply reopen the end card on a result that no longer exists.
+      // An IN-PROGRESS run is never dropped: it has posted nothing yet and
+      // posts on the new scale when it ends.
+      if (ended && !finishedSince) {
+        saved = null;
+        try {
+          localStorage.removeItem(STORE_KEY);
+          localStorage.removeItem(REC_KEY);
+          localStorage.removeItem('sot_blocks_day');
+        } catch (e) {}
+      }
+      // The local stats row is stale until this browser holds a run that
+      // finished after the reset, in-progress runs included: it mirrors a
+      // server result that was deleted, on the old scale, and recordStat NEVER
+      // overwrites an existing entry, so leaving it would freeze the re-run at
+      // the old score. Only `won` and the streak read this record.
+      if (!finishedSince) {
+        try {
+          const st = JSON.parse(localStorage.getItem(STATS_KEY) || 'null');
+          if (st && st.rec && st.rec[PUZZLE.num] != null) {
+            delete st.rec[PUZZLE.num];
+            localStorage.setItem(STATS_KEY, JSON.stringify(st));
+          }
+        } catch (e) {}
+      }
     }
     if (saved && saved.v === 1 && Array.isArray(saved.grid) && saved.grid.length === ROWS && saved.grid[0].length === COLS) {
       const s = { ...freshState(COLS, ROWS), ...saved };
