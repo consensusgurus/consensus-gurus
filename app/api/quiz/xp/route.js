@@ -16,7 +16,7 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-reva
 // SCOPE (xp, level, correct, completed, days played, accuracy) so the page can
 // re-sort the board by whichever slide is showing without another round trip.
 // `scope` filters to one department; omit/`all` for overall. ALL anonymous
-// players are included. full=1 returns up to 2000 rows plus trend7d = XP
+// players are included. full=1 returns up to FULL_N rows plus trend7d = XP
 // earned in the last 7 days (null = the player's first game is newer than the
 // cutoff, shown as NEW). sort=xp30d re-ranks by XP earned in the last 30
 // days instead of all-time (the Top SoT Player tile on /quizzes), and every
@@ -24,6 +24,11 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=300, stale-while-reva
 // far in the current EASTERN day (the "Today's Top IQ Gainers" face of the
 // Daily Puzzle Leaderboard); every row carries xpToday either way.
 const TOP_N = 12;
+// full=1 page size. `total` in the response is ALWAYS the real ranked-player
+// count, never this cap: the Stat Hub board prints it as "Top 2,000 of N
+// players", and reporting the truncated length there made the page claim the
+// whole player base was 2,000 once we passed 2,000 players (2026-08-08).
+const FULL_N = 2000;
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const scope = (searchParams.get('scope') || 'all').trim() || 'all';
@@ -51,7 +56,7 @@ export async function GET(request) {
         .slice()
         .sort((a, b) => (b.xpToday || 0) - (a.xpToday || 0) || (b.xp30d || 0) - (a.xp30d || 0) || b.xp - a.xp || (a.name || '').localeCompare(b.name || ''));
     }
-    const out = ranked.slice(0, full ? 2000 : TOP_N).map((p, i) => ({
+    const out = ranked.slice(0, full ? FULL_N : TOP_N).map((p, i) => ({
       rank: i + 1,
       name: p.name,
       isAnon: p.isAnon,
@@ -67,7 +72,7 @@ export async function GET(request) {
       played: p.played,
       ...(full && scope === 'all' ? { trend7d: p.xp7d == null ? null : p.xp7d } : {}),
     }));
-    return NextResponse.json({ scope, total: out.length, players: out }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ scope, total: ranked.length, players: out }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('quiz xp exception', e);
     return NextResponse.json({ scope, total: 0, players: [] });

@@ -531,7 +531,8 @@ export default function StatHubClient() {
   const [totals, setTotals] = useState({ byQuiz: {}, leaders: {}, leaderKeys: {}, total: 0, totalTime: 0 });
   const [shareOpen, setShareOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
-  const [board, setBoard] = useState(null); // full IQ Points ranking of every player (incl. anon)
+  const [board, setBoard] = useState(null); // IQ Points ranking, served top 2000 (incl. anon)
+  const [boardTotal, setBoardTotal] = useState(0); // real player count; board itself is capped
   // Duel data lives at page level so the Duels nav tile can show the live
   // record, streak, and waiting-on-you badge before the tab is ever opened.
   const [duels, setDuels] = useState({ yourMove: [], awaiting: [], completed: [] });
@@ -609,7 +610,7 @@ export default function StatHubClient() {
     }
     fetch('/api/quiz/stats').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.quizzes)) setStats(d.quizzes); }).catch(() => {});
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => { if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, total: d.total || 0, totalTime: d.totalTime || 0 }); }).catch(() => {});
-    fetch('/api/quiz/xp?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) setBoard(d.players); }).catch(() => {});
+    fetch('/api/quiz/xp?full=1').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.players)) { setBoard(d.players); setBoardTotal(d.total || d.players.length); } }).catch(() => {});
   }, []);
 
   // Inline player viewing: clicking a player in the ranking loads their full
@@ -867,7 +868,7 @@ export default function StatHubClient() {
         </div>
 
         {tab === 'daily' && <DailyGamesView initialGame={dailyGame} onSelectPlayer={openPlayer} />}
-        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={openPlayer} />}
+        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} boardTotal={boardTotal} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={openPlayer} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={openPlayer} />}
         {tab === 'challenges' && <ChallengesPanel me={profile} />}
         {tab === 'duels' && <DuelsPanel data={duels} setData={setDuels} ladder={duelLadder} loaded={duelsLoaded} onSelectPlayer={openPlayer} />}      </div>
@@ -900,7 +901,7 @@ export default function StatHubClient() {
 // ─── Player tab ─────────────────────────────────────────────────────────────
 
 
-function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAnonKey, titleById, pview, setPview, viewKey, onSelectPlayer }) {
+function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, boardTotal, myName, myAnonKey, titleById, pview, setPview, viewKey, onSelectPlayer }) {
   const found = me && me.found;
   const viewing = !!viewKey;
 
@@ -928,7 +929,7 @@ function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, myName, myAn
         <CategoryView me={me} scope={scope} cats={cats} totalQuizzes={totalQuizzes} viewing={viewing} />
       ) : (
       <div className="card" style={{ padding: '14px 16px' }}>
-        <UserBaseBody board={board} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} viewKey={viewKey} />
+        <UserBaseBody board={board} boardTotal={boardTotal} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} viewKey={viewKey} />
       </div>
       )}
     </div>
@@ -1107,7 +1108,7 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
 // PlayerPanel). Podium + chase card on top, then every player registered +
 // anonymous in the sortable table, current row highlighted.
 const tierNameOf = (lvl) => (lvl >= 18 ? 'Master' : lvl >= 14 ? 'Diamond' : lvl >= 9 ? 'Gold' : lvl >= 5 ? 'Silver' : 'Bronze');
-function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
+function UserBaseBody({ board, boardTotal, myName, myAnonKey, onSelectPlayer, viewKey }) {
   const [sort, setSort] = useState({ col: 'xp', dir: 'desc' });
   if (!board) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>Loading the full ranking…</div>;
   if (!board.length) return <div style={{ fontSize: 13, color: C.soft, padding: '6px 0' }}>No ranked players yet.</div>;
@@ -1198,7 +1199,7 @@ function UserBaseBody({ board, myName, myAnonKey, onSelectPlayer, viewKey }) {
           <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: T.white, background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
         </div>
       ) : null}
-      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>All {board.length.toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = IQ Points earned over the last week.' : ''}</div>
+      <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>Top {board.length.toLocaleString()} of {Math.max(boardTotal || 0, board.length).toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = IQ Points earned over the last week.' : ''}</div>
       <div style={{ overflow: 'auto', maxHeight: 600 }}>
         <table>
           <thead><tr>
