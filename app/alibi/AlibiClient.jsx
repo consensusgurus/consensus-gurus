@@ -367,17 +367,17 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       // floor where a row stops being tappable and the board scrolls instead
       const tbl = el.querySelector('.al-tbl');
       if (tbl) {
-        // Estimating the non-row height was 9px light and the board still
-        // overflowed, so it is measured: set a row, see what the table
-        // actually became, and take the difference out of the row. One
-        // corrective pass settles it because the error is linear in the row.
-        let row = Math.max(19, Math.min(34, Math.floor((h - 98) / 12)));
+        // Solve for the row instead of guessing at it. Everything that is not
+        // an option row (the suspect header, three category bands, borders,
+        // and whatever the option-name column insists on) is one unknown, so
+        // measure the table at a known row height, subtract the twelve rows,
+        // and what is left IS that constant. Then the row that fits is exact.
+        // Guessing put it 31px out and a nudge-by-one loop never caught up.
+        const PROBE = 24;
+        tbl.style.setProperty('--alrow', PROBE + 'px');
+        const fixed = tbl.getBoundingClientRect().height - PROBE * 12;
+        const row = Math.max(19, Math.min(34, Math.floor((h - fixed) / 12)));
         tbl.style.setProperty('--alrow', row + 'px');
-        const over = Math.ceil(tbl.getBoundingClientRect().height) - h;
-        if (over > 0) {
-          row = Math.max(19, row - Math.ceil(over / 12));
-          tbl.style.setProperty('--alrow', row + 'px');
-        }
       }
     };
     fit();
