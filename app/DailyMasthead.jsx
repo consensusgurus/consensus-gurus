@@ -2,8 +2,18 @@
 
 // DailyMasthead — shared masthead meta for the daily games.
 //
-// Renders the game's letter blocks alongside the issue No., the date, and the
+// Renders the game's NAME alongside the issue No., the date, and the
 // mindloftdaily.com/<slug> URL (so the URL shows on every screenshot / share).
+//
+// NAME, NOT LETTER TILES (owner rule, 2026-08-07). Every game used to open
+// with its name spelled out in individual black letter tiles, one of them in
+// the game's accent. They were dropped sitewide: they cost a whole band of
+// vertical space above the board on a phone, and the name in type says the
+// same thing in a fraction of it. The `blocks` prop is still ACCEPTED and
+// IGNORED rather than removed, so none of the 50+ game clients need an edit;
+// delete it from the call sites whenever they are next touched. The name
+// comes from lib/daily-games (the roster is the single source of truth for
+// display names), keyed by the same `slug` the URL line already uses.
 // The No./date/URL group regroups responsively in three tiers, measured live
 // with a ResizeObserver against the masthead's own width:
 //
@@ -21,6 +31,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { T } from '@/lib/theme';
+import { dailyGameName } from '@/lib/daily-games';
 
 // TYPE (owner, 2026-08-04): this meta line is Manrope, NOT DM Mono. The navy
 // header it sits under carries no mono at all, so the typewriter texture read
@@ -32,8 +43,9 @@ const INK = T.ink;
 const FADED = T.muted;
 
 export default function DailyMasthead({
-  blocks,
-  blockGap = 5,
+  blocks,      // accepted and ignored, see the note above
+  blockGap = 5, // accepted and ignored
+
   num,
   dateLabel,
   slug,
@@ -43,6 +55,7 @@ export default function DailyMasthead({
   marginBottom = 14,
   helpTop = 10,
 }) {
+  const title = dailyGameName(slug);
   const wrapRef = useRef(null);
   const blocksRef = useRef(null);
   const noRef = useRef(null);
@@ -102,7 +115,7 @@ export default function DailyMasthead({
   }, [num, dateLabel, slug, accent, !!sunday]);
 
   const noEl = (
-    <h1 ref={noRef} style={{ margin: 0, fontFamily: SANS, fontSize: 14, letterSpacing: '-0.005em', fontWeight: 800, color: INK, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>No. {num}</h1>
+    <span ref={noRef} style={{ fontFamily: SANS, fontSize: 14, letterSpacing: '-0.005em', fontWeight: 800, color: INK, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>No. {num}</span>
   );
   const dateEl = (
     <span ref={dateRef} style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, color: FADED, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{dateLabel}</span>
@@ -118,7 +131,9 @@ export default function DailyMasthead({
 
   return (
     <div ref={wrapRef} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', position: 'relative', paddingRight: 28, marginBottom, borderBottom: '2px solid rgba(28,30,36,0.8)', paddingBottom: 11 }}>
-      <div ref={blocksRef} style={{ display: 'flex', gap: blockGap, alignItems: 'flex-end' }}>{blocks}</div>
+      <div ref={blocksRef} style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <h1 style={{ margin: 0, fontFamily: SANS, fontSize: 30, lineHeight: 1, fontWeight: 800, letterSpacing: '-0.03em', color: INK }}>{title}</h1>
+      </div>
 
       {tier === 2 ? (
         <>
