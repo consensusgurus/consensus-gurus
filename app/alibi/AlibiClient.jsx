@@ -376,7 +376,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         const PROBE = 24;
         tbl.style.setProperty('--alrow', PROBE + 'px');
         const fixed = tbl.getBoundingClientRect().height - PROBE * 12;
-        const row = Math.max(19, Math.min(34, Math.floor((h - fixed) / 12)));
+        const row = Math.max(19, Math.min(34, Math.floor((h - fixed - 4) / 12)));
         tbl.style.setProperty('--alrow', row + 'px');
       }
     };
