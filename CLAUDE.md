@@ -1985,10 +1985,19 @@ pair keeps its two navy tones; the paused cards take the slate's gold (`var(--go
   count is non-zero). The slate is Ready to play then Done today, which is why the category strip
   now sits directly above Ready to play. Do NOT put paused rows back in the board: they would then
   appear twice.
-- **Collapsed to `CAP_PROG_D` (4) on desktop and `CAP_PROG_M` (3) on a phone**, i.e. two rows of
-  cards either way, with the rest behind one `.dh-cmore` bar spanning the cap's columns. The cut is
-  CSS on the cards (`.cap-hd` / `.cap-hm`), NOT a slice in the JSX, so the server and the client
-  render the same list at both widths and each width prints its own count in the bar.
+- **Collapsed to TWO cards at BOTH widths** (`CAP_PROG_D` / `CAP_PROG_M`), which is exactly one row
+  of the desktop grid, with the rest behind one `.dh-cmore` bar spanning the cap's columns. It ran
+  four and three for one deploy and the console outgrew the fold; two is the owner's number
+  (2026-08-08). The cut is CSS on the cards (`.cap-hd` / `.cap-hm`), NOT a slice in the JSX, so the
+  server and the client render the same list at both widths and each width prints its own count.
+- **The board's height is MEASURED, never a hardcoded sum.** It used to be
+  `calc(100vh - 300px)`, where 300 was everything above it in the console; the cap changed height
+  and the whole three-column row ran ~200px past the fold (the rails stretch to the console, so all
+  three columns break together). A `useEffect` in `DailyStrip.jsx` now sets `--dh-fit` on the board
+  from its own document top: `innerHeight - top - FOLD_SLIVER`, floored at `BOARD_MIN`, re-run on
+  resize and from a `ResizeObserver` on the CAP (never on the console, whose height the board
+  drives, or it loops). Desktop only; the phone board is `height:auto`. Anything that changes the
+  cap's height therefore needs no number updated anywhere.
 - **A paused card is ONE link**, the whole card, with the Resume button as a `<span>` inside it
   (never a nested `<a>`). Up next and Easiest are excluded from the paused list, since they are
   frequently paused games themselves and already have a card.
@@ -1998,8 +2007,11 @@ pair keeps its two navy tones; the paused cards take the slate's gold (`var(--go
   or sub line squeezed its own control and the cards came out visibly unequal.
 - **`.dhome.slate .dh-sbar` carries `border:none` above 900px.** Its 1.5px grey SIDE borders were an
   indentation against the title band above it, whose border is the colour of its own fill.
-- **The category strip and the expand bars are `--surface-alt` between two `#d7dce5` rules.** On
-  `--surface` between two `--border` hairlines they dissolved into the page at the console's edge.
+- **The category strip is NAVY (`var(--accent)`) with white type**, and the selected tab still marks
+  itself with a white UNDERLINE, not a pill (owner, 2026-08-08). The phone keeps its own `#2c4fa8`
+  pill strip.
+- **The expand bars sit on `#e8edf5` between two 2px `#c2ccdc` rules.** On `--surface` between two
+  `--border` hairlines they dissolved into the page at the console's edge.
 
 **Puzzle drawer (`app/DailyTilePanel.jsx`)**
 

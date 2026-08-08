@@ -198,12 +198,19 @@ const PHONE_PROG_MAX = 2; // ...of which never more than two are paused
 // the rule at every width (owner, 2026-08-08).
 const DESK_PROG_MAX = 2;
 // How many PAUSED cards the cap shows before its expand bar takes over (owner,
-// 2026-08-08). The cap runs two columns above 900px and one below, so four and
-// three are each "two rows of cards, and you can still see the board under
-// them". The cut is CSS on the cards (.cap-hd / .cap-hm), not a slice in the
-// JSX, so the server and the client render the same list at either width.
-const CAP_PROG_D = 4;
-const CAP_PROG_M = 3;
+// 2026-08-08). TWO at both widths: the cap runs two columns above 900px, so two
+// is exactly one row of cards there, and the point of the cap is to hand you
+// the next thing to play without pushing the board off the screen. (It ran four
+// and three for one deploy and the console outgrew the fold.) The cut is CSS on
+// the cards (.cap-hd / .cap-hm), not a slice in the JSX, so the server and the
+// client render the same list at either width.
+const CAP_PROG_D = 2;
+const CAP_PROG_M = 2;
+// The console is sized to leave this much of the page showing under it, so the
+// three-column row ends just above the fold rather than at it or past it.
+const FOLD_SLIVER = 34;
+// ...but never squeeze the board below this, however tall the cap has grown.
+const BOARD_MIN = 240;
 
 // How far back Up next looks when deciding which game this viewer plays the
 // most. Long enough to survive a few skipped days, short enough that a habit
@@ -591,6 +598,48 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       .catch(() => { fetchedRef.current.delete(sel); });
     return () => { alive = false; };
   }, [sel]);
+
+  // FIT THE CONSOLE TO THE FOLD (owner, 2026-08-08). The board used to take a
+  // hardcoded calc(100vh - 300px), where 300 was the sum of everything above it
+  // back when the cap was a single row of two cards. The cap carries the paused
+  // games now, so that number went stale the moment it grew and the whole
+  // three-column row (the rails stretch to the console, so all three) ran past
+  // the bottom of the window. The board measures the room it actually has
+  // instead: its own document top already accounts for whatever sits above it,
+  // so the cap can grow or shrink and the row still ends FOLD_SLIVER above the
+  // fold. Desktop only; the phone board is height:auto and scrolls with the
+  // page. Never hardcode that sum again, in either direction.
+  useEffect(() => {
+    if (!slate || typeof window === 'undefined') return undefined;
+    const board = boardRef.current;
+    if (!board) return undefined;
+    let raf = 0;
+    const fit = () => {
+      raf = 0;
+      if (window.innerWidth <= 900) { board.style.removeProperty('--dh-fit'); return; }
+      // Document offset, not the viewport rect: the row is meant to fit the
+      // fold as seen from the TOP of the page, wherever the reader has
+      // scrolled to when a resize happens to fire.
+      const top = board.getBoundingClientRect().top + window.scrollY;
+      const h = Math.max(BOARD_MIN, Math.round(window.innerHeight - top - FOLD_SLIVER));
+      board.style.setProperty('--dh-fit', h + 'px');
+    };
+    const q = () => { if (!raf) raf = requestAnimationFrame(fit); };
+    q();
+    window.addEventListener('resize', q);
+    // The cap is the thing above the board whose height moves (expanding the
+    // paused cards). Observe IT, never the console: the console's height is
+    // driven by the board we are setting, which would loop.
+    let ro = null;
+    const con = board.closest('.dhome');
+    const cap = con && con.querySelector('.dh-sbar');
+    if (cap && typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(q); ro.observe(cap); }
+    return () => {
+      window.removeEventListener('resize', q);
+      if (ro) ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [slate, capOpen, phone]);
 
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
@@ -1188,10 +1237,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* The cap's expand bar. Same object as the board's group bars, spanning
            the cap's columns at the foot of the paused cards. */
         .dh-cmore{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
-          padding:7px 13px;border:0;border-top:1px solid #d7dce5;border-bottom:1px solid #d7dce5;border-radius:0;
-          background:var(--surface-alt);font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
+          padding:7px 13px;border:0;border-top:2px solid #c2ccdc;border-bottom:2px solid #c2ccdc;border-radius:0;
+          background:#e8edf5;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
           text-transform:uppercase;line-height:1.5;color:var(--gold-ink);cursor:pointer;}
-        .dh-cmore:hover{background:#e4e9f1;}
+        .dh-cmore:hover{background:#dde5f0;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
@@ -1380,7 +1429,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            and the per-game panel opens as a drawer under its own row. */
         .dh-boardwrap.slate{padding:0;}
         .dh-boardwrap.slate.open{min-height:0;}
-        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;height:calc(100vh - 300px);min-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
+        /* --dh-fit is measured (see the fit effect); the calc is only the value
+           before the first measurement lands. min-height stays BELOW the
+           measured floor so the measurement, not this rule, is what governs. */
+        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;height:var(--dh-fit,calc(100vh - 300px));min-height:240px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
         .dh-board.slate::-webkit-scrollbar{width:6px;}
         .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
         .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
@@ -1503,11 +1555,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            2026-08-08). Each takes the deeper --surface-alt fill and a darker
            rule top AND bottom now, so it reads as a band across the console
            rather than a gap in it. */
-        .sl-filt{display:flex;background:var(--surface-alt);border-top:1px solid #d7dce5;border-bottom:1.5px solid #d7dce5;overflow-x:auto;scrollbar-width:none;}
+        .sl-filt{display:flex;background:var(--accent);border-top:1.5px solid #16306e;border-bottom:2px solid #16306e;overflow-x:auto;scrollbar-width:none;}
         .sl-filt::-webkit-scrollbar{display:none;}
-        .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
-        .sl-filt button:hover{color:var(--ink);}
-        .sl-filt button.on{color:var(--blue-deep);border-bottom-color:var(--blue);background:transparent;}
+        .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#b9cbec;padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+        .sl-filt button:hover{color:var(--white);}
+        /* Still an UNDERLINE, not a pill: navy simply changed what colour the
+           tab and its rule have to be. -2px above pulls the rule down onto the
+           strip's own 2px bottom border so the two read as one edge. */
+        .sl-filt button.on{color:var(--white);border-bottom-color:var(--white);background:transparent;}
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         /* Pinnable board: one 26px star column at the far left, 36px including
@@ -1674,10 +1729,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              above it stays the same blue as every other band: the gold belongs
              to the cards, not to the furniture around them. */
           .sl-more.prog{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;grid-column:1/-1;order:3;
-            padding:6px 13px;border:0;border-radius:0;border-top:1px solid #d7dce5;border-bottom:1px solid #d7dce5;background:var(--surface-alt);
+            padding:6px 13px;border:0;border-radius:0;border-top:2px solid #c2ccdc;border-bottom:2px solid #c2ccdc;background:#e8edf5;
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--gold-ink);cursor:pointer;}
-          .sl-more.prog:hover{background:#e4e9f1;}
+          .sl-more.prog:hover{background:#dde5f0;}
           /* A PAUSED GAME IS A CAP-SHAPED CARD (owner, 2026-08-08). The first
              pass filled the ordinary row with #a16207, which came out muddy
              brown against a page of blue and read as a warning rather than an
@@ -1753,10 +1808,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* The expand bar: one full-width rectangle at the foot of its group,
              inked to its group's colour so the pair reads as one block. */
           .sl-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
-            padding:5px 13px;border:0;border-radius:0;border-top:1px solid #d7dce5;border-bottom:1px solid #d7dce5;background:var(--surface-alt);
+            padding:5px 13px;border:0;border-radius:0;border-top:2px solid #c2ccdc;border-bottom:2px solid #c2ccdc;background:#e8edf5;
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
-          .sl-more:active{background:#e4e9f1;}
+          .sl-more:active{background:#dde5f0;}
           .sl-more.prog{order:3;color:#a16207;}
           .sl-mtxt.d{display:none;}
           .sl-more.todo{order:6;}
@@ -1828,8 +1883,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              Desktop keeps its light underline tabs. */
           .sl-dt.d{display:none;}
           .sl-dt.p{display:inline;}
-          .sl-filt{background:#2c4fa8;border-bottom:none;gap:6px;padding:7px 8px;}
+          .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
           .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
+          .sl-filt button.on{border-bottom-color:transparent;}
           .sl-filt button:hover{color:var(--white);}
           .sl-filt button.on{background:var(--white);color:var(--blue-deep);border-bottom-color:transparent;}
         }
