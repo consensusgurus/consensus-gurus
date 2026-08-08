@@ -78,7 +78,7 @@ function mmss(sec) {
 function gameStats(r) {
   if (!r || r.score == null || !r.total) return null;
   const bits = [r.score + '/' + r.total];
-  if (r.guessesUsed != null) bits.push(r.guessesUsed + (r.guessesUsed === 1 ? ' guess' : ' guesses'));
+  if (r.guessesUsed > 0) bits.push(r.guessesUsed + (r.guessesUsed === 1 ? ' guess' : ' guesses'));
   const clock = mmss(r.timeElapsed);
   if (clock) bits.push(clock);
   return bits.join(' \u00b7 ');
