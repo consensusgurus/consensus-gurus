@@ -219,17 +219,21 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         saved = null;
         try {
           localStorage.removeItem(STORE_KEY);
-          localStorage.removeItem(REC_KEY);
           localStorage.removeItem('sot_blocks_day');
         } catch (e) {}
       }
-      // The local stats row is stale until this browser holds a run that
-      // finished after the reset, in-progress runs included: it mirrors a
-      // server result that was deleted, on the old scale, and recordStat NEVER
-      // overwrites an existing entry, so leaving it would freeze the re-run at
-      // the old score. Only `won` and the streak read this record.
+      // Everything else this browser remembers about a POSTED result is stale
+      // until it holds a run that finished after the reset, an in-progress run
+      // included, because the row it refers to was deleted:
+      //   REC_KEY, the guard that stops the abandon flush firing twice. Its
+      //     row is gone, so leaving it set would mean a player who wanders off
+      //     again mid-run ends the day with no row at all.
+      //   the stats record, which is on the old 0-10 scale, and recordStat
+      //     NEVER overwrites an existing entry, so leaving it would freeze the
+      //     re-run at the old score. Only `won` and the streak read it.
       if (!finishedSince) {
         try {
+          localStorage.removeItem(REC_KEY);
           const st = JSON.parse(localStorage.getItem(STATS_KEY) || 'null');
           if (st && st.rec && st.rec[PUZZLE.num] != null) {
             delete st.rec[PUZZLE.num];
