@@ -613,7 +613,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         <><b>Pause</b> whenever. The board is saved, so you can come back through the day and pick the same run up where you left it.</>,
       ]}
       knack="It never speeds up. The well is only 16 rows and the drop rate is the same on shape 400 as on shape one, so runs end because of a hole you left three shapes ago, not because your hands gave out."
-      footer={`One life a day. Reaching par (${nf(PAR)} points) scores the full 10, and above par still scores 10 with ties split on raw score. Lines pay 100, 300, 500 and 800, a four-line quad pays 1,200, and consecutive clears add a combo bonus. Sundays narrow the well from 10 columns to 8.`}
+      footer={`One life a day. Reaching par (${nf(PAR)} points) scores the full 10, and above par still scores 10 with ties split on raw score. Lines pay 100, 300, 500 and 800, a four-line quad pays 1,200, and consecutive clears add a combo bonus. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
     />
   );
 
@@ -664,14 +664,28 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
 
         {!preStart && (
           <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14, position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>
                 Shape <b style={{ color: COLORS.ink }}>{nf(Math.max(1, g.idx))}</b>
               </span>
-              <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>
+              <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>
                 Next <b style={{ color: COLORS.ink }}>{PIECE_LABEL[SEQ[g.idx]] || '-'}</b>
-                {g.hold ? <> &middot; Hold <b style={{ color: COLORS.ink }}>{PIECE_LABEL[g.hold]}</b></> : null}
               </span>
+              {/* Hold sits up here rather than in the thumb zone: it is used a
+                  fraction as often as move and rotate, and the dock below is
+                  worth more to the two hands actually playing. */}
+              <button
+                {...tapProps('hold')}
+                style={{ marginLeft: 'auto', border: `1px solid ${COLORS.line}`, background: g.held ? '#f1f5f9' : '#fff', color: g.held ? '#94a3b8' : COLORS.faded, borderRadius: 7, padding: '5px 10px', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', touchAction: 'none' }}
+              >
+                Hold{g.hold ? <> &middot; <b style={{ color: g.held ? '#94a3b8' : COLORS.ink }}>{PIECE_LABEL[g.hold]}</b></> : null}
+              </button>
+              <button onClick={togglePause} aria-label={paused ? 'Resume' : 'Pause'} style={{ border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, borderRadius: 7, width: 30, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                {paused ? <Play size={14} /> : <Pause size={14} />}
+              </button>
+              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, borderRadius: 7, width: 30, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <HelpCircle size={15} />
+              </button>
             </div>
 
             <div ref={boxRef} style={{ display: 'flex', gap: 14, alignItems: 'stretch', justifyContent: 'center' }}>
@@ -702,21 +716,27 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
               <span style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 800, color: COLORS.ink }}>{score10}<em style={{ fontStyle: 'normal', fontSize: 10, color: '#94a3b8' }}>/10</em></span>
             </div>
 
-            <div className="bl-dock" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <button style={dockBtn} {...holdProps('left')} aria-label="Move left">&#9664;</button>
-              <button style={dockBtn} {...tapProps('ccw')} aria-label="Rotate left">&#10558;</button>
-              <button style={dockBtn} {...tapProps('cw')} aria-label="Rotate right">&#10559;</button>
-              <button style={dockBtn} {...holdProps('right')} aria-label="Move right">&#9654;</button>
-              <button style={dockBtn} {...holdProps('down')} aria-label="Soft drop">&#9660;</button>
-              <button style={{ ...dockBtn, width: 'auto', padding: '0 16px', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' }} {...tapProps('drop')}>Drop</button>
-              <button style={{ ...dockBtn, width: 'auto', padding: '0 16px', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase' }} {...tapProps('hold')}>Hold</button>
-              <button style={dockBtn} onClick={togglePause} aria-label={paused ? 'Resume' : 'Pause'}>{paused ? <Play size={16} /> : <Pause size={16} />}</button>
-              <button style={dockBtn} onClick={() => setShowHelp(true)} aria-label="How to play"><HelpCircle size={17} /></button>
+            {/* Two clusters, one per thumb: movement on the left, rotation and
+                drop on the right, tight enough that neither hand has to travel.
+                The old flat five-across row spread the arrows over the whole
+                width, which is a long way for a thumb between a left and a
+                right step. */}
+            <div className="bl-dock">
+              <div className="bl-pad">
+                <button style={dockBtn} {...holdProps('left')} aria-label="Move left">&#9664;</button>
+                <button style={dockBtn} {...holdProps('down')} aria-label="Soft drop">&#9660;</button>
+                <button style={dockBtn} {...holdProps('right')} aria-label="Move right">&#9654;</button>
+              </div>
+              <div className="bl-acts">
+                <button style={dockBtn} {...tapProps('ccw')} aria-label="Rotate left">&#10558;</button>
+                <button style={dockBtn} {...tapProps('cw')} aria-label="Rotate right">&#10559;</button>
+                <button className="bl-drop" style={{ ...dockBtn, width: 'auto', padding: '0 16px', fontSize: 12, letterSpacing: '0.04em', textTransform: 'uppercase', background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' }} {...tapProps('drop')}>Drop</button>
+              </div>
             </div>
             <div className="bl-keys" style={{ textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
               &larr; &rarr; move &middot; &darr; soft drop &middot; &uarr; / Z rotate &middot; space drop &middot; C hold &middot; P pause
             </div>
-            <div className="bl-touchhint" style={{ display: 'none', textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
+            <div className="bl-touchhint" style={{ display: 'none', textAlign: 'center', marginTop: 8, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
               Swipe the well to move &middot; tap to rotate &middot; flick down to drop &middot; hold an arrow to repeat
             </div>
 
@@ -774,6 +794,8 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           <p style={{ margin: '0 0 9px' }}>
             You get one life a day, and it waits for you. Pause whenever, close the tab, come back after lunch: the board
             is saved and the same run picks up where you left it. On Sundays the well narrows from ten columns to eight.
+            However long a run goes, Blocks pays at most 1 IQ point a day, so a long sitting cannot buy a place in the
+            standings. The day&rsquo;s leaderboard is where the run actually counts.
           </p>
           <p style={{ margin: 0 }}>
             More daily puzzles: <a href="/crux" style={{ color: COLORS.accent }}>Crux</a>,{' '}
@@ -800,13 +822,19 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
       )}
 
       <style>{`
+        .bl-dock { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 12px; }
+        .bl-pad, .bl-acts { display: flex; gap: 6px; }
         @media (max-width: 640px) {
           .bl-ladder { display: none !important; }
           .bl-strip { display: flex !important; }
           .bl-keys { display: none !important; }
           .bl-touchhint { display: block !important; }
-          .bl-dock { display: grid !important; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-          .bl-dock > button { width: auto !important; height: 46px !important; }
+          /* one cluster per thumb, hard against its own edge */
+          .bl-dock { justify-content: space-between; gap: 10px; margin-top: 8px; }
+          .bl-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; flex: 1 1 0; max-width: 46%; }
+          .bl-acts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; flex: 1 1 0; max-width: 46%; }
+          .bl-dock button { width: 100% !important; height: 54px !important; }
+          .bl-acts .bl-drop { grid-column: span 2; height: 46px !important; padding: 0 !important; }
         }
       `}</style>
 
