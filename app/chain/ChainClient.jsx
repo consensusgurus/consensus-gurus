@@ -303,6 +303,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
       const anon = getAnonId();
       if (anon) qs.set('anonId', anon);
       if (id && id.email) qs.set('email', id.email);
+      qs.set('history', '1');
       fetch(`/api/quiz/me?${qs.toString()}`)
         .then((r) => r.json())
         .then((d) => {

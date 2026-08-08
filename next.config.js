@@ -6,6 +6,12 @@ const nextConfig = {
     // Hero photos are referenced by remote URL (lib/hero-images.js) and
     // optimized/cached by the built-in image optimizer at request time.
     remotePatterns: [{ protocol: 'https', hostname: '**' }],
+    // Hero URLs are immutable in practice: a hero is swapped by editing
+    // lib/hero-images.js (a new URL, hence a new cache key), never by the
+    // remote host changing the bytes behind an existing URL. The 60s default
+    // therefore bought nothing and re-optimized the same photo all day. One
+    // year. (2026-08-08, Vercel cost fix.)
+    minimumCacheTTL: 31536000,
   },
   // mindloftdaily.com serves the same app as sourceoftruths.com during the soft launch, and
   // the share URLs and screenshot watermark now point at it so people learn the new address.

@@ -9,6 +9,24 @@ import { buildTrophyList } from '@/lib/quiz-trophies';
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
+// Per-identity CDN cache (2026-08-08, Vercel cost fix).
+//
+// WHY: this route was 100% origin at ~2.6K calls and 27 MINUTES of function CPU
+// per 12h, the single largest compute line on the account. The identity IS the
+// query string (anonId / email / light / history), so a cache entry can never
+// be served to a different player. That is the same argument
+// /api/quiz/daily-status and /api/quiz/board already make for themselves.
+//
+// `fresh=1` opts OUT, and the post-game path MUST use it: the end card reads
+// this route immediately after POSTing its result row, and a 30s-stale profile
+// would report zero IQ earned and swallow the trophy unlock toast.
+//
+// A `found: false` answer is NEVER cached. A brand-new player's first row can
+// land mid-window, and caching the miss would tell them they do not exist for
+// another 30 seconds.
+const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=90' };
+const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' };
+
 // GET /api/quiz/me?anonId=&email=&light=
 // The current player's full XP profile + activity, resolved by the identity the
 // quiz client stores in localStorage (email -> u:<id>, else anon -> a:<anon>).
@@ -24,11 +42,24 @@ export const fetchCache = 'force-no-store';
 // across all players, so the first request of a row-version pays and the rest
 // are a map lookup. Callers that show the activity log or the trophy case
 // (Stat Hub, player profile, the post-game unlock toast) simply omit the flag.
+//
+// `history=1` is the MIDDLE mode, added 2026-08-08 for the ~47 daily-game
+// clients. They call this route on mount for exactly two things: `recent`, fed
+// to mergeServerStats for the cross-device stats/streak merge, and the name +
+// IQ rank for the player chip. They read no trophies and no per-entry rank
+// movement. Full mode was handing them both: `rankFor` pushes the result into
+// the perPlayer memo (cap 4, so with real concurrency it thrashed to a ~0% hit
+// rate) and the trophy pass re-walks every row. history keeps `recent` intact
+// and drops only those two, which moves all 47 clients onto the SHARED memo
+// entry every player reuses. Same bytes the clients actually consume, a
+// fraction of the CPU.
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
   const email = (searchParams.get('email') || '').trim() || null;
   const light = searchParams.get('light') === '1' || searchParams.get('light') === 'true';
+  const history = searchParams.get('history') === '1' || searchParams.get('history') === 'true';
+  const fresh = searchParams.get('fresh') === '1' || searchParams.get('fresh') === 'true';
   try {
     let myKey = null, signed = false, username = null;
     const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
@@ -36,7 +67,7 @@ export async function GET(request) {
     else if (anonId) { myKey = `a:${anonId}`; }
 
     const { data, error } = await loadQuizResults(supabaseAdmin);
-    if (error) { console.error('quiz me error', error); return NextResponse.json({ found: false }); }
+    if (error) { console.error('quiz me error', error); return NextResponse.json({ found: false }, { headers: NO_STORE_HEADERS }); }
     // Full mode: recentN large so the Stat Hub Activity log shows the player's
     // FULL play history (every game, exact timestamps), not just the last
     // handful, and rankFor so each of those entries carries its rank movement.
@@ -48,18 +79,22 @@ export async function GET(request) {
     // slice and drop it below.
     const { players } = light
       ? computeXpCached(data || [], { recentN: 1 })
-      : computeXpCached(data || [], { recentN: 100000, rankFor: myKey });
+      : history
+        ? computeXpCached(data || [], { recentN: 100000 })
+        : computeXpCached(data || [], { recentN: 100000, rankFor: myKey });
     const profile = buildProfile(players, myKey, { signed, username });
     // buildProfile copies `recent` into a fresh array, so emptying it here can
     // never reach back into the shared memo entry.
     if (light) profile.recent = [];
-    if (!light && profile.found) {
+    if (!light && !history && profile.found) {
       const res = computeTrophiesCached(data || [], players);
       profile.trophies = buildTrophyList(res, myKey, { includeDuels: false });
     }
-    return NextResponse.json(profile);
+    return NextResponse.json(profile, {
+      headers: (fresh || !profile.found) ? NO_STORE_HEADERS : CACHE_HEADERS,
+    });
   } catch (e) {
     console.error('quiz me exception', e);
-    return NextResponse.json({ found: false });
+    return NextResponse.json({ found: false }, { headers: NO_STORE_HEADERS });
   }
 }

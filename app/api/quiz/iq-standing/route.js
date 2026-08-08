@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { rankPlayers } from '@/lib/quiz-xp';
 import { earnedTrophyIds } from '@/lib/quiz-trophies';
-import { computeXpCached, computeTrophiesCached } from '@/lib/quiz-derived-cache';
+import { computeXpCached, computeTrophiesCached, rankPlayersCached } from '@/lib/quiz-derived-cache';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -75,7 +74,7 @@ export async function GET(request) {
         xp: 0,
         level: 1,
         rank: null,
-        total: rankPlayers(players, 'all').length,
+        total: rankPlayersCached(data || [], players, 'all', 200).length,
         gained: null,
         gainedFor: null,
         todayGained: 0,
@@ -87,7 +86,9 @@ export async function GET(request) {
     // Guests are ranked here exactly as they are on /api/quiz/xp (every
     // anonymous player gets a numbered slot); `provisional` tells the card to
     // badge the rank as unclaimed rather than hide it.
-    const ranked = rankPlayers(players, 'all');
+    // Memoized: identical for every player against the same rows, and the end
+    // card's retry ladder can ask for it six times for one finished game.
+    const ranked = rankPlayersCached(data || [], players, 'all', 200);
     const idx = ranked.findIndex((p) => p.key === myKey);
     // Always return the full 2*span+1 rows when the board is that long, sliding
     // the window instead of truncating it: the #1 player would otherwise see only

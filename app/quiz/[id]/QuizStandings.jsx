@@ -107,6 +107,9 @@ export default function QuizStandings({
     const qs = new URLSearchParams();
     if (anonId) qs.set('anonId', anonId);
     if (email) qs.set('email', email);
+    // Post-game read: bypass the /api/quiz/me CDN cache, or the trophy unlock
+    // toast fires off the pre-game profile and misses the trophy just earned.
+    qs.set('fresh', '1');
     const t = setTimeout(() => {
       fetch('/api/quiz/me?' + qs.toString())
         .then((r) => r.json())

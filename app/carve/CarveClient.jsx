@@ -326,7 +326,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
         if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`;
       } catch (e) {}
       if (anon || em) {
-        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
           .then((r) => r.json())
           .then((d) => {
             if (d && Array.isArray(d.recent)) {

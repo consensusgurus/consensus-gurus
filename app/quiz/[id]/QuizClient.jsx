@@ -731,7 +731,10 @@ export default function QuizClient({ quizId }) {
       .catch(() => {});
   }
 
-  function fetchQuizMe(setter) {
+  // `fresh` bypasses the 30s CDN cache on /api/quiz/me. Required for the
+  // post-game read: it runs right after the result row is POSTed, and a cached
+  // pre-game profile would show zero IQ earned and no trophy unlock.
+  function fetchQuizMe(setter, { fresh = false } = {}) {
     try {
       const qs = new URLSearchParams();
       const anon = getAnonId();
@@ -739,6 +742,7 @@ export default function QuizClient({ quizId }) {
       let em = identity && identity.email ? identity.email : null;
       if (!em) { try { const j = JSON.parse(localStorage.getItem('sot_quiz_identity')); if (j && j.email) em = j.email; } catch (e) {} }
       if (em) qs.set('email', em);
+      if (fresh) qs.set('fresh', '1');
       fetch(`/api/quiz/me?${qs.toString()}`).then((r) => r.json()).then((d) => { if (d && d.found) setter(d); }).catch(() => {});
     } catch (e) {}
   }
@@ -827,7 +831,7 @@ export default function QuizClient({ quizId }) {
         const topNow = freshBest != null && finalScore === freshBest && d.topTime != null && elapsed <= d.topTime;
         if (topNow) setCelebration('big'); else if (finalScore === total) setCelebration('small');
       } })
-      .then(() => fetchQuizMe(setEloAfter))
+      .then(() => fetchQuizMe(setEloAfter, { fresh: true }))
       .catch(() => {});
   }
 

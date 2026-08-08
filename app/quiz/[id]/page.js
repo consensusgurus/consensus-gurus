@@ -5,7 +5,13 @@ import CruxRedirect from './CruxRedirect';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { SITE_URL } from '@/lib/site';
 
-export const revalidate = 3600;
+// 24h, not 1h (2026-08-08, Vercel cost fix). ~1,200 quiz pages expiring hourly
+// was the bulk of 81.9K ISR writes per 4 days, and because each page is served
+// only a handful of times an hour, WRITES EXCEEDED READS. Nothing on this page
+// goes stale in between: the content is static from lib/quizzes.js, everything
+// live (board, player, standings) is client-fetched, and a deploy invalidates
+// the whole cache anyway.
+export const revalidate = 86400;
 
 // On-demand ISR: do NOT prerender all ~1,200 quiz pages at build (each imports
 // the 2.6MB quizzes.js; together they dominated build time). [] renders each

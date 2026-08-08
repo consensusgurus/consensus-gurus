@@ -305,7 +305,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       let em = '';
       try { const idj = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (idj && idj.email) em = `&email=${encodeURIComponent(idj.email)}`; } catch (e) {}
       if (anon || em) {
-        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
+        fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
           .then((r) => r.json())
           .then((d) => { if (d && d.found && d.name) setPlayer({ name: d.name, rank: (d.ranks && d.ranks.xp) || d.rank || null, key: d.userKey || null }); })
           .catch(() => {});
