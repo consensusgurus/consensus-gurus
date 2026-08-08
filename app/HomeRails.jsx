@@ -457,8 +457,11 @@ export default function HomeRails({
          so it reads as "there is a prize" and is the one tone on the phone
          stack that nothing else is wearing. Ink is a dark brown rather than
          --gold-ink (#a16207), which is a text-on-white tone and far too low
-         contrast on the gold itself. */
-      .hr-share{display:none;width:100%;box-sizing:border-box;align-items:center;gap:11px;padding:13px 16px;border:0;background:var(--gold,#e8b43a);color:#3a2a05;font:inherit;font-family:inherit;text-align:left;cursor:pointer;}
+         contrast on the gold itself.
+         border-radius:0 is explicit and required: a global button rule gives
+         every button an 8px radius, so the strip shipped with rounded corners
+         inside a stack of square full-bleed bands (owner, 2026-08-08). */
+      .hr-share{display:none;width:100%;box-sizing:border-box;align-items:center;gap:11px;padding:13px 16px;border:0;border-radius:0;background:var(--gold,#e8b43a);color:#3a2a05;font:inherit;font-family:inherit;text-align:left;cursor:pointer;}
       .hr-share:active{background:#d9a52e;}
       .hr-share .hr-shtxt{flex:1;min-width:0;}
       .hr-share b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px;line-height:1.25;}
