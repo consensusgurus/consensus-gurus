@@ -46,7 +46,30 @@ export default function DailyChrome({ slug }) {
           overlay on the page lands above the header, while 5 still clears the
           fixed Grain wash at z-index 1 and the page column at 2. Do not raise
           this without checking dec-backdrop in DailyEndCard. */}
-      <style>{'.dch-wrap{position:relative;z-index:5;}'}</style>
+      {/* THE DOME STRIP (owner-approved exception to the no-pin rule above,
+          2026-08-08). Three pixels of brand navy pinned to the very top of the
+          viewport, sitting BEHIND the header: while the header is up there it
+          covers the strip completely, and once the page scrolls the strip is
+          all that stays. It is the only pinned thing on a game page and it
+          costs the board 0px, because it is fixed rather than in flow.
+
+          It exists for Safari on iPhone, not for the reader. Safari tints the
+          strip behind the status bar (the "dome") from the fixed or sticky
+          element topping the viewport, and falls back to the page background
+          when a page has none. The homepage dome was navy purely because its
+          header is position: sticky; every daily game page came out white
+          because DailyChrome's header is deliberately in normal flow. Four
+          less invasive fixes were tried first and all failed: a safe-area band
+          on env() (reports 0 in ordinary iPhone Safari, so it collapsed), the
+          same band with a 4px floor, html's canvas colour, and body's own
+          background. theme-color is NOT the mechanism, it is set globally to
+          #1e3a8a and both pages carry it.
+
+          z-index is left to paint under the bar: it is a child of .dch-wrap, so
+          it is already capped inside that stacking context and can never cover
+          an overlay. */}
+      <style>{'.dch-wrap{position:relative;z-index:5;}.dch-dome{position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);}'}</style>
+      <div className="dch-dome" aria-hidden="true" />
       <QuizNavHeader />
       <DailySlateRail current={slug} />
     </div>
