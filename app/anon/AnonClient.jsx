@@ -331,6 +331,21 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     focusCell(move(cur, 1));
   }, [playing, g.t0, cur, N, A, TOTAL, postResult, focusCell, move]);
 
+  // Delete repeats while held, the way the OS keyboard does. The repeat reads
+  // the CURRENT backspace through a ref: the callback below is rebuilt whenever
+  // the cursor moves, so a timer closing over it would keep deleting the cell
+  // the player started on.
+  const bsRef = useRef(null);
+  const delTimer = useRef(null);
+  const stopDelete = useCallback(() => { clearTimeout(delTimer.current); delTimer.current = null; }, []);
+  const holdDelete = useCallback(() => {
+    bsRef.current && bsRef.current();
+    clearTimeout(delTimer.current);
+    const again = () => { bsRef.current && bsRef.current(); delTimer.current = setTimeout(again, 85); };
+    delTimer.current = setTimeout(again, 420);
+  }, []);
+  useEffect(() => stopDelete, [stopDelete]);
+
   const backspace = useCallback(() => {
     if (!playing || !g.t0) return;
     setG((c) => {
@@ -340,6 +355,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     });
     if (!fill[cur]) focusCell(move(cur, -1));
   }, [playing, g.t0, cur, N, fill, focusCell, move]);
+  useEffect(() => { bsRef.current = backspace; }, [backspace]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -522,8 +538,11 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-kb{display:flex;flex-direction:column;gap:5px;background:#e5e8ef;border-radius:0 0 10px 10px;padding:7px 4px 9px;}
           .an-kr{display:flex;gap:5px;justify-content:center;}
           .an-kr button{flex:1;max-width:34px;height:42px;border:0;border-radius:6px;background:var(--white);font-family:${SANS};
+            touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
             font-weight:800;font-size:15px;box-shadow:0 1px 0 #b9bfcb;cursor:pointer;}
           .an-kr button.wide{max-width:54px;font-size:11px;background:#c9cfdb;}
+          .an-kr button.del{display:flex;align-items:center;justify-content:center;}
+          .an-kr button:active{background:#cfd6e2;}
           .an-spine{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:0 0 14px;}
           .an-spine i{width:22px;height:28px;border-radius:4px;background:${COLORS.accentSoft};border:1px solid #e3b9be;
             display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:${COLORS.accent};}
@@ -663,9 +682,19 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           <div className="an-kb">
             {ROWS.map((row, ri) => (
               <div className="an-kr" key={ri}>
-                {ri === 2 && <button className="wide" onClick={backspace} aria-label="Delete"><Delete size={15} /></button>}
-                {[...row].map((c) => <button key={c} onClick={() => type(c.toUpperCase())}>{c.toUpperCase()}</button>)}
                 {ri === 2 && <button className="wide" onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>NEXT</button>}
+                {[...row].map((c) => <button key={c} onClick={() => type(c.toUpperCase())}>{c.toUpperCase()}</button>)}
+                {ri === 2 && (
+                  <button
+                    className="wide del"
+                    aria-label="Delete"
+                    onPointerDown={(e) => { e.preventDefault(); holdDelete(); }}
+                    onPointerUp={stopDelete}
+                    onPointerLeave={stopDelete}
+                    onPointerCancel={stopDelete}
+                    onContextMenu={(e) => e.preventDefault()}
+                  ><Delete size={15} /></button>
+                )}
               </div>
             ))}
           </div>
