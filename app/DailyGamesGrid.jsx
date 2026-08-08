@@ -90,6 +90,7 @@ const GAMES = [
   { key: 'rung', href: '/rung', name: 'Rung', tag: 'One letter at a time', img: '/games/btn-rung.png' },
   { key: 'crunch', href: '/crunch', name: 'Crunch', tag: 'Six numbers, one target', img: '/games/btn-crunch.png' },
   { key: 'taire', href: '/taire', name: 'Taire', tag: 'The daily solitaire', img: '/games/btn-taire.png' },
+  { key: 'hands', href: '/hands', name: 'Hands', tag: 'The daily poker solitaire', img: '/games/btn-hands.png' },
   { key: 'fib', href: '/fib', name: 'Fib', tag: 'One clue is lying', img: '/games/btn-fib.png' },
   { key: 'streak', href: '/streak', name: 'Streak', tag: 'Forty questions, one life', img: '/games/btn-streak.png' },
   { key: 'feud', href: '/feud', name: 'Feud', tag: 'Match the crowd', img: '/games/btn-feud.png' },
@@ -114,7 +115,7 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 // Within each group the order is popularity (yesterday's plays), same as
 // everywhere else.
 const CATEGORIES = [
-  { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon'] },
+  { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon', 'rung'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'crunch'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
