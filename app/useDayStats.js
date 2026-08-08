@@ -1,7 +1,8 @@
 'use client';
 
-// Shared "your day" figures: IQ Points earned today, today's move on the global
-// IQ board, and how many of today's dailies are finished.
+// Shared "your day" figures: IQ Points earned today, today's rank on the board
+// of everyone who has banked IQ today, today's move on the global IQ board, and
+// how many of today's dailies are finished.
 //
 // It lives here rather than inside DailyStrip because on 2026-08-03 the owner
 // moved the Your-day stats OUT of the daily board's cap and INTO the quizzes
@@ -58,7 +59,7 @@ function localDone(today) {
 }
 
 export default function useDayStats() {
-  const [s, setS] = useState({ todayXp: null, rankChange: null, done: 0, total: DAY_ROSTER.length, ready: false });
+  const [s, setS] = useState({ todayXp: null, rankChange: null, dayRank: null, dayField: null, done: 0, total: DAY_ROSTER.length, ready: false });
   useEffect(() => {
     let alive = true;
     const today = etToday();
@@ -78,6 +79,8 @@ export default function useDayStats() {
       setS({
         todayXp: typeof data.todayXp === 'number' ? data.todayXp : null,
         rankChange: typeof data.rankChange === 'number' ? data.rankChange : null,
+        dayRank: typeof data.dayRank === 'number' ? data.dayRank : null,
+        dayField: typeof data.dayField === 'number' ? data.dayField : null,
         done: done.size,
         total: DAY_ROSTER.length,
         ready: true,

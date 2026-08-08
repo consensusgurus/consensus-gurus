@@ -42,7 +42,9 @@ const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|circa|extra|c
 // Also returns `todayXp` (IQ Points earned today, ET, across every game) and
 // `rankChange` (places climbed on the global IQ board since the day started,
 // negative = dropped, null = no standing to move from). Both feed the "Your day"
-// strip.
+// strip. `dayRank` / `dayField` are TODAY'S board rather than the lifetime one:
+// where this player sits among everyone who has banked IQ today, and how big
+// that field is (owner, 2026-08-08 - the header's Daily rank box).
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const anonId = (searchParams.get('anonId') || '').trim() || null;
@@ -124,6 +126,8 @@ export async function GET(request) {
     // degrades to null instead of breaking played/completed, this route's real job.
     let todayXp = null;
     let rankChange = null;
+    let dayRank = null;
+    let dayField = null;
     try {
       // computeXpCached, not computeXp: this derivation is identical for every route
       // and every player against the same rows, and it walks all ~34,700 of them.
@@ -138,10 +142,19 @@ export async function GET(request) {
         // twice this way counts OTHER players passing you, which a sum of your
         // own per-play rankDelta would miss; only the lookup below is personal.
         const dayStart = startOfEasternTodayUTC();
-        const { gained, posNow, posThen } = dailyStandingCached(data || [], players, { dayStartMs: dayStart, recentN: 400 });
+        const st = dailyStandingCached(data || [], players, { dayStartMs: dayStart, recentN: 400 });
+        const { gained, posNow, posThen } = st;
 
         const mineToday = gained.get(myKey) || 0;
         todayXp = Math.round(mineToday);
+
+        // Today's board only ranks players who have banked something today, so a
+        // player who has not played yet is simply not on it: report nulls rather
+        // than a phantom last place.
+        if (mineToday > 0 && st.posDay) {
+          dayRank = st.posDay.get(myKey) || null;
+          dayField = st.dayField || null;
+        }
 
         // A player whose first ever game is today had no standing to move from.
         if ((me.xp || 0) - mineToday > 0) {
@@ -155,7 +168,7 @@ export async function GET(request) {
     for (const [k, all] of archiveAll) {
       archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
     }
-    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp, rankChange, archive }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [] });

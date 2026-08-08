@@ -708,14 +708,22 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       else if (inprog.has(g.key)) nProg += 1;
       else nTodo += 1;
     });
-    const band = (cls, label, count) => (count ? (
+    // A band normally prints its own size on the right. Ready to play prints the
+    // DAY instead (owner, 2026-08-08): how many of the whole slate are finished.
+    // That figure used to be the third box in the phone header, where it competed
+    // with the two IQ figures for a ~120px column; here it sits directly above the
+    // rows it is counting. `n` is the GLOBAL done count, so a category filter
+    // narrows the rows without rewriting the day's score. The ready count it
+    // replaces is the same fact stated backwards, and the band only renders when
+    // something is ready anyway.
+    const band = (cls, label, count, fig) => (count ? (
       <div className={`sl-band ${cls}`} key={`band-${cls}`}>
         <span className="sl-bt">{label}</span>
-        <span className="sl-bc">{count}</span>
+        <span className="sl-bc">{fig == null ? count : fig}</span>
       </div>
     ) : null);
     out.push(band('prog', 'In progress', nProg));
-    out.push(band('todo', 'Ready to play', nTodo));
+    out.push(band('todo', 'Ready to play', nTodo, `${n}/${GAMES.length} played`));
     out.push(band('dn', 'Done today', nDone));
     // One expand bar per group, pushed here and ordered to the END of its own
     // group by CSS, exactly like the bands. A group with nothing hidden renders
@@ -1475,7 +1483,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              under its own row. */
           .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
-          .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--blue-200);font-variant-numeric:tabular-nums;}
+          .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
           .sl-band.prog{order:1;}
           .sl-band.dn{order:7;background:var(--success-deep);}
           .sl-row,.sl-drawer{order:5;}

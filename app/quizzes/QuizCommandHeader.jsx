@@ -140,6 +140,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
     : 'no change today';
   const moveCls = !moved ? '' : (day.rankChange > 0 ? 'qch-tup' : 'qch-tdown');
   const dayXp = (typeof day.todayXp === 'number' && day.todayXp > 0) ? day.todayXp : null;
+  // Today's standing among everyone who has banked IQ today (owner, 2026-08-08).
+  // A different figure from the lifetime Rank column beside it: that one moves in
+  // months, this one is the day's race, and it is the reason to come back tonight.
+  const dayRank = (typeof day.dayRank === 'number' && day.dayRank > 0) ? day.dayRank : null;
+  const dayField = (typeof day.dayField === 'number' && day.dayField > 0) ? day.dayField : null;
   // Lifetime "N completed / X% of the catalogue" was dropped on 2026-08-03: it
   // measures the QUIZ catalogue, which is not what this bar is about now that
   // the day figures live here. The third column counts today's dailies instead.
@@ -204,8 +209,8 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
     // from `home`, both below: it sits in normal flow rather than sticking, and
     // its nav links out instead of scrolling the page it is on.
     const inner = variant === 'inner';
-    const stat = (label, value, sub, subCls) => (
-      <div className="qchm-cell">
+    const stat = (label, value, sub, subCls, cellCls) => (
+      <div className={`qchm-cell${cellCls ? ` ${cellCls}` : ''}`}>
         <div className="qchm-k">{label}</div>
         <div className="qchm-v">{value}</div>
         <div className={`qchm-ch${subCls ? ` ${subCls}` : ''}`}>{sub}</div>
@@ -261,6 +266,13 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             .qchm-r2 .qchm-in{padding:9px 6px;}
             .qchm-cell{flex:1;padding:0 6px;text-align:center;}
             .qchm-hidem{display:none;}
+            /* Owner, 2026-08-08: three boxes on a phone, and Daily rank earns one
+               of them. Played moves out (the slate's Ready-to-play band now
+               carries the same x-of-N figure, right above the rows it counts) and
+               keeps its desktop slot, where there is no band to carry it. It sits
+               BEFORE Daily rank in the DOM so the visible last cell is still
+               :last-of-type here and no divider strands at the right edge. */
+            .qchm-hided{display:none;}
             .qchm-k{display:none;}
             .qchm-v{font-size:17px;}
             .qchm-v .qchm-day{display:none;}
@@ -303,7 +315,17 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
               <div className="qchm-cell qchm-hidem"><div className="qchm-k">Player</div><div className="qchm-v">{me.name}</div></div>
               {rank ? stat('Rank', <>{`#${fmtK(rank)}`}{totalPlayers ? <i>{` of ${totalPlayers.toLocaleString()}`}</i> : null}</>, moveTxt, moved ? (day.rankChange > 0 ? 'qchm-up' : 'qchm-down') : '') : null}
               {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i> IQ pts</i><i className="qchm-day">{dayXp ? ` +${dayXp.toLocaleString()}` : ''}</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
-              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '')}
+              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '', 'qchm-hided')}
+              {stat(
+                'Daily rank',
+                dayRank
+                  ? <>{`#${fmtK(dayRank)}`}{dayXp ? <i>{` \u00b7 ${dayXp.toLocaleString()} IQ`}</i> : null}</>
+                  : <>{'\u2014'}</>,
+                dayRank
+                  ? (dayField ? `of ${dayField.toLocaleString()} today` : 'on today\u2019s board')
+                  : 'play to rank today',
+                dayRank ? 'qchm-up' : '',
+              )}
             </>
           ) : (
             <>
