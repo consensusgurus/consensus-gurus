@@ -38,50 +38,60 @@
 
 body {
   margin: 0;
+  /* Paints over the navy canvas (see the note below the dome band). min-height
+     keeps it covering the viewport on a short page, so the navy only ever shows
+     in overscroll. */
+  min-height: 100vh;
   background: var(--white);
   color: var(--ink);
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
 
-/* Top safe-area fill (the "dome"). With viewport-fit: cover and the
-   black-translucent status bar, the strip behind the notch is part of the page,
-   so whatever element sits at the physical top paints it. The homepage header is
-   position: sticky, so its navy stayed under the dome at every scroll position;
-   the daily game pages keep their header in normal flow by design (DailyChrome:
-   nothing is pinned), so scrolling exposed the white body behind the notch and
-   the dome flipped white. This band paints that strip brand navy on every page,
-   independent of what scrolls, so the dome matches the header everywhere.
+/* Brand navy at the two places the page itself does not paint: the top
+   safe-area strip (the "dome" behind the notch, which is part of the page
+   because app/layout.js sets viewport-fit: cover with a black-translucent
+   status bar) and the document canvas behind everything.
 
-   It is zero-height wherever there is no inset (desktop, and mobile browsers
-   showing their own chrome over the notch), so it costs nothing there. z-index
-   is above every overlay in the app (highest in use is 9999) because the strip
-   is status-bar chrome, not page content, and it must not go white under a
-   full-screen modal either. pointer-events: none so it never eats a tap.
+   WHY THE CANVAS IS NAVY WHILE THE BODY STAYS WHITE. Safari on iPhone tints its
+   own top strip from the fixed or sticky element at the top of the viewport,
+   and falls back to the DOCUMENT background when there is none. That single
+   rule is why the dome used to be navy on the homepage and white on every daily
+   game page: the homepage header is position: sticky, DailyChrome's is
+   deliberately in normal flow (nothing on a game page is pinned), and the two
+   pages are otherwise identical, same theme-color meta (#1e3a8a) included, so
+   theme-color was never what drove it. Giving <html> a background makes it the
+   canvas colour, so the fallback lands on navy instead of white; <body> keeps
+   its own white background over the content, with min-height so it always
+   covers the viewport. Nothing changes visually except rubber-band overscroll,
+   which now shows navy rather than white.
 
-   THE HEIGHT FLOOR IS LOAD-BEARING, do not drop it back to a bare env(). Safari
-   on iPhone reports env(safe-area-inset-top) as 0 in normal browsing (its own
-   chrome covers the notch), which collapsed this band to nothing. Safari tints
-   that top strip from the FIXED OR STICKY element sitting at the top of the
-   viewport, falling back to the document background when there is none: that is
-   the whole reason the homepage dome was navy and every daily game page was
-   white, since the homepage header is position: sticky and DailyChrome's is
-   deliberately in normal flow. A zero-height band is not an element Safari can
-   sample, so it needs real pixels. 4px is invisible against the navy masthead
-   that tops the home, quiz and daily surfaces, and reads as a thin brand rule
-   above the white bar on list pages. */
+   The band below covers the standalone / installed-app case, where the inset is
+   real and the strip is genuinely inside the page. z-index is above every
+   overlay in the app (highest in use is 9999) because that strip is status-bar
+   chrome, not page content, and it must not go white under a full-screen modal
+   either. pointer-events: none so it never eats a tap. It collapses to nothing
+   where there is no inset, which is most of the time: in ordinary iPhone Safari
+   env(safe-area-inset-top) reports 0, because Safari's own chrome covers the
+   notch. Do not try to make this band do the browser's job by giving it a
+   height floor. That was tried (4px) and does nothing, because Safari samples
+   a sticky or fixed element, not a decorative sliver. */
 body::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: max(env(safe-area-inset-top, 0px), 4px);
+  height: env(safe-area-inset-top, 0px);
   background: var(--accent);
   z-index: 10000;
   pointer-events: none;
 }
 
 html {
+  /* The canvas colour, NOT a visible surface: body paints white on top of it.
+     This is what Safari falls back to when tinting its top strip on a page with
+     no sticky header. See the note above. */
+  background: var(--accent);
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
   /* Disable mobile-browser font boosting: long un-wrappable labels and the
