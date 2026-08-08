@@ -631,7 +631,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             .al-dock{display:block;position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--white);border-top:1px solid rgba(28,30,36,0.14);box-shadow:0 -8px 24px -14px rgba(16,24,40,0.5);padding:8px 12px calc(10px + env(safe-area-inset-bottom));}
             .al-dock .rail{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
             .al-dock .arw{flex:0 0 auto;width:34px;height:50px;border-radius:9px;border:1px solid rgba(28,30,36,0.2);background:var(--white);font-family:${SANS};font-weight:800;font-size:16px;color:${COLORS.faded};cursor:pointer;}
-            .al-dock .cur{flex:1;min-width:0;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:7px 10px;font-family:${SANS};font-size:13.5px;font-weight:600;line-height:1.35;min-height:50px;display:flex;align-items:center;background:var(--white);}
+            .al-dock .cur{flex:1;min-width:0;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:9px 11px;font-family:${SANS};font-size:13.5px;font-weight:600;line-height:1.4;min-height:50px;display:block;background:var(--white);}
             .al-dock .cur.done{opacity:0.45;text-decoration:line-through;}
             .al-dock .n{font-family:${MONO};font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};display:flex;align-items:center;gap:8px;margin-bottom:5px;}
             .al-dock .acts{display:flex;gap:6px;}
