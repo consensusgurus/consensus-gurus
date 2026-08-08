@@ -1973,6 +1973,34 @@ byte-identical.
   name link's navigation. `.sl-btn.done` is a static score chip, not a control, so it falls
   through and expands like the rest of the row.
 
+**Cap (`.dh-sbar`) carries the PAUSED games too (owner, 2026-08-08)**
+
+The cap is no longer two halves. It is a grid of cap-shaped cards, two to a row above 900px and
+one below: Up next, Easiest leaderboard, then one card per PAUSED game, in board order. The blue
+pair keeps its two navy tones; the paused cards take the slate's gold (`var(--gold)` ground,
+`#2a1f04` ink, white button). Consequences, all of which are the point rather than side effects:
+
+- **The board has no In progress group.** `renderSlate` filters paused games out at the top, so the
+  band, its rows and its expand bar all fall away on their own (each renders only when its own
+  count is non-zero). The slate is Ready to play then Done today, which is why the category strip
+  now sits directly above Ready to play. Do NOT put paused rows back in the board: they would then
+  appear twice.
+- **Collapsed to `CAP_PROG_D` (4) on desktop and `CAP_PROG_M` (3) on a phone**, i.e. two rows of
+  cards either way, with the rest behind one `.dh-cmore` bar spanning the cap's columns. The cut is
+  CSS on the cards (`.cap-hd` / `.cap-hm`), NOT a slice in the JSX, so the server and the client
+  render the same list at both widths and each width prints its own count in the bar.
+- **A paused card is ONE link**, the whole card, with the Resume button as a `<span>` inside it
+  (never a nested `<a>`). Up next and Easiest are excluded from the paused list, since they are
+  frequently paused games themselves and already have a card.
+- **An odd number of showing cards makes the last one full width** (`.capw`), or the desktop grid
+  leaves a hole beside it.
+- **Every card's button is `flex:0 0 <width>`, not a bare `width`**: as a flexible item a long name
+  or sub line squeezed its own control and the cards came out visibly unequal.
+- **`.dhome.slate .dh-sbar` carries `border:none` above 900px.** Its 1.5px grey SIDE borders were an
+  indentation against the title band above it, whose border is the colour of its own fill.
+- **The category strip and the expand bars are `--surface-alt` between two `#d7dce5` rules.** On
+  `--surface` between two `--border` hairlines they dissolved into the page at the console's edge.
+
 **Puzzle drawer (`app/DailyTilePanel.jsx`)**
 
 - The phone drawer follows the SAME rules, at the SAME 900px breakpoint as the slate (it was 720px,

@@ -197,6 +197,13 @@ const PHONE_PROG_MAX = 2; // ...of which never more than two are paused
 // would push the games you have NOT started off the first screen. Two paused is
 // the rule at every width (owner, 2026-08-08).
 const DESK_PROG_MAX = 2;
+// How many PAUSED cards the cap shows before its expand bar takes over (owner,
+// 2026-08-08). The cap runs two columns above 900px and one below, so four and
+// three are each "two rows of cards, and you can still see the board under
+// them". The cut is CSS on the cards (.cap-hd / .cap-hm), not a slice in the
+// JSX, so the server and the client render the same list at either width.
+const CAP_PROG_D = 4;
+const CAP_PROG_M = 3;
 
 // How far back Up next looks when deciding which game this viewer plays the
 // most. Long enough to survive a few skipped days, short enough that a habit
@@ -367,6 +374,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Which phone groups the reader has expanded. Collapsed is the default on
   // every load, deliberately: the point is what the FIRST screen shows.
   const [grpOpen, setGrpOpen] = useState({ prog: false, todo: false, dn: false });
+  // Paused games ride in the CAP now, beside Up next and Easiest leaderboard
+  // (owner, 2026-08-08), as cards of the cap's own shape in gold rather than a
+  // group of rows inside the board. The board therefore opens on Ready to play,
+  // which is what pulled the category strip down to sit directly above it.
+  const [capOpen, setCapOpen] = useState(false);
   const vpRef = useRef(null);
   const boardRef = useRef(null);
 
@@ -499,6 +511,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     ? ''
     : ` \u00b7 ${n === 0 ? 'nobody on the leaderboard yet' : `${n.toLocaleString()} on the leaderboard`}`);
   const nextPlays = nextGame ? playsOf(nextGame.key) : null;
+
+  // The paused cards, in board order. Up next and Easiest leaderboard are
+  // frequently paused games themselves and already have a card of their own, so
+  // they are excluded here rather than printed twice.
+  const capProg = games.filter((g) => inprog.has(g.key) && !done.has(g.key)
+    && !(nextGame && g.key === nextGame.key)
+    && !(easiest && g.key === easiest.game.key));
+  // Desktop runs the cap two cards to a row, so an ODD number of showing cards
+  // would leave a half-width hole beside the last one: it takes the full width
+  // instead. Index only, so it costs the phone (one column) nothing, and the
+  // class it drives is scoped to the desktop block.
+  const capShownD = capOpen ? capProg.length : Math.min(capProg.length, CAP_PROG_D);
+  const capWideAt = capShownD % 2 === 1 ? capShownD - 1 : -1;
 
   // The player's row on a game's per-game board (their score/rank today).
   const myRow = (key) => {
@@ -716,8 +741,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
   // The slate: one row per game, with the per-game panel opening as a drawer
   // directly under its own row rather than as an overlay over the board.
-  const renderSlate = (arr, dim) => {
+  const renderSlate = (rows0, dim) => {
     const out = [];
+    // Paused games left the board for the cap (owner, 2026-08-08), so the slate
+    // holds two groups: Ready to play and Done today. The In progress band, its
+    // rows and its expand bar all fall away from this one filter, since each of
+    // the three renders only when its own count is non-zero.
+    const arr = rows0.filter((g) => done.has(g.key) || !inprog.has(g.key));
     // Phone layout groups the slate by state (owner-approved direction B,
     // 2026-08-07). The three band headers are pushed FIRST and moved into place
     // by CSS `order` inside the <=900px block, NOT interleaved here, so the
@@ -1155,6 +1185,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         }
         .dh-play{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--cta);color:var(--cta-ink);font-weight:800;font-size:13px;border-radius:9px;padding:10px 18px;text-decoration:none;border:none;cursor:pointer;transition:background .12s;}
         .dh-play:hover{background:var(--cta-hover);}
+        /* The cap's expand bar. Same object as the board's group bars, spanning
+           the cap's columns at the foot of the paused cards. */
+        .dh-cmore{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+          padding:7px 13px;border:0;border-top:1px solid #d7dce5;border-bottom:1px solid #d7dce5;border-radius:0;
+          background:var(--surface-alt);font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
+          text-transform:uppercase;line-height:1.5;color:var(--gold-ink);cursor:pointer;}
+        .dh-cmore:hover{background:#e4e9f1;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
@@ -1363,9 +1400,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            variety. The phone block below (<=900px) keeps its own tones and its
            stacking, and is untouched. */
         @media(min-width:901px){
-          .dhome.slate .dh-sbar{padding:0;gap:0;background:transparent;border-bottom:none;}
-          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:#2c4fa8;color:var(--white);}
-          .dhome.slate .dh-cell + .dh-cell{padding-left:26px;border-left:none;background:var(--blue-deep);}
+          /* A GRID, not a two-cell flex row (owner, 2026-08-08): the paused
+             games are cards in this cap now, so it holds 2 + n cards two to a
+             row rather than exactly two halves.
+             border:none, not just border-bottom: the bar's 1.5px grey SIDE
+             borders were the slight indentation against the title band above,
+             whose own border is the colour of its fill and so reaches the
+             console edge. Both bands now start on the same pixel. */
+          .dhome.slate .dh-sbar{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;padding:0;gap:0;background:transparent;border:none;}
+          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:#2c4fa8;color:var(--white);min-width:0;}
+          /* Cards are addressed by CLASS now: the adjacent-sibling rule
+             used to mean "the Easiest half", and with paused cards in the same
+             bar it would mean every card but the first. */
+          .dhome.slate .dh-cell + .dh-cell{padding-left:26px;border-left:none;}
+          .dhome.slate .dh-cell.easy{background:var(--blue-deep);}
           /* a white rule replaces the game icon, which is unreadable at 32px on
              a saturated ground */
           .dhome.slate .dh-cell > img{display:none;}
@@ -1378,6 +1426,29 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-busub{display:block;color:var(--blue-200);font-weight:600;line-height:1.35;padding-bottom:1px;}
           .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:104px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:11px 0;border-radius:8px;}
           .dhome.slate .dh-cell .dh-play:hover{background:var(--blue-200);}
+          /* EVERY card's button is the same box, whatever the card says (owner,
+             2026-08-08). A width alone left it a flexible item, so a long name
+             or a long sub line squeezed its own control by a pixel or two and
+             the two halves came out visibly unequal. A fixed basis cannot. */
+          .dhome.slate .dh-cell .dh-play{flex:0 0 104px;box-sizing:border-box;}
+          /* Paused cards: the cap's shape, in the gold the slate has always used
+             for a game you have started. Hairlines between them, since two gold
+             cards side by side have no colour change to divide them. */
+          .dhome.slate .dh-cell.prog{background:var(--gold);color:#2a1f04;text-decoration:none;border-bottom:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog:nth-child(odd){border-right:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog:hover{background:#e0a92c;}
+          .dhome.slate .dh-cell.prog::before{background:rgba(42,31,4,.55);}
+          .dhome.slate .dh-cell.prog .dh-bue{color:#7a5a10;}
+          .dhome.slate .dh-cell.prog .dh-bun{color:#2a1f04;}
+          .dhome.slate .dh-cell.prog .dh-busub{color:#6b5210;}
+          .dhome.slate .dh-cell.prog .dh-play{background:var(--white);color:#8a5306;}
+          .dhome.slate .dh-cell.prog:hover .dh-play{background:var(--white);}
+          .dhome.slate .dh-cell.prog.capw{grid-column:1/-1;border-right:none;}
+          /* The desktop cut: four cards, two rows of two. */
+          .dh-cell.cap-hd{display:none;}
+          /* With exactly four paused games desktop shows them all, so its bar
+             has nothing to say; the phone, showing three, still needs one. */
+          .dh-cmore.mo{display:none;}
         }
         @media(max-width:900px){
           /* edge to edge. Negative margins, NOT the 50%/translateX trick: a
@@ -1394,14 +1465,24 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-boardwrap{order:1;}
           .dhome.slate .dh-cell > img{display:none !important;}
           .dhome.slate .dh-cell{position:relative;flex:none;width:100%;padding:13px 14px 13px 22px;border:none;border-radius:0;background:var(--blue);color:var(--white);}
-          .dhome.slate .dh-cell + .dh-cell{padding-left:22px;border-left:none;background:#4d84f3;}
+          .dhome.slate .dh-cell + .dh-cell{padding-left:22px;border-left:none;}
+          .dhome.slate .dh-cell.easy{background:#4d84f3;}
           /* a white rule replaces the game icon, which is unreadable at this
              size on a saturated ground */
           .dhome.slate .dh-cell::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.9);}
           .dhome.slate .dh-bue{color:#dbe8ff;font-size:9.5px;letter-spacing:.11em;}
           .dhome.slate .dh-bun{color:var(--white);font-size:19px;line-height:1.3;padding-bottom:1px;}
           .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;line-height:1.35;padding-bottom:1px;}
-          .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:98px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 0;border-radius:8px;}
+          .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:98px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 0;border-radius:8px;flex:0 0 98px;box-sizing:border-box;}
+          /* Paused cards, stacked with the other two and inked gold. */
+          .dhome.slate .dh-cell.prog{background:var(--gold);color:#2a1f04;text-decoration:none;border-bottom:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog::before{background:rgba(42,31,4,.55);}
+          .dhome.slate .dh-cell.prog .dh-bue{color:#7a5a10;}
+          .dhome.slate .dh-cell.prog .dh-bun{color:#2a1f04;}
+          .dhome.slate .dh-cell.prog .dh-busub{color:#6b5210;}
+          .dhome.slate .dh-cell.prog .dh-play{background:var(--white);color:#8a5306;}
+          /* The phone cut: three cards. */
+          .dh-cell.cap-hm{display:none;}
         }
         /* 43px, matched to the rails' panel headers so the Up next bar below
            starts on the same line as each rail's first band (owner,
@@ -1416,7 +1497,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
         .sl-dt{font-style:normal;}
         .sl-dt.p{display:none;}
-        .sl-filt{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+        /* The category strip and the expand bars were var(--surface) between two
+           1px --border rules, which is the page's own background between two
+           hairlines: at the console's edge they dissolved into it (owner,
+           2026-08-08). Each takes the deeper --surface-alt fill and a darker
+           rule top AND bottom now, so it reads as a band across the console
+           rather than a gap in it. */
+        .sl-filt{display:flex;background:var(--surface-alt);border-top:1px solid #d7dce5;border-bottom:1.5px solid #d7dce5;overflow-x:auto;scrollbar-width:none;}
         .sl-filt::-webkit-scrollbar{display:none;}
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--ink);}
@@ -1587,10 +1674,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              above it stays the same blue as every other band: the gold belongs
              to the cards, not to the furniture around them. */
           .sl-more.prog{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;grid-column:1/-1;order:3;
-            padding:6px 13px;border:0;border-radius:0;border-bottom:1px solid var(--border);background:var(--surface);
+            padding:6px 13px;border:0;border-radius:0;border-top:1px solid #d7dce5;border-bottom:1px solid #d7dce5;background:var(--surface-alt);
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--gold-ink);cursor:pointer;}
-          .sl-more.prog:hover{background:#eef1f6;}
+          .sl-more.prog:hover{background:#e4e9f1;}
           /* A PAUSED GAME IS A CAP-SHAPED CARD (owner, 2026-08-08). The first
              pass filled the ordinary row with #a16207, which came out muddy
              brown against a page of blue and read as a warning rather than an
@@ -1666,10 +1753,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* The expand bar: one full-width rectangle at the foot of its group,
              inked to its group's colour so the pair reads as one block. */
           .sl-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
-            padding:4px 13px;border:0;border-radius:0;border-bottom:1px solid var(--border);background:var(--surface);
+            padding:5px 13px;border:0;border-radius:0;border-top:1px solid #d7dce5;border-bottom:1px solid #d7dce5;background:var(--surface-alt);
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
-          .sl-more:active{background:#eef1f6;}
+          .sl-more:active{background:#e4e9f1;}
           .sl-more.prog{order:3;color:#a16207;}
           .sl-mtxt.d{display:none;}
           .sl-more.todo{order:6;}
@@ -1838,7 +1925,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         </div>
       ) : null}
       <div className="dh-sbar">
-        <div className="dh-cell">
+        <div className="dh-cell up">
           {nextGame ? (
             <>
               {capIcon ? <img src={blueTile(nextGame.img)} alt="" aria-hidden="true" onError={tileFallback} /> : null}
@@ -1862,7 +1949,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             </>
           )}
         </div>
-        <div className="dh-cell">
+        <div className="dh-cell easy">
           {easiest ? (
             <>
               {capIcon ? <img src={blueTile(easiest.game.img)} alt="" aria-hidden="true" onError={tileFallback} /> : null}
@@ -1890,6 +1977,51 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             </>
           )}
         </div>
+        {/* The paused cards. Same card as the two above it, in gold: same
+            padding, same white rule where the emblem would be, an eyebrow over
+            the name over a sub line, and the same button on the right edge.
+            The WHOLE card is the link (the button is a span inside it, not a
+            second link), because the one thing you want from a paused game is
+            to get back into it. */}
+        {capProg.map((g, i) => (
+          <a
+            key={g.key}
+            href={g.href}
+            aria-label={`Resume ${g.name}`}
+            className={'dh-cell prog'
+              + (i === capWideAt ? ' capw' : '')
+              + (!capOpen && i >= CAP_PROG_D ? ' cap-hd' : '')
+              + (!capOpen && i >= CAP_PROG_M ? ' cap-hm' : '')}
+          >
+            <div className="dh-bupt">
+              <div className="dh-bue">In progress</div>
+              <div className="dh-bun">{g.name}</div>
+              <div className="dh-busub">{g.tag}{playsNote(playsOf(g.key))}</div>
+            </div>
+            <span className="dh-play">
+              <Play size={11} fill="currentColor" strokeWidth={0} />Resume
+            </span>
+          </a>
+        ))}
+        {/* One bar for the whole cap, spanning both columns at the foot of the
+            cards. Each width prints its own count, the way the board's group
+            bars do, since the two widths hide a different number of cards. */}
+        {capProg.length > CAP_PROG_M ? (
+          <button
+            type="button"
+            className={'dh-cmore' + (capProg.length > CAP_PROG_D ? '' : ' mo')}
+            onClick={() => setCapOpen((v) => !v)}
+            aria-expanded={capOpen}
+          >
+            {capOpen
+              ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
+              : <>
+                  <span className="sl-mtxt d">{`Show ${Math.max(0, capProg.length - CAP_PROG_D)} more paused`}</span>
+                  <span className="sl-mtxt p">{`Show ${Math.max(0, capProg.length - CAP_PROG_M)} more paused`}</span>
+                  <ChevronDown size={12} strokeWidth={2.8} />
+                </>}
+          </button>
+        ) : null}
       </div>
 
       {/* overall daily leaderboard (toggled) */}
