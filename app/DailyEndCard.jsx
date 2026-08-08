@@ -87,6 +87,7 @@ import {
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
+import MindLoftMark from './MindLoftMark';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
 import { isRetiredDaily, DAILY_GAME_MAP } from '@/lib/daily-games';
@@ -2029,7 +2030,11 @@ export default function DailyEndCard({
           into the modal. */}
       <div className="dec-cap">
         <span className="mk" aria-hidden="true">
-          <svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 3 4 9v11h6v-6h4v6h6V9z" fill="#1e3a8a" /><path d="M12 3 4 9h16z" fill="#2563eb" /></svg>
+          {/* The SHARED site mark (app/MindLoftMark.jsx), not a hand-inlined copy.
+              This cap carried a leftover house glyph from before the rebrand, so a
+              screenshot of the end card was branded differently from every other
+              surface. Sized down to 16px to sit inside the 19px white tile. */}
+          <MindLoftMark size={16} ink="#1e3a8a" accent="#2563eb" title="Mind Loft" />
         </span>
         <span className="wm">Mind <i>Loft</i></span>
         <span className="gm">{selfName} {'\u00b7'} {MONTH_NAMES[Number(todayISO.slice(5, 7)) - 1]} {Number(todayISO.slice(8, 10))}</span>
