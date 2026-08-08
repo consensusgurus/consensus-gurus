@@ -13,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Hedge — Free Daily Slitherlink Loop Puzzle | Mind Loft',
   description:
-    'A free daily slitherlink, the loop puzzle also known as fences. Draw one single closed loop so every numbered cell has exactly that many of its four sides on the loop. One logical solution, a new grid every day, and a bigger 10x10 Edition on Sundays.',
+    'A free daily slitherlink, the loop puzzle also known as fences. Draw one single closed loop so every numbered cell has exactly that many of its four sides on the loop. Only some cells carry a number, and the blank ones are unconstrained by design. One logical solution, a new grid every day, and a bigger 10x10 Edition on Sundays.',
   alternates: { canonical: '/hedge' },
   openGraph: {
     title: 'Hedge — A Daily Loop Puzzle',
@@ -37,7 +37,7 @@ const gameJsonLd = {
   alternateName: 'Hedge — Daily Slitherlink',
   url: `${SITE_URL}/hedge`,
   description:
-    'A free daily slitherlink (loop the loop): draw one single closed loop along the grid lines so that each numbered cell has exactly that many of its four sides used by the loop. The loop never branches or crosses itself, and every board has exactly one solution. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
+    'A free daily slitherlink (loop the loop): draw one single closed loop along the grid lines so that each numbered cell has exactly that many of its four sides used by the loop. Only some cells are numbered, and a blank cell places no constraint on the loop. The loop never branches or crosses itself, and every board has exactly one solution. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Slitherlink', 'Loop puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

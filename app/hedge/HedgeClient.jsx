@@ -581,12 +581,14 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
       accent={COLORS.accent} accentSoft={COLORS.accentSoft}
       lead="Draw one single closed loop along the grid lines."
       chips={[
+        { label: 'Blank cell = no number, on purpose', tone: 'warn' },
         { label: '× = no line here', tone: 'grey' },
         { label: 'Red line = error', tone: 'bad' },
         { label: 'Dimmed number = sides settled', tone: 'good' },
       ]}
+      sub={<>Nothing is missing: many cells carry no number, and that is how a slitherlink is built. Roughly a third to a half of the grid is deliberately blank, and the numbers you do get are always enough to pin down one answer.</>}
       steps={[
-        <>A number is exactly how many of that cell&rsquo;s four sides the loop uses: a <b>3</b> uses three, a <b>0</b> none. Cells with no number are unconstrained.</>,
+        <>A number is exactly how many of that cell&rsquo;s four sides the loop uses: a <b>3</b> uses three, a <b>0</b> none. A <b>blank cell carries no rule at all</b>, so the loop may take none, one, two, three or all four of its sides.</>,
         <>The loop never branches or crosses itself, so every corner it reaches has exactly two lines running out. That plus the numbers pins down a single answer.</>,
         <>The <b>&times;</b> / <b>Line</b> buttons set what a tap places, opening on <b>&times;</b>, a free note that is never scored, and remembering your choice next time. <b>Hold</b> a segment (right-click on a computer) to draw a line in either mode, and tap again to lift a line or clear a &times;.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last move. One free <b>hint</b>, on your first ever play, draws a correct segment.</>,
@@ -639,6 +641,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Draw one closed loop so every number has exactly that many of its sides on the loop. {n}&times;{n} today.</p>
+                <p style={{ margin: 0, fontWeight: 600, color: COLORS.faded }}>Plenty of cells carry no number. That is the puzzle, not a glitch: a blank cell has no rule, and the printed numbers are enough to pin down one answer.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -877,7 +880,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Hedge</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Hedge is a free daily slitherlink from Mind Loft, the loop puzzle also known as fences or takegaki. Every day you get a grid of numbered cells, and one single closed loop that satisfies all of them. A number says exactly how many of that cell&rsquo;s four sides the loop uses.
+          Hedge is a free daily slitherlink from Mind Loft, the loop puzzle also known as fences or takegaki. Every day you get a grid of numbered cells, and one single closed loop that satisfies all of them. A number says exactly how many of that cell&rsquo;s four sides the loop uses. Only some cells are numbered, and the blank ones are meant to be blank: they carry no rule, so the loop is free to use as many of their sides as the numbers around them demand.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           The deductions build on each other: a 0 kills four segments at once, a 3 in a corner forces its two outer walls, and every dot the loop reaches must have exactly two lines leaving it. Cross out the segments you have ruled out, watch each number dim as it is satisfied, and the loop closes itself.
