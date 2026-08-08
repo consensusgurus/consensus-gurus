@@ -20,7 +20,8 @@
 //
 // Ranges enforced (documented in app/chomp/puzzles.js):
 //   board       13x13
-//   cast        seven mascots, no repeats, always leading bulldog then ibis
+//   cast        5 to 8 mascots, no repeats, always opening with the bulldog,
+//               and the FULL cast on a Sunday
 //   pellets     one per cast member, in bounds, distinct, never on the start
 //   floor       equals the recomputed Manhattan leg sum
 //   sunday      true if and only if `live` really is a Sunday, and spread wider
@@ -32,9 +33,11 @@ import { replay, freshState } from '../lib/chomp-engine.js';
 
 const CHOMP_RULES_FROM = '2026-08-08';   // the launch day: nothing grandfathered yet
 const W = 13, H = 13, CELLS = W * H;
-const LEAD = ['bulldog', 'ibis'];
-const ROTATING = ['gamecock', 'tiger', 'eagle', 'longhorn', 'wildcat', 'seminole'];
-const CAST_SIZE = 7;   // the two leads plus five of the six rotating mascots
+// Only the BULLDOG is fixed. Everything after it is a random order drawn from
+// the other seven, and the COUNT varies by day: five to seven on a weekday, the
+// whole cast on a Sunday.
+const FIRST_MASCOT = 'bulldog';
+const CAST_MIN = 5, CAST_MAX = 8;
 const SOLVER_CAP = 400000;
 
 let BAD = 0;
@@ -177,11 +180,13 @@ function unplanned(p, mode) {
     const d = new Date(`${p.live}T12:00:00Z`);
     const want = `chomp-${d.getUTCMonth() + 1}-${d.getUTCDate()}-${String(d.getUTCFullYear()).slice(2)}`;
     if (p.quizId !== want) why.push(`quizId ${p.quizId}, expected ${want}`);
-    if (!Array.isArray(p.cast) || p.cast.length !== CAST_SIZE) why.push(`cast of ${p.cast && p.cast.length}, expected ${CAST_SIZE}`);
-    else {
-      if (p.cast[0] !== LEAD[0] || p.cast[1] !== LEAD[1]) why.push('does not lead bulldog then ibis');
+    if (!Array.isArray(p.cast) || p.cast.length < CAST_MIN || p.cast.length > CAST_MAX) {
+      why.push(`cast of ${p.cast && p.cast.length}, expected ${CAST_MIN}-${CAST_MAX}`);
+    } else {
+      if (p.cast[0] !== FIRST_MASCOT) why.push(`opens with ${p.cast[0]}, not the bulldog`);
       if (new Set(p.cast).size !== p.cast.length) why.push('cast repeats a mascot');
       for (const m of p.cast) if (!MASCOTS.includes(m)) why.push(`unknown mascot ${m}`);
+      if (p.sunday && p.cast.length !== MASCOTS.length) why.push(`Sunday carries ${p.cast.length} of ${MASCOTS.length} mascots`);
     }
     if (p.pellets.length !== (p.cast || []).length) why.push('pellets and cast are different lengths');
     const seen = new Set([idx(p.start[0], p.start[1])]);
@@ -193,7 +198,11 @@ function unplanned(p, mode) {
     if (why.length) bad.push(`#${p.num} ${p.live}: ${why.join('; ')}`);
   }
   if (bad.length) fail('shape', bad.slice(0, 4).join(' | '));
-  else ok('shape', `${PUZZLES.length} rows, ${W}x${H}, sequential, ${CAST_SIZE} mascots each, all leading bulldog then ibis`);
+  else {
+    const sizes = {};
+    for (const p of PUZZLES) sizes[p.cast.length] = (sizes[p.cast.length] || 0) + 1;
+    ok('shape', `${PUZZLES.length} rows, ${W}x${H}, sequential, all opening with the bulldog, cast sizes ${Object.entries(sizes).sort().map(([k, v]) => `${k}x${v}`).join(' ')}`);
+  }
 })();
 
 // ---------- 2. the floor is the real Manhattan leg sum ----------------------
@@ -240,8 +249,9 @@ function unplanned(p, mode) {
   if (!sun.length) bad.push('the bank authors no Sunday Edition at all');
   const avg = (a) => a.reduce((s, p) => s + p.floor, 0) / a.length;
   if (sun.length && wk.length && avg(sun) <= avg(wk)) bad.push('Sundays are not spread wider than weekdays');
+  for (const p of sun) if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast`);
   if (bad.length) fail('sunday', bad.slice(0, 4).join('; '));
-  else ok('sunday', `${sun.length} Sunday Editions, mean floor ${Math.round(avg(sun))} against a weekday ${Math.round(avg(wk))}, flags match the calendar`);
+  else ok('sunday', `${sun.length} Sunday Editions, every one the full cast of ${MASCOTS.length}, mean floor ${Math.round(avg(sun))} against a weekday ${Math.round(avg(wk))}, flags match the calendar`);
 })();
 
 // ---------- 5. difficulty: no unplanned line clears it ----------------------
@@ -254,12 +264,13 @@ function unplanned(p, mode) {
     rows += 1;
     const lines = ['axis', 'straight', 'bfs'].map((m) => unplanned(p, m));
     if (lines.some((r) => r.cleared)) soft.push(`#${p.num} (${p.live})`);
-    bfsCaught.push(lines[2].caught);
+    bfsCaught.push({ got: lines[2].caught, of: p.cast.length });
   }
   if (soft.length) fail('difficulty', `an unplanned line clears these: ${soft.slice(0, 6).join(', ')}`);
   else {
-    const mean = (bfsCaught.reduce((a, b) => a + b, 0) / bfsCaught.length).toFixed(1);
-    ok('difficulty', `no board falls to an unplanned line across ${rows}; the myopic player averages ${mean} of ${CAST_SIZE} mascots before it walls itself in`);
+    // reported as a SHARE, since the cast length now differs day to day
+    const share = (bfsCaught.reduce((a, b) => a + b.got / b.of, 0) / bfsCaught.length * 100).toFixed(0);
+    ok('difficulty', `no board falls to an unplanned line across ${rows}; the myopic player gets ${share}% of the way down the cast before it walls itself in`);
   }
 })();
 
@@ -280,20 +291,15 @@ function unplanned(p, mode) {
   if (hotCell) fail('variety', `${hotCell} cell(s) carry a mascot on more than ${cellCap} of ${rows.length} boards`);
   // the cast rotates by design, so a bank that keeps re-dealing one order is a bug
   if (orders.size < rows.length / 3) fail('variety', `only ${orders.size} distinct cast orders across ${rows.length} boards`);
-  // one rotating mascot sits out each day, and every one of them must get turns:
-  // a pool member that never rests (or never plays) is a dealing bug
-  const benched = {};
-  for (const p of rows) {
-    const out = ROTATING.filter((m) => !p.cast.includes(m));
-    if (out.length !== ROTATING.length - (CAST_SIZE - LEAD.length)) {
-      fail('variety', `#${p.num} benches ${out.length} rotating mascots, expected ${ROTATING.length - (CAST_SIZE - LEAD.length)}`);
-      break;
-    }
-    for (const m of out) benched[m] = (benched[m] || 0) + 1;
-  }
-  const never = ROTATING.filter((m) => !benched[m]);
-  if (never.length) fail('variety', `${never.join(', ')} never sit out, so the bench is not rotating`);
-  if (!hotStart && !hotCell && orders.size >= rows.length / 3 && !never.length) {
+  // every mascot has to get used, and the cast size has to actually vary, or the
+  // "as many as the board wants" rule is not doing anything
+  const used = {};
+  for (const p of rows) for (const m of p.cast) used[m] = (used[m] || 0) + 1;
+  const never = MASCOTS.filter((m) => !used[m]);
+  if (never.length) fail('variety', `${never.join(', ')} never appear`);
+  const sizes = new Set(rows.map((p) => p.cast.length));
+  if (sizes.size < 3) fail('variety', `only ${sizes.size} distinct cast sizes, the count is not varying`);
+  if (!hotStart && !hotCell && orders.size >= rows.length / 3 && !never.length && sizes.size >= 3) {
     ok('variety', `${startSeen.size} distinct start cells (busiest ${Math.max(...startSeen.values())}), busiest mascot cell ${Math.max(...cellSeen.values())}/${rows.length}, ${orders.size} distinct cast orders`);
   }
 })();
@@ -301,16 +307,19 @@ function unplanned(p, mode) {
 // ---------- 7. scoring ------------------------------------------------------
 (function scoring() {
   const scoreOf = (eaten, total) => (eaten >= total ? 10 : Math.max(0, Math.min(9, Math.round((eaten / total) * 10))));
-  if (scoreOf(CAST_SIZE, CAST_SIZE) !== 10) fail('scoring', 'clearing the cast does not score 10');
-  if (scoreOf(0, CAST_SIZE) !== 0) fail('scoring', 'eating nothing does not score 0');
-  if (scoreOf(CAST_SIZE - 1, CAST_SIZE) >= 10) fail('scoring', 'a near miss scores a perfect');
-  let prev = -1;
-  for (let e = 0; e <= CAST_SIZE; e++) {
-    const s = scoreOf(e, CAST_SIZE);
-    if (s < prev) { fail('scoring', 'score is not monotonic in mascots eaten'); break; }
-    prev = s;
+  // the cast length varies by day, so the curve has to behave at EVERY length
+  for (let n = CAST_MIN; n <= CAST_MAX; n++) {
+    if (scoreOf(n, n) !== 10) fail('scoring', `clearing a cast of ${n} does not score 10`);
+    if (scoreOf(0, n) !== 0) fail('scoring', `eating nothing out of ${n} does not score 0`);
+    if (scoreOf(n - 1, n) >= 10) fail('scoring', `a near miss on ${n} scores a perfect`);
+    let prev = -1;
+    for (let e = 0; e <= n; e++) {
+      const v = scoreOf(e, n);
+      if (v < prev) { fail('scoring', `score is not monotonic at a cast of ${n}`); break; }
+      prev = v;
+    }
   }
-  if (!BAD) ok('scoring', `partial credit: 0 to ${CAST_SIZE} mascots maps monotonically to 0-10, only a full clear scores 10`);
+  if (!BAD) ok('scoring', `partial credit behaves at every cast length ${CAST_MIN}-${CAST_MAX}: monotonic to 0-10, only a full clear scores 10`);
 })();
 
 // ---------- 8. US spellings -------------------------------------------------
