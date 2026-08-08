@@ -38,11 +38,19 @@
 
 body {
   margin: 0;
-  /* Paints over the navy canvas (see the note below the dome band). min-height
-     keeps it covering the viewport on a short page, so the navy only ever shows
-     in overscroll. */
+  /* NAVY ON PURPOSE, and it is never seen as a page background: every route
+     paints its own opaque ground over the whole viewport. Verified before this
+     was set, by forcing body magenta on a daily game, the homepage, /quizzes,
+     /lists and a list detail page and confirming not one pixel of it showed.
+     Re-run that test before assuming a new route can rely on body's colour.
+
+     It is set for the browser, not for the reader: Safari on iPhone tints the
+     strip behind the status bar (the "dome") from the page, and this is the
+     colour it lands on when nothing sticky tops the viewport. See the note
+     below for the full mechanism. min-height keeps body covering the viewport
+     on a short page. */
   min-height: 100vh;
-  background: var(--white);
+  background: var(--accent);
   color: var(--ink);
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
@@ -52,18 +60,18 @@ body {
    because app/layout.js sets viewport-fit: cover with a black-translucent
    status bar) and the document canvas behind everything.
 
-   WHY THE CANVAS IS NAVY WHILE THE BODY STAYS WHITE. Safari on iPhone tints its
-   own top strip from the fixed or sticky element at the top of the viewport,
-   and falls back to the DOCUMENT background when there is none. That single
-   rule is why the dome used to be navy on the homepage and white on every daily
+   WHY BODY AND HTML ARE BOTH NAVY WHILE NO PAGE LOOKS NAVY. Safari on iPhone
+   tints its own top strip from the fixed or sticky element at the top of the
+   viewport, and falls back to the page's background when there is none. That
+   single rule is why the dome was navy on the homepage and white on every daily
    game page: the homepage header is position: sticky, DailyChrome's is
    deliberately in normal flow (nothing on a game page is pinned), and the two
    pages are otherwise identical, same theme-color meta (#1e3a8a) included, so
-   theme-color was never what drove it. Giving <html> a background makes it the
-   canvas colour, so the fallback lands on navy instead of white; <body> keeps
-   its own white background over the content, with min-height so it always
-   covers the viewport. Nothing changes visually except rubber-band overscroll,
-   which now shows navy rather than white.
+   theme-color was never what drove it. Setting the colour on <html> alone did
+   NOT work, so the colour Safari reads is body's own background, not the
+   canvas. Both carry it now. Routes are unaffected because each paints its own
+   opaque ground on top; the only visible change is rubber-band overscroll,
+   which shows navy at both ends rather than white.
 
    The band below covers the standalone / installed-app case, where the inset is
    real and the strip is genuinely inside the page. z-index is above every
