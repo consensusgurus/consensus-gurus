@@ -1269,6 +1269,15 @@ Corollary for measuring: **never diagnose page speed right after a push.** You w
 measure a cold cache and chase a phantom. Load the page twice, or wait a few
 minutes, then measure.
 
+**Do NOT bother switching the build machine off Elastic.** Checked the real pricing
+2026-08-08: Elastic bills **$0.0035 per CPU minute** and fixed Standard (4 vCPU) bills
+$0.014 per BUILD minute, which is the same $0.0035 per CPU minute, just charged on 4
+cores whether you use them or not. Our $6.12 of build spend is 1,740 CPU-minutes at
+exactly that rate. Elastic also right-sizes itself (the settings page was already
+saying "your next deployment will build with a Standard machine"), so pinning it can
+easily cost MORE by making builds run longer on fewer cores. The number of builds is
+the lever, not the machine.
+
 `vercel.json` sets `ignoreCommand: bash scripts/vercel-ignore-build.sh`, which skips
 the build when a commit touches ONLY markdown. That covers doc-only pushes (this
 file included) and nothing else, on purpose: the script exits 1 (build) for merge
