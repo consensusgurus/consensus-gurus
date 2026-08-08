@@ -19,40 +19,42 @@
 // unsolvable, which nearly got reported as a design failure.
 //
 // Ranges enforced (documented in app/chomp/puzzles.js):
-//   board       13x13
+//   board       10x10 from day two; day one is a frozen 13x13
 //   cast        5 to 8 mascots, no repeats, always opening with the bulldog,
 //               and the FULL cast on a Sunday
 //   pellets     one per cast member, in bounds, distinct, never on the start
 //   floor       equals the recomputed Manhattan leg sum
 //   sunday      true if and only if `live` really is a Sunday, and spread wider
-//   difficulty  no unplanned line may clear the board, and from 2026-08-09 the
-//               myopic line may not get more than 60% of the way down it
+//   difficulty  no unplanned line may clear the board, and from 2026-08-09 a
+//               PLANNER with lookahead may not clear it either
 //   variety     start cells and mascot cells spread across the bank, and the
 //               cast order must actually rotate
 import { PUZZLES, MASCOTS } from '../app/chomp/puzzles.js';
 import { replay, freshState } from '../lib/chomp-engine.js';
 
 const CHOMP_RULES_FROM = '2026-08-08';   // the launch day: nothing grandfathered yet
-const W = 13, H = 13, CELLS = W * H;
+
 // Only the BULLDOG is fixed. Everything after it is a random order drawn from
 // the other seven, and the COUNT varies by day: five to seven on a weekday, the
 // whole cast on a Sunday.
 const FIRST_MASCOT = 'bulldog';
 const CAST_MIN = 5, CAST_MAX = 8;
-// HARDNESS GATE (owner, 2026-08-08). Not clearing was never enough: a board the
-// myopic line got five-of-six on is a board a person walks, which is how the
-// launch week came out too easy. The line must now be stopped inside the first
-// 60% of the cast.
+// THE HARDNESS GATE, third and final version (owner, 2026-08-08, twice).
 //
-// 60 rather than 50, and that was measured rather than picked: at a 50% gate
-// only 1 candidate in 70 was still solvable inside the search budget, because
-// the boards that stop a shortest-path bot early are the same boards nothing can
-// route through. 60% keeps the gate biting (the bot averaged 70% before it) while
-// leaving boards a person can actually finish.
+// Gating on a MYOPIC bot was the mistake, twice over. Boards that beat a
+// shortest-path bot with no lookahead still fell to anyone who thinks a move
+// ahead, so two banks in a row played too easily. Measured: a planner with even
+// 600 nodes of lookahead cleared 12 of 12 of the "hard" bank.
 //
-// Day one shipped before any of this and is frozen, so the gate runs from day
-// two on.
-const MYOPIC_MAX_SHARE = 0.6;
+// The gate is now a CAREFUL PLAYER: head for the mascot in front of you, refuse
+// any move that visibly strands something. That is what a person actually does,
+// and a board it clears is a board that plays itself. So: the careful player
+// must FAIL and the full search must still succeed.
+//
+// That pair was IMPOSSIBLE to satisfy at 13x13 (0 of 29 candidates), which is
+// what forced the board down to 10x10. Day one is a frozen 13x13 and predates
+// all of it, so the gate runs from day two on.
+
 const HARD_FLOOR_FROM = '2026-08-09';
 const SOLVER_CAP = 400000;
 
@@ -61,8 +63,11 @@ const fail = (tag, msg) => { BAD += 1; console.log(`✗ ${tag}: ${msg}`); };
 const ok = (tag, msg) => console.log(`  ${tag}: ${msg}`);
 const note = (tag, msg) => console.log(`… ${tag}: ${msg}`);
 
-const idx = (x, y) => y * W + x;
-const inside = (x, y) => x >= 0 && y >= 0 && x < W && y < H;
+// Board geometry is PER PUZZLE now. Day one shipped at 13x13 and is frozen;
+// everything from day two is 10x10, which is the size at which a difficulty band
+// exists at all (see app/chomp/puzzles.js).
+const idxOf = (p, x, y) => y * p.w + x;
+const insideOf = (p, x, y) => x >= 0 && y >= 0 && x < p.w && y < p.h;
 const manh = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
@@ -75,6 +80,9 @@ function floorOf(p) {
 // The independent solver. Written out fresh here rather than imported from the
 // generator, so a bug in the generator's copy cannot pass its own bank.
 function findRoute(p, cap) {
+  const CELLS = p.w * p.h;
+  const idx = (x, y) => idxOf(p, x, y);
+  const inside = (x, y) => insideOf(p, x, y);
   const occ = new Uint8Array(CELLS);
   occ[idx(p.start[0], p.start[1])] = 1;
   const route = [];
@@ -131,6 +139,9 @@ function findRoute(p, cap) {
 // The unplanned lines. `mode` bfs re-plans a true shortest path each move and
 // detours around its own wall, but never looks past the mascot it is chasing.
 function unplanned(p, mode) {
+  const CELLS = p.w * p.h;
+  const idx = (x, y) => idxOf(p, x, y);
+  const inside = (x, y) => insideOf(p, x, y);
   const occ = new Uint8Array(CELLS);
   let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
   occ[idx(hx, hy)] = 1;
@@ -182,6 +193,77 @@ function unplanned(p, mode) {
   return { moves, caught: pi, cleared: pi >= p.pellets.length };
 }
 
+// THE CAREFUL HUMAN, the player model the bank has to defeat.
+//
+// This replaced a "planner" that demanded a full proof before every move and so
+// bailed on move one of everything, which made the gate look like it was biting
+// when it was really just failing. A person does not prove; they head for the
+// mascot in front of them and refuse moves that visibly strand something. That
+// is exactly this, and it is the model that exposed the 13x13 bank: it cleared
+// 12 of 12 there and clears 0 of 70 here.
+function carefulClears(p) {
+  const CELLS = p.w * p.h;
+  const idx = (x, y) => idxOf(p, x, y);
+  const inside = (x, y) => insideOf(p, x, y);
+  const pel = p.pellets;
+  const occ = new Uint8Array(CELLS);
+  let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
+  occ[idx(hx, hy)] = 1;
+  const bl = (q, x, y) => {
+    if (!inside(x, y) || occ[idx(x, y)]) return true;
+    for (let k = q + 1; k < pel.length; k++) if (pel[k][0] === x && pel[k][1] === y) return true;
+    return false;
+  };
+  const reach = (q, x, y) => {
+    const seen = new Uint8Array(CELLS);
+    seen[idx(x, y)] = 1;
+    const stack = [[x, y]];
+    for (let i = 0; i < stack.length; i++) {
+      const [cx, cy] = stack[i];
+      for (const d of DIRS) {
+        const nx = cx + d[0], ny = cy + d[1];
+        if (!inside(nx, ny) || occ[idx(nx, ny)] || seen[idx(nx, ny)]) continue;
+        seen[idx(nx, ny)] = 1; stack.push([nx, ny]);
+      }
+    }
+    for (let k = q; k < pel.length; k++) if (!seen[idx(pel[k][0], pel[k][1])]) return false;
+    return true;
+  };
+  while (pi < pel.length && moves < CELLS * 3) {
+    const t = pel[pi];
+    const dist = new Int32Array(CELLS).fill(-1);
+    dist[idx(t[0], t[1])] = 0;
+    const q = [t];
+    for (let i = 0; i < q.length; i++) {
+      const [cx, cy] = q[i];
+      for (const d of DIRS) {
+        const nx = cx + d[0], ny = cy + d[1];
+        if (!inside(nx, ny) || dist[idx(nx, ny)] >= 0 || bl(pi, nx, ny)) continue;
+        dist[idx(nx, ny)] = dist[idx(cx, cy)] + 1; q.push([nx, ny]);
+      }
+    }
+    const cands = [];
+    for (const d of DIRS) {
+      const nx = hx + d[0], ny = hy + d[1];
+      if (bl(pi, nx, ny)) continue;
+      const dd = dist[idx(nx, ny)];
+      if (dd < 0) continue;
+      occ[idx(nx, ny)] = 1;
+      const ate = nx === t[0] && ny === t[1];
+      const safe = reach(ate ? pi + 1 : pi, nx, ny) ? 1 : 0;
+      occ[idx(nx, ny)] = 0;
+      cands.push({ d, dd, safe, st: (d[0] === ld[0] && d[1] === ld[1]) ? 1 : 0 });
+    }
+    if (!cands.length) return { cleared: false, caught: pi };
+    cands.sort((a, b) => (b.safe - a.safe) || (a.dd - b.dd) || (b.st - a.st));
+    const best = cands[0];
+    hx += best.d[0]; hy += best.d[1]; occ[idx(hx, hy)] = 1;
+    if (hx === t[0] && hy === t[1]) pi += 1;
+    ld = best.d; moves += 1;
+  }
+  return { cleared: pi >= pel.length, caught: pi };
+}
+
 // ---------- 1. row shape, cast and ranges -----------------------------------
 (function shape() {
   const bad = [];
@@ -192,7 +274,8 @@ function unplanned(p, mode) {
     prevNum = p.num;
     if (p.live <= prevLive) why.push('live date not strictly increasing');
     prevLive = p.live;
-    if (p.w !== W || p.h !== H) why.push(`board is ${p.w}x${p.h}, expected ${W}x${H}`);
+    const wantW = p.live < '2026-08-09' ? 13 : 10;
+    if (p.w !== wantW || p.h !== wantW) why.push(`board is ${p.w}x${p.h}, expected ${wantW}x${wantW}`);
     const d = new Date(`${p.live}T12:00:00Z`);
     const want = `chomp-${d.getUTCMonth() + 1}-${d.getUTCDate()}-${String(d.getUTCFullYear()).slice(2)}`;
     if (p.quizId !== want) why.push(`quizId ${p.quizId}, expected ${want}`);
@@ -205,11 +288,11 @@ function unplanned(p, mode) {
       if (p.sunday && p.cast.length !== MASCOTS.length) why.push(`Sunday carries ${p.cast.length} of ${MASCOTS.length} mascots`);
     }
     if (p.pellets.length !== (p.cast || []).length) why.push('pellets and cast are different lengths');
-    const seen = new Set([idx(p.start[0], p.start[1])]);
+    const seen = new Set([idxOf(p, p.start[0], p.start[1])]);
     for (const c of p.pellets) {
-      if (!inside(c[0], c[1])) why.push(`pellet ${c} off the board`);
-      if (seen.has(idx(c[0], c[1]))) why.push(`pellet ${c} repeated or sitting on the start`);
-      seen.add(idx(c[0], c[1]));
+      if (!insideOf(p, c[0], c[1])) why.push(`pellet ${c} off the board`);
+      if (seen.has(idxOf(p, c[0], c[1]))) why.push(`pellet ${c} repeated or sitting on the start`);
+      seen.add(idxOf(p, c[0], c[1]));
     }
     if (why.length) bad.push(`#${p.num} ${p.live}: ${why.join('; ')}`);
   }
@@ -217,7 +300,7 @@ function unplanned(p, mode) {
   else {
     const sizes = {};
     for (const p of PUZZLES) sizes[p.cast.length] = (sizes[p.cast.length] || 0) + 1;
-    ok('shape', `${PUZZLES.length} rows, ${W}x${H}, sequential, all opening with the bulldog, cast sizes ${Object.entries(sizes).sort().map(([k, v]) => `${k}x${v}`).join(' ')}`);
+    ok('shape', `${PUZZLES.length} rows, sequential, all opening with the bulldog, cast sizes ${Object.entries(sizes).sort().map(([k, v]) => `${k}x${v}`).join(' ')}`);
   }
 })();
 
@@ -272,7 +355,7 @@ function unplanned(p, mode) {
 
 // ---------- 5. difficulty: no unplanned line clears it ----------------------
 (function difficulty() {
-  const soft = [], tooFar = [];
+  const soft = [], tooFar = [], plannerStops = [];
   let bfsCaught = [];
   let rows = 0;
   for (const p of PUZZLES) {
@@ -280,17 +363,20 @@ function unplanned(p, mode) {
     rows += 1;
     const lines = ['axis', 'straight', 'bfs'].map((m) => unplanned(p, m));
     if (lines.some((r) => r.cleared)) soft.push(`#${p.num} (${p.live})`);
-    if (p.live >= HARD_FLOOR_FROM && lines[2].caught > Math.floor(p.cast.length * MYOPIC_MAX_SHARE)) {
-      tooFar.push(`#${p.num} (${p.live}) myopic got ${lines[2].caught}/${p.cast.length}`);
+    if (p.live >= HARD_FLOOR_FROM) {
+      const pl = carefulClears(p);
+      if (pl.cleared) tooFar.push(`#${p.num} (${p.live})`);
+      else plannerStops.push(pl.caught / p.cast.length);
     }
     bfsCaught.push({ got: lines[2].caught, of: p.cast.length });
   }
   if (soft.length) fail('difficulty', `an unplanned line clears these: ${soft.slice(0, 6).join(', ')}`);
-  if (tooFar.length) fail('difficulty', `the myopic line gets more than ${Math.round(MYOPIC_MAX_SHARE * 100)}% of the way down these, so they play too easily: ${tooFar.slice(0, 6).join(', ')}`);
+  if (tooFar.length) fail('difficulty', `a careful player clears these without ever being stuck, so they play themselves: ${tooFar.slice(0, 6).join(', ')}`);
   if (!soft.length && !tooFar.length) {
     // reported as a SHARE, since the cast length now differs day to day
     const share = (bfsCaught.reduce((a, b) => a + b.got / b.of, 0) / bfsCaught.length * 100).toFixed(0);
-    ok('difficulty', `no board falls to an unplanned line across ${rows}, and from ${HARD_FLOOR_FROM} none lets it past ${Math.round(MYOPIC_MAX_SHARE * 100)}% of the cast; it averages ${share}% of the way down before it walls itself in`);
+    const pshare = plannerStops.length ? (plannerStops.reduce((a, b) => a + b, 0) / plannerStops.length * 100).toFixed(0) : '-';
+    ok('difficulty', `across ${rows}: no unplanned line clears any board (the myopic one averages ${share}% of the cast), and from ${HARD_FLOOR_FROM} a CAREFUL player cannot clear one either, stalling at ${pshare}% of the cast on average`);
   }
 })();
 
@@ -299,9 +385,9 @@ function unplanned(p, mode) {
   const rows = PUZZLES.filter((p) => p.live >= CHOMP_RULES_FROM);
   const startSeen = new Map(), cellSeen = new Map(), orders = new Set();
   for (const p of rows) {
-    const sk = idx(p.start[0], p.start[1]);
+    const sk = idxOf(p, p.start[0], p.start[1]);
     startSeen.set(sk, (startSeen.get(sk) || 0) + 1);
-    for (const c of p.pellets) { const k = idx(c[0], c[1]); cellSeen.set(k, (cellSeen.get(k) || 0) + 1); }
+    for (const c of p.pellets) { const k = idxOf(p, c[0], c[1]); cellSeen.set(k, (cellSeen.get(k) || 0) + 1); }
     orders.add(p.cast.join('|'));
   }
   const startCap = 4, cellCap = Math.ceil(rows.length / 5);
