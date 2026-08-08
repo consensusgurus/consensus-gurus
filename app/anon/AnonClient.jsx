@@ -201,6 +201,16 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     [A, PUZZLE.spine, fill]
   );
 
+  const breakAfter = useMemo(() => {
+    const s2 = new Set();
+    let last = -1;
+    for (const tk of tokens) {
+      for (const t of tk) if (t.n !== undefined) last = t.n;
+      if (last >= 0) s2.add(last);
+    }
+    return s2;
+  }, [tokens]);
+
   // ---- persistence ----
   useEffect(() => {
     try {
@@ -403,6 +413,18 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   }, []);
   const ch = Math.round(cw * 1.26);
 
+  // The stretch of passage around a cell, for the dock. -1 marks a word break so
+  // the strip reads as words rather than one run of letters.
+  const passageAround = useCallback((n) => {
+    const lo = Math.max(0, n - 8), hi = Math.min(N - 1, n + 8);
+    const out = [];
+    for (let i = lo; i <= hi; i++) {
+      out.push(i);
+      if (i < hi && breakAfter.has(i)) out.push(-1);
+    }
+    return out;
+  }, [N, breakAfter]);
+
   const cellCls = (n) => {
     const c = ['an-cell'];
     if (owner[n] === curAnswer) c.push('mine');
@@ -465,7 +487,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <DailyChrome slug="anon" name="Anon" collapsed={!!g.t0} />
-      <div className="an-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: railUp ? `18px 38px calc(${narrow ? 200 : 168}px + env(safe-area-inset-bottom))` : '18px 38px 80px', fontFamily: SANS }}>
+      <div className="an-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: railUp ? `18px 38px calc(${narrow ? 250 : 168}px + env(safe-area-inset-bottom))` : '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.an-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .an-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -496,8 +518,18 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-ok{font-family:${MONO};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.green};}
           .an-boxes{display:flex;gap:3px;flex-wrap:wrap;}
           .an-seg{display:flex;border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;margin-bottom:12px;}
-          .an-seg.docked{margin:7px 0 0;background:var(--white);}
-          .an-seg.docked button{padding:9px 0;}
+          .an-dock{background:#0f1f2e;border-radius:8px;margin:6px 0 0;padding:8px 9px 9px;}
+          .an-dockhead{display:flex;align-items:center;gap:8px;}
+          .an-segd{display:flex;border:1px solid #2b4675;border-radius:7px;overflow:hidden;}
+          .an-segd button{border:0;background:#16294a;color:#93a8cc;font-family:${SANS};font-weight:800;font-size:12px;padding:6px 15px;cursor:pointer;}
+          .an-segd button.on{background:${COLORS.accent};color:var(--white);}
+          .an-nav{margin-left:auto;display:flex;gap:6px;}
+          .an-nav button{width:28px;height:28px;border-radius:6px;border:1px solid #2b4675;background:#16294a;color:#dbe9ff;cursor:pointer;font-weight:800;}
+          .an-dockbody{margin-top:7px;display:flex;gap:3px;overflow-x:auto;padding-bottom:2px;}
+          .an-dcell{width:21px;height:26px;border-radius:4px;background:#16294a;border:1px solid #2b4675;display:flex;align-items:center;
+            justify-content:center;font-weight:800;font-size:13px;color:var(--white);flex:none;}
+          .an-dcell.on{background:${COLORS.accent};border-color:#b04a55;}
+          .an-dcell.gap{background:none;border:0;width:7px;}
           .an-seg button{flex:1;border:0;background:var(--white);padding:10px 0;font-family:${SANS};font-weight:800;font-size:13.5px;color:#8b93a1;cursor:pointer;}
           .an-seg button.on{background:${COLORS.accent};color:var(--white);}
           .an-input{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#e5e8ef;
@@ -620,20 +652,37 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-          {/* The input rail, for any device with no physical keys. The keyboard
-          is ours rather than the OS one, which would resize the viewport
-          under the board. Riding on top of it, on a narrow screen only, is
-          the Passage/Bank switch: the two halves cannot both be on screen
-          there, so the switch is the most-pressed control in the game and it
-          belongs under the thumb rather than at the top of the page. At tablet
-          width both halves are already visible, so a tablet gets the keys alone. */}
+          {/* The input rail, for any device with no physical keys. The keyboard is
+          ours rather than the OS one, which would resize the viewport under the
+          board. On a narrow screen the two halves cannot both be on screen, so
+          the rail also carries the dock: the Passage/Bank switch and the answer
+          stepper on one line, and under them the stretch of the OTHER half
+          around the cell you are on. Those are the two most-pressed controls in
+          the game and they belong under the thumb, not at the top of a page the
+          player has scrolled away from. At tablet width both halves are already
+          visible, so a tablet gets the keys alone. */}
       {railUp && (
         <div className="an-input">
           <div className="an-inputin">
           {narrow && (
-            <div className="an-seg docked">
-              <button className={view === 'q' ? 'on' : ''} onClick={() => setView('q')}>Passage</button>
-              <button className={view === 'b' ? 'on' : ''} onClick={() => setView('b')}>Bank</button>
+            <div className="an-dock">
+              <div className="an-dockhead">
+                <span className="an-segd">
+                  <button className={view === 'q' ? 'on' : ''} onClick={() => setView('q')}>Passage</button>
+                  <button className={view === 'b' ? 'on' : ''} onClick={() => setView('b')}>Bank</button>
+                </span>
+                <span className="an-nav">
+                  <button onClick={() => focusCell(A[(curAnswer + TOTAL - 1) % TOTAL].c[0])} aria-label="Previous answer">&lsaquo;</button>
+                  <button onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])} aria-label="Next answer">&rsaquo;</button>
+                </span>
+              </div>
+              <div className="an-dockbody">
+                {(view === 'b' ? passageAround(cur) : A[curAnswer].c).map((n, i) => (
+                  n < 0
+                    ? <div key={`g${i}`} className="an-dcell gap" />
+                    : <div key={n} className={`an-dcell${n === cur ? ' on' : ''}`} onClick={() => focusCell(n)}>{fill[n] || ''}</div>
+                ))}
+              </div>
             </div>
           )}
           <div className="an-kb">
