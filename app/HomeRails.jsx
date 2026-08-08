@@ -86,7 +86,7 @@ function scoreTone(pct) {
 // length and the printed percentage were always the actual readout.
 function ringTone(pct) { return ringBlue(pct); }
 
-function Rows({ rows, fmt, open, hrefFor, hero }) {
+function Rows({ rows, fmt, open, hrefFor, hero, cap }) {
   // The phone hero slab: the panel's #1 rendered in the same shape as the Up
   // next / Easiest board cap bars (eyebrow, big name, sub, big figure), with
   // its table row hidden underneath so the list starts at 2. Both renders sit
@@ -105,7 +105,20 @@ function Rows({ rows, fmt, open, hrefFor, hero }) {
         <div className="hr-hval"><b>{fmt(lead.value)}</b><span>{hero.unit || 'score'}</span></div>
       </div>
     ) : null}
-    <table className="hr-tbl"><tbody>
+    {/* The DESKTOP lead bar (owner, 2026-08-08). The #1 used to be an ordinary
+        table row wearing a cream tint and a gold inset, which read as a
+        highlighted row rather than the panel's answer, and it looked different
+        in each of the three boards depending on how long the name was. It is
+        one element now, identical in all three, and the table below it starts
+        at 2. The phone slab above is untouched. */}
+    {lead ? (
+      <div className="hr-lead">
+        <CrownIcon />
+        <span className="hr-ln"><Link href={hrefFor(lead.name)}>{lead.name}</Link></span>
+        <span className="hr-lv">{fmt(lead.value)}</span>
+      </div>
+    ) : null}
+    <table className={`hr-tbl${cap ? ' cap3' : ''}`}><tbody>
       {rows.map((r, i) => (
         <tr key={`${r.name}-${i}`} className={i === 0 ? 'lead1' : undefined}>
           <td className="rk" style={i < 3 ? { color: MEDAL[i] } : undefined}>{i + 1}</td>
@@ -179,6 +192,7 @@ function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
       <div className="hr-scroll hr-flex">
         <Rows
           rows={boardSlice(face.rows, open)}
+          cap={!open}
           fmt={face.fmt}
           hrefFor={face.hrefFor}
           hero={{ eyebrow: face.eyebrow || face.label, sub: face.sub, unit: face.unit, tone: face.tone }}
@@ -187,7 +201,7 @@ function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
       <div className="hr-foot">
         {hasMore(face.rows) ? (
           <button type="button" className="hr-exp" onClick={onToggle}>
-            {open ? `Show top ${ROWS_COLLAPSED}` : `Show top ${ROWS_OPEN}`}
+            {open ? 'Show fewer' : `Show top ${ROWS_OPEN}`}
           </button>
         ) : <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">·</span>}
         <Link href={face.href} className="hr-link">Full leaderboard &rarr;</Link>
@@ -344,8 +358,22 @@ export default function HomeRails({
       .hr-tbl tr:hover{background:var(--surface);}
       .hr-tbl td.r{text-align:right;}
       .hr-tbl td.rk{font-size:11px;font-weight:800;width:24px;color:#9aa2b1;font-variant-numeric:tabular-nums;}
-      .hr-tbl tr.lead1 td{background:#fdf7e8;}
-      .hr-tbl tr.lead1 td:first-child{box-shadow:inset 3px 0 0 var(--gold);}
+      /* The #1 is the .hr-lead bar now, at both widths (the slab on a phone,
+         this bar on desktop), so its table row is always hidden and the list
+         starts at 2. cap3 then holds the desktop panel to a top THREE, so three
+         boards fit the rail without the reader scrolling for the center console
+         (owner, 2026-08-08). The phone lifts the cap again below: it stacks, so
+         it has the height to spare, and its five-row lists were not the
+         complaint. */
+      .hr-tbl tr.lead1{display:none;}
+      .hr-tbl.cap3 tr:nth-child(n+4){display:none;}
+      .hr-lead{display:flex;align-items:center;gap:8px;position:relative;padding:8px 13px 8px 17px;background:#fdf7e8;border-bottom:1px solid #f0f2f6;}
+      .hr-lead::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold);}
+      .hr-lead > svg{flex:none;color:var(--gold-ink);}
+      .hr-ln{flex:1 1 auto;min-width:0;font-size:14px;font-weight:800;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-ln a{color:var(--ink);text-decoration:none;}
+      .hr-ln a:hover{text-decoration:underline;}
+      .hr-lv{flex:none;font-size:15px;font-weight:800;letter-spacing:-.3px;font-variant-numeric:tabular-nums;color:var(--ink);}
       .hr-nm{color:var(--ink);text-decoration:none;}
       .hr-nm:hover{text-decoration:underline;}
       .hr-v{font-weight:700;font-variant-numeric:tabular-nums;}
@@ -476,7 +504,8 @@ export default function HomeRails({
       @media(max-width:900px){
         .hr-panel{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-left:none;border-right:none;border-radius:0;box-shadow:none;}
         .hr-hero{display:flex;}
-        .hr-tbl tr.lead1{display:none;}
+        .hr-lead{display:none;}
+        .hr-tbl.cap3 tr:nth-child(n+4){display:table-row;}
         .hr-panel:has(.hr-hero) .hr-sub{display:none;}
         .hr-share{display:flex;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:100vw;max-width:none;}
         /* The panels butt against each other on a phone (the rail gap is zeroed
@@ -518,6 +547,7 @@ export default function HomeRails({
           <div className="hr-scroll hr-flex">
             <Rows
               rows={boardSlice(communityRows, open.com)}
+              cap={!open.com}
               fmt={showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`}
               hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
               hero={{
@@ -532,7 +562,7 @@ export default function HomeRails({
           </div>
           <div className="hr-foot">
             {hasMore(communityRows)
-              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? `Show top ${ROWS_COLLAPSED}` : `Show top ${ROWS_OPEN}`}</button>
+              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? 'Show fewer' : `Show top ${ROWS_OPEN}`}</button>
               : <button type="button" className="hr-exp" onClick={onCredit}>Get credit</button>}
             <Link href={showContest ? '/quizzes/contest' : '/quizzes/community'} className="hr-link">
               {showContest ? 'Board and rules' : 'Full leaderboard'} &rarr;
