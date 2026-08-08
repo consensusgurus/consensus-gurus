@@ -45,7 +45,7 @@ import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   parseFen, applyMove, legalTargetsFrom, parseUci, uci,
-  squareName, colorOf, inCheck, toSan, rowOf, fileOf,
+  squareName, colorOf, inCheck, isCheckmate, toSan, rowOf, fileOf,
 } from './chess';
 import { T } from '@/lib/theme';
 
@@ -525,6 +525,25 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     if (!g2.t0) g2.t0 = Date.now();
     setSel(null);
     setHintPiece(null);
+    // A CHECKMATE IS A WIN, whatever the tree stores. The bank records exactly
+    // one mating move per terminal node, but a position can have several: on the
+    // 2026-08-08 board the tree says Rb1# while Qb1# mates just as dead, and a
+    // player who found the queen was told "you missed it" (owner report,
+    // Darrren1, 2026-08-08). 26 of the 62 banked boards carry at least one such
+    // dual. The puzzle asks you to force mate in N, so any legal move that ends
+    // the game inside N is a solve, and this is checked BEFORE the key test so
+    // it covers the alternative mate and the mate that arrives a move early
+    // alike. It cannot be reached before the mate is really on the board:
+    // isCheckmate is the same routine the SAN '#' suffix uses.
+    if (isCheckmate(applyMove(pos, from, to), 'b')) {
+      g2.status = 'won';
+      g2.tEnd = Date.now();
+      vibrate(HAPT.win);
+      postResult(g2, 10);
+      endHold.hold();
+      commit(g2);
+      return;
+    }
     if (move !== want) {
       // Not the key. The move is played rather than refused, so you see what you
       // did, and the puzzle ends right there: off the solution tree there is no
