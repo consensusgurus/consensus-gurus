@@ -4,5 +4,6 @@
       "path": "/api/cron/consensus-check",
       "schedule": "0 9 * * *"
     }
-  ]
+  ],
+  "ignoreCommand": "bash scripts/vercel-ignore-build.sh"
 }

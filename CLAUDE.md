@@ -1245,6 +1245,36 @@ removal, and moving off it removes that blocker. Vercel auto-deploys on push (~1
 last-resort emergency if the push pipeline itself is broken.** Claude carries out the push itself rather
 than handing it back to the user.
 
+### BATCH YOUR PUSHES. One push per finished piece of work, not per edit (owner rule, 2026-08-08)
+
+Deploy volume is the single most expensive thing this project does, and it is the
+main reason the site feels slow to a share of visitors. Measured 2026-08-08:
+
+- **181 production deploys in 4.3 days**, ~42/day, at roughly **3.4 cents each**.
+  Build CPU was **$6.12 of a $15.04 bill, 41%**, the largest line by far. Traffic
+  was nowhere near any limit (edge requests 1M of 10M, transfer 12GB of 1TB).
+- **Every deploy EMPTIES the CDN cache.** A warm homepage load is ~1.7s with most
+  API calls served in 54-97ms; minutes after a deploy the same calls are misses at
+  1.4-4.4s and the page takes 3-4s. At 42 deploys/day the cache is cold roughly
+  every half hour. `stale-while-revalidate` does NOT save you: swr serves stale on
+  EXPIRY, but a new deployment starts an empty cache namespace, so there is nothing
+  stale to serve and the request blocks.
+
+So: **group related edits into ONE commit and ONE push.** Finish the whole piece of
+work, validate it, then push once. Do not push a tweak, look at it, push another
+tweak. Iterate locally or in the sandbox instead. Shipping five separate one-line
+polish commits costs five builds and five cache wipes for one visible change.
+
+Corollary for measuring: **never diagnose page speed right after a push.** You will
+measure a cold cache and chase a phantom. Load the page twice, or wait a few
+minutes, then measure.
+
+`vercel.json` sets `ignoreCommand: bash scripts/vercel-ignore-build.sh`, which skips
+the build when a commit touches ONLY markdown. That covers doc-only pushes (this
+file included) and nothing else, on purpose: the script exits 1 (build) for merge
+commits, shallow clones, and any changed path that is not `*.md`. It is a backstop,
+not a substitute for batching.
+
 ### Session-start preflight (run this first, every new chat)
 
 1. Confirm the connected folder is `C:\dev\source-of-truths` — the repo that actually contains `.git` and
