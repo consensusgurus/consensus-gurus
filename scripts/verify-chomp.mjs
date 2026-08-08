@@ -33,7 +33,8 @@ import { replay, freshState } from '../lib/chomp-engine.js';
 const CHOMP_RULES_FROM = '2026-08-08';   // the launch day: nothing grandfathered yet
 const W = 13, H = 13, CELLS = W * H;
 const LEAD = ['bulldog', 'ibis'];
-const CAST_SIZE = 7;
+const ROTATING = ['gamecock', 'tiger', 'eagle', 'longhorn', 'wildcat', 'seminole'];
+const CAST_SIZE = 7;   // the two leads plus five of the six rotating mascots
 const SOLVER_CAP = 400000;
 
 let BAD = 0;
@@ -279,7 +280,20 @@ function unplanned(p, mode) {
   if (hotCell) fail('variety', `${hotCell} cell(s) carry a mascot on more than ${cellCap} of ${rows.length} boards`);
   // the cast rotates by design, so a bank that keeps re-dealing one order is a bug
   if (orders.size < rows.length / 3) fail('variety', `only ${orders.size} distinct cast orders across ${rows.length} boards`);
-  if (!hotStart && !hotCell && orders.size >= rows.length / 3) {
+  // one rotating mascot sits out each day, and every one of them must get turns:
+  // a pool member that never rests (or never plays) is a dealing bug
+  const benched = {};
+  for (const p of rows) {
+    const out = ROTATING.filter((m) => !p.cast.includes(m));
+    if (out.length !== ROTATING.length - (CAST_SIZE - LEAD.length)) {
+      fail('variety', `#${p.num} benches ${out.length} rotating mascots, expected ${ROTATING.length - (CAST_SIZE - LEAD.length)}`);
+      break;
+    }
+    for (const m of out) benched[m] = (benched[m] || 0) + 1;
+  }
+  const never = ROTATING.filter((m) => !benched[m]);
+  if (never.length) fail('variety', `${never.join(', ')} never sit out, so the bench is not rotating`);
+  if (!hotStart && !hotCell && orders.size >= rows.length / 3 && !never.length) {
     ok('variety', `${startSeen.size} distinct start cells (busiest ${Math.max(...startSeen.values())}), busiest mascot cell ${Math.max(...cellSeen.values())}/${rows.length}, ${orders.size} distinct cast orders`);
   }
 })();

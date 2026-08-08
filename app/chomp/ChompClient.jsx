@@ -8,8 +8,8 @@
 //   1. THE BODY NEVER RETRACTS. Every square the head touches is yours for the
 //      rest of the run, so your trail is a permanent wall. The shortest hop to
 //      the ibis is very often the move that strands the longhorn behind you.
-//   2. A MASCOT IS SOLID UNTIL ITS TURN. You cannot cross the lion on the way to
-//      the gamecock. That falls out of rule 1: with a permanent trail, crossing
+//   2. A MASCOT IS SOLID UNTIL ITS TURN. You cannot cross the tiger on the way
+//      to the gamecock. That falls out of rule 1: with a permanent trail, crossing
 //      one early would leave it stranded under your own body forever, and a
 //      visible wall is fairer than a board ruined twenty moves before anyone
 //      notices.
@@ -18,17 +18,17 @@
 // cast you got, so a run that stalls on the fifth still scores five. That is
 // what makes a hard board survivable.
 //
-// RESTART BOOKS THE RUN (owner, 2026-08-08, reversing an earlier free-replay
-// call). Pressing Restart records the game exactly as it stood, then puts you
-// back at the top of the same board to play it again. That is the house rule
-// Four, Chain, Check and Mate already follow, and it is what keeps the daily
-// leaderboard a measure of the first attempt rather than of patience. It is
-// TWO-TAP ARMED and has no keyboard shortcut, because a control that costs you
-// the day should not be one stray keypress away.
+// GIVE UP, THEN TRY AGAIN (owner, 2026-08-08). The control sits at the FOOT of
+// the card, not in the game furniture, the way Four does it: while you are
+// playing it reads Give up and books the run exactly as it stands; once the run
+// is over it becomes Try again and re-deals the same board. Only the first
+// result is leaderboard eligible, so a retry costs nothing and cannot buy a
+// better place. Give up is two-tap armed and has no keyboard shortcut, because
+// a control that costs you the day should not be one stray keypress away.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, RotateCcw } from 'lucide-react';
+import { HelpCircle, X, RotateCcw, Flag } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -55,8 +55,8 @@ const HELP_KEY = 'sot_chomp_help_seen';
 const STATS_KEY = 'sot_chomp_stats';
 const BLOCK_MS = 260;
 const LABEL = {
-  bulldog: 'Bulldog', ibis: 'Ibis', gamecock: 'Gamecock', lion: 'Lion',
-  tiger: 'Tiger', eagle: 'Eagle', longhorn: 'Longhorn',
+  bulldog: 'Bulldog', ibis: 'Ibis', gamecock: 'Gamecock', wildcat: 'Wildcat',
+  seminole: 'Seminole', tiger: 'Tiger', eagle: 'Eagle', longhorn: 'Longhorn',
 };
 
 function etToday() {
@@ -236,7 +236,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [stats, setStats] = useState(null);
   const [blocked, setBlocked] = useState(null);
-  const [armRestart, setArmRestart] = useState(false);
+  const [armGive, setArmGive] = useState(false);
   const [nowTick, setNowTick] = useState(0);
   const [sprites, setSprites] = useState({});
   const cvsRef = useRef(null);
@@ -506,6 +506,11 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   // the art arriving must repaint at the CURRENT size, not just on next state
   useEffect(() => { if (drawRef.current) drawRef.current(); }, [sprites]);
   useEffect(() => {
+    if (!armGive) return undefined;
+    const t = setTimeout(() => setArmGive(false), 3500);
+    return () => clearTimeout(t);
+  }, [armGive]);
+  useEffect(() => {
     if (!blocked) return;
     const t = setTimeout(() => setBlocked(null), BLOCK_MS);
     return () => clearTimeout(t);
@@ -526,28 +531,32 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
     setTimeout(sizeBoard, 0);
   }
-  // Restart records the run as it stands and then re-deals the same board.
-  // postResult carries markFlushed (so no later abandon double-posts) and
-  // recordStat is write-once (so a second restart cannot overwrite the first
-  // result). Two-tap armed: the first press only arms it.
-  const restartBoard = useCallback(() => {
-    if (!armRestart) {
-      setArmRestart(true);
-      setTimeout(() => setArmRestart(false), 3200);
-      return;
-    }
-    setArmRestart(false);
+  // GIVE UP books the run exactly as it stands and ends it; TRY AGAIN then
+  // re-deals the same board. Two controls, one at a time, because they are two
+  // different decisions: the first costs you the day, the second costs nothing
+  // because the result is already recorded and recordStat is write-once.
+  //
+  // Give up is two-tap armed, in the house pattern Four uses: the armed label is
+  // short and the button reserves a fixed width, so the row cannot reflow and
+  // slide out from under a thumb mid-confirm. The consequence prints on its own
+  // line below, where it cannot move the button either.
+  const giveUp = useCallback(() => {
     const cur = gRef.current;
+    if (cur.status !== 'playing' || !cur.t0) return;
     const now = Date.now();
-    if (cur.status === 'playing' && cur.t0) {
-      postResult({ ...cur, ms: cur.ms + Math.min(120000, now - (cur.tMark || now)) });
-    }
-    // t0 is set straight away rather than dropping back to the start tile: the
+    const ended = { ...cur, ms: cur.ms + Math.min(120000, now - (cur.tMark || now)) };
+    commit({ ...ended, status: 'over', tEnd: now });
+    postResult({ ...ended, status: 'over' });
+  }, [commit, postResult]);
+
+  const tryAgain = useCallback(() => {
+    const now = Date.now();
+    // t0 is set straight away rather than dropping back to the start tile: that
     // tile exists to keep the FIRST attempt's clock honest, and this is not one.
     commit({ ...freshState(PUZZLE), t0: now, tMark: now });
     setBlocked(null);
     setEndClosed(true);
-  }, [PUZZLE, commit, postResult, armRestart]);
+  }, [PUZZLE, commit]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -595,12 +604,12 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       steps={[
         <>Move one square at a time with the <b>arrow keys</b> or the pad. Nothing moves until you do.</>,
         <>Your body <b>never shrinks</b>. Where you have been is a wall for the rest of the run.</>,
-        <>A mascot whose turn has not come is <b>solid</b>. You cannot cross the lion to reach the gamecock.</>,
+        <>A mascot whose turn has not come is <b>solid</b>. You cannot cross the tiger to reach the gamecock.</>,
         <>Steering into a wall is <b>refused</b>, not punished, and costs no move. The run ends only when the head has nowhere legal left to go.</>,
-        <><b>Restart</b> puts you back at the top of the same board, but it <b>records the run as it stood</b>, so the board you post is the one you were on. Press it twice to confirm.</>,
+        <>Boxed in early? <b>Give up</b> ends the run and <b>records it as it stands</b>, and then <b>Try again</b> re-deals the same board. Only your first result counts on the leaderboard.</>,
       ]}
       knack="Getting to the mascot in front of you is easy. The board is about the one after it: the shortest line to the fourth is very often the line that walls off the fifth. Look one mascot further than you want to."
-      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all seven: stall on the fifth and you still score five. Clearing all ${NPEL} is a perfect 10. Ties break on fewest moves, then on time. Restarting records the run as it stood, so your first attempt is the one that counts. Sunday Editions use the same seven mascots but spread them further apart, so more of the board is wall by the time the last one is in reach.`}
+      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all seven: stall on the fifth and you still score five. Clearing all ${NPEL} is a perfect 10. Ties break on fewest moves, then on time. Giving up records the run as it stood, and only your first result is leaderboard eligible. Sunday Editions use the same seven mascots but spread them further apart, so more of the board is wall by the time the last one is in reach.`}
     />
   );
 
@@ -681,13 +690,6 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               {stat('Moves', nf(g.moves))}
               {stat('Board', `${fillPct}%`)}
               {stat('Clock', fmtTime(elapsed))}
-              <button
-                onClick={restartBoard}
-                title="Restart this board. The run so far is recorded."
-                style={{ border: `1px solid ${armRestart ? COLORS.block : COLORS.line}`, background: armRestart ? '#fef2f2' : '#fff', color: armRestart ? COLORS.block : COLORS.faded, borderRadius: 7, padding: '5px 10px', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', flex: 'none', whiteSpace: 'nowrap' }}
-              >
-                <RotateCcw size={13} /> {armRestart ? 'Records this run' : 'Restart'}
-              </button>
               <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, borderRadius: 7, width: 30, height: 28, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <HelpCircle size={15} />
               </button>
@@ -710,8 +712,42 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               &larr; &uarr; &darr; &rarr; or WASD &middot; hold to keep going &middot; a blocked move is refused, not fatal
             </div>
             <div className="ch-touchhint" style={{ display: 'none', textAlign: 'center', marginTop: 8, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
-Use the pad to move &middot; hold an arrow to keep going
+              Use the pad to move &middot; hold an arrow to keep going
             </div>
+
+            {started && (
+              <div style={{ marginTop: 12, paddingTop: 11, borderTop: `1px solid ${COLORS.line}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+                    Where you have been is a wall. There is no take-back.
+                  </span>
+                  <span style={{ marginLeft: 'auto' }}>
+                    {playing ? (
+                      <button
+                        onClick={() => { if (armGive) { setArmGive(false); giveUp(); } else setArmGive(true); }}
+                        title={armGive ? 'Ends the run and records it as it stands' : 'End the run now and record it as it stands'}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armGive ? COLORS.block : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                      >
+                        <Flag size={13} style={{ flexShrink: 0 }} /> {armGive ? 'Press again' : 'Give up'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={tryAgain}
+                        title="Play this board again. Your recorded result stands."
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: COLORS.accent, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                      >
+                        <RotateCcw size={13} style={{ flexShrink: 0 }} /> Try again
+                      </button>
+                    )}
+                  </span>
+                </div>
+                {armGive && (
+                  <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.block, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+                    Ends the run and records it as it stands.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -744,7 +780,7 @@ Use the pad to move &middot; hold an arrow to keep going
           </p>
           <p style={{ margin: '0 0 9px' }}>
             You do not need all seven. The score is how far down the cast you got, so a run that stalls still counts.
-            Everybody plays the same board on the same day, ties break on fewest moves, and restarting records the run as it
+            Everybody plays the same board on the same day, ties break on fewest moves, and giving up records the run as it
             stood, so the first attempt is the one that counts. Sundays spread the mascots further apart.
           </p>
           <p style={{ margin: 0 }}>
