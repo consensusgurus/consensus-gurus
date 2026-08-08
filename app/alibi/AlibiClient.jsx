@@ -247,7 +247,9 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   const [clueIdx, setClueIdx] = useState(0);
-  const [storyOpen, setStoryOpen] = useState(false);  // the case brief is folded on a phone   // which statement the phone dock is showing
+  const [storyOpen, setStoryOpen] = useState(false);
+  const playRef = useRef(null);
+  const dockRef = useRef(null);  // the case brief is folded on a phone   // which statement the phone dock is showing
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -346,6 +348,28 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   }, [g.status]);
 
   // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
+  // THE BOARD FILLS THE SCREEN (2026-08-08). The play area is given exactly
+  // what is left after the shared chrome, the case brief, the status line and
+  // the dock, so on a phone you never scroll to make a move. Measured rather
+  // than estimated: the chrome is three navy bands whose height changes with
+  // the viewport, and the dock grows with the length of the statement.
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const fit = () => {
+      const el = playRef.current;
+      if (!el || window.innerWidth > 899) { if (el) el.style.removeProperty('height'); return; }
+      const top = el.getBoundingClientRect().top;
+      const dockH = dockRef.current ? dockRef.current.getBoundingClientRect().height : 150;
+      el.style.height = Math.max(300, Math.round(window.innerHeight - top - dockH - 10)) + 'px';
+    };
+    fit();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
+    if (ro && dockRef.current) ro.observe(dockRef.current);
+    window.addEventListener('resize', fit);
+    const t = setTimeout(fit, 250);
+    return () => { window.removeEventListener('resize', fit); if (ro) ro.disconnect(); clearTimeout(t); };
+  });
+
   useEffect(() => {
     try {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
@@ -652,6 +676,11 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             .al-boardlab{display:none !important;}
             .al-boardhint{display:none !important;}
             .al-cluehint{font-size:11px !important;}
+            .al-boardcol{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;}
+            /* the nine statements live in the dock rail now; the list below was
+               the same nine again and it was the reason the page ran long */
+            .al-witness{display:none !important;}
+            .al-wrap{padding-bottom:12px !important;}
           }
           .al-storybtn{display:none;background:none;border:0;padding:4px 0 0;font-family:${SANS};font-size:12px;font-weight:800;color:${COLORS.accent};cursor:pointer;}
         `}</style>
@@ -722,7 +751,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         )}
 
         {playing && !preStart && (
-          <div className="al-dock">
+          <div className="al-dock" ref={dockRef}>
             <div className="n">
               <span>Statement {Math.min(clueIdx + 1, PUZZLE.clues.length)} of {PUZZLE.clues.length}</span>
               <span style={{ marginLeft: 'auto', letterSpacing: 0, textTransform: 'none' }}>{g.struck.length} crossed off</span>
@@ -747,7 +776,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div className="al-cols">
+        <div className="al-cols" ref={playRef}>
           {/* witness statements */}
           <div className="al-witness" style={{ marginBottom: 16 }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Witness statements</div>
