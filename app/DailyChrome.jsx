@@ -30,6 +30,15 @@
 //
 // Placement: render it OUTSIDE the page's max-width wrapper, immediately after
 // <Grain />, so the navy bands run full-bleed the way they do on the homepage.
+//
+// DO NOT re-add a pinned navy strip here to colour the iPhone status-bar dome
+// (tried 2026-08-08 as .dch-dome, 3px, fixed then sticky, and removed). It did
+// not work: with body white and the strip in place the dome still came out
+// white, so Safari was never sampling it, and it drew a stray navy line across
+// the board because iOS shifts the layout viewport out from under pinned
+// elements while the keyboard is open. The dome is coloured by
+// body { background: var(--accent) } in app/globals.css, which is the only
+// thing that has ever moved it. See the note on that rule.
 
 import React from 'react';
 import QuizNavHeader from './quizzes/QuizNavHeader';
@@ -37,7 +46,7 @@ import DailySlateRail from './DailySlateRail';
 
 export default function DailyChrome({ slug }) {
   return (
-    <>
+    <div className="dch-wrap">
       {/* STACKING: the wrapper caps the whole header group at z-index 5. The
           shared navy bar carries z-index 90 for the quiz surfaces, which on a
           daily page paints OVER the end-of-game card (its backdrop is 85) and
@@ -46,44 +55,9 @@ export default function DailyChrome({ slug }) {
           overlay on the page lands above the header, while 5 still clears the
           fixed Grain wash at z-index 1 and the page column at 2. Do not raise
           this without checking dec-backdrop in DailyEndCard. */}
-      {/* THE DOME STRIP (owner-approved exception to the no-pin rule above,
-          2026-08-08). Three pixels of brand navy pinned to the top of the
-          viewport, painted UNDER the header at z-index 4: while the header is
-          up there it covers the strip completely, and once the page scrolls the
-          strip is all that stays. margin-bottom cancels its own height, so it
-          costs the board 0px and pushes nothing down.
-
-          It exists for Safari on iPhone, not for the reader. Safari tints the
-          strip behind the status bar (the "dome") from the fixed or sticky
-          element topping the viewport, and falls back to the page background
-          when a page has none. The homepage dome was navy purely because its
-          header is position: sticky; every daily game page came out white
-          because DailyChrome's header is deliberately in normal flow. Four
-          less invasive fixes failed first: the safe-area band in globals.css on
-          a bare env() (reports 0 in ordinary Safari), the same band with a 4px
-          floor, html's canvas colour, and body's own background. That last one
-          DID colour the dome, but Safari tints its bottom bar from the same
-          value, which turned the translucent address bar solid navy, so it was
-          reverted.
-
-          STICKY, NOT FIXED, and that is why DailyChrome returns a fragment
-          rather than one wrapper. A fixed element is positioned against the
-          layout viewport, which iOS shifts out from under it while the keyboard
-          is open: as a fixed strip this drew a navy line straight across the
-          board mid-word. Sticky follows the layout scroll and stays glued to
-          the top edge. It only works from OUTSIDE .dch-wrap, because a sticky
-          element cannot leave its containing block and .dch-wrap is only as
-          tall as the header, so it would unstick the moment the chrome scrolled
-          past. Out here its containing block is the page root every game client
-          renders (minHeight: 100vh), so it holds for the whole page. If a new
-          game client wraps DailyChrome in something short, the strip will
-          unstick there. */}
-      <style>{'.dch-wrap{position:relative;z-index:5;}.dch-dome{position:sticky;top:0;height:3px;margin-bottom:-3px;background:var(--accent);z-index:4;}'}</style>
-      <div className="dch-dome" aria-hidden="true" />
-      <div className="dch-wrap">
-        <QuizNavHeader />
-        <DailySlateRail current={slug} />
-      </div>
-    </>
+      <style>{'.dch-wrap{position:relative;z-index:5;}'}</style>
+      <QuizNavHeader />
+      <DailySlateRail current={slug} />
+    </div>
   );
 }
