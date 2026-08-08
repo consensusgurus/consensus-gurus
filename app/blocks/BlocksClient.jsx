@@ -207,7 +207,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     const anon = getAnonId();
     let em = '';
     try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity')); if (id && id.email) em = `&email=${encodeURIComponent(id.email)}`; } catch (e) {}
-    fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}&history=1`)
+    fetch(`/api/quiz/me?anonId=${encodeURIComponent(anon || '')}${em}`)
       .then((r) => r.json())
       .then((d) => { if (d && Array.isArray(d.recent)) setStats((cur) => mergeServerStats(cur || getStats(), d.recent, puzzles)); })
       .catch(() => {});
@@ -753,20 +753,6 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-        {!playing && !endClosed && (
-          <DailyEndCard
-            modal
-            self="blocks"
-            won={won}
-            quizId={PUZZLE.quizId}
-            headline={won ? <>Par cleared!</> : <>You scored {score10}/10</>}
-            subline={<>{nf(g.raw)} points &middot; {nf(g.lines)} lines &middot; {nf(g.quads)} quad{g.quads === 1 ? '' : 's'} &middot; best combo {nf(g.bestCombo)} &middot; {nf(g.pieces)} shapes</>}
-            onShare={copyShare}
-            shareLabel={copied ? 'Copied' : 'Share Result'}
-            onClose={() => setEndClosed(true)}
-          />
-        )}
-
         <div id="daily-join" style={{ marginTop: 20 }}>
           <JoinLeaderboardForm hideIcon heading="Put your name on today&rsquo;s board" identity={identity} onJoined={(u) => setIdentity(u)} />
         </div>
@@ -801,6 +787,29 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           </p>
         </section>
       </div>
+
+
+      {/* OUTSIDE the page column on purpose. The column is a stacking context
+          (position:relative + zIndex:2, which it needs to clear the fixed Grain
+          wash at 1), and DailyChrome caps the header group at 5. Nested inside
+          the column, this card's .dec-backdrop z-index:85 is trapped in a
+          z-index-2 context and paints UNDER the header. It shipped that way on
+          2026-08-08 and the card hid behind the masthead. Every other daily
+          renders it here, as a sibling after the column closes: keep it that
+          way. */}
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="blocks"
+          won={won}
+          quizId={PUZZLE.quizId}
+          headline={won ? <>Par cleared!</> : <>You scored {score10}/10</>}
+          subline={<>{nf(g.raw)} points &middot; {nf(g.lines)} lines &middot; {nf(g.quads)} quad{g.quads === 1 ? '' : 's'} &middot; best combo {nf(g.bestCombo)} &middot; {nf(g.pieces)} shapes</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onClose={() => setEndClosed(true)}
+        />
+      )}
 
       {showHelp && (
         <div
