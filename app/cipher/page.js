@@ -12,7 +12,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Cipher — Daily Cryptarithm: Crack the Letter Math | Mind Loft',
   description:
-    'A free daily cryptarithm — one WORD + WORD = WORD equation where every letter hides a different digit. Exactly one solution, no guessing required. Crack it clean for a perfect 10, and take on three addends in the Sunday Edition.',
+    'A free daily cryptarithm — one WORD + WORD = WORD equation where every letter hides a different digit. Exactly one solution, no guessing required. Crack it clean for a perfect 10, and take on four addends in the Sunday Edition.',
   alternates: { canonical: '/cipher' },
   manifest: '/cipher.webmanifest',
   icons: {
@@ -43,7 +43,7 @@ const gameJsonLd = {
   alternateName: 'Cipher — Daily Cryptarithm Puzzle',
   url: `${SITE_URL}/cipher`,
   description:
-    'A free daily cryptarithm (alphametic) puzzle: one WORD + WORD = WORD equation where every letter stands for a different digit. Each puzzle is machine-verified to have exactly one solution, so pure column logic cracks it — no guessing.',
+    'A free daily cryptarithm (alphametic) puzzle: one WORD + WORD = WORD equation where every letter stands for a different digit. The week ramps from two addends to three, with four in the Sunday Edition. Each puzzle is machine-verified to have exactly one solution, so pure column logic cracks it — no guessing.',
   genre: ['Number puzzle', 'Logic puzzle', 'Math puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

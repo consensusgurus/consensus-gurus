@@ -2,32 +2,43 @@
 // page (app/cipher/page.js), which filters live<=today before passing puzzles
 // to the client — future equations never ship early.
 //
-// Each puzzle carries an `op`: "add" (WORD + WORD = WORD) or "sub"
-// (WORD - WORD = WORD). Both are solvable by pure column logic with no
-// guessing; multiplication was removed for exactly that reason (a word product
-// cannot be cracked by columns alone). VARIETY RULE (from 2026-07-25): the
-// operation never repeats two days in a row, which with two ops means strict
-// daily add/sub alternation. The Sunday Edition is a bigger three-term puzzle
-// in whichever op the day lands on: three-addend addition (SNOW + MOON + NOON
-// = STORM) or three-term subtraction (SLEET - SNOW - NOON = SOON). Drops before
-// 2026-07-25 are all addition and grandfathered (already live and played).
+// ADDITION ONLY, and the ADDEND COUNT is the variety axis (2026-08-08). Every
+// puzzle is WORD + WORD ... = WORD. Subtraction was RETIRED: players read a
+// borrow column as an error rather than a step, and the minuend/subtrahend
+// framing buried the one thing the game is about, which is carrying. The eight
+// subtraction drops that already went live (num 8 through 22, op "sub") are
+// GRANDFATHERED — they are played, scored, and still replayable from the
+// archive, so the client keeps its subtraction renderer. Never author another.
+//
+// WEEKDAY RAMP. The number of addends carries the week, easiest to hardest:
+//   Mon / Tue / Wed  -> 2 addends   (WORD + WORD = WORD)
+//   Thu / Fri / Sat  -> 3 addends   (WORD + WORD + WORD = WORD)
+//   Sunday Edition   -> 4 addends   (WORD + WORD + WORD + WORD = WORD)
+// Inside each band the days still ramp by measured difficulty (see below), so
+// Monday is the easiest two-addend board of the week and Saturday the hardest
+// three-addend one. Sunday is its own band and always the week's biggest.
+//
+// THEME RULE. Every word in an equation comes from ONE theme (animals, weather,
+// land, plants, food, house, town, time, space, craft), which is what makes a
+// board read as a phrase — URANUS + EARTH + SUN = SATURN, never a bag of
+// letters. No theme runs two days in a row, no theme takes more than 7 slots in
+// a bank, no word appears more than 3 times, no two boards share 2+ words, and
+// no board contains two words sharing a four-letter stem (no ROAD + ROADS, no
+// LATE + LATER).
 //
 // Every equation here is MACHINE-VERIFIED to have exactly one solution
 // (distinct digits per letter, leading letters nonzero). The solution is not
 // stored anywhere — the client checks the arithmetic directly. Validate with
 // scripts/verify-cipher.mjs after ANY edit: it brute-forces every equation and
-// fails unless each has exactly one solution, <= 10 distinct letters, the op is
-// add or sub (never mul), and the op never repeats on consecutive days (from
-// the variety-launch date on).
-// DIFFICULTY LADDER (2026-08-04): equations from num 19 on are ordered so the
-// week ramps, Monday easiest to Saturday hardest, with the Sunday Edition sitting
-// near the top. Difficulty is measured by a column-wise solver (the way a person
-// actually works one), counting search nodes; medians now run Mon 47, Tue 120,
-// Wed 239, Thu 383, Fri 845, Sat 1678, Sun 1309, against a flat, randomly
-// scattered 19-2537 before. Slots keep their num/quizId/live/dateLabel/op/sunday,
-// so op alternation and the Sunday Edition are untouched; only which equation
-// sits in which slot changed, and nothing at or before num 18 (already live) was
-// altered. Preserve the ladder when adding drops: put easy equations on Mondays.
+// fails unless each has exactly one solution, <= 10 distinct letters, and (from
+// the addition-only launch on) op "add" with the addend count its weekday calls
+// for.
+//
+// DIFFICULTY LADDER. Difficulty is measured by a column-wise solver (the way a
+// person actually works one), counting search nodes. Targets: Mon ~450,
+// Tue ~1.8k, Wed ~4.5k, Thu ~6k, Fri ~13k, Sat ~25k, Sun ~36k, with a little
+// per-week jitter so a weekday is never the same node count twice running.
+// Preserve the ladder when adding drops: put easy equations on Mondays.
 export const PUZZLES = [
   { num: 1, quizId: "cipher-7-18-26", live: "2026-07-18", dateLabel: "July 18, 2026", sunday: false, op: "add", lhs: ["SEND","MORE"], rhs: "MONEY" },
   { num: 2, quizId: "cipher-7-19-26", live: "2026-07-19", dateLabel: "July 19, 2026", sunday: false, op: "add", lhs: ["FIFTY","STATES"], rhs: "AMERICA" },
@@ -51,56 +62,56 @@ export const PUZZLES = [
   { num: 20, quizId: "cipher-8-6-26", live: "2026-08-06", dateLabel: "August 6, 2026", sunday: false, op: "sub", lhs: ["HEARTH","SPOON"], rhs: "STAIR" },
   { num: 21, quizId: "cipher-8-7-26", live: "2026-08-07", dateLabel: "August 7, 2026", sunday: false, op: "add", lhs: ["OLIVE","ROCK"], rhs: "RIVER" },
   { num: 22, quizId: "cipher-8-8-26", live: "2026-08-08", dateLabel: "August 8, 2026", sunday: false, op: "sub", lhs: ["CREAM","HONEY"], rhs: "MELON" },
-  { num: 23, quizId: "cipher-8-9-26", live: "2026-08-09", dateLabel: "August 9, 2026", sunday: true, op: "add", lhs: ["SNOW","MOSS","TREE"], rhs: "ROOTS" },
-  { num: 24, quizId: "cipher-8-10-26", live: "2026-08-10", dateLabel: "August 10, 2026", sunday: false, op: "sub", lhs: ["HORSE","DEER"], rhs: "OTTER" },
-  { num: 25, quizId: "cipher-8-11-26", live: "2026-08-11", dateLabel: "August 11, 2026", sunday: false, op: "add", lhs: ["WINTER","AGES"], rhs: "SPRING" },
-  { num: 26, quizId: "cipher-8-12-26", live: "2026-08-12", dateLabel: "August 12, 2026", sunday: false, op: "sub", lhs: ["GOOSE","OTTER"], rhs: "BEAR" },
-  { num: 27, quizId: "cipher-8-13-26", live: "2026-08-13", dateLabel: "August 13, 2026", sunday: false, op: "add", lhs: ["SATURN","URANUS"], rhs: "PLANETS" },
-  { num: 28, quizId: "cipher-8-14-26", live: "2026-08-14", dateLabel: "August 14, 2026", sunday: false, op: "sub", lhs: ["ONION","APPLE"], rhs: "LANE" },
-  { num: 29, quizId: "cipher-8-15-26", live: "2026-08-15", dateLabel: "August 15, 2026", sunday: false, op: "add", lhs: ["LINEN","SHELF"], rhs: "HEARTH" },
-  { num: 30, quizId: "cipher-8-16-26", live: "2026-08-16", dateLabel: "August 16, 2026", sunday: true, op: "sub", lhs: ["GEESE","SNOW","SOON"], rhs: "SEEN" },
-  { num: 31, quizId: "cipher-8-17-26", live: "2026-08-17", dateLabel: "August 17, 2026", sunday: false, op: "add", lhs: ["CRAB","RACE"], rhs: "BACON" },
-  { num: 32, quizId: "cipher-8-18-26", live: "2026-08-18", dateLabel: "August 18, 2026", sunday: false, op: "sub", lhs: ["MINUTE","HOUR"], rhs: "SUMMER" },
-  { num: 33, quizId: "cipher-8-19-26", live: "2026-08-19", dateLabel: "August 19, 2026", sunday: false, op: "add", lhs: ["GUIDE","RIDGE"], rhs: "VALLEY" },
-  { num: 34, quizId: "cipher-8-20-26", live: "2026-08-20", dateLabel: "August 20, 2026", sunday: false, op: "sub", lhs: ["MARKET","TOWER"], rhs: "CLOCK" },
-  { num: 35, quizId: "cipher-8-21-26", live: "2026-08-21", dateLabel: "August 21, 2026", sunday: false, op: "add", lhs: ["PARK","PLAZA"], rhs: "STREET" },
-  { num: 36, quizId: "cipher-8-22-26", live: "2026-08-22", dateLabel: "August 22, 2026", sunday: false, op: "sub", lhs: ["HEARTH","SHELF"], rhs: "CELLAR" },
-  { num: 37, quizId: "cipher-8-23-26", live: "2026-08-23", dateLabel: "August 23, 2026", sunday: true, op: "add", lhs: ["THORN","CEDAR","ACORN"], rhs: "SHOOT" },
-  { num: 38, quizId: "cipher-8-24-26", live: "2026-08-24", dateLabel: "August 24, 2026", sunday: false, op: "sub", lhs: ["OTTER","HARE"], rhs: "STOAT" },
-  { num: 39, quizId: "cipher-8-25-26", live: "2026-08-25", dateLabel: "August 25, 2026", sunday: false, op: "add", lhs: ["SEED","TREE"], rhs: "ROOT" },
-  { num: 40, quizId: "cipher-8-26-26", live: "2026-08-26", dateLabel: "August 26, 2026", sunday: false, op: "sub", lhs: ["HEARTH","BROOM"], rhs: "DOOR" },
-  { num: 41, quizId: "cipher-8-27-26", live: "2026-08-27", dateLabel: "August 27, 2026", sunday: false, op: "add", lhs: ["PEAR","GRAPE"], rhs: "ONION" },
-  { num: 42, quizId: "cipher-8-28-26", live: "2026-08-28", dateLabel: "August 28, 2026", sunday: false, op: "sub", lhs: ["SHARK","BREAD"], rhs: "HORSE" },
-  { num: 43, quizId: "cipher-8-29-26", live: "2026-08-29", dateLabel: "August 29, 2026", sunday: false, op: "add", lhs: ["SPOON","STAIR"], rhs: "HEARTH" },
-  { num: 44, quizId: "cipher-8-30-26", live: "2026-08-30", dateLabel: "August 30, 2026", sunday: true, op: "sub", lhs: ["BRIDGE","LANE","BARN"], rhs: "ALLEY" },
-  { num: 45, quizId: "cipher-8-31-26", live: "2026-08-31", dateLabel: "August 31, 2026", sunday: false, op: "add", lhs: ["DEER","OTTER"], rhs: "HORSE" },
-  { num: 46, quizId: "cipher-9-1-26", live: "2026-09-01", dateLabel: "September 1, 2026", sunday: false, op: "sub", lhs: ["WINTER","MONTH"], rhs: "NIGHT" },
-  { num: 47, quizId: "cipher-9-2-26", live: "2026-09-02", dateLabel: "September 2, 2026", sunday: false, op: "add", lhs: ["ATTIC","CHAIR"], rhs: "HEARTH" },
-  { num: 48, quizId: "cipher-9-3-26", live: "2026-09-03", dateLabel: "September 3, 2026", sunday: false, op: "sub", lhs: ["HEARTH","CANDLE"], rhs: "PLATE" },
-  { num: 49, quizId: "cipher-9-4-26", live: "2026-09-04", dateLabel: "September 4, 2026", sunday: false, op: "add", lhs: ["CANDLE","LINEN"], rhs: "HEARTH" },
-  { num: 50, quizId: "cipher-9-5-26", live: "2026-09-05", dateLabel: "September 5, 2026", sunday: false, op: "sub", lhs: ["SUGAR","TOAST"], rhs: "SONG" },
-  { num: 51, quizId: "cipher-9-6-26", live: "2026-09-06", dateLabel: "September 6, 2026", sunday: true, op: "add", lhs: ["HOUR","SUMMER","MONTH"], rhs: "MINUTE" },
-  { num: 52, quizId: "cipher-9-7-26", live: "2026-09-07", dateLabel: "September 7, 2026", sunday: false, op: "sub", lhs: ["CHEESE","APPLE"], rhs: "GRAPE" },
-  { num: 53, quizId: "cipher-9-8-26", live: "2026-09-08", dateLabel: "September 8, 2026", sunday: false, op: "add", lhs: ["GOOSE","HARE"], rhs: "BADGER" },
-  { num: 54, quizId: "cipher-9-9-26", live: "2026-09-09", dateLabel: "September 9, 2026", sunday: false, op: "sub", lhs: ["SHORE","FISH"], rhs: "FRIES" },
-  { num: 55, quizId: "cipher-9-10-26", live: "2026-09-10", dateLabel: "September 10, 2026", sunday: false, op: "add", lhs: ["TOWER","CLOCK"], rhs: "MARKET" },
-  { num: 56, quizId: "cipher-9-11-26", live: "2026-09-11", dateLabel: "September 11, 2026", sunday: false, op: "sub", lhs: ["CANDLE","CLOTH"], rhs: "LINEN" },
-  { num: 57, quizId: "cipher-9-12-26", live: "2026-09-12", dateLabel: "September 12, 2026", sunday: false, op: "add", lhs: ["GLASS","STOVE"], rhs: "HEARTH" },
-  { num: 58, quizId: "cipher-9-13-26", live: "2026-09-13", dateLabel: "September 13, 2026", sunday: true, op: "sub", lhs: ["SOLAR","DAWN","SNOW"], rhs: "SUN" },
-  { num: 59, quizId: "cipher-9-14-26", live: "2026-09-14", dateLabel: "September 14, 2026", sunday: false, op: "add", lhs: ["ROOM","BROOM"], rhs: "KETTLE" },
-  { num: 60, quizId: "cipher-9-15-26", live: "2026-09-15", dateLabel: "September 15, 2026", sunday: false, op: "sub", lhs: ["MONEY","LEMON"], rhs: "WOLF" },
-  { num: 61, quizId: "cipher-9-16-26", live: "2026-09-16", dateLabel: "September 16, 2026", sunday: false, op: "add", lhs: ["STAIR","GLASS"], rhs: "HEARTH" },
-  { num: 62, quizId: "cipher-9-17-26", live: "2026-09-17", dateLabel: "September 17, 2026", sunday: false, op: "sub", lhs: ["HEARTH","STAIR"], rhs: "GLASS" },
-  { num: 63, quizId: "cipher-9-18-26", live: "2026-09-18", dateLabel: "September 18, 2026", sunday: false, op: "add", lhs: ["STOVE","CELLAR"], rhs: "HEARTH" },
-  { num: 64, quizId: "cipher-9-19-26", live: "2026-09-19", dateLabel: "September 19, 2026", sunday: false, op: "sub", lhs: ["HEARTH","STAIR"], rhs: "SPOON" },
-  { num: 65, quizId: "cipher-9-20-26", live: "2026-09-20", dateLabel: "September 20, 2026", sunday: true, op: "add", lhs: ["MINUTE","SUMMER","NOON"], rhs: "AUTUMN" },
-  { num: 66, quizId: "cipher-9-21-26", live: "2026-09-21", dateLabel: "September 21, 2026", sunday: false, op: "sub", lhs: ["WHALE","SALAD"], rhs: "SEED" },
-  { num: 67, quizId: "cipher-9-22-26", live: "2026-09-22", dateLabel: "September 22, 2026", sunday: false, op: "add", lhs: ["MIST","ORBIT"], rhs: "STORM" },
-  { num: 68, quizId: "cipher-9-23-26", live: "2026-09-23", dateLabel: "September 23, 2026", sunday: false, op: "sub", lhs: ["HEARTH","GLASS"], rhs: "STAIR" },
-  { num: 69, quizId: "cipher-9-24-26", live: "2026-09-24", dateLabel: "September 24, 2026", sunday: false, op: "add", lhs: ["DAWN","SNOW"], rhs: "SOLAR" },
-  { num: 70, quizId: "cipher-9-25-26", live: "2026-09-25", dateLabel: "September 25, 2026", sunday: false, op: "sub", lhs: ["CHURCH","SHOP"], rhs: "TOWER" },
-  { num: 71, quizId: "cipher-9-26-26", live: "2026-09-26", dateLabel: "September 26, 2026", sunday: false, op: "add", lhs: ["STOVE","HEARTH"], rhs: "CELLAR" },
-  { num: 72, quizId: "cipher-9-27-26", live: "2026-09-27", dateLabel: "September 27, 2026", sunday: true, op: "sub", lhs: ["MINUTE","ALARM","AUTUMN"], rhs: "LATER" },
-  { num: 73, quizId: "cipher-9-28-26", live: "2026-09-28", dateLabel: "September 28, 2026", sunday: false, op: "add", lhs: ["TUNE","SONG"], rhs: "NOTES" },
-  { num: 74, quizId: "cipher-9-29-26", live: "2026-09-29", dateLabel: "September 29, 2026", sunday: false, op: "sub", lhs: ["WINTER","NIGHT"], rhs: "MONTH" },
+  { num: 23, quizId: "cipher-8-9-26", live: "2026-08-09", dateLabel: "August 9, 2026", sunday: true, op: "add", lhs: ["HALL","HOME","LANE","MILL"], rhs: "ROAD" },
+  { num: 24, quizId: "cipher-8-10-26", live: "2026-08-10", dateLabel: "August 10, 2026", sunday: false, op: "add", lhs: ["PASTA","STEAK"], rhs: "TOAST" },
+  { num: 25, quizId: "cipher-8-11-26", live: "2026-08-11", dateLabel: "August 11, 2026", sunday: false, op: "add", lhs: ["GOOSE","WREN"], rhs: "SHEEP" },
+  { num: 26, quizId: "cipher-8-12-26", live: "2026-08-12", dateLabel: "August 12, 2026", sunday: false, op: "add", lhs: ["PEARL","CAP"], rhs: "TORCH" },
+  { num: 27, quizId: "cipher-8-13-26", live: "2026-08-13", dateLabel: "August 13, 2026", sunday: false, op: "add", lhs: ["BREAD","PASTA","PEAR"], rhs: "CHEESE" },
+  { num: 28, quizId: "cipher-8-14-26", live: "2026-08-14", dateLabel: "August 14, 2026", sunday: false, op: "add", lhs: ["LINEN","QUILT","HALL"], rhs: "HEARTH" },
+  { num: 29, quizId: "cipher-8-15-26", live: "2026-08-15", dateLabel: "August 15, 2026", sunday: false, op: "add", lhs: ["HOUSE","STORE","SHOP"], rhs: "CHURCH" },
+  { num: 30, quizId: "cipher-8-16-26", live: "2026-08-16", dateLabel: "August 16, 2026", sunday: true, op: "add", lhs: ["GORGE","SHOAL","SHORE","VALE"], rhs: "EARTH" },
+  { num: 31, quizId: "cipher-8-17-26", live: "2026-08-17", dateLabel: "August 17, 2026", sunday: false, op: "add", lhs: ["BEEF","EGG"], rhs: "JUICE" },
+  { num: 32, quizId: "cipher-8-18-26", live: "2026-08-18", dateLabel: "August 18, 2026", sunday: false, op: "add", lhs: ["MONTH","NIGHT"], rhs: "WINTER" },
+  { num: 33, quizId: "cipher-8-19-26", live: "2026-08-19", dateLabel: "August 19, 2026", sunday: false, op: "add", lhs: ["HORSE","SEAL"], rhs: "BADGER" },
+  { num: 34, quizId: "cipher-8-20-26", live: "2026-08-20", dateLabel: "August 20, 2026", sunday: false, op: "add", lhs: ["PORCH","DOOR","JAR"], rhs: "CELLAR" },
+  { num: 35, quizId: "cipher-8-21-26", live: "2026-08-21", dateLabel: "August 21, 2026", sunday: false, op: "add", lhs: ["COAST","OASIS","SHORE"], rhs: "RIVER" },
+  { num: 36, quizId: "cipher-8-22-26", live: "2026-08-22", dateLabel: "August 22, 2026", sunday: false, op: "add", lhs: ["BAGEL","LEMON","MANGO"], rhs: "COCOA" },
+  { num: 37, quizId: "cipher-8-23-26", live: "2026-08-23", dateLabel: "August 23, 2026", sunday: true, op: "add", lhs: ["SUMMER","WINTER","MIST","RAIN"], rhs: "AUTUMN" },
+  { num: 38, quizId: "cipher-8-24-26", live: "2026-08-24", dateLabel: "August 24, 2026", sunday: false, op: "add", lhs: ["BROOM","ROOM"], rhs: "CANDLE" },
+  { num: 39, quizId: "cipher-8-25-26", live: "2026-08-25", dateLabel: "August 25, 2026", sunday: false, op: "add", lhs: ["CAMEL","EAGLE"], rhs: "GECKO" },
+  { num: 40, quizId: "cipher-8-26-26", live: "2026-08-26", dateLabel: "August 26, 2026", sunday: false, op: "add", lhs: ["REED","BUD"], rhs: "TULIP" },
+  { num: 41, quizId: "cipher-8-27-26", live: "2026-08-27", dateLabel: "August 27, 2026", sunday: false, op: "add", lhs: ["URANUS","EARTH","SUN"], rhs: "SATURN" },
+  { num: 42, quizId: "cipher-8-28-26", live: "2026-08-28", dateLabel: "August 28, 2026", sunday: false, op: "add", lhs: ["ATTIC","CLOTH","LATCH"], rhs: "CANDLE" },
+  { num: 43, quizId: "cipher-8-29-26", live: "2026-08-29", dateLabel: "August 29, 2026", sunday: false, op: "add", lhs: ["BISON","CRANE","ROBIN"], rhs: "GOOSE" },
+  { num: 44, quizId: "cipher-8-30-26", live: "2026-08-30", dateLabel: "August 30, 2026", sunday: true, op: "add", lhs: ["COAST","CREEK","GORGE","GRASS"], rhs: "STONE" },
+  { num: 45, quizId: "cipher-8-31-26", live: "2026-08-31", dateLabel: "August 31, 2026", sunday: false, op: "add", lhs: ["GLASS","HALL"], rhs: "LATCH" },
+  { num: 46, quizId: "cipher-9-1-26", live: "2026-09-01", dateLabel: "September 1, 2026", sunday: false, op: "add", lhs: ["GEESE","ZEBRA"], rhs: "BADGER" },
+  { num: 47, quizId: "cipher-9-2-26", live: "2026-09-02", dateLabel: "September 2, 2026", sunday: false, op: "add", lhs: ["JELLY","OIL"], rhs: "SAUCE" },
+  { num: 48, quizId: "cipher-9-3-26", live: "2026-09-03", dateLabel: "September 3, 2026", sunday: false, op: "add", lhs: ["CRATE","TILE","TIN"], rhs: "QUILT" },
+  { num: 49, quizId: "cipher-9-4-26", live: "2026-09-04", dateLabel: "September 4, 2026", sunday: false, op: "add", lhs: ["MINUTE","MOON","EVE"], rhs: "AUTUMN" },
+  { num: 50, quizId: "cipher-9-5-26", live: "2026-09-05", dateLabel: "September 5, 2026", sunday: false, op: "add", lhs: ["BACON","SAUCE","BUN"], rhs: "COCOA" },
+  { num: 51, quizId: "cipher-9-6-26", live: "2026-09-06", dateLabel: "September 6, 2026", sunday: true, op: "add", lhs: ["COMET","SOLAR","STAR","ORB"], rhs: "METEOR" },
+  { num: 52, quizId: "cipher-9-7-26", live: "2026-09-07", dateLabel: "September 7, 2026", sunday: false, op: "add", lhs: ["LINEN","PANEL"], rhs: "CANDLE" },
+  { num: 53, quizId: "cipher-9-8-26", live: "2026-09-08", dateLabel: "September 8, 2026", sunday: false, op: "add", lhs: ["FRIES","RICE"], rhs: "CHERRY" },
+  { num: 54, quizId: "cipher-9-9-26", live: "2026-09-09", dateLabel: "September 9, 2026", sunday: false, op: "add", lhs: ["GOOSE","LARK"], rhs: "BADGER" },
+  { num: 55, quizId: "cipher-9-10-26", live: "2026-09-10", dateLabel: "September 10, 2026", sunday: false, op: "add", lhs: ["ARENA","HOTEL","MALL"], rhs: "MARKET" },
+  { num: 56, quizId: "cipher-9-11-26", live: "2026-09-11", dateLabel: "September 11, 2026", sunday: false, op: "add", lhs: ["PALM","SEED","BUD"], rhs: "PETAL" },
+  { num: 57, quizId: "cipher-9-12-26", live: "2026-09-12", dateLabel: "September 12, 2026", sunday: false, op: "add", lhs: ["SPACE","MARS","MOON"], rhs: "METEOR" },
+  { num: 58, quizId: "cipher-9-13-26", live: "2026-09-13", dateLabel: "September 13, 2026", sunday: true, op: "add", lhs: ["DINER","KIOSK","FORT","INN"], rhs: "STREET" },
+  { num: 59, quizId: "cipher-9-14-26", live: "2026-09-14", dateLabel: "September 14, 2026", sunday: false, op: "add", lhs: ["SHEEP","PUP"], rhs: "EAGLE" },
+  { num: 60, quizId: "cipher-9-15-26", live: "2026-09-15", dateLabel: "September 15, 2026", sunday: false, op: "add", lhs: ["BADGE","GOLD"], rhs: "JEWEL" },
+  { num: 61, quizId: "cipher-9-16-26", live: "2026-09-16", dateLabel: "September 16, 2026", sunday: false, op: "add", lhs: ["FROST","NOON"], rhs: "STORM" },
+  { num: 62, quizId: "cipher-9-17-26", live: "2026-09-17", dateLabel: "September 17, 2026", sunday: false, op: "add", lhs: ["CREEK","RIVER","COVE"], rhs: "VALLEY" },
+  { num: 63, quizId: "cipher-9-18-26", live: "2026-09-18", dateLabel: "September 18, 2026", sunday: false, op: "add", lhs: ["DINER","HOUSE","ROADS"], rhs: "ARENA" },
+  { num: 64, quizId: "cipher-9-19-26", live: "2026-09-19", dateLabel: "September 19, 2026", sunday: false, op: "add", lhs: ["MAPLE","PETAL","SHOOT"], rhs: "ROOTS" },
+  { num: 65, quizId: "cipher-9-20-26", live: "2026-09-20", dateLabel: "September 20, 2026", sunday: true, op: "add", lhs: ["GRASS","GROVE","LAKE","VALE"], rhs: "VALLEY" },
+  { num: 66, quizId: "cipher-9-21-26", live: "2026-09-21", dateLabel: "September 21, 2026", sunday: false, op: "add", lhs: ["HORN","IRON"], rhs: "RING" },
+  { num: 67, quizId: "cipher-9-22-26", live: "2026-09-22", dateLabel: "September 22, 2026", sunday: false, op: "add", lhs: ["MALL","WALK"], rhs: "WHARF" },
+  { num: 68, quizId: "cipher-9-23-26", live: "2026-09-23", dateLabel: "September 23, 2026", sunday: false, op: "add", lhs: ["CAPE","PEAK"], rhs: "CLIFF" },
+  { num: 69, quizId: "cipher-9-24-26", live: "2026-09-24", dateLabel: "September 24, 2026", sunday: false, op: "add", lhs: ["CANOE","CHESS","NOTES"], rhs: "PAPER" },
+  { num: 70, quizId: "cipher-9-25-26", live: "2026-09-25", dateLabel: "September 25, 2026", sunday: false, op: "add", lhs: ["ALLEY","HOME","MALL"], rhs: "STREET" },
+  { num: 71, quizId: "cipher-9-26-26", live: "2026-09-26", dateLabel: "September 26, 2026", sunday: false, op: "add", lhs: ["MINUTE","NIGHT","TIME"], rhs: "SUMMER" },
+  { num: 72, quizId: "cipher-9-27-26", live: "2026-09-27", dateLabel: "September 27, 2026", sunday: true, op: "add", lhs: ["FERN","REED","ROSE","SEED"], rhs: "LEAF" },
+  { num: 73, quizId: "cipher-9-28-26", live: "2026-09-28", dateLabel: "September 28, 2026", sunday: false, op: "add", lhs: ["SHOAL","HILL"], rhs: "OASIS" },
+  { num: 74, quizId: "cipher-9-29-26", live: "2026-09-29", dateLabel: "September 29, 2026", sunday: false, op: "add", lhs: ["COIN","IRON"], rhs: "CAMEO" },
 ];

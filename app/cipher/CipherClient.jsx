@@ -14,8 +14,14 @@
 //     assignment allows and pencil-editable beyond that frontier;
 //   • a free per-column ✓/✗ under the equation, so a wrong digit is caught at
 //     the column that broke instead of by one all-or-nothing check;
-//   • a letter key rack with candidate digits, auto-eliminating digits already
-//     taken and 0 on leading letters, plus a Notes mode to cross off more.
+//   • a digit pad that carries the elimination on the KEYS: a digit owned by
+//     another letter dims and names its owner, 0 greys out under a leading
+//     letter, and Notes strikes through anything crossed off for the selected
+//     letter. The old per-letter candidate rack (a 0-9 strip under every
+//     letter box) was REMOVED 2026-08-08: readers took those ten numerals for
+//     the letter's value rather than a list of what was still open, which is
+//     the opposite of the help it was meant to be. Everything it tracked now
+//     lives on the pad keys, where there is only ever one number per box.
 // Column marks are FREE and never cost a point — only the scored Check does.
 // They are also sound: a column is marked correct only when its carry-in is
 // derived, and marked wrong only when no legal carry-in could satisfy it.
@@ -173,8 +179,20 @@ function buildColumns(op, lhs, rhs) {
   }
   return cols;
 }
-// One column's arithmetic. Addition carries out 0-2 (three addends max);
-// subtraction borrows 0-2 (two subtrahends max).
+// One column's arithmetic. The carry out of an addition column is bounded by
+// the ADDEND COUNT, not by a constant: n addends of distinct digits plus a
+// carry-in of at most n-1 can never carry more than n-1 out, so two addends
+// carry 0-1, three carry 0-2, and the four-addend Sunday Edition carries 0-3
+// (9+8+7+6+3 = 33). Anything that enumerates possible carries must use
+// maxCarry() rather than a literal 2. The banked four-addend boards happen to
+// top out at a real carry of 2, so nothing was ever mismarked in production,
+// but a literal 2 would show a false ✗ on a correct column the first time a
+// Sunday genuinely carried 3, and a free mark that lies is worse than no mark.
+// Subtraction borrows 0-2 (two subtrahends max, the only shape ever shipped).
+function maxCarry(op, nOperands) {
+  if (op === 'sub') return 2;
+  return Math.max(1, nOperands - 1);
+}
 function stepColumn(c, carryIn, op) {
   const val = (ch) => (ch === null ? 0 : c._a[ch]);
   if (op === 'sub') {
@@ -188,9 +206,9 @@ function stepColumn(c, carryIn, op) {
 // Per column: { carryIn, ok }. carryIn is the derived carry/borrow, or null
 // where the chain has not reached that column. ok is true only for a column
 // whose carry-in is derived and whose arithmetic lands; false either there or,
-// past the frontier, when NO legal carry-in (0-2) could satisfy the column.
-// Never guesses, so a ✓ is always earned and a ✗ is always real.
-function deriveColumns(cols, assign, op) {
+// past the frontier, when NO legal carry-in (0..maxCarry) could satisfy the
+// column. Never guesses, so a ✓ is always earned and a ✗ is always real.
+function deriveColumns(cols, assign, op, mc = 2) {
   const out = cols.map(() => ({ carryIn: null, ok: null }));
   const test = (c, k) => {
     const { digit, carryOut } = stepColumn(c, k, op);
@@ -210,7 +228,7 @@ function deriveColumns(cols, assign, op) {
       carry = r.carryOut;
     } else if (full) {
       let any = false;
-      for (let k = 0; k <= 2 && !any; k++) {
+      for (let k = 0; k <= mc && !any; k++) {
         const r = test(c, k);
         if (r.hit && (!last || r.carryOut === 0)) any = true;
       }
@@ -292,6 +310,12 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const opGlyph = OP === 'sub' ? '−' : '+';
   const opWord = OP === 'sub' ? 'subtraction' : 'addition';
   const carryWord = OP === 'sub' ? 'borrow' : 'carry';
+  // The Sunday badge reads off the puzzle, never a hardcoded string: the
+  // Sunday Edition is four addends from 2026-08-09 on, but the archive still
+  // serves the earlier three-addend and three-term-subtraction Sundays, and a
+  // badge that lies about the board in front of you is worse than none.
+  const N_WORD = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six'][PUZZLE.lhs.length] || PUZZLE.lhs.length;
+  const sundayDetail = OP === 'sub' ? `${N_WORD}-term subtraction` : `${N_WORD} addends`;
   const eqnText = `${PUZZLE.lhs.join(` ${opGlyph} `)} = ${PUZZLE.rhs}`;
 
   const COLS = useMemo(() => buildColumns(OP, PUZZLE.lhs, PUZZLE.rhs), [OP, PUZZLE]);
@@ -458,7 +482,8 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
   // Live column read-out. Free, and recomputed on every assignment.
-  const colInfo = useMemo(() => deriveColumns(COLS, g.assign, OP), [COLS, g.assign, OP]);
+  const MAXC = maxCarry(OP, PUZZLE.lhs.length);
+  const colInfo = useMemo(() => deriveColumns(COLS, g.assign, OP, MAXC), [COLS, g.assign, OP, MAXC]);
   const colsSolved = colInfo.every((c) => c.ok === true);
   const badCol = colInfo.some((c) => c.ok === false);
 
@@ -559,16 +584,18 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     if (noteMode) { toggleExcl(selected, d); return; }
     assignTo(selected, d);
   }
-  // Pencil a carry the board cannot derive yet: blank -> 0 -> 1 -> 2 -> blank.
-  // Scratch only, exactly like writing it above the column on paper: it is never
-  // used to judge a column, so it can never mislead.
+  // Pencil a carry the board cannot derive yet: blank -> 0 -> 1 -> ... -> MAXC
+  // -> blank. The top of the cycle follows the addend count, so the four-addend
+  // Sunday can pencil a 3. Scratch only, exactly like writing it above the
+  // column on paper: it is never used to judge a column, so it can never
+  // mislead.
   function cycleCarry(i) {
     if (!playing) return;
     setG((prev) => {
       const cur = prev.carry[i];
       const carry = { ...prev.carry };
       if (cur === undefined) carry[i] = 0;
-      else if (cur >= 2) delete carry[i];
+      else if (cur >= MAXC) delete carry[i];
       else carry[i] = cur + 1;
       return { ...prev, carry, t0: prev.t0 || Date.now() };
     });
@@ -681,7 +708,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
 
   // The carry (addition) / borrow (subtraction) written above each column.
   // A derived value is shown solid and locked; beyond the derived frontier the
-  // cell is an empty pencil slot the player can cycle through 0/1/2.
+  // cell is an empty pencil slot the player can cycle through 0..MAXC.
   function renderCarryRow() {
     const cells = [];
     for (let k = 0; k < maxLen; k++) {
@@ -721,8 +748,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     return <div className="cf-row cf-mkrow" key="marks"><span className="cf-op" />{cells}</div>;
   }
   // Digits still open to a letter: everything not taken by another letter, minus
-  // 0 on a leading letter. Player-crossed candidates stay visible but struck, so
-  // a wrong elimination can be undone.
+  // 0 on a leading letter. No longer LISTED anywhere (the 0-9 candidate strip
+  // came off every letter box on 2026-08-08); it now only powers the green
+  // "one digit left" ring on the mobile letter strip, which says the same thing
+  // without putting a second number inside a letter box.
   function candidatesFor(ch) {
     const taken = new Set(Object.entries(g.assign).filter(([l]) => l !== ch).map(([, d]) => d));
     const out = [];
@@ -734,11 +763,12 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     return out;
   }
 
-  // The ten digit keys, shared by the desktop pad and the mobile dock. Each key
-  // now carries the state the letter rack used to spell out: who owns the digit
-  // (dimmed), 0 under a leading letter (disabled), and anything crossed off for
-  // the selected letter in Notes (struck through). That is what lets the rack
-  // come off the phone layout without losing information.
+  // The ten digit keys, shared by the desktop pad and the mobile dock. These
+  // are the ONLY place a digit is listed: each key carries who owns it
+  // (dimmed, with the owner's letter), 0 under a leading letter (disabled), and
+  // anything crossed off for the selected letter in Notes (struck through).
+  // That is the whole of the bookkeeping the candidate rack used to spell out,
+  // in boxes that hold a digit rather than boxes that hold a letter.
   function renderPadKeys() {
     const selEx = selected !== null ? (g.excl[selected] || []) : [];
     return Array.from({ length: 10 }, (_, d) => {
@@ -799,7 +829,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       steps={[
         <>Letters that start a word are <b>never zero</b>.</>,
         <><b>Tap a letter, then tap a digit</b>, or just type. Tap a filled letter again to clear it. The pad shows which letter owns each digit, and two letters sharing one both flag red.</>,
-        <>The board keeps the scratch work: the <b>key rack</b> lists the digits still open to each letter, dropping any taken elsewhere; <b>Notes</b> crosses off more; and the <b>{carryWord} row</b> above the equation fills in as far as your digits allow, with the rest yours to pencil.</>,
+        <>The board keeps the scratch work: a digit already taken <b>dims on the pad</b> and shows whose it is, 0 greys out under a leading letter, <b>Notes</b> crosses off any digit you have ruled out, and the <b>{carryWord} row</b> above the equation fills in as far as your digits allow, with the rest yours to pencil.</>,
         <>A <b>✓ or ✗</b> under each column shows exactly which column works, so a wrong digit turns up where it happened. Those marks are <b>free</b>; only <b>Check</b> is scored.</>,
       ]}
       knack={<>There is <b>exactly one solution</b> and pure logic reaches it: start with the leftmost column of the answer and let the carries do the talking. No guessing required.</>}
@@ -839,17 +869,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-mk{width:46px;height:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;line-height:1;color:transparent;}
           .cf-mk.good{color:${COLORS.green};}
           .cf-mk.bad{color:${COLORS.rust};}
-          .cf-rack{display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,1fr));gap:6px;margin:0 0 12px;}
-          .cf-chip{display:flex;align-items:center;gap:7px;border:1.5px solid rgba(28,30,36,0.14);border-radius:8px;background:var(--white);padding:5px 7px;cursor:pointer;min-height:34px;}
-          .cf-chip:hover{border-color:${COLORS.accent};}
-          .cf-chip.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};}
-          .cf-chip.lone{border-color:${COLORS.green};}
-          .cf-chl{font-size:15px;font-weight:800;color:${COLORS.ink};width:14px;text-align:center;flex:0 0 auto;}
-          .cf-chd{font-family:${MONO};font-size:16px;font-weight:500;color:${COLORS.accent};font-variant-numeric:tabular-nums;}
-          .cf-cands{display:flex;flex-wrap:wrap;gap:1px;}
-          .cf-cd{font-family:${MONO};font-size:11.5px;font-weight:500;line-height:1;color:${COLORS.faded};background:none;border:none;border-radius:3px;padding:3px 2.5px;cursor:pointer;font-variant-numeric:tabular-nums;}
-          .cf-cd:hover{background:${COLORS.accentSoft};color:${COLORS.accent};}
-          .cf-cd.out{color:rgba(28,30,36,0.24);text-decoration:line-through;}
+          /* The per-letter candidate rack (.cf-rack/.cf-chip/.cf-cands/.cf-cd)
+             was REMOVED 2026-08-08. It printed a 0-9 strip inside every letter
+             box and players read those numerals as the letter's digit. The pad
+             keys below carry the same information one number to a box. */
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
           .cf-pk{position:relative;height:50px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${COLORS.ink};}
           .cf-pk:hover{background:${COLORS.accentSoft};}
@@ -891,18 +914,19 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid rgba(28,30,36,0.16);border-radius:8px;background:var(--white);padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
           .cf-sc .l{font-size:14px;font-weight:800;color:${COLORS.ink};line-height:1;}
           .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:${COLORS.accent};line-height:1;font-variant-numeric:tabular-nums;}
-          /* The count of digits still open to an unassigned letter renders as a
-             PILL, never as a bare numeral: a bare one sat in the same slot as an
-             assigned digit and the two read alike at a glance (A=7 vs H has 7
-             left). The pill says "this is a tally, not a value". */
-          .cf-sc .n{font-size:9.5px;font-weight:800;color:${COLORS.faded};line-height:1;font-variant-numeric:tabular-nums;background:rgba(28,30,36,0.10);border-radius:5px;padding:1.5px 4px;}
+          /* An unassigned letter shows a DOT, never a number. The count of
+             digits still open used to render here as a pill and still read as
+             the letter's value to enough people that the whole candidate
+             system came out; the green .lone ring below is the one piece of
+             that signal worth keeping, and it is not a numeral. */
+          .cf-sc .d.dim{color:rgba(28,30,36,0.30);}
           .cf-sc.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.28);}
           .cf-dock.notes .cf-sc{background:var(--white);}
           .cf-dock.notes .cf-sc.on{background:${COLORS.accent};border-color:${COLORS.accent};}
           .cf-dock.notes .cf-sc.on .l,.cf-dock.notes .cf-sc.on .d{color:var(--white);}
-          .cf-dock.notes .cf-sc.on .n{color:${COLORS.ink};background:rgba(255,255,255,0.92);}
-          .cf-sc.lone{border-color:${COLORS.green};}
-          .cf-sc.lone .n{color:var(--white);background:${COLORS.green};}
+          .cf-dock.notes .cf-sc.on .d.dim{color:rgba(255,255,255,0.75);}
+          .cf-sc.lone{border-color:${COLORS.green};box-shadow:inset 0 0 0 1px ${COLORS.green};}
+          .cf-sc.lone .d.dim{color:${COLORS.green};}
           .cf-dock .cf-pad{grid-template-columns:repeat(5,1fr);gap:6px;width:100%;}
           .cf-dock .cf-pk{height:46px;font-size:20px;}
           .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
@@ -912,7 +936,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-db.go{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);font-size:13px;}
           .cf-db.go.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.28);}
           .cf-db.warn{border-color:${COLORS.rust};color:${COLORS.rust};}
-          @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}.cf-carry,.cf-mk{width:40px;}.cf-carry{height:26px;}.cf-rack{grid-template-columns:repeat(auto-fill,minmax(148px,1fr));}.cf-cd{font-size:14px;padding:7px 6px;}}
+          @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}.cf-carry,.cf-mk{width:40px;}.cf-carry{height:26px;}}
         `}</style>
 
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
@@ -928,7 +952,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           helpTop={8}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {OP === 'sub' ? 'Three-term subtraction' : 'Three addends'}</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {sundayDetail}</span>}
           blocks={'CIPHER'.split('').map((ch, i) => (
               <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
@@ -987,40 +1011,6 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
                       : 'Tap a letter, then a digit — or just type.'))
               : null}
           </div>
-
-          {/* The key rack: every letter, its digit, and the digits still open to
-              it. Digits taken elsewhere and 0 on a leading letter drop out on
-              their own, which is the bookkeeping players were doing on paper. */}
-          {playing && !dockUi && (
-            <div className="cf-rack">
-              {LETTERS.map((ch) => {
-                const d = g.assign[ch];
-                const ex = g.excl[ch] || [];
-                const cands = candidatesFor(ch);
-                const lone = d === undefined && cands.filter((n) => !ex.includes(n)).length === 1;
-                return (
-                  <div key={ch} className={`cf-chip${selected === ch ? ' on' : ''}${lone ? ' lone' : ''}`} onClick={() => tapLetter(ch)}>
-                    <span className="cf-chl">{ch}</span>
-                    {d !== undefined ? (
-                      <span className="cf-chd">{d}</span>
-                    ) : (
-                      <span className="cf-cands">
-                        {cands.map((n) => (
-                          <button
-                            key={n}
-                            type="button"
-                            className={`cf-cd${ex.includes(n) ? ' out' : ''}`}
-                            onClick={(e) => { e.stopPropagation(); if (noteMode) toggleExcl(ch, n); else assignTo(ch, n); }}
-                            aria-label={`${noteMode ? 'Cross off' : 'Set'} ${ch} = ${n}`}
-                          >{n}</button>
-                        ))}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
 
           {playing && !dockUi && (
             <div className={`cf-pad${noteMode ? ' notes' : ''}`}>
@@ -1164,16 +1154,19 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
                 const ex = g.excl[ch] || [];
                 const n = candidatesFor(ch).filter((x) => !ex.includes(x)).length;
                 const lone = d === undefined && n === 1;
+                // The count itself is NOT printed: a numeral inside a letter box
+                // reads as that letter's digit. The green ring below carries the
+                // one moment it mattered (a single digit left).
                 return (
                   <button
                     key={ch}
                     type="button"
                     className={`cf-sc${selected === ch ? ' on' : ''}${lone ? ' lone' : ''}`}
                     onClick={() => tapLetter(ch)}
-                    aria-label={`Letter ${ch}${d !== undefined ? `, digit ${d}` : `, ${n} digit${n === 1 ? '' : 's'} still open`}`}
+                    aria-label={`Letter ${ch}${d !== undefined ? `, digit ${d}` : `, unassigned, ${n} digit${n === 1 ? '' : 's'} still open`}`}
                   >
                     <span className="l">{ch}</span>
-                    {d !== undefined ? <span className="d">{d}</span> : <span className="n">{n}</span>}
+                    {d !== undefined ? <span className="d">{d}</span> : <span className="d dim" aria-hidden="true">&middot;</span>}
                   </button>
                 );
               })}
@@ -1234,10 +1227,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           Cipher is a free daily cryptarithm puzzle from Mind Loft. Each day serves one alphametic equation &mdash; the classic puzzle form where SEND + MORE = MONEY and every letter hides a digit. Assign a different digit to each letter so the arithmetic works, and know that the puzzle is machine-verified to have exactly one solution: if your logic is sound, you never have to guess.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The craft is in the columns, and Cipher hands you the tools instead of asking you to reach for paper. A key rack tracks the digits still open to every letter, the carry row above the equation fills itself in as far as your digits reach, and each column carries its own &#10003; or &#10007; the moment it is decided &mdash; all of it free. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. A clean solve on the first check is a perfect 10 &mdash; every failed check costs a point, and the daily leaderboard breaks ties by fewer failed checks, then time.
+          The craft is in the columns, and Cipher hands you the tools instead of asking you to reach for paper. The digit pad dims a digit the moment another letter takes it and tells you whose it is, the carry row above the equation fills itself in as far as your digits reach, and each column carries its own &#10003; or &#10007; the moment it is decided &mdash; all of it free. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. A clean solve on the first check is a perfect 10 &mdash; every failed check costs a point, and the daily leaderboard breaks ties by fewer failed checks, then time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new equation drops every day at midnight Eastern, and the operation rotates so no two days repeat: addition and subtraction, with a bigger three-term equation in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
+          A new equation drops every day at midnight Eastern, and the week ramps: two addends Monday through Wednesday, three Thursday through Saturday, and four in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
         </p>
       </section>
 

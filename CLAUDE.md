@@ -3163,7 +3163,7 @@ archive and hub chips use the short form `Sun`.
 | Sworn | six suspects sworn instead of five |
 | Garble | every answer is six letters instead of five (from 2026-07-26) |
 | Dating | six events to order instead of five (from 2026-07-26) |
-| Cipher | three addends stacked instead of two (from 2026-07-26) |
+| Cipher | four addends stacked instead of two (from 2026-08-09) |
 | Outwit | six prompts instead of five, the extra a second Rare Bird (from 2026-07-26) |
 | Tuck | a 15-letter rack instead of 14 (from 2026-07-26) |
 | Alibi | five suspects instead of four, 15 facts to confirm (from 2026-07-26) |
@@ -3296,6 +3296,52 @@ across all 20 games on 2026-07-20.
    table in this section.
 5. Update the game's own how-to-play copy and its `page.js` metadata description, which
    both describe the weekly cadence to players and to search engines.
+
+## Cipher is ADDITION ONLY, and the addend count carries the week (owner rule, 2026-08-08)
+
+Subtraction was RETIRED from Cipher and the per-letter candidate rack came off the board.
+Both changes are permanent; do not reintroduce either.
+
+**No more subtraction.** Never author another `op: "sub"` puzzle. A borrow column reads as an
+error rather than a step, and the minuend/subtrahend framing buried the one thing the game is
+actually about, which is carrying. The eight subtraction drops that already went live (nums 8
+through 22) are GRANDFATHERED: they are played, scored, and still replayable from `/cipher?p=N`,
+so `CipherClient.jsx` KEEPS its subtraction renderer, its `opGlyph`/`opWord`/`carryWord`
+branches, and the `sub` branch in `solveCount`. Deleting that code would break the archive.
+
+**The addend count is the new variety axis, and it ramps by weekday:**
+
+| Day | Addends |
+|---|---|
+| Mon / Tue / Wed | 2 (`WORD + WORD = WORD`) |
+| Thu / Fri / Sat | 3 |
+| Sunday Edition | 4 |
+
+Inside each band the days still ramp by measured difficulty, so Monday is the easiest two-addend
+board of the week and Saturday the hardest three-addend one. `scripts/verify-cipher.mjs` enforces
+all of it from `ADDITION_ONLY_FROM = '2026-08-09'`: op must be `add`, and the addend count must
+match `ADDENDS_BY_DOW`. Everything before that date is grandfathered, including the old strict
+add/sub alternation rule, which now applies only inside its own window.
+
+**Theme rule.** Every word in an equation comes from ONE theme (animals, weather, land, plants,
+food, house, town, time, space, craft). That is what makes a board read as a phrase, URANUS +
+EARTH + SUN = SATURN, rather than a bag of letters. No theme two days running, no theme past 7
+slots in a bank, no word more than 3 times, no two boards sharing 2+ words, and no board holding
+two words that share a four-letter stem (no ROAD + ROADS, no LATE + LATER).
+
+**No numerals inside a letter box.** The old key rack printed the digits still open to each
+letter as a 0-9 strip under every letter, and the mobile strip printed the COUNT of them as a
+pill. Players read both as "this letter is a 7". All of it is gone: an unassigned letter shows a
+dot, and every piece of that bookkeeping now lives on the DIGIT PAD keys, where a number in a box
+means that box's digit. A pad key dims and names its owner when another letter takes it, greys
+out at 0 under a leading letter, and strikes through when Notes crosses it off. Keep it that way,
+one number per box.
+
+**Carries scale with the addend count.** `maxCarry(op, n)` returns `n - 1` for addition (two
+addends carry 0-1, three 0-2, the four-addend Sunday 0-3) and 2 for the legacy subtraction
+boards. Both the ✗ test in `deriveColumns` and the pencil cycle in `cycleCarry` read it. Never
+hardcode a carry ceiling: a literal 2 shows a false ✗ on a correct column the first time a Sunday
+genuinely carries 3, and a free mark that lies is worse than no mark.
 
 ### Daily puzzle authoring standard (applies to EVERY game)
 

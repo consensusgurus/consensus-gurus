@@ -1,7 +1,8 @@
 // Verify the Cipher bank: every equation must have EXACTLY ONE solution
 // (distinct digits, leading letters nonzero), <= 10 distinct letters, ids/dates
-// consistent, sunday flags matching the real weekday, and the operation never
-// repeating on consecutive days (from the variety-launch date on). Run after
+// consistent, sunday flags matching the real weekday, and (from the
+// addition-only launch on) op "add" with the addend count its weekday calls
+// for: 2 on Mon/Tue/Wed, 3 on Thu/Fri/Sat, 4 in the Sunday Edition. Run after
 // ANY edit:
 //   node scripts/verify-cipher.mjs
 import { PUZZLES } from '../app/cipher/puzzles.js';
@@ -61,15 +62,25 @@ function solveCount(p, cap = 2) {
   return linearCount([...p.lhs, p.rhs], [...p.lhs.map(() => 1), -1], cap);
 }
 
-// Cipher's Sunday Edition (three addends) launched on this date. Earlier drops
-// are grandfathered: they are live, played, and on the leaderboard.
+// Cipher's Sunday Edition launched on this date. Earlier drops are
+// grandfathered: they are live, played, and on the leaderboard.
 const SUNDAY_FROM = '2026-07-26';
-// The subtraction variety launched here. Before it every drop is
-// addition, so the "op never repeats two days running" rule only applies from
-// this date on (the pre-launch addition run is grandfathered).
+// The subtraction variety launched here and was RETIRED on ADDITION_ONLY_FROM.
+// Between the two dates the ops strictly alternated, so the "op never repeats
+// two days running" rule applies only inside that window (the pre-launch
+// addition run and the post-retirement addition run are both grandfathered).
 const VARIETY_FROM = '2026-07-25';
+// Subtraction retired here. From this date on every drop is addition and the
+// ADDEND COUNT carries the week's ramp instead: 2 addends Mon/Tue/Wed, 3 on
+// Thu/Fri/Sat, 4 in the Sunday Edition. Everything before it is grandfathered,
+// including the eight live subtraction drops, which stay replayable from the
+// archive. Never author another subtraction puzzle.
+const ADDITION_ONLY_FROM = '2026-08-09';
+// Addends owed per weekday from ADDITION_ONLY_FROM on (index = getUTCDay()).
+const ADDENDS_BY_DOW = [4, 2, 2, 2, 3, 3, 3];
 const OPS = new Set(['add', 'sub']);  // multiplication is banned: it cannot be solved by pure column logic
 
+const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 let bad = 0;
 const seen = new Set();
 PUZZLES.forEach((p, i) => {
@@ -82,13 +93,18 @@ PUZZLES.forEach((p, i) => {
   else {
     const iso = `20${m[3]}-${String(m[1]).padStart(2, '0')}-${String(m[2]).padStart(2, '0')}`;
     if (iso !== p.live) errs.push(`live ${p.live} != quizId date ${iso}`);
-    // The Sunday flag must match the real weekday: a Sunday drop is the
-    // three-addend Sunday Edition (always addition), every other day is a
-    // two-operand puzzle. GRANDFATHERED: drops before SUNDAY_FROM shipped
-    // without the edition and are already played, so they are never rewritten.
-    const isSun = new Date(`${p.live}T12:00:00Z`).getUTCDay() === 0 && p.live >= SUNDAY_FROM;
+    // The Sunday flag must match the real weekday. GRANDFATHERED: drops before
+    // SUNDAY_FROM shipped without the edition and are already played, so they
+    // are never rewritten.
+    const dow = new Date(`${p.live}T12:00:00Z`).getUTCDay();
+    const isSun = dow === 0 && p.live >= SUNDAY_FROM;
     if (p.sunday !== isSun) errs.push(`sunday must be ${isSun} for ${p.live}`);
-    if (isSun) {
+    if (p.live >= ADDITION_ONLY_FROM) {
+      // Addition only, and the weekday dictates how many addends.
+      if (op !== 'add') errs.push(`op ${op} — subtraction is retired, addition only from ${ADDITION_ONLY_FROM}`);
+      const want = ADDENDS_BY_DOW[dow];
+      if (p.lhs.length !== want) errs.push(`${DOW[dow]} needs ${want} addends, has ${p.lhs.length}`);
+    } else if (isSun) {
       if (p.lhs.length !== 3) errs.push('Sunday Edition needs 3 operands');
     } else {
       if (p.lhs.length !== 2) errs.push('weekday needs exactly 2 operands');
@@ -110,13 +126,13 @@ PUZZLES.forEach((p, i) => {
   if (c !== 1) errs.push(c === -1 ? '>10 letters' : `solutions=${c}, need exactly 1`);
   // Alternation: no two consecutive drops share an op, from the variety launch
   // on (the earlier all-addition run is grandfathered).
-  if (i > 0) {
+  if (i > 0 && p.live >= VARIETY_FROM && p.live < ADDITION_ONLY_FROM) {
     const prev = PUZZLES[i - 1];
-    if (p.live >= VARIETY_FROM && (prev.op || 'add') === op) errs.push(`op ${op} repeats the previous day (${prev.quizId})`);
+    if ((prev.op || 'add') === op) errs.push(`op ${op} repeats the previous day (${prev.quizId})`);
   }
   const sym = op === 'sub' ? ' - ' : '+';
   if (errs.length) { bad++; console.error(`✗ ${p.quizId}: ${errs.join('; ')}`); }
   else console.log(`✓ ${p.quizId}  [${op}] ${p.lhs.join(sym)}=${p.rhs}  unique`);
 });
 if (bad) { console.error(`\n${bad} bad puzzle(s)`); process.exit(1); }
-console.log(`\nAll ${PUZZLES.length} Cipher puzzles verified unique, alternating.`);
+console.log(`\nAll ${PUZZLES.length} Cipher puzzles verified unique.`);
