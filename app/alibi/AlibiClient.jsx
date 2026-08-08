@@ -360,7 +360,17 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       if (!el || window.innerWidth > 899) { if (el) el.style.removeProperty('height'); return; }
       const top = el.getBoundingClientRect().top;
       const dockH = dockRef.current ? dockRef.current.getBoundingClientRect().height : 150;
-      el.style.height = Math.max(300, Math.round(window.innerHeight - top - dockH - 10)) + 'px';
+      const h = Math.max(300, Math.round(window.innerHeight - top - dockH - 10));
+      el.style.height = h + 'px';
+      // and the board fits that box: twelve option rows, one header row and
+      // three category bands share whatever height there is, down to a 19px
+      // floor where a row stops being tappable and the board scrolls instead
+      const tbl = el.querySelector('.al-tbl');
+      if (tbl) {
+        const chrome = 30 + 3 * 20 + 8;   // header row + three bands + borders
+        const row = Math.max(19, Math.min(34, Math.floor((h - chrome) / 12)));
+        tbl.style.setProperty('--alrow', row + 'px');
+      }
     };
     fit();
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
@@ -631,7 +641,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-tbl th.colh{font-size:12px;padding:7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
           .al-band td{background:var(--bg);color:var(--white);font-size:9.5px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;text-align:left;padding:3px 8px;border:1px solid var(--bg);}
           @media(max-width:400px){.al-tbl th.rowh{font-size:11px;}.al-tbl th.colh{font-size:11px;}}
-          .al-td{height:34px;border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:var(--white);}
+          .al-td{height:var(--alrow,34px);border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:var(--white);}
           .al-td:hover{background:#faf6ee;}
           .al-td.x{color:#b9b2a6;}
           .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
