@@ -54,6 +54,7 @@ const COLORS = {
   accentSoft: '#f6e3e5',
   green: T.successDeep,
 };
+const BAND_TINTS = ['#7c2230', '#5f6b7d', '#2c3a4d'];
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_alibi_help_seen';
@@ -597,11 +598,14 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-clue{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${COLORS.ink};}
           .al-clue b{color:${COLORS.accent};}
           .al-clue.done{opacity:0.42;text-decoration:line-through;}
-          .al-tbl{border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto 14px;width:auto;max-width:100%;}
+          .al-tbl{border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto;width:100%;max-width:520px;table-layout:fixed;}
           .al-tbl caption{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${COLORS.faded};text-align:left;padding:0 0 6px 2px;caption-side:top;}
           .al-tbl th{font-size:11px;padding:6px 4px;background:#efece6;font-weight:700;color:${COLORS.ink};}
-          .al-tbl th.rowh{text-align:right;min-width:64px;padding-right:8px;}
-          .al-td{width:40px;height:38px;border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:var(--white);}
+          .al-tbl th.rowh{text-align:right;width:31%;padding-right:7px;font-size:12px;font-weight:700;color:${COLORS.faded};background:#faf8f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
+          .al-tbl th.colh{font-size:12px;padding:7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
+          .al-band td{background:var(--bg);color:var(--white);font-size:9.5px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;text-align:left;padding:3px 8px;border:1px solid var(--bg);}
+          @media(max-width:400px){.al-tbl th.rowh{font-size:11px;}.al-tbl th.colh{font-size:11px;}}
+          .al-td{height:34px;border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:var(--white);}
           .al-td:hover{background:#faf6ee;}
           .al-td.x{color:#b9b2a6;}
           .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
@@ -688,23 +692,34 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           {/* detective's boards */}
           <div>
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Detective&rsquo;s board</div>
-            <div className="al-grids">
-              {CAT_META.map((cat) => (
-                <table key={cat.key} className="al-tbl">
-                  <caption>{cat.label}</caption>
-                  <tbody>
-                    <tr>
-                      <th className="rowh" aria-hidden="true"></th>
-                      {cat.vals.map((v) => <th key={v}>{v}</th>)}
+            {/* ROTATED FOR THE PHONE (owner-approved 2026-08-07). This was three
+                stacked 4x4 tables, suspects down and options across, which on a
+                phone forced a 20px cell and about 620px of stack. A phone is
+                narrow and deep, so the long axis moved to the tall axis: the four
+                suspects are the COLUMNS and all twelve options are the ROWS, under
+                a band per category. One table, everything visible at once, and the
+                cell is set by percentage so it grows with the screen instead of
+                being pinned at 40px. Cell handlers are unchanged: s is still the
+                suspect and v is still the option, they have only swapped axes. */}
+            <table className="al-tbl">
+              <tbody>
+                <tr>
+                  <th className="rowh" aria-hidden="true"></th>
+                  {PUZZLE.suspects.map((name) => <th key={name} className="colh">{name}</th>)}
+                </tr>
+                {CAT_META.map((cat, ci) => (
+                  <React.Fragment key={cat.key}>
+                    <tr className="al-band" style={{ '--bg': BAND_TINTS[ci % BAND_TINTS.length] }}>
+                      <td colSpan={PUZZLE.suspects.length + 1}>{cat.label}</td>
                     </tr>
-                    {PUZZLE.suspects.map((name, s) => (
-                      <tr key={name}>
-                        <th className="rowh">{name}</th>
-                        {cat.vals.map((_, v) => {
+                    {cat.vals.map((val, v) => (
+                      <tr key={val}>
+                        <th className="rowh">{val}</th>
+                        {PUZZLE.suspects.map((name, s) => {
                           const m = g.marks[cat.key][s][v];
                           return (
                             <td
-                              key={v}
+                              key={name}
                               className={`al-td${m === 1 ? ' x' : m === 2 ? ' dot' : ''}`}
                               onClick={() => { if (longFired.current) { longFired.current = false; return; } tapCell(cat.key, s, v); }}
                               onContextMenu={(e) => { e.preventDefault(); if (longFired.current) return; toggleDot(cat.key, s, v); }}
@@ -714,16 +729,16 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
                               onTouchCancel={endPress}
                               style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                               role="button"
-                              aria-label={`${name} / ${cat.vals[v]}: ${m === 0 ? 'blank' : m === 1 ? 'impossible' : 'confirmed'}. Tap to toggle impossible; long-press or right-click to confirm.`}
+                              aria-label={`${name} / ${val}: ${m === 0 ? 'blank' : m === 1 ? 'impossible' : 'confirmed'}. Tap to toggle impossible; long-press or right-click to confirm.`}
                             >{m === 1 ? '✗' : m === 2 ? '●' : ''}</td>
                           );
                         })}
                       </tr>
                     ))}
-                  </tbody>
-                </table>
-              ))}
-            </div>
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
 
             {started && (
               <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 2px', lineHeight: 1.5 }}>
