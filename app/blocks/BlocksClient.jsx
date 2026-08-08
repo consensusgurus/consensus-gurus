@@ -607,7 +607,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
       banner={`Everyone gets the same shapes in the same order today${PUZZLE.sunday ? ', in a narrower Sunday well' : ''}.`}
       sub="Nine shapes: the seven you know, plus a corner and a plus. The two additions are the two darkest blues."
       steps={[
-        <>Move with <b>&larr; &rarr;</b>, rotate with <b>&uarr;</b> or <b>Z</b>, drop with <b>space</b>.</>,
+        <>Move with <b>&larr; &rarr;</b>, rotate with <b>&uarr;</b>, and hard drop with <b>space</b> on a keyboard or a <b>flick down the well</b> on a phone.</>,
         <><b>Hold</b> a shape with <b>C</b> to save it for the gap it fits.</>,
         <>Complete a row to clear it, and clear on <b>consecutive shapes</b> to build a combo.</>,
         <><b>Pause</b> whenever. The board is saved, so you can come back through the day and pick the same run up where you left it.</>,
@@ -716,25 +716,25 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
               <span style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 800, color: COLORS.ink }}>{score10}<em style={{ fontStyle: 'normal', fontSize: 10, color: '#94a3b8' }}>/10</em></span>
             </div>
 
-            {/* The pad is the T piece: [[0,1,0],[1,1,1]]. Up rotates, left and
-                right move, the middle steps it down, and Drop is the bar under
-                it. One rotate button, not two, because a second direction is a
-                decision nobody wants to make with a shape falling. Centered at
-                every width. */}
+            {/* The pad IS the T piece: [[0,1,0],[1,1,1]], and nothing else.
+                Up rotates, left and right move, the middle steps it down. One
+                rotate, because picking a direction is not a decision anyone
+                wants to make with a shape already falling, and no Drop key,
+                because a flick down the well does it and the pad stays a shape
+                rather than a control panel. Centered at every width. */}
             <div className="bl-dock">
               <div className="bl-pad">
                 <button className="bl-rot" style={dockBtn} {...tapProps('cw')} aria-label="Rotate">&#8635;</button>
                 <button className="bl-lft" style={dockBtn} {...holdProps('left')} aria-label="Move left">&#9664;</button>
                 <button className="bl-dwn" style={dockBtn} {...holdProps('down')} aria-label="Soft drop">&#9660;</button>
                 <button className="bl-rgt" style={dockBtn} {...holdProps('right')} aria-label="Move right">&#9654;</button>
-                <button className="bl-drop" style={{ ...dockBtn, width: 'auto', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', background: COLORS.accent, borderColor: COLORS.accent, color: '#fff' }} {...tapProps('drop')}>Drop</button>
               </div>
             </div>
             <div className="bl-keys" style={{ textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
-              &larr; &rarr; move &middot; &darr; soft drop &middot; &uarr; / Z rotate &middot; space drop &middot; C hold &middot; P pause
+              &larr; &rarr; move &middot; &darr; soft drop &middot; &uarr; / Z rotate &middot; space hard drop &middot; C hold &middot; P pause
             </div>
             <div className="bl-touchhint" style={{ display: 'none', textAlign: 'center', marginTop: 8, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
-              Swipe the well to move &middot; tap to rotate &middot; flick down to drop &middot; hold an arrow to repeat
+              Flick down the well to hard drop &middot; or swipe to move and tap to rotate &middot; hold an arrow to repeat
             </div>
 
             {paused && playing && g.t0 && (
@@ -824,7 +824,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         .bl-dock { display: flex; justify-content: center; margin-top: 12px; }
         .bl-pad {
           display: grid;
-          grid-template-areas: ". rot ." "lft dwn rgt" "drp drp drp";
+          grid-template-areas: ". rot ." "lft dwn rgt";
           grid-template-columns: repeat(3, 58px);
           gap: 5px;
           justify-content: center;
@@ -833,7 +833,6 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         .bl-lft { grid-area: lft; }
         .bl-dwn { grid-area: dwn; }
         .bl-rgt { grid-area: rgt; }
-        .bl-drop { grid-area: drp; }
         .bl-pad button { width: 100% !important; }
         @media (max-width: 640px) {
           .bl-ladder { display: none !important; }
@@ -842,8 +841,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           .bl-touchhint { display: block !important; }
           .bl-dock { margin-top: 10px; }
           .bl-pad { grid-template-columns: repeat(3, 64px); gap: 6px; }
-          .bl-pad button { height: 56px !important; }
-          .bl-drop { height: 48px !important; }
+          .bl-pad button { height: 58px !important; }
         }
       `}</style>
 
