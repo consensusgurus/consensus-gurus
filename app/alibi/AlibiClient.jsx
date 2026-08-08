@@ -378,6 +378,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         const fixed = tbl.getBoundingClientRect().height - PROBE * 12;
         const row = Math.max(19, Math.min(34, Math.floor((h - fixed - 4) / 12)));
         tbl.style.setProperty('--alrow', row + 'px');
+        tbl.style.setProperty('--alfont', Math.max(9, Math.min(12, row * 0.5)).toFixed(1) + 'px');
+        tbl.style.setProperty('--alpad', (row < 26 ? 0 : 1) + 'px');
       }
     };
     fit();
@@ -645,7 +647,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-tbl{border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto;width:100%;max-width:520px;table-layout:fixed;}
           .al-tbl caption{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${COLORS.faded};text-align:left;padding:0 0 6px 2px;caption-side:top;}
           .al-tbl th{font-size:11px;padding:6px 4px;background:#efece6;font-weight:700;color:${COLORS.ink};}
-          .al-tbl th.rowh{text-align:right;width:31%;padding-right:7px;font-size:12px;font-weight:700;color:${COLORS.faded};background:#faf8f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
+          .al-tbl th.rowh{text-align:right;width:31%;padding-right:7px;padding-top:var(--alpad,1px);padding-bottom:var(--alpad,1px);font-size:var(--alfont,12px);line-height:1.15;font-weight:700;color:${COLORS.faded};background:#faf8f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
           .al-tbl th.colh{font-size:12px;padding:7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
           .al-band td{background:var(--bg);color:var(--white);font-size:9.5px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;text-align:left;padding:3px 8px;border:1px solid var(--bg);}
           @media(max-width:400px){.al-tbl th.rowh{font-size:11px;}.al-tbl th.colh{font-size:11px;}}
