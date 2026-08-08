@@ -17,9 +17,21 @@ export const fetchCache = 'force-no-store';
 // be served to a different player. That is the same argument
 // /api/quiz/daily-status and /api/quiz/board already make for themselves.
 //
-// `fresh=1` opts OUT, and the post-game path MUST use it: the end card reads
-// this route immediately after POSTing its result row, and a 30s-stale profile
-// would report zero IQ earned and swallow the trophy unlock toast.
+// ONLY ANONYMOUS PLAYERS ARE CACHED (owner rule, 2026-08-08). A REGISTERED
+// player always gets a live read, full stop. Their stats are the product they
+// signed up for: rank, IQ Points and the Stat Hub have to be right the moment
+// they look, not within two minutes. So the cache is a pure win on guests, who
+// have no standing to track, and is never allowed to make a member's own
+// numbers lag. Measured on the day this shipped: 42% of plays were anonymous,
+// so the cache still absorbs a large share of the load.
+//
+// Two more carve-outs, both for correctness rather than policy:
+//
+// `fresh=1` opts OUT. This is what keeps the ANONYMOUS end card exact: a guest
+// finishes a puzzle, the card reads this route immediately after POSTing the
+// result row, and a stale profile would report zero IQ earned and swallow the
+// trophy unlock. Registered players are uncached anyway, so the flag is belt
+// and braces for them and load-bearing for guests.
 //
 // A `found: false` answer is NEVER cached. A brand-new player's first row can
 // land mid-window, and caching the miss would tell them they do not exist for
@@ -90,8 +102,12 @@ export async function GET(request) {
       const res = computeTrophiesCached(data || [], players);
       profile.trophies = buildTrophyList(res, myKey, { includeDuels: false });
     }
+    // profile.signed is `signed || !p.isAnon`, so it catches a registered player
+    // whether they were resolved by email or by an anon id already claimed by an
+    // account. Anything other than a found, unclaimed, non-fresh guest is live.
+    const cacheable = profile.found && !profile.signed && !fresh;
     return NextResponse.json(profile, {
-      headers: (fresh || !profile.found) ? NO_STORE_HEADERS : CACHE_HEADERS,
+      headers: cacheable ? CACHE_HEADERS : NO_STORE_HEADERS,
     });
   } catch (e) {
     console.error('quiz me exception', e);
