@@ -12,14 +12,13 @@ import {
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
   Check, Star, Target, Swords, Newspaper, Blocks, GraduationCap,
-  Flag, Brain,
+  Flag, Gauge,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
 import HomeRails from '../HomeRails';
 import XpTile from './XpTile';
-import shareDayCard from '../shareDayCard';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
 import { DAILY_GAMES, CAT_META } from '@/app/DailyEndCard';
 import {
@@ -576,7 +575,6 @@ export default function QuizHomeClient() {
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
   const [feedbackMode, setFeedbackMode] = useState(null); // null | 'issue' | 'manager' (the tool row's first two buttons)
-  const [dayBusy, setDayBusy] = useState(false); // 'Share my day' card is rendering
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
   const [dailyLead, setDailyLead] = useState(null); // daily-board leader for the header ticker
   const [dailyBoard, setDailyBoard] = useState(null); // full daily-combined payload (passed to DailyStrip's leaderboard)
@@ -1041,16 +1039,6 @@ export default function QuizHomeClient() {
       .catch(() => {});
     return () => { alive = false; };
   }, []);
-
-  // Tool-row "Share my day": only offered once the viewer has actually played
-  // something today, since the card would otherwise render an empty day.
-  const dayPlayed = !!(dailyBoard && ((dailyBoard.me && dailyBoard.me.gamesPlayed) || dailyBoard.meProvisional));
-  const shareMyDay = async () => {
-    if (dayBusy) return;
-    setDayBusy(true);
-    try { await shareDayCard(); } catch (e) { /* nothing to show: the button just re-enables */ }
-    setDayBusy(false);
-  };
 
   const tickerItems = useMemo(() => {
     const ago = (iso) => {
@@ -1644,10 +1632,6 @@ export default function QuizHomeClient() {
     .qzh .qz-toolbtn:hover svg{color:var(--ink);}
     /* One accent in the row: Share my day, the button we most want pressed
        (owner 2026-07-30). It leads the row, left of the search field. */
-    .qzh .qz-toolbtn-cta{background:var(--cta);border-color: var(--cta-hover);color:var(--cta-ink);font-weight:800;}
-    .qzh .qz-toolbtn-cta svg{color:var(--cta-ink);}
-    .qzh .qz-toolbtn-cta:hover{background:var(--cta-hover);border-color:var(--cta-hover);color:var(--cta-ink);}
-    .qzh .qz-toolbtn-cta:hover svg{color:var(--cta-ink);}
     @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
     /* ONE search bar at every width. The browse row's own field is hidden from
        821px up (rule above), so this tool-row field is the desktop search; at
@@ -1655,7 +1639,7 @@ export default function QuizHomeClient() {
        tool-row one hides and only the three buttons remain here. Mobile layout
        is therefore exactly what it was, plus the buttons. */
     @media(max-width:820px){.qzh .qz-toolsearch{display:none !important;}.qzh .qz-toolrow{margin-top:0;}}
-    @media(max-width:560px){.qzh .qz-toolrow{gap:7px;padding:7px;margin-bottom:13px;}.qzh .qz-toolbtns{flex-wrap:wrap;gap:7px;}.qzh .qz-toolbtn{flex:1 1 calc(50% - 4px);height:40px;padding:0 10px;font-size:12px;}.qzh .qz-toolbtn-cta{flex:1 1 100%;}}
+    @media(max-width:560px){.qzh .qz-toolrow{gap:7px;padding:7px;margin-bottom:13px;}.qzh .qz-toolbtns{flex-wrap:wrap;gap:7px;}.qzh .qz-toolbtn{flex:1 1 calc(50% - 4px);height:40px;padding:0 10px;font-size:12px;}}
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
     /* Desktop: leaderboard LEFT (1fr), daily challenge WIDE MIDDLE (1.5fr),
@@ -2146,12 +2130,19 @@ export default function QuizHomeClient() {
               .qzh .dhx-lpr{flex:none !important;}
               .qzh .dhx-lone .cm-who,.qzh .dhx-lone .xp-who{font-size:32px !important;}
             }
-            /* 761-1200: the board goes full width on its own row, but the two rails
+            /* 901-1200: the board goes full width on its own row, but the two rails
                sit SIDE BY SIDE beneath it instead of each stretching to full width
                (owner, 2026-08-03: a narrowed desktop rendered them as giant full-width
                bands). Each column lands at ~360px+, i.e. wider than the 284/300 desktop
-               rails, so every rail card keeps its intended proportions. */
-            @media(min-width:761px) and (max-width:1200px){
+               rails, so every rail card keeps its intended proportions.
+               ⚠️ The floor is 901, NOT 761. HomeRails takes .hr-panel FULL BLEED below
+               900px (margin-left:calc(50% - 50vw)), so between 761 and 900 the two
+               rules fought and both rails escaped their columns: measured on the live
+               site at 800px, every panel rendered 785px wide, the left rail at x=-190
+               and the right at x=190, i.e. overlapping each other and hanging off the
+               page. Below 901 the rails now stack in one column, which is what the
+               full-bleed treatment already assumes. */
+            @media(min-width:901px) and (max-width:1200px){
               .qzh .dhx{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;}
               .qzh .dhx-center{grid-column:1 / -1;}
               .qzh .dhx-left{grid-column:1;}
@@ -2165,6 +2156,28 @@ export default function QuizHomeClient() {
               .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;}
               .qzh .dhx-lone > *{flex:1 1 auto !important;}
               .qzh .dhx-rone .dhx-lp{flex:1 1 auto !important;}
+            }
+            /* PHONE: no seams between sections (owner, 2026-08-08). Below 900px
+               every rail panel already goes full-bleed edge to edge, so the
+               grid's 14px gap and the rail's 13px gap were rendering as thin
+               strips of page background BETWEEN full-width bands: the board and
+               the leaderboard under it read as two things that had come apart,
+               and the same strip showed again at the break below the rails.
+               Zeroing both gaps (and the section's bottom margin) makes the
+               phone home one continuous stack, which is the direction-B shape
+               the cap bars and the slate already follow. HomeRails drops the
+               doubled border where two panels now meet.
+               Desktop and the 901-1200px stacked-but-inset layout are untouched:
+               there the panels are still rounded cards in a gutter, where a gap
+               is the thing that separates them. */
+            @media(max-width:900px){
+              .qzh .dhx{gap:0;margin-bottom:0;}
+              .qzh .dhx-rail{gap:0;}
+              /* The tool row is the "next section break" the same complaint
+                 named: it carried its own 2px top margin on top of the grid's
+                 bottom margin. This block is later in source than the tool
+                 row's own rule at equal specificity, so it wins. */
+              .qzh .qz-toolrow{margin-top:0;}
             }
             @media(max-width:760px){
               /* rails stack full width on phones: the leaderboards stay a top 5 */
@@ -2238,19 +2251,17 @@ export default function QuizHomeClient() {
 
         {/* Full-width tool row (owner 2026-07-29): the search box that used to
             live in the blue header now sits HERE, spanning the whole content
-            width directly below the three-column daily section, with three
+            width directly below the three-column daily section, with two
             actions beside it. Report an issue posts to /api/complaints (see
-            FeedbackModal); Share my day downloads the day card and opens the
-            credit pop-up, and only shows once the viewer has played today;
-            Request a quiz links to the existing /request form. It stays bound to the same
-            `search` state as the browse-row field below, so typing in either
-            filters the same feed. */}
+            FeedbackModal); Request a quiz links to the existing /request form.
+            It stays bound to the same `search` state as the browse-row field
+            below, so typing in either filters the same feed.
+            The "Share my day (for credit)" CTA was DELETED here 2026-08-08
+            (owner). It sat below every board where nobody found it, and the ask
+            now lives where the reason for it does: the phone share strip under
+            the community leaderboard in HomeRails, and the header's own credit
+            entry on desktop. */}
         <div className="qz-toolrow">
-          {dayPlayed ? (
-            <button type="button" className="qz-toolbtn qz-toolbtn-cta" onClick={shareMyDay} disabled={dayBusy}>
-              <Brain size={15} aria-hidden="true" />{dayBusy ? 'Building\u2026' : 'Share my day (for credit)'}
-            </button>
-          ) : null}
           <div className="qz-toolsearch">
             <Search size={17} aria-hidden="true" />
             <input
@@ -2444,6 +2455,11 @@ export default function QuizHomeClient() {
           </div>
         ) : (
           <div className="qcols">
+            {/* Category Mastery leads the grid (top-left), the slot the owner
+                named when it moved out of the right rail. It self-suppresses
+                for a viewer with no plays, in which case Most Played leads as
+                it did before. */}
+            <CategoryMasteryTile rows={catMastery} onPick={goCat} colorFor={(k) => (byKey[k] && byKey[k].c)} />
             {/* Last Played / Most Played / Newest each lead with a hero photo
                 (added 2026-07-20 per Marshall), so the three activity columns
                 match the category columns beside them instead of reading as a
@@ -2780,6 +2796,62 @@ function usePillProbe(url, region, scrim, useParentBox) {
     return () => { dead = true; };
   }, [url, scrim]);
   return [ref, pill];
+}
+
+// CATEGORY MASTERY TILE (owner, 2026-08-08). Category mastery used to be a link
+// in the right rail's footer, pointing at the Stat Hub. The rail's second face
+// is now DAILY mastery, so the quiz-category version came out to the browse row
+// and became a real tile: first cell of .qcols, i.e. the top-left of the grid.
+//
+// It borrows BrowseColumn's `catcard` + `cc-head` shell deliberately, so it
+// reads as one of the columns beside it rather than a widget that wandered in,
+// and its body is bars instead of quiz-title rows because the thing it reports
+// is a proportion per category, not a list of things to play. Each bar is a
+// button that filters the feed to that category, the same jump the tile's
+// "Stat hub" CTA used to make in the rail.
+//
+// `rows` is the catMastery memo: [{ key, label, acc }] already sorted best
+// first, where acc is (quizzes played / quizzes in category) as a percent. An
+// empty array means the viewer has played nothing yet, in which case the tile
+// does not render at all: a column of 0% bars is a worse first impression than
+// simply not being there.
+function CategoryMasteryTile({ rows, onPick, colorFor }) {
+  if (!rows || !rows.length) return null;
+  return (
+    <section className="mc-open catcard cmt" style={{ minWidth: 0 }}>
+      <style>{`
+        .qzh .cmt-body{padding:9px 11px 11px;display:flex;flex-direction:column;gap:5px;}
+        .qzh .cmt-bar{position:relative;display:flex;align-items:center;gap:8px;width:100%;background:#eef1f6;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-family:inherit;overflow:hidden;text-align:left;}
+        .qzh .cmt-bar:hover{background:#e6ebf3;}
+        .qzh .cmt-bar .mtr{position:absolute;left:0;top:0;bottom:0;background:#dbe6fb;border-radius:8px;pointer-events:none;}
+        .qzh .cmt-bar .dot{position:relative;width:7px;height:7px;border-radius:2px;flex:none;}
+        .qzh .cmt-bar .nm{position:relative;flex:1;min-width:0;font-size:12px;font-weight:700;color:${C.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .qzh .cmt-bar .p{position:relative;flex:none;font-size:11.5px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
+        .qzh .cmt-note{padding:0 11px 10px;font-size:10.5px;color:${C.soft};font-weight:600;}
+      `}</style>
+      <div className="colhead cc-head cc-filled" style={{ borderColor: T.ink, background: T.white }}>
+        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: '#dbe6fb', color: T.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+          <Gauge size={14} />
+        </span>
+        <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: T.ink }}>Category Mastery</h3>
+        <Link href="/quizzes/hub?tab=player&pview=category" className="viewall vall" style={{ color: T.ink, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>Stat hub ›</Link>
+      </div>
+      <div className="cmt-body">
+        {rows.slice(0, 8).map((r) => {
+          const cc = (colorFor && colorFor(r.key)) || C.accent;
+          return (
+            <button type="button" key={r.key} className="cmt-bar" onClick={() => onPick(r.key)}>
+              <span className="mtr" style={{ width: `${Math.max(0, Math.min(100, r.acc))}%` }} />
+              <span className="dot" style={{ background: cc }} />
+              <span className="nm">{r.label}</span>
+              <span className="p">{r.acc}%</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="cmt-note">Share of each category&rsquo;s quizzes you have played.</div>
+    </section>
+  );
 }
 
 function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled, fill, baseCount }) {

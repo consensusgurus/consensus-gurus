@@ -10,32 +10,54 @@
 //
 // It is deliberately a PRESENTATION component. Every figure it renders is
 // already fetched by QuizHomeClient and handed down as a prop, so no fetch,
-// no identity read, and no API surface moved. The one exception is the "Your
-// results" tab, which reuses the memoized fetchDayStatus() promise that
+// no identity read, and no API surface moved. The one exception is the "Daily
+// mastery" face, which reuses the memoized fetchDayStatus() promise that
 // useDayStats already fires for the header, so it costs no extra request.
 //
 // Left rail, top to bottom:
 //   1. Top community member  (refData)          - fixed
+//   1b. Share strip           - PHONE ONLY, sits directly under the board above
 //   2. Today's leaders       (dailyBoard/xpToday) - auto-flips every 7s
 //   3. Top player            (xpAll/xp30)         - auto-flips every 7s
 // Right rail:
-//   1. The loft: Live feed | Your results tabs, over plays/time today
+//   1. The Loft: Live feed | Daily mastery, auto-flips every 8s, over plays/time
 //   2. Featured: daily challenge, quiz of the day, duel
 //
 // The flip replaces the old dot-only affordance with a named pill plus dots, so
 // a reader can always tell WHICH board they are looking at; hovering the pill
 // pauses the rotation and the dots are clickable.
+//
+// 2026-08-08 (owner): the right rail's Live feed | Your results TABS became a
+// timed flip like the left rail's panels, and the "Your results" face (today's
+// finished games) was replaced by DAILY MASTERY: every live daily game with a
+// bar showing how many of that game's days this player has played, out of every
+// day the game has ever run. That figure is `archive` on /api/quiz/daily-status,
+// which fetchDayStatus already returns, so the face costs no new request. The
+// old Category mastery footer link moved out to its own tile on the browse row.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { T } from '@/lib/theme';
-import { DAILY_GAME_MAP } from '@/lib/daily-games';
-import { COMPLETION_MAX } from '@/lib/daily-combined';
+import { DAILY_GAME_MAP, liveDailyKeys } from '@/lib/daily-games';
 import { fetchDayStatus } from './useDayStats';
+import { notifyShareCredit } from './ShareCreditPop';
 import { ringBlue } from '@/lib/home-blues';
-import { COPY, contestIsLive, formatScore } from '@/lib/contest';
+import { CONTEST, COPY, contestIsLive, formatScore } from '@/lib/contest';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
+
+// Collapsed every board shows five; expanded it shows TEN, never "all"
+// (owner, 2026-08-08). The boards run to dozens of rows, so "Show all 11" both
+// under-promised and over-delivered: it named a number that is not the size of
+// the field, and dumping the whole field into a rail is not what the reader
+// wanted from a top-five card either. Ten is the readable full page.
+const ROWS_COLLAPSED = 5;
+const ROWS_OPEN = 10;
+function boardSlice(rows, open) {
+  return (rows || []).slice(0, open ? ROWS_OPEN : ROWS_COLLAPSED);
+}
+// The expander only earns its place when there is a second page to show.
+function hasMore(rows) { return (rows || []).length > ROWS_COLLAPSED; }
 
 function num(n) { return (n || 0).toLocaleString(); }
 
@@ -51,15 +73,6 @@ function scoreTone(pct) {
 // blue ramp, deep navy for a strong run through pale for a weak one. The arc
 // length and the printed percentage were always the actual readout.
 function ringTone(pct) { return ringBlue(pct); }
-
-// m:ss, or h:mm:ss on the rare long one. Seconds in, never a bare float.
-function fmtTime(sec) {
-  const t = Math.max(0, Math.round(Number(sec) || 0));
-  if (!t) return null;
-  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
-  const two = (n) => String(n).padStart(2, '0');
-  return h ? `${h}:${two(m)}:${two(s)}` : `${m}:${two(s)}`;
-}
 
 function Rows({ rows, fmt, open, hrefFor, hero }) {
   // The phone hero slab: the panel's #1 rendered in the same shape as the Up
@@ -94,60 +107,75 @@ function Rows({ rows, fmt, open, hrefFor, hero }) {
   );
 }
 
-// A panel whose body flips between two faces on a timer. `faces` is an array of
-// { label, sub, rows, href }, and the pill names the face that is showing.
-function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
+// Shared face rotation for every flipping panel: which face is showing, a hover
+// hold so a reader can stop it on the one they are looking at, and the pill +
+// dots control. `ms` is per panel (the leaderboards run at 7s, the right rail's
+// Loft at 8s, per owner) so the two rails never tick in lockstep.
+function useFlip(count, ms) {
   const [ix, setIx] = useState(0);
   const holdRef = useRef(false);
   useEffect(() => {
-    if (faces.length < 2) return undefined;
-    const id = setInterval(() => { if (!holdRef.current) setIx((v) => (v + 1) % faces.length); }, 7000);
+    if (count < 2) return undefined;
+    const id = setInterval(() => { if (!holdRef.current) setIx((v) => (v + 1) % count); }, ms);
     return () => clearInterval(id);
-  }, [faces.length]);
+  }, [count, ms]);
+  return { ix: Math.min(ix, Math.max(0, count - 1)), setIx, holdRef };
+}
+
+// The pill naming the visible face, plus its clickable dots. Rendered into the
+// panel's navy header band, where the flip control has always lived.
+function FlipPill({ labels, ix, setIx, holdRef }) {
+  if (labels.length < 2) return null;
+  return (
+    <span
+      className="hr-flip"
+      onMouseEnter={() => { holdRef.current = true; }}
+      onMouseLeave={() => { holdRef.current = false; }}
+    >
+      <span className="hr-lbl">{labels[ix]}</span>
+      <span className="hr-dots">
+        {labels.map((l, i) => (
+          <i
+            key={l}
+            className={i === ix ? 'on' : undefined}
+            role="button"
+            tabIndex={0}
+            aria-label={l}
+            onClick={() => setIx(i)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIx(i); }}
+          />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+// A panel whose body flips between two faces on a timer. `faces` is an array of
+// { label, sub, rows, href }, and the pill names the face that is showing.
+function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
+  const { ix, setIx, holdRef } = useFlip(faces.length, 7000);
   const face = faces[Math.min(ix, faces.length - 1)] || faces[0];
   if (!face) return null;
-  const shown = open ? face.rows : face.rows.slice(0, 5);
   return (
     <section className="hr-panel hr-flex">
       <div className="hr-ph">
         <span className="hr-pi">{icon}</span>
         <h2>{title}</h2>
-        {faces.length > 1 ? (
-          <span
-            className="hr-flip"
-            onMouseEnter={() => { holdRef.current = true; }}
-            onMouseLeave={() => { holdRef.current = false; }}
-          >
-            <span className="hr-lbl">{face.label}</span>
-            <span className="hr-dots">
-              {faces.map((f, i) => (
-                <i
-                  key={f.label}
-                  className={i === ix ? 'on' : undefined}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={f.label}
-                  onClick={() => setIx(i)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIx(i); }}
-                />
-              ))}
-            </span>
-          </span>
-        ) : null}
+        <FlipPill labels={faces.map((f) => f.label)} ix={ix} setIx={setIx} holdRef={holdRef} />
       </div>
       <div className="hr-sub">{face.sub}</div>
       <div className="hr-scroll hr-flex">
         <Rows
-          rows={shown}
+          rows={boardSlice(face.rows, open)}
           fmt={face.fmt}
           hrefFor={face.hrefFor}
           hero={{ eyebrow: face.eyebrow || face.label, sub: face.sub, unit: face.unit, tone: face.tone }}
         />
       </div>
       <div className="hr-foot">
-        {face.rows.length > 5 ? (
+        {hasMore(face.rows) ? (
           <button type="button" className="hr-exp" onClick={onToggle}>
-            {open ? 'Show top 5' : `Show all ${face.rows.length}`}
+            {open ? `Show top ${ROWS_COLLAPSED}` : `Show top ${ROWS_OPEN}`}
           </button>
         ) : <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">·</span>}
         <Link href={face.href} className="hr-link">Full leaderboard &rarr;</Link>
@@ -226,7 +254,9 @@ export default function HomeRails({
   }, [dailyBoard]);
 
   // ── RIGHT ─────────────────────────────────────────────────────────────────
-  const [tab, setTab] = useState('feed');
+  // The Loft flips between its two faces on an 8s timer (owner, 2026-08-08).
+  // The face list is fixed, so the labels can be declared inline.
+  const loft = useFlip(2, 8000);
   const [mine, setMine] = useState(null);
   useEffect(() => {
     if (side !== 'right') return undefined;
@@ -235,30 +265,39 @@ export default function HomeRails({
     return () => { alive = false; };
   }, [side]);
 
-  // "Your results" has no dedicated endpoint yet, so it is built from the same
-  // daily-status payload the header already pulls: today's roster, in play
-  // order, showing which are finished. When a per-player score feed lands this
-  // is the one block to swap.
-  // Only games actually FINISHED today, each with its score, board rank and
-  // points, straight off the daily-combined payload's me.perGame. An unplayed
-  // game has nothing to report, so it is simply absent rather than listed as a
-  // row of dashes (owner, 2026-08-03).
-  const myRows = useMemo(() => {
-    const per = (dailyBoard && dailyBoard.me && dailyBoard.me.perGame) || null;
-    if (!per) return [];
-    return Object.keys(per)
-      .filter((k) => per[k] && !per[k].abandoned)
-      .map((k) => {
-        const g = DAILY_GAME_MAP[k] || { name: k, cat: '' };
-        const r = per[k];
-        return {
-          key: k, name: g.name, cat: g.cat, img: g.img,
-          score: r.score, total: r.total, rank: r.rank, field: r.field,
-          points: r.points, completion: r.completion, time: r.timeElapsed,
-        };
-      })
-      .sort((a, b) => (b.points || 0) - (a.points || 0));
-  }, [dailyBoard]);
+  // DAILY MASTERY: one row per LIVE daily game, with a bar showing how much of
+  // that game's archive this player has played. `archive` comes straight off
+  // /api/quiz/daily-status as { <gameKey>: { total, played } }, where `total` is
+  // every day the game has ever run (distinct dated ids across all players, the
+  // same set the per-game archive calendar draws from) and `played` is the days
+  // THIS player finished. So the percentage answers "how much of this game have
+  // I done", exactly as the old Category Mastery answered it for quizzes.
+  //
+  // EVERY live game is listed, unplayed ones at 0% (owner, 2026-08-08), which is
+  // why the body scrolls: at ~51 rows the point is the whole board of them, and
+  // hiding the untouched games would hide precisely the ones worth starting.
+  // Retired games are excluded (liveDailyKeys), matching the day roster: their
+  // archive is closed, so a bar for one can never move.
+  const masteryRows = useMemo(() => {
+    const arch = (mine && mine.archive) || {};
+    return liveDailyKeys().map((k) => {
+      const g = DAILY_GAME_MAP[k] || { name: k, cat: '', img: '' };
+      const a = arch[k] || {};
+      const total = Number(a.total) || 0;
+      const played = Math.min(Number(a.played) || 0, total || Number(a.played) || 0);
+      const pct = total > 0 ? Math.round((played / total) * 100) : 0;
+      return { key: k, name: g.name, cat: g.cat, img: g.img, played, total, pct };
+    }).sort((a, b) => b.pct - a.pct || b.played - a.played || a.name.localeCompare(b.name));
+  }, [mine]);
+
+  // Headline for the mastery face: days played across every live game, over
+  // every day those games have run. One figure, so the reader knows what the
+  // bars below are a breakdown OF before reading any of them.
+  const masteryAll = useMemo(() => {
+    let played = 0, total = 0;
+    for (const r of masteryRows) { played += r.played; total += r.total; }
+    return { played, total, pct: total > 0 ? Math.round((played / total) * 100) : 0 };
+  }, [masteryRows]);
 
   const playsToday = (totals && totals.today) || 0;
   const timeToday = (() => {
@@ -329,11 +368,32 @@ export default function HomeRails({
       .hr-exp:hover{color:var(--blue-deep);}
       .hr-link{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep);text-decoration:none;white-space:nowrap;flex:none;}
       .hr-link:hover{text-decoration:underline;}
-      .hr-tabs{display:flex;background:var(--accent);flex:none;}
-      .hr-tabs button{flex:1;border:0;border-radius:0;background:#2c4fa8;font:inherit;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#c3d5f4;padding:11px 6px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(255,255,255,0);}
-      .hr-tabs button + button{border-left:1px solid rgba(255,255,255,.16);}
-      .hr-tabs button:hover{color:var(--white);background:#3559b4;}
-      .hr-tabs button.on{color:var(--white);background:var(--accent);box-shadow:inset 0 -3px 0 var(--blue);}
+      /* Daily mastery rows. A bar, not a ring: the ring on the live feed reads a
+         SCORE out of a possible one, whereas this reads progress along an
+         archive, and a bar is the shape that says "how far through". The meter
+         is a tinted fill behind the name rather than a separate track, so ~51
+         of them stack without turning the rail into a barcode. */
+      .hr-mrow{position:relative;display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);overflow:hidden;}
+      .hr-mrow:last-child{border-bottom:none;}
+      .hr-mrow:hover{background:var(--surface);}
+      .hr-mfill{position:absolute;left:0;top:0;bottom:0;background:#e4edfd;pointer-events:none;}
+      /* :not(.hr-mfill) is load-bearing. A bare child-universal selector is
+         MORE specific than .hr-mfill (class + universal beats one class), so it
+         re-set the meter to position:relative, which put it back in the flex
+         flow as a real item and shoved the icon, name and figure right by
+         exactly the fill width: an 88% row rendered its name almost off the
+         end. Lifting only the CONTENT off the meter keeps the meter absolute. */
+      .hr-mrow > :not(.hr-mfill){position:relative;}
+      .hr-mic{height:26px;width:auto;background:var(--surface-alt);border-radius:6px;padding:2px;flex:none;}
+      .hr-mnm{flex:1;min-width:0;font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-mnm span{display:block;font-size:10.5px;font-weight:600;color:var(--slate);}
+      .hr-mpct{flex:none;text-align:right;font-variant-numeric:tabular-nums;}
+      .hr-mpct b{display:block;font-size:13px;font-weight:800;line-height:1.1;}
+      .hr-mpct i{display:block;font-style:normal;font-size:10px;font-weight:700;color:var(--slate);}
+      /* Zero rows stay legible but recede, so the games with progress lead the
+         eye without the untouched ones vanishing. */
+      .hr-mrow.zero .hr-mnm{font-weight:700;color:var(--slate);}
+      .hr-mrow.zero .hr-mpct b{color:#9aa2b1;}
       .hr-stats{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex:none;}
       .hr-stats > div{flex:1;padding:10px 13px;border-right:1px solid var(--border);}
       .hr-stats > div:last-child{border-right:none;}
@@ -342,7 +402,6 @@ export default function HomeRails({
       .hr-res{display:flex;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-res:last-child{border-bottom:none;}
       .hr-res:hover{background:var(--surface);}
-      .hr-ic{height:30px;width:auto;background:var(--surface-alt);border-radius:7px;padding:3px;flex:none;}
       .hr-mid{flex:1;min-width:0;}
       .hr-t{display:flex;align-items:baseline;gap:7px;min-width:0;font-size:12.5px;font-weight:800;}
       .hr-ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
@@ -368,8 +427,35 @@ export default function HomeRails({
       .hr-fl svg{flex:none;}
       .hr-fs{display:block;font-size:11px;color:var(--slate);}
       .hr-fa{margin-left:auto;color:#9aa2b1;font-size:18px;line-height:1;}
+      /* PHONE SHARE STRIP (owner, 2026-08-08). The only share affordance on the
+         phone home used to be a text button far down the page, below every
+         board, which nobody was going to find. This is a full-bleed bar sitting
+         directly under the community leaderboard, i.e. immediately under the
+         board that ranks people BY sharing, so the ask lands where the reason
+         for it is already on screen.
+         It is PHONE ONLY: the desktop rail keeps its "Get credit" footer button
+         and the header carries the same offer, so a second full-width bar there
+         would be a third ask in one column. Tapping it fires the global
+         share-credit pop-up, the same one every Share button on the site opens,
+         which is where the contest terms are stated. */
+      /* GOLD, not --cta. --cta is #2563eb, the same family as the navy panel
+         headers this bar is sandwiched between, and a blue bar between two blue
+         bands is precisely the "not obvious enough" problem it exists to fix
+         (compared side by side on the live page before choosing). Gold is
+         already the money colour here, on the #1 rules and the leader crowns,
+         so it reads as "there is a prize" and is the one tone on the phone
+         stack that nothing else is wearing. Ink is a dark brown rather than
+         --gold-ink (#a16207), which is a text-on-white tone and far too low
+         contrast on the gold itself. */
+      .hr-share{display:none;width:100%;box-sizing:border-box;align-items:center;gap:11px;padding:13px 16px;border:0;background:var(--gold,#e8b43a);color:#3a2a05;font:inherit;font-family:inherit;text-align:left;cursor:pointer;}
+      .hr-share:active{background:#d9a52e;}
+      .hr-share .hr-shtxt{flex:1;min-width:0;}
+      .hr-share b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px;line-height:1.25;}
+      .hr-share span{display:block;font-size:11px;font-weight:700;opacity:.78;line-height:1.35;margin-top:2px;}
+      .hr-share .hr-sharr{flex:none;font-size:19px;font-weight:800;line-height:1;opacity:.55;}
       /* The rails stack at natural height on a phone, but the activity list is
-         unbounded, so it alone keeps a cap and scrolls inside it. */
+         unbounded, so it alone keeps a cap and scrolls inside it. Daily mastery
+         lists EVERY live game, so it scrolls inside the same cap. */
       @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:360px;overflow-y:auto;}}
       /* Phone: the rail panels run edge to edge like the slate, rather than
          sitting as tiles inside the page gutter (owner, 2026-08-03). */
@@ -378,6 +464,11 @@ export default function HomeRails({
         .hr-hero{display:flex;}
         .hr-tbl tr.lead1{display:none;}
         .hr-panel:has(.hr-hero) .hr-sub{display:none;}
+        .hr-share{display:flex;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:100vw;max-width:none;}
+        /* The panels butt against each other on a phone (the rail gap is zeroed
+           in QuizHomeClient), so the second of any adjacent pair would otherwise
+           draw a second 1px line right under the first one's. */
+        .hr-panel + .hr-panel,.hr-share + .hr-panel{border-top:0;}
       }
     `}</style>
   );
@@ -412,7 +503,7 @@ export default function HomeRails({
           </div>
           <div className="hr-scroll hr-flex">
             <Rows
-              rows={open.com ? communityRows : communityRows.slice(0, 5)}
+              rows={boardSlice(communityRows, open.com)}
               fmt={showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`}
               hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
               hero={{
@@ -426,14 +517,26 @@ export default function HomeRails({
             />
           </div>
           <div className="hr-foot">
-            {communityRows.length > 5
-              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? 'Show top 5' : `Show all ${communityRows.length}`}</button>
+            {hasMore(communityRows)
+              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? `Show top ${ROWS_COLLAPSED}` : `Show top ${ROWS_OPEN}`}</button>
               : <button type="button" className="hr-exp" onClick={onCredit}>Get credit</button>}
             <Link href={showContest ? '/quizzes/contest' : '/quizzes/community'} className="hr-link">
               {showContest ? 'Board and rules' : 'Full leaderboard'} &rarr;
             </Link>
           </div>
         </section>
+
+        {/* Phone-only share bar, directly under the board it explains. The
+            headline names the prize only while the contest is actually running,
+            so the offer can never outlive it: contestLive is resolved after
+            mount for the same hydration reason the contest board is. */}
+        <button type="button" className="hr-share" onClick={() => { if (!notifyShareCredit('')) { if (onCredit) onCredit(); } }}>
+          <span className="hr-shtxt">
+            <b>{contestLive ? `Share Mind Loft for ${CONTEST.prizeLabel}*` : 'Share Mind Loft for credit'}</b>
+            <span>{contestLive ? `${COPY.prizeLine}. Ends ${CONTEST.endLabel}.` : 'Anyone who plays through your link credits you.'}</span>
+          </span>
+          <span className="hr-sharr" aria-hidden="true">&rsaquo;</span>
+        </button>
 
         <FlipPanel
           icon={<FlameIcon />}
@@ -502,16 +605,26 @@ export default function HomeRails({
     <>
       {CSS}
       <section className="hr-panel hr-flex">
-        <div className="hr-tabs">
-          <button type="button" className={tab === 'feed' ? 'on' : undefined} onClick={() => setTab('feed')}>Live feed</button>
-          <button type="button" className={tab === 'mine' ? 'on' : undefined} onClick={() => setTab('mine')}>Your results</button>
+        <div className="hr-ph">
+          <span className="hr-pi"><PulseIcon /></span>
+          <h2>The Loft</h2>
+          <FlipPill labels={['Live feed', 'Daily mastery']} ix={loft.ix} setIx={loft.setIx} holdRef={loft.holdRef} />
         </div>
         <div className="hr-stats">
-          <div><b>{num(playsToday)}</b><span>plays today</span></div>
-          <div><b>{timeToday}</b><span>played today</span></div>
+          {loft.ix === 0 ? (
+            <>
+              <div><b>{num(playsToday)}</b><span>plays today</span></div>
+              <div><b>{timeToday}</b><span>played today</span></div>
+            </>
+          ) : (
+            <>
+              <div><b>{masteryAll.pct}%</b><span>archive done</span></div>
+              <div><b>{num(masteryAll.played)}</b><span>of {num(masteryAll.total)} days</span></div>
+            </>
+          )}
         </div>
         <div className="hr-scroll hr-flex hr-actbody">
-          {tab === 'feed' ? (
+          {loft.ix === 0 ? (
             (lastPlayed || []).slice(0, 14).map((f, i) => {
               const frac = f.total ? f.score / f.total : 0;
               const pct = Math.round(frac * 100);
@@ -534,42 +647,26 @@ export default function HomeRails({
               );
             })
           ) : (
-            myRows.map((g) => {
-              // `completion` on the daily-combined payload is POINTS on the
-              // 0..COMPLETION_MAX (5) scale, NOT a percentage: a perfect 10/10
-              // carries completion 5, which rendered as a red "5%" ring on a
-              // flawless run (owner, 2026-08-03). Scale it back to a real
-              // percentage so this ring reads exactly like the Live feed tab's.
-              const pct = (g.completion != null)
-                ? Math.max(0, Math.min(100, Math.round((g.completion / COMPLETION_MAX) * 100)))
-                : (g.total ? Math.round((g.score / g.total) * 100) : 0);
-              return (
-                <Link key={g.key} href={`/${g.key}`} className="hr-res">
-                  {g.img ? <img src={g.img} alt="" aria-hidden="true" className="hr-ic" /> : null}
-                  <span className="hr-mid">
-                    <span className="hr-t"><span className="hr-ttl">{g.name}</span></span>
-                    <span className="hr-s">
-                      {(g.score != null && g.total) ? <b className="hr-res-sc">{g.score}/{g.total}</b> : <b className="hr-res-sc">{g.points} pts</b>}
-                      {g.rank ? ` · #${g.rank}${g.field ? ` of ${g.field}` : ''}` : ''}
-                      {fmtTime(g.time) ? ` · ${fmtTime(g.time)}` : ''}
-                      {g.points != null ? ` · ${g.points} pts` : ''}
-                    </span>
-                  </span>
-                  <span className="hr-ring" style={{ background: `conic-gradient(${ringTone(pct)} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
-                </Link>
-              );
-            })
+            masteryRows.map((g) => (
+              <Link key={g.key} href={`/${g.key}`} className={`hr-mrow${g.played ? '' : ' zero'}`}>
+                <span className="hr-mfill" style={{ width: `${Math.max(0, Math.min(100, g.pct))}%` }} aria-hidden="true" />
+                {g.img ? <img src={g.img} alt="" aria-hidden="true" className="hr-mic" /> : null}
+                <span className="hr-mnm">{g.name}<span>{g.cat}</span></span>
+                <span className="hr-mpct"><b>{g.pct}%</b><i>{g.played}/{g.total}</i></span>
+              </Link>
+            ))
           )}
-          {tab === 'feed' && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
-          {tab === 'mine' && !myRows.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>Finish a daily puzzle and your result shows up here.</div> : null}
+          {loft.ix === 0 && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
+          {loft.ix === 1 && !masteryRows.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>Play a daily puzzle and your mastery shows up here.</div> : null}
         </div>
         <div className="hr-foot">
           <button type="button" className="hr-exp" onClick={onAllLive}>All activity</button>
-          {/* Straight to the CATEGORY view, not the hub's default Ranking view
-              (owner, 2026-08-07): the link says Category mastery, so landing on
-              a ranking table made the reader hunt for the thing they asked for.
-              StatHubClient reads ?pview= on mount. */}
-          <Link href="/quizzes/hub?tab=player&pview=category" className="hr-link">Category mastery &rarr;</Link>
+          {/* The footer link follows the visible face. Category mastery moved
+              out to its own browse-row tile (owner, 2026-08-08), so this slot
+              now points at whichever board the reader is actually looking at. */}
+          <Link href={loft.ix === 1 ? '/quizzes/hub?tab=daily' : '/quizzes/hub?tab=player'} className="hr-link">
+            {loft.ix === 1 ? 'Daily boards' : 'Stat hub'} &rarr;
+          </Link>
         </div>
       </section>
 
@@ -594,3 +691,4 @@ function CrownIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fi
 function FlameIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M12 2c1 4-2 5.2-2 8a2 2 0 0 0 4 0c2 2 3 4 3 6a5 5 0 0 1-10 0C7 12 11 10 12 2z" /></svg>; }
 function StarIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.7 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.3 6.5 19.2l1.2-6.1L3.2 8.9l6.1-.8z" /></svg>; }
 function SparkIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18" /></svg>; }
+function PulseIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4" /></svg>; }
