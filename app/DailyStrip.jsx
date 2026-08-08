@@ -1403,7 +1403,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;line-height:1.35;padding-bottom:1px;}
           .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:98px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 0;border-radius:8px;}
         }
-        .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent);border:1.5px solid var(--accent);border-bottom:none;border-radius:13px 13px 0 0;}
+        /* 43px, matched to the rails' panel headers so the Up next bar below
+           starts on the same line as each rail's first band (owner,
+           2026-08-08). 43 rather than 42 because a rail panel has a 1px border
+           ABOVE its header and this bar does not, and border-box so this bar's
+           own 1.5px top border is counted inside the number. Moving .hr-ph's
+           min-height in HomeRails.jsx means moving this one too. */
+        .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;min-height:43px;box-sizing:border-box;background:var(--accent);border:1.5px solid var(--accent);border-bottom:none;border-radius:13px 13px 0 0;}
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
         .dhome.slate{border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);}

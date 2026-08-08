@@ -326,8 +326,20 @@ export default function HomeRails({
     <style>{`
       .hr-panel{background:var(--white);border:1px solid #d9dfe9;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
       .hr-flex{flex:1 1 auto;min-height:0;}
-      .hr-ph{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--accent);flex:none;}
-      .hr-ph h2{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);margin:0;}
+      /* Every panel header is the SAME height across all three columns, so the
+         first band of each panel (the hero slab here, the Up next bar on the
+         slate) starts on one line (owner, 2026-08-08). Two things enforce it:
+         a min-height of 42px (the 24px icon plus 9px of pad either side, which
+         is what a one-line header already measured), and a title that can never
+         wrap. A wrapped title is what broke the row before: "Community
+         Leaderboard ($)" ran to two lines in a 282px rail and pushed that one
+         header to 48px. Titles are kept SHORT for that reason; nowrap plus
+         ellipsis is the belt-and-braces so a future rename cannot reintroduce
+         the misalignment, it just clips. The slate's .sl-bar in DailyStrip.jsx
+         carries the matching 43px (42 plus the 1px panel border the rails have
+         above their header) and must move with this number. */
+      .hr-ph{display:flex;align-items:center;gap:9px;padding:9px 13px;min-height:42px;box-sizing:border-box;background:var(--accent);flex:none;}
+      .hr-ph h2{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);margin:0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .hr-pi{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);color:var(--white);display:flex;align-items:center;justify-content:center;flex:none;}
       /* Countdown chip in the panel header, contest only. Sits where the flip
          pill sits on the rotating panels, so the header keeps one shape. */
@@ -524,13 +536,15 @@ export default function HomeRails({
         <section className="hr-panel hr-flex">
           <div className="hr-ph">
             <span className="hr-pi"><CrownIcon /></span>
-            {/* Keeps the Community Leaderboard name while the contest runs,
-                with a ($) marking that there is prize money on it (owner,
-                2026-08-05). Renaming the panel outright would have read as a
-                different board appearing, when it is the same question with
-                stakes attached. The /quizzes/community PAGE is unaffected and
-                keeps its rolling 90-day board. */}
-            <h2>{showContest ? 'Community Leaderboard ($)' : 'Top community member'}</h2>
+            {/* Flattened to "Leaderboard" (owner, 2026-08-08): the full
+                "Community Leaderboard ($)" wrapped to two lines in the rail and
+                made this one header taller than every other panel's. The ($)
+                stays, marking that there is prize money on it while the contest
+                runs (owner, 2026-08-05), and the hero slab's eyebrow below still
+                names the board in full, so nothing is lost by the short title.
+                The /quizzes/community PAGE is unaffected and keeps its rolling
+                90-day board. */}
+            <h2>{showContest ? 'Leaderboard ($)' : 'Leaderboard'}</h2>
             {showContest && contestDays ? <span className="hr-chip">{contestDays}d left</span> : null}
           </div>
           <div className="hr-sub">
@@ -576,9 +590,13 @@ export default function HomeRails({
           <span className="hr-sharr" aria-hidden="true">&rsaquo;</span>
         </button>
 
+        {/* "Today", not "Today's leaders": the longer name wrapped beside the
+            face-switcher pill and broke the header-height match (owner,
+            2026-08-08). The pill and the hero eyebrow both still say which
+            board is showing. */}
         <FlipPanel
           icon={<FlameIcon />}
-          title="Today's leaders"
+          title="Today"
           open={open.tl}
           onToggle={() => toggle('tl')}
           faces={[
