@@ -48,6 +48,7 @@ import { PUZZLES as TURN_FULL } from '../turn/puzzles';
 import { PUZZLES as SUFFICE_FULL } from '../suffice/puzzles';
 import { PUZZLES as REDACT_FULL } from '../redact/puzzles';
 import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
+import { PUZZLES as BLOCKS_FULL } from '../blocks/puzzles';
 import { PUZZLES as PATHS_FULL } from '../paths/puzzles';
 import { PUZZLES as DEEP_FULL } from '../deep/puzzles';
 import { PUZZLES as ANON_FULL } from '../anon/puzzles';
@@ -95,6 +96,7 @@ const TURN = TURN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num,
 const SUFFICE = SUFFICE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const REDACT = REDACT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const BLOCKS = BLOCKS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const PATHS = PATHS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DEEP = DEEP_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const ANON = ANON_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -194,6 +196,7 @@ const GAMES = [
   { key: 'deep', name: 'Deep', path: '/deep', tag: 'One topic, fifteen questions', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)', src: DEEP },
   { key: 'anon', name: 'Anon', path: '/anon', tag: 'A clueless acrostic', accent: '#8c2f39', bg: '#f8ecee', border: 'rgba(140,47,57,0.4)', src: ANON },
   { key: 'strata', name: 'Strata', path: '/strata', tag: 'Dig the words out', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)', src: STRATA },
+  { key: 'blocks', name: 'Blocks', path: '/blocks', tag: 'Same shapes, same order', accent: '#1d4ed8', bg: '#e8edfa', border: 'rgba(29,78,216,0.4)', src: BLOCKS },
 ];
 
 const breadcrumbJsonLd = {

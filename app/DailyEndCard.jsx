@@ -84,7 +84,7 @@ import {
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus,
-  Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine,
+  Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import { notifyTrophies } from './TrophyPop';
@@ -109,7 +109,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn']
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
+const LAUNCH_PIN = { keys: ['blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -175,6 +175,7 @@ export const GAME_META = {
   turn: { accent: '#226218', badgeBg: '#226218', badgeInk: T.white, Fin: Contrast },
   suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
+  blocks: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid3x3 },
   redact: { accent: '#27272a', badgeBg: '#18181b', badgeInk: T.white, Fin: FileText },
   paths: { accent: '#065f46', badgeBg: '#065f46', badgeInk: T.white, Fin: Waypoints },
   deep: { accent: '#0c4a6e', badgeBg: '#0c4a6e', badgeInk: T.white, Fin: Anchor },
@@ -197,9 +198,13 @@ export const CAT_META = {
   // are unchanged. (owner, 2026-08-03)
   endgame:   { name: 'End Game',  color: T.muted,   Icon: Crown },
   cards:     { name: 'Cards',     color: '#7f1d1d', Icon: Club },
+  // Arcade split out for Blocks (owner, 2026-08-08): a reflex-free falling-shapes
+  // game is neither Logic nor End Game, and the label leaves room for the rest of
+  // the arcade shelf later.
+  arcade:    { name: 'Arcade',    color: '#1d4ed8', Icon: Gamepad2 },
 };
 // Family render order for the "more games" grid.
-const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'geography'];
+const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'arcade', 'geography'];
 
 // ---- the daily slate (31 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
@@ -239,6 +244,7 @@ const ALL_DAILY_GAMES = [
   { key: 'turn',   cat: 'endgame',     name: 'Turn',   tag: 'Ten squares left',            blurb: 'An Othello endgame you are already winning. One square keeps it, and the careful little move is not always it.', href: '/turn' },
   { key: 'paths', cat: 'logic',      name: 'Paths',  tag: 'Link every town, cheaply',  blurb: 'One depot, a scatter of towns, a river and two ridges. Link them all for as little as you can, against a proven cheapest network.', href: '/paths' },
   { key: 'redact', cat: 'trivia',     name: 'Redact', tag: 'Uncover the blacked-out article', blurb: 'A whole article about one famous subject, every word behind a block. Guess words to uncover it and name the subject.', href: '/redact' },
+  { key: 'blocks', cat: 'arcade',    name: 'Blocks', tag: 'Same shapes, same order',   blurb: 'Falling shapes in a short well, the same order for everybody, and one life a day you can pause and come back to. It never speeds up.', href: '/blocks' },
   { key: 'strata', cat: 'word',       name: 'Strata', tag: 'Dig the words out',          blurb: 'Every letter belongs to a buried word. Take one out and the letters above it fall, which is what lets you read the next.', href: '/strata' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    blurb: 'Six numbers, four operations, one target. Hit it exactly or get as close as you can.', href: '/crunch' },

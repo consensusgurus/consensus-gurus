@@ -99,6 +99,7 @@ const GAMES = [
   { key: 'turn', href: '/turn', name: 'Turn', tag: 'Ten squares left', img: '/games/btn-turn.png' },
   { key: 'suffice', href: '/suffice', name: 'Suffice', tag: 'Decide what is enough', img: '/games/btn-suffice.png' },
   { key: 'strata', href: '/strata', name: 'Strata', tag: 'Dig the words out', img: '/games/btn-strata.png' },
+  { key: 'blocks', href: '/blocks', name: 'Blocks', tag: 'Same shapes, same order', img: '/games/btn-blocks.png' },
   { key: 'redact', href: '/redact', name: 'Redact', tag: 'Uncover the story', img: '/games/btn-redact.png' },
   { key: 'paths', href: '/paths', name: 'Paths', tag: 'Link every town', img: '/games/btn-paths.png' },
   { key: 'deep', href: '/deep', name: 'Deep', tag: 'One topic, fifteen questions', img: '/games/btn-deep.png' },
@@ -123,6 +124,7 @@ const CATEGORIES = [
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths'] },
   { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'babel', 'chain', 'turn'] },
   { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
+  { key: 'arcade', label: 'Arcade', keys: ['blocks'] },
 ];
 
 /* The prize figure is the hook in the share teaser, so it is picked out of the
