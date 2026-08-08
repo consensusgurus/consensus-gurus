@@ -59,6 +59,18 @@ function boardSlice(rows, open) {
 // The expander only earns its place when there is a second page to show.
 function hasMore(rows) { return (rows || []).length > ROWS_COLLAPSED; }
 
+// Blue tile art, the same pair DailyStrip uses for the slate rows and cap tiles
+// (kept local rather than imported: DailyStrip does not export them, and this is
+// two lines). Each game's button art has a recoloured copy under /games/blue
+// mapped onto the brand blue ramp, so a stack of them reads as one palette
+// instead of fifty separate logos. A missing blue file falls back to the
+// original full-colour PNG rather than showing a broken image.
+const blueTile = (p) => (typeof p === 'string' ? p.replace('/games/btn-', '/games/blue/btn-') : p);
+const tileFallback = (e) => {
+  const el = e && e.currentTarget;
+  if (el && el.src && el.src.indexOf('/games/blue/') !== -1) el.src = el.src.replace('/games/blue/btn-', '/games/btn-');
+};
+
 function num(n) { return (n || 0).toLocaleString(); }
 
 // Two faint states only (owner, 2026-08-03): a solid green/gold/red chip column
@@ -370,30 +382,29 @@ export default function HomeRails({
       .hr-link:hover{text-decoration:underline;}
       /* Daily mastery rows. A bar, not a ring: the ring on the live feed reads a
          SCORE out of a possible one, whereas this reads progress along an
-         archive, and a bar is the shape that says "how far through". The meter
-         is a tinted fill behind the name rather than a separate track, so ~51
-         of them stack without turning the rail into a barcode. */
-      .hr-mrow{position:relative;display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);overflow:hidden;}
+         archive, and a bar is the shape that says "how far through".
+         The meter is a THIN TRACK taking the slack between the name and the
+         percentage, deliberately nondescript (owner, 2026-08-08). The first cut
+         was a tinted fill spanning the whole row behind the text, which at ~51
+         rows turned the panel into a block of shifting background and fought
+         the live feed's rings for attention. A 5px rule reads as progress and
+         nothing else. Game art uses the BLUE tile copies, as the slate does, so
+         a long column of icons stays one palette. */
+      .hr-mrow{display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-mrow:last-child{border-bottom:none;}
       .hr-mrow:hover{background:var(--surface);}
-      .hr-mfill{position:absolute;left:0;top:0;bottom:0;background:#e4edfd;pointer-events:none;}
-      /* :not(.hr-mfill) is load-bearing. A bare child-universal selector is
-         MORE specific than .hr-mfill (class + universal beats one class), so it
-         re-set the meter to position:relative, which put it back in the flex
-         flow as a real item and shoved the icon, name and figure right by
-         exactly the fill width: an 88% row rendered its name almost off the
-         end. Lifting only the CONTENT off the meter keeps the meter absolute. */
-      .hr-mrow > :not(.hr-mfill){position:relative;}
-      .hr-mic{height:26px;width:auto;background:var(--surface-alt);border-radius:6px;padding:2px;flex:none;}
-      .hr-mnm{flex:1;min-width:0;font-size:12.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .hr-mnm span{display:block;font-size:10.5px;font-weight:600;color:var(--slate);}
-      .hr-mpct{flex:none;text-align:right;font-variant-numeric:tabular-nums;}
-      .hr-mpct b{display:block;font-size:13px;font-weight:800;line-height:1.1;}
-      .hr-mpct i{display:block;font-style:normal;font-size:10px;font-weight:700;color:var(--slate);}
-      /* Zero rows stay legible but recede, so the games with progress lead the
-         eye without the untouched ones vanishing. */
-      .hr-mrow.zero .hr-mnm{font-weight:700;color:var(--slate);}
-      .hr-mrow.zero .hr-mpct b{color:#9aa2b1;}
+      .hr-mic{height:24px;width:auto;border-radius:6px;flex:none;}
+      /* The name sizes to its text and never grows, so the track always gets
+         the leftover width rather than the two competing for it. */
+      .hr-mnm{flex:0 1 auto;min-width:0;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-mtrack{flex:1 1 auto;min-width:24px;height:5px;border-radius:999px;background:#eceff4;overflow:hidden;}
+      .hr-mtrack i{display:block;height:100%;border-radius:999px;background:var(--blue);}
+      .hr-mpct{flex:none;width:30px;text-align:right;font-size:11.5px;font-weight:800;color:var(--slate);font-variant-numeric:tabular-nums;}
+      /* Untouched games recede rather than vanish: still legible, still one tap
+         from a first play, but never mistaken for progress. */
+      .hr-mrow.zero .hr-mnm{font-weight:600;color:var(--slate);}
+      .hr-mrow.zero .hr-mpct{color:#9aa2b1;}
+      .hr-mrow.zero .hr-mic{opacity:.55;}
       .hr-stats{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex:none;}
       .hr-stats > div{flex:1;padding:10px 13px;border-right:1px solid var(--border);}
       .hr-stats > div:last-child{border-right:none;}
@@ -648,11 +659,11 @@ export default function HomeRails({
             })
           ) : (
             masteryRows.map((g) => (
-              <Link key={g.key} href={`/${g.key}`} className={`hr-mrow${g.played ? '' : ' zero'}`}>
-                <span className="hr-mfill" style={{ width: `${Math.max(0, Math.min(100, g.pct))}%` }} aria-hidden="true" />
-                {g.img ? <img src={g.img} alt="" aria-hidden="true" className="hr-mic" /> : null}
-                <span className="hr-mnm">{g.name}<span>{g.cat}</span></span>
-                <span className="hr-mpct"><b>{g.pct}%</b><i>{g.played}/{g.total}</i></span>
+              <Link key={g.key} href={`/${g.key}`} className={`hr-mrow${g.played ? '' : ' zero'}`} title={`${g.name}: ${g.played} of ${g.total} days played`}>
+                {g.img ? <img src={blueTile(g.img)} onError={tileFallback} alt="" aria-hidden="true" className="hr-mic" /> : null}
+                <span className="hr-mnm">{g.name}</span>
+                <span className="hr-mtrack" aria-hidden="true"><i style={{ width: `${Math.max(0, Math.min(100, g.pct))}%` }} /></span>
+                <span className="hr-mpct">{g.pct}%</span>
               </Link>
             ))
           )}
