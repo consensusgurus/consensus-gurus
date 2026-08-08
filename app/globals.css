@@ -43,6 +43,32 @@ body {
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
 }
 
+/* Top safe-area fill (the "dome"). With viewport-fit: cover and the
+   black-translucent status bar, the strip behind the notch is part of the page,
+   so whatever element sits at the physical top paints it. The homepage header is
+   position: sticky, so its navy stayed under the dome at every scroll position;
+   the daily game pages keep their header in normal flow by design (DailyChrome:
+   nothing is pinned), so scrolling exposed the white body behind the notch and
+   the dome flipped white. This band paints that strip brand navy on every page,
+   independent of what scrolls, so the dome matches the header everywhere.
+
+   It is zero-height wherever there is no inset (desktop, and mobile browsers
+   showing their own chrome over the notch), so it costs nothing there. z-index
+   is above every overlay in the app (highest in use is 9999) because the strip
+   is status-bar chrome, not page content, and it must not go white under a
+   full-screen modal either. pointer-events: none so it never eats a tap. */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--accent);
+  z-index: 10000;
+  pointer-events: none;
+}
+
 html {
   scroll-behavior: smooth;
   scrollbar-gutter: stable;
