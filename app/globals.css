@@ -56,14 +56,26 @@ body {
    showing their own chrome over the notch), so it costs nothing there. z-index
    is above every overlay in the app (highest in use is 9999) because the strip
    is status-bar chrome, not page content, and it must not go white under a
-   full-screen modal either. pointer-events: none so it never eats a tap. */
+   full-screen modal either. pointer-events: none so it never eats a tap.
+
+   THE HEIGHT FLOOR IS LOAD-BEARING, do not drop it back to a bare env(). Safari
+   on iPhone reports env(safe-area-inset-top) as 0 in normal browsing (its own
+   chrome covers the notch), which collapsed this band to nothing. Safari tints
+   that top strip from the FIXED OR STICKY element sitting at the top of the
+   viewport, falling back to the document background when there is none: that is
+   the whole reason the homepage dome was navy and every daily game page was
+   white, since the homepage header is position: sticky and DailyChrome's is
+   deliberately in normal flow. A zero-height band is not an element Safari can
+   sample, so it needs real pixels. 4px is invisible against the navy masthead
+   that tops the home, quiz and daily surfaces, and reads as a thin brand rule
+   above the white bar on list pages. */
 body::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: env(safe-area-inset-top, 0px);
+  height: max(env(safe-area-inset-top, 0px), 4px);
   background: var(--accent);
   z-index: 10000;
   pointer-events: none;
