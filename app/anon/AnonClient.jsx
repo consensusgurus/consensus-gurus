@@ -181,6 +181,8 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
 
   const fill = g.fill || new Array(N).fill('');
   const playing = g.status === 'playing';
+  // The pinned keys, and the page padding that keeps content out from under them.
+  const railUp = touchInput && playing && !!g.t0;
   const preStart = playing && !g.t0;
   const curAnswer = owner[cur];
 
@@ -469,7 +471,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
       <Grain />
       <DailyChrome slug="anon" name="Anon" collapsed={!!g.t0} />
-      <div className="an-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+      <div className="an-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: railUp ? `18px 38px calc(${narrow ? 232 : 168}px + env(safe-area-inset-bottom))` : '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.an-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .an-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -502,9 +504,13 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-seg{display:flex;border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;margin-bottom:12px;}
           .an-seg button{flex:1;border:0;background:var(--white);padding:10px 0;font-family:${SANS};font-weight:800;font-size:13.5px;color:#8b93a1;cursor:pointer;}
           .an-seg button.on{background:${COLORS.accent};color:var(--white);}
-          .an-input{position:sticky;bottom:0;z-index:6;max-width:520px;margin:12px auto 0;padding-bottom:env(safe-area-inset-bottom);}
+          .an-input{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#e5e8ef;
+            border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -4px 16px rgba(20,22,28,0.12);
+            padding:0 8px calc(4px + env(safe-area-inset-bottom));}
+          .an-inputin{max-width:500px;margin:0 auto;}
+          .an-input .an-dock{border-radius:8px;margin:6px 0 0;}
+          .an-input .an-kb{background:none;border-radius:0;padding:7px 0 4px;}
           .an-dock{background:#0f1f2e;border-radius:10px 10px 0 0;padding:9px 11px 10px;}
-          .an-input>.an-kb:first-child{border-radius:10px;}
           .an-dockhead{font-family:${MONO};font-size:10px;letter-spacing:0.09em;text-transform:uppercase;color:#8fa6cc;display:flex;align-items:center;gap:8px;}
           .an-nav{margin-left:auto;display:flex;gap:6px;}
           .an-nav button{width:26px;height:26px;border-radius:6px;border:1px solid #2b4675;background:#16294a;color:#dbe9ff;cursor:pointer;font-weight:800;}
@@ -607,45 +613,6 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                 </div>
               )}
 
-              {/* The input rail, for any device with no physical keys. The keyboard
-                  is ours rather than the OS one, which would resize the viewport
-                  under the board. The dock above it is the OTHER half of the
-                  puzzle for the cell you are on, and it earns its space only on a
-                  narrow screen: at tablet width both halves are already visible,
-                  so a tablet gets the keys alone. */}
-              {touchInput && playing && (
-                <div className="an-input">
-                  {narrow && (
-                    <div className="an-dock">
-                      <div className="an-dockhead">
-                        <span>{view === 'b'
-                          ? 'where that letter sits in the passage'
-                          : (A[curAnswer].cat ? `${A[curAnswer].cat} · ${A[curAnswer].w.length}` : `no category · ${A[curAnswer].w.length}`)}</span>
-                        <span className="an-nav">
-                          <button onClick={() => focusCell(A[(curAnswer + TOTAL - 1) % TOTAL].c[0])}>&lsaquo;</button>
-                          <button onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>&rsaquo;</button>
-                        </span>
-                      </div>
-                      <div className="an-dockbody">
-                        {(view === 'b' ? passageAround(cur) : A[curAnswer].c).map((n, i) => (
-                          n < 0
-                            ? <div key={`g${i}`} className="an-dcell gap" />
-                            : <div key={n} className={`an-dcell${n === cur ? ' on' : ''}`} onClick={() => focusCell(n)}>{fill[n] || ''}</div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className="an-kb">
-                    {ROWS.map((row, ri) => (
-                      <div className="an-kr" key={ri}>
-                        {ri === 2 && <button className="wide" onClick={backspace} aria-label="Delete"><Delete size={15} /></button>}
-                        {[...row].map((c) => <button key={c} onClick={() => type(c.toUpperCase())}>{c.toUpperCase()}</button>)}
-                        {ri === 2 && <button className="wide" onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>NEXT</button>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </>
           )}
 
@@ -663,6 +630,48 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           </div>
         </div>
       </div>
+
+      {/* The input rail, for any device with no physical keys. The keyboard
+          is ours rather than the OS one, which would resize the viewport
+          under the board. The dock above it is the OTHER half of the
+          puzzle for the cell you are on, and it earns its space only on a
+          narrow screen: at tablet width both halves are already visible,
+          so a tablet gets the keys alone. */}
+      {railUp && (
+        <div className="an-input">
+          <div className="an-inputin">
+          {narrow && (
+            <div className="an-dock">
+              <div className="an-dockhead">
+                <span>{view === 'b'
+                  ? 'where that letter sits in the passage'
+                  : (A[curAnswer].cat ? `${A[curAnswer].cat} · ${A[curAnswer].w.length}` : `no category · ${A[curAnswer].w.length}`)}</span>
+                <span className="an-nav">
+                  <button onClick={() => focusCell(A[(curAnswer + TOTAL - 1) % TOTAL].c[0])}>&lsaquo;</button>
+                  <button onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>&rsaquo;</button>
+                </span>
+              </div>
+              <div className="an-dockbody">
+                {(view === 'b' ? passageAround(cur) : A[curAnswer].c).map((n, i) => (
+                  n < 0
+                    ? <div key={`g${i}`} className="an-dcell gap" />
+                    : <div key={n} className={`an-dcell${n === cur ? ' on' : ''}`} onClick={() => focusCell(n)}>{fill[n] || ''}</div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="an-kb">
+            {ROWS.map((row, ri) => (
+              <div className="an-kr" key={ri}>
+                {ri === 2 && <button className="wide" onClick={backspace} aria-label="Delete"><Delete size={15} /></button>}
+                {[...row].map((c) => <button key={c} onClick={() => type(c.toUpperCase())}>{c.toUpperCase()}</button>)}
+                {ri === 2 && <button className="wide" onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>NEXT</button>}
+              </div>
+            ))}
+          </div>
+          </div>
+        </div>
+      )}
 
       {!playing && !endClosed && (
         <DailyEndCard
