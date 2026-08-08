@@ -28,7 +28,11 @@
 //      not need touching). Its styling is the end card's black `.dec-sharebar`
 //      (ink bar, icon chip, title + sub-line, chevron) rather than the old
 //      cream/amber tile, so the same action looks the same in both places
-//      (owner, 2026-08-01); and
+//      (owner, 2026-08-01). While the referral CONTEST is live it also carries
+//      the end card's teaser copy verbatim (the prize figure picked out in gold,
+//      "Top N referrers win" underneath, the deadline footnote below), so the
+//      $20 offer reads the same on the page as it does on the card (owner,
+//      2026-08-07); and
 //   3. the games grid — the OTHER dailies (plus one evergreen popular quiz to
 //      keep the count even), 2-wide on phones and 3-wide on desktop.
 // Games the viewer has already finished today get a faint green wash + a check
@@ -44,6 +48,7 @@ import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import ReportIssue from './ReportIssue';
 import { fetchDailyMe, dailyMeQuery } from './dailyMeClient';
 import { T } from '@/lib/theme';
+import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
 import { isRetiredDaily } from '@/lib/daily-games';
 
 const GAMES = [
@@ -119,6 +124,24 @@ const CATEGORIES = [
   { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
 ];
 
+/* The prize figure is the hook in the share teaser, so it is picked out of the
+   copy string and rendered gold, heavier than the sentence around it, exactly
+   as the end card does it. Split on CONTEST.prizeLabel so lib/contest.js stays
+   the one source of the number: if the label ever stops appearing in the teaser
+   the split yields a single part and the copy renders unchanged. Mirrors
+   teaserNodes in DailyEndCard.jsx; keep the two in sync. */
+function teaserNodes() {
+  const label = CONTEST.prizeLabel;
+  const parts = String(COPY.teaser).split(label);
+  if (parts.length < 2) return COPY.teaser;
+  const out = [];
+  parts.forEach((part, i) => {
+    if (i > 0) out.push(<span className="pz" key={`p${i}`}>{label}</span>);
+    if (part) out.push(<span key={`t${i}`}>{part}</span>);
+  });
+  return <>{out}</>;
+}
+
 // `challengeHref` is DEPRECATED and ignored (see the header note); it stays on
 // the signature so existing callers keep working.
 export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = null, share = null, divider = false, boardSlot = null, light = false, replay = null }) {
@@ -176,6 +199,14 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
     }
   };
 
+  // Contest teaser on the share bar, same as the end card. Resolved AFTER
+  // mount rather than at render: contestIsLive() reads the clock, so evaluating
+  // it during SSR and again on the client can disagree across the window
+  // boundary and trip a hydration mismatch. Off for the first paint, which is
+  // correct anyway once the contest has ended.
+  const [contestLive, setContestLive] = useState(false);
+  useEffect(() => { setContestLive(contestIsLive()); }, []);
+
   const copied = /copied/i.test((share && share.label) || '');
 
   return (
@@ -218,12 +249,22 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-sharebar .ic svg{color:var(--white);}
         .dgg-sharebar .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
         .dgg-sharebar .t{font-size:14px;font-weight:800;letter-spacing:-.01em;}
+        /* The prize figure inside the teaser: gold on the ink bar, heavier than
+           the sentence around it, underlined so it reads as the offer. Matches
+           .dec-sharebar .t .pz on the end card. */
+        .dgg-sharebar .t .pz{font-weight:900;color:#ffd76b;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px;}
         .dgg-sharebar .s{font-size:11.5px;font-weight:600;color:rgba(255,255,255,.66);}
         .dgg-sharebar .cv{flex-shrink:0;opacity:.6;}
+        /* Contest footnote: carries the asterisk on the share label, and sits
+           directly under the bar it annotates. Same copy as the end card's
+           .dec-fine. */
+        .dgg-fine{font-size:10.5px;line-height:1.45;color:var(--muted);margin:-8px 2px 12px;}
+        .dgg-fine a{color:var(--muted);text-decoration:underline;}
         @media(max-width:640px){
           .dgg-sharebar{gap:11px;padding:11px 12px;}
           .dgg-sharebar .t{font-size:13px;}
           .dgg-sharebar .s{font-size:11px;}
+          .dgg-fine{font-size:10px;margin:-7px 2px 11px;}
         }
 
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
@@ -271,11 +312,25 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         <button type="button" onClick={share.onClick} className="dgg-sharebar" aria-label="Share your result and get credit">
           <span className="ic"><Share2 size={17} strokeWidth={2.3} /></span>
           <span className="tx">
-            <span className="t">{copied ? share.label : 'Share result or challenge a friend for site credit'}</span>
-            <span className="s">Send your link. You get the credit when they play.</span>
+            <span className="t">
+              {copied
+                ? share.label
+                : (contestLive ? teaserNodes() : 'Share result or challenge a friend for site credit')}
+            </span>
+            <span className="s">
+              {contestLive
+                ? `Top ${CONTEST.winners} referrers win`
+                : 'Send your link. You get the credit when they play.'}
+            </span>
           </span>
           <ChevronRight size={17} strokeWidth={2.4} className="cv" />
         </button>
+      ) : null}
+      {share && contestLive ? (
+        <p className="dgg-fine">
+          *Contest ends {CONTEST.deadlineLabel}. Email on your account required.{' '}
+          <a href="/quizzes/contest">See rules</a>.
+        </p>
       ) : null}
       {/* The daily-leaderboard panel sits directly under the Share action,
           above the games grid (owner layout, 2026-07-23). */}
