@@ -202,6 +202,26 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+    // ONE-TIME REPLAY GRANT (see `resetAt` in puzzles.js). A run that FINISHED
+    // before the stamp is dropped here so the player gets their life back: the
+    // board, the recorded-result guard, the hub's done flag and the local stats
+    // row all go, or the page would reopen the end card and recordStat would
+    // refuse the re-run (it never overwrites an existing entry). An in-progress
+    // run is left alone: it has posted nothing and will post when it ends.
+    if (saved && PUZZLE.resetAt && saved.status !== 'playing'
+        && (saved.tEnd || saved.t0 || 0) < Date.parse(PUZZLE.resetAt)) {
+      saved = null;
+      try {
+        localStorage.removeItem(STORE_KEY);
+        localStorage.removeItem(REC_KEY);
+        localStorage.removeItem('sot_blocks_day');
+        const st = JSON.parse(localStorage.getItem(STATS_KEY) || 'null');
+        if (st && st.rec && st.rec[PUZZLE.num] != null) {
+          delete st.rec[PUZZLE.num];
+          localStorage.setItem(STATS_KEY, JSON.stringify(st));
+        }
+      } catch (e) {}
+    }
     if (saved && saved.v === 1 && Array.isArray(saved.grid) && saved.grid.length === ROWS && saved.grid[0].length === COLS) {
       const s = { ...freshState(COLS, ROWS), ...saved };
       gRef.current = s; setG(s);
@@ -211,7 +231,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     setStats(getStats());
     try { setIdentity(JSON.parse(localStorage.getItem('sot_quiz_identity'))); } catch (e) {}
     setHydrated(true);
-  }, [STORE_KEY, COLS, ROWS]);
+  }, [STORE_KEY, REC_KEY, COLS, ROWS, PUZZLE.num, PUZZLE.resetAt]);
 
   // ---- identity + board + view ping ---------------------------------------
   useEffect(() => {

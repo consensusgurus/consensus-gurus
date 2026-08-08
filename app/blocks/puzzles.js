@@ -28,13 +28,25 @@
 //         run. Revisit them once a fortnight of real scores exists, and expect
 //         them to RISE as players learn the well, rather than to be right now.
 //
+//   resetAt  OPTIONAL ISO stamp. A ONE-TIME REPLAY GRANT: any run on this
+//         puzzle that FINISHED before the stamp is dropped from the player's
+//         browser (board, recorded-result guard and local stats row alike) so
+//         the well opens fresh and they get their life back. Used once, on day
+//         one, when the switch to row scoring meant the stored results could
+//         not be rescaled (rows cleared were never stored) and had to be
+//         cleared server-side; without this the six players who had already
+//         posted would simply have lost the day, since Blocks is one life a
+//         day and the saved board reads as finished. An in-progress run is
+//         NEVER dropped: it has posted nothing yet and will post on the new
+//         scale when it ends. Leave this field off every other puzzle.
+//
 // SUNDAY EDITION (owner, 2026-08-08): Sundays narrow the well from 10 to 8.
 // Width is the right knob here because there is no speed curve to steepen, and
 // two fewer columns makes every shape harder to seat, the plus most of all.
 // `sunday` must be true if and only if `live` really is a Sunday; the flag is
 // the ONLY source of truth for the badge (see lib/sunday-editions.js).
 export const PUZZLES = [
-  { num: 1, quizId: 'blocks-8-8-26', live: '2026-08-08', dateLabel: 'August 8, 2026', sunday: false, cols: 10, rows: 16, par: 15 },
+  { num: 1, quizId: 'blocks-8-8-26', live: '2026-08-08', dateLabel: 'August 8, 2026', sunday: false, cols: 10, rows: 16, par: 15, resetAt: '2026-08-08T16:11:30Z' },
   { num: 2, quizId: 'blocks-8-9-26', live: '2026-08-09', dateLabel: 'August 9, 2026', sunday: true, cols: 8, rows: 16, par: 9 },
   { num: 3, quizId: 'blocks-8-10-26', live: '2026-08-10', dateLabel: 'August 10, 2026', sunday: false, cols: 10, rows: 16, par: 15 },
   { num: 4, quizId: 'blocks-8-11-26', live: '2026-08-11', dateLabel: 'August 11, 2026', sunday: false, cols: 10, rows: 16, par: 15 },
