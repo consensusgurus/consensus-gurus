@@ -479,6 +479,20 @@ export default function HomeRails({
          unbounded, so it alone keeps a cap and scrolls inside it. Daily mastery
          lists EVERY live game, so it scrolls inside the same cap. */
       @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:360px;overflow-y:auto;}}
+      /* The rail pins every panel to the center console's measured height, so a
+         slab plus two names left a band of white sitting above the footer
+         (owner, 2026-08-08). The TABLE takes that slack rather than the scroll
+         box: as a flex child at flex:1 it hands the extra height to rows 2 and
+         3, which fills the panel and buys the two names room to read a size up.
+         It follows the rail, so nothing here needs retuning when the center's
+         cap changes. :has(> .hr-tbl) keeps it off the right rail, whose scroll
+         box holds the feed rather than a board. */
+      @media(min-width:901px){
+        .hr-scroll:has(> .hr-tbl){display:flex;flex-direction:column;}
+        .hr-scroll > .hr-tbl{flex:1 1 auto;}
+        .hr-scroll > .hr-tbl td{font-size:14.5px;vertical-align:middle;}
+        .hr-scroll > .hr-tbl td.rk{font-size:12px;}
+      }
       /* Phone: the rail panels run edge to edge like the slate, rather than
          sitting as tiles inside the page gutter (owner, 2026-08-03). */
       @media(max-width:900px){
