@@ -15,7 +15,7 @@
 // A floor is not a target (CLAUDE.md, bulk-bank rule 2): the drought and share
 // checks run across the WHOLE bank, not one sample day.
 import { PUZZLES } from '../app/blocks/puzzles.js';
-import { buildSequence, CLASSIC, EXTRA, PIECES, ROT, SEQ_LEN, scoreOutOfTen } from '../lib/blocks-seq.js';
+import { buildSequence, CLASSIC, EXTRA, PIECES, ROT, SEQ_LEN, scoreRows } from '../lib/blocks-seq.js';
 
 let BAD = 0;
 const fail = (id, msg) => { BAD++; console.error(`✗ ${id}: ${msg}`); };
@@ -71,8 +71,10 @@ const CELLS  = { I:4, O:4, T:4, S:4, Z:4, J:4, L:4, C:3, P:5 };
     if (p.rows !== 16) fail('frame', `${at} rows=${p.rows}, the well is always 16 deep`);
     const wantCols = p.sunday ? 8 : 10;
     if (p.cols !== wantCols) fail('frame', `${at} cols=${p.cols}, a ${p.sunday ? 'Sunday' : 'weekday'} well is ${wantCols} wide`);
-    if (!(p.par >= 20 && p.par <= 400)) fail('frame', `${at} par ${p.par} rows is out of range`);
-    if (p.sunday && p.par >= 100) fail('frame', `${at} Sunday par should sit below the weekday par (a narrower well ends runs sooner)`);
+    // Par is a HUMAN benchmark now, not a solver's median, so the range is the
+    // band a real strong run lives in. Retuned 2026-08-08 off the live field.
+    if (!(p.par >= 6 && p.par <= 60)) fail('frame', `${at} par ${p.par} rows is out of range`);
+    if (p.sunday && p.par >= 15) fail('frame', `${at} Sunday par should sit below the weekday par (a narrower well ends runs sooner)`);
   });
   if (BAD === bad) ok('frame', `${PUZZLES.length} days, ${PUZZLES[0].live} to ${PUZZLES[PUZZLES.length - 1].live}, ids/labels/weekdays all agree`);
 })();
@@ -135,18 +137,21 @@ const CELLS  = { I:4, O:4, T:4, S:4, Z:4, J:4, L:4, C:3, P:5 };
 // ---------- 5. scoring ------------------------------------------------------
 (function scoring() {
   const p = PUZZLES[0];
-  const checks = [[0,0],[1,1],[p.par,10],[p.par*2,10],[Math.round(p.par/2),5]];
-  for (const [rows, want] of checks) {
-    const got = scoreOutOfTen(rows, p.par);
-    if (got !== want) fail('scoring', `${rows} rows against par ${p.par} scored ${got}, expected ${want}`);
+  // The score IS the row count, uncapped: identity, so a run above par keeps
+  // separating players instead of pinning at a maximum. The old 0-10 mapping
+  // is what put day one's whole field on 0 or 1 (see lib/blocks-seq).
+  for (const rows of [0, 1, 7, p.par, p.par * 2, 1200]) {
+    const got = scoreRows(rows);
+    if (got !== rows) fail('scoring', `${rows} rows scored ${got}, expected the row count itself`);
   }
+  if (scoreRows(-3) !== 0) fail('scoring', 'a negative row count should floor at 0');
   let prev = -1;
   for (let rows = 0; rows <= 1200; rows += 1) {
-    const s = scoreOutOfTen(rows, p.par);
-    if (s < prev) { fail('scoring', 'score is not monotonic in rows cleared'); break; }
+    const s = scoreRows(rows);
+    if (s <= prev) { fail('scoring', 'score is not strictly rising in rows cleared'); break; }
     prev = s;
   }
-  if (!BAD) ok('scoring', `rows -> 0-10 against par, monotonic, capped (par ${p.par} rows weekday / ${PUZZLES.find(x=>x.sunday).par} Sunday)`);
+  if (!BAD) ok('scoring', `score = rows cleared, uncapped and strictly rising (par ${p.par} rows weekday / ${PUZZLES.find(x=>x.sunday).par} Sunday, a benchmark only)`);
 })();
 
 // ---------- 6. US spellings in reader-facing strings -------------------------

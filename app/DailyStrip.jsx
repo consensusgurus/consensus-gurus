@@ -48,7 +48,7 @@ import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
 import { fetchDayStatus } from './useDayStats';
 import { catBlue } from '@/lib/home-blues';
-import { isRetiredDaily } from '@/lib/daily-games';
+import { isRetiredDaily, dailyScoreText } from '@/lib/daily-games';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -222,10 +222,14 @@ function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.is
 // A player's game-native score line for the panel's "Today" figure, from the
 // daily-combined per-game board row. score/total when the game reports a total
 // (e.g. 100/100, 10/10), otherwise the raw score, otherwise the daily points.
-function todayScoreLine(row) {
+// A TALLY game (Blocks) reads "7 rows" instead of a fraction: its total is a
+// par, not a set of answers, so a fraction reads as a failure (daily-games).
+function todayScoreLine(row, key) {
   if (!row) return null;
-  if (row.total != null && Number(row.total) > 0) return `${fmtPts(row.score)}/${fmtPts(row.total)}`;
-  if (row.score != null) return fmtPts(row.score);
+  if (row.score != null) {
+    const t = dailyScoreText(key, fmtPts(row.score), row.total != null ? fmtPts(row.total) : null);
+    if (t) return t;
+  }
   if (row.points != null) return `${fmtPts(row.points)} pts`;
   return null;
 }
@@ -825,7 +829,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const bd = byKey[g.key];
       const lead = hasBoard && bd && bd.board && bd.board[0] ? bd.board[0].username : null;
       const row = isDone ? myRow(g.key) : null;
-      const sl = row ? todayScoreLine(row) : null;
+      const sl = row ? todayScoreLine(row, g.key) : null;
       const col = catCol(g.cat);
       const cat = CAT_SHORT[g.cat] || g.cat;
       const open = sel === g.key;
@@ -982,7 +986,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     const pl = playsOf(g.key);
     const lead = hasBoard && byKey[g.key] && byKey[g.key].board && byKey[g.key].board[0] ? byKey[g.key].board[0].username : null;
     const row = isDone ? myRow(g.key) : null;
-    const sl = row ? todayScoreLine(row) : null;
+    const sl = row ? todayScoreLine(row, g.key) : null;
     const fav = favSet.has(g.key);
     const cls = `dh-tile${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${sel === g.key ? ' sel' : ''}${dim ? ' dim' : ''}${myGamesOn || fav ? ' pinnable' : ''}${fav ? ' pinned' : ''}`;
     const face = (

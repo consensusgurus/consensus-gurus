@@ -398,7 +398,7 @@ function GameBoard({ game, myKey, gameMax, th }) {
           <div key={r.userKey} className="dclb-g" style={{ display: 'grid', gap: 8, ...rowStyle(th, mine, r.rank), alignItems: 'center', padding: th.dense ? '7px 12px' : '10px 14px', marginBottom: th.dense ? 5 : 6, borderRadius: 10 }}>
             <RankNum n={r.rank} th={th} />
             <PlayerName row={r} mine={mine} th={th} />
-            <span style={{ fontFamily: FONT, fontSize: th.dense ? 12 : 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{r.score}/{r.total}</span>
+            <span style={{ fontFamily: FONT, fontSize: th.dense ? 12 : 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{(DAILY_GAME_MAP[game.key] || {}).unit ? r.score : <>{r.score}/{r.total}</>}</span>
             <span className="dclb-time" style={{ fontFamily: FONT, fontSize: th.dense ? 12 : 13.5, fontWeight: 600, textAlign: 'right', color: th.dim, fontVariantNumeric: 'tabular-nums' }}>{fmtTime(r.timeElapsed)}</span>
             <span style={{ fontFamily: FONT, fontSize: th.dense ? 12.5 : 14.5, fontWeight: 800, textAlign: 'right', color: th.total, fontVariantNumeric: 'tabular-nums' }}>{fmtPts(r.points)}<span style={{ fontSize: 10.5, fontWeight: 600, color: th.unit }}>/{gameMax}</span></span>
           </div>

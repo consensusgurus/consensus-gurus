@@ -78,6 +78,9 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   // label means the game always posts 0 there, and the column is dropped rather
   // than filled with zeros (owner, 2026-08-01). Keep in sync with DailyEndCard.
   const missLabel = (DAILY_GAME_MAP[self] || {}).miss || null;
+  // A tally game reports a bare count with its unit ("7 rows"), so its Score
+  // column drops the denominator (see lib/daily-games).
+  const scoreUnit = (DAILY_GAME_MAP[self] || {}).unit || null;
 
   useEffect(() => { try { setIdent(JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null')); } catch (e) {} }, []);
 
@@ -409,7 +412,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
                       <div className="dbp-g dbp-gh">
                         <span className="h">#</span>
                         <span className="h">Player</span>
-                        <span className="h" style={{ textAlign: 'right' }}>Score</span>
+                        <span className="h" style={{ textAlign: 'right' }}>{scoreUnit ? scoreUnit.charAt(0).toUpperCase() + scoreUnit.slice(1) : 'Score'}</span>
                         <span className="h" style={{ textAlign: 'right' }}>Time</span>
                         {missLabel ? <span className="h" style={{ textAlign: 'right' }}>{missLabel}</span> : null}
                         <span className="h" style={{ textAlign: 'right' }}>Pts</span>
@@ -420,7 +423,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
                           <div className={`dbp-g dbp-grow${mine ? ' me' : ''}`} key={r.userKey || i}>
                             <span className="rk">#{r.rank}</span>
                             <span className="nm">{r.username || '—'}{mine ? <span className="you"> (you)</span> : null}</span>
-                            <span className="num">{r.score}/{r.total}</span>
+                            <span className="num">{scoreUnit ? r.score : <>{r.score}/{r.total}</>}</span>
                             <span className="num">{fmtTime(r.timeElapsed)}</span>
                             {missLabel ? <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span> : null}
                             <span className="pts">{fmtNum(r.points)}</span>

@@ -590,6 +590,9 @@ export default function DailyEndCard({
   // the column is dropped. Read from the registry so the card and the on-page
   // DailyBoardPanel can never disagree about the word.
   const missLabel = (DAILY_GAME_MAP[self] || {}).miss || null;
+  // A tally game reports a bare count with its unit ("7 rows"), so its Score
+  // column drops the denominator and takes the unit as its heading instead.
+  const scoreUnit = (DAILY_GAME_MAP[self] || {}).unit || null;
   const selfCat = selfGame ? selfGame.cat : 'word';
   const selfName = selfGame ? selfGame.name : (self || 'today’s game');
   const selfCatMeta = CAT_META[selfCat] || CAT_META.word;
@@ -2190,7 +2193,7 @@ export default function DailyEndCard({
                     <div className="dec-lbg dec-lbghead">
                       <span className="h">#</span>
                       <span className="h">Player</span>
-                      <span className="h" style={{ textAlign: 'right' }}>Score</span>
+                      <span className="h" style={{ textAlign: 'right' }}>{scoreUnit ? scoreUnit.charAt(0).toUpperCase() + scoreUnit.slice(1) : 'Score'}</span>
                       <span className="h" style={{ textAlign: 'right' }}>Time</span>
                       {missLabel ? <span className="h" style={{ textAlign: 'right' }}>{missLabel}</span> : null}
                       <span className="h" style={{ textAlign: 'right' }}>Pts</span>
@@ -2199,7 +2202,7 @@ export default function DailyEndCard({
                       <div className={`dec-lbg dec-lbgrow${r.me ? ' me' : ''}`} key={idx}>
                         <span className="rk">#{r.rank}</span>
                         <span className="nm">{r.name || '—'}</span>
-                        <span className="num">{r.score == null ? '—' : <>{r.score}/{r.total}</>}</span>
+                        <span className="num">{r.score == null ? '—' : (scoreUnit ? r.score : <>{r.score}/{r.total}</>)}</span>
                         <span className="num">{fmtTime(r.timeElapsed)}</span>
                         {missLabel ? <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span> : null}
                         <span className="pts">{fmtNum(r.points)}</span>

@@ -21,7 +21,7 @@ import useDailyOrder, { sortByDailyOrder } from '../useDailyOrder';
 import DailyCombinedLeaderboard from '../quiz/[id]/DailyCombinedLeaderboard';
 import { postView } from '@/lib/api';
 import { T } from '@/lib/theme';
-import { isRetiredDaily } from '@/lib/daily-games';
+import { isRetiredDaily, dailyUnit } from '@/lib/daily-games';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -1042,7 +1042,7 @@ function GameBoard({ g, navy, board, myKey, gameMax, full, setFull }) {
       <div key={r.userKey || r.rank} className={`lb-row lb-g5${mine ? ' you' : r.rank <= 3 ? ' top' : ''}`}>
         <span className={`lb-rk${r.rank <= 3 ? ' gold' : ''}`}>{r.rank}</span>
         <PlayerName row={r} mine={mine} />
-        <span className="lb-num">{r.score}/{r.total}</span>
+        <span className="lb-num">{dailyUnit(g.key) ? r.score : <>{r.score}/{r.total}</>}</span>
         <span className="lb-num lb-time">{fmtTime(r.timeElapsed)}</span>
         <span className="lb-pt">{fmtPts(r.points)}<small>/{gameMax}</small></span>
       </div>
