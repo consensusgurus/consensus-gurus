@@ -26,7 +26,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Search, Eraser, Undo2 } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Search, Eraser, Undo2, ChevronDown } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -680,7 +680,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             /* Everything above the board is a pixel you scroll past to reach
                the board, so on a phone it all gets smaller or folds. */
             .al-story.fold{max-height:56px;overflow:hidden;line-height:22px !important;padding-bottom:0 !important;}
-            .al-wrap .al-storybtn{display:block;margin:-2px 0 10px;}
+            .al-wrap .al-storybtn{display:flex;margin:-2px 0 10px;}
             
             .al-statline{font-size:10.5px !important;gap:10px !important;margin-bottom:8px !important;}
             .al-boardlab{display:none !important;}
@@ -692,7 +692,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             .al-witness{display:none !important;}
             .al-wrap{padding-bottom:12px !important;}
           }
-          .al-storybtn{display:none;background:none;border:0;padding:4px 0 0;font-family:${SANS};font-size:12px;font-weight:800;color:${COLORS.accent};cursor:pointer;}
+          .al-storybtn{display:none;align-items:center;gap:4px;background:none;border:0;padding:4px 0 0;font-family:${SANS};font-size:12px;font-weight:800;color:${COLORS.accent};cursor:pointer;}
         `}</style>
 
         <div style={{ maxWidth: 940, margin: '0 auto' }}>
@@ -741,8 +741,11 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
         {!preStart && (
-          <button type="button" className="al-storybtn" onClick={() => setStoryOpen((v) => !v)}>
+          <button type="button" className="al-storybtn" onClick={() => setStoryOpen((v) => !v)}
+            aria-expanded={storyOpen} aria-label={storyOpen ? 'Hide the case brief' : 'Read the case brief'}>
             {storyOpen ? 'Hide the case brief' : 'Read the case brief'}
+            <ChevronDown size={15} strokeWidth={2.6} aria-hidden="true"
+              style={{ transform: storyOpen ? 'rotate(180deg)' : 'none', transition: 'transform .16s ease' }} />
           </button>
         )}
 
