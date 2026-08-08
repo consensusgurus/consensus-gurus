@@ -611,6 +611,20 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
           .al-grids{display:grid;grid-template-columns:1fr;gap:0;}
           @media(min-width:900px){.al-cols{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start;}}
+          /* PHONE ORDER (owner-reported 2026-08-07). Below the two-column
+             breakpoint this stacked in DOM order: the story, then nine witness
+             statements, then the board. Measured on a 390 that put the board
+             1,087px down a 1,893px page, so the thing you actually work on was
+             never on screen and rotating it changed nothing anyone could see.
+             The board is the work, so it goes first and the statements read
+             underneath it. The story also loses its bottom margin, since on a
+             phone every pixel above the board is a pixel you have to scroll. */
+          @media(max-width:899px){
+            .al-cols{display:flex;flex-direction:column;}
+            .al-boardcol{order:1;}
+            .al-witness{order:2;margin-bottom:0 !important;}
+            .al-story{margin-bottom:8px !important;padding:10px 13px !important;font-size:13.5px !important;}
+          }
         `}</style>
 
         <div style={{ maxWidth: 940, margin: '0 auto' }}>
@@ -654,7 +668,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
         {/* the story */}
         {!preStart && (
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
+        <div className="al-story" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 5 ? 'Five' : 'Four'} guests &mdash; {PUZZLE.suspects.slice(0, -1).join(', ')} and {PUZZLE.suspects[N - 1]} &mdash; were each alone in a different room, each left at a different hour, and each was carrying one curious item. Work out who was where, when they left, and what they carried. Every statement below is true.
         </div>
         )}
@@ -676,7 +690,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div className="al-cols">
           {/* witness statements */}
-          <div style={{ marginBottom: 16 }}>
+          <div className="al-witness" style={{ marginBottom: 16 }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Witness statements</div>
             {PUZZLE.clues.map((c, i) => (
               <div key={i} className={`al-clue${g.struck.includes(i) ? ' done' : ''}`} onClick={() => toggleClue(i)} role="button" tabIndex={0}
@@ -690,7 +704,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           </div>
 
           {/* detective's boards */}
-          <div>
+          <div className="al-boardcol">
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Detective&rsquo;s board</div>
             {/* ROTATED FOR THE PHONE (owner-approved 2026-08-07). This was three
                 stacked 4x4 tables, suspects down and options across, which on a
