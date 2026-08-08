@@ -1552,7 +1552,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              takes the figure's place rather than waiting for a hover. */
           /* An invisible button still takes clicks, so Play is inert until it
              is actually showing. */
-          .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);opacity:0;pointer-events:none;}
+          .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);z-index:2;opacity:0;pointer-events:none;}
           .sl-row.done .sl-status{opacity:1;pointer-events:auto;}
           .sl-dhid{display:none;}
           .sl-row.sl-wide{grid-column:1/-1;}
@@ -1603,7 +1603,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         }
         @media(min-width:901px) and (hover:hover){
           .sl-row:not(.done):hover .sl-status{opacity:1;pointer-events:auto;}
-          .sl-row:not(.done):hover .sl-pl{opacity:0;}
+          .sl-row:not(.done):hover .sl-pl{opacity:0;pointer-events:none;}
         }
         /* ── phone slate: direction B (owner-approved 2026-08-07) ──────────
            Replaces the 2026-08-03 phone row (icon plate, category beside the
