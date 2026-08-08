@@ -77,21 +77,21 @@ const VOW = new Set(['A', 'E', 'I', 'O', 'U']);
 const nv = (w) => [...w].filter((c) => VOW.has(c)).length;
 const HIDDEN = {
   animal: ['CAT', 'DOG', 'COW', 'OWL', 'BAT', 'APE', 'RAT', 'PIG', 'HEN', 'FOX', 'ANT', 'BEE', 'ELK', 'EWE', 'SOW', 'RAM'],
-  body: ['EAR', 'RIB', 'HIP', 'ARM', 'LIP', 'GUM', 'JAW', 'TOE', 'EYE', 'SHIN', 'HEEL', 'CHIN', 'LUNG', 'SKIN', 'NECK', 'BONE'],
+  body: ['EAR', 'RIB', 'HIP', 'ARM', 'LIP', 'GUM', 'JAW', 'TOE', 'EYE', 'LEG', 'SHIN', 'HEEL', 'CHIN', 'LUNG', 'SKIN', 'NECK', 'BONE', 'FOOT', 'HAND', 'HEAD', 'NOSE', 'KNEE', 'ELBOW', 'WRIST', 'ANKLE', 'THUMB', 'THIGH', 'SPINE', 'HEART', 'BRAIN', 'LIVER', 'TOOTH', 'CHEST', 'THROAT', 'TONGUE'],
   number: ['ONE', 'TWO', 'SIX', 'TEN', 'NINE', 'FOUR', 'FIVE'],
 };
 const HIDDEN_NAME = { animal: 'an animal', body: 'a body part', number: 'a number' };
 const NUMWORD = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 
 const SETS = {
-  mammal: ['DOG', 'CAT', 'COW', 'PIG', 'FOX', 'RAT', 'BAT', 'APE', 'ELK', 'LION', 'BEAR', 'WOLF', 'DEER', 'GOAT', 'SEAL', 'MOLE', 'HARE', 'LYNX', 'PUMA', 'TIGER', 'HORSE', 'ZEBRA', 'CAMEL', 'MOOSE', 'MOUSE', 'SHEEP', 'WHALE', 'OTTER', 'PANDA', 'KOALA', 'SLOTH', 'RHINO', 'HIPPO', 'MONKEY', 'RABBIT', 'DONKEY', 'BEAVER', 'BADGER', 'WALRUS', 'WEASEL', 'COUGAR', 'JAGUAR', 'GIRAFFE', 'LEOPARD', 'DOLPHIN', 'GORILLA', 'HAMSTER', 'RACCOON'],
+  mammal: ['DOG', 'CAT', 'COW', 'PIG', 'FOX', 'RAT', 'BAT', 'APE', 'ELK', 'YAK', 'LION', 'BEAR', 'WOLF', 'DEER', 'GOAT', 'SEAL', 'MOLE', 'HARE', 'LYNX', 'PUMA', 'ORCA', 'BOAR', 'TIGER', 'HORSE', 'ZEBRA', 'CAMEL', 'MOOSE', 'MOUSE', 'SHEEP', 'WHALE', 'OTTER', 'PANDA', 'KOALA', 'SLOTH', 'RHINO', 'HIPPO', 'BISON', 'HYENA', 'LLAMA', 'LEMUR', 'SKUNK', 'TAPIR', 'MONKEY', 'RABBIT', 'DONKEY', 'BEAVER', 'BADGER', 'WALRUS', 'WEASEL', 'COUGAR', 'JAGUAR', 'BABOON', 'ALPACA', 'COYOTE', 'FERRET', 'MARMOT', 'WOMBAT', 'GIRAFFE', 'LEOPARD', 'DOLPHIN', 'GORILLA', 'HAMSTER', 'RACCOON', 'BUFFALO', 'CHEETAH', 'GAZELLE', 'MEERKAT', 'OPOSSUM', 'PANTHER', 'WARTHOG', 'ANTELOPE', 'KANGAROO', 'PORPOISE', 'REINDEER', 'SQUIRREL', 'CHIPMUNK', 'HEDGEHOG', 'MONGOOSE', 'PLATYPUS', 'ARMADILLO', 'PORCUPINE'],
   bird: ['OWL', 'HEN', 'CROW', 'SWAN', 'DUCK', 'HAWK', 'DOVE', 'WREN', 'KIWI', 'EMU', 'ROBIN', 'RAVEN', 'EAGLE', 'HERON', 'GOOSE', 'STORK', 'FINCH', 'QUAIL', 'EGRET', 'PIGEON', 'PARROT', 'TURKEY', 'FALCON', 'MAGPIE', 'CONDOR', 'TOUCAN', 'PUFFIN', 'PENGUIN', 'PELICAN', 'SPARROW', 'OSTRICH', 'VULTURE'],
   fish: ['EEL', 'COD', 'CARP', 'TUNA', 'BASS', 'PIKE', 'SHARK', 'TROUT', 'PERCH', 'SALMON', 'MARLIN', 'GUPPY', 'MINNOW', 'SARDINE', 'HERRING', 'ANCHOVY'],
   fruit: ['FIG', 'DATE', 'PLUM', 'PEAR', 'LIME', 'APPLE', 'LEMON', 'MANGO', 'GRAPE', 'PEACH', 'MELON', 'BERRY', 'GUAVA', 'LYCHEE', 'CHERRY', 'BANANA', 'ORANGE', 'PAPAYA', 'APRICOT'],
   vegetable: ['PEA', 'BEAN', 'CORN', 'KALE', 'LEEK', 'BEET', 'OKRA', 'ONION', 'CARROT', 'POTATO', 'CELERY', 'PEPPER', 'TURNIP', 'RADISH', 'SQUASH', 'GARLIC', 'CABBAGE', 'SPINACH', 'PARSNIP'],
   drink: ['TEA', 'COLA', 'SODA', 'MILK', 'WINE', 'BEER', 'CIDER', 'COCOA', 'JUICE', 'WATER', 'LATTE', 'MOCHA', 'COFFEE', 'NECTAR'],
   country: ['CUBA', 'PERU', 'CHINA', 'INDIA', 'SPAIN', 'EGYPT', 'KENYA', 'CHILE', 'ITALY', 'JAPAN', 'BRAZIL', 'FRANCE', 'CANADA', 'MEXICO', 'NORWAY', 'SWEDEN', 'POLAND', 'GREECE', 'TURKEY', 'RUSSIA', 'GERMANY', 'IRELAND', 'ICELAND', 'MOROCCO', 'NIGERIA', 'AUSTRIA', 'BELGIUM', 'FINLAND', 'HUNGARY', 'DENMARK', 'THAILAND', 'PORTUGAL'],
-  ballsport: ['GOLF', 'POLO', 'RUGBY', 'BOCCE', 'FUTSAL', 'PELOTA', 'BOULES', 'SHINTY', 'TENNIS', 'SOCCER', 'SQUASH', 'CROQUET', 'HURLING', 'BOWLING', 'CRICKET', 'NETBALL', 'SNOOKER', 'FOOTBALL', 'SOFTBALL', 'KICKBALL', 'FOOSBALL', 'KORFBALL', 'PETANQUE', 'HANDBALL', 'BASEBALL', 'LACROSSE', 'WATERPOLO', 'DODGEBALL', 'BILLIARDS'],
+  ballsport: ['GOLF', 'POLO', 'RUGBY', 'BOCCE', 'BOWLS', 'FUTSAL', 'PELOTA', 'BOULES', 'SHINTY', 'TENNIS', 'SOCCER', 'SQUASH', 'CROQUET', 'HURLING', 'BOWLING', 'CRICKET', 'NETBALL', 'SNOOKER', 'FOOTBALL', 'SOFTBALL', 'KICKBALL', 'FOOSBALL', 'KORFBALL', 'PETANQUE', 'HANDBALL', 'BASEBALL', 'LACROSSE', 'ROUNDERS', 'WATERPOLO', 'DODGEBALL', 'BILLIARDS', 'BASKETBALL', 'VOLLEYBALL', 'PICKLEBALL', 'TETHERBALL', 'RACQUETBALL'],
 };
 const TOPIC_LABEL = {
   mammal: 'It is a mammal', bird: 'It is a bird', fish: 'It is a fish',
