@@ -125,7 +125,21 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const A = PUZZLE.a;
   const TOTAL = A.length;
   const STORE_KEY = `sot_anon_${PUZZLE.num}`;
-  const mobile = useIsMobile();
+  // Two different questions, and conflating them is what broke tablets.
+  // `narrow` is about WIDTH: under 760px the passage and the bank cannot both be
+  // on screen, so they split into tabs. `touchInput` is about the DEVICE: this
+  // game reads letters off a window keydown and has no <input> anywhere, so a
+  // machine with no physical keys can only type through our own keys. A tablet
+  // answers no to the first and YES to the second, which is why one arrived on a
+  // desktop layout with no way to type at all (reported 2026-08-08).
+  const narrow = useIsMobile();
+  const [touchInput, setTouchInput] = useState(false);
+  useEffect(() => {
+    try {
+      setTouchInput(isMobileDevice()
+        || window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+    } catch (e) {}
+  }, []);
 
   // The passage's letter cells, and the map from a cell to the answer that owns
   // it. Both halves render from this one map, which is what keeps them in step.
@@ -151,7 +165,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   // is where the categories are, so it is the half that explains itself and the
   // half the solve actually starts from. The rules copy says the same thing:
   // start with the sharpest category, not the passage.
-  const [view, setView] = useState('b');          // mobile only: passage or bank
+  const [view, setView] = useState('b');          // narrow only: passage or bank
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
@@ -488,7 +502,9 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-seg{display:flex;border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;margin-bottom:12px;}
           .an-seg button{flex:1;border:0;background:var(--white);padding:10px 0;font-family:${SANS};font-weight:800;font-size:13.5px;color:#8b93a1;cursor:pointer;}
           .an-seg button.on{background:${COLORS.accent};color:var(--white);}
-          .an-dock{position:sticky;bottom:0;z-index:6;background:#0f1f2e;border-radius:10px 10px 0 0;padding:9px 11px 10px;margin-top:12px;}
+          .an-input{position:sticky;bottom:0;z-index:6;max-width:520px;margin:12px auto 0;padding-bottom:env(safe-area-inset-bottom);}
+          .an-dock{background:#0f1f2e;border-radius:10px 10px 0 0;padding:9px 11px 10px;}
+          .an-input>.an-kb:first-child{border-radius:10px;}
           .an-dockhead{font-family:${MONO};font-size:10px;letter-spacing:0.09em;text-transform:uppercase;color:#8fa6cc;display:flex;align-items:center;gap:8px;}
           .an-nav{margin-left:auto;display:flex;gap:6px;}
           .an-nav button{width:26px;height:26px;border-radius:6px;border:1px solid #2b4675;background:#16294a;color:#dbe9ff;cursor:pointer;font-weight:800;}
@@ -567,19 +583,19 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                 {spineLetters.map((c, i) => <i key={i} className={c ? '' : 'blank'}>{c || '·'}</i>)}
               </div>
 
-              {mobile && (
+              {narrow && (
                 <div className="an-seg">
                   <button className={view === 'q' ? 'on' : ''} onClick={() => setView('q')}>Passage</button>
                   <button className={view === 'b' ? 'on' : ''} onClick={() => setView('b')}>Bank</button>
                 </div>
               )}
 
-              {(!mobile || view === 'b') && (
+              {(!narrow || view === 'b') && (
                 <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
                   {banksPanel}
                 </div>
               )}
-              {(!mobile || view === 'q') && (
+              {(!narrow || view === 'q') && (
                 <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
                   {passagePanel}
                 </div>
@@ -591,30 +607,34 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                 </div>
               )}
 
-              {/* The dock is the other half of the puzzle, for the cell you are on.
-                  On a phone the two halves cannot both be on screen, so this is
-                  what keeps the loop alive. The keyboard is ours rather than the
-                  OS one, which would resize the viewport under the dock. */}
-              {mobile && playing && (
-                <>
-                  <div className="an-dock">
-                    <div className="an-dockhead">
-                      <span>{view === 'b'
-                        ? 'where that letter sits in the passage'
-                        : (A[curAnswer].cat ? `${A[curAnswer].cat} · ${A[curAnswer].w.length}` : `no category · ${A[curAnswer].w.length}`)}</span>
-                      <span className="an-nav">
-                        <button onClick={() => focusCell(A[(curAnswer + TOTAL - 1) % TOTAL].c[0])}>&lsaquo;</button>
-                        <button onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>&rsaquo;</button>
-                      </span>
+              {/* The input rail, for any device with no physical keys. The keyboard
+                  is ours rather than the OS one, which would resize the viewport
+                  under the board. The dock above it is the OTHER half of the
+                  puzzle for the cell you are on, and it earns its space only on a
+                  narrow screen: at tablet width both halves are already visible,
+                  so a tablet gets the keys alone. */}
+              {touchInput && playing && (
+                <div className="an-input">
+                  {narrow && (
+                    <div className="an-dock">
+                      <div className="an-dockhead">
+                        <span>{view === 'b'
+                          ? 'where that letter sits in the passage'
+                          : (A[curAnswer].cat ? `${A[curAnswer].cat} · ${A[curAnswer].w.length}` : `no category · ${A[curAnswer].w.length}`)}</span>
+                        <span className="an-nav">
+                          <button onClick={() => focusCell(A[(curAnswer + TOTAL - 1) % TOTAL].c[0])}>&lsaquo;</button>
+                          <button onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])}>&rsaquo;</button>
+                        </span>
+                      </div>
+                      <div className="an-dockbody">
+                        {(view === 'b' ? passageAround(cur) : A[curAnswer].c).map((n, i) => (
+                          n < 0
+                            ? <div key={`g${i}`} className="an-dcell gap" />
+                            : <div key={n} className={`an-dcell${n === cur ? ' on' : ''}`} onClick={() => focusCell(n)}>{fill[n] || ''}</div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="an-dockbody">
-                      {(view === 'b' ? passageAround(cur) : A[curAnswer].c).map((n, i) => (
-                        n < 0
-                          ? <div key={`g${i}`} className="an-dcell gap" />
-                          : <div key={n} className={`an-dcell${n === cur ? ' on' : ''}`} onClick={() => focusCell(n)}>{fill[n] || ''}</div>
-                      ))}
-                    </div>
-                  </div>
+                  )}
                   <div className="an-kb">
                     {ROWS.map((row, ri) => (
                       <div className="an-kr" key={ri}>
@@ -624,7 +644,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                       </div>
                     ))}
                   </div>
-                </>
+                </div>
               )}
             </>
           )}
@@ -681,7 +701,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
               <li>A printed category is always one you can recite: it admits four words at most at that length.</li>
               <li>An answer marked <i>no category</i> has none. It comes from the passage, not the bank.</li>
               <li>No checks, no hints. A wrong answer makes the passage stop reading as English.</li>
-              <li>Click any box and type. Arrow keys walk the passage, Tab jumps to the next answer.</li>
+              <li>Click or tap any box and type. On a touch screen the keys sit at the foot of the board. Arrow keys walk the passage, Tab jumps to the next answer.</li>
             </ul>
             <button className="an-btn primary" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}>Play</button>
           </div>
