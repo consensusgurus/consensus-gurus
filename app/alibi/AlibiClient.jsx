@@ -26,7 +26,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Search, Eraser, Undo2, ChevronDown } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Search, Eraser, Undo2 } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -54,7 +54,6 @@ const COLORS = {
   accentSoft: '#f6e3e5',
   green: T.successDeep,
 };
-const BAND_TINTS = ['#7c2230', '#5f6b7d', '#2c3a4d'];
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_alibi_help_seen';
@@ -246,10 +245,6 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
-  const [clueIdx, setClueIdx] = useState(0);
-  const [storyOpen, setStoryOpen] = useState(false);
-  const playRef = useRef(null);
-  const dockRef = useRef(null);  // the case brief is folded on a phone   // which statement the phone dock is showing
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -348,48 +343,6 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   }, [g.status]);
 
   // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
-  // THE BOARD FILLS THE SCREEN (2026-08-08). The play area is given exactly
-  // what is left after the shared chrome, the case brief, the status line and
-  // the dock, so on a phone you never scroll to make a move. Measured rather
-  // than estimated: the chrome is three navy bands whose height changes with
-  // the viewport, and the dock grows with the length of the statement.
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    const fit = () => {
-      const el = playRef.current;
-      if (!el || window.innerWidth > 899) { if (el) el.style.removeProperty('height'); return; }
-      const top = el.getBoundingClientRect().top;
-      const dockH = dockRef.current ? dockRef.current.getBoundingClientRect().height : 150;
-      const h = Math.max(300, Math.round(window.innerHeight - top - dockH - 10));
-      el.style.height = h + 'px';
-      // and the board fits that box: twelve option rows, one header row and
-      // three category bands share whatever height there is, down to a 19px
-      // floor where a row stops being tappable and the board scrolls instead
-      const tbl = el.querySelector('.al-tbl');
-      if (tbl) {
-        // Solve for the row instead of guessing at it. Everything that is not
-        // an option row (the suspect header, three category bands, borders,
-        // and whatever the option-name column insists on) is one unknown, so
-        // measure the table at a known row height, subtract the twelve rows,
-        // and what is left IS that constant. Then the row that fits is exact.
-        // Guessing put it 31px out and a nudge-by-one loop never caught up.
-        const PROBE = 24;
-        tbl.style.setProperty('--alrow', PROBE + 'px');
-        const fixed = tbl.getBoundingClientRect().height - PROBE * 12;
-        const row = Math.max(19, Math.min(34, Math.floor((h - fixed - 4) / 12)));
-        tbl.style.setProperty('--alrow', row + 'px');
-        tbl.style.setProperty('--alfont', Math.max(9, Math.min(12, row * 0.5)).toFixed(1) + 'px');
-        tbl.style.setProperty('--alpad', (row < 26 ? 0 : 1) + 'px');
-      }
-    };
-    fit();
-    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
-    if (ro && dockRef.current) ro.observe(dockRef.current);
-    window.addEventListener('resize', fit);
-    const t = setTimeout(fit, 250);
-    return () => { window.removeEventListener('resize', fit); if (ro) ro.disconnect(); clearTimeout(t); };
-  });
-
   useEffect(() => {
     try {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
@@ -632,21 +585,8 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="alibi" name="Alibi" collapsed={started} compact band={started ? (
-        <>
-          <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>Alibi</span>
-          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#a9c1f5' }}>No. {PUZZLE.num}</span>
-          <span style={{ marginLeft: 'auto', display: 'flex', gap: 5, flex: '0 0 auto' }}>
-            <span style={{ background: 'rgba(255,255,255,0.14)', borderRadius: 999, padding: '4px 8px', fontSize: 11.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-              {placedCount}/{TOTAL}<span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.72, marginLeft: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>facts</span>
-            </span>
-            <span style={{ background: 'rgba(255,255,255,0.14)', borderRadius: 999, padding: '4px 8px', fontSize: 11.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-              {g.struck.length}/{PUZZLE.clues.length}<span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.72, marginLeft: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>used</span>
-            </span>
-          </span>
-        </>
-      ) : null} />
-      <div className={`al-wrap${started && !preStart ? ' al-playing' : ''}`} style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+      <DailyChrome slug="alibi" name="Alibi" collapsed={started} />
+      <div className="al-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.al-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .al-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -657,75 +597,23 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-clue{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${COLORS.ink};}
           .al-clue b{color:${COLORS.accent};}
           .al-clue.done{opacity:0.42;text-decoration:line-through;}
-          .al-tbl{border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto;width:100%;max-width:520px;table-layout:fixed;}
+          .al-tbl{border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto 14px;width:auto;max-width:100%;}
           .al-tbl caption{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${COLORS.faded};text-align:left;padding:0 0 6px 2px;caption-side:top;}
           .al-tbl th{font-size:11px;padding:6px 4px;background:#efece6;font-weight:700;color:${COLORS.ink};}
-          .al-tbl th.rowh{text-align:right;width:31%;padding-right:7px;padding-top:var(--alpad,1px);padding-bottom:var(--alpad,1px);font-size:var(--alfont,12px);line-height:1.15;font-weight:700;color:${COLORS.faded};background:#faf8f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
-          .al-tbl th.colh{font-size:12px;padding:7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
-          .al-band td{background:var(--bg);color:var(--white);font-size:9.5px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;text-align:left;padding:3px 8px;border:1px solid var(--bg);}
-          @media(max-width:400px){.al-tbl th.rowh{font-size:11px;}.al-tbl th.colh{font-size:11px;}}
-          .al-td{height:var(--alrow,34px);border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:var(--white);}
+          .al-tbl th.rowh{text-align:right;min-width:64px;padding-right:8px;}
+          .al-td{width:40px;height:38px;border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:var(--white);}
           .al-td:hover{background:#faf6ee;}
           .al-td.x{color:#b9b2a6;}
           .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
           .al-grids{display:grid;grid-template-columns:1fr;gap:0;}
           @media(min-width:900px){.al-cols{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start;}}
-          /* PHONE ORDER (owner-reported 2026-08-07). Below the two-column
-             breakpoint this stacked in DOM order: the story, then nine witness
-             statements, then the board. Measured on a 390 that put the board
-             1,087px down a 1,893px page, so the thing you actually work on was
-             never on screen and rotating it changed nothing anyone could see.
-             The board is the work, so it goes first and the statements read
-             underneath it. The story also loses its bottom margin, since on a
-             phone every pixel above the board is a pixel you have to scroll. */
-          /* THE DOCK (owner-approved direction, first game 2026-08-08). On a
-             phone the things you touch over and over, the statement you are
-             working and the three actions, leave the flow of the page and pin
-             to the bottom of the viewport, so the board can own the screen and
-             you never scroll to make a move. The page keeps scrolling behind
-             it; only the controls are pinned. Desktop is untouched. */
-          .al-dock{display:none;}
-          @media(max-width:899px){
-            .al-dock{display:block;position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--white);border-top:1px solid rgba(28,30,36,0.14);box-shadow:0 -8px 24px -14px rgba(16,24,40,0.5);padding:8px 12px max(6px, env(safe-area-inset-bottom));}
-            .al-dock .rail{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-            .al-dock .arw{flex:0 0 auto;width:34px;height:50px;border-radius:9px;border:1px solid rgba(28,30,36,0.2);background:var(--white);font-family:${SANS};font-weight:800;font-size:16px;color:${COLORS.faded};cursor:pointer;}
-            .al-dock .cur{flex:1;min-width:0;border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:9px 11px;font-family:${SANS};font-size:13.5px;font-weight:600;line-height:1.4;min-height:50px;display:block;background:var(--white);}
-            .al-dock .cur.done{opacity:0.45;text-decoration:line-through;}
-            .al-dock .n{font-family:${MONO};font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.faded};display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-            .al-dock .acts{display:flex;gap:6px;}
-            .al-dock .acts .al-btn{flex:1;justify-content:center;padding:11px 8px;font-size:13px;}
-            .al-deskacts{display:none;}
-            .al-cols{display:flex;flex-direction:column;}
-            .al-boardcol{order:1;}
-            .al-witness{order:2;margin-bottom:0 !important;}
-            .al-story{margin-bottom:8px !important;padding:10px 13px !important;font-size:13.5px !important;}
-            .al-wrap{padding-bottom:186px !important;}
-            /* Everything above the board is a pixel you scroll past to reach
-               the board, so on a phone it all gets smaller or folds. */
-            .al-story.fold{max-height:56px;overflow:hidden;line-height:22px !important;padding-bottom:0 !important;}
-            .al-wrap .al-storybtn{display:flex;margin:-2px 0 10px;}
-            
-            .al-statline{font-size:10.5px !important;gap:10px !important;margin-bottom:8px !important;}
-            .al-boardlab{display:none !important;}
-            .al-boardhint{display:none !important;}
-            .al-cluehint{font-size:11px !important;}
-            /* the navy band above says all of this now */
-            .al-playing .al-mast{display:none !important;}
-            .al-playing .al-statline{display:none !important;}
-            .al-boardcol{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;}
-            /* the nine statements live in the dock rail now; the list below was
-               the same nine again and it was the reason the page ran long */
-            .al-witness{display:none !important;}
-            .al-wrap{padding-bottom:12px !important;}
-          }
-          .al-storybtn{display:none;align-items:center;gap:4px;background:none;border:0;padding:4px 0 0;font-family:${SANS};font-size:12px;font-weight:800;color:${COLORS.accent};cursor:pointer;}
         `}</style>
 
         <div style={{ maxWidth: 940, margin: '0 auto' }}>
 
 
         {/* masthead */}
-        <div className="al-mast"><DailyMasthead
+        <DailyMasthead
           slug="alibi"
           num={PUZZLE.num}
           dateLabel={PUZZLE.dateLabel}
@@ -737,7 +625,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           blocks={'ALIBI'.split('').map((ch, i) => (
               <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
-        /></div>
+        />
 
         {/* start tile — sits where the boards go; the case file stays sealed
             (not rendered) until the player presses Start, which begins the clock. */}
@@ -762,22 +650,14 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
         {/* the story */}
         {!preStart && (
-        <div className={`al-story${storyOpen ? '' : ' fold'}`} onClick={() => setStoryOpen((v) => !v)} style={{ cursor: 'pointer', fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
           Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 5 ? 'Five' : 'Four'} guests &mdash; {PUZZLE.suspects.slice(0, -1).join(', ')} and {PUZZLE.suspects[N - 1]} &mdash; were each alone in a different room, each left at a different hour, and each was carrying one curious item. Work out who was where, when they left, and what they carried. Every statement below is true.
         </div>
-        )}
-        {!preStart && (
-          <button type="button" className="al-storybtn" onClick={() => setStoryOpen((v) => !v)}
-            aria-expanded={storyOpen} aria-label={storyOpen ? 'Hide the case brief' : 'Read the case brief'}>
-            {storyOpen ? 'Hide the case brief' : 'Read the case brief'}
-            <ChevronDown size={15} strokeWidth={2.6} aria-hidden="true"
-              style={{ transform: storyOpen ? 'rotate(180deg)' : 'none', transition: 'transform .16s ease' }} />
-          </button>
         )}
 
         {/* status bar */}
         {started && (
-        <div className="al-statline" style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
           <span>confirmed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{TOTAL}</span>
           <span>wrong accusations <b style={{ color: g.wrong ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.wrong}</b></span>
           {playing && (
@@ -789,35 +669,10 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
 
-        {playing && !preStart && (
-          <div className="al-dock" ref={dockRef}>
-            <div className="n">
-              <span>Statement {Math.min(clueIdx + 1, PUZZLE.clues.length)} of {PUZZLE.clues.length}</span>
-              <span style={{ marginLeft: 'auto', letterSpacing: 0, textTransform: 'none' }}>{g.struck.length} crossed off</span>
-            </div>
-            <div className="rail">
-              <button type="button" className="arw" aria-label="Previous statement"
-                onClick={() => setClueIdx((i) => (i - 1 + PUZZLE.clues.length) % PUZZLE.clues.length)}>&#8249;</button>
-              <div className={`cur${g.struck.includes(clueIdx) ? ' done' : ''}`} role="button" tabIndex={0}
-                onClick={() => toggleClue(clueIdx)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleClue(clueIdx); } }}
-                title="Tap to cross this statement off"><span>{clueText(PUZZLE.clues[clueIdx])}</span></div>
-              <button type="button" className="arw" aria-label="Next statement"
-                onClick={() => setClueIdx((i) => (i + 1) % PUZZLE.clues.length)}>&#8250;</button>
-            </div>
-            <div className="acts">
-              <button type="button" className="al-btn" onClick={undo} disabled={!canUndo}
-                style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf' }}><Undo2 size={14} /> Undo</button>
-              <button type="button" className="al-btn" onClick={resetBoards}><Eraser size={14} /> Reset</button>
-              <button type="button" className="al-btn primary" onClick={accuse}><Search size={14} strokeWidth={2.6} /> Accuse</button>
-            </div>
-          </div>
-        )}
-
         {!preStart && (
-        <div className="al-cols" ref={playRef}>
+        <div className="al-cols">
           {/* witness statements */}
-          <div className="al-witness" style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 16 }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Witness statements</div>
             {PUZZLE.clues.map((c, i) => (
               <div key={i} className={`al-clue${g.struck.includes(i) ? ' done' : ''}`} onClick={() => toggleClue(i)} role="button" tabIndex={0}
@@ -825,42 +680,31 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
                 <b>{i + 1}.</b> {clueText(c)}
               </div>
             ))}
-            <div className="al-cluehint" style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.5, marginTop: 8 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.5, marginTop: 8 }}>
               Tap a statement to cross it off. Tap a board cell to toggle ✗ (impossible); long-press it (or right-click on a computer) to mark ● (confirmed). Each suspect gets exactly one ● per board.
             </div>
           </div>
 
           {/* detective's boards */}
-          <div className="al-boardcol">
-            <div className="al-boardlab" style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Detective&rsquo;s board</div>
-            {/* ROTATED FOR THE PHONE (owner-approved 2026-08-07). This was three
-                stacked 4x4 tables, suspects down and options across, which on a
-                phone forced a 20px cell and about 620px of stack. A phone is
-                narrow and deep, so the long axis moved to the tall axis: the four
-                suspects are the COLUMNS and all twelve options are the ROWS, under
-                a band per category. One table, everything visible at once, and the
-                cell is set by percentage so it grows with the screen instead of
-                being pinned at 40px. Cell handlers are unchanged: s is still the
-                suspect and v is still the option, they have only swapped axes. */}
-            <table className="al-tbl">
-              <tbody>
-                <tr>
-                  <th className="rowh" aria-hidden="true"></th>
-                  {PUZZLE.suspects.map((name) => <th key={name} className="colh">{name}</th>)}
-                </tr>
-                {CAT_META.map((cat, ci) => (
-                  <React.Fragment key={cat.key}>
-                    <tr className="al-band" style={{ '--bg': BAND_TINTS[ci % BAND_TINTS.length] }}>
-                      <td colSpan={PUZZLE.suspects.length + 1}>{cat.label}</td>
+          <div>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Detective&rsquo;s board</div>
+            <div className="al-grids">
+              {CAT_META.map((cat) => (
+                <table key={cat.key} className="al-tbl">
+                  <caption>{cat.label}</caption>
+                  <tbody>
+                    <tr>
+                      <th className="rowh" aria-hidden="true"></th>
+                      {cat.vals.map((v) => <th key={v}>{v}</th>)}
                     </tr>
-                    {cat.vals.map((val, v) => (
-                      <tr key={val}>
-                        <th className="rowh">{val}</th>
-                        {PUZZLE.suspects.map((name, s) => {
+                    {PUZZLE.suspects.map((name, s) => (
+                      <tr key={name}>
+                        <th className="rowh">{name}</th>
+                        {cat.vals.map((_, v) => {
                           const m = g.marks[cat.key][s][v];
                           return (
                             <td
-                              key={name}
+                              key={v}
                               className={`al-td${m === 1 ? ' x' : m === 2 ? ' dot' : ''}`}
                               onClick={() => { if (longFired.current) { longFired.current = false; return; } tapCell(cat.key, s, v); }}
                               onContextMenu={(e) => { e.preventDefault(); if (longFired.current) return; toggleDot(cat.key, s, v); }}
@@ -870,19 +714,19 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
                               onTouchCancel={endPress}
                               style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                               role="button"
-                              aria-label={`${name} / ${val}: ${m === 0 ? 'blank' : m === 1 ? 'impossible' : 'confirmed'}. Tap to toggle impossible; long-press or right-click to confirm.`}
+                              aria-label={`${name} / ${cat.vals[v]}: ${m === 0 ? 'blank' : m === 1 ? 'impossible' : 'confirmed'}. Tap to toggle impossible; long-press or right-click to confirm.`}
                             >{m === 1 ? '✗' : m === 2 ? '●' : ''}</td>
                           );
                         })}
                       </tr>
                     ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
+                  </tbody>
+                </table>
+              ))}
+            </div>
 
             {started && (
-              <div className="al-boardhint" style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 2px', lineHeight: 1.5 }}>
+              <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.04em', color: COLORS.faded, textAlign: 'center', margin: '10px 0 2px', lineHeight: 1.5 }}>
                 Tap a cell to cross it off. Hold it (or right-click) to confirm a &#9679;.
               </div>
             )}
@@ -893,7 +737,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             {playing && (
-              <div className="al-deskacts" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                 <button type="button" className="al-btn primary" onClick={accuse}><Search size={14} strokeWidth={2.6} /> Check my accusation</button>
                 <button type="button" className="al-btn" onClick={undo} disabled={!canUndo}
                   aria-label="Undo last move"
