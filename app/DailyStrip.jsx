@@ -190,6 +190,12 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // above 900px.
 const PHONE_ROWS = 6;     // games visible across paused + unplayed
 const PHONE_PROG_MAX = 3; // ...of which never more than three are paused
+// Desktop shows at most this many In progress rows before the expand bar takes
+// over. Two, because the slate runs two columns there, so a paused game is
+// either the full width of the console or half of it, never a third row of
+// gold competing with the games you have not started (owner, 2026-08-08).
+const DESK_PROG_MAX = 2;
+
 // How far back Up next looks when deciding which game this viewer plays the
 // most. Long enough to survive a few skipped days, short enough that a habit
 // dropped last month stops winning.
@@ -747,7 +753,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // band that already printed the total. A group that peeks nothing has no
     // "more" to show, so it reads "Show all 10" there and "Show 3 more" here,
     // and either way the number is the count you get by tapping it.
-    const more = (grp, count) => (count > peekOf(grp) ? (
+    // `dmin` is the DESKTOP cap, which is its own number: the phone spends a
+    // six-row budget across the groups, while desktop runs two columns and caps
+    // only In progress, at two (owner, 2026-08-08). The bar renders when either
+    // width has something hidden, and each width prints its own count.
+    const more = (grp, count, dmin) => ((count > peekOf(grp) || (dmin != null && count > dmin)) ? (
       <button
         type="button"
         className={`sl-more ${grp}`}
@@ -770,12 +780,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       >
         {grpOpen[grp]
           ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
-          : <>{peekOf(grp) > 0
-              ? `Show ${count - peekOf(grp)} more`
-              : `Show all ${count}`} <ChevronDown size={12} strokeWidth={2.8} /></>}
+          : <>
+              <span className="sl-mtxt p">{peekOf(grp) > 0 ? `Show ${count - peekOf(grp)} more` : `Show all ${count}`}</span>
+              <span className="sl-mtxt d">{(dmin != null && count > dmin)
+                ? `Show ${count - dmin} more`
+                : (peekOf(grp) > 0 ? `Show ${count - peekOf(grp)} more` : `Show all ${count}`)}</span>
+              <ChevronDown size={12} strokeWidth={2.8} />
+            </>}
       </button>
     ) : null);
-    out.push(more('prog', nProg));
+    out.push(more('prog', nProg, DESK_PROG_MAX));
     out.push(more('todo', nTodo));
     out.push(more('dn', nDone));
     // Counted in DOM order, which IS the visual order WITHIN a group (equal
@@ -789,6 +803,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const gi = seen[grp];
       seen[grp] = gi + 1;
       const hid = !grpOpen[grp] && gi >= peekOf(grp);
+      // Desktop caps In progress at two and lays a lone one across both columns
+      // (owner, 2026-08-08). Both are desktop-only classes: the phone block
+      // never styles them, so its own six-row budget is untouched.
+      const dhid = grp === 'prog' && !grpOpen[grp] && gi >= DESK_PROG_MAX;
+      const wide = grp === 'prog' && nProg === 1;
       const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
       const pl = playsOf(g.key);
       const bd = byKey[g.key];
@@ -802,7 +821,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       out.push(
         <div
           key={g.key}
-          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}`}
+          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}${dhid ? ' sl-dhid' : ''}${wide ? ' sl-wide' : ''}`}
           style={{ '--rc': col }}
           onClick={(e) => {
             // A click anywhere on the row, the emblem included, opens the stats
@@ -811,8 +830,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             // 2026-08-07; desktop joined it 2026-08-08 when the row lost its
             // chevron along with the rest of its columns, so selecting the game
             // tile still expands exactly as it did.
-            // .sl-btn.done is a static score chip, not a control, so it falls
-            // through and expands like the rest of the row.
+            // The status cell holds the one control that leaves for the
+            // game, so a click anywhere inside it follows that link rather than
+            // expanding, even if it lands on the cell's padding instead of the
+            // button itself (owner, 2026-08-08). Done rows are the exception by
+            // construction: their chip is a static score with no link in it, so
+            // there is nothing to follow and they expand like any other row.
+            const st = e.target.closest && e.target.closest('.sl-status');
+            const go = st && st.querySelector('a[href]');
+            if (go) { e.preventDefault(); window.location.assign(go.getAttribute('href')); return; }
             if (e.target.closest && e.target.closest('.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb')) return;
             e.preventDefault(); // swallow the name link's navigation
             pick(g.key);
@@ -921,7 +947,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       // `order` grouping; it has no effect above 900px.
       // The drawer inherits sl-hid, so collapsing a group takes an open drawer
       // with it rather than leaving a panel with no row above it.
-      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${hid ? ' sl-hid' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
+      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${hid ? ' sl-hid' : ''}${dhid ? ' sl-dhid' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
     });
     return out;
   };
@@ -1518,13 +1544,38 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-pl i{display:block;font-style:normal;font-size:8px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:3px;}
           /* A finished row has a score to report, so its chip is permanent and
              takes the figure's place rather than waiting for a hover. */
-          .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);opacity:0;}
-          .sl-row.done .sl-status{opacity:1;}
+          /* An invisible button still takes clicks, so Play is inert until it
+             is actually showing. */
+          .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);opacity:0;pointer-events:none;}
+          .sl-row.done .sl-status{opacity:1;pointer-events:auto;}
+          /* IN PROGRESS IS GOLD (owner, 2026-08-08). A paused game is the one
+             thing on the slate with a claim on you, and a cream wash behind an
+             otherwise ordinary row was not making that case. Filled gold, white
+             type, the same pairing the cap bars use for blue, and the band above
+             takes a deeper gold so the group reads as one block. Capped at two
+             and full width when there is only one, so it stays an invitation
+             rather than a wall. */
+          .sl-dhid{display:none;}
+          .sl-row.sl-wide{grid-column:1/-1;}
+          .sl-band.prog{background:#7c4a06;}
+          .sl-band.prog .sl-bc{color:#f0d9a0;}
+          .sl-more.prog{display:flex;grid-column:1/-1;order:3;}
+          .sl-mtxt.p{display:none;}
+          .sl-row.inprog,.sl-row.inprog.open{background:var(--gold-ink);box-shadow:inset 4px 0 0 rgba(255,255,255,.92);}
+          .sl-row.inprog:hover{background:#8a5306;}
+          .sl-row.inprog .sl-nm b,.sl-row.inprog .sl-pl b{color:var(--white);}
+          /* The eyebrow's colour is an inline style (the category hue), so this
+             is the one place the desktop block has to outrank it. */
+          .sl-row.inprog .sl-cm{color:#f7e3b0 !important;}
+          .sl-row.inprog .sl-tg,.sl-row.inprog .sl-dot,.sl-row.inprog .sl-pl i{color:#f0d9a0;}
+          .sl-row.inprog .sl-mld{color:#fbeeca;}
+          .sl-row.inprog .sl-mld svg{color:var(--gold);}
+          .sl-row.inprog .sl-btn.prog{background:var(--white);border-color:var(--white);color:var(--gold-ink);}
           .sl-row.done .sl-pl{visibility:hidden;}
           .sl-btn{width:64px;}
         }
         @media(min-width:901px) and (hover:hover){
-          .sl-row:not(.done):hover .sl-status{opacity:1;}
+          .sl-row:not(.done):hover .sl-status{opacity:1;pointer-events:auto;}
           .sl-row:not(.done):hover .sl-pl{opacity:0;}
         }
         /* ── phone slate: direction B (owner-approved 2026-08-07) ──────────
@@ -1569,6 +1620,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#eef1f6;}
           .sl-more.prog{order:3;color:#a16207;}
+          .sl-mtxt.d{display:none;}
           .sl-more.todo{order:6;}
           .sl-more.dn{order:9;color:var(--success-deep);}
           /* THREE tracks: name, count, icon (owner, 2026-08-07, against a
