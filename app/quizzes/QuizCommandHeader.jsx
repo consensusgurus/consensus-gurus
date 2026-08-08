@@ -319,7 +319,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
               {stat(
                 'Daily rank',
                 dayRank
-                  ? <>{`#${fmtK(dayRank)}`}{dayXp ? <i>{` \u00b7 ${dayXp.toLocaleString()} IQ`}</i> : null}</>
+                  ? <>{`#${fmtK(dayRank)}`}{dayField ? <i className="qchm-day">{` of ${dayField.toLocaleString()}`}</i> : null}{dayXp ? <i>{` \u00b7 ${dayXp.toLocaleString()} IQ`}</i> : null}</>
                   : <>{'\u2014'}</>,
                 // The phone hides the little cell LABELS (.qchm-k), so without the
                 // word here this column is a bare "#32" sitting two boxes from the
