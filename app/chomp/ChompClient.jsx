@@ -18,11 +18,13 @@
 // cast you got, so a run that stalls on the fifth still scores five. That is
 // what makes a hard board survivable.
 //
-// REPLAY IS FREE AND INSTANT (owner, same). R, or the button, restarts the board
-// and records NOTHING. Only a run you actually finish posts a result. This
-// DIVERGES from the house rule where Restart books a loss (see Four and Chain);
-// it is deliberate, and it does mean Chomp's board rewards persistence more than
-// its neighbours do.
+// RESTART BOOKS THE RUN (owner, 2026-08-08, reversing an earlier free-replay
+// call). Pressing Restart records the game exactly as it stood, then puts you
+// back at the top of the same board to play it again. That is the house rule
+// Four, Chain, Check and Mate already follow, and it is what keeps the daily
+// leaderboard a measure of the first attempt rather than of patience. It is
+// TWO-TAP ARMED and has no keyboard shortcut, because a control that costs you
+// the day should not be one stray keypress away.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -186,6 +188,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [stats, setStats] = useState(null);
   const [blocked, setBlocked] = useState(null);
+  const [armRestart, setArmRestart] = useState(false);
   const [nowTick, setNowTick] = useState(0);
   const [sprites, setSprites] = useState({});
   const cvsRef = useRef(null);
@@ -492,19 +495,32 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
     setTimeout(sizeBoard, 0);
   }
-  // Free and instant. A replay posts NOTHING and clears no flags, so the run you
-  // eventually finish is the one that counts.
-  const replayBoard = useCallback(() => {
+  // Restart records the run as it stands and then re-deals the same board.
+  // postResult carries markFlushed (so no later abandon double-posts) and
+  // recordStat is write-once (so a second restart cannot overwrite the first
+  // result). Two-tap armed: the first press only arms it.
+  const restartBoard = useCallback(() => {
+    if (!armRestart) {
+      setArmRestart(true);
+      setTimeout(() => setArmRestart(false), 3200);
+      return;
+    }
+    setArmRestart(false);
+    const cur = gRef.current;
     const now = Date.now();
+    if (cur.status === 'playing' && cur.t0) {
+      postResult({ ...cur, ms: cur.ms + Math.min(120000, now - (cur.tMark || now)) });
+    }
+    // t0 is set straight away rather than dropping back to the start tile: the
+    // tile exists to keep the FIRST attempt's clock honest, and this is not one.
     commit({ ...freshState(PUZZLE), t0: now, tMark: now });
     setBlocked(null);
     setEndClosed(true);
-  }, [PUZZLE, commit]);
+  }, [PUZZLE, commit, postResult, armRestart]);
 
   useEffect(() => {
     const onKey = (e) => {
       if (showHelp) { if (e.key === 'Escape') setShowHelp(false); return; }
-      if (e.key === 'r' || e.key === 'R') { e.preventDefault(); replayBoard(); return; }
       const map = {
         ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
         w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right',
@@ -515,7 +531,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [move, showHelp, replayBoard]);
+  }, [move, showHelp]);
 
   // ---- share ---------------------------------------------------------------
   // Counts only. Nothing here describes the route, so a shared result can never
@@ -550,10 +566,10 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         <>Your body <b>never shrinks</b>. Where you have been is a wall for the rest of the run.</>,
         <>A mascot whose turn has not come is <b>solid</b>. You cannot cross the lion to reach the gamecock.</>,
         <>Steering into a wall is <b>refused</b>, not punished, and costs no move. The run ends only when the head has nowhere legal left to go.</>,
-        <>Stuck? <b>Replay</b> (or press R) restarts instantly and <b>does not count</b>. Only a run you finish is recorded.</>,
+        <><b>Restart</b> puts you back at the top of the same board, but it <b>records the run as it stood</b>, so the board you post is the one you were on. Press it twice to confirm.</>,
       ]}
       knack="Getting to the mascot in front of you is easy. The board is about the one after it: the shortest line to the fourth is very often the line that walls off the fifth. Look one mascot further than you want to."
-      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all seven: stall on the fifth and you still score five. Clearing all ${NPEL} is a perfect 10. Ties break on fewest moves, then on time. Sunday Editions use the same seven mascots but spread them further apart, so more of the board is wall by the time the last one is in reach.`}
+      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all seven: stall on the fifth and you still score five. Clearing all ${NPEL} is a perfect 10. Ties break on fewest moves, then on time. Restarting records the run as it stood, so your first attempt is the one that counts. Sunday Editions use the same seven mascots but spread them further apart, so more of the board is wall by the time the last one is in reach.`}
     />
   );
 
@@ -634,8 +650,12 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               {stat('Moves', nf(g.moves))}
               {stat('Board', `${fillPct}%`)}
               {stat('Clock', fmtTime(elapsed))}
-              <button onClick={replayBoard} title="Replay (R). Does not count." style={{ border: `1px solid ${COLORS.accent}`, background: '#fff', color: COLORS.accent, borderRadius: 7, padding: '5px 10px', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', flex: 'none' }}>
-                <RotateCcw size={13} /> Replay
+              <button
+                onClick={restartBoard}
+                title="Restart this board. The run so far is recorded."
+                style={{ border: `1px solid ${armRestart ? COLORS.block : COLORS.line}`, background: armRestart ? '#fef2f2' : '#fff', color: armRestart ? COLORS.block : COLORS.faded, borderRadius: 7, padding: '5px 10px', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer', flex: 'none', whiteSpace: 'nowrap' }}
+              >
+                <RotateCcw size={13} /> {armRestart ? 'Records this run' : 'Restart'}
               </button>
               <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, borderRadius: 7, width: 30, height: 28, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <HelpCircle size={15} />
@@ -656,10 +676,10 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             </div>
 
             <div className="ch-keys" style={{ textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
-              &larr; &uarr; &darr; &rarr; or WASD &middot; hold to keep going &middot; R replays free
+              &larr; &uarr; &darr; &rarr; or WASD &middot; hold to keep going &middot; a blocked move is refused, not fatal
             </div>
             <div className="ch-touchhint" style={{ display: 'none', textAlign: 'center', marginTop: 8, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
-              Swipe the board or use the pad &middot; Replay is free and instant
+              Swipe the board or use the pad &middot; hold an arrow to keep going
             </div>
           </div>
         )}
@@ -692,9 +712,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             often the line that walls off the fifth.
           </p>
           <p style={{ margin: '0 0 9px' }}>
-            You do not need all seven. The score is how far down the cast you got, so a run that stalls still counts, and
-            replay is free and instant if you want another go at the same board. Everybody plays the same board on the same
-            day, and ties break on fewest moves. Sundays spread the mascots further apart.
+            You do not need all seven. The score is how far down the cast you got, so a run that stalls still counts.
+            Everybody plays the same board on the same day, ties break on fewest moves, and restarting records the run as it
+            stood, so the first attempt is the one that counts. Sundays spread the mascots further apart.
           </p>
           <p style={{ margin: 0 }}>
             More daily puzzles: <a href="/parker" style={{ color: COLORS.accent }}>Parker</a>,{' '}
