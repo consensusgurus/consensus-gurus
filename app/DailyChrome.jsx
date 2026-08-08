@@ -47,7 +47,13 @@ import DailySlateRail from './DailySlateRail';
 // the stat bar is where your rank sits. The Today pill in the top band still
 // gets you back to the slate. If this sticks, the mockup replaces both with a
 // single 10/51 chip in the top band rather than just hiding them.
-export default function DailyChrome({ slug, compact = false }) {
+// `band` is the game's own title row, rendered INSIDE the navy chrome on a
+// phone: name, number, and whatever two figures the game wants live. It is the
+// second band from the approved mockup, and it replaces the player stat bar
+// that compact folds away rather than just leaving a gap. Games that pass
+// nothing get nothing, and it never renders on desktop, where the page's own
+// masthead is still the title.
+export default function DailyChrome({ slug, compact = false, band = null }) {
   return (
     <div className={`dch-wrap${compact ? ' dch-compact' : ''}`}>
       {/* STACKING: the wrapper caps the whole header group at z-index 5. The
@@ -62,8 +68,11 @@ export default function DailyChrome({ slug, compact = false }) {
         @media(max-width:899px){
           .dch-compact .dsr{display:none;}
           .dch-compact .qchm-r2{display:none;}
-        }`}</style>
+          .dch-band{display:flex;align-items:center;gap:9px;height:40px;padding:0 13px;background:#16307a;color:#fff;overflow:hidden;}
+        }
+        .dch-band{display:none;}`}</style>
       <QuizNavHeader />
+      {compact && band ? <div className="dch-band">{band}</div> : null}
       <DailySlateRail current={slug} />
     </div>
   );

@@ -632,8 +632,21 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="alibi" name="Alibi" collapsed={started} compact />
-      <div className="al-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+      <DailyChrome slug="alibi" name="Alibi" collapsed={started} compact band={started ? (
+        <>
+          <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>Alibi</span>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#a9c1f5' }}>No. {PUZZLE.num}</span>
+          <span style={{ marginLeft: 'auto', display: 'flex', gap: 5, flex: '0 0 auto' }}>
+            <span style={{ background: 'rgba(255,255,255,0.14)', borderRadius: 999, padding: '4px 8px', fontSize: 11.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+              {placedCount}/{TOTAL}<span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.72, marginLeft: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>facts</span>
+            </span>
+            <span style={{ background: 'rgba(255,255,255,0.14)', borderRadius: 999, padding: '4px 8px', fontSize: 11.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+              {g.struck.length}/{PUZZLE.clues.length}<span style={{ fontSize: 9.5, fontWeight: 700, opacity: 0.72, marginLeft: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>used</span>
+            </span>
+          </span>
+        </>
+      ) : null} />
+      <div className={`al-wrap${started && !preStart ? ' al-playing' : ''}`} style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.al-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .al-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -696,6 +709,9 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
             .al-boardlab{display:none !important;}
             .al-boardhint{display:none !important;}
             .al-cluehint{font-size:11px !important;}
+            /* the navy band above says all of this now */
+            .al-playing .al-mast{display:none !important;}
+            .al-playing .al-statline{display:none !important;}
             .al-boardcol{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch;}
             /* the nine statements live in the dock rail now; the list below was
                the same nine again and it was the reason the page ran long */
@@ -709,7 +725,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
 
         {/* masthead */}
-        <DailyMasthead
+        <div className="al-mast"><DailyMasthead
           slug="alibi"
           num={PUZZLE.num}
           dateLabel={PUZZLE.dateLabel}
@@ -721,7 +737,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           blocks={'ALIBI'.split('').map((ch, i) => (
               <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
-        />
+        /></div>
 
         {/* start tile — sits where the boards go; the case file stays sealed
             (not rendered) until the player presses Start, which begins the clock. */}
