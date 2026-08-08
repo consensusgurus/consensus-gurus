@@ -109,6 +109,13 @@ function mergeServerStats(s, recent, puzzles) {
   for (const m of recent) {
     const p = m && byQuiz[m.quizId];
     if (!p || m.attempt !== 1 || rec[p.num]) continue;
+    // A row from BEFORE that puzzle's reset stamp is a ghost: it was deleted
+    // server-side, so it must never seed the local record. It still arrives
+    // here for a while because /api/quiz/me reads the shared results cache,
+    // which serves the pre-delete row set until it refreshes, and re-seeding
+    // from it would put the old 0-10 result back on every page load and block
+    // recordStat from writing the re-run (it never overwrites an entry).
+    if (p.resetAt && Date.parse(m.createdAt || 0) < Date.parse(p.resetAt)) continue;
     // scorePct is the server's score/total, so that day's par brings the row
     // count back. It caps at 100, so a run ABOVE par reads as exactly par here;
     // only `won` and the streak read this record, so that costs nothing.
