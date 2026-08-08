@@ -27,8 +27,13 @@
 //                WORD_CAP times across the bank; no author more than AUTHOR_CAP.
 //   sunday       a board flagged sunday lands on a real Sunday and runs longer
 //                than the weekday median.
+//   ramp         the cold start descends across the week: Monday is the way in,
+//                Sunday is the wall. Each weekday carries a BAND rather than a
+//                floor, because a floor alone lets every board pile up against
+//                it and the ramp flattens (rule 11, a floor is not a target).
 //
-// Boards live before ANON_FLOOR_FROM are frozen history and skip the floors.
+// Boards live before ANON_FLOOR_FROM are frozen history and skip the floors,
+// and boards before ANON_RAMP_FROM skip the band on top of that.
 
 import { readFileSync } from 'node:fs';
 import { PUZZLES } from '../app/anon/puzzles.js';
@@ -38,6 +43,34 @@ const ANON_FLOOR_FROM = '2026-08-07';
 const CAND_CAP = 4;
 const CLOSED_MIN = 6;
 const FORCED_PCT = 0.32;
+
+// THE WEEKDAY RAMP (owner, 2026-08-08). Difficulty here is the share of the
+// passage the closed categories hand over for free, and it descends Mon to Sun.
+// The bank was re-dated into these bands the day they were written; nothing
+// was re-authored, because the 54 banked boards already spanned 34 to 72% and
+// the old 32% floor was the only rule, so warmth landed on the calendar at
+// random (one week ran 42/41/40/40/39/39, six of the coldest boards back to
+// back, in week three).
+//
+// SUNDAY has two dials, length and coldness, and it already runs a third longer
+// than a weekday. The eight Sundays already banked are a fixed pool spanning 34
+// to 65%: a Sunday slot needs a Sunday board, so they can only trade with each
+// other, and they are ordered to ramp into place rather than being rewritten.
+// From ANON_SUNDAY_HARD_FROM, when boards are authored under this rule rather
+// than sorted under it, Sunday takes the week's hardest window outright.
+const ANON_RAMP_FROM = '2026-08-09';          // 08-07 and 08-08 are played and frozen
+const ANON_SUNDAY_HARD_FROM = '2026-09-30';   // first Sunday authored to the ramp
+const DOW_NAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const BAND = {              // [min, max] share of the passage forced, by weekday
+  1: [0.55, 0.78],          // Mon, the way in
+  2: [0.50, 0.60],          // Tue
+  3: [0.47, 0.56],          // Wed
+  4: [0.44, 0.53],          // Thu
+  5: [0.39, 0.49],          // Fri
+  6: [0.35, 0.45],          // Sat
+  0: [0.28, 0.68],          // Sun, wide for the banked eight
+};
+const SUNDAY_BAND = [0.28, 0.38];   // from ANON_SUNDAY_HARD_FROM: the week's wall
 const WORD_CAP = 3;
 const AUTHOR_CAP = 6;
 
@@ -142,6 +175,15 @@ for (const p of PUZZLES) {
   if (p.sunday && dow !== 0) err(p, 'flagged sunday but is not a Sunday');
   if (!p.sunday && dow === 0) err(p, 'falls on a Sunday but carries no Sunday Edition');
   if (p.sunday && p.a.length <= medianWeekday) err(p, `Sunday runs ${p.a.length} answers, no bigger than the weekday median ${medianWeekday}`);
+
+  // --- the weekday ramp ---
+  if (p.live >= ANON_RAMP_FROM) {
+    const [lo, hi] = (dow === 0 && p.live >= ANON_SUNDAY_HARD_FROM) ? SUNDAY_BAND : BAND[dow];
+    const share = forced / total;
+    if (share < lo || share > hi) {
+      err(p, `${DOW_NAME[dow]} cold start ${Math.round(100 * share)}%, band is ${Math.round(100 * lo)}-${Math.round(100 * hi)}%`);
+    }
+  }
 }
 
 for (const [w, k] of wordUse) if (k > WORD_CAP) { fails++; console.error(`  ✗ answer ${w.toUpperCase()} used ${k} times, cap is ${WORD_CAP}`); }
