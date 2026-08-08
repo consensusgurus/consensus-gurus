@@ -303,9 +303,12 @@ export default function HomeRails({
     }).sort((a, b) => b.pct - a.pct || b.played - a.played || a.name.localeCompare(b.name));
   }, [mine]);
 
-  // Headline for the mastery face: days played across every live game, over
-  // every day those games have run. One figure, so the reader knows what the
-  // bars below are a breakdown OF before reading any of them.
+  // Headline for the mastery face: ONE figure, the share of the whole daily
+  // archive this player has done, so the reader knows what the bars below are a
+  // breakdown OF before reading any of them. Only the PERCENT is rendered
+  // (owner, 2026-08-08): the raw "340 of 781 days" reads as calendar days and
+  // is not, it sums each game's own archive, so 781 is game-days across 50-odd
+  // games and the pair of numbers only invites the wrong reading.
   const masteryAll = useMemo(() => {
     let played = 0, total = 0;
     for (const r of masteryRows) { played += r.played; total += r.total; }
@@ -653,8 +656,7 @@ export default function HomeRails({
             </>
           ) : (
             <>
-              <div><b>{masteryAll.pct}%</b><span>archive done</span></div>
-              <div><b>{num(masteryAll.played)}</b><span>of {num(masteryAll.total)} days</span></div>
+              <div><b>{masteryAll.pct}%</b><span>of the daily archive done</span></div>
             </>
           )}
         </div>
