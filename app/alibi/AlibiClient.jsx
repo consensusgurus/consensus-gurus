@@ -611,6 +611,17 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
           .al-grids{display:grid;grid-template-columns:1fr;gap:0;}
           .al-cols{max-width:620px;margin:0 auto;}
+          /* DESKTOP: statements and board sit SIDE BY SIDE (owner, 2026-08-08).
+             Stacked, the board sat a full screen below the clues, so solving meant
+             scrolling between the two things you have to read together. Above 900px
+             the column becomes a two-track grid, clues left (wrapping as needed) and
+             the board right, both top-aligned. Below 900px nothing changes: the phone
+             keeps the single 620px column it was tuned for. */
+          @media(min-width:900px){
+            .al-cols{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,440px);gap:26px;align-items:start;}
+            .al-cols .al-stmts{margin-bottom:0 !important;}
+            .al-cols .al-tbl{max-width:none;margin:0;}
+          }
         `}</style>
 
         <div style={{ maxWidth: 940, margin: '0 auto' }}>
@@ -676,7 +687,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div className="al-cols">
           {/* witness statements */}
-          <div style={{ marginBottom: 16 }}>
+          <div className="al-stmts" style={{ marginBottom: 16 }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Witness statements</div>
             {PUZZLE.clues.map((c, i) => (
               <div key={i} className={`al-clue${g.struck.includes(i) ? ' done' : ''}`} onClick={() => toggleClue(i)} role="button" tabIndex={0}
