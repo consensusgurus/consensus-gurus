@@ -717,7 +717,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
               <div className={`cur${g.struck.includes(clueIdx) ? ' done' : ''}`} role="button" tabIndex={0}
                 onClick={() => toggleClue(clueIdx)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleClue(clueIdx); } }}
-                title="Tap to cross this statement off">{clueText(PUZZLE.clues[clueIdx])}</div>
+                title="Tap to cross this statement off"><span>{clueText(PUZZLE.clues[clueIdx])}</span></div>
               <button type="button" className="arw" aria-label="Next statement"
                 onClick={() => setClueIdx((i) => (i + 1) % PUZZLE.clues.length)}>&#8250;</button>
             </div>
