@@ -518,7 +518,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
               <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>{fmtTime(g.ms)}</span>
             </div>
 
-            <div style={{ display: 'flex', gap: 14, alignItems: 'stretch' }}>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'stretch', justifyContent: 'center' }}>
               <div
                 ref={viewRef}
                 className="sw-view"
@@ -531,7 +531,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 <div style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: 3 }}>{cells}</div>
               </div>
 
-              <aside className="sw-ladder" style={{ width: 168, flex: 'none', display: 'flex', flexDirection: 'column', fontSize: 11.5, color: COLORS.faded }}>
+              <aside className="sw-ladder" style={{ width: 132, flex: 'none', borderLeft: `1px solid ${COLORS.line}`, paddingLeft: 11, display: 'flex', flexDirection: 'column', fontSize: 11.5, color: COLORS.faded }}>
                 <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 7 }}>Today &middot; you #{ladder.rank}</div>
                 {ladder.rows.map((r) => (
                   <div key={`${r.rank}-${r.name}`} style={{ display: 'flex', gap: 6, padding: '3px 0', color: r.me ? COLORS.ink : COLORS.faded, fontWeight: r.me ? 800 : 600 }}>
