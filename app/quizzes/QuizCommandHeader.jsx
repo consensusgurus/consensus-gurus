@@ -194,12 +194,22 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
     if (variant !== 'home' || typeof document === 'undefined') return undefined;
     const el = document.querySelector('.qchm');
     if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const row1 = el.querySelector('.qchm-r1');
     const set = () => {
-      document.documentElement.style.setProperty('--ml-headh', `${Math.round(el.getBoundingClientRect().height)}px`);
+      // What this publishes is the LOCKED height, not the bar's total. In the
+      // landscape-touch layout (see the media block below) .qchm is
+      // display:contents and only row one sticks, so .qchm has no box of its
+      // own and its rect measures 0: row one's height is the answer there.
+      const h = Math.round(el.getBoundingClientRect().height)
+        || (row1 ? Math.round(row1.getBoundingClientRect().height) : 0);
+      document.documentElement.style.setProperty('--ml-headh', `${h}px`);
     };
     set();
     const ro = new ResizeObserver(set);
     ro.observe(el);
+    // ...and row one directly, since a display:contents element generates no box
+    // for the observer to watch.
+    if (row1) ro.observe(row1);
     return () => { ro.disconnect(); document.documentElement.style.removeProperty('--ml-headh'); };
   }, [variant, found]);
 
@@ -286,6 +296,36 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             .qchm-acts{display:none;}
           }
           @media(max-width:560px){.qchm-r1{padding-top:env(safe-area-inset-top);}}
+          /* LANDSCAPE ON A PHONE OR TABLET (owner, 2026-08-08). Held sideways a
+             device has 390 to 820px of height, and 119px of permanently locked
+             header is a quarter of it. Two moves, both gated on a COARSE POINTER
+             so a short desktop window keeps the bar it has: every box in the bar
+             tightens, and only ROW ONE stays locked. Row two is the day's
+             figures, a reference line rather than navigation, so it scrolls away
+             with the page and comes back at the top.
+             display:contents is what lets row one stick to the PAGE rather than
+             to the bar: a sticky box is confined to its own parent's box, so
+             leaving .qchm as a box would unstick row one the instant row two
+             scrolled past it. Scoped :not(.qchm-inner) because the inner
+             surfaces' copy of this bar sits in normal flow and sticks nothing.
+             The height this publishes as --ml-headh follows (see the effect). */
+          @media(orientation:landscape) and (pointer:coarse) and (max-height:1100px){
+            .qchm:not(.qchm-inner){display:contents;}
+            .qchm:not(.qchm-inner) .qchm-r1{position:sticky;top:0;z-index:90;}
+            .qchm-in{padding:7px clamp(12px,2vw,26px);gap:12px;}
+            .qchm-r2 .qchm-in{padding:6px clamp(12px,2vw,26px);}
+            /* the mark's size is a JSX prop, so the box is resized here */
+            .qchm-brand svg{width:24px;height:24px;}
+            .qchm-wm{font-size:16px;}
+            .qchm-pic{width:25px;height:25px;font-size:11px;}
+            .qchm-nav a,.qchm-nav button{padding:5px 11px;font-size:10.5px;}
+            .qchm-k{font-size:8px;}
+            .qchm-v{font-size:15px;}
+            .qchm-v i{font-size:10px;}
+            .qchm-ch{font-size:9px;margin-top:0;}
+            .qchm-bt{padding:5px 10px;font-size:10px;}
+            .qchm-r2{border-bottom-width:2px;}
+          }
         `}</style>
         <div className="qchm-r1"><div className="qchm-in">
           <Link href="/" className="qchm-brand" aria-label="Mind Loft home">

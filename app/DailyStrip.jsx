@@ -211,6 +211,37 @@ const CAP_PROG_M = 2;
 const FOLD_SLIVER = 34;
 // ...but never squeeze the board below this, however tall the cap has grown.
 const BOARD_MIN = 240;
+// HELD SIDEWAYS, THE FLOOR IS EIGHT LINES (owner, 2026-08-08). A phone or tablet
+// in landscape has a fraction of a laptop's height, so fitting the console to
+// the fold left the slate showing five lines of Ready to play. In that one case
+// the board keeps EIGHT and simply runs past the fold, scrolling inside itself
+// for the rest exactly as it always has. LINES, not games: above 900px the board
+// runs two across, so eight lines is sixteen games, which is what the reader is
+// counting on the screen. The gate is a COARSE POINTER, never a height alone, so
+// a short desktop window is untouched.
+const LAND_LINES = 8;
+const LAND_TOUCH = '(orientation:landscape) and (pointer:coarse) and (max-height:1100px)';
+
+// The scroll-content height that shows exactly `lines` lines of the slate grid,
+// its group band included, or 0 when the board has not laid out more than that
+// (nothing to scroll to, so the ordinary fit should govern). Rows abut, so the
+// TOP of line n+1 is the bottom of line n. Distinct tops rather than a row
+// count: the grid runs two rows to a line, and DOM order is not visual order
+// since the rows are placed by `order`. Measured off the laid-out rows rather
+// than a hardcoded row height, which is 49.8px and cannot be multiplied safely.
+function slateLineHeight(board, lines) {
+  const base = board.getBoundingClientRect().top - board.scrollTop;
+  const tops = [];
+  board.querySelectorAll('.sl-row').forEach((r) => {
+    // offsetParent is null for a row this width hides (a paused card that lives
+    // in the cap) or a collapsed group hides, and those occupy no line.
+    if (r.offsetParent === null) return;
+    const t = Math.round(r.getBoundingClientRect().top - base);
+    if (!tops.includes(t)) tops.push(t);
+  });
+  tops.sort((a, b) => a - b);
+  return tops.length > lines ? tops[lines] : 0;
+}
 
 // How far back Up next looks when deciding which game this viewer plays the
 // most. Long enough to survive a few skipped days, short enough that a habit
@@ -621,7 +652,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       // fold as seen from the TOP of the page, wherever the reader has
       // scrolled to when a resize happens to fire.
       const top = board.getBoundingClientRect().top + window.scrollY;
-      const h = Math.max(BOARD_MIN, Math.round(window.innerHeight - top - FOLD_SLIVER));
+      // The floor is BOARD_MIN everywhere except a touch device in landscape,
+      // where it is whatever eight lines actually measure (see LAND_LINES).
+      let floor = BOARD_MIN;
+      if (window.matchMedia && window.matchMedia(LAND_TOUCH).matches) {
+        floor = Math.max(floor, slateLineHeight(board, LAND_LINES));
+      }
+      const h = Math.max(floor, Math.round(window.innerHeight - top - FOLD_SLIVER));
       board.style.setProperty('--dh-fit', h + 'px');
     };
     // requestAnimationFrame NEVER FIRES in a background tab, so a queued fit in
@@ -2045,6 +2082,30 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dh-bue{font-size:7px;}
           .dh-bun{font-size:13px;}
           .dh-cell .dh-play{padding:8px 8px;font-size:11px;}
+        }
+        /* LANDSCAPE ON A TABLET (owner, 2026-08-08). The console's own furniture
+           tightens so the eight lines the board now keeps (see LAND_LINES) land
+           ABOVE the fold rather than an inch below it: on a 1024x768 iPad the
+           title band, the two cap cards, the paused bar and the category strip
+           spent 287px between the header and the first row, which is more than
+           five of the lines they sit above. Nothing is hidden and nothing moves,
+           each box is simply less padded and the cap's game names come down from
+           20px to 17. LAST IN THIS SHEET on purpose: several of these selectors
+           tie with the min-width:901px block above on specificity, so source
+           order is what decides them.
+           min-width:901px, because below it the cap is a stack of full-width
+           bars and the board flows with the page: a landscape phone gets the
+           header's own landscape treatment (QuizCommandHeader) and nothing
+           here. pointer:coarse, never a height alone, so a short desktop window
+           is untouched. */
+        @media(min-width:901px) and (orientation:landscape) and (pointer:coarse) and (max-height:1100px){
+          .dhome.slate .sl-bar{min-height:34px;padding:6px 13px;}
+          .dhome.slate .dh-cell{padding:9px 14px 9px 24px;}
+          .dhome.slate .dh-cell::before{top:9px;bottom:9px;}
+          .dhome.slate .dh-bun{font-size:17px;}
+          .dhome.slate .dh-cell .dh-play{padding:8px 0;}
+          .dhome.slate .sl-filt button{padding:7px 13px;}
+          .dhome.slate .dh-cmore{padding:4px 13px;}
         }
       ` }} />
 
