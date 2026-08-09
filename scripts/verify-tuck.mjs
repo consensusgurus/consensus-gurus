@@ -1,3 +1,7 @@
+// Verify the Tuck bank. From 2026-08-10 the benchmark is CALIBRATED to real
+// play rather than equal to the solver's best line — see the header of
+// app/tuck/puzzles.js for why and how to refit it.
+//
 // Verify the Tuck bank: every rack must be 14 uppercase letters with 4-6
 // vowels (the Sunday Edition deals 15 letters with 5-7 vowels), and every stored BENCHMARK must be ACHIEVABLE — this re-runs the ladder
 // solver (one horizontal spine + vertical words hung off non-adjacent columns,
@@ -95,6 +99,14 @@ function ladder(rack) {
 // Tuck's Sunday Edition (a 15-letter rack) launched on this date.
 const SUNDAY_FROM = '2026-07-26';
 
+// The benchmark is calibrated to real play from this date (see the header of
+// app/tuck/puzzles.js). Before it, a benchmark was the solver's own best line
+// and is only required to be ACHIEVABLE; from it, the stored value must be
+// EXACTLY the calibrated one, which is a stronger check — it proves the solver
+// line was actually recomputed rather than typed.
+const CALIBRATED_FROM = '2026-08-10';
+const CALIBRATION = 1.06;
+
 let bad = 0;
 PUZZLES.forEach((p, i) => {
   const errs = [];
@@ -117,8 +129,15 @@ PUZZLES.forEach((p, i) => {
     const [vMin, vMax] = p.sunday ? [5, 7] : [4, 6];
     if (v < vMin || v > vMax) errs.push(`vowel count ${v} outside ${vMin}-${vMax}`);
     const best = ladder(p.letters);
-    if (best < p.benchmark) errs.push(`stored benchmark ${p.benchmark} NOT achieved by solver (best ${best})`);
-    else console.log(`✓ ${p.quizId}  ${p.letters.join('')}  benchmark ${p.benchmark} achievable (solver ${best})`);
+    if (p.live >= CALIBRATED_FROM) {
+      const want = Math.round(CALIBRATION * best);
+      if (p.benchmark !== want) errs.push(`stored benchmark ${p.benchmark} != calibrated ${want} (solver ${best} x ${CALIBRATION})`);
+      else console.log(`✓ ${p.quizId}  ${p.letters.join('')}  benchmark ${p.benchmark} = round(${CALIBRATION} x solver ${best})`);
+    } else if (best < p.benchmark) {
+      errs.push(`stored benchmark ${p.benchmark} NOT achieved by solver (best ${best})`);
+    } else {
+      console.log(`✓ ${p.quizId}  ${p.letters.join('')}  benchmark ${p.benchmark} achievable (solver ${best})  [frozen]`);
+    }
   }
   if (errs.length) { bad++; console.error(`✗ ${p.quizId}: ${errs.join('; ')}`); }
 });

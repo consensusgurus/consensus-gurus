@@ -3117,10 +3117,31 @@ must not be punished for the author's collision.
   `public/tuck-dict-long.txt` carries 9 to 15 letters for PLAYER validation
   only, unioned in by `lib/rack-dict.js`, which also stands down at any length
   it cannot cover. tuck-dict.txt is frozen at 2 to 8; do not add to it.
-  Tuck's benchmark solver stays on 2 to 8 deliberately (a benchmark is a mark to
-  BEAT, so a wider player dictionary leaves every banked one reachable, whereas
-  widening the solver would restate played boards). Shards needed nothing: its
-  grid is at most 8 wide, so no run can exceed the base list.
+  Tuck's benchmark solver stays on 2 to 8 deliberately, and MEASURING that was
+  the point: rerunning it with the full 9-to-15 list moved not one benchmark
+  across all 74 racks, because Tuck scores raw tile points and a long spine burns
+  tiles that would otherwise sit at an intersection and score in two words. Do
+  not "improve" it by widening the word list; that is a proven no-op. Shards
+  needed nothing either: its grid is at most 8 wide, so no run can exceed the
+  base list.
+- **Tuck's benchmark is CALIBRATED to real play from 2026-08-10, not equal to the
+  solver's best line (owner ruling, 2026-08-09).** `benchmark = round(1.06 x
+  solverBest)`. The solver can only build ONE SHAPE (a single horizontal spine
+  with verticals hung off non-adjacent columns), while humans build dense
+  interlocking grids where far more letters cross and score twice, so they beat
+  it by 10 to 22 points routinely. Over 246 real attempts on the first 23 boards,
+  HALF of every serious attempt cleared the benchmark. A much stronger search of
+  the SAME shape (bigger spine pool, beam over vertical choices, full dictionary)
+  gained only +1 on average, which is what proves the gap is the shape and not
+  the search or the vocabulary. 1.06 was fitted to put the win rate near 37%.
+  The solver line still sets the scale, since it tracks rack strength; the
+  multiplier only moves the bar. `scripts/verify-tuck.mjs` asserts the exact
+  calibrated value from that date and mere achievability before it (played boards
+  are frozen). To refit: pull each board's `scoreDist` from `/api/quiz/board`,
+  drop attempts under half the benchmark as walk-aways, solve for the multiplier
+  that hits the win rate you want, and restamp FUTURE boards only. Raising the
+  benchmark also lowers IQ earned, since Tuck posts `total: benchmark` and IQ
+  credit is score / total.
 - Changing a LIVE puzzle's words or grid requires bumping its `rev` field so
   in-flight localStorage saves reset cleanly instead of corrupting.
 

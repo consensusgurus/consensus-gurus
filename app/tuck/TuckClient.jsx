@@ -7,8 +7,12 @@
 // every run of 2+ letters must be a dictionary word, and everything must
 // connect into one grid. Score = the Scrabble points of every word you form
 // (letters at intersections count in BOTH words), +10 for tucking in the whole rack
-// letters. Each rack ships with a BENCHMARK our solver actually achieved — beat it. It is
-// a mark to beat rather than an average round, so it is not called par.
+// letters. Each rack ships with a BENCHMARK — beat it. It is a mark to beat
+// rather than an average round, so it is not called par. From 2026-08-10 it is
+// CALIBRATED to how players actually score on that rack (round(1.06 x the
+// solver's best line), fitted to a ~37% win rate), because the solver builds
+// only one shape and real players out-scored it by 10 to 22 points. See the
+// header of app/tuck/puzzles.js.
 //
 // ONE SHOT COUNTS (owner ruling 2026-07-18): you can rebuild all you like
 // before submitting, but only your first submitted grid ranks on the daily
@@ -640,7 +644,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
     <DailyRules
       accent={COLORS.accent} accentSoft={COLORS.accentSoft}
       lead={<>Everyone gets the same <b>{RACK} letters</b>. Build your own little crossword with them.</>}
-      banner={<>Today&rsquo;s <b>benchmark: {BENCH}</b>. Our solver actually scored it, so it can be beaten.</>}
+      banner={<>Today&rsquo;s <b>benchmark: {BENCH}</b>. It is set from how players really score on this rack, so it is beatable, but not by much less than your best.</>}
       steps={[
         <>Tap a square and type, or tap a rack tile then a square. <b>Space</b> flips the typing direction.</>,
         <>Every run of two or more letters must be a <b>real word</b>, across and down, and everything must connect into <b>one grid</b>.</>,
@@ -963,7 +967,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           Tuck is a free daily word puzzle from Mind Loft &mdash; the tile-tucking puzzle. Every player in the world gets the same rack of 14 standard-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the puzzle. Long words, tight crossings, and premium letters at intersections all push the number up.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a benchmark our solver actually scored on that rack &mdash; beat it and the day counts as a win. Only your first submitted grid ranks on the daily leaderboard, so make it count.
+          Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a benchmark set from how players actually score on that rack &mdash; beat it and the day counts as a win. Roughly a third of finished grids do. Only your first submitted grid ranks on the daily leaderboard, so make it count.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/stet" style={{ color: COLORS.ink, fontWeight: 800 }}>Stet</a>, our copy-desk puzzle.

@@ -3,12 +3,34 @@
 // puzzles to the client — future racks never ship to the browser.
 //
 // Each day is a RACK of 14 letters (Scrabble-weighted bag, 4-6 vowels) plus a
-// BENCHMARK: a score our ladder solver actually achieved on that rack, so every
-// benchmark is provably beatable. It is a solver mark to beat, NOT an average
-// round, which is why it is not called par. Racks are rerolled at authoring
-// time until benchmark >= 45. Validate with scripts/verify-tuck.mjs after ANY
-// edit (it recomputes the benchmark from public/tuck-dict.txt and fails if a
-// stored benchmark is not achievable).
+// BENCHMARK. It is a mark to beat, NOT an average round, which is why it is not
+// called par. Racks are rerolled at authoring time until the solver line is >= 45.
+//
+// THE BENCHMARK IS CALIBRATED TO REAL PLAY, from 2026-08-10 (owner ruling
+// 2026-08-09). It used to be exactly the ladder solver's best line, and that
+// solver can only build ONE SHAPE: a single horizontal spine with verticals hung
+// off non-adjacent columns. Human players build dense interlocking grids where
+// far more letters sit at intersections and score in two words at once, so they
+// routinely beat the solver by 10 to 22 points. Measured over 246 real attempts
+// on the first 23 boards, HALF of every serious attempt cleared the benchmark,
+// which is not much of a mark. (This is not a vocabulary gap: rerunning the
+// solver with the full 9-to-15 letter list moved not one benchmark, because a
+// long spine burns tiles that would otherwise cross twice.)
+//
+//   benchmark = round(1.06 x solverBest)
+//
+// 1.06 was fitted against those 246 attempts to put the win rate near 37%.
+// The solver line still sets the scale, because it tracks how strong a rack is;
+// the multiplier only moves the bar. Boards live before 2026-08-10 are played
+// history and keep their original solver-equal benchmark.
+//
+// Validate with scripts/verify-tuck.mjs after ANY edit: it recomputes the solver
+// line from public/tuck-dict.txt and fails if a stored benchmark is not the
+// calibrated value (or, for a frozen board, not achievable).
+//
+// To RECALIBRATE: pull each board's scoreDist from /api/quiz/board, drop
+// attempts under half the benchmark (walk-aways), and solve for the multiplier
+// that hits the win rate you want. Then restamp future boards only.
 export const PUZZLES = [
   { num: 1, quizId: "tuck-7-18-26", live: "2026-07-18", dateLabel: "July 18, 2026", sunday: false, letters: ["N","I","B","F","E","Q","L","E","M","J","E","S","U","L"], benchmark: 59 },
   { num: 2, quizId: "tuck-7-19-26", live: "2026-07-19", dateLabel: "July 19, 2026", sunday: false, letters: ["E","B","S","B","I","S","O","L","E","M","R","S","Z","E"], benchmark: 52 },
@@ -33,55 +55,55 @@ export const PUZZLES = [
   { num: 21, quizId: "tuck-8-7-26", live: "2026-08-07", dateLabel: "August 7, 2026", sunday: false, letters: ["A","A","E","I","U","C","H","K","L","N","R","T","Z","S"], benchmark: 58 },
   { num: 22, quizId: "tuck-8-8-26", live: "2026-08-08", dateLabel: "August 8, 2026", sunday: false, letters: ["E","O","U","A","B","D","K","G","L","M","N","R","S","T"], benchmark: 43 },
   { num: 23, quizId: "tuck-8-9-26", live: "2026-08-09", dateLabel: "August 9, 2026", sunday: true, letters: ["A","E","I","O","U","E","B","K","D","L","M","N","R","S","W"], benchmark: 49 },
-  { num: 24, quizId: "tuck-8-10-26", live: "2026-08-10", dateLabel: "August 10, 2026", sunday: false, letters: ["I","O","U","E","A","J","K","P","R","S","T","L","N","D"], benchmark: 52 },
-  { num: 25, quizId: "tuck-8-11-26", live: "2026-08-11", dateLabel: "August 11, 2026", sunday: false, letters: ["A","E","E","O","B","C","D","H","N","T","V","W","Y","Z"], benchmark: 64 },
-  { num: 26, quizId: "tuck-8-12-26", live: "2026-08-12", dateLabel: "August 12, 2026", sunday: false, letters: ["E","I","I","O","U","C","D","K","N","N","P","T","V","Y"], benchmark: 49 },
-  { num: 27, quizId: "tuck-8-13-26", live: "2026-08-13", dateLabel: "August 13, 2026", sunday: false, letters: ["A","A","A","A","E","O","F","G","L","M","N","N","Q","R"], benchmark: 47 },
-  { num: 28, quizId: "tuck-8-14-26", live: "2026-08-14", dateLabel: "August 14, 2026", sunday: false, letters: ["A","E","I","I","O","D","H","H","K","M","S","S","S","T"], benchmark: 47 },
-  { num: 29, quizId: "tuck-8-15-26", live: "2026-08-15", dateLabel: "August 15, 2026", sunday: false, letters: ["A","A","A","U","U","U","C","F","F","H","S","V","W","W"], benchmark: 53 },
-  { num: 30, quizId: "tuck-8-16-26", live: "2026-08-16", dateLabel: "August 16, 2026", sunday: true, letters: ["A","E","I","I","O","O","U","D","G","H","K","L","N","N","Z"], benchmark: 60 },
-  { num: 31, quizId: "tuck-8-17-26", live: "2026-08-17", dateLabel: "August 17, 2026", sunday: false, letters: ["A","A","A","E","D","F","G","L","N","R","R","T","V","Z"], benchmark: 53 },
-  { num: 32, quizId: "tuck-8-18-26", live: "2026-08-18", dateLabel: "August 18, 2026", sunday: false, letters: ["E","I","I","O","B","G","H","J","M","R","S","S","T","Y"], benchmark: 54 },
-  { num: 33, quizId: "tuck-8-19-26", live: "2026-08-19", dateLabel: "August 19, 2026", sunday: false, letters: ["A","A","A","O","O","B","C","D","F","L","M","R","V","W"], benchmark: 49 },
-  { num: 34, quizId: "tuck-8-20-26", live: "2026-08-20", dateLabel: "August 20, 2026", sunday: false, letters: ["A","E","E","I","U","B","D","D","G","J","K","R","R","Y"], benchmark: 57 },
-  { num: 35, quizId: "tuck-8-21-26", live: "2026-08-21", dateLabel: "August 21, 2026", sunday: false, letters: ["A","E","I","I","O","D","D","G","H","K","L","N","Q","W"], benchmark: 56 },
-  { num: 36, quizId: "tuck-8-22-26", live: "2026-08-22", dateLabel: "August 22, 2026", sunday: false, letters: ["E","E","I","O","U","B","C","C","D","J","M","N","S","W"], benchmark: 56 },
-  { num: 37, quizId: "tuck-8-23-26", live: "2026-08-23", dateLabel: "August 23, 2026", sunday: true, letters: ["A","A","E","I","O","U","D","F","P","P","R","S","T","T","Y"], benchmark: 46 },
-  { num: 38, quizId: "tuck-8-24-26", live: "2026-08-24", dateLabel: "August 24, 2026", sunday: false, letters: ["A","E","E","I","I","O","C","H","J","M","M","R","S","T"], benchmark: 53 },
-  { num: 39, quizId: "tuck-8-25-26", live: "2026-08-25", dateLabel: "August 25, 2026", sunday: false, letters: ["A","O","O","O","U","H","K","P","P","R","R","R","S","V"], benchmark: 47 },
-  { num: 40, quizId: "tuck-8-26-26", live: "2026-08-26", dateLabel: "August 26, 2026", sunday: false, letters: ["A","E","I","I","I","U","C","F","J","P","R","S","T","V"], benchmark: 53 },
-  { num: 41, quizId: "tuck-8-27-26", live: "2026-08-27", dateLabel: "August 27, 2026", sunday: false, letters: ["A","E","O","O","O","C","C","D","F","L","R","T","T","X"], benchmark: 52 },
-  { num: 42, quizId: "tuck-8-28-26", live: "2026-08-28", dateLabel: "August 28, 2026", sunday: false, letters: ["A","E","E","U","B","C","C","F","G","K","R","R","T","W"], benchmark: 51 },
-  { num: 43, quizId: "tuck-8-29-26", live: "2026-08-29", dateLabel: "August 29, 2026", sunday: false, letters: ["A","I","O","O","O","U","B","B","D","D","F","P","P","T"], benchmark: 45 },
-  { num: 44, quizId: "tuck-8-30-26", live: "2026-08-30", dateLabel: "August 30, 2026", sunday: true, letters: ["A","A","I","I","I","I","O","F","K","L","L","M","N","P","W"], benchmark: 49 },
-  { num: 45, quizId: "tuck-8-31-26", live: "2026-08-31", dateLabel: "August 31, 2026", sunday: false, letters: ["A","O","O","U","D","G","J","K","L","M","N","P","R","V"], benchmark: 54 },
-  { num: 46, quizId: "tuck-9-1-26", live: "2026-09-01", dateLabel: "September 1, 2026", sunday: false, letters: ["A","A","E","E","I","I","D","G","M","Q","R","S","T","V"], benchmark: 52 },
-  { num: 47, quizId: "tuck-9-2-26", live: "2026-09-02", dateLabel: "September 2, 2026", sunday: false, letters: ["E","I","I","O","O","O","B","B","K","L","N","T","V","W"], benchmark: 48 },
-  { num: 48, quizId: "tuck-9-3-26", live: "2026-09-03", dateLabel: "September 3, 2026", sunday: false, letters: ["A","A","E","O","O","U","H","L","M","Q","R","T","W","X"], benchmark: 63 },
-  { num: 49, quizId: "tuck-9-4-26", live: "2026-09-04", dateLabel: "September 4, 2026", sunday: false, letters: ["E","E","E","E","U","B","B","F","G","J","N","N","R","T"], benchmark: 49 },
-  { num: 50, quizId: "tuck-9-5-26", live: "2026-09-05", dateLabel: "September 5, 2026", sunday: false, letters: ["A","I","I","I","U","D","H","K","Q","R","T","V","W","Y"], benchmark: 66 },
-  { num: 51, quizId: "tuck-9-6-26", live: "2026-09-06", dateLabel: "September 6, 2026", sunday: true, letters: ["A","A","E","U","U","B","L","L","L","M","M","R","S","V","Y"], benchmark: 47 },
-  { num: 52, quizId: "tuck-9-7-26", live: "2026-09-07", dateLabel: "September 7, 2026", sunday: false, letters: ["E","E","O","O","U","C","G","H","N","N","R","T","W","X"], benchmark: 53 },
-  { num: 53, quizId: "tuck-9-8-26", live: "2026-09-08", dateLabel: "September 8, 2026", sunday: false, letters: ["A","E","E","I","O","B","B","D","G","L","N","Q","S","Z"], benchmark: 60 },
-  { num: 54, quizId: "tuck-9-9-26", live: "2026-09-09", dateLabel: "September 9, 2026", sunday: false, letters: ["E","E","E","E","O","U","G","K","N","P","R","R","W","Z"], benchmark: 59 },
-  { num: 55, quizId: "tuck-9-10-26", live: "2026-09-10", dateLabel: "September 10, 2026", sunday: false, letters: ["A","E","E","E","O","U","C","H","L","M","N","R","S","Y"], benchmark: 45 },
-  { num: 56, quizId: "tuck-9-11-26", live: "2026-09-11", dateLabel: "September 11, 2026", sunday: false, letters: ["A","E","E","I","O","B","C","D","G","H","J","N","T","Y"], benchmark: 58 },
-  { num: 57, quizId: "tuck-9-12-26", live: "2026-09-12", dateLabel: "September 12, 2026", sunday: false, letters: ["A","A","E","E","B","D","F","F","H","N","N","R","V","V"], benchmark: 48 },
-  { num: 58, quizId: "tuck-9-13-26", live: "2026-09-13", dateLabel: "September 13, 2026", sunday: true, letters: ["A","A","E","E","E","E","E","C","F","L","L","N","P","T","X"], benchmark: 52 },
-  { num: 59, quizId: "tuck-9-14-26", live: "2026-09-14", dateLabel: "September 14, 2026", sunday: false, letters: ["E","E","O","O","U","U","D","D","G","H","J","S","S","T"], benchmark: 49 },
-  { num: 60, quizId: "tuck-9-15-26", live: "2026-09-15", dateLabel: "September 15, 2026", sunday: false, letters: ["A","A","E","O","U","D","F","G","L","N","P","R","S","Z"], benchmark: 55 },
-  { num: 61, quizId: "tuck-9-16-26", live: "2026-09-16", dateLabel: "September 16, 2026", sunday: false, letters: ["A","E","I","O","B","H","L","L","P","Q","R","R","S","T"], benchmark: 54 },
-  { num: 62, quizId: "tuck-9-17-26", live: "2026-09-17", dateLabel: "September 17, 2026", sunday: false, letters: ["A","A","E","I","O","C","D","F","J","N","R","S","T","Z"], benchmark: 65 },
-  { num: 63, quizId: "tuck-9-18-26", live: "2026-09-18", dateLabel: "September 18, 2026", sunday: false, letters: ["A","E","I","O","D","F","F","H","M","T","T","T","X","Y"], benchmark: 59 },
-  { num: 64, quizId: "tuck-9-19-26", live: "2026-09-19", dateLabel: "September 19, 2026", sunday: false, letters: ["A","E","I","I","B","D","F","G","J","L","R","T","W","Z"], benchmark: 65 },
-  { num: 65, quizId: "tuck-9-20-26", live: "2026-09-20", dateLabel: "September 20, 2026", sunday: true, letters: ["A","A","E","E","O","O","B","D","N","S","S","T","W","X","Z"], benchmark: 66 },
-  { num: 66, quizId: "tuck-9-21-26", live: "2026-09-21", dateLabel: "September 21, 2026", sunday: false, letters: ["A","A","E","O","O","U","C","K","L","L","R","S","T","X"], benchmark: 49 },
-  { num: 67, quizId: "tuck-9-22-26", live: "2026-09-22", dateLabel: "September 22, 2026", sunday: false, letters: ["I","I","O","O","O","U","F","G","J","L","N","N","R","Z"], benchmark: 59 },
-  { num: 68, quizId: "tuck-9-23-26", live: "2026-09-23", dateLabel: "September 23, 2026", sunday: false, letters: ["E","E","O","U","D","F","G","L","L","M","T","W","Y","Z"], benchmark: 61 },
-  { num: 69, quizId: "tuck-9-24-26", live: "2026-09-24", dateLabel: "September 24, 2026", sunday: false, letters: ["A","E","E","I","O","U","J","K","M","R","R","S","S","T"], benchmark: 51 },
-  { num: 70, quizId: "tuck-9-25-26", live: "2026-09-25", dateLabel: "September 25, 2026", sunday: false, letters: ["A","A","A","E","I","C","H","K","L","P","S","S","T","Z"], benchmark: 60 },
-  { num: 71, quizId: "tuck-9-26-26", live: "2026-09-26", dateLabel: "September 26, 2026", sunday: false, letters: ["A","E","I","I","O","U","M","N","R","S","T","V","Y","Z"], benchmark: 58 },
-  { num: 72, quizId: "tuck-9-27-26", live: "2026-09-27", dateLabel: "September 27, 2026", sunday: true, letters: ["E","E","E","E","E","E","U","D","H","M","N","R","T","T","X"], benchmark: 52 },
-  { num: 73, quizId: "tuck-9-28-26", live: "2026-09-28", dateLabel: "September 28, 2026", sunday: false, letters: ["E","I","I","O","O","F","H","M","Q","R","R","T","T","T"], benchmark: 50 },
-  { num: 74, quizId: "tuck-9-29-26", live: "2026-09-29", dateLabel: "September 29, 2026", sunday: false, letters: ["A","A","E","I","O","O","G","H","N","P","S","T","V","Y"], benchmark: 46 },
+  { num: 24, quizId: "tuck-8-10-26", live: "2026-08-10", dateLabel: "August 10, 2026", sunday: false, letters: ["I","O","U","E","A","J","K","P","R","S","T","L","N","D"], benchmark: 55 },
+  { num: 25, quizId: "tuck-8-11-26", live: "2026-08-11", dateLabel: "August 11, 2026", sunday: false, letters: ["A","E","E","O","B","C","D","H","N","T","V","W","Y","Z"], benchmark: 68 },
+  { num: 26, quizId: "tuck-8-12-26", live: "2026-08-12", dateLabel: "August 12, 2026", sunday: false, letters: ["E","I","I","O","U","C","D","K","N","N","P","T","V","Y"], benchmark: 52 },
+  { num: 27, quizId: "tuck-8-13-26", live: "2026-08-13", dateLabel: "August 13, 2026", sunday: false, letters: ["A","A","A","A","E","O","F","G","L","M","N","N","Q","R"], benchmark: 50 },
+  { num: 28, quizId: "tuck-8-14-26", live: "2026-08-14", dateLabel: "August 14, 2026", sunday: false, letters: ["A","E","I","I","O","D","H","H","K","M","S","S","S","T"], benchmark: 50 },
+  { num: 29, quizId: "tuck-8-15-26", live: "2026-08-15", dateLabel: "August 15, 2026", sunday: false, letters: ["A","A","A","U","U","U","C","F","F","H","S","V","W","W"], benchmark: 56 },
+  { num: 30, quizId: "tuck-8-16-26", live: "2026-08-16", dateLabel: "August 16, 2026", sunday: true, letters: ["A","E","I","I","O","O","U","D","G","H","K","L","N","N","Z"], benchmark: 64 },
+  { num: 31, quizId: "tuck-8-17-26", live: "2026-08-17", dateLabel: "August 17, 2026", sunday: false, letters: ["A","A","A","E","D","F","G","L","N","R","R","T","V","Z"], benchmark: 56 },
+  { num: 32, quizId: "tuck-8-18-26", live: "2026-08-18", dateLabel: "August 18, 2026", sunday: false, letters: ["E","I","I","O","B","G","H","J","M","R","S","S","T","Y"], benchmark: 57 },
+  { num: 33, quizId: "tuck-8-19-26", live: "2026-08-19", dateLabel: "August 19, 2026", sunday: false, letters: ["A","A","A","O","O","B","C","D","F","L","M","R","V","W"], benchmark: 52 },
+  { num: 34, quizId: "tuck-8-20-26", live: "2026-08-20", dateLabel: "August 20, 2026", sunday: false, letters: ["A","E","E","I","U","B","D","D","G","J","K","R","R","Y"], benchmark: 60 },
+  { num: 35, quizId: "tuck-8-21-26", live: "2026-08-21", dateLabel: "August 21, 2026", sunday: false, letters: ["A","E","I","I","O","D","D","G","H","K","L","N","Q","W"], benchmark: 59 },
+  { num: 36, quizId: "tuck-8-22-26", live: "2026-08-22", dateLabel: "August 22, 2026", sunday: false, letters: ["E","E","I","O","U","B","C","C","D","J","M","N","S","W"], benchmark: 59 },
+  { num: 37, quizId: "tuck-8-23-26", live: "2026-08-23", dateLabel: "August 23, 2026", sunday: true, letters: ["A","A","E","I","O","U","D","F","P","P","R","S","T","T","Y"], benchmark: 49 },
+  { num: 38, quizId: "tuck-8-24-26", live: "2026-08-24", dateLabel: "August 24, 2026", sunday: false, letters: ["A","E","E","I","I","O","C","H","J","M","M","R","S","T"], benchmark: 56 },
+  { num: 39, quizId: "tuck-8-25-26", live: "2026-08-25", dateLabel: "August 25, 2026", sunday: false, letters: ["A","O","O","O","U","H","K","P","P","R","R","R","S","V"], benchmark: 50 },
+  { num: 40, quizId: "tuck-8-26-26", live: "2026-08-26", dateLabel: "August 26, 2026", sunday: false, letters: ["A","E","I","I","I","U","C","F","J","P","R","S","T","V"], benchmark: 56 },
+  { num: 41, quizId: "tuck-8-27-26", live: "2026-08-27", dateLabel: "August 27, 2026", sunday: false, letters: ["A","E","O","O","O","C","C","D","F","L","R","T","T","X"], benchmark: 55 },
+  { num: 42, quizId: "tuck-8-28-26", live: "2026-08-28", dateLabel: "August 28, 2026", sunday: false, letters: ["A","E","E","U","B","C","C","F","G","K","R","R","T","W"], benchmark: 54 },
+  { num: 43, quizId: "tuck-8-29-26", live: "2026-08-29", dateLabel: "August 29, 2026", sunday: false, letters: ["A","I","O","O","O","U","B","B","D","D","F","P","P","T"], benchmark: 48 },
+  { num: 44, quizId: "tuck-8-30-26", live: "2026-08-30", dateLabel: "August 30, 2026", sunday: true, letters: ["A","A","I","I","I","I","O","F","K","L","L","M","N","P","W"], benchmark: 52 },
+  { num: 45, quizId: "tuck-8-31-26", live: "2026-08-31", dateLabel: "August 31, 2026", sunday: false, letters: ["A","O","O","U","D","G","J","K","L","M","N","P","R","V"], benchmark: 57 },
+  { num: 46, quizId: "tuck-9-1-26", live: "2026-09-01", dateLabel: "September 1, 2026", sunday: false, letters: ["A","A","E","E","I","I","D","G","M","Q","R","S","T","V"], benchmark: 55 },
+  { num: 47, quizId: "tuck-9-2-26", live: "2026-09-02", dateLabel: "September 2, 2026", sunday: false, letters: ["E","I","I","O","O","O","B","B","K","L","N","T","V","W"], benchmark: 51 },
+  { num: 48, quizId: "tuck-9-3-26", live: "2026-09-03", dateLabel: "September 3, 2026", sunday: false, letters: ["A","A","E","O","O","U","H","L","M","Q","R","T","W","X"], benchmark: 67 },
+  { num: 49, quizId: "tuck-9-4-26", live: "2026-09-04", dateLabel: "September 4, 2026", sunday: false, letters: ["E","E","E","E","U","B","B","F","G","J","N","N","R","T"], benchmark: 52 },
+  { num: 50, quizId: "tuck-9-5-26", live: "2026-09-05", dateLabel: "September 5, 2026", sunday: false, letters: ["A","I","I","I","U","D","H","K","Q","R","T","V","W","Y"], benchmark: 70 },
+  { num: 51, quizId: "tuck-9-6-26", live: "2026-09-06", dateLabel: "September 6, 2026", sunday: true, letters: ["A","A","E","U","U","B","L","L","L","M","M","R","S","V","Y"], benchmark: 50 },
+  { num: 52, quizId: "tuck-9-7-26", live: "2026-09-07", dateLabel: "September 7, 2026", sunday: false, letters: ["E","E","O","O","U","C","G","H","N","N","R","T","W","X"], benchmark: 56 },
+  { num: 53, quizId: "tuck-9-8-26", live: "2026-09-08", dateLabel: "September 8, 2026", sunday: false, letters: ["A","E","E","I","O","B","B","D","G","L","N","Q","S","Z"], benchmark: 64 },
+  { num: 54, quizId: "tuck-9-9-26", live: "2026-09-09", dateLabel: "September 9, 2026", sunday: false, letters: ["E","E","E","E","O","U","G","K","N","P","R","R","W","Z"], benchmark: 63 },
+  { num: 55, quizId: "tuck-9-10-26", live: "2026-09-10", dateLabel: "September 10, 2026", sunday: false, letters: ["A","E","E","E","O","U","C","H","L","M","N","R","S","Y"], benchmark: 48 },
+  { num: 56, quizId: "tuck-9-11-26", live: "2026-09-11", dateLabel: "September 11, 2026", sunday: false, letters: ["A","E","E","I","O","B","C","D","G","H","J","N","T","Y"], benchmark: 61 },
+  { num: 57, quizId: "tuck-9-12-26", live: "2026-09-12", dateLabel: "September 12, 2026", sunday: false, letters: ["A","A","E","E","B","D","F","F","H","N","N","R","V","V"], benchmark: 51 },
+  { num: 58, quizId: "tuck-9-13-26", live: "2026-09-13", dateLabel: "September 13, 2026", sunday: true, letters: ["A","A","E","E","E","E","E","C","F","L","L","N","P","T","X"], benchmark: 55 },
+  { num: 59, quizId: "tuck-9-14-26", live: "2026-09-14", dateLabel: "September 14, 2026", sunday: false, letters: ["E","E","O","O","U","U","D","D","G","H","J","S","S","T"], benchmark: 52 },
+  { num: 60, quizId: "tuck-9-15-26", live: "2026-09-15", dateLabel: "September 15, 2026", sunday: false, letters: ["A","A","E","O","U","D","F","G","L","N","P","R","S","Z"], benchmark: 58 },
+  { num: 61, quizId: "tuck-9-16-26", live: "2026-09-16", dateLabel: "September 16, 2026", sunday: false, letters: ["A","E","I","O","B","H","L","L","P","Q","R","R","S","T"], benchmark: 57 },
+  { num: 62, quizId: "tuck-9-17-26", live: "2026-09-17", dateLabel: "September 17, 2026", sunday: false, letters: ["A","A","E","I","O","C","D","F","J","N","R","S","T","Z"], benchmark: 69 },
+  { num: 63, quizId: "tuck-9-18-26", live: "2026-09-18", dateLabel: "September 18, 2026", sunday: false, letters: ["A","E","I","O","D","F","F","H","M","T","T","T","X","Y"], benchmark: 63 },
+  { num: 64, quizId: "tuck-9-19-26", live: "2026-09-19", dateLabel: "September 19, 2026", sunday: false, letters: ["A","E","I","I","B","D","F","G","J","L","R","T","W","Z"], benchmark: 69 },
+  { num: 65, quizId: "tuck-9-20-26", live: "2026-09-20", dateLabel: "September 20, 2026", sunday: true, letters: ["A","A","E","E","O","O","B","D","N","S","S","T","W","X","Z"], benchmark: 70 },
+  { num: 66, quizId: "tuck-9-21-26", live: "2026-09-21", dateLabel: "September 21, 2026", sunday: false, letters: ["A","A","E","O","O","U","C","K","L","L","R","S","T","X"], benchmark: 52 },
+  { num: 67, quizId: "tuck-9-22-26", live: "2026-09-22", dateLabel: "September 22, 2026", sunday: false, letters: ["I","I","O","O","O","U","F","G","J","L","N","N","R","Z"], benchmark: 63 },
+  { num: 68, quizId: "tuck-9-23-26", live: "2026-09-23", dateLabel: "September 23, 2026", sunday: false, letters: ["E","E","O","U","D","F","G","L","L","M","T","W","Y","Z"], benchmark: 65 },
+  { num: 69, quizId: "tuck-9-24-26", live: "2026-09-24", dateLabel: "September 24, 2026", sunday: false, letters: ["A","E","E","I","O","U","J","K","M","R","R","S","S","T"], benchmark: 54 },
+  { num: 70, quizId: "tuck-9-25-26", live: "2026-09-25", dateLabel: "September 25, 2026", sunday: false, letters: ["A","A","A","E","I","C","H","K","L","P","S","S","T","Z"], benchmark: 64 },
+  { num: 71, quizId: "tuck-9-26-26", live: "2026-09-26", dateLabel: "September 26, 2026", sunday: false, letters: ["A","E","I","I","O","U","M","N","R","S","T","V","Y","Z"], benchmark: 61 },
+  { num: 72, quizId: "tuck-9-27-26", live: "2026-09-27", dateLabel: "September 27, 2026", sunday: true, letters: ["E","E","E","E","E","E","U","D","H","M","N","R","T","T","X"], benchmark: 55 },
+  { num: 73, quizId: "tuck-9-28-26", live: "2026-09-28", dateLabel: "September 28, 2026", sunday: false, letters: ["E","I","I","O","O","F","H","M","Q","R","R","T","T","T"], benchmark: 53 },
+  { num: 74, quizId: "tuck-9-29-26", live: "2026-09-29", dateLabel: "September 29, 2026", sunday: false, letters: ["A","A","E","I","O","O","G","H","N","P","S","T","V","Y"], benchmark: 49 },
 ];
