@@ -1266,7 +1266,41 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           : <>{`Show ${hidden} more`}<ChevronDown size={12} strokeWidth={2.8} /></>}
       </button>
     ) : null);
-    out.push(more('todo', readyHidden));
+    // ONE BAR FOR EVERYTHING STILL UNDER A LID (owner, 2026-08-09). Now that it
+    // sits at the FOOT of the board rather than between the groups, Ready to
+    // play is no longer the only group above it, so opening just that one left
+    // Complete today shut directly under a control that had said "show more".
+    // It opens both and names the whole figure. Complete's own band keeps its
+    // chevron, for opening that group by itself.
+    const allOpen = grpOpen.todo && grpOpen.dn;
+    const hiddenAll = (grpOpen.todo ? 0 : readyHidden) + (grpOpen.dn ? 0 : nDone);
+    if (readyHidden > 0 || nDone > 0) {
+      out.push(
+        <button
+          type="button"
+          className="sl-more todo"
+          key="more-all"
+          onClick={(e) => {
+            const el = e.currentTarget;
+            const next = !allOpen;
+            setGrpOpen((cur) => ({ ...cur, todo: next, dn: next }));
+            // Collapsing follows the reader, exactly as the per-group bar does:
+            // taking dozens of rows back out of the page otherwise leaves them
+            // wherever those rows used to be, a long way from what they pressed.
+            if (!next) {
+              requestAnimationFrame(() => requestAnimationFrame(() => {
+                try { el.scrollIntoView({ block: 'center' }); } catch (x) { /* older Safari */ }
+              }));
+            }
+          }}
+          aria-expanded={allOpen}
+        >
+          {allOpen
+            ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
+            : <>{`Show all ${hiddenAll}`}<ChevronDown size={12} strokeWidth={2.8} /></>}
+        </button>
+      );
+    }
     // Incomplete keeps its bar at BOTH widths, unlike Ready to play's, because
     // it peeks a fixed two rather than filling the screen.
     out.push(more('fail', failHidden));
