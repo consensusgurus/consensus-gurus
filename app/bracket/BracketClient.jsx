@@ -145,6 +145,12 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
   const [reviewing, setReviewing] = useState(false);
   const arenaRef = useRef(null);
   const busyRef = useRef(false);   // a ref, not state: the flight must not re-render
+  // The pick is committed by a timer at the end of the flight. If that timer never
+  // fires the board would lock forever, which is a real risk: a backgrounded or
+  // suspended tab throttles timers hard, and iOS suspends them outright. So the
+  // commit is held here and can be flushed early by the next click or by coming
+  // back to the tab. A pick is NEVER allowed to depend on an animation completing.
+  const pendingRef = useRef(null);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [toast, setToast] = useState(null);
@@ -321,6 +327,16 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Coming back to a tab that was throttled mid-flight lands the pick at once, so a
+  // player never returns to a board that looks stuck. Also runs on unmount.
+  useEffect(() => {
+    const onVis = () => { if (!document.hidden) flushPending(); };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pageshow', onVis);
+    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('pageshow', onVis); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function say(msg) { setToast(msg); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 2400); }
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
@@ -379,13 +395,25 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
       arena.querySelectorAll('[data-bk-card]').forEach((c) => { c.classList.remove('won', 'out'); c.style.visibility = ''; });
       arena.querySelectorAll('.bk-nrow.landing').forEach((n) => n.classList.remove('landing'));
     }
+    pendingRef.current = null;
     setG((cur) => ({ ...cur, picks, t0: cur.t0 || Date.now() }));
     const nx = nextOpen(id, picks);
     if (nx < 0) setReviewing(true); else setCursor(nx);
     busyRef.current = false;
   }
+  function flushPending() {
+    const p = pendingRef.current;
+    if (!p) return;
+    pendingRef.current = null;
+    if (p.timer) window.clearTimeout(p.timer);
+    commitPick(p.id, p.item, p.picks);
+  }
   function pick(id, item, cardEl) {
-    if (!playing || busyRef.current || item == null || item < 0) return;
+    if (!playing || item == null || item < 0) return;
+    // A tap during a flight lands the flight at once and is then swallowed: the card
+    // that was tapped belonged to the matchup being left, so applying it would write
+    // the pick to the wrong slot. The board advances, which is what the tap wanted.
+    if (busyRef.current) { flushPending(); return; }
     busyRef.current = true;
     const picks = applyPick(id, item, g.picks);
 
@@ -394,6 +422,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
     let reduced = false;
     try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
     if (!arena || !dest || !cardEl || reduced) { commitPick(id, item, picks); return; }
+    pendingRef.current = { id, item, picks, timer: null };
 
     arena.querySelectorAll('[data-bk-card]').forEach((c) => c.classList.add(c === cardEl ? 'won' : 'out'));
     const ab = arena.getBoundingClientRect(), sb = cardEl.getBoundingClientRect(), db = dest.getBoundingClientRect();
@@ -412,9 +441,14 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
       fly.style.fontSize = (mobileUi ? 10 : 11.5) + 'px';
       dest.classList.add('landing');
     }, 170);
-    window.setTimeout(() => commitPick(id, item, picks), 760);
+    pendingRef.current.timer = window.setTimeout(() => flushPending(), 760);
   }
-  function jumpTo(id) { if (!playing || busyRef.current || !playableAt(id)) return; setReviewing(false); setCursor(id); }
+  function jumpTo(id) {
+    if (!playing) return;
+    if (busyRef.current) flushPending();
+    if (busyRef.current || !playableAt(id)) return;
+    setReviewing(false); setCursor(id);
+  }
   function clearAll() { if (!playing) return; setG((cur) => ({ ...cur, picks: Array(MATCHES).fill(-1) })); setReviewing(false); setCursor(0); }
   function submit() {
     if (!playing || !complete) return;
