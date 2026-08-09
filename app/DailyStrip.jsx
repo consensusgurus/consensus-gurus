@@ -48,7 +48,7 @@ import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
 import { fetchDayStatus } from './useDayStats';
 import { catBlue } from '@/lib/home-blues';
-import { isRetiredDaily, dailyScoreText } from '@/lib/daily-games';
+import { isRetiredDaily, dailyScoreText, KEEPS_ANSWER } from '@/lib/daily-games';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -191,6 +191,10 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 //
 // Desktop lists every unfinished row as before: the hide class and the bar are
 // both inert above 900px.
+// Incomplete today peeks TWO at both widths (owner, 2026-08-09). It is a group
+// you want to see the SIZE of without it pushing Complete off the screen, and
+// unlike Ready to play every row in it is a game you have already spent today.
+const FAIL_PEEK = 2;
 const PHONE_ROWS = 6;     // unplayed games visible while the group is collapsed
 // From 641px the board runs TWO ACROSS (see the tablet tier in the stylesheet),
 // so the same budget would peek half as many LINES: six games became three rows
@@ -329,6 +333,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const slate = layout === 'slate';
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
+  // Finished today, never solved, on a game that did not show the answer. A
+  // strict subset of `done`: these rows leave Complete today for the red group
+  // above it, because the puzzle is still live for this player.
+  const [unsolved, setUnsolved] = useState(() => new Set());
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
   const [archive, setArchive] = useState({}); // per-game { played, total }, from the same payload
   // Per-game plays by THIS viewer over the last RECENT_DAYS ET days, derived
@@ -464,7 +472,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [sort, setSort] = useState(null);
   // Which phone groups the reader has expanded. Collapsed is the default on
   // every load, deliberately: the point is what the FIRST screen shows.
-  const [grpOpen, setGrpOpen] = useState({ prog: false, todo: false, dn: false });
+  const [grpOpen, setGrpOpen] = useState({ prog: false, todo: false, fail: false, dn: false });
   // Paused games ride in the CAP now, beside Up next and Easiest leaderboard
   // (owner, 2026-08-08), as cards of the cap's own shape in gold rather than a
   // group of rows inside the board. The board therefore opens on Ready to play,
@@ -489,6 +497,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         const completed = new Set(data.completed || []);
         const played = new Set(data.played || []);
         const abandoned = new Set(data.abandoned || []);
+        const unsolvedIds = new Set(data.unsolved || []);
+        setUnsolved((cur) => {
+          const next = new Set(cur);
+          for (const g of GAMES) {
+            const id = `${g.key}-${M}-${D}-${yy}`;
+            if (unsolvedIds.has(id) && KEEPS_ANSWER.has(g.key)) next.add(g.key);
+          }
+          return next;
+        });
         setDone((cur) => {
           const next = new Set(cur);
           for (const g of GAMES) {
@@ -653,9 +670,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // New to you card states "never played", and it may only state that where the
   // history exists to back it.
   const knowsHistory = Object.keys(archive).length > 0;
+  // Slot 4 goes to a paused game first and an incomplete one second: both are
+  // games you have already opened today, and the paused one still has a live
+  // board to return to where the incomplete one has a spent score and a puzzle
+  // you can still solve for yourself.
+  const capFail = capProg.length ? null : (games.find((g) => isFail(g.key)) || null);
   const capLead = (() => {
     // Two cards when nothing is paused, one when the gold card has slot 4.
-    const want = capProg.length ? 1 : 2;
+    const want = (capProg.length || capFail) ? 1 : 2;
     const taken = new Set([nextGame && nextGame.key, easiest && easiest.game.key].filter(Boolean));
     const out = [];
     const pick = (pool) => pool.find((g) => !taken.has(g.key)) || null;
@@ -672,7 +694,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // that block the room: the lead cards step aside, which also keeps the fixed
   // count even (two) while the block runs as its own full-width grid.
   const capLeadShown = capOpen ? [] : capLead;
-  const capFixed = 2 + capLeadShown.length;
+  const capFixed = 2 + capLeadShown.length + (capFail ? 1 : 0);
   const capShownD = capOpen ? capProg.length : Math.min(capProg.length, CAP_PROG_D);
   // Which column a paused card lands in. SHUT the block is display:contents, so
   // its cards continue the cap's own grid and the fixed cards above them set the
@@ -890,6 +912,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   }, [slate, capOpen, phone, capProg.length, nextGame && nextGame.key, easiest && easiest.game.key]);
 
   // filtered tile set
+  // A finished game is one of two things now. `isFail` is the red group; note it
+  // is ALWAYS a subset of `done`, so every existing done/!done test still reads
+  // correctly and only the places that need the split have to know about it.
+  const isFail = (key) => done.has(key) && unsolved.has(key);
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
   // The slate filters for real (the tile board still dims rather than removes).
   const slateMatch = (g) => (filter === 'all' ? true : filter === 'todo' ? !done.has(g.key) : g.cat === filter);
@@ -1055,7 +1081,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // handed it.
     const arr = rows0.filter((g) => !done.has(g.key) && !inprog.has(g.key))
       .concat(rows0.filter((g) => !done.has(g.key) && inprog.has(g.key)))
-      .concat(rows0.filter((g) => done.has(g.key)));
+      .concat(rows0.filter((g) => isFail(g.key)))
+      .concat(rows0.filter((g) => done.has(g.key) && !isFail(g.key)));
     // Phone layout groups the slate by state (owner-approved direction B,
     // 2026-08-07). The band headers are pushed FIRST and moved into place
     // by CSS `order` inside the <=900px block, NOT interleaved here, so the
@@ -1064,9 +1091,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // display:none. A row and its own drawer carry the same order value, and
     // equal-order flex items keep source order, so a drawer never leaves its
     // row. An empty group renders no band.
-    let nProg = 0, nTodo = 0, nDone = 0;
+    let nProg = 0, nTodo = 0, nFail = 0, nDone = 0;
     arr.forEach((g) => {
-      if (done.has(g.key)) nDone += 1;
+      if (isFail(g.key)) nFail += 1;
+      else if (done.has(g.key)) nDone += 1;
       else if (inprog.has(g.key)) nProg += 1;
       else nTodo += 1;
     });
@@ -1102,9 +1130,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // 2026-08-07): any filter other than All shows every paused and unplayed
     // row, with no bar. Finished games stay collapsed regardless, since the
     // reason they are collapsed is that you already know how you did.
+    const failHidden = filter === 'all' ? Math.max(0, nFail - FAIL_PEEK) : 0;
     const peekOf = (grp) => {
       if (grp === 'dn') return 0;
       if (filter !== 'all') return Infinity;
+      if (grp === 'fail') return FAIL_PEEK;
       return grp === 'prog' ? progPeek : todoPeek;
     };
     const toggle = (grp) => setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }));
@@ -1148,7 +1178,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       );
     };
     out.push(band('todo', 'Ready to play', nReady, `${n}/${GAMES.length} played`));
-    out.push(band('dn', 'Done today', nDone));
+    // Incomplete sits ABOVE Complete: it is the group with something left in it.
+    out.push(band('fail', 'Incomplete today', nFail));
+    out.push(band('dn', 'Complete today', nDone));
     // The bar names how many rows are HIDDEN, not how many the group holds
     // (owner, 2026-08-07): "Show all 38" made you do the subtraction against a
     // band that already printed the total.
@@ -1183,18 +1215,22 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       </button>
     ) : null);
     out.push(more('todo', readyHidden));
+    // Incomplete keeps its bar at BOTH widths, unlike Ready to play's, because
+    // it peeks a fixed two rather than filling the screen.
+    out.push(more('fail', failHidden));
     // Counted in DOM order, which IS the visual order WITHIN a group (equal
     // `order` values keep source order), so "the first two" means the same thing
     // to the reader as it does here.
-    const seen = { prog: 0, todo: 0, dn: 0 };
+    const seen = { prog: 0, todo: 0, fail: 0, dn: 0 };
     arr.forEach((g) => {
       const isDone = done.has(g.key);
+      const fail = isFail(g.key);
       const ip = !isDone && inprog.has(g.key);
       // A paused row BELONGS to Ready to play (one band, one bar, one open
       // state) but is COUNTED against the paused half of the budget, since the
       // two halves peek different numbers of rows.
-      const grp = isDone ? 'dn' : 'todo';
-      const bucket = isDone ? 'dn' : (ip ? 'prog' : 'todo');
+      const grp = fail ? 'fail' : (isDone ? 'dn' : 'todo');
+      const bucket = fail ? 'fail' : (isDone ? 'dn' : (ip ? 'prog' : 'todo'));
       const gi = seen[bucket];
       seen[bucket] = gi + 1;
       const hid = !grpOpen[grp] && gi >= peekOf(bucket);
@@ -1211,7 +1247,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       out.push(
         <div
           key={g.key}
-          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}`}
+          className={`sl-row${isDone && !fail ? ' done' : ''}${fail ? ' fail' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}`}
           style={{ '--rc': col }}
           onClick={(e) => {
             // A click anywhere on the row, the emblem included, opens the stats
@@ -1302,7 +1338,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             ? <><Crown size={10} strokeWidth={2.6} /><span>{lead}</span></>
             : <span className="sl-nl">Be the first</span>}</span>
           <span className="sl-status">
-            {isDone
+            {fail
+              ? <a className="sl-btn fail" href={g.href} aria-label={`Play ${g.name}`}>Play</a>
+              : isDone
               ? <span className="sl-btn done">{sl || 'Done'}</span>
               : ip
                 ? <a className="sl-btn prog" href={g.href} aria-label={`Resume ${g.name}`}>
@@ -1341,7 +1379,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       // `order` grouping; it has no effect above 900px.
       // The drawer inherits sl-hid, so collapsing a group takes an open drawer
       // with it rather than leaving a panel with no row above it.
-      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${hid ? ' sl-hid' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
+      if (open) out.push(<div className={`sl-drawer${isDone && !fail ? ' done' : ''}${fail ? ' fail' : ''}${ip ? ' inprog' : ''}${hid ? ' sl-hid' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
     });
     return out;
   };
@@ -1820,6 +1858,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          /* The incomplete card carries the Incomplete today band's red, so the
+             cap and the group below it read as the same thing said twice. */
+          .dhome.slate .dh-cell.failc{background:#dc2626;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.failc:hover{background:#e33f3f;}
+          .dhome.slate .dh-cell.failc .dh-play{color:#b91c1c;}
+          .dhome.slate .dh-cell.failc.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.crowd:hover{background:#3170ec;}
           .dhome.slate .dh-cell.crowd.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.fav:hover{background:#4a7ce0;}
@@ -1880,6 +1924,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;}
           .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;}
           .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;}
+          .dhome.slate .dh-cell.failc{background:#dc2626;text-decoration:none;}
+          .dhome.slate .dh-cell.failc .dh-play{color:#b91c1c;}
           /* The phone cut. */
           .dh-cell.cap-hm{display:none;}
         }
@@ -1943,6 +1989,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-row{border-bottom:1px solid #f0f2f6;font-size:13px;}
         .sl-row:hover{background:var(--surface);}
         .sl-row.done{background:#f6fbf8;}
+        /* Incomplete today: the red twin of the green finished row, and the same
+           faint wash rather than a fill, so a screen of them still reads as a
+           list. The Play chip is the one thing that separates it from a
+           complete row at a glance, which is the point of the group. */
+        .sl-row.fail{background:#fef4f3;}
         .sl-row.inprog{background:#fffaeb;}
         .sl-row.open{background:var(--accent-soft);}
         /* An OPEN row keeps its STATE colour (owner, 2026-08-07). .open sits
@@ -1953,6 +2004,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            happening on the desktop slate. */
         .sl-row.inprog.open{background:#fdf3d6;}
         .sl-row.done.open{background:#e6f6ee;}
+        .sl-row.fail.open{background:#fde9e7;}
         .sl-ic{display:flex;align-items:center;justify-content:center;height:34px;background:var(--surface-alt);border-radius:8px;}
         .sl-ic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
         .sl-nm{min-width:0;text-decoration:none;color:var(--ink);display:block;}
@@ -2004,6 +2056,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
+        .sl-btn.fail{border-color:#f6c9c4;background:#fdeceb;color:#b91c1c;}
+        .sl-btn.fail:hover{background:#dc2626;border-color:#dc2626;color:var(--white);}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
         .sl-arch{display:flex;justify-content:center;}
         .sl-rz{display:none;font-style:normal;}
@@ -2045,7 +2099,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;position:sticky;top:0;z-index:3;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
-          .sl-band.dn{order:8;background:var(--success-deep);}
+          .sl-band.fail{order:8;background:#dc2626;}
+          .sl-band.fail .sl-bc{color:#ffe0dd;}
+          .sl-band.dn{order:11;background:var(--success-deep);}
           .sl-drawer{grid-column:1/-1;}
           /* Same order scheme the phone uses, since grid honours it too: a row
              and its own drawer carry the same value and equal-order items keep
@@ -2054,7 +2110,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* Paused rows sink to the FOOT of Ready to play (owner, 2026-08-08),
              above the group's bar and below every untouched row. */
           .sl-row.inprog,.sl-drawer.inprog{order:6;}
-          .sl-row.done,.sl-drawer.done{order:9;}
+          .sl-row.fail,.sl-drawer.fail{order:9;}
+          .sl-more.fail{order:10;}
+          .sl-row.done,.sl-drawer.done{order:12;}
+          /* Incomplete keeps a real bar on desktop, where Ready to play needs
+             none: desktop lists every unfinished row, but this group peeks a
+             fixed two at both widths. .sl-more is display:none above 900px and
+             carries no other styling up here, so the bar is drawn in full, on
+             the pattern of the cap's own .dh-cmore, tinted to its band. */
+          .dh-board.slate .sl-more.fail{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;grid-column:1/-1;
+            padding:7px 13px;border:0;border-top:2px solid #f3c2bd;border-bottom:2px solid #f3c2bd;border-radius:0;
+            background:#fdeceb;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
+            text-transform:uppercase;line-height:1.5;color:#b91c1c;cursor:pointer;}
+          .dh-board.slate .sl-more.fail:hover{background:#fbdedb;}
+          .dh-board.slate .sl-row.fail.sl-hid,.dh-board.slate .sl-drawer.fail.sl-hid{display:none;}
           /* THREE tracks: emblem, name, crowd size. Pins add no track, the same
              call the phone made: the star left the row and the pin control is
              the chip at the top of the drawer. */
@@ -2062,6 +2131,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-fav,.sl-cat,.sl-st,.sl-ld,.sl-arch,.sl-npl{display:none;}
           .sl-row.inprog{box-shadow:inset 4px 0 0 var(--gold);}
           .sl-row.done{box-shadow:inset 4px 0 0 #16a34a;}
+          .sl-row.fail{box-shadow:inset 4px 0 0 #dc2626;}
           .sl-ic{order:1;height:30px;background:transparent;border-radius:0;}
           .sl-ic img{height:26px;max-width:30px;}
           .sl-nm{order:2;display:flex;flex-direction:row;flex-wrap:wrap;align-items:baseline;column-gap:7px;}
@@ -2139,10 +2209,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
-          .sl-band.dn{order:8;background:var(--success-deep);}
+          .sl-band.fail{order:8;background:#dc2626;}
+          .sl-band.fail .sl-bc{color:#ffe0dd;}
+          .sl-band.dn{order:11;background:var(--success-deep);}
           .sl-row,.sl-drawer{order:5;}
           .sl-row.inprog,.sl-drawer.inprog{order:6;}
-          .sl-row.done,.sl-drawer.done{order:9;}
+          .sl-row.fail,.sl-drawer.fail{order:9;}
+          .sl-row.done,.sl-drawer.done{order:12;}
           /* The rows a group is not peeking. Nothing else may set display on a
              .sl-row inside the slate without excluding this class, or the row
              comes back: see the :not(.sl-hid) on the .mcut rule in the 640px
@@ -2156,6 +2229,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#dde5f0;}
           .sl-more.todo{order:7;}
+          /* The phone bar, tinted to its own band rather than the shared grey. */
+          .sl-more.fail{order:10;border-top-color:#f3c2bd;border-bottom-color:#f3c2bd;background:#fdeceb;color:#b91c1c;}
+          .sl-more.fail:active{background:#fbdedb;}
           .sl-mtxt.d{display:none;}
           /* THREE tracks: name, count, icon (owner, 2026-08-07, against a
              reference image). The row used to carry a star, a tile plate, the
@@ -2171,6 +2247,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-row{grid-template-columns:minmax(0,1fr) auto 40px;gap:11px;padding:9px 13px 9px 16px;cursor:pointer;box-shadow:inset 4px 0 0 var(--rc,#475b78);}
           .sl-row.inprog{box-shadow:inset 4px 0 0 var(--gold);}
           .sl-row.done{box-shadow:inset 4px 0 0 #16a34a;}
+          .sl-row.fail{box-shadow:inset 4px 0 0 #dc2626;}
           /* Pins no longer add a track: the star is one of the things that left
              the row, and the pin control is the full-width chip at the top of
              the drawer. Same grid either way. */
@@ -2304,6 +2381,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#dde5f0;}
           .sl-more.todo{order:7;}
+          /* The phone bar, tinted to its own band rather than the shared grey. */
+          .sl-more.fail{order:10;border-top-color:#f3c2bd;border-bottom-color:#f3c2bd;background:#fdeceb;color:#b91c1c;}
+          .sl-more.fail:active{background:#fbdedb;}
           /* ...and no bounded paused block either, for the same reason: with the
              board flowing there is no fixed console height for it to fit inside,
              so the cards stack out in full exactly as they do on a phone. */
@@ -2500,6 +2580,22 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             </span>
           </a>
         ))}
+        {/* The incomplete card. Red, and its button says Play rather than
+            Resume: there is no live board to resume, the score is already
+            banked, and what is on offer is the puzzle itself, which this game
+            never showed the answer to. */}
+        {capFail ? (
+          <a href={capFail.href} aria-label={`Play ${capFail.name}`} className="dh-cell failc">
+            <div className="dh-bupt">
+              <div className="dh-bue">Incomplete</div>
+              <div className="dh-bun">{capFail.name}</div>
+              <div className="dh-busub">{capFail.tag}{' \u00b7 the answer is still yours to find'}</div>
+            </div>
+            <span className="dh-play">
+              <Play size={11} fill="currentColor" strokeWidth={0} />Play
+            </span>
+          </a>
+        ) : null}
         {/* The paused cards. Same card as the two above it, in gold: same
             padding, same white rule where the emblem would be, an eyebrow over
             the name over a sub line, and the same button on the right edge.

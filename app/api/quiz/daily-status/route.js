@@ -56,15 +56,19 @@ export async function GET(request) {
     const who = await resolvePlayerKeys(supabaseAdmin, { email, anonId });
     const myKey = who.primary;
     const myKeys = who.keys;
-    if (!myKey) return NextResponse.json({ played: [], completed: [], abandoned: [] }, { headers: CACHE_HEADERS });
+    if (!myKey) return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [] }, { headers: CACHE_HEADERS });
 
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
       console.error('daily-status error', error);
-      return NextResponse.json({ played: [], completed: [], abandoned: [] });
+      return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [] });
     }
     const played = new Set();
     const completed = new Set();
+    // Finished, not abandoned, and not solved. The slate keeps only the games
+    // that never showed the answer (KEEPS_ANSWER); the rest are reported here
+    // so any other caller can make its own call.
+    const unsolved = new Set();
     const abandonedOnly = new Set();
     // Anon ids of this player's own rows that were never attributed to their
     // account. Collected for free in the pass below and healed after it.
@@ -92,7 +96,18 @@ export async function GET(request) {
       // separately as `abandoned` (started, not finished), never played/completed.
       if (r.abandoned) { abandonedOnly.add(qid); continue; }
       played.add(qid);
-      if (r.total > 0 && r.score === r.total) completed.add(qid);
+      // THE VERDICT, NOT THE SCORE (owner, 2026-08-09). Every daily posts
+      // `correct: status === 'won' ? 1 : 0`, stored as correct_count, so the
+      // solved/unsolved call is already in the row and does not have to be
+      // inferred. score === total was wrong for the games that score by
+      // EFFICIENCY rather than by answers found: Parker, Rung and Taire hand a
+      // sloppy but genuine solve 7 out of 10, and this route has been calling
+      // those unfinished. Legacy rows written before the column existed fall
+      // back to the old test.
+      const solved = r.correct_count == null
+        ? (r.total > 0 && r.score === r.total)
+        : r.correct_count > 0;
+      if (solved) completed.add(qid); else unsolved.add(qid);
     }
     // Report a game as abandoned only when the player never finished it.
     const abandoned = [...abandonedOnly].filter((q) => !played.has(q));
@@ -193,9 +208,9 @@ export async function GET(request) {
     for (const [k, all] of archiveAll) {
       archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
     }
-    return NextResponse.json({ played: [...played], completed: [...completed], abandoned, streaks, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, streaks, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
-    return NextResponse.json({ played: [], completed: [], abandoned: [] });
+    return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [] });
   }
 }
