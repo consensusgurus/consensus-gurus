@@ -625,7 +625,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       board.style.setProperty('--dh-fit', h + 'px');
     };
     const q = () => { if (!raf) raf = requestAnimationFrame(fit); };
-    q();
+    // The FIRST fit is direct, not queued: requestAnimationFrame never fires in
+    // a background tab, so a page opened in one would have sat at the fallback
+    // calc until it was looked at.
+    fit();
     window.addEventListener('resize', q);
     // The cap is the thing above the board whose height moves (expanding the
     // paused cards). Observe IT, never the console: the console's height is
@@ -819,18 +822,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // narrows the rows without rewriting the day's score. The ready count it
     // replaces is the same fact stated backwards, and the band only renders when
     // something is ready anyway.
-    const band = (cls, label, count, fig) => (count ? (
-      <div className={`sl-band ${cls}`} key={`band-${cls}`}>
-        <span className="sl-bt">{label}</span>
-        <span className="sl-bc">{fig == null ? count : fig}</span>
-      </div>
-    ) : null);
-    out.push(band('prog', 'In progress', nProg));
-    out.push(band('todo', 'Ready to play', nTodo, `${n}/${GAMES.length} played`));
-    out.push(band('dn', 'Done today', nDone));
-    // One expand bar per group, pushed here and ordered to the END of its own
-    // group by CSS, exactly like the bands. A group with nothing hidden renders
-    // no bar.
+    // One expand bar per group, ordered to the END of its own group by CSS,
+    // exactly like the bands. A group with nothing hidden renders no bar, and a
+    // group showing NOTHING renders no bar either: its band becomes the control
+    // (see `band` below). The peek numbers are declared up here because the band
+    // needs them.
     // Spend the six-row budget: paused first, up to three, then unplayed.
     const progPeek = Math.min(nProg, PHONE_PROG_MAX);
     const todoPeek = Math.max(0, PHONE_ROWS - progPeek);
@@ -844,16 +840,57 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       if (filter !== 'all') return Infinity;
       return grp === 'prog' ? progPeek : todoPeek;
     };
+    const toggle = (grp) => setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }));
+    // A band normally prints its own size on the right. Ready to play prints the
+    // DAY instead (owner, 2026-08-08): how many of the whole slate are finished.
+    // That figure used to be the third box in the phone header, where it competed
+    // with the two IQ figures for a ~120px column; here it sits directly above the
+    // rows it is counting. `n` is the GLOBAL done count, so a category filter
+    // narrows the rows without rewriting the day's score. The ready count it
+    // replaces is the same fact stated backwards, and the band only renders when
+    // something is ready anyway.
+    //
+    // THE BAND IS THE CONTROL WHEN ITS GROUP SHOWS NOTHING (owner, 2026-08-08).
+    // Done today peeks zero rows, so a band saying "Done today 6" sat directly on
+    // a bar saying "Show all 6": two full rows spent on one shut group. The band
+    // takes a chevron and the click instead, and `more` drops the second row. A
+    // group that peeks SOME rows keeps its bar, since there the bar counts what
+    // is still hidden, which is not what the band says.
+    const band = (grp, label, count, fig) => {
+      if (!count) return null;
+      const shut = count > peekOf(grp) && peekOf(grp) === 0;
+      const inner = (
+        <>
+          <span className="sl-bt">{label}</span>
+          <span className="sl-bc">{fig == null ? count : fig}</span>
+          {shut ? (grpOpen[grp]
+            ? <ChevronUp className="sl-bch" size={13} strokeWidth={2.8} />
+            : <ChevronDown className="sl-bch" size={13} strokeWidth={2.8} />) : null}
+        </>
+      );
+      return shut ? (
+        <button
+          type="button"
+          className={`sl-band ${grp} tog`}
+          key={`band-${grp}`}
+          onClick={() => toggle(grp)}
+          aria-expanded={grpOpen[grp]}
+        >{inner}</button>
+      ) : (
+        <div className={`sl-band ${grp}`} key={`band-${grp}`}>{inner}</div>
+      );
+    };
+    out.push(band('prog', 'In progress', nProg));
+    out.push(band('todo', 'Ready to play', nTodo, `${n}/${GAMES.length} played`));
+    out.push(band('dn', 'Done today', nDone));
     // The bar names how many rows are HIDDEN, not how many the group holds
     // (owner, 2026-08-07): "Show all 38" made you do the subtraction against a
-    // band that already printed the total. A group that peeks nothing has no
-    // "more" to show, so it reads "Show all 10" there and "Show 3 more" here,
-    // and either way the number is the count you get by tapping it.
+    // band that already printed the total.
     // `dmin` is the DESKTOP cap, which is its own number: the phone spends a
-    // six-row budget across the groups, while desktop runs two columns and caps
-    // only In progress, at two (owner, 2026-08-08). The bar renders when either
+    // six-row budget across the groups, while desktop caps nothing in the board
+    // now that the paused games ride in the cap. The bar renders when either
     // width has something hidden, and each width prints its own count.
-    const more = (grp, count, dmin) => ((count > peekOf(grp) || (dmin != null && count > dmin)) ? (
+    const more = (grp, count, dmin) => ((peekOf(grp) > 0 && count > peekOf(grp)) || (dmin != null && count > dmin) ? (
       <button
         type="button"
         className={`sl-more ${grp}`}
@@ -861,7 +898,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         onClick={(e) => {
           const el = e.currentTarget;
           const wasOpen = grpOpen[grp];
-          setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }));
+          toggle(grp);
           // COLLAPSING FOLLOWS THE READER (owner, 2026-08-07). Taking 34 rows
           // back out of the page leaves them wherever those rows used to be,
           // which is a long way from the bar they just pressed. Two frames, so
@@ -877,10 +914,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         {grpOpen[grp]
           ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
           : <>
-              <span className="sl-mtxt p">{peekOf(grp) > 0 ? `Show ${count - peekOf(grp)} more` : `Show all ${count}`}</span>
+              <span className="sl-mtxt p">{`Show ${count - peekOf(grp)} more`}</span>
               <span className="sl-mtxt d">{(dmin != null && count > dmin)
                 ? `Show ${count - dmin} more`
-                : (peekOf(grp) > 0 ? `Show ${count - peekOf(grp)} more` : `Show all ${count}`)}</span>
+                : `Show ${count - peekOf(grp)} more`}</span>
               <ChevronDown size={12} strokeWidth={2.8} />
             </>}
       </button>
@@ -1633,6 +1670,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            the DOM at every width and only the <=900px block gives them a box,
            an order, and (for .sl-hid) any effect at all. */
         .sl-band{display:none;}
+        /* A band that is also its group's toggle. It keeps every band rule (the
+           selector is the same class); this only undoes the UA button styling
+           and adds the chevron. */
+        button.sl-band{width:100%;border:0;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+        button.sl-band:hover{filter:brightness(1.14);}
+        .sl-bch{flex:none;color:var(--white);opacity:.8;margin-left:1px;}
         .sl-more{display:none;}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
         .sl-st.none{color:#c3c8d1;}

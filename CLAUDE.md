@@ -3402,7 +3402,11 @@ nobody had written the check. These twelve rules are how that stops.
 12. **A new game ships BOTH pieces of tile art, because the missing one fails
     silently.** Every daily needs `public/games/btn-<key>.png` (76x76 RGBA, the
     full-colour drawing) AND `public/games/blue/btn-<key>.png`, the same drawing
-    remapped onto the brand blue ramp. The blue copy is what the HOMEPAGE uses:
+    remapped onto the brand blue ramp. **76x76 is load-bearing, not a
+    suggestion:** Bracket shipped 88x76 and its icon rendered 28px wide in the
+    home Daily Mastery rail, which pushed its NAME out of line with every other
+    row in the column (fixed 2026-08-08 by re-canvassing both files and giving
+    `.hr-mic` a square `object-fit:contain` box). The blue copy is what the HOMEPAGE uses:
     `blueTile()` in `app/DailyStrip.jsx` rewrites `/games/btn-` to
     `/games/blue/btn-` for the slate rows and both cap tiles, so the home surface
     reads as one palette instead of forty-five. **`tileFallback` then quietly

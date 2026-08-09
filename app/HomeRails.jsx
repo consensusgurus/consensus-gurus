@@ -416,7 +416,12 @@ export default function HomeRails({
       .hr-mrow{display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-mrow:last-child{border-bottom:none;}
       .hr-mrow:hover{background:var(--surface);}
-      .hr-mic{height:24px;width:auto;border-radius:6px;flex:none;}
+      /* A SQUARE box, not width:auto (owner, 2026-08-08). Every tile file is
+         76x76, but Bracket's shipped 88x76, so its icon rendered 28px wide
+         and pushed its NAME 4px right of every other row in the column. The
+         art was fixed in the same push; the fixed box means the next stray
+         file cannot break the alignment again. */
+      .hr-mic{height:24px;width:24px;object-fit:contain;border-radius:6px;flex:none;}
       /* The name sizes to its text and never grows, so the track always gets
          the leftover width rather than the two competing for it. */
       .hr-mnm{flex:0 1 auto;min-width:0;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}

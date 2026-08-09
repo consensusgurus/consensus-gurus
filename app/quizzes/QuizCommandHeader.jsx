@@ -7,6 +7,7 @@ import { getAllSources } from '@/lib/sources';
 import { T } from '@/lib/theme';
 import MindLoftMark from '../MindLoftMark';
 import useDayStats from '../useDayStats';
+import { CONTEST } from '@/lib/contest';
 
 // Full-bleed command-bar header for the quizzes HOME page only (individual
 // quiz pages, the Stat Hub, and the lists site keep SiteHeader). One 56px
@@ -256,6 +257,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-acts{margin-left:auto;display:flex;gap:8px;padding-left:16px;}
           .qchm-bt{border:1px solid #5b7fd4;background:#264aa0;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
           .qchm-bt:hover{background:#3a60c4;border-color:#8aa8e8;color:var(--white);}
+          /* The share CTA is the one button in this row that is asking for
+             something, so it leaves the blue set and takes the contest's gold
+             (owner, 2026-08-08). Dark ink, because gold cannot carry white. */
+          .qchm-bt.qchm-gold{background:var(--gold);border-color:#f0c860;color:#2a1f04;}
+          .qchm-bt.qchm-gold:hover{background:#f2c451;border-color:var(--white);color:#2a1f04;}
           .qchm-signup{background:var(--blue);border-color:#7ea6ff;}
           .qchm-signup:hover{background:#3b7bf5;}
           @media(max-width:1100px){.qchm-tag{display:none;}}
@@ -338,7 +344,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           )}
           <div className="qchm-acts">
             <Link href="/quizzes/hub" className="qchm-bt">Stat Hub</Link>
-            {onCredit ? <button type="button" className="qchm-bt" onClick={onCredit}>Share for credit</button> : null}
+            {/* The figure comes from CONTEST, never a literal: the prize is a
+                one-file edit and this button has to follow it. */}
+            {onCredit ? <button type="button" className="qchm-bt qchm-gold" onClick={onCredit}>{`Share for ${CONTEST.prizeLabel}*`}</button> : null}
             {!found ? <button type="button" className="qchm-bt qchm-signup" onClick={onSignup}>Sign Up</button> : null}
           </div>
         </div></div>
