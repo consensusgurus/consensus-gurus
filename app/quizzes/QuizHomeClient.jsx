@@ -2223,6 +2223,28 @@ export default function QuizHomeClient() {
               .qzh .dhx-right{grid-column:2;border-left:1px solid var(--border);}
               .qzh .dhx-rail{height:auto !important;}
               .qzh .dhx-center .dhome.slate{margin-left:0;margin-right:0;width:auto;max-width:none;}
+              /* THE TWO COLUMNS END LEVEL, AND THE LIVE FEED IS WHAT STRETCHES
+                 (owner, 2026-08-08). The right column ran 699px against the
+                 leaderboards' 876, so a 177px notch of page showed under
+                 Featured while the left column carried on. The row stretches
+                 both rails, and inside the right one the slack goes to the
+                 feed, the only panel here whose content is unbounded: the
+                 column ends level by showing MORE FEED, never by padding
+                 anything out. Featured is three fixed rows and keeps its own
+                 height (.hr-feat is already flex:none).
+                 The max-height:none is the point of the last rule: HomeRails
+                 caps the feed body at 360px below 1200px because a stacked rail
+                 has no height to fill, and here it does.
+                 flex-basis ZERO on both, not auto: the feed's content is 2,105px
+                 of rows, so with basis:auto its hypothetical size drives the
+                 grid ROW and the pair came out 2,444px tall with the
+                 leaderboards stretched to match. Basis 0 means the panel asks
+                 for nothing and only grows into the height the row already
+                 has. */
+              .qzh .dhx{align-items:stretch;}
+              .qzh .dhx-rail{align-self:stretch;}
+              .qzh .dhx-right > .hr-panel.hr-flex{flex:1 1 0;min-height:0;}
+              .qzh .dhx-right .hr-actbody{max-height:none;flex:1 1 0;min-height:0;overflow-y:auto;}
             }
             @media(max-width:760px){
               /* rails stack full width on phones: the leaderboards stay a top 5 */
