@@ -1903,10 +1903,11 @@ byte-identical.
 
 **Slate (`app/DailyStrip.jsx`)**
 
-- **Rows group by state under solid bands:** In progress / Ready to play / Done today, each with
-  its count. The bands are pushed FIRST in `renderSlate` and placed by CSS `order` inside the
-  media query (prog band 1, prog rows 2, todo band 3, todo rows 4, done band 5, done rows 6), NOT
-  interleaved in JS. That is what keeps the desktop source order, and therefore the sortable
+- **Rows group by state under solid bands:** Ready to play / Done today, each with its count.
+  There is NO In progress band: a paused game is a Ready-to-play row at the FOOT of that group
+  (see the paused-row rule under the cap section below). The bands are pushed FIRST in
+  `renderSlate` and placed by CSS `order` inside the media query (todo band 4, untouched rows 5,
+  paused rows 6, todo bar 7, done band 8, done rows 9), NOT interleaved in JS. That is what keeps the desktop source order, and therefore the sortable
   column headers, exactly as they were. `.dh-board.slate` becomes `display:flex;flex-direction:
   column;gap:0` on a phone for this, and **the `gap:0` is load-bearing**: the tile board sets
   `gap:7px` on `.dh-board` in the 640px block, which a flex container reads as a 7px white band
@@ -1914,10 +1915,13 @@ byte-identical.
   equal-order flex items keep source order, so a drawer never leaves its row: any new per-row
   element must follow that rule or it will float out of its group.
 - **The peek is a BUDGET of six games, not a per-group count** (`PHONE_ROWS = 6`,
-  `PHONE_PROG_MAX = 3`, owner 2026-08-07): the reader always sees six games across paused +
-  unplayed, however the day is split. Paused takes what it needs up to three, unplayed takes the
-  rest, so no in-progress games means six ready to play and that band disappears entirely, one means
-  five, three means three. A fixed count per group made the first screen swing by a whole group's
+  `PHONE_PROG_MAX = 2`, `TABLET_ROWS = 12` from 641px where the slate runs two across, owner
+  2026-08-07): the reader always sees six LINES across paused + unplayed, however the day is split.
+  Paused takes what it needs up to two, unplayed takes the rest, so no paused games means six ready
+  to play, one means five, two means four. Paused rows are bought FIRST but rendered LAST, so a
+  game you walked away from is always inside the peek while still sitting at the foot of the group,
+  which is why `renderSlate` measures the peek against each sub-group's own index (`bucket`) rather
+  than one running count. A fixed count per group made the first screen swing by a whole group's
   worth of rows depending on how many games you happened to have paused. Finished games sit outside
   the budget and peek NOTHING: you
   already know how you did, so the band plus its bar is the whole group until you ask. The reason is
@@ -1925,8 +1929,8 @@ byte-identical.
   long scroll below the fold. Collapsed is the default on every load, since the point is what the
   first screen shows. **Collapsing a group scrolls the bar back into view**: taking 34 rows out of
   the page otherwise leaves the reader wherever those rows used to be, a long way from the bar they
-  just pressed. Nine ordered slots now, three per group (band, rows, bar): prog 1-2-3, todo
-  4-5-6, done 7-8-9. A hidden row's drawer inherits `.sl-hid` so collapsing never leaves a panel
+  just pressed. Ordered slots now, ONE bar for the whole Ready-to-play group: todo
+  4-5-6-7 (band, untouched rows, paused rows, bar), done 8-9. A hidden row's drawer inherits `.sl-hid` so collapsing never leaves a panel
   with no row above it. **A filter suspends the peek**: any filter other than All shows every paused
   and unplayed row with no bar, because the filter already IS the reader narrowing the slate and
   peeking inside it answers that request with another lid. Finished games stay collapsed regardless
@@ -1980,11 +1984,16 @@ one below: Up next, Easiest leaderboard, then one card per PAUSED game, in board
 pair keeps its two navy tones; the paused cards take the slate's gold (`var(--gold)` ground,
 `#2a1f04` ink, white button). Consequences, all of which are the point rather than side effects:
 
-- **The board has no In progress group.** `renderSlate` filters paused games out at the top, so the
-  band, its rows and its expand bar all fall away on their own (each renders only when its own
-  count is non-zero). The slate is Ready to play then Done today, which is why the category strip
-  now sits directly above Ready to play. Do NOT put paused rows back in the board: they would then
-  appear twice.
+- **The board has no In progress BAND, but it does still list the paused games** (owner,
+  2026-08-08, reversing the same day's "keep them out of the board" call). Filtering them out
+  entirely left a game you had started findable in exactly one place, and only while the cap still
+  had a slot for it. So `renderSlate` sorts them to the BOTTOM of Ready to play (`arr` is a stable
+  three-way partition: untouched, paused, finished) and they render as ORDINARY rows with faint
+  shading, the base `#fffaeb` ground plus the gold left rule, never the cap's gold card: that shape
+  is already on screen directly above the board, and repeating it made the same card twice on one
+  page. Their Resume chip is the one desktop control that does not wait for a hover. Appearing in
+  both the cap and the slate is deliberate, the cap promotes the first two and the slate is the
+  copy you can always scroll to.
 - **Collapsed to TWO cards at BOTH widths** (`CAP_PROG_D` / `CAP_PROG_M`), which is exactly one row
   of the desktop grid, with the rest behind one `.dh-cmore` bar spanning the cap's columns. It ran
   four and three for one deploy and the console outgrew the fold; two is the owner's number
