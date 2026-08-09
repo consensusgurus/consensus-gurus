@@ -150,7 +150,7 @@ function mergeServerStats(s, recent, puzzles, total) {
 }
 function freshState(m) { return { v: 1, picks: Array(m).fill(-1), status: 'playing', t0: null, tEnd: null }; }
 
-export default function PricerClient({ puzzles = [], forceNum = null }) {
+export default function PricerClient({ puzzles = [], forceNum = null, preview = false }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const N = PUZZLE.items.length;
   const ROUNDS = Math.log2(N);
@@ -404,6 +404,7 @@ export default function PricerClient({ puzzles = [], forceNum = null }) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0)/1000)) : 1;
     try { setStats(recordStat(PUZZLE.num, { s: sc, t: TOTAL, g: null, won: sc === TOTAL })); } catch (e) {}
+    if (preview) return; // preview mode — don't record results
     try {
       fetch('/api/quiz/result', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: TOTAL, correct: sc === TOTAL ? 1 : 0, guessesUsed: 0, timeElapsed: el, priceTiebreak: priceTiebreak ?? null, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
@@ -675,6 +676,11 @@ export default function PricerClient({ puzzles = [], forceNum = null }) {
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
       <DailyChrome slug="pricer" name="Pricer" collapsed={started} />
+      {preview && (
+        <div style={{ background: '#fef9c3', borderBottom: '2px solid #ca8a04', padding: '10px 24px', textAlign: 'center', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#92400e', letterSpacing: '.02em' }}>
+          🔍 PREVIEW MODE — this play is not recorded and won't appear on the leaderboard
+        </div>
+      )}
       <div className="pr-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 24px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.pr-wrap{padding-left:12px !important;padding-right:12px !important;}}

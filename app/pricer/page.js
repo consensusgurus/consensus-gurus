@@ -71,16 +71,19 @@ function ComingSoon({ first }) {
 }
 export default function PricerPage({ searchParams }) {
   const today = etTodayServer();
-  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
+  const preview = searchParams && searchParams.preview === '1';
+  const visiblePuzzles = preview ? PUZZLES : PUZZLES.filter((p) => p.live <= today);
   if (!visiblePuzzles.length) return <ComingSoon first={PUZZLES[0]} />;
   const n = Number(searchParams && searchParams.p);
-  const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+  const forceNum = Number.isInteger(n) && n > 0 ? n
+    : preview ? (PUZZLES.find((p) => p.live > today) || PUZZLES[0]).num
+    : null;
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <Suspense fallback={null}>
-        <PricerClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+        <PricerClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} preview={preview} />
       </Suspense>
     </>
   );
