@@ -222,6 +222,18 @@ const TWO_UP_MQ = TABLET_MQ + ', ' + TOUCH_WIDE_MQ;
 // client render the same list at either width.
 const CAP_PROG_D = 2;
 const CAP_PROG_M = 2;
+// EXPANDING THE PAUSED CARDS MUST NOT RESIZE THE CONSOLE (owner, 2026-08-08).
+// The bar used to simply reveal every paused card, and with fifteen games open
+// the cap grew past the whole window: the three-column row stretched, both
+// rails stretched with it, and Ready to play was pushed clean off the fold. The
+// open block is a SCROLLER instead. Its ceiling is measured in the fit effect
+// so it takes exactly the room the board can spare, down to the board's own
+// floor, and not a pixel more, which means the console's total height is
+// IDENTICAL open or shut: the paused list borrows Ready to play's space rather
+// than adding to the page. --cap-pmax carries the measurement, and the CSS
+// fallback bounds the block on the first frame, before the effect has run, so
+// it never flashes at full height.
+const CAP_PMIN = 170;   // ...but always at least two rows of cards.
 // The console is sized to leave this much of the page showing under it, so the
 // three-column row ends just above the fold rather than at it or past it.
 const FOLD_SLIVER = 34;
@@ -672,25 +684,54 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     if (!slate || typeof window === 'undefined') return undefined;
     const board = boardRef.current;
     if (!board) return undefined;
+    const con = board.closest('.dhome');
     let raf = 0;
     const fit = () => {
       raf = 0;
+      const prog = con ? con.querySelector('.dh-cprog') : null;
       // The board is height:auto and scrolls with the page in BOTH peek tiers,
       // so there is no fixed port to size: the phone/tablet one under 900px, and
       // the touch-wide one above it (TOUCH_WIDE_MQ), which would otherwise get a
       // fold-height scroll port holding six rows and a lot of white.
       const coarseWide = window.matchMedia && window.matchMedia(TOUCH_WIDE_MQ).matches;
-      if (window.innerWidth <= 900 || coarseWide) { board.style.removeProperty('--dh-fit'); return; }
-      // Document offset, not the viewport rect: the row is meant to fit the
-      // fold as seen from the TOP of the page, wherever the reader has
-      // scrolled to when a resize happens to fire.
-      const top = board.getBoundingClientRect().top + window.scrollY;
+      if (window.innerWidth <= 900 || coarseWide) {
+        board.style.removeProperty('--dh-fit');
+        // Where the board flows, the paused block is never bounded either: the
+        // page absorbs its length, so it stacks out in full and never scrolls
+        // inside itself.
+        if (prog) prog.style.removeProperty('--cap-pmax');
+        return;
+      }
       // The floor is BOARD_MIN everywhere except a touch device in landscape,
       // where it is whatever eight lines actually measure (see LAND_LINES).
       let floor = BOARD_MIN;
       if (window.matchMedia && window.matchMedia(LAND_TOUCH).matches) {
         floor = Math.max(floor, slateLineHeight(board, LAND_LINES));
       }
+      // Bound the open paused block FIRST, since it is one of the things
+      // sitting above the board. Its ceiling is whatever room is left between
+      // the top of the block and the fold once the board has been handed its
+      // floor, so the block can only ever eat space the board could spare and
+      // the console still ends FOLD_SLIVER above the fold either way.
+      //
+      // No feedback loop: the top measured here does not depend on the block's
+      // own height. Open, the block is a scroller, so its box top is fixed and
+      // the cards move inside it; shut, it is display:contents and has no box
+      // at all, so the FIRST CARD stands in for it and sits at the same pixel.
+      if (prog) {
+        const r = prog.getBoundingClientRect();
+        const first = r.height ? null : prog.querySelector('.dh-cell.prog');
+        const pTop = (first ? first.getBoundingClientRect().top : r.top) + window.scrollY;
+        const bar = con.querySelector('.dh-cmore');
+        const barH = bar ? bar.getBoundingClientRect().height : 0;
+        const room = Math.round(window.innerHeight - pTop - barH - FOLD_SLIVER - floor);
+        prog.style.setProperty('--cap-pmax', Math.max(CAP_PMIN, room) + 'px');
+      }
+      // Document offset, not the viewport rect: the row is meant to fit the
+      // fold as seen from the TOP of the page, wherever the reader has
+      // scrolled to when a resize happens to fire. Read AFTER the block above
+      // has been bounded, so this same pass sees the height it settled at.
+      const top = board.getBoundingClientRect().top + window.scrollY;
       const h = Math.max(floor, Math.round(window.innerHeight - top - FOLD_SLIVER));
       board.style.setProperty('--dh-fit', h + 'px');
     };
@@ -720,7 +761,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // paused cards). Observe IT, never the console: the console's height is
     // driven by the board we are setting, which would loop.
     let ro = null;
-    const con = board.closest('.dhome');
     const cap = con && con.querySelector('.dh-sbar');
     if (cap && typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(q); ro.observe(cap); }
     return () => {
@@ -1382,6 +1422,23 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           background:#e8edf5;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
           text-transform:uppercase;line-height:1.5;color:var(--gold-ink);cursor:pointer;}
         .dh-cmore:hover{background:#dde5f0;}
+        /* Clicking the bar left the browser's own focus ring on it once it had
+           been used: a hard dark box around a band that is otherwise all soft
+           greys, so a bar that had been pressed no longer matched one that had
+           not (owner, 2026-08-08). Pointer focus is silent; KEYBOARD focus keeps
+           a ring, in the site blue, inset so it cannot widen the bar. Same
+           treatment on the board's own group bars, which are the same object. */
+        .dh-cmore:focus{outline:none;}
+        .dh-cmore:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}
+        /* The paused block. SHUT it is display:contents, so the cards are grid
+           items of the cap exactly as they were before this wrapper existed and
+           every rule addressing them (the two-up tracks, the odd-child hairline,
+           the width cuts) behaves identically. OPEN, above 900px, it becomes its
+           own two-up grid with a measured ceiling and scrolls inside itself: see
+           CAP_PMIN and the fit effect. The phone board is height:auto and flows
+           with the page, so there it stays display:contents at any length and
+           the cards simply stack. */
+        .dh-cprog{display:contents;}
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
@@ -1637,6 +1694,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-cell.prog .dh-play{background:var(--white);color:#8a5306;}
           .dhome.slate .dh-cell.prog:hover .dh-play{background:var(--white);}
           .dhome.slate .dh-cell.prog.capw{grid-column:1/-1;border-right:none;}
+          /* Open: a scroller that borrows Ready to play's space instead of
+             pushing the console past the fold. The ceiling is --cap-pmax,
+             measured in the fit effect; the vh fallback only ever applies for
+             the frame before that runs. Gold thumb on a gold ground, kept thin,
+             so the scroller reads as a hint that there is more rather than as a
+             piece of furniture. */
+          .dhome.slate .dh-cprog.open{display:grid;grid-column:1/-1;grid-template-columns:1fr 1fr;align-items:stretch;min-width:0;
+            max-height:var(--cap-pmax,46vh);overflow-y:auto;overscroll-behavior:contain;
+            scrollbar-width:thin;scrollbar-color:#bb9226 transparent;}
+          .dhome.slate .dh-cprog.open::-webkit-scrollbar{width:9px;}
+          .dhome.slate .dh-cprog.open::-webkit-scrollbar-track{background:transparent;}
+          .dhome.slate .dh-cprog.open::-webkit-scrollbar-thumb{background:rgba(42,31,4,.3);border-radius:5px;border:2px solid transparent;background-clip:content-box;}
+          .dhome.slate .dh-cprog.open::-webkit-scrollbar-thumb:hover{background:rgba(42,31,4,.45);background-clip:content-box;}
           /* The desktop cut: four cards, two rows of two. */
           .dh-cell.cap-hd{display:none;}
           /* With exactly four paused games desktop shows them all, so its bar
@@ -1785,6 +1855,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         button.sl-band:hover{filter:brightness(1.14);}
         .sl-bch{flex:none;color:var(--white);opacity:.8;margin-left:1px;}
         .sl-more{display:none;}
+        .sl-more:focus,button.sl-band:focus{outline:none;}
+        .sl-more:focus-visible,button.sl-band:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}
         .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
         .sl-st.none{color:#c3c8d1;}
         .sl-ld{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
@@ -2086,6 +2158,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#dde5f0;}
           .sl-more.todo{order:7;}
+          /* ...and no bounded paused block either, for the same reason: with the
+             board flowing there is no fixed console height for it to fit inside,
+             so the cards stack out in full exactly as they do on a phone. */
+          .dhome.slate .dh-cprog.open{display:contents;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}
@@ -2261,26 +2337,30 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             The WHOLE card is the link (the button is a span inside it, not a
             second link), because the one thing you want from a paused game is
             to get back into it. */}
-        {capProg.map((g, i) => (
-          <a
-            key={g.key}
-            href={g.href}
-            aria-label={`Resume ${g.name}`}
-            className={'dh-cell prog'
-              + (i === capWideAt ? ' capw' : '')
-              + (!capOpen && i >= CAP_PROG_D ? ' cap-hd' : '')
-              + (!capOpen && i >= CAP_PROG_M ? ' cap-hm' : '')}
-          >
-            <div className="dh-bupt">
-              <div className="dh-bue">In progress</div>
-              <div className="dh-bun">{g.name}</div>
-              <div className="dh-busub">{g.tag}{playsNote(playsOf(g.key))}</div>
-            </div>
-            <span className="dh-play">
-              <Play size={11} fill="currentColor" strokeWidth={0} />Resume
-            </span>
-          </a>
-        ))}
+        {capProg.length ? (
+          <div className={'dh-cprog' + (capOpen ? ' open' : '')}>
+            {capProg.map((g, i) => (
+              <a
+                key={g.key}
+                href={g.href}
+                aria-label={`Resume ${g.name}`}
+                className={'dh-cell prog'
+                  + (i === capWideAt ? ' capw' : '')
+                  + (!capOpen && i >= CAP_PROG_D ? ' cap-hd' : '')
+                  + (!capOpen && i >= CAP_PROG_M ? ' cap-hm' : '')}
+              >
+                <div className="dh-bupt">
+                  <div className="dh-bue">In progress</div>
+                  <div className="dh-bun">{g.name}</div>
+                  <div className="dh-busub">{g.tag}{playsNote(playsOf(g.key))}</div>
+                </div>
+                <span className="dh-play">
+                  <Play size={11} fill="currentColor" strokeWidth={0} />Resume
+                </span>
+              </a>
+            ))}
+          </div>
+        ) : null}
         {/* One bar for the whole cap, spanning both columns at the foot of the
             cards. Each width prints its own count, the way the board's group
             bars do, since the two widths hide a different number of cards. */}
