@@ -82,6 +82,20 @@ function getAnonId() {
   } catch (e) { return ''; }
 }
 
+// WHERE THE SELECTOR OPENS. On the first answer that CARRIES a category, never
+// on spine #1. The rules tell the player to start with the sharpest category
+// rather than the passage, and spine #1 is as often as not an open answer with
+// nothing at all to act on, so opening there contradicted the instruction on the
+// very first keystroke. Row order is untouched: the spine's positions map to the
+// author's letters in order and cannot move (owner, 2026-08-09).
+// A returning player gets the first categorized answer still holding an empty
+// box, since the cursor itself is not saved.
+function openingCell(A, fill) {
+  const hasGap = (a) => a.c.some((n) => !(fill && fill[n]));
+  const clued = A.filter((a) => a.cat);
+  return (clued.find(hasGap) || clued[0] || A[0]).c[0];
+}
+
 const freshState = () => ({ v: 1, fill: null, t0: null, tEnd: null, status: 'playing' });
 const EMPTY_BOARD = { plays: 0, best: null, leaderboard: [] };
 
@@ -159,7 +173,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   }, [PUZZLE, A]);
 
   const [g, setG] = useState(freshState);
-  const [cur, setCur] = useState(A[0].c[0]);
+  const [cur, setCur] = useState(() => openingCell(A, null));
   // OPENS ON THE BANK, not the passage. A first-time player who lands on 124
   // empty boxes has nothing to act on and no idea what the game wants; the bank
   // is where the categories are, so it is the half that explains itself and the
@@ -224,6 +238,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.fill) && saved.fill.length === N) {
           setG({ ...freshState(), ...saved });
+          setCur(openingCell(A, saved.fill));
         }
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
@@ -388,7 +403,8 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   function resetGame() {
     setG({ ...freshState(), fill: new Array(N).fill('') });
     setEndClosed(false);
-    setCur(A[0].c[0]);
+    scrolledIn.current = false;
+    setCur(openingCell(A, null));
     try { localStorage.removeItem(REC_KEY); } catch (e) {}
   }
   function copyShare() {
@@ -429,6 +445,27 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     }
     return out;
   }, [N, breakAfter]);
+
+  // The opening answer can sit well down a twenty row bank, and on a phone the
+  // board only appears once Start is pressed, so the first letter typed could
+  // otherwise land in a row below the fold. Bring it into view once, and only
+  // when it is genuinely off screen, so a board that already shows it does not
+  // jump. The pinned keys sit over the foot of the page, hence the inset.
+  const scrolledIn = useRef(false);
+  useEffect(() => {
+    if (!g.t0 || scrolledIn.current) return undefined;
+    scrolledIn.current = true;
+    const id = requestAnimationFrame(() => {
+      const el = cellRefs.current[`q${cur}`];
+      if (!el || !el.getBoundingClientRect) return;
+      const r = el.getBoundingClientRect();
+      const foot = railUp ? (narrow ? 250 : 168) : 0;
+      if (r.top < 60 || r.bottom > window.innerHeight - foot) {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    });
+    return () => cancelAnimationFrame(id);
+  }, [g.t0, cur, railUp, narrow]);
 
   const cellCls = (n) => {
     const c = ['an-cell'];
