@@ -596,7 +596,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // A viewer with NO history on any open game (a guest, or a first visit) falls
   // back to the old behaviour: first unfinished in board order, which is what an
   // all-zero ranking sorts to.
-  const nextGame = habitRank[0] || null;
+  // A PAUSED GAME IS NOT UP NEXT (owner, 2026-08-09). Paused games have their
+  // own card in the cap now, so pointing the first two cards at one as well both
+  // says the same thing twice and forces those cards to read Resume, which is
+  // not what they are for. Both cards therefore pick from games this viewer has
+  // NOT started today, and both say Play. The fallback keeps them populated on a
+  // day when every open game has been started.
+  const habitFresh = habitRank.filter((g) => !inprog.has(g.key));
+  const nextGame = habitFresh[0] || habitRank[0] || null;
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   // bgames / byKey / hasBoard are built above, beside the display order.
@@ -617,7 +624,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // easiest card, and that half shows the almost-done note instead.
   const easiest = (() => {
     if (!nextGame) return null;
-    const open = games.filter((g) => !done.has(g.key) && g.key !== nextGame.key);
+    const pool = games.filter((g) => !done.has(g.key) && g.key !== nextGame.key);
+    // Same rule as Up next: skip the started games, unless that leaves nothing.
+    const unstarted = pool.filter((g) => !inprog.has(g.key));
+    const open = unstarted.length ? unstarted : pool;
     let best = null, bestN = Infinity;
     for (const g of open) {
       const b = byKey[g.key];
@@ -698,8 +708,22 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Everything you have already opened today, in one list. Paused leads
   // incomplete throughout: a paused board is still live where an incomplete one
   // is spent, so it is the better thing to hand back.
-  const capState = capProg.map((g) => ({ game: g, kind: 'prog' }))
-    .concat(games.filter((g) => isFail(g.key)).map((g) => ({ game: g, kind: 'fail' })));
+  // ONE OF EACH KIND BEFORE A SECOND OF EITHER (owner, 2026-08-09). Two paused
+  // games and one incomplete used to fill both slots with paused and leave the
+  // incomplete one to the expander, so a whole state could go unrepresented in
+  // the cap. Interleaved, the two slots show one of each whenever both exist,
+  // and only double up when one kind is all there is. Paused still leads, since
+  // a paused board is live where an incomplete one is spent.
+  const capState = (() => {
+    const prog = capProg.map((g) => ({ game: g, kind: 'prog' }));
+    const fail = games.filter((g) => isFail(g.key)).map((g) => ({ game: g, kind: 'fail' }));
+    const out = [];
+    for (let i = 0; i < Math.max(prog.length, fail.length); i += 1) {
+      if (prog[i]) out.push(prog[i]);
+      if (fail[i]) out.push(fail[i]);
+    }
+    return out;
+  })();
   const capStateShown = capOpen ? capState : capState.slice(0, CAP_STATE_MAX);
   const capLead = (() => {
     // Whatever the state cards leave of the two lower slots.
@@ -731,6 +755,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // makes the DOM position and the grid position disagree.
   const capCol1 = (i) => ((capOpen ? i : capFixed + i) % 2 === 0);
   const capShownN = capStateShown.length;
+  // What the expander has left to offer, counted per kind off the same two
+  // lists the cards are drawn from, so the bar can never disagree with them.
+  const capHidden = capState.slice(CAP_STATE_MAX).reduce(
+    (a, c) => { a[c.kind] += 1; return a; }, { prog: 0, fail: 0 });
   // Desktop runs the cap two cards to a row, so an ODD total would leave a
   // half-width hole beside the last card: it takes the full width instead. With
   // four cards this never fires; it is the backstop for the states that cannot
@@ -1363,7 +1391,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             : <span className="sl-nl">Be the first</span>}</span>
           <span className="sl-status">
             {fail
-              ? <a className="sl-btn fail" href={g.href} aria-label={`Play ${g.name}`}>Play</a>
+              ? <a className="sl-btn fail" href={g.href} aria-label={`Retry ${g.name}`}>Retry</a>
               : isDone
               ? <span className="sl-btn done">{sl || 'Done'}</span>
               : ip
@@ -1595,8 +1623,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-cmore{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
           padding:7px 13px;border:0;border-top:2px solid #c2ccdc;border-bottom:2px solid #c2ccdc;border-radius:0;
           background:#e8edf5;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
-          text-transform:uppercase;line-height:1.5;color:var(--gold-ink);cursor:pointer;}
+          text-transform:uppercase;line-height:1.5;color:var(--ink);cursor:pointer;}
         .dh-cmore:hover{background:#dde5f0;}
+        /* Each figure in its own card's colour, so the number and the kind it
+           counts read as one piece. font-weight is already 800 on the bar, so
+           the <b> adds colour only. */
+        .dh-cmp{color:var(--gold-ink);font-weight:inherit;}
+        .dh-cmf{color:#b91c1c;font-weight:inherit;}
+        .dh-cmd{color:var(--slate);}
         /* Clicking the bar left the browser's own focus ring on it once it had
            been used: a hard dark box around a band that is otherwise all soft
            greys, so a bar that had been pressed no longer matched one that had
@@ -2546,7 +2580,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 <div className="dh-busub">{nextGame.tag}{playsNote(nextPlays)}</div>
               </div>
               <a href={nextGame.href} className="dh-play">
-                <Play size={11} fill="currentColor" strokeWidth={0} />{inprog.has(nextGame.key) ? 'Resume' : 'Play'}
+                <Play size={11} fill="currentColor" strokeWidth={0} />Play
               </a>
             </>
           ) : (
@@ -2574,7 +2608,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 <div className="dh-busub">{easiest.game.tag}{fieldNote(easiest.players)}</div>
               </div>
               <a href={easiest.game.href} className="dh-play">
-                <Play size={11} fill="currentColor" strokeWidth={0} />{inprog.has(easiest.game.key) ? 'Resume' : 'Play'}
+                <Play size={11} fill="currentColor" strokeWidth={0} />Play
               </a>
             </>
           ) : (
@@ -2626,7 +2660,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 <a
                   key={c.game.key}
                   href={c.game.href}
-                  aria-label={`${paused ? 'Resume' : 'Play'} ${c.game.name}`}
+                  aria-label={`${paused ? 'Resume' : 'Retry'} ${c.game.name}`}
                   className={'dh-cell ' + (paused ? 'prog' : 'failc')
                     + (capCol1(i) ? ' capL' : '')
                     + (i === capWideAt ? ' capw' : '')}
@@ -2640,7 +2674,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                     </div>
                   </div>
                   <span className="dh-play">
-                    <Play size={11} fill="currentColor" strokeWidth={0} />{paused ? 'Resume' : 'Play'}
+                    {/* RETRY, not Play: the run is over and the score is
+                        banked, so this is another go at a puzzle you have not
+                        seen the answer to, which is a different offer from
+                        starting a game you have not touched. */}
+                    <Play size={11} fill="currentColor" strokeWidth={0} />{paused ? 'Resume' : 'Retry'}
                   </span>
                 </a>
               );
@@ -2660,7 +2698,24 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           >
             {capOpen
               ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
-              : <>{`Show ${capState.length - CAP_STATE_MAX} more started`}<ChevronDown size={12} strokeWidth={2.8} /></>}
+              : <>
+                  {/* The bar NAMES what is still hidden rather than counting it
+                      (owner, 2026-08-09): "1 more" told you nothing about what
+                      kind of thing was under the lid. Each figure carries its
+                      own card's colour, gold for paused and red for incomplete,
+                      so the count and the word it belongs to read as one piece
+                      and the word "Show" stays out of the way in ink. A kind
+                      with nothing hidden is not named at all. */}
+                  Show{' '}
+                  {capHidden.prog ? (
+                    <b className="dh-cmp">{capHidden.prog} in progress</b>
+                  ) : null}
+                  {capHidden.prog && capHidden.fail ? <span className="dh-cmd"> &middot; </span> : null}
+                  {capHidden.fail ? (
+                    <b className="dh-cmf">{capHidden.fail} incomplete</b>
+                  ) : null}
+                  <ChevronDown size={12} strokeWidth={2.8} />
+                </>}
           </button>
         ) : null}
       </div>
