@@ -1684,7 +1684,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* A band that is also its group's toggle. It keeps every band rule (the
            selector is the same class); this only undoes the UA button styling
            and adds the chevron. */
-        button.sl-band{width:100%;border:0;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+        /* border-radius:0 is NOT redundant: globals.css rounds every button to
+           8px, so the Done today band shipped with rounded corners in a stack
+           of square ones (owner, 2026-08-08). Any future full-width band or
+           bar built out of a <button> needs the same reset. */
+        button.sl-band{width:100%;border:0;border-radius:0;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;}
         button.sl-band:hover{filter:brightness(1.14);}
         .sl-bch{flex:none;color:var(--white);opacity:.8;margin-left:1px;}
         .sl-more{display:none;}
