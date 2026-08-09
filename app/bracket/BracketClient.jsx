@@ -539,7 +539,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
   }
   function renderMap(showTruth) {
     return (
-      <div className="bk-map">
+      <div className="bk-map" style={{ ['--bk-cell']: (N <= 16 ? 26 : 15) + 'px' }}>
         {Array.from({ length: ROUNDS }).map((_, r) => (
           <div key={r} className="bk-mapcol">
             {Array.from({ length: N / Math.pow(2, r + 1) }).map((__, m) => {
@@ -639,16 +639,20 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-roundtag{text-align:center;font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${COLORS.faded};margin:0 0 7px;}
           .bk-roundtag b{color:${COLORS.accentDeep};font-weight:500;}
           /* ---- the draw strip: the whole field, and the way back to any pick ---- */
-          .bk-map{display:flex;gap:10px;align-items:stretch;height:60px;}
+          .bk-map{display:flex;gap:10px;align-items:stretch;}
           .bk-mapcol{display:flex;flex-direction:column;justify-content:space-around;flex:1;}
-          .bk-mapcell{position:relative;flex:1;display:flex;align-items:center;}
-          .bk-dot{width:100%;height:7px;border-radius:3px;border:1.5px solid ${COLORS.line};background:var(--white);cursor:pointer;padding:0;transition:.12s;}
-          .bk-dot:hover:not(:disabled){border-color:${COLORS.accent};}
-          .bk-dot.done{background:${COLORS.accent};border-color:${COLORS.accent};}
-          .bk-dot.cur{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(194,65,12,.22);background:${COLORS.accentSoft};}
-          .bk-dot:disabled{opacity:.3;cursor:default;}
-          .bk-dot.hit{background:${COLORS.green};border-color:${COLORS.green};}
-          .bk-dot.miss{background:${COLORS.redInk};border-color:${COLORS.redInk};}
+          .bk-mapcell{position:relative;flex:1;display:flex;align-items:stretch;min-height:var(--bk-cell,26px);}
+          .bk-dot{flex:1;position:relative;background:none;border:none;padding:0;cursor:pointer;border-radius:4px;}
+          .bk-dot::before{content:'';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:10px;border-radius:3px;
+                          border:1.5px solid ${COLORS.line};background:var(--white);transition:.12s;}
+          .bk-dot:hover:not(:disabled)::before{border-color:${COLORS.accent};height:13px;}
+          .bk-dot:focus-visible{outline:2px solid ${COLORS.accent};outline-offset:1px;}
+          .bk-dot.done::before{background:${COLORS.accent};border-color:${COLORS.accent};}
+          .bk-dot.cur::before{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(194,65,12,.22);background:${COLORS.accentSoft};height:13px;}
+          .bk-dot:disabled{cursor:default;}
+          .bk-dot:disabled::before{opacity:.32;}
+          .bk-dot.hit::before{background:${COLORS.green};border-color:${COLORS.green};}
+          .bk-dot.miss::before{background:${COLORS.redInk};border-color:${COLORS.redInk};}
           /* ---- the whole sheet: review before handing in, and the reveal ---- */
           .bk-tree{display:flex;gap:22px;align-items:stretch;min-height:330px;}
           .bk-tround{display:flex;flex-direction:column;flex:1;min-width:0;}

@@ -238,10 +238,12 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);line-height:1.15;text-align:center;}
         .dgg-act svg{flex:0 0 auto;}
         .dgg-replay{margin-bottom:12px;}
-        .dgg-act.dgg-again{min-height:64px;background:#eef7f1;border-color:#cfe6d8;}
-        .dgg-act.dgg-again .dgg-act-l{color:var(--success-deep);}
-        .dgg-act.dgg-again svg{color:#16a34a;}
-        .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:#3f6b4e;}
+        .dgg-act.dgg-again{min-height:64px;background:var(--cta);border-color:var(--cta);box-shadow:0 2px 0 var(--cta-hover),0 4px 14px rgba(37,99,235,.28);transition:background .12s ease,transform .08s ease,box-shadow .12s ease;}
+        .dgg-act.dgg-again:hover{background:var(--cta-hover);border-color:var(--cta-hover);}
+        .dgg-act.dgg-again:active{transform:translateY(2px);box-shadow:0 0 0 var(--cta-hover),0 2px 8px rgba(37,99,235,.24);}
+        .dgg-act.dgg-again .dgg-act-l{color:var(--white);}
+        .dgg-act.dgg-again svg{color:var(--white);}
+        .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:rgba(255,255,255,.74);}
 
         /* Share bar — a byte-for-byte match of the end card's .dec-sharebar
            (owner, 2026-08-01). The page and the card fire the SAME share
@@ -288,9 +290,11 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         /* The .dgg-again tint must be scoped to .dgg-light too: the unscoped
            rule ties on specificity with .dgg-light .dgg-t and loses on order,
            so the button rendered white. Same pattern as share. */
-        .dgg-light .dgg-act.dgg-again{background:#eef7f1;border-color:#cfe6d8;}
-        .dgg-light .dgg-act.dgg-again .dgg-act-l{color:var(--success-deep);}
-        .dgg-light .dgg-act.dgg-again svg{color:#16a34a;}
+        .dgg-light .dgg-act.dgg-again{background:var(--cta);border-color:var(--cta);}
+        .dgg-light .dgg-act.dgg-again:hover{background:var(--cta-hover);border-color:var(--cta-hover);}
+        .dgg-light .dgg-act.dgg-again .dgg-act-l{color:var(--white);}
+        .dgg-light .dgg-act.dgg-again svg{color:var(--white);}
+        .dgg-light .dgg-act.dgg-again .dgg-act-s{color:rgba(255,255,255,.74);}
       `}</style>
       {/* Report an issue leads the block (owner, 2026-08-01): it belongs
           directly under the board a player has just finished, not buried
