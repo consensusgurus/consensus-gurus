@@ -1779,6 +1779,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);z-index:2;opacity:0;pointer-events:none;}
           .sl-row.done .sl-status{opacity:1;pointer-events:auto;}
           .sl-dhid{display:none;}
+          /* DONE TODAY IS SHUT AT THIS WIDTH TOO (owner, 2026-08-08). Its band
+             is the toggle, so the rows it hides have to actually hide here as
+             well; until now sl-hid only meant anything below 900px and the
+             desktop band's chevron did nothing. Scoped to done, because the
+             same class also marks the Ready-to-play rows outside the PHONE's
+             six-row budget, and desktop deliberately lists every one of those.
+             Three classes, because the base sl-row display:grid rule sits later
+             in this stylesheet and would otherwise win. */
+          .dh-board.slate .sl-row.done.sl-hid,.dh-board.slate .sl-drawer.done.sl-hid{display:none;}
           .sl-row.sl-wide{grid-column:1/-1;}
           .sl-mtxt.p{display:none;}
           /* The expand bar is the PHONE'S bar, restated. It was inheriting
