@@ -200,19 +200,27 @@ const TABLET_ROWS = 12;
 // phone's whole-row-opens-the-drawer model. Portrait tablets (744, 768, 820) and
 // the larger phones in landscape (844) all land here.
 const TABLET_MQ = '(min-width:641px) and (max-width:900px)';
-// ...and the tier ABOVE it that is still a touch device (owner, 2026-08-08).
-// The peek was gated on width alone, so every tablet wider than 900px fell
-// through to the desktop slate, which deliberately lists every unfinished game:
-// an iPad Pro 12.9" in portrait (1024) opened on all 54 rows with no expand bar,
-// on exactly the device the peek and the whole-row drawer were built for. The
-// 13" Air is 1024 too and an 11" in landscape is 1180, hence the ceiling.
-// pointer:coarse, NEVER a width alone, so a 1024px laptop window keeps the
-// desktop slate. Above 1180 a touch screen is big enough to carry the full list.
-const TOUCH_WIDE_MQ = '(min-width:901px) and (max-width:1180px) and (pointer:coarse)';
+// ...and the tier ABOVE it, where the home page has ALREADY given up its three
+// columns (owner, 2026-08-08). This is the same 901-1200px band the page grid
+// uses: `.qzh .dhx` drops from `284px | 1fr | 300px` to two equal columns and
+// `.dhx-center` takes order:-1, so the console runs FULL WIDTH with the rails
+// stacked two-up beneath it rather than beside it. A slate listing every
+// unfinished game is 46 rows there, which buries the leaderboard and the live
+// feed under a screen and a half of scrolling. The peek belongs wherever the
+// console is a block in a stack, which is exactly this band.
+//
+// It was briefly gated on `pointer:coarse` instead, on the reasoning that the
+// devices landing here are tablets (iPad Pro 12.9" portrait is 1024, the 13" Air
+// is 1024, an 11" in landscape is 1180). That was the wrong test twice over: an
+// iPad carrying a Magic Keyboard reports pointer:FINE, and no device-preview
+// tool emulates the pointer media feature at all, so the tier could not be seen
+// in the one place it gets checked. The layout, not the input device, is what
+// makes the long list wrong here.
+const STACKED_MQ = '(min-width:901px) and (max-width:1200px)';
 // The board runs TWO ACROSS in both tiers (the tablet grid below 900px and the
 // desktop grid above it), so both double the peek budget to the same six LINES.
 // A comma is an OR in a media query list, which is what matchMedia takes.
-const TWO_UP_MQ = TABLET_MQ + ', ' + TOUCH_WIDE_MQ;
+const TWO_UP_MQ = TABLET_MQ + ', ' + STACKED_MQ;
 // How many PAUSED cards the cap shows before its expand bar takes over (owner,
 // 2026-08-08). TWO at both widths: the cap runs two columns above 900px, so two
 // is exactly one row of cards there, and the point of the cap is to hand you
@@ -689,12 +697,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     const fit = () => {
       raf = 0;
       const prog = con ? con.querySelector('.dh-cprog') : null;
-      // The board is height:auto and scrolls with the page in BOTH peek tiers,
-      // so there is no fixed port to size: the phone/tablet one under 900px, and
-      // the touch-wide one above it (TOUCH_WIDE_MQ), which would otherwise get a
-      // fold-height scroll port holding six rows and a lot of white.
-      const coarseWide = window.matchMedia && window.matchMedia(TOUCH_WIDE_MQ).matches;
-      if (window.innerWidth <= 900 || coarseWide) {
+      // The board is height:auto and scrolls with the page in BOTH peek tiers, so
+      // there is no fixed port to size: the phone/tablet one under 900px, and the
+      // stacked one above it (STACKED_MQ), which would otherwise get a fold-height
+      // scroll port holding six rows and a lot of white.
+      if (window.innerWidth <= 1200) {
         board.style.removeProperty('--dh-fit');
         // Where the board flows, the paused block is never bounded either: the
         // page absorbs its length, so it stacks out in full and never scrolls
@@ -2140,17 +2147,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              item that should be shrinking, not the thing after it. */
           .sl-mld{max-width:19vw;}
         }
-        /* -- touch tablets ABOVE 900px: the desktop slate, with the phone's peek
-           (owner, 2026-08-08) --------------------------------------------------
-           This tier keeps everything the min-width:901px block just built: the
-           two-column grid, the three-track row, the bands, the whole-row drawer.
-           The desktop row is already touch-shaped (Play leads the drawer where
-           there is no hover, see the hover:hover block above), so the ONLY thing
-           a tablet was missing is the lid. Four rules, and nothing here is a
-           second implementation of anything.
+        /* -- the STACKED tier, 901-1200px: the desktop slate, with the phone's
+           peek (owner, 2026-08-08) --------------------------------------------
+           The width band where `.qzh .dhx` has already dropped to two equal
+           columns and put `.dhx-center` first, so the console is full width with
+           the rails BELOW it. 46 rows of slate there is a screen and a half
+           between the reader and the leaderboard.
+           This keeps everything the min-width:901px block just built (the
+           two-column grid, the three-track row, the bands, the whole-row drawer)
+           and adds only the lid. Four rules, and nothing here is a second
+           implementation of anything.
            This block must stay AFTER the 901px block and after the base .sl-more
            rule: it wins on source order, not specificity. */
-        @media(min-width:901px) and (max-width:1180px) and (pointer:coarse){
+        @media(min-width:901px) and (max-width:1200px){
           /* Height first. The desktop board is a fixed scroll port sized to the
              fold (--dh-fit); with only six rows peeking, that port would be
              mostly white. It scrolls with the page here, exactly as it does on a
