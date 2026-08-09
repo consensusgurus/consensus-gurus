@@ -216,7 +216,8 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
     while (cr >= 0 && cm >= 0) {
       const k = kidsOf(cr, cm);
       const other = k[0] === cur ? k[1] : k[0];
-      if (other >= 0) out.unshift(PUZZLE.items[other].name);
+      // carry the matchup id too, so the chip can send you back to that game
+      if (other >= 0) out.unshift({ name: PUZZLE.items[other].name, id: idOf(cr, cm) });
       if (cr === 0) break;
       let nm = -1;
       for (const fm of [2 * cm, 2 * cm + 1]) if (g.picks[idOf(cr - 1, fm)] === cur) nm = fm;
@@ -451,6 +452,18 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
       );
     });
   }
+  // On the review sheet every matchup is a way back into that game. On the reveal
+  // it is not: the sheet is handed in and nothing can move.
+  function boxProps(r, m, showTruth) {
+    const id = idOf(r, m);
+    if (showTruth || !playing || !playableAt(id)) return { className: 'bk-tbox' };
+    return {
+      className: 'bk-tbox jump', role: 'button', tabIndex: 0,
+      title: `Back to ${ROUND_NAME(r, ROUNDS)} match ${m + 1}`,
+      onClick: () => jumpTo(id),
+      onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpTo(id); } },
+    };
+  }
   function renderTree(showTruth) {
     const ci = showTruth ? TRUE[MATCHES - 1] : g.picks[MATCHES - 1];
     return (
@@ -460,7 +473,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
             <div className="bk-trh">{ROUND_NAME(r, ROUNDS)}</div>
             <div className="bk-tbody">
               {Array.from({ length: N / Math.pow(2, r + 1) }).map((__, m) => (
-                <div key={m} className="bk-tmatch"><div className="bk-tbox">{sheetRows(r, m, showTruth)}</div></div>
+                <div key={m} className="bk-tmatch"><div {...boxProps(r, m, showTruth)}>{sheetRows(r, m, showTruth)}</div></div>
               ))}
             </div>
           </div>
@@ -483,7 +496,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           <div key={r}>
             <div className="bk-srh">{ROUND_NAME(r, ROUNDS)}{showTruth ? ` · ${perRound[r][0]}/${perRound[r][1]}` : ''}</div>
             {Array.from({ length: N / Math.pow(2, r + 1) }).map((__, m) => (
-              <div key={m} className="bk-tbox">{sheetRows(r, m, showTruth)}</div>
+              <div key={m} {...boxProps(r, m, showTruth)}>{sheetRows(r, m, showTruth)}</div>
             ))}
           </div>
         ))}
@@ -556,8 +569,10 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;}
           .bk-lanehd{position:absolute;top:-2px;left:0;right:0;font-family:${MONO};font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4;}
           .bk-hist .bk-hgroup{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;}
-          .bk-hchip{border:1px dashed ${COLORS.line};border-radius:5px;padding:3px 6px;font-size:10px;font-weight:700;color:#a3adbb;
-                    text-decoration:line-through;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .bk-hchip{display:block;width:100%;text-align:left;font-family:${SANS};background:none;border:1px dashed ${COLORS.line};
+                    border-radius:5px;padding:3px 6px;font-size:10px;font-weight:700;color:#a3adbb;cursor:pointer;
+                    text-decoration:line-through;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.12s;}
+          .bk-hchip:hover{border-style:solid;border-color:${COLORS.accent};color:${COLORS.accentDeep};background:${COLORS.accentSoft};text-decoration:none;}
           .bk-hempty{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6;}
           .bk-bout{gap:10px;padding-right:14px;}
           .bk-bout::after{content:'';position:absolute;right:0;top:25%;height:50%;width:14px;border-right:2px solid ${COLORS.line};
@@ -611,6 +626,8 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-tround.first .bk-tmatch::before{display:none;}
           .bk-tmatch::after{content:'';position:absolute;right:-13px;top:50%;width:13px;border-top:1px solid ${COLORS.line};}
           .bk-tbox{width:100%;border:1px solid ${COLORS.line};border-radius:7px;overflow:hidden;background:var(--white);}
+          .bk-tbox.jump{cursor:pointer;transition:box-shadow .12s,border-color .12s;}
+          .bk-tbox.jump:hover,.bk-tbox.jump:focus-visible{border-color:${COLORS.accent};box-shadow:0 0 0 2px ${COLORS.accentSoft};outline:none;}
           .bk-trow{display:flex;align-items:center;gap:5px;padding:4px 7px;font-size:11.5px;font-weight:700;border-bottom:1px solid ${COLORS.line};line-height:1.25;}
           .bk-trow:last-child{border-bottom:none;}
           .bk-trow .v{margin-left:auto;font-family:${MONO};font-size:9.5px;font-weight:500;color:${COLORS.faded};white-space:nowrap;padding-left:6px;}
@@ -697,7 +714,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
                 return (
                   <button key={i} type="button" data-bk-card className="bk-card" onClick={(e) => pick(cursor, it, e.currentTarget)}>
                     <span className="nm">{PUZZLE.items[it].name}</span>
-                    {road.length > 0 && <span className="sub">beat {road[road.length - 1]}</span>}
+                    {road.length > 0 && <span className="sub">beat {road[road.length - 1].name}</span>}
                   </button>
                 );
               };
@@ -707,7 +724,10 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
                   <div key={i} className="bk-hgroup">
                     {road.length === 0
                       ? <div className="bk-hempty">{r === 0 ? 'First round' : 'Not yet'}</div>
-                      : road.map((n, j) => <div key={j} className="bk-hchip">{n}</div>)}
+                      : road.map((n, j) => (
+                          <button key={j} type="button" className="bk-hchip" onClick={() => jumpTo(n.id)}
+                            title={`Back to this game against ${n.name}`}>{n.name}</button>
+                        ))}
                   </div>
                 );
               };
@@ -769,7 +789,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
             {/* REVIEW. The whole sheet, ungraded, before you hand it in. */}
             {playing && reviewing && (
               <>
-                <p style={{ fontSize: 12.5, color: COLORS.faded, fontWeight: 600, margin: '0 0 13px' }}>Nothing is graded yet. Tap any slot on the strip below to change it, then hand it in.</p>
+                <p style={{ fontSize: 12.5, color: COLORS.faded, fontWeight: 600, margin: '0 0 13px' }}>Nothing is graded yet. Tap any matchup to go back and change it, then hand it in.</p>
                 {renderTree(false)}
                 {renderStack(false)}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0 6px' }}>
