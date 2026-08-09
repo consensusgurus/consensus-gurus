@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bracket — game space redesign mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0c0e; --muted:#3f4757; --slate:#646c7a;
+  --paper:#f4f6f9; --surface:#f7f8fa; --surface-alt:#eef2f7; --border:#e5e7eb; --white:#fff;
+  --blue:#2563eb; --blue-deep:#1d4ed8; --accent-soft-b:#eef3ff;
+  --acc:#c2410c; --acc-soft:#ffedd5; --acc-deep:#9a3412;
+  --green:#15803d; --green-soft:#dcfce7; --red:#b91c1c; --red-soft:#fee2e2; --gold:#b45309;
+  --line:#cbd5e1;
+  --sans:'Manrope',system-ui,-apple-system,sans-serif;
+  --mono:'DM Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#dfe3ea;font-family:var(--sans);color:var(--ink)}
+
+/* ---------- mockup harness (not part of the design) ---------- */
+.harness{max-width:1320px;margin:0 auto;padding:22px 20px 60px}
+.hbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.htitle{font-weight:900;font-size:20px;letter-spacing:-.01em}
+.hnote{font-size:12.5px;color:var(--muted);font-weight:600;max-width:700px;line-height:1.55;margin:0 0 16px}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:9px;overflow:hidden}
+.seg button{font-family:var(--sans);font-weight:800;font-size:12.5px;padding:7px 13px;border:none;background:var(--white);color:var(--ink);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--white)}
+.stage{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 34px rgba(15,23,42,.12);overflow:hidden;margin:0 auto;transition:max-width .2s}
+.stage.desktop{max-width:1180px}
+.stage.phone{max-width:392px}
+.chrome{background:var(--surface-alt);border-bottom:1px solid var(--border);padding:8px 16px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);display:flex;gap:12px;align-items:center}
+.chrome b{color:var(--ink);font-weight:500}
+.pad{padding:18px 24px 28px}
+.stage.phone .pad{padding:13px 12px 20px}
+
+/* ---------- masthead ---------- */
+.mast{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.blocks{display:flex;gap:3px}
+.blk{width:31px;height:37px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;background:var(--ink);color:#fff;box-shadow:inset 0 2px 5px rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.65)}
+.blk.a{background:var(--acc)}
+.mast .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);padding-bottom:4px}
+.stage.phone .blk{width:25px;height:31px;font-size:15px}
+
+/* ---------- question bar ---------- */
+.qbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.qtag{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc-deep);background:var(--acc-soft);border:1px solid #fed7aa;border-radius:999px;padding:4px 10px;font-weight:500}
+.qmetric{font-size:15px;font-weight:800}
+.qprog{margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--slate)}
+.qprog b{color:var(--ink);font-weight:500}
+.stage.phone .qprog{margin-left:0}
+
+/* ================= PLAY: a live bracket, focused on one matchup ================= */
+.arena{position:relative;display:grid;grid-template-columns:186px minmax(0,1fr) 226px;gap:0 30px;align-items:stretch;
+       background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px 20px;overflow:hidden}
+.stage.phone .arena{grid-template-columns:minmax(0,1fr) 112px;gap:0 18px;padding:14px 12px}
+.stage.phone .lane.hist{display:none}
+.arena.r0{grid-template-columns:186px minmax(0,1fr) 226px}
+.lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.lanehd{position:absolute;top:-4px;left:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4}
+
+/* left lane: how each contender got here */
+.hist .hgroup{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.hchip{border:1px solid var(--border);border-radius:6px;background:var(--surface);padding:5px 8px;font-size:11px;font-weight:700;color:var(--slate);line-height:1.25;
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hchip.beat{color:#a3adbb;text-decoration:line-through;background:transparent;border-style:dashed}
+.hempty{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6}
+
+/* centre lane: the two contenders, stacked, in a bracket brace */
+.bout{gap:14px;padding-right:16px}
+.bout::after{content:'';position:absolute;right:0;top:25%;height:50%;width:16px;
+             border-right:2px solid var(--line);border-top:2px solid var(--line);border-bottom:2px solid var(--line);border-radius:0 8px 8px 0}
+.card{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--white);
+      border:2px solid #dbe1e9;border-radius:12px;padding:16px 18px;cursor:pointer;min-height:88px;
+      transition:border-color .12s,background .12s,transform .12s,box-shadow .12s,opacity .25s}
+.stage.phone .card{min-height:70px;padding:12px 13px}
+.card:hover{border-color:var(--acc);background:#fffaf6;transform:translateX(4px);box-shadow:0 6px 16px rgba(194,65,12,.13)}
+.card .nm{font-size:25px;font-weight:900;line-height:1.1;letter-spacing:-.02em}
+.stage.phone .card .nm{font-size:19px}
+.card .sub{margin-top:6px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8}
+.card.won{border-color:var(--acc);background:var(--acc-soft);box-shadow:inset 0 0 0 2px var(--acc);transform:translateX(8px)}
+.card.out{opacity:.28;transform:translateX(-6px)}
+.card.wait{cursor:default;border-style:dashed;background:var(--surface)}
+.card.wait .nm{font-size:15px;color:#a3adbb;font-weight:700}
+.vsdot{position:absolute;left:-11px;top:50%;transform:translateY(-50%);z-index:3;background:var(--white);
+       font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:#94a3b8;padding:3px 0}
+.stage.phone .vsdot{display:none}
+
+/* right lane: the slot the winner advances into */
+.next .nextbox{border:2px dashed #cfd6df;border-radius:10px;background:var(--surface);overflow:hidden}
+.next .nextbox.live{border-style:solid;border-color:var(--acc)}
+.nrow{display:flex;align-items:center;min-height:36px;padding:7px 10px;font-size:13px;font-weight:800;line-height:1.2;
+      border-bottom:1px solid #e8ecf1;color:#a9b3c1;transition:background .3s,color .3s}
+.stage.phone .nrow{font-size:11.5px;min-height:32px;padding:6px 8px}
+.nrow:last-child{border-bottom:none}
+.nrow.filled{color:var(--ink);background:var(--white)}
+.nrow.landing{background:var(--acc-soft);color:var(--acc-deep)}
+.nrow.target{box-shadow:inset 3px 0 0 var(--acc)}
+.trophy{border:2px solid var(--gold);background:#fffbeb;border-radius:10px;padding:12px 10px;text-align:center}
+.trophy .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.trophy .nm{font-size:15px;font-weight:900;margin-top:4px;line-height:1.15;color:var(--ink)}
+
+/* the flyer: the winner physically moving right into its slot */
+.flyer{position:absolute;z-index:9;background:var(--acc-soft);border:2px solid var(--acc);border-radius:10px;
+       display:flex;align-items:center;padding:0 12px;font-weight:900;color:var(--acc-deep);overflow:hidden;white-space:nowrap;
+       transition:all .46s cubic-bezier(.5,0,.2,1);pointer-events:none}
+
+.roundtag{text-align:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--slate);margin:0 0 9px}
+.roundtag b{color:var(--acc-deep);font-weight:500}
+
+.navrow{display:flex;align-items:center;gap:9px;margin-top:14px;flex-wrap:wrap}
+.btn{font-family:var(--sans);font-weight:800;font-size:13.5px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:9px;padding:9px 16px;cursor:pointer}
+.btn:hover{background:var(--accent-soft-b)}
+.btn.ghost{border-color:var(--border);color:var(--muted)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.acc{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- mini bracket map ---------- */
+.mapwrap{margin-top:16px;border-top:1px solid var(--border);padding-top:12px}
+.maphd{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:8px}
+.maphd b{color:var(--ink);font-weight:500}
+.map{display:flex;gap:14px;align-items:stretch;height:88px}
+.mapcol{display:flex;flex-direction:column;justify-content:space-around;flex:1}
+.mapcell{position:relative;flex:1;display:flex;align-items:center}
+.dot{width:100%;height:8px;border-radius:3px;border:1.5px solid var(--line);background:var(--white);cursor:pointer;padding:0;transition:.12s}
+.dot:hover{border-color:var(--acc)}
+.dot.done{background:var(--acc);border-color:var(--acc)}
+.dot.cur{border-color:var(--acc);box-shadow:0 0 0 3px rgba(194,65,12,.22);background:var(--acc-soft)}
+.dot.locked{opacity:.3;cursor:default}
+.dot.hit{background:var(--green);border-color:var(--green)}
+.dot.miss{background:var(--red);border-color:var(--red)}
+
+/* ---------- the bracket tree (review + reveal) ---------- */
+.tree{display:flex;gap:26px;align-items:stretch;min-height:400px}
+.tround{display:flex;flex-direction:column;flex:1;min-width:0}
+.trh{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-bottom:8px;height:14px}
+.tbody{display:flex;flex-direction:column;justify-content:space-around;flex:1}
+.tmatch{position:relative;flex:1;display:flex;align-items:center}
+.tmatch::before{content:'';position:absolute;left:-13px;top:25%;height:50%;width:13px;border-left:1px solid var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tround.first .tmatch::before{display:none}
+.tmatch::after{content:'';position:absolute;right:-13px;top:50%;width:13px;border-top:1px solid var(--line)}
+.tbox{width:100%;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--white)}
+.trow{display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12px;font-weight:700;border-bottom:1px solid #f1f5f9;line-height:1.25}
+.trow:last-child{border-bottom:none}
+.trow .v{margin-left:auto;font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--slate);white-space:nowrap;padding-left:6px}
+.trow.win{background:var(--green-soft);color:#14532d;box-shadow:inset 3px 0 0 var(--green)}
+.trow.lose{color:#9aa5b4}
+.trow.lose .n{text-decoration:line-through}
+.trow.mine{box-shadow:inset 3px 0 0 var(--acc);background:var(--acc-soft);color:var(--acc-deep);font-weight:800}
+.trow.bust{background:var(--red-soft);color:#7f1d1d;box-shadow:inset 3px 0 0 var(--red)}
+.trow.bust .n{text-decoration:line-through}
+.mk{font-family:var(--mono);font-size:10px;font-weight:500;width:11px;flex:0 0 11px;text-align:center}
+.tchamp{display:flex;flex-direction:column;justify-content:center;flex:0 0 162px}
+.champcard{border:2px solid var(--gold);background:#fffbeb;border-radius:10px;padding:14px 12px;text-align:center}
+.champcard .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.champcard .nm{font-size:17px;font-weight:900;margin-top:5px;line-height:1.15}
+.champcard .v{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:5px}
+
+.stack{display:none}
+.stack .srh{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin:15px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.stack .tbox{margin-bottom:7px}
+.stage.phone .tree{display:none}
+.stage.phone .stack{display:block}
+
+.scoreline{display:flex;align-items:center;gap:14px;background:var(--white);border:1.5px solid #d5dbe4;border-radius:11px;padding:13px 15px;flex-wrap:wrap;margin-bottom:15px}
+.scoreline .big{font-family:var(--mono);font-size:30px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.scoreline .txt{font-size:13px;font-weight:700;line-height:1.45}
+.scoreline .sub{color:var(--slate);font-weight:600;display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;margin-top:3px}
+.hint{font-size:12px;color:var(--slate);font-weight:600;margin:13px 0 0;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="harness">
+  <div class="hbar">
+    <div class="htitle">Bracket &mdash; game space redesign</div>
+    <div class="seg" id="segView"><button data-v="desktop" class="on">Desktop</button><button data-v="phone">Phone</button></div>
+    <div class="seg" id="segField"><button data-f="16" class="on">Weekday (16)</button><button data-f="32">Sunday (32)</button></div>
+    <button class="btn ghost" id="btnReset" style="padding:7px 13px;font-size:12.5px">Restart</button>
+    <button class="btn ghost" id="btnAuto" style="padding:7px 13px;font-size:12.5px">Auto-fill to review</button>
+  </div>
+  <p class="hnote">Still a bracket, just zoomed all the way in. The two contenders are stacked inside a real brace, the slot they are playing for sits to the right, and the one you tap physically travels into it. Then the field shifts and the next matchup takes the middle. The strip underneath is the whole draw, and any slot on it is one tap away.</p>
+
+  <div class="stage desktop" id="stage">
+    <div class="chrome"><span>Mind Loft</span><span>&middot;</span><span><b>Bracket</b></span><span>&middot;</span><span>daily chrome / slate rail</span></div>
+    <div class="pad" id="pad"></div>
+  </div>
+</div>
+
+<script>
+const BOARDS = {
+  16: {
+    num: 2, dateLabel: 'July 25, 2026', sunday: false,
+    metric: 'Which is TALLER?', unit: 'm',
+    items: [
+      {name:'Eiffel Tower',value:324},{name:'Big Ben',value:96},
+      {name:'Hoover Dam',value:221},{name:'Colosseum',value:48},
+      {name:'Sagrada Familia',value:173},{name:'Ostankino Tower',value:540},
+      {name:'Brooklyn Bridge',value:84},{name:'The Shard',value:244},
+      {name:'Petronas Towers',value:452},{name:'Saturn V',value:111},
+      {name:'Leaning Tower of Pisa',value:58},{name:'Golden Gate Bridge',value:227},
+      {name:'Lotte World Tower',value:556},{name:'Gateway Arch',value:192},
+      {name:'Flatiron Building',value:94},{name:'Transamerica Pyramid',value:260},
+    ],
+  },
+  32: {
+    num: 3, dateLabel: 'July 26, 2026', sunday: true,
+    metric: 'Which is BIGGER by area?', unit: 'km2',
+    items: [
+      {name:'Finland',value:305396},{name:'Belgium',value:30528},
+      {name:'Baffin Island',value:507451},{name:'Ireland',value:84421},
+      {name:'California',value:423970},{name:'Sri Lanka',value:65610},
+      {name:'Colombia',value:1141748},{name:'Bulgaria',value:110994},
+      {name:'Germany',value:357588},{name:'Netherlands',value:41543},
+      {name:'Hungary',value:93036},{name:'France',value:643801},
+      {name:'Mongolia',value:1564116},{name:'Bangladesh',value:147570},
+      {name:'Sweden',value:447425},{name:'Tasmania',value:68401},
+      {name:'Switzerland',value:41285},{name:'Vietnam',value:331690},
+      {name:'Portugal',value:92225},{name:'Thailand',value:513120},
+      {name:'South Africa',value:1221037},{name:'Nepal',value:147181},
+      {name:'Iraq',value:437072},{name:'Lake Victoria',value:68100},
+      {name:'Montana',value:381154},{name:'Croatia',value:56594},
+      {name:'South Korea',value:100295},{name:'Turkey',value:783562},
+      {name:'Sumatra',value:473481},{name:'Hispaniola',value:77900},
+      {name:'Italy',value:302068},{name:'Indonesia',value:1904570},
+    ],
+  },
+};
+
+function fmtValue(v,unit){
+  if(unit==='km2') return v.toLocaleString('en-US')+' km²';
+  if(unit==='m')   return v.toLocaleString('en-US')+' m';
+  return String(v);
+}
+const ROUND_NAME=(r,rounds)=>{const l=rounds-r;return l===1?'Final':l===2?'Semifinals':l===3?'Quarterfinals':l===4?'Round of 16':'Round of 32';};
+const ROUND_SHORT=(r,rounds)=>{const l=rounds-r;return l===1?'F':l===2?'SF':l===3?'QF':l===4?'R16':'R32';};
+
+let FIELD=16, VIEW='desktop';
+let P,N,ROUNDS,MATCHES,TOTAL,OFFSET,TRUE,picks,cursor,phase,busy;
+
+function idOf(r,m){return OFFSET[r]+m;}
+function roundOf(id){let r=0;while(r+1<ROUNDS&&id>=OFFSET[r+1])r++;return r;}
+function matchOf(id){return id-OFFSET[roundOf(id)];}
+
+function setup(){
+  P=BOARDS[FIELD];N=P.items.length;ROUNDS=Math.log2(N);MATCHES=N-1;TOTAL=(N/2)*ROUNDS;
+  OFFSET=[];{let a=0,w=N/2;for(let r=0;r<ROUNDS;r++){OFFSET.push(a);a+=w;w/=2;}}
+  const better=(a,b)=>P.items[a].value>P.items[b].value?a:b;
+  TRUE=Array(MATCHES).fill(-1);
+  for(let r=0;r<ROUNDS;r++){const w=N/Math.pow(2,r+1);for(let m=0;m<w;m++){
+    const k=r===0?[2*m,2*m+1]:[TRUE[idOf(r-1,2*m)],TRUE[idOf(r-1,2*m+1)]];
+    TRUE[idOf(r,m)]=better(k[0],k[1]);}}
+  picks=Array(MATCHES).fill(-1);cursor=0;phase='play';busy=false;
+}
+function kidsOf(r,m){return r===0?[2*m,2*m+1]:[picks[idOf(r-1,2*m)],picks[idOf(r-1,2*m+1)]];}
+function playable(id){const k=kidsOf(roundOf(id),matchOf(id));return k[0]>=0&&k[1]>=0;}
+function filledCount(){return picks.filter(p=>p>=0).length;}
+function score(){let s=0;for(let r=0;r<ROUNDS;r++){const w=N/Math.pow(2,r+1);for(let m=0;m<w;m++){const id=idOf(r,m);if(picks[id]>=0&&picks[id]===TRUE[id])s+=Math.pow(2,r);}}return s;}
+function perRound(){const o=[];for(let r=0;r<ROUNDS;r++){const w=N/Math.pow(2,r+1);let h=0;for(let m=0;m<w;m++)if(picks[idOf(r,m)]===TRUE[idOf(r,m)])h++;o.push([h,w]);}return o;}
+
+/* everything this contender has already beaten on your sheet, oldest first */
+function pathOf(item,r,m){
+  const out=[];let rr=r-1,mm=(m*2);
+  if(rr<0)return out;
+  let cur=item,cr=rr,cm=-1;
+  for(const fm of [2*m,2*m+1]) if(picks[idOf(rr,fm)]===cur) cm=fm;
+  while(cr>=0&&cm>=0){
+    const k=kidsOf(cr,cm);const other=k[0]===cur?k[1]:k[0];
+    out.unshift(other>=0?P.items[other].name:'—');
+    if(cr===0)break;
+    let nm=-1;for(const fm of [2*cm,2*cm+1]) if(picks[idOf(cr-1,fm)]===cur) nm=fm;
+    cr--;cm=nm;
+  }
+  return out;
+}
+
+function clearDownstream(id){
+  let r=roundOf(id),m=matchOf(id),rr=r+1,mm=Math.floor(m/2);
+  while(rr<ROUNDS){
+    const nid=idOf(rr,mm);
+    const now=[picks[idOf(rr-1,2*mm)],picks[idOf(rr-1,2*mm+1)]];
+    if(picks[nid]>=0&&!now.includes(picks[nid]))picks[nid]=-1;
+    rr++;mm=Math.floor(mm/2);
+  }
+}
+
+/* ---- the pick: the winner travels right into its slot, then the field shifts ---- */
+function pick(id,item,cardEl){
+  if(busy||item==null||item<0)return;
+  busy=true;
+  const r=roundOf(id),m=matchOf(id);
+  picks[id]=item;clearDownstream(id);
+
+  const arena=document.querySelector('.arena');
+  const cards=[...document.querySelectorAll('.card[data-side]')];
+  cards.forEach(c=>c.classList.add(c===cardEl?'won':'out'));
+
+  const dest=document.querySelector('.nrow.target')||document.querySelector('.trophy');
+  if(!dest||!arena){setTimeout(()=>{advance(id);},420);return;}
+
+  const ab=arena.getBoundingClientRect(),sb=cardEl.getBoundingClientRect(),db=dest.getBoundingClientRect();
+  const fly=document.createElement('div');
+  fly.className='flyer';
+  fly.textContent=P.items[item].name;
+  fly.style.left=(sb.left-ab.left)+'px';fly.style.top=(sb.top-ab.top)+'px';
+  fly.style.width=sb.width+'px';fly.style.height=sb.height+'px';
+  fly.style.fontSize='25px';
+  arena.appendChild(fly);
+  fly.getBoundingClientRect();
+  setTimeout(()=>{
+    cardEl.style.visibility='hidden';
+    fly.style.left=(db.left-ab.left)+'px';fly.style.top=(db.top-ab.top)+'px';
+    fly.style.width=db.width+'px';fly.style.height=db.height+'px';
+    fly.style.fontSize='13px';
+    dest.classList.add('landing');
+  },170);
+  setTimeout(()=>{advance(id);},760);
+}
+function advance(id){
+  let nxt=-1;
+  for(let i=0;i<MATCHES;i++){const j=(id+1+i)%MATCHES;if(picks[j]<0&&playable(j)){nxt=j;break;}}
+  if(nxt<0)phase='review';else cursor=nxt;
+  busy=false;render();
+}
+
+const pad=document.getElementById('pad');
+
+function mast(){
+  const letters='BRACKET'.split('').map((c,i)=>`<div class="blk${i===0?' a':''}">${c}</div>`).join('');
+  return `<div class="mast"><div class="blocks">${letters}</div>
+    <div class="meta">No. ${P.num} &middot; ${P.dateLabel}${P.sunday?' &middot; Sunday Edition, field of 32':''}</div></div>`;
+}
+
+function miniMap(showTruth){
+  let cols='';
+  for(let r=0;r<ROUNDS;r++){
+    const w=N/Math.pow(2,r+1);let cells='';
+    for(let m=0;m<w;m++){
+      const id=idOf(r,m);let cls='dot';
+      if(showTruth){cls+=picks[id]===TRUE[id]?' hit':' miss';}
+      else{
+        if(picks[id]>=0)cls+=' done';
+        if(id===cursor&&phase==='play')cls+=' cur';
+        if(!playable(id)&&picks[id]<0)cls+=' locked';
+      }
+      cells+=`<div class="mapcell"><button class="${cls}" data-jump="${id}" title="${ROUND_SHORT(r,ROUNDS)} match ${m+1}"></button></div>`;
+    }
+    cols+=`<div class="mapcol">${cells}</div>`;
+  }
+  const label=showTruth?'Your sheet, round by round'
+    :`The whole draw &middot; <b>${filledCount()}</b> of ${MATCHES} filled &middot; tap any slot to go back`;
+  return `<div class="mapwrap"><div class="maphd">${label}</div><div class="map">${cols}</div></div>`;
+}
+
+function playScreen(){
+  const r=roundOf(cursor),m=matchOf(cursor),w=N/Math.pow(2,r+1);
+  const k=kidsOf(r,m);
+  const isFinal=r===ROUNDS-1;
+
+  /* left lane: each contender's road so far */
+  const histFor=(it)=>{
+    if(it==null||it<0)return `<div class="hempty">&mdash;</div>`;
+    const road=pathOf(it,r,m);
+    if(!road.length)return `<div class="hempty">First round<br>no games yet</div>`;
+    return road.map(n=>`<div class="hchip beat">${n}</div>`).join('');
+  };
+  const hist=`<div class="lane hist"><div class="lanehd">Beaten so far</div>
+      <div class="hgroup">${histFor(k[0])}</div>
+      <div class="hgroup">${histFor(k[1])}</div></div>`;
+
+  /* centre lane: the stacked matchup inside the brace */
+  const cardFor=(it,i)=>{
+    if(it==null||it<0)return `<div class="card wait"><div class="nm">Waiting on an earlier pick</div></div>`;
+    const road=pathOf(it,r,m);
+    return `<div class="card" data-side="${it}" data-pickid="${cursor}">
+      ${i===1?'<span class="vsdot">VS</span>':''}
+      <div class="nm">${P.items[it].name}</div>
+      ${road.length?`<div class="sub">beat ${road[road.length-1]}</div>`:''}
+    </div>`;
+  };
+  const bout=`<div class="lane bout">${cardFor(k[0],0)}${cardFor(k[1],1)}</div>`;
+
+  /* right lane: the slot being played for */
+  let next;
+  if(isFinal){
+    next=`<div class="lane next"><div class="lanehd">Plays for</div>
+      <div class="trophy"><div class="lbl">Champion</div><div class="nm target" style="margin-top:4px">&mdash;</div></div></div>`;
+  }else{
+    const nm=Math.floor(m/2),nid=idOf(r+1,nm),nk=kidsOf(r+1,nm);
+    const slot=m%2===0?0:1;
+    const rows=[0,1].map(s=>{
+      const it=nk[s];
+      const isTarget=s===slot;
+      const cls='nrow'+(it>=0?' filled':'')+(isTarget?' target':'');
+      const txt=it>=0?P.items[it].name:(isTarget?'this winner':'winner of the other tie');
+      return `<div class="${cls}">${txt}</div>`;
+    }).join('');
+    next=`<div class="lane next"><div class="lanehd">Advances to ${ROUND_NAME(r+1,ROUNDS)}</div>
+      <div class="nextbox live">${rows}</div></div>`;
+  }
+
+  return `${mast()}
+  <div class="qbar"><span class="qtag">The question</span><span class="qmetric">${P.metric}</span>
+    <span class="qprog">picked <b>${filledCount()}</b> of ${MATCHES}</span></div>
+  <div class="roundtag"><b>${ROUND_NAME(r,ROUNDS)}</b> &middot; match ${m+1} of ${w}</div>
+  <div class="arena${r===0?' r0':''}">${hist}${bout}${next}</div>
+  <div class="navrow">
+    <button class="btn ghost" data-nav="back" ${cursor===0?'disabled':''}>&larr; Back</button>
+    <button class="btn primary" data-nav="review" style="margin-left:auto" ${filledCount()<MATCHES?'disabled':''}>Review the sheet</button>
+  </div>
+  ${miniMap(false)}
+  <p class="hint">No feedback until you hand it in. A first-round call you got wrong quietly takes every later line it touches down with it.</p>`;
+}
+
+function tree(showTruth){
+  let cols='';
+  for(let r=0;r<ROUNDS;r++){
+    const w=N/Math.pow(2,r+1);let ms='';
+    for(let m=0;m<w;m++){
+      const id=idOf(r,m);
+      const k=showTruth?(r===0?[2*m,2*m+1]:[TRUE[idOf(r-1,2*m)],TRUE[idOf(r-1,2*m+1)]]):kidsOf(r,m);
+      let rows='';
+      for(const it of k){
+        if(it==null||it<0){rows+=`<div class="trow lose"><span class="mk"></span><span class="n">&mdash;</span></div>`;continue;}
+        let cls='trow',mk='';
+        if(showTruth){
+          const isTrue=it===TRUE[id],isMine=picks[id]===it;
+          if(isTrue){cls+=' win';mk=isMine?'✓':'';}
+          else if(isMine){cls+=' bust';mk='✗';}
+          else cls+=' lose';
+        }else{cls+=picks[id]===it?' mine':' lose';}
+        rows+=`<div class="${cls}"><span class="mk">${mk}</span><span class="n">${P.items[it].name}</span>${showTruth?`<span class="v">${fmtValue(P.items[it].value,P.unit)}</span>`:''}</div>`;
+      }
+      ms+=`<div class="tmatch"><div class="tbox">${rows}</div></div>`;
+    }
+    cols+=`<div class="tround${r===0?' first':''}"><div class="trh">${ROUND_NAME(r,ROUNDS)}</div><div class="tbody">${ms}</div></div>`;
+  }
+  const ci=showTruth?TRUE[MATCHES-1]:picks[MATCHES-1];
+  const champ=ci>=0?P.items[ci]:null;
+  const champBox=`<div class="tchamp"><div class="trh">${showTruth?'Champion':'Your winner'}</div>
+    <div class="champcard"><div class="lbl">${showTruth?'Takes the field':'You picked'}</div>
+    <div class="nm">${champ?champ.name:'&mdash;'}</div>
+    ${champ&&showTruth?`<div class="v">${fmtValue(champ.value,P.unit)}</div>`:''}</div></div>`;
+  return `<div class="tree">${cols}${champBox}</div>`;
+}
+
+function stackTree(showTruth){
+  let out='';
+  for(let r=0;r<ROUNDS;r++){
+    const w=N/Math.pow(2,r+1);
+    out+=`<div class="srh">${ROUND_NAME(r,ROUNDS)}${showTruth?` &middot; ${perRound()[r][0]}/${perRound()[r][1]}`:''}</div>`;
+    for(let m=0;m<w;m++){
+      const id=idOf(r,m);
+      const k=showTruth?(r===0?[2*m,2*m+1]:[TRUE[idOf(r-1,2*m)],TRUE[idOf(r-1,2*m+1)]]):kidsOf(r,m);
+      let rows='';
+      for(const it of k){
+        if(it==null||it<0){rows+=`<div class="trow lose"><span class="mk"></span><span class="n">&mdash;</span></div>`;continue;}
+        let cls='trow',mk='';
+        if(showTruth){
+          const isTrue=it===TRUE[id],isMine=picks[id]===it;
+          if(isTrue){cls+=' win';mk=isMine?'✓':'';}
+          else if(isMine){cls+=' bust';mk='✗';}
+          else cls+=' lose';
+        }else{cls+=picks[id]===it?' mine':' lose';}
+        rows+=`<div class="${cls}"><span class="mk">${mk}</span><span class="n">${P.items[it].name}</span>${showTruth?`<span class="v">${fmtValue(P.items[it].value,P.unit)}</span>`:''}</div>`;
+      }
+      out+=`<div class="tbox">${rows}</div>`;
+    }
+  }
+  return `<div class="stack">${out}</div>`;
+}
+
+function reviewScreen(){
+  return `${mast()}
+  <div class="qbar"><span class="qtag">Your sheet</span><span class="qmetric">${P.metric}</span>
+    <span class="qprog">all <b>${MATCHES}</b> filled</span></div>
+  <p class="hint" style="margin:0 0 13px">Nothing is graded yet. Tap any slot on the strip below to change it, then hand it in.</p>
+  ${tree(false)}
+  ${stackTree(false)}
+  <div class="navrow">
+    <button class="btn ghost" data-nav="back">&larr; Keep editing</button>
+    <button class="btn acc" data-nav="submit" style="margin-left:auto">Hand in the bracket</button>
+  </div>
+  ${miniMap(false)}`;
+}
+
+function revealScreen(){
+  const s=score(),pr=perRound(),won=s===TOTAL,champ=P.items[TRUE[MATCHES-1]];
+  return `${mast()}
+  <div class="scoreline">
+    <span class="big" style="color:${won?'var(--green)':'var(--ink)'}">${s}/${TOTAL}</span>
+    <span class="txt">${won?'A perfect bracket. Nothing busted.':`${champ.name} took it at ${fmtValue(champ.value,P.unit)}.`}
+      <span class="sub">${pr.map((x,r)=>`${ROUND_SHORT(r,ROUNDS)} ${x[0]}/${x[1]}`).join(' · ')} &middot; 3:41</span></span>
+    <button class="btn primary" style="margin-left:auto" data-nav="restart">Play again</button>
+  </div>
+  ${tree(true)}
+  ${stackTree(true)}
+  <p class="hint">Green is the truth, red-struck is where your sheet busted, and the number beside every name is the real figure.</p>`;
+}
+
+function render(){pad.innerHTML=phase==='play'?playScreen():phase==='review'?reviewScreen():revealScreen();}
+
+pad.addEventListener('click',(e)=>{
+  const card=e.target.closest('.card[data-side]');
+  if(card&&phase==='play'){pick(parseInt(card.dataset.pickid,10),parseInt(card.dataset.side,10),card);return;}
+  const jump=e.target.closest('[data-jump]');
+  if(jump){const id=parseInt(jump.dataset.jump,10);if(phase!=='reveal'&&playable(id)&&!busy){cursor=id;phase='play';render();}return;}
+  const nav=e.target.closest('[data-nav]');if(!nav)return;
+  const a=nav.dataset.nav;
+  if(a==='back'){if(phase==='review')phase='play';else if(cursor>0)cursor--;render();}
+  if(a==='review'){phase='review';render();}
+  if(a==='submit'){phase='reveal';render();}
+  if(a==='restart'){setup();render();}
+});
+
+document.getElementById('segView').addEventListener('click',(e)=>{
+  const b=e.target.closest('button');if(!b)return;VIEW=b.dataset.v;
+  [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b));
+  document.getElementById('stage').className='stage '+VIEW;
+});
+document.getElementById('segField').addEventListener('click',(e)=>{
+  const b=e.target.closest('button');if(!b)return;FIELD=parseInt(b.dataset.f,10);
+  [...e.currentTarget.children].forEach(c=>c.classList.toggle('on',c===b));
+  setup();render();
+});
+document.getElementById('btnReset').addEventListener('click',()=>{setup();render();});
+document.getElementById('btnAuto').addEventListener('click',()=>{
+  for(let r=0;r<ROUNDS;r++){const w=N/Math.pow(2,r+1);for(let m=0;m<w;m++){
+    const id=idOf(r,m),k=kidsOf(r,m);if(k[0]<0||k[1]<0)continue;
+    const wrongHere=(r===0&&m===3)||(r===1&&m===1);const t=TRUE[id];
+    picks[id]=wrongHere?(k[0]===t?k[1]:k[0]):(k.includes(t)?t:k[0]);
+  }}
+  phase='review';render();
+});
+
+setup();render();
+</script>
+</body>
+</html>

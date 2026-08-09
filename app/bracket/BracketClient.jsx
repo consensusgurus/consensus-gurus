@@ -130,8 +130,17 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
   // matchup ids are laid out round by round: round 0 first, then round 1, ...
   const OFFSET = useMemo(() => { const o = []; let acc = 0, w = N / 2; for (let r = 0; r < ROUNDS; r++) { o.push(acc); acc += w; w /= 2; } return o; }, [N, ROUNDS]);
   const idOf = (r, m) => OFFSET[r] + m;
+  const roundOf = (id) => { let r = 0; while (r + 1 < ROUNDS && id >= OFFSET[r + 1]) r++; return r; };
+  const matchOf = (id) => id - OFFSET[roundOf(id)];
 
   const [g, setG] = useState(() => freshState(MATCHES));
+  // The board is a bracket zoomed all the way in: one matchup holds the middle,
+  // the slot it feeds sits to the right, and the winner travels into it. `cursor`
+  // is the matchup on screen; `reviewing` swaps the arena for the whole sheet.
+  const [cursor, setCursor] = useState(0);
+  const [reviewing, setReviewing] = useState(false);
+  const arenaRef = useRef(null);
+  const busyRef = useRef(false);   // a ref, not state: the flight must not re-render
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [toast, setToast] = useState(null);
@@ -180,6 +189,37 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
   const kidsOf = (r, m) => (r === 0 ? [2 * m, 2 * m + 1] : [g.picks[idOf(r - 1, 2 * m)], g.picks[idOf(r - 1, 2 * m + 1)]]);
   const filled = g.picks.filter((p) => p >= 0).length;
   const complete = filled === MATCHES;
+
+  // A matchup can only be played once both of its feeders are decided.
+  const feedersOf = (id, arr) => { const r = roundOf(id), m = matchOf(id); return r === 0 ? [2 * m, 2 * m + 1] : [arr[idOf(r - 1, 2 * m)], arr[idOf(r - 1, 2 * m + 1)]]; };
+  const playableAt = (id, arr) => { const k = feedersOf(id, arr || g.picks); return k[0] >= 0 && k[1] >= 0; };
+  // The next matchup that is empty AND playable, scanning forward from `from` and
+  // wrapping, so a jump back to fix an early call resumes wherever the gap is.
+  function nextOpen(from, arr) {
+    for (let i = 0; i < MATCHES; i++) {
+      const j = (from + 1 + i + MATCHES) % MATCHES;
+      if (arr[j] < 0 && playableAt(j, arr)) return j;
+    }
+    return -1;
+  }
+  // Everything this contender has already beaten ON YOUR SHEET, oldest first. This
+  // is what makes propagation visible while you play instead of only at the reveal.
+  function pathOf(item, r, m) {
+    const out = [];
+    if (r <= 0 || item == null || item < 0) return out;
+    let cur = item, cr = r - 1, cm = -1;
+    for (const fm of [2 * m, 2 * m + 1]) if (g.picks[idOf(cr, fm)] === cur) cm = fm;
+    while (cr >= 0 && cm >= 0) {
+      const k = kidsOf(cr, cm);
+      const other = k[0] === cur ? k[1] : k[0];
+      if (other >= 0) out.unshift(PUZZLE.items[other].name);
+      if (cr === 0) break;
+      let nm = -1;
+      for (const fm of [2 * cm, 2 * cm + 1]) if (g.picks[idOf(cr - 1, fm)] === cur) nm = fm;
+      cr--; cm = nm;
+    }
+    return out;
+  }
   const score = useMemo(() => {
     let s = 0;
     for (let r = 0; r < ROUNDS; r++) {
@@ -221,6 +261,14 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
     setHydrated(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Resuming a half-filled sheet drops you back on the first gap, not on match one.
+  useEffect(() => {
+    if (!hydrated) return;
+    const first = nextOpen(-1, g.picks);
+    if (first < 0) { if (g.status === 'playing' && g.picks.every((p) => p >= 0)) setReviewing(true); }
+    else setCursor(first);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
   useEffect(() => {
     if (!hydrated) return;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
@@ -298,31 +346,161 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
   function startRun() { setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() })); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }
 
   // picking a winner clears everything that used to flow out of this slot
-  function pick(r, m, item) {
-    if (!playing || item < 0) return;
-    setG((cur) => {
-      const picks = cur.picks.slice();
-      picks[idOf(r, m)] = item;
-      let rr = r + 1, mm = Math.floor(m / 2);
-      while (rr < ROUNDS) {
-        const id = idOf(rr, mm);
-        const kidsNow = [picks[idOf(rr - 1, 2 * mm)], picks[idOf(rr - 1, 2 * mm + 1)]];
-        if (picks[id] >= 0 && !kidsNow.includes(picks[id])) picks[id] = -1;
-        rr++; mm = Math.floor(mm / 2);
-      }
-      return { ...cur, picks, t0: cur.t0 || Date.now() };
-    });
+  function applyPick(id, item, from) {
+    const picks = from.slice();
+    picks[id] = item;
+    let rr = roundOf(id) + 1, mm = Math.floor(matchOf(id) / 2);
+    while (rr < ROUNDS) {
+      const nid = idOf(rr, mm);
+      const kidsNow = [picks[idOf(rr - 1, 2 * mm)], picks[idOf(rr - 1, 2 * mm + 1)]];
+      if (picks[nid] >= 0 && !kidsNow.includes(picks[nid])) picks[nid] = -1;
+      rr++; mm = Math.floor(mm / 2);
+    }
+    return picks;
   }
-  function clearAll() { if (!playing) return; setG((cur) => ({ ...cur, picks: Array(MATCHES).fill(-1) })); }
+
+  // Tap a contender and it physically advances: the loser dims, the winner lifts out
+  // of the stack and travels across the brace into the slot it just won, then the
+  // field shifts to the next matchup. The flight is imperative DOM on purpose, so no
+  // React state changes mid-animation and nothing re-renders the arena underneath it.
+  function commitPick(id, item, picks) {
+    setG((cur) => ({ ...cur, picks, t0: cur.t0 || Date.now() }));
+    const nx = nextOpen(id, picks);
+    if (nx < 0) setReviewing(true); else setCursor(nx);
+    busyRef.current = false;
+  }
+  function pick(id, item, cardEl) {
+    if (!playing || busyRef.current || item == null || item < 0) return;
+    busyRef.current = true;
+    const picks = applyPick(id, item, g.picks);
+
+    const arena = arenaRef.current;
+    const dest = arena && arena.querySelector('[data-bk-target]');
+    let reduced = false;
+    try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (!arena || !dest || !cardEl || reduced) { commitPick(id, item, picks); return; }
+
+    arena.querySelectorAll('[data-bk-card]').forEach((c) => c.classList.add(c === cardEl ? 'won' : 'out'));
+    const ab = arena.getBoundingClientRect(), sb = cardEl.getBoundingClientRect(), db = dest.getBoundingClientRect();
+    const fly = document.createElement('div');
+    fly.className = 'bk-flyer';
+    fly.textContent = PUZZLE.items[item].name;
+    fly.style.left = (sb.left - ab.left) + 'px'; fly.style.top = (sb.top - ab.top) + 'px';
+    fly.style.width = sb.width + 'px'; fly.style.height = sb.height + 'px';
+    fly.style.fontSize = (mobileUi ? 19 : 25) + 'px';
+    arena.appendChild(fly);
+    fly.getBoundingClientRect();                       // force the start frame
+    window.setTimeout(() => {
+      cardEl.style.visibility = 'hidden';
+      fly.style.left = (db.left - ab.left) + 'px'; fly.style.top = (db.top - ab.top) + 'px';
+      fly.style.width = db.width + 'px'; fly.style.height = db.height + 'px';
+      fly.style.fontSize = (mobileUi ? 11.5 : 13) + 'px';
+      dest.classList.add('landing');
+    }, 170);
+    window.setTimeout(() => commitPick(id, item, picks), 760);
+  }
+  function jumpTo(id) { if (!playing || busyRef.current || !playableAt(id)) return; setReviewing(false); setCursor(id); }
+  function clearAll() { if (!playing) return; setG((cur) => ({ ...cur, picks: Array(MATCHES).fill(-1) })); setReviewing(false); setCursor(0); }
   function submit() {
     if (!playing || !complete) return;
     const g2 = { ...g, status: 'done', tEnd: Date.now(), t0: g.t0 || Date.now() };
-    setG(g2); setEndClosed(false);
+    setG(g2); setEndClosed(false); setReviewing(false);
     let s = 0;
     for (let r = 0; r < ROUNDS; r++) { const w = N / Math.pow(2, r + 1); for (let m = 0; m < w; m++) if (g2.picks[idOf(r, m)] === TRUE[idOf(r, m)]) s += Math.pow(2, r); }
     postResult(g2, s);
   }
-  function resetGame() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} setG(freshState(MATCHES)); setEndClosed(false); }
+  function resetGame() { try { localStorage.removeItem(STORE_KEY); } catch (e) {} setG(freshState(MATCHES)); setEndClosed(false); setReviewing(false); setCursor(0); busyRef.current = false; }
+
+  function prevPlayable(from) { for (let j = from - 1; j >= 0; j--) if (playableAt(j)) return j; return -1; }
+
+  // ---- the whole sheet, drawn as a real bracket. `showTruth` grades it. ----
+  function sheetRows(r, m, showTruth) {
+    const id = idOf(r, m);
+    const kids = showTruth
+      ? (r === 0 ? [2 * m, 2 * m + 1] : [TRUE[idOf(r - 1, 2 * m)], TRUE[idOf(r - 1, 2 * m + 1)]])
+      : kidsOf(r, m);
+    return kids.map((it, k) => {
+      if (it == null || it < 0) return <div key={k} className="bk-trow lose"><span className="mk" /><span className="n">&mdash;</span></div>;
+      let cls = 'bk-trow', mk = '';
+      if (showTruth) {
+        const isTrue = it === TRUE[id], isMine = g.picks[id] === it;
+        if (isTrue) { cls += ' win'; mk = isMine ? '✓' : ''; }
+        else if (isMine) { cls += ' bust'; mk = '✗'; }
+        else cls += ' lose';
+      } else cls += g.picks[id] === it ? ' mine' : ' lose';
+      return (
+        <div key={k} className={cls}>
+          <span className="mk">{mk}</span>
+          <span className="n">{PUZZLE.items[it].name}</span>
+          {showTruth && <span className="v">{fmtValue(PUZZLE.items[it].value, PUZZLE.unit)}</span>}
+        </div>
+      );
+    });
+  }
+  function renderTree(showTruth) {
+    const ci = showTruth ? TRUE[MATCHES - 1] : g.picks[MATCHES - 1];
+    return (
+      <div className="bk-tree">
+        {Array.from({ length: ROUNDS }).map((_, r) => (
+          <div key={r} className={'bk-tround' + (r === 0 ? ' first' : '')}>
+            <div className="bk-trh">{ROUND_NAME(r, ROUNDS)}</div>
+            <div className="bk-tbody">
+              {Array.from({ length: N / Math.pow(2, r + 1) }).map((__, m) => (
+                <div key={m} className="bk-tmatch"><div className="bk-tbox">{sheetRows(r, m, showTruth)}</div></div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div className="bk-tchamp">
+          <div className="bk-trh">{showTruth ? 'Champion' : 'Your winner'}</div>
+          <div className="bk-champ">
+            <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.gold }}>{showTruth ? 'Takes the field' : 'You picked'}</div>
+            <div style={{ fontSize: 17, fontWeight: 900, marginTop: 5, lineHeight: 1.15, color: COLORS.ink }}>{ci >= 0 ? PUZZLE.items[ci].name : '—'}</div>
+            {showTruth && ci >= 0 && <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 5 }}>{fmtValue(PUZZLE.items[ci].value, PUZZLE.unit)}</div>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  function renderStack(showTruth) {
+    return (
+      <div className="bk-stack">
+        {Array.from({ length: ROUNDS }).map((_, r) => (
+          <div key={r}>
+            <div className="bk-srh">{ROUND_NAME(r, ROUNDS)}{showTruth ? ` · ${perRound[r][0]}/${perRound[r][1]}` : ''}</div>
+            {Array.from({ length: N / Math.pow(2, r + 1) }).map((__, m) => (
+              <div key={m} className="bk-tbox">{sheetRows(r, m, showTruth)}</div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+  function renderMap(showTruth) {
+    return (
+      <div className="bk-map">
+        {Array.from({ length: ROUNDS }).map((_, r) => (
+          <div key={r} className="bk-mapcol">
+            {Array.from({ length: N / Math.pow(2, r + 1) }).map((__, m) => {
+              const id = idOf(r, m);
+              let cls = 'bk-dot';
+              if (showTruth) cls += g.picks[id] === TRUE[id] ? ' hit' : ' miss';
+              else {
+                if (g.picks[id] >= 0) cls += ' done';
+                if (id === cursor && !reviewing) cls += ' cur';
+              }
+              return (
+                <div key={m} className="bk-mapcell">
+                  <button type="button" className={cls} disabled={showTruth || !playableAt(id)}
+                    onClick={() => jumpTo(id)} aria-label={`${ROUND_NAME(r, ROUNDS)} match ${m + 1}`} />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const champion = PUZZLE.items[TRUE[MATCHES - 1]];
   const rulesBody = (
@@ -358,18 +536,91 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.bk-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .bk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .bk-btn:hover{background:var(--accent-soft);}
-          .bk-rounds{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;}
-          .bk-col{flex:0 0 auto;width:168px;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:100%;}
-          .bk-rh{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${COLORS.faded};margin-bottom:2px;}
-          .bk-m{border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;background:var(--white);}
-          .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${COLORS.ink};background:var(--white);border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:8px 9px;cursor:pointer;}
-          .bk-s:last-child{border-bottom:none;}
-          .bk-s:hover:not(:disabled){background:${COLORS.accentSoft};}
-          .bk-s:disabled{cursor:default;color:var(--muted);}
-          .bk-s.on{background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:800;box-shadow:inset 3px 0 0 ${COLORS.accent};}
-          .bk-s.right{background:${COLORS.greenSoft};color:#14532d;box-shadow:inset 3px 0 0 ${COLORS.green};}
-          .bk-s.wrong{background:${COLORS.redSoft};color:#7f1d1d;text-decoration:line-through;box-shadow:inset 3px 0 0 ${COLORS.redInk};}
-          .bk-v{font-family:${MONO};font-size:10px;font-weight:500;color:${COLORS.faded};margin-left:6px;}
+          /* ---- the arena: a bracket zoomed all the way in ---- */
+          .bk-arena{position:relative;display:grid;grid-template-columns:186px minmax(0,1fr) 226px;gap:0 30px;align-items:stretch;
+                    background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px 20px;overflow:hidden;}
+          .bk-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;}
+          .bk-lanehd{position:absolute;top:-4px;left:0;right:0;font-family:${MONO};font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4;}
+          .bk-hist .bk-hgroup{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+          .bk-hchip{border:1px dashed var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;color:#a3adbb;
+                    text-decoration:line-through;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .bk-hempty{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6;}
+          .bk-bout{gap:14px;padding-right:16px;}
+          .bk-bout::after{content:'';position:absolute;right:0;top:25%;height:50%;width:16px;border-right:2px solid var(--border);
+                          border-top:2px solid var(--border);border-bottom:2px solid var(--border);border-radius:0 8px 8px 0;}
+          .bk-card{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--white);
+                   border:2px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;min-height:88px;text-align:left;width:100%;
+                   font-family:${SANS};transition:border-color .12s,background .12s,transform .12s,box-shadow .12s,opacity .25s;}
+          .bk-card:hover:not(:disabled){border-color:${COLORS.accent};background:#fffaf6;transform:translateX(4px);box-shadow:0 6px 16px rgba(194,65,12,.13);}
+          .bk-card .nm{font-size:25px;font-weight:900;line-height:1.1;letter-spacing:-.02em;color:${COLORS.ink};}
+          .bk-card .sub{margin-top:6px;font-family:${MONO};font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;}
+          .bk-card.won{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:inset 0 0 0 2px ${COLORS.accent};transform:translateX(8px);}
+          .bk-card.out{opacity:.28;transform:translateX(-6px);}
+          .bk-card.wait{cursor:default;border-style:dashed;background:${COLORS.cream};}
+          .bk-card.wait .nm{font-size:15px;color:#a3adbb;font-weight:700;}
+          .bk-vs{position:absolute;left:-11px;top:50%;transform:translateY(-50%);z-index:3;background:var(--white);
+                 font-family:${MONO};font-size:9.5px;letter-spacing:.1em;color:#94a3b8;padding:3px 0;}
+          .bk-nextbox{border:2px solid ${COLORS.accent};border-radius:10px;background:${COLORS.cream};overflow:hidden;}
+          .bk-nrow{display:flex;align-items:center;min-height:36px;padding:7px 10px;font-size:13px;font-weight:800;line-height:1.2;
+                   border-bottom:1px solid var(--border);color:#a9b3c1;transition:background .3s,color .3s;}
+          .bk-nrow:last-child{border-bottom:none;}
+          .bk-nrow.filled{color:${COLORS.ink};background:var(--white);}
+          .bk-nrow.target{box-shadow:inset 3px 0 0 ${COLORS.accent};}
+          .bk-nrow.landing{background:${COLORS.accentSoft};color:${COLORS.accentDeep};}
+          .bk-trophy{border:2px solid ${COLORS.gold};background:#fffbeb;border-radius:10px;padding:12px 10px;text-align:center;}
+          .bk-trophy .lbl{font-family:${MONO};font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.gold};}
+          .bk-flyer{position:absolute;z-index:9;background:${COLORS.accentSoft};border:2px solid ${COLORS.accent};border-radius:10px;
+                    display:flex;align-items:center;padding:0 12px;font-weight:900;color:${COLORS.accentDeep};overflow:hidden;white-space:nowrap;
+                    transition:all .46s cubic-bezier(.5,0,.2,1);pointer-events:none;}
+          .bk-roundtag{text-align:center;font-family:${MONO};font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:${COLORS.faded};margin:0 0 9px;}
+          .bk-roundtag b{color:${COLORS.accentDeep};font-weight:500;}
+          /* ---- the draw strip: the whole field, and the way back to any pick ---- */
+          .bk-map{display:flex;gap:14px;align-items:stretch;height:88px;}
+          .bk-mapcol{display:flex;flex-direction:column;justify-content:space-around;flex:1;}
+          .bk-mapcell{position:relative;flex:1;display:flex;align-items:center;}
+          .bk-dot{width:100%;height:8px;border-radius:3px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;padding:0;transition:.12s;}
+          .bk-dot:hover:not(:disabled){border-color:${COLORS.accent};}
+          .bk-dot.done{background:${COLORS.accent};border-color:${COLORS.accent};}
+          .bk-dot.cur{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(194,65,12,.22);background:${COLORS.accentSoft};}
+          .bk-dot:disabled{opacity:.3;cursor:default;}
+          .bk-dot.hit{background:${COLORS.green};border-color:${COLORS.green};}
+          .bk-dot.miss{background:${COLORS.redInk};border-color:${COLORS.redInk};}
+          /* ---- the whole sheet: review before handing in, and the reveal ---- */
+          .bk-tree{display:flex;gap:26px;align-items:stretch;min-height:400px;}
+          .bk-tround{display:flex;flex-direction:column;flex:1;min-width:0;}
+          .bk-trh{font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.faded};margin-bottom:8px;height:14px;}
+          .bk-tbody{display:flex;flex-direction:column;justify-content:space-around;flex:1;}
+          .bk-tmatch{position:relative;flex:1;display:flex;align-items:center;}
+          .bk-tmatch::before{content:'';position:absolute;left:-13px;top:25%;height:50%;width:13px;
+                             border-left:1px solid var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+          .bk-tround.first .bk-tmatch::before{display:none;}
+          .bk-tmatch::after{content:'';position:absolute;right:-13px;top:50%;width:13px;border-top:1px solid var(--border);}
+          .bk-tbox{width:100%;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--white);}
+          .bk-trow{display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12px;font-weight:700;border-bottom:1px solid var(--border);line-height:1.25;}
+          .bk-trow:last-child{border-bottom:none;}
+          .bk-trow .v{margin-left:auto;font-family:${MONO};font-size:9.5px;font-weight:500;color:${COLORS.faded};white-space:nowrap;padding-left:6px;}
+          .bk-trow .mk{font-family:${MONO};font-size:10px;font-weight:500;width:11px;flex:0 0 11px;text-align:center;}
+          .bk-trow.win{background:${COLORS.greenSoft};color:#14532d;box-shadow:inset 3px 0 0 ${COLORS.green};}
+          .bk-trow.lose{color:#9aa5b4;}
+          .bk-trow.lose .n{text-decoration:line-through;}
+          .bk-trow.mine{box-shadow:inset 3px 0 0 ${COLORS.accent};background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:800;}
+          .bk-trow.bust{background:${COLORS.redSoft};color:#7f1d1d;box-shadow:inset 3px 0 0 ${COLORS.redInk};}
+          .bk-trow.bust .n{text-decoration:line-through;}
+          .bk-tchamp{display:flex;flex-direction:column;justify-content:center;flex:0 0 162px;}
+          .bk-champ{border:2px solid ${COLORS.gold};background:#fffbeb;border-radius:10px;padding:14px 12px;text-align:center;}
+          .bk-stack{display:none;}
+          .bk-srh{font-family:${MONO};font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.faded};margin:15px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+          .bk-stack .bk-tbox{margin-bottom:7px;}
+          @media(max-width:760px){
+            .bk-arena{grid-template-columns:minmax(0,1fr) 112px;gap:0 18px;padding:14px 12px;}
+            .bk-hist{display:none;}
+            .bk-vs{display:none;}
+            .bk-card{min-height:70px;padding:12px 13px;}
+            .bk-card .nm{font-size:19px;}
+            .bk-nrow{font-size:11.5px;min-height:32px;padding:6px 8px;}
+            .bk-tree{display:none;}
+            .bk-stack{display:block;}
+          }
         `}</style>
 
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -418,62 +669,110 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
               )}
             </div>
 
-            <div className="bk-rounds">
-              {Array.from({ length: ROUNDS }).map((_, r) => {
-                const w = N / Math.pow(2, r + 1);
+            {/* THE ARENA. The bracket never leaves the screen, it is just zoomed all
+                the way in: the two contenders stacked inside a real brace, the slot
+                they are playing for on the right, and the winner travels into it. */}
+            {playing && !reviewing && (() => {
+              const r = roundOf(cursor), m = matchOf(cursor), w = N / Math.pow(2, r + 1);
+              const kids = kidsOf(r, m);
+              const back = prevPlayable(cursor);
+              const card = (it, i) => {
+                if (it == null || it < 0) return <div key={i} className="bk-card wait"><span className="nm">Waiting on an earlier pick</span></div>;
+                const road = pathOf(it, r, m);
                 return (
-                  <div key={r} className="bk-col">
-                    <div className="bk-rh">{ROUND_NAME(r, ROUNDS)}</div>
-                    {Array.from({ length: w }).map((__, m) => {
-                      const kids = kidsOf(r, m);
-                      const mine = g.picks[idOf(r, m)];
-                      const truth = TRUE[idOf(r, m)];
-                      return (
-                        <div key={m} className="bk-m">
-                          {kids.map((it, k) => {
-                            const empty = it == null || it < 0;
-                            const chosen = !empty && mine === it;
-                            let cls = 'bk-s';
-                            if (!playing) {
-                              if (chosen && it === truth) cls += ' right';
-                              else if (chosen) cls += ' wrong';
-                              else if (it === truth) cls += ' on';
-                            } else if (chosen) cls += ' on';
-                            return (
-                              <button key={k} type="button" className={cls} disabled={empty || !playing}
-                                onClick={() => pick(r, m, it)}
-                                title={empty ? 'Waiting on an earlier pick' : PUZZLE.items[it].name}>
-                                {empty ? '—' : PUZZLE.items[it].name}
-                                {!playing && !empty && <span className="bk-v">{fmtValue(PUZZLE.items[it].value, PUZZLE.unit)}</span>}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
+                  <button key={i} type="button" data-bk-card className="bk-card" onClick={(e) => pick(cursor, it, e.currentTarget)}>
+                    {i === 1 && <span className="bk-vs">VS</span>}
+                    <span className="nm">{PUZZLE.items[it].name}</span>
+                    {road.length > 0 && <span className="sub">beat {road[road.length - 1]}</span>}
+                  </button>
+                );
+              };
+              const hist = (it, i) => {
+                const road = (it == null || it < 0) ? [] : pathOf(it, r, m);
+                return (
+                  <div key={i} className="bk-hgroup">
+                    {road.length === 0
+                      ? <div className="bk-hempty">{r === 0 ? 'First round' : 'Not yet'}</div>
+                      : road.map((n, j) => <div key={j} className="bk-hchip">{n}</div>)}
                   </div>
                 );
-              })}
-              <div className="bk-col" style={{ width: 132 }}>
-                <div className="bk-rh">Winner</div>
-                <div className="bk-m" style={{ borderColor: COLORS.gold, background: '#fffbeb' }}>
-                  <div style={{ padding: '10px 9px', fontSize: 13, fontWeight: 800, color: playing ? COLORS.faded : COLORS.gold, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Trophy size={13} />
-                    {playing ? (g.picks[MATCHES - 1] >= 0 ? PUZZLE.items[g.picks[MATCHES - 1]].name : 'your call') : champion.name}
+              };
+              let nextLane;
+              if (r === ROUNDS - 1) {
+                nextLane = (
+                  <div className="bk-lane">
+                    <div className="bk-lanehd">Plays for</div>
+                    <div className="bk-trophy">
+                      <div className="lbl">Champion</div>
+                      <div data-bk-target style={{ fontSize: 15, fontWeight: 900, marginTop: 4, lineHeight: 1.15, color: COLORS.ink }}>&mdash;</div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+                );
+              } else {
+                const nk = kidsOf(r + 1, Math.floor(m / 2));
+                const slot = m % 2;
+                nextLane = (
+                  <div className="bk-lane">
+                    <div className="bk-lanehd">Advances to {ROUND_NAME(r + 1, ROUNDS)}</div>
+                    <div className="bk-nextbox">
+                      {[0, 1].map((s) => {
+                        const it = nk[s], isTarget = s === slot;
+                        const attrs = isTarget ? { 'data-bk-target': true } : {};
+                        return (
+                          <div key={s} className={'bk-nrow' + (it >= 0 ? ' filled' : '') + (isTarget ? ' target' : '')} {...attrs}>
+                            {it >= 0 ? PUZZLE.items[it].name : (isTarget ? 'this winner' : 'winner of the other tie')}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <>
+                  <div className="bk-roundtag"><b>{ROUND_NAME(r, ROUNDS)}</b> &middot; match {m + 1} of {w}</div>
+                  <div className="bk-arena" ref={arenaRef}>
+                    <div className="bk-lane bk-hist"><div className="bk-lanehd">Beaten so far</div>{hist(kids[0], 0)}{hist(kids[1], 1)}</div>
+                    <div className="bk-lane bk-bout">{card(kids[0], 0)}{card(kids[1], 1)}</div>
+                    {nextLane}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0 6px' }}>
+                    <button type="button" className="bk-btn" onClick={() => jumpTo(back)} disabled={back < 0}>&larr; Back</button>
+                    {complete && <button type="button" className="bk-btn" onClick={() => setReviewing(true)} style={{ marginLeft: 'auto' }}>Review the sheet</button>}
+                  </div>
+                </>
+              );
+            })()}
 
-        {started && (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0 6px' }}>
-            <button type="button" className="bk-btn" onClick={submit} disabled={!complete} style={complete ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { opacity: 0.45, cursor: 'not-allowed' }}>
-              <Trophy size={14} /> Hand in the bracket
-            </button>
-            {filled > 0 && <button type="button" className="bk-btn" onClick={clearAll}><Eraser size={14} /> Clear</button>}
-          </div>
+            {/* REVIEW. The whole sheet, ungraded, before you hand it in. */}
+            {playing && reviewing && (
+              <>
+                <p style={{ fontSize: 12.5, color: COLORS.faded, fontWeight: 600, margin: '0 0 13px' }}>Nothing is graded yet. Tap any slot on the strip below to change it, then hand it in.</p>
+                {renderTree(false)}
+                {renderStack(false)}
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0 6px' }}>
+                  <button type="button" className="bk-btn" onClick={() => setReviewing(false)}>&larr; Keep editing</button>
+                  {filled > 0 && <button type="button" className="bk-btn" onClick={clearAll}><Eraser size={14} /> Clear</button>}
+                  <button type="button" className="bk-btn" onClick={submit} disabled={!complete}
+                    style={complete ? { marginLeft: 'auto', background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { marginLeft: 'auto', opacity: 0.45, cursor: 'not-allowed' }}>
+                    <Trophy size={14} /> Hand in the bracket
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* THE REVEAL. Same tree, graded, with every real figure on it. */}
+            {!playing && (<>{renderTree(true)}{renderStack(true)}</>)}
+
+            {playing && (
+              <div style={{ marginTop: 16, borderTop: `1px solid ${T.border}`, paddingTop: 12 }}>
+                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 8 }}>
+                  The whole draw &middot; <b style={{ color: COLORS.ink, fontWeight: 500 }}>{filled}</b> of {MATCHES} filled &middot; tap any slot to go back
+                </div>
+                {renderMap(false)}
+              </div>
+            )}
+          </>
         )}
 
         {!playing && (
