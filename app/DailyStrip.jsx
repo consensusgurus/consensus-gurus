@@ -718,13 +718,29 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       // own height. Open, the block is a scroller, so its box top is fixed and
       // the cards move inside it; shut, it is display:contents and has no box
       // at all, so the FIRST CARD stands in for it and sits at the same pixel.
-      if (prog) {
+      const bar = con ? con.querySelector('.dh-cmore') : null;
+      if (prog && !bar) {
+        // No bar means the block can never open, so there is nothing to bound.
+        prog.style.removeProperty('--cap-pmax');
+      } else if (prog) {
         const r = prog.getBoundingClientRect();
         const first = r.height ? null : prog.querySelector('.dh-cell.prog');
         const pTop = (first ? first.getBoundingClientRect().top : r.top) + window.scrollY;
-        const bar = con.querySelector('.dh-cmore');
-        const barH = bar ? bar.getBoundingClientRect().height : 0;
-        const room = Math.round(window.innerHeight - pTop - barH - FOLD_SLIVER - floor);
+        const barR = bar.getBoundingClientRect();
+        const bdR = board.getBoundingClientRect();
+        const conR = con.getBoundingClientRect();
+        // MEASURE the furniture between the block and the fold, never model it.
+        // The first version subtracted the bar and the board's floor and came
+        // out 36px generous, because the board wrap's padding and the sticky
+        // column header sit in between and were not in the sum, so the console
+        // ran past the fold by exactly that much. HEAD is the bar plus
+        // everything under it down to the board's top edge; TAIL is the wrap's
+        // bottom edge under the board. Both are constant whatever height the
+        // block settles at, which is what makes this one pass rather than an
+        // iteration that visibly settles.
+        const head = Math.round(barR.height) + Math.max(0, Math.round(bdR.top - barR.bottom));
+        const tail = Math.max(0, Math.round(conR.bottom - bdR.bottom));
+        const room = Math.round(window.innerHeight - pTop - head - tail - FOLD_SLIVER) - floor;
         prog.style.setProperty('--cap-pmax', Math.max(CAP_PMIN, room) + 'px');
       }
       // Document offset, not the viewport rect: the row is meant to fit the
