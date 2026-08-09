@@ -24,7 +24,7 @@ import { SITE_URL } from '@/lib/site';
 import { catalogQuizzes } from '@/lib/quiz-catalog';
 import { quizDept, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 
-const QUIZ_COUNT = catalogQuizzes().length;
+const QUIZ_COUNT = catalogQuizzes().length.toLocaleString('en-US');
 
 export const metadata = {
   title: `All Quizzes: Browse All ${QUIZ_COUNT} Free Trivia Quizzes | Mind Loft`,
@@ -98,7 +98,7 @@ export default function AllQuizzesPage() {
     '@type': 'CollectionPage',
     name: 'Mind Loft — All Quizzes',
     url: `${SITE_URL}/quizzes/all`,
-    description: `The complete index of all ${quizzes.length} free Mind Loft trivia quizzes, grouped by department.`,
+    description: `The complete index of all ${QUIZ_COUNT} free Mind Loft trivia quizzes, grouped by department.`,
     isPartOf: { '@type': 'WebSite', name: 'Mind Loft', url: SITE_URL },
   };
 
@@ -115,7 +115,7 @@ export default function AllQuizzesPage() {
 
         <div className="qa-head">
           <div className="qa-eyebrow">The Full Index</div>
-          <h1 className="qa-h1">All {quizzes.length} quizzes.</h1>
+          <h1 className="qa-h1">All {QUIZ_COUNT} quizzes.</h1>
           <p className="qa-sub">
             Every quiz on Mind Loft, grouped by department and listed alphabetically. Free,
             timed, and no ads. Looking for the ranked lists instead? Those live on{' '}
