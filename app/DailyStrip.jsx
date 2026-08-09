@@ -222,15 +222,16 @@ const STACKED_MQ = '(min-width:901px) and (max-width:1200px)';
 // desktop grid above it), so both double the peek budget to the same six LINES.
 // A comma is an OR in a media query list, which is what matchMedia takes.
 const TWO_UP_MQ = TABLET_MQ + ', ' + STACKED_MQ;
-// How many PAUSED cards the cap shows before its expand bar takes over (owner,
-// 2026-08-08). TWO at both widths: the cap runs two columns above 900px, so two
-// is exactly one row of cards there, and the point of the cap is to hand you
-// the next thing to play without pushing the board off the screen. (It ran four
-// and three for one deploy and the console outgrew the fold.) The cut is CSS on
-// the cards (.cap-hd / .cap-hm), not a slice in the JSX, so the server and the
-// client render the same list at either width.
-const CAP_PROG_D = 2;
-const CAP_PROG_M = 2;
+// How many PAUSED cards the cap shows before its expand bar takes over.
+// ONE at both widths since 2026-08-09 (owner), down from two: the cap is a
+// FOUR CARD grid now, and the fourth slot is the one a paused game rides in.
+// The games this drops from the cap are not lost, they are listed in the slate
+// directly below, at the foot of Ready to play, which is where every paused
+// game has lived since 2026-08-08. The cut is CSS on the cards (.cap-hd /
+// .cap-hm), not a slice in the JSX, so the server and the client render the
+// same list at either width.
+const CAP_PROG_D = 1;
+const CAP_PROG_M = 1;
 // EXPANDING THE PAUSED CARDS MUST NOT RESIZE THE CONSOLE (owner, 2026-08-08).
 // The bar used to simply reveal every paused card, and with fifteen games open
 // the cap grew past the whole window: the three-column row stretched, both
@@ -537,19 +538,24 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // A viewer with NO history on any open game (a guest, or a first visit) falls
   // back to the old behaviour: first unfinished in board order. It still renders
   // as a tile in the board too.
-  const nextGame = (() => {
-    const open = games.filter((g) => !done.has(g.key));
-    if (!open.length) return null;
-    const scoreOf = (g) => [recent[g.key] || 0, (archive[g.key] && archive[g.key].played) || 0];
-    let best = null, bestScore = [0, 0];
-    // `open` is already in board order, and every comparison below is strict, so
-    // a tie keeps the game that sits higher on the board.
-    for (const g of open) {
-      const sc = scoreOf(g);
-      if (sc[0] > bestScore[0] || (sc[0] === bestScore[0] && sc[1] > bestScore[1])) { best = g; bestScore = sc; }
-    }
-    return best || open[0];
-  })();
+  // ONE ranking, read twice (owner, 2026-08-09). Up next takes the first game
+  // and Familiar favorite the second, so the two cards can never disagree about
+  // which game this viewer plays most. `games` is already in board order and the
+  // index is the last tiebreak, so a tie keeps the game sitting higher on the
+  // board, exactly as the strict comparisons it replaced did.
+  const habitDays = (g) => (recent[g.key] || 0);
+  const habitAllTime = (g) => ((archive[g.key] && archive[g.key].played) || 0);
+  const hasHabit = (g) => (habitDays(g) > 0 || habitAllTime(g) > 0);
+  const habitRank = games.filter((g) => !done.has(g.key))
+    .map((g, i) => ({ g, i }))
+    .sort((a, b) => (habitDays(b.g) - habitDays(a.g))
+      || (habitAllTime(b.g) - habitAllTime(a.g))
+      || (a.i - b.i))
+    .map((x) => x.g);
+  // A viewer with NO history on any open game (a guest, or a first visit) falls
+  // back to the old behaviour: first unfinished in board order, which is what an
+  // all-zero ranking sorts to.
+  const nextGame = habitRank[0] || null;
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   // bgames / byKey / hasBoard are built above, beside the display order.
@@ -605,12 +611,70 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const capProg = games.filter((g) => inprog.has(g.key) && !done.has(g.key)
     && !(nextGame && g.key === nextGame.key)
     && !(easiest && g.key === easiest.game.key));
-  // Desktop runs the cap two cards to a row, so an ODD number of showing cards
-  // would leave a half-width hole beside the last one: it takes the full width
-  // instead. Index only, so it costs the phone (one column) nothing, and the
-  // class it drives is scoped to the desktop block.
+
+  // ── the two lower cards (owner, 2026-08-09) ──────────────────────────────
+  // The cap used to be two fixed halves with the paused cards dropped in after
+  // them, which meant ONE paused game left an odd number of cards and the last
+  // one spanned the whole width. A lone banner where a card should be reads as
+  // a bug rather than a layout. Adding a third card would only move the odd
+  // number along (3 with nothing paused, 5 with two), so the fix is parity, not
+  // an extra card: the cap now fills FOUR slots and the count is always even.
+  //
+  //   1  Up next            the game you play most, unchanged
+  //   2  Easiest board      the thinnest field today, unchanged
+  //   3  Familiar favorite  second in the same ranking Up next uses
+  //   4  a paused game      else New to you, a game with no history at all
+  //
+  // Familiar favorite skips in-progress games on purpose: a paused game belongs
+  // in the gold card in slot 4, and a cap that named one game twice would waste
+  // a quarter of itself.
+  const favGame = habitRank.find((g) => hasHabit(g) && !inprog.has(g.key)
+    && !(nextGame && g.key === nextGame.key)
+    && !(easiest && g.key === easiest.game.key)) || null;
+  // Games this viewer has never touched, in board order.
+  const freshPool = games.filter((g) => !done.has(g.key) && !inprog.has(g.key) && !hasHabit(g));
+  const capLead = (() => {
+    // Two cards when nothing is paused, one when the gold card has slot 4.
+    const want = capProg.length ? 1 : 2;
+    const taken = new Set([nextGame && nextGame.key, easiest && easiest.game.key].filter(Boolean));
+    const out = [];
+    const take = (g, kind) => { out.push({ game: g, kind }); taken.add(g.key); };
+    if (favGame) take(favGame, 'fav');
+    for (const g of freshPool) { if (out.length >= want) break; if (!taken.has(g.key)) take(g, 'fresh'); }
+    // Nothing new left either (a viewer who has played the whole slate): fall
+    // further down the habit ranking rather than leave a hole in the grid.
+    for (const g of habitRank) {
+      if (out.length >= want) break;
+      if (!taken.has(g.key) && !inprog.has(g.key)) take(g, 'fav');
+    }
+    return out.slice(0, want);
+  })();
+  // Expanding the paused list is a request to see paused games, so the cap hands
+  // that block the room: the lead cards step aside, which also keeps the fixed
+  // count even (two) while the block runs as its own full-width grid.
+  const capLeadShown = capOpen ? [] : capLead;
+  const capFixed = 2 + capLeadShown.length;
   const capShownD = capOpen ? capProg.length : Math.min(capProg.length, CAP_PROG_D);
-  const capWideAt = capShownD % 2 === 1 ? capShownD - 1 : -1;
+  // Which column a paused card lands in. SHUT the block is display:contents, so
+  // its cards continue the cap's own grid and the fixed cards above them set the
+  // parity; OPEN it is its own two-column grid and starts at column one. Only
+  // column-one cards carry the divider, since two gold cards side by side have
+  // no colour change between them. A class, not :nth-child, because the wrapper
+  // makes the DOM position and the grid position disagree.
+  const capCol1 = (i) => ((capOpen ? i : capFixed + i) % 2 === 0);
+  // Desktop runs the cap two cards to a row, so an ODD total would leave a
+  // half-width hole beside the last card: it takes the full width instead. With
+  // four cards this never fires; it is the backstop for the states that cannot
+  // fill all four (a brand new viewer, or the open paused block).
+  const capOddD = ((capOpen ? capShownD : capFixed + capShownD) % 2 === 1);
+  const capWideAt = capOddD && capShownD > 0 ? capShownD - 1 : -1;
+  const capLeadWideAt = capOddD && capShownD === 0 ? capLeadShown.length - 1 : -1;
+  // The sub line each lower card carries. Familiar favorite prints the habit it
+  // was chosen on, which is the one figure that explains why the card is there;
+  // New to you says plainly that there is no history to print.
+  const habitNote = (g) => (habitDays(g) > 0
+    ? ` \u00b7 played ${habitDays(g)} of the last ${RECENT_DAYS} days`
+    : (habitAllTime(g) > 0 ? ` \u00b7 ${habitAllTime(g)} days played all time` : ''));
 
   // The player's row on a game's per-game board (their score/rank today).
   const myRow = (key) => {
@@ -1709,7 +1773,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              for a game you have started. Hairlines between them, since two gold
              cards side by side have no colour change to divide them. */
           .dhome.slate .dh-cell.prog{background:var(--gold);color:#2a1f04;text-decoration:none;border-bottom:1px solid rgba(20,22,28,.12);}
-          .dhome.slate .dh-cell.prog:nth-child(odd){border-right:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog.capL{border-right:1px solid rgba(20,22,28,.12);}
           .dhome.slate .dh-cell.prog:hover{background:#e0a92c;}
           .dhome.slate .dh-cell.prog::before{background:rgba(42,31,4,.55);}
           .dhome.slate .dh-cell.prog .dh-bue{color:#7a5a10;}
@@ -1718,6 +1782,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-cell.prog .dh-play{background:var(--white);color:#8a5306;}
           .dhome.slate .dh-cell.prog:hover .dh-play{background:var(--white);}
           .dhome.slate .dh-cell.prog.capw{grid-column:1/-1;border-right:none;}
+          /* Familiar favorite and New to you: the third and fourth tones of the
+             cap's blue ramp (owner, 2026-08-09). Hairlines above them the way
+             the gold cards carry them, since two blues of one family sitting in
+             the same row need a divider where the first two tones, far enough
+             apart to divide themselves, do not. */
+          .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.fav:hover{background:#4a7ce0;}
+          .dhome.slate .dh-cell.fresh:hover{background:#1d3d85;}
+          .dhome.slate .dh-cell.fav.capw,.dhome.slate .dh-cell.fresh.capw{grid-column:1/-1;}
           /* Open: a scroller that borrows Ready to play's space instead of
              pushing the console past the fold. The ceiling is --cap-pmax,
              measured in the fit effect; the vh fallback only ever applies for
@@ -1768,7 +1842,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-cell.prog .dh-bun{color:#2a1f04;}
           .dhome.slate .dh-cell.prog .dh-busub{color:#6b5210;}
           .dhome.slate .dh-cell.prog .dh-play{background:var(--white);color:#8a5306;}
-          /* The phone cut: three cards. */
+          /* The other two cap cards, stacked with the rest. Same two tones the
+             desktop cap uses, so the ramp reads the same at both widths. */
+          .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;}
+          .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;}
+          /* The phone cut. */
           .dh-cell.cap-hm{display:none;}
         }
         /* 43px, matched to the rails' panel headers so the Up next bar below
@@ -1790,7 +1868,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            2026-08-08). Each takes the deeper --surface-alt fill and a darker
            rule top AND bottom now, so it reads as a band across the console
            rather than a gap in it. */
-        .sl-filt{display:flex;background:var(--accent);border-top:1.5px solid #16306e;border-bottom:2px solid #16306e;overflow-x:auto;scrollbar-width:none;}
+        .sl-filt{flex:none;display:flex;background:var(--accent);border-top:1.5px solid #16306e;border-bottom:2px solid #16306e;overflow-x:auto;scrollbar-width:none;}
         .sl-filt::-webkit-scrollbar{display:none;}
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#b9cbec;padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--white);}
@@ -2136,8 +2214,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              column one here, which is the same trick the desktop cap uses. */
           .dhome.slate .dh-sbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
           .dhome.slate .dh-cell{width:auto;}
-          .dhome.slate .dh-cell.prog:nth-child(odd){border-right:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog.capL{border-right:1px solid rgba(20,22,28,.12);}
           .dhome.slate .dh-cell.prog.capw{grid-column:1/-1;}
+          .dhome.slate .dh-cell.fav.capw,.dhome.slate .dh-cell.fresh.capw{grid-column:1/-1;}
           /* The board. The centre hairline is the same painted gradient the
              desktop slate uses, so a column with fewer rows than its neighbour
              still shows the split all the way down. */
@@ -2363,6 +2442,29 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             </>
           )}
         </div>
+        {/* Familiar favorite, and New to you beside it when nothing is paused.
+            Between them they hold the cap at four cards in every state, which is
+            what retired the full-width lone paused card: with an even grid no
+            card is ever left standing on its own row. Two more tones of the same
+            blue ramp, and the WHOLE card is the link (the button is a span
+            inside it, never a second anchor), exactly as the paused cards are. */}
+        {capLeadShown.map((c, i) => (
+          <a
+            key={c.game.key}
+            href={c.game.href}
+            aria-label={`Play ${c.game.name}`}
+            className={'dh-cell ' + c.kind + (i === capLeadWideAt ? ' capw' : '')}
+          >
+            <div className="dh-bupt">
+              <div className="dh-bue">{c.kind === 'fav' ? 'Familiar favorite' : 'New to you'}</div>
+              <div className="dh-bun">{c.game.name}</div>
+              <div className="dh-busub">{c.game.tag}{c.kind === 'fav' ? habitNote(c.game) : ' \u00b7 never played'}</div>
+            </div>
+            <span className="dh-play">
+              <Play size={11} fill="currentColor" strokeWidth={0} />Play
+            </span>
+          </a>
+        ))}
         {/* The paused cards. Same card as the two above it, in gold: same
             padding, same white rule where the emblem would be, an eyebrow over
             the name over a sub line, and the same button on the right edge.
@@ -2377,6 +2479,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 href={g.href}
                 aria-label={`Resume ${g.name}`}
                 className={'dh-cell prog'
+                  + (capCol1(i) ? ' capL' : '')
                   + (i === capWideAt ? ' capw' : '')
                   + (!capOpen && i >= CAP_PROG_D ? ' cap-hd' : '')
                   + (!capOpen && i >= CAP_PROG_M ? ' cap-hm' : '')}
@@ -2496,6 +2599,27 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       {/* tile board. The expand panel is absolutely positioned over the whole
           console (see below), so opening a tile covers this rather than
           displacing it. */}
+      {/* The category strip is a SIBLING of the board wrap, never a child of it
+          (owner, 2026-08-09). Inside it, the wrap's 1.5px side borders inset the
+          strip, so this navy band came out 3px narrower than the navy title band
+          directly above it and a grey hairline ran down each side. Up here both
+          navy bands span the console on the same pixel. It keeps no `order`, so
+          the phone's order flip (bar -1, title 0, board 1) still lands it between
+          the title band and the board on source order alone. */}
+      {slate ? (
+        <div className="sl-filt" role="tablist" aria-label="Filter the slate">
+          {[['all', 'All'], ['todo', 'Unplayed']].concat(slateCats.map((c) => [c, CAT_SHORT[c] || c])).map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={filter === k}
+              className={filter === k ? 'on' : undefined}
+              onClick={() => setFilter(k)}
+            >{label}</button>
+          ))}
+        </div>
+      ) : null}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '') + (slate ? ' slate' : '')}>
         <div className="dh-vpwrap">
         <div
@@ -2506,20 +2630,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
         >
-          {slate ? (
-            <div className="sl-filt" role="tablist" aria-label="Filter the slate">
-              {[['all', 'All'], ['todo', 'Unplayed']].concat(slateCats.map((c) => [c, CAT_SHORT[c] || c])).map(([k, label]) => (
-                <button
-                  key={k}
-                  type="button"
-                  role="tab"
-                  aria-selected={filter === k}
-                  className={filter === k ? 'on' : undefined}
-                  onClick={() => setFilter(k)}
-                >{label}</button>
-              ))}
-            </div>
-          ) : null}
           <div
             ref={boardRef}
             className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '')}
