@@ -3106,8 +3106,21 @@ must not be punished for the author's collision.
   any length holding fewer than 500 words, so a future truncation degrades to
   accepting anything rather than accepting nothing.
   `scripts/verify-daily-banks.mjs crux` fails the bank if any slot length in it
-  falls under that floor. The rack games (Tuck, Babel, Shards) keep the 8-letter
-  tuck-dict.txt on purpose: their pars were played out over exactly that list.
+  falls under that floor.
+- **The rack games get the same treatment through a SECOND file, never by
+  editing tuck-dict.txt (2026-08-09).** Tuck (14-15 tiles) and Babel (11-wide
+  board) had the identical hole: a long run was marked invalid whatever it
+  spelled. But `public/tuck-dict.txt` is also the reference corpus the bank
+  verifiers reason over — Glyph's uniqueness proof, Venn's hidden-word census,
+  Garble's alternate-anagram check, the Shards solver, Tuck's benchmark solver —
+  so widening it would silently move those proofs. Instead
+  `public/tuck-dict-long.txt` carries 9 to 15 letters for PLAYER validation
+  only, unioned in by `lib/rack-dict.js`, which also stands down at any length
+  it cannot cover. tuck-dict.txt is frozen at 2 to 8; do not add to it.
+  Tuck's benchmark solver stays on 2 to 8 deliberately (a benchmark is a mark to
+  BEAT, so a wider player dictionary leaves every banked one reachable, whereas
+  widening the solver would restate played boards). Shards needed nothing: its
+  grid is at most 8 wide, so no run can exceed the base list.
 - Changing a LIVE puzzle's words or grid requires bumping its `rev` field so
   in-flight localStorage saves reset cleanly instead of corrupting.
 

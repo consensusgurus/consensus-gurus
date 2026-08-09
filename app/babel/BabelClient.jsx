@@ -48,6 +48,7 @@ import {
   applyMove, validatePlacement, bestReply, rackSum, BAG_SIZE,
 } from '@/lib/babel-engine';
 import { T } from '@/lib/theme';
+import { loadRackDict } from '@/lib/rack-dict';
 import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
@@ -244,21 +245,19 @@ export default function BabelClient({ puzzles, forceNum }) {
 
   // ---- dictionaries (static assets, fetched once) ----
   // The engine gets a trie over the common list; the player's words are checked
-  // against the full list as a plain Set, which is far cheaper than a second trie.
+  // against a plain Set, which is far cheaper than a second trie. That Set now
+  // spans BOTH word files (2-8 plus 9-15), because the board is 11 wide and the
+  // base list alone rejected every 9, 10 and 11 letter word a player could lay.
+  // The OPPONENT's lexicon is untouched: it plays the common list on purpose,
+  // and every banked benchmark was solved against exactly that.
   useEffect(() => {
     let alive = true;
     fetch('/babel-common.txt')
       .then((r) => { if (!r.ok) throw new Error('lex'); return r.text(); })
       .then((t) => { if (alive) setEngineLex(buildLexicon(t.split('\n'))); })
       .catch(() => { if (alive) setDictErr(true); });
-    fetch('/tuck-dict.txt')
-      .then((r) => { if (!r.ok) throw new Error('dict'); return r.text(); })
-      .then((t) => {
-        if (!alive) return;
-        const s = new Set();
-        for (const w of t.split('\n')) { const x = w.trim(); if (x) s.add(x.toUpperCase()); }
-        setDict(s);
-      })
+    loadRackDict({ upper: true })
+      .then((d) => { if (alive) setDict(d); })
       .catch(() => { if (alive) setDictErr(true); });
     return () => { alive = false; };
   }, []);

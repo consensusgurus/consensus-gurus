@@ -14,8 +14,16 @@
 // before submitting, but only your first submitted grid ranks on the daily
 // board. After submitting you can keep tinkering — sandbox only.
 //
-// The dictionary (public/tuck-dict.txt, ~115k words of 2-8 letters) is
-// fetched once as a static asset, never bundled.
+// The dictionary is fetched once as a static asset, never bundled, and comes
+// in two files: public/tuck-dict.txt (2-8 letters, also the corpus the bank
+// verifiers reason over, so frozen) plus public/tuck-dict-long.txt (9-15). A
+// 14-tile rack can spell a 9+ letter run and the base list alone called every
+// one of them invalid until 2026-08-09. See lib/rack-dict.js.
+//
+// The BENCHMARK solver in scripts/verify-tuck.mjs still searches 2-8 letter
+// words only, deliberately: every banked benchmark was scored over that list
+// and a benchmark is a mark to BEAT, so a wider player dictionary leaves each
+// one reachable. Widening the solver would rewrite played boards.
 //
 // Same daily plumbing as Circa/Suds/Stet: banked racks gated by Eastern date
 // on the server (app/tuck/page.js), per-puzzle localStorage saves, /tuck?p=N
@@ -34,6 +42,7 @@ import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
+import { loadRackDict } from '@/lib/rack-dict';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
@@ -219,12 +228,11 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
 
-  // ---- dictionary (static asset, fetched once) ----
+  // ---- dictionary (static assets, fetched once) ----
   useEffect(() => {
     let alive = true;
-    fetch('/tuck-dict.txt')
-      .then((r) => { if (!r.ok) throw new Error('dict'); return r.text(); })
-      .then((t) => { if (alive) setDict(new Set(t.split('\n').map((w) => w.trim()).filter(Boolean))); })
+    loadRackDict()
+      .then((d) => { if (alive) setDict(d); })
       .catch(() => { if (alive) setDictErr(true); });
     return () => { alive = false; };
   }, []);

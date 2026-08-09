@@ -15,7 +15,38 @@ const words = readFileSync(join(here, '../public/tuck-dict.txt'), 'utf8').trim()
 const counts = (a) => { const m = {}; for (const c of a) m[c] = (m[c] || 0) + 1; return m; };
 const fits = (w, r) => { for (const k in w) { if ((r[k] || 0) < w[k]) return false; } return true; };
 const pts = (w) => { let s = 0; for (const c of w) s += PTS[c]; return s; };
+// The benchmark solver stays on 2-8 letter words ON PURPOSE. Every banked
+// benchmark was scored over exactly this list, and a benchmark is a mark to
+// BEAT, so the wider player dictionary (public/tuck-dict-long.txt, see
+// lib/rack-dict.js) leaves each one reachable. Widening the solver here would
+// restate played boards.
 const dict = words.filter((w) => w.length >= 2 && w.length <= 8).map((w) => ({ w, cnt: counts(w.split('')), p: pts(w) }));
+
+// ── the PLAYER's dictionary must cover the whole rack ─────────────────────
+// A rack of N tiles can be spelled as one N-letter run, and the client rejects
+// anything the list does not hold — so a length with no entries rejects every
+// word a player can build at it, which is how Crux's 9-letter slot became
+// unplayable (crux-8-9-26). Proved per length, up to the largest rack banked.
+{
+  const longRaw = (() => {
+    try { return readFileSync(join(here, '../public/tuck-dict-long.txt'), 'utf8').trim().split('\n'); }
+    catch (e) { return []; }
+  })();
+  const byLen = new Map();
+  for (const w of [...words, ...longRaw.map((w) => w.toUpperCase())]) byLen.set(w.length, (byLen.get(w.length) || 0) + 1);
+  // English really does only have ~124 two-letter words, so the floor bends
+  // there. Everywhere else, a length under 500 words is a gap, not a language.
+  const floorAt = (L) => (L === 2 ? 50 : 500);
+  const maxRack = Math.max(...PUZZLES.map((p) => p.letters.length));
+  const thin = [];
+  for (let L = 2; L <= maxRack; L++) if ((byLen.get(L) || 0) < floorAt(L)) thin.push(`${L}:${byLen.get(L) || 0}`);
+  if (thin.length) {
+    console.log(`FAIL  dictionary: too few words at length ${thin.join(', ')} — a player building a run that long is rejected whatever they spell (largest rack is ${maxRack})`);
+    process.exitCode = 1;
+  } else {
+    console.log(`ok    dictionary covers every run length 2 to ${maxRack} (largest rack)`);
+  }
+}
 
 function sub(rc, wc, skipLetter) {
   const r = { ...rc };
