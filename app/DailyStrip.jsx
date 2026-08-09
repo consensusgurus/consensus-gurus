@@ -200,6 +200,19 @@ const TABLET_ROWS = 12;
 // phone's whole-row-opens-the-drawer model. Portrait tablets (744, 768, 820) and
 // the larger phones in landscape (844) all land here.
 const TABLET_MQ = '(min-width:641px) and (max-width:900px)';
+// ...and the tier ABOVE it that is still a touch device (owner, 2026-08-08).
+// The peek was gated on width alone, so every tablet wider than 900px fell
+// through to the desktop slate, which deliberately lists every unfinished game:
+// an iPad Pro 12.9" in portrait (1024) opened on all 54 rows with no expand bar,
+// on exactly the device the peek and the whole-row drawer were built for. The
+// 13" Air is 1024 too and an 11" in landscape is 1180, hence the ceiling.
+// pointer:coarse, NEVER a width alone, so a 1024px laptop window keeps the
+// desktop slate. Above 1180 a touch screen is big enough to carry the full list.
+const TOUCH_WIDE_MQ = '(min-width:901px) and (max-width:1180px) and (pointer:coarse)';
+// The board runs TWO ACROSS in both tiers (the tablet grid below 900px and the
+// desktop grid above it), so both double the peek budget to the same six LINES.
+// A comma is an OR in a media query list, which is what matchMedia takes.
+const TWO_UP_MQ = TABLET_MQ + ', ' + TOUCH_WIDE_MQ;
 // How many PAUSED cards the cap shows before its expand bar takes over (owner,
 // 2026-08-08). TWO at both widths: the cap runs two columns above 900px, so two
 // is exactly one row of cards there, and the point of the cap is to hand you
@@ -410,7 +423,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [twoUp, setTwoUp] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
-    const mq = window.matchMedia(TABLET_MQ);
+    const mq = window.matchMedia(TWO_UP_MQ);
     const on = () => setTwoUp(mq.matches);
     on();
     if (mq.addEventListener) { mq.addEventListener('change', on); return () => mq.removeEventListener('change', on); }
@@ -662,7 +675,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     let raf = 0;
     const fit = () => {
       raf = 0;
-      if (window.innerWidth <= 900) { board.style.removeProperty('--dh-fit'); return; }
+      // The board is height:auto and scrolls with the page in BOTH peek tiers,
+      // so there is no fixed port to size: the phone/tablet one under 900px, and
+      // the touch-wide one above it (TOUCH_WIDE_MQ), which would otherwise get a
+      // fold-height scroll port holding six rows and a lot of white.
+      const coarseWide = window.matchMedia && window.matchMedia(TOUCH_WIDE_MQ).matches;
+      if (window.innerWidth <= 900 || coarseWide) { board.style.removeProperty('--dh-fit'); return; }
       // Document offset, not the viewport rect: the row is meant to fit the
       // fold as seen from the TOP of the page, wherever the reader has
       // scrolled to when a resize happens to fire.
@@ -2033,6 +2051,41 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* 42vw of leader chip is most of a 364px track, and the tagline is the
              item that should be shrinking, not the thing after it. */
           .sl-mld{max-width:19vw;}
+        }
+        /* -- touch tablets ABOVE 900px: the desktop slate, with the phone's peek
+           (owner, 2026-08-08) --------------------------------------------------
+           This tier keeps everything the min-width:901px block just built: the
+           two-column grid, the three-track row, the bands, the whole-row drawer.
+           The desktop row is already touch-shaped (Play leads the drawer where
+           there is no hover, see the hover:hover block above), so the ONLY thing
+           a tablet was missing is the lid. Four rules, and nothing here is a
+           second implementation of anything.
+           This block must stay AFTER the 901px block and after the base .sl-more
+           rule: it wins on source order, not specificity. */
+        @media(min-width:901px) and (max-width:1180px) and (pointer:coarse){
+          /* Height first. The desktop board is a fixed scroll port sized to the
+             fold (--dh-fit); with only six rows peeking, that port would be
+             mostly white. It scrolls with the page here, exactly as it does on a
+             phone, and the fit effect leaves --dh-fit unset to match. */
+          .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;}
+          /* ...which also means there is no scroll port for a band to stick
+             inside, and a sticky band would pin itself to the VIEWPORT and ride
+             over the page. The band goes back to sitting on its group. */
+          .sl-band{position:static;}
+          /* The lid itself. Desktop scopes this to .done, because it lists every
+             unfinished row; here every hidden row hides, paused ones included.
+             Three classes because the base .sl-row display rule sits later in
+             this stylesheet, the same reason the desktop rule carries them. */
+          .dh-board.slate .sl-row.sl-hid,.dh-board.slate .sl-drawer.sl-hid{display:none;}
+          /* ...and the way back out, which is dead (display:none) at every other
+             width above 900px. Same bar the phone renders, spanning both
+             columns, at the foot of Ready to play. */
+          .sl-more{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;grid-column:1/-1;
+            padding:5px 13px;border:0;border-radius:0;border-top:2px solid #c2ccdc;border-bottom:2px solid #c2ccdc;background:#e8edf5;
+            font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+            line-height:1.5;color:var(--blue-deep);cursor:pointer;}
+          .sl-more:active{background:#dde5f0;}
+          .sl-more.todo{order:7;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}
