@@ -3,88 +3,75 @@
 //
 // Everything here is RECOMPUTED from the board, never read back off the row.
 //
-// The claim that matters is SOLVABILITY, and specifically FINDABLE solvability.
-// Boards are built backwards from a self-avoiding walk, so a solution always
-// exists by construction; that is not worth checking and not worth much. What
-// this file checks is that a search which knows NOTHING about how the board was
-// built can still finish it, because a board only the generator can solve is a
-// needle hunt rather than a puzzle. Every board must fall to that search, and
-// the found route is then replayed through lib/chomp-engine, the module the game
-// actually plays through, so a bank that verifies here cannot be unplayable
-// there.
+// ⚠️ REWRITTEN 2026-08-09, because the version this replaced passed a bank that
+// played itself. It is worth being precise about how, since the failure was in
+// the CHECK rather than in the data:
 //
-// ⚠️ The reachability prune must treat an unreached mascot as PASSABLE. It is
-// the thing being asked about, and blocking it makes the check unsatisfiable.
-// That bug shipped in an early draft and made the solver report every board
-// unsolvable, which nearly got reported as a design failure.
+//   It gated on a CAREFUL GREEDY BOT: head for the mascot in front of you, refuse
+//   any move that visibly strands something. A board that bot could not finish
+//   was called hard. Measured after the complaint, a BEAM PLANNER holding a few
+//   hundred ideas at once cleared 63 of those 70 boards. The bank was hard for a
+//   bot and easy for a person, which is the wrong way round, and it was the third
+//   player model in a row to be beaten this way (myopic, then careful, now this).
 //
-// Ranges enforced (documented in app/chomp/puzzles.js):
-//   board       10x10 from day two; day one is a frozen 13x13
-//   cast        set by the weekday ramp (5 on Mon/Tue up to the full 8 on
-//               Sunday), no repeats, always opening with the bulldog
-//   ramp        board size AND cast size must match the weekday, and the week
-//               must actually get harder: Monday to Sunday spans 30+ points of
-//               careful-player progress and never trends back up
-//   pellets     one per cast member, in bounds, distinct, never on the start
-//   floor       equals the recomputed Manhattan leg sum
-//   sunday      true if and only if `live` really is a Sunday, and spread wider
-//   difficulty  no unplanned line may clear the board, and from 2026-08-09 a
-//               PLANNER with lookahead may not clear it either
-//   variety     start cells and mascot cells spread across the bank, and the
-//               cast order must actually rotate
+//   So the model is no longer the whole story. The bank also has to be TIGHT: a
+//   board where the shortest legal route uses 40 of 100 squares leaves the trail
+//   too much room to ever be a wall, whatever bot you point at it. That is the
+//   coverage ramp below, and it is a property of the BOARD rather than of any
+//   player, which is why it is the check worth trusting.
+//
+// The claims checked, in order:
+//   shape       row shape, the weekday ramp, cast rules, pellet placement
+//   floor       the stored floor really is the Manhattan leg sum
+//   findable    an independent exhaustive search finds the optimum, and
+//               lib/chomp-engine replays it move for move
+//   sunday      the flag matches the calendar, and Sunday is the peak rung
+//   difficulty  no unplanned line, no careful player, AND NO BEAM PLANNER clears
+//               any board
+//   ramp        forced coverage rises Monday to Sunday and lands in each day's
+//               band
+//   variety     start squares, mascot squares and cast orders spread out
+//   scoring     partial credit behaves at every cast length
 import { PUZZLES, MASCOTS } from '../app/chomp/puzzles.js';
-import { replay, freshState } from '../lib/chomp-engine.js';
+import { replay } from '../lib/chomp-engine.js';
 
-const CHOMP_RULES_FROM = '2026-08-08';   // the launch day: nothing grandfathered yet
+// Days one and two shipped before the rebuild and have been PLAYED and scored,
+// so their boards are frozen history and the new gates do not run on them. Their
+// annotations (floor, min) are still recomputed, because those are derived facts
+// rather than the puzzle.
+const REBUILT_FROM = '2026-08-10';
 
-// Only the BULLDOG is fixed. Everything after it is a random order drawn from
-// the other seven, and the COUNT varies by day: five to seven on a weekday, the
-// whole cast on a Sunday.
 const FIRST_MASCOT = 'bulldog';
-const CAST_MIN = 5, CAST_MAX = 8;
-// THE WEEKDAY RAMP (owner, 2026-08-08): board size and mascot count together.
-// Indexed by getUTCDay, so index 0 is Sunday. Day one predates the ramp.
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// THE WEEKDAY RAMP. Board size, cast size, and the forced-coverage band, indexed
+// by getUTCDay so index 0 is Sunday. Coverage is (min + 1) / cells: the share of
+// the board the player has NO CHOICE but to use. 6x6 is deliberately absent, see
+// app/chomp/puzzles.js.
 const RAMP = [
-  { w: 9, cast: 8 },   // Sun: smallest board, whole cast
-  { w: 11, cast: 5 },  // Mon: roomiest, fewest to chase
-  { w: 10, cast: 5 },
-  { w: 10, cast: 6 },
-  { w: 10, cast: 6 },
-  { w: 10, cast: 7 },
-  { w: 10, cast: 7 },  // Sat
+  { w: 7, cast: 8, cov: [0.88, 1.00] },  // Sun
+  { w: 8, cast: 6, cov: [0.56, 0.66] },  // Mon
+  { w: 8, cast: 6, cov: [0.64, 0.72] },
+  { w: 8, cast: 7, cov: [0.70, 0.78] },
+  { w: 8, cast: 7, cov: [0.76, 0.84] },
+  { w: 7, cast: 6, cov: [0.80, 0.88] },
+  { w: 7, cast: 7, cov: [0.84, 0.92] },  // Sat
 ];
-// THE HARDNESS GATE, third and final version (owner, 2026-08-08, twice).
-//
-// Gating on a MYOPIC bot was the mistake, twice over. Boards that beat a
-// shortest-path bot with no lookahead still fell to anyone who thinks a move
-// ahead, so two banks in a row played too easily. Measured: a planner with even
-// 600 nodes of lookahead cleared 12 of 12 of the "hard" bank.
-//
-// The gate is now a CAREFUL PLAYER: head for the mascot in front of you, refuse
-// any move that visibly strands something. That is what a person actually does,
-// and a board it clears is a board that plays itself. So: the careful player
-// must FAIL and the full search must still succeed.
-//
-// That pair was IMPOSSIBLE to satisfy at 13x13 (0 of 29 candidates), which is
-// what forced the board down to 10x10. Day one is a frozen 13x13 and predates
-// all of it, so the gate runs from day two on.
-
-const HARD_FLOOR_FROM = '2026-08-09';
-const SOLVER_CAP = 400000;
+const CAST_MIN = 6, CAST_MAX = 8;
+const SOLVER_CAP = 4000000;
+const BEAM_WIDTH = 300;
 
 let BAD = 0;
 const fail = (tag, msg) => { BAD += 1; console.log(`✗ ${tag}: ${msg}`); };
 const ok = (tag, msg) => console.log(`  ${tag}: ${msg}`);
 const note = (tag, msg) => console.log(`… ${tag}: ${msg}`);
 
-// Board geometry is PER PUZZLE now. Day one shipped at 13x13 and is frozen;
-// everything from day two is 10x10, which is the size at which a difficulty band
-// exists at all (see app/chomp/puzzles.js).
 const idxOf = (p, x, y) => y * p.w + x;
 const insideOf = (p, x, y) => x >= 0 && y >= 0 && x < p.w && y < p.h;
 const manh = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const dowOf = (p) => new Date(`${p.live}T12:00:00Z`).getUTCDay();
+const rungOf = (p) => RAMP[dowOf(p)];
+const coverOf = (p, min) => (min + 1) / (p.w * p.h);
 
 function floorOf(p) {
   let L = manh(p.start, p.pellets[0]);
@@ -92,191 +79,233 @@ function floorOf(p) {
   return L;
 }
 
-// The independent solver. Written out fresh here rather than imported from the
-// generator, so a bug in the generator's copy cannot pass its own bank.
-function findRoute(p, cap) {
-  const CELLS = p.w * p.h;
-  const idx = (x, y) => idxOf(p, x, y);
-  const inside = (x, y) => insideOf(p, x, y);
-  const occ = new Uint8Array(CELLS);
-  occ[idx(p.start[0], p.start[1])] = 1;
-  const route = [];
-  let nodes = 0;
-
-  const blocked = (pi, x, y) => {
-    if (!inside(x, y) || occ[idx(x, y)]) return true;
-    for (let k = pi + 1; k < p.pellets.length; k++) {
-      if (p.pellets[k][0] === x && p.pellets[k][1] === y) return true;
-    }
-    return false;
-  };
-  // free-space flood from the head. Unreached mascots are PASSABLE here on
-  // purpose: they are the destinations, not walls, for the purposes of asking
-  // whether anything has been stranded.
-  const reachAll = (pi, hx, hy) => {
-    const seen = new Uint8Array(CELLS);
-    seen[idx(hx, hy)] = 1;
-    const q = [[hx, hy]];
-    for (let i = 0; i < q.length; i++) {
-      const [cx, cy] = q[i];
+// shared helpers: a square is blocked by the board edge, by the trail, or by a
+// mascot whose turn has not come. `reach` asks whether everything still to eat
+// is still reachable, and treats unreached mascots as PASSABLE on purpose: they
+// are the destinations, not walls, for the purposes of that question. Blocking
+// them makes the check unsatisfiable, a bug that shipped once and nearly got
+// reported as a design failure.
+const blocker = (p, occ) => (q, x, y) => {
+  if (!insideOf(p, x, y) || occ[idxOf(p, x, y)]) return true;
+  for (let k = q + 1; k < p.pellets.length; k++) if (p.pellets[k][0] === x && p.pellets[k][1] === y) return true;
+  return false;
+};
+const reacher = (p, occ) => {
+  const C = p.w * p.h, seen = new Uint8Array(C);
+  return (q, x, y) => {
+    seen.fill(0); const i0 = idxOf(p, x, y); seen[i0] = 1; const st = [i0];
+    for (let i = 0; i < st.length; i++) {
+      const c = st[i], cx = c % p.w, cy = (c - cx) / p.w;
       for (const d of DIRS) {
         const nx = cx + d[0], ny = cy + d[1];
-        if (!inside(nx, ny) || occ[idx(nx, ny)] || seen[idx(nx, ny)]) continue;
-        seen[idx(nx, ny)] = 1; q.push([nx, ny]);
+        if (!insideOf(p, nx, ny)) continue;
+        const j = idxOf(p, nx, ny);
+        if (occ[j] || seen[j]) continue;
+        seen[j] = 1; st.push(j);
       }
     }
-    for (let k = pi; k < p.pellets.length; k++) {
-      if (!seen[idx(p.pellets[k][0], p.pellets[k][1])]) return false;
-    }
+    for (let k = q; k < p.pellets.length; k++) if (!seen[idxOf(p, p.pellets[k][0], p.pellets[k][1])]) return false;
     return true;
   };
+};
 
-  function dfs(hx, hy, pi) {
-    if (pi >= p.pellets.length) return true;
-    if (++nodes > cap) return false;
+// THE EXACT SEARCH. IDA* on route length, so it returns the true optimum rather
+// than the first route it stumbles into, and it is written out fresh here rather
+// than imported from the generator so a bug in the generator's copy cannot pass
+// its own bank. Finding an optimum at all is also the findability proof: this
+// search knows nothing about the walk each board was built from.
+function shortestRoute(p, cap = SOLVER_CAP) {
+  const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
+  occ[idxOf(p, p.start[0], p.start[1])] = 1;
+  const bl = blocker(p, occ), reach = reacher(p, occ);
+  const suffix = new Array(K + 2).fill(0);
+  for (let k = K - 1; k >= 1; k--) suffix[k] = suffix[k + 1] + manh(p.pellets[k - 1], p.pellets[k]);
+  const lower = (x, y, pi) => (pi >= K ? 0 : manh([x, y], p.pellets[pi]) + suffix[pi + 1]);
+  let nodes = 0, best = null, route = [], hit = false;
+  const path = [];
+  function dfs(x, y, pi, g, lim) {
+    if (pi >= K) { best = g; route = path.slice(); return true; }
+    if (++nodes > cap) { hit = true; return false; }
+    if (g + lower(x, y, pi) > lim) return false;
     const t = p.pellets[pi];
-    const opts = DIRS.filter((d) => !blocked(pi, hx + d[0], hy + d[1]))
-      .sort((a, b) => manh([hx + a[0], hy + a[1]], t) - manh([hx + b[0], hy + b[1]], t));
+    const opts = DIRS.filter((d) => !bl(pi, x + d[0], y + d[1]))
+      .sort((a, b) => manh([x + a[0], y + a[1]], t) - manh([x + b[0], y + b[1]], t));
     for (const d of opts) {
-      const nx = hx + d[0], ny = hy + d[1];
+      const nx = x + d[0], ny = y + d[1];
       const np = (nx === t[0] && ny === t[1]) ? pi + 1 : pi;
-      occ[idx(nx, ny)] = 1; route.push(d);
-      if (np >= p.pellets.length || reachAll(np, nx, ny)) {
-        if (dfs(nx, ny, np)) return true;
-      }
-      route.pop(); occ[idx(nx, ny)] = 0;
+      occ[idxOf(p, nx, ny)] = 1; path.push(d);
+      if (np >= K || reach(np, nx, ny)) { if (dfs(nx, ny, np, g + 1, lim)) { occ[idxOf(p, nx, ny)] = 0; path.pop(); return true; } }
+      occ[idxOf(p, nx, ny)] = 0; path.pop();
     }
     return false;
   }
-  return dfs(p.start[0], p.start[1], 0) ? route.slice() : null;
+  for (let lim = lower(p.start[0], p.start[1], 0); lim <= C - 1; lim += 2) {
+    nodes = 0; hit = false;
+    if (dfs(p.start[0], p.start[1], 0, 0, lim)) return { min: best, route, capped: false };
+    if (hit) return { min: null, route: null, capped: true };
+  }
+  return { min: null, route: null, capped: false };
 }
 
-// The unplanned lines. `mode` bfs re-plans a true shortest path each move and
-// detours around its own wall, but never looks past the mascot it is chasing.
+// The unplanned lines: they re-plan towards the mascot in front of them and
+// detour around their own wall, but never look past it.
 function unplanned(p, mode) {
-  const CELLS = p.w * p.h;
-  const idx = (x, y) => idxOf(p, x, y);
-  const inside = (x, y) => insideOf(p, x, y);
-  const occ = new Uint8Array(CELLS);
+  const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
   let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
-  occ[idx(hx, hy)] = 1;
+  occ[idxOf(p, hx, hy)] = 1;
   const legal = (x, y) => {
-    if (!inside(x, y) || occ[idx(x, y)]) return false;
-    for (let k = pi + 1; k < p.pellets.length; k++) if (p.pellets[k][0] === x && p.pellets[k][1] === y) return false;
+    if (!insideOf(p, x, y) || occ[idxOf(p, x, y)]) return false;
+    for (let k = pi + 1; k < K; k++) if (p.pellets[k][0] === x && p.pellets[k][1] === y) return false;
     return true;
   };
-  while (pi < p.pellets.length && moves < CELLS * 3) {
+  while (pi < K && moves < C * 3) {
     const t = p.pellets[pi];
     let pick = null;
     if (mode === 'bfs') {
-      const dist = new Int32Array(CELLS).fill(-1);
-      dist[idx(t[0], t[1])] = 0;
+      const dist = new Int32Array(C).fill(-1);
+      dist[idxOf(p, t[0], t[1])] = 0;
       const q = [t];
       for (let i = 0; i < q.length; i++) {
         const [cx, cy] = q[i];
         for (const d of DIRS) {
           const nx = cx + d[0], ny = cy + d[1];
-          if (!inside(nx, ny) || dist[idx(nx, ny)] >= 0 || !legal(nx, ny)) continue;
-          dist[idx(nx, ny)] = dist[idx(cx, cy)] + 1; q.push([nx, ny]);
+          if (!insideOf(p, nx, ny) || dist[idxOf(p, nx, ny)] >= 0 || !legal(nx, ny)) continue;
+          dist[idxOf(p, nx, ny)] = dist[idxOf(p, cx, cy)] + 1; q.push([nx, ny]);
         }
       }
       let bd = Infinity;
       for (const d of DIRS) {
         const nx = hx + d[0], ny = hy + d[1];
         if (!legal(nx, ny)) continue;
-        const dd = dist[idx(nx, ny)];
+        const dd = dist[idxOf(p, nx, ny)];
         if (dd < 0) continue;
         const sc = dd * 2 + (d[0] === ld[0] && d[1] === ld[1] ? 0 : 1);
         if (sc < bd) { bd = sc; pick = d; }
       }
     } else {
-      const dx = t[0] - hx, dy = t[1] - hy;
-      const opts = [];
+      const dx = t[0] - hx, dy = t[1] - hy, opts = [];
       if (dx !== 0) opts.push([Math.sign(dx), 0]);
       if (dy !== 0) opts.push([0, Math.sign(dy)]);
-      if (mode === 'straight' && opts.some((d) => d[0] === ld[0] && d[1] === ld[1])) {
-        pick = opts.find((d) => d[0] === ld[0] && d[1] === ld[1]);
-      } else if (opts.length === 2) pick = Math.abs(dx) >= Math.abs(dy) ? opts[0] : opts[1];
+      if (mode === 'straight' && opts.some((d) => d[0] === ld[0] && d[1] === ld[1])) pick = opts.find((d) => d[0] === ld[0] && d[1] === ld[1]);
+      else if (opts.length === 2) pick = Math.abs(dx) >= Math.abs(dy) ? opts[0] : opts[1];
       else pick = opts[0] || null;
       if (pick && !legal(hx + pick[0], hy + pick[1])) pick = null;
     }
     if (!pick) return { moves, caught: pi, cleared: false };
-    hx += pick[0]; hy += pick[1]; occ[idx(hx, hy)] = 1;
+    hx += pick[0]; hy += pick[1]; occ[idxOf(p, hx, hy)] = 1;
     if (hx === t[0] && hy === t[1]) pi += 1;
     ld = pick; moves += 1;
   }
-  return { moves, caught: pi, cleared: pi >= p.pellets.length };
+  return { moves, caught: pi, cleared: pi >= K };
 }
 
-// THE CAREFUL HUMAN, the player model the bank has to defeat.
-//
-// This replaced a "planner" that demanded a full proof before every move and so
-// bailed on move one of everything, which made the gate look like it was biting
-// when it was really just failing. A person does not prove; they head for the
-// mascot in front of them and refuse moves that visibly strand something. That
-// is exactly this, and it is the model that exposed the 13x13 bank: it cleared
-// 12 of 12 there and clears 0 of 70 here.
+// THE CAREFUL PLAYER. Head for the mascot in front of you, refuse any move that
+// visibly strands something. Kept as a floor rather than as the gate: it is a
+// real player model, it is just not a good enough one on its own.
 function carefulClears(p) {
-  const CELLS = p.w * p.h;
-  const idx = (x, y) => idxOf(p, x, y);
-  const inside = (x, y) => insideOf(p, x, y);
-  const pel = p.pellets;
-  const occ = new Uint8Array(CELLS);
+  const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
   let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
-  occ[idx(hx, hy)] = 1;
-  const bl = (q, x, y) => {
-    if (!inside(x, y) || occ[idx(x, y)]) return true;
-    for (let k = q + 1; k < pel.length; k++) if (pel[k][0] === x && pel[k][1] === y) return true;
-    return false;
-  };
-  const reach = (q, x, y) => {
-    const seen = new Uint8Array(CELLS);
-    seen[idx(x, y)] = 1;
-    const stack = [[x, y]];
-    for (let i = 0; i < stack.length; i++) {
-      const [cx, cy] = stack[i];
-      for (const d of DIRS) {
-        const nx = cx + d[0], ny = cy + d[1];
-        if (!inside(nx, ny) || occ[idx(nx, ny)] || seen[idx(nx, ny)]) continue;
-        seen[idx(nx, ny)] = 1; stack.push([nx, ny]);
-      }
-    }
-    for (let k = q; k < pel.length; k++) if (!seen[idx(pel[k][0], pel[k][1])]) return false;
-    return true;
-  };
-  while (pi < pel.length && moves < CELLS * 3) {
-    const t = pel[pi];
-    const dist = new Int32Array(CELLS).fill(-1);
-    dist[idx(t[0], t[1])] = 0;
+  occ[idxOf(p, hx, hy)] = 1;
+  const bl = blocker(p, occ), reach = reacher(p, occ);
+  while (pi < K && moves < C * 3) {
+    const t = p.pellets[pi];
+    const dist = new Int32Array(C).fill(-1);
+    dist[idxOf(p, t[0], t[1])] = 0;
     const q = [t];
     for (let i = 0; i < q.length; i++) {
       const [cx, cy] = q[i];
       for (const d of DIRS) {
         const nx = cx + d[0], ny = cy + d[1];
-        if (!inside(nx, ny) || dist[idx(nx, ny)] >= 0 || bl(pi, nx, ny)) continue;
-        dist[idx(nx, ny)] = dist[idx(cx, cy)] + 1; q.push([nx, ny]);
+        if (!insideOf(p, nx, ny) || dist[idxOf(p, nx, ny)] >= 0 || bl(pi, nx, ny)) continue;
+        dist[idxOf(p, nx, ny)] = dist[idxOf(p, cx, cy)] + 1; q.push([nx, ny]);
       }
     }
     const cands = [];
     for (const d of DIRS) {
       const nx = hx + d[0], ny = hy + d[1];
       if (bl(pi, nx, ny)) continue;
-      const dd = dist[idx(nx, ny)];
+      const dd = dist[idxOf(p, nx, ny)];
       if (dd < 0) continue;
-      occ[idx(nx, ny)] = 1;
+      occ[idxOf(p, nx, ny)] = 1;
       const ate = nx === t[0] && ny === t[1];
       const safe = reach(ate ? pi + 1 : pi, nx, ny) ? 1 : 0;
-      occ[idx(nx, ny)] = 0;
+      occ[idxOf(p, nx, ny)] = 0;
       cands.push({ d, dd, safe, st: (d[0] === ld[0] && d[1] === ld[1]) ? 1 : 0 });
     }
     if (!cands.length) return { cleared: false, caught: pi };
     cands.sort((a, b) => (b.safe - a.safe) || (a.dd - b.dd) || (b.st - a.st));
-    const best = cands[0];
-    hx += best.d[0]; hy += best.d[1]; occ[idx(hx, hy)] = 1;
+    const b = cands[0];
+    hx += b.d[0]; hy += b.d[1]; occ[idxOf(p, hx, hy)] = 1;
     if (hx === t[0] && hy === t[1]) pi += 1;
-    ld = best.d; moves += 1;
+    ld = b.d; moves += 1;
   }
-  return { cleared: pi >= pel.length, caught: pi };
+  return { cleared: pi >= K, caught: pi };
+}
+
+// THE BEAM PLANNER: the thoughtful player, and THE GATE.
+//
+// The careful player only refuses moves that strand something right now, which is
+// why a board can beat it and still fall to anybody who thinks two moves ahead.
+// This one keeps W partial games alive at once and lets them compete, which is
+// what a person does when they try an idea, watch it fail, and back up. On the
+// bank this rule replaced it cleared 63 of 70 boards the careful player could not
+// finish.
+//
+// The trail is carried as a BITSET of 32-bit words rather than a byte array,
+// because copying the trail is essentially the whole cost of running a beam and
+// three numbers copy for nothing. That is also what makes the dedupe LOSSLESS:
+// everything the rules care about from here on is the set of occupied squares,
+// where the head is, and how many mascots are gone, so two states agreeing on all
+// three are the SAME position however differently they got there. Deduping on the
+// head alone is a different and far weaker thing, and it makes the beam useless as
+// a gate while making it look fast.
+function beamClears(p, W = BEAM_WIDTH) {
+  const C = p.w * p.h, K = p.pellets.length, maxSteps = C * 2, NW = Math.ceil(C / 32);
+  const seen = new Uint8Array(C), stack = new Int32Array(C);
+  const later = new Int32Array(C).fill(-1);   // -1 = plain square, else the mascot's place in the cast
+  for (let k = 0; k < K; k++) later[idxOf(p, p.pellets[k][0], p.pellets[k][1])] = k;
+  const has = (w, i) => (w[i >> 5] >>> (i & 31)) & 1;
+  const room = (w, q, x, y) => {
+    seen.fill(0); const i0 = idxOf(p, x, y); seen[i0] = 1; let top = 0, n = 0; stack[top++] = i0;
+    while (top) {
+      const c = stack[--top], cx = c % p.w, cy = (c - cx) / p.w;
+      for (const d of DIRS) {
+        const nx = cx + d[0], ny = cy + d[1];
+        if (!insideOf(p, nx, ny)) continue;
+        const j = idxOf(p, nx, ny);
+        if (seen[j] || has(w, j)) continue;
+        seen[j] = 1; stack[top++] = j; n++;
+      }
+    }
+    for (let k = q; k < K; k++) if (!seen[idxOf(p, p.pellets[k][0], p.pellets[k][1])]) return -1;
+    return n;
+  };
+  const w0 = new Array(NW).fill(0), s0 = idxOf(p, p.start[0], p.start[1]);
+  w0[s0 >> 5] |= (1 << (s0 & 31));
+  let beam = [{ w: w0, x: p.start[0], y: p.start[1], pi: 0, mv: 0 }];
+  for (let step = 0; step < maxSteps; step++) {
+    const next = [], sig = new Set();
+    for (const s of beam) {
+      for (const d of DIRS) {
+        const nx = s.x + d[0], ny = s.y + d[1];
+        if (!insideOf(p, nx, ny)) continue;
+        const j = idxOf(p, nx, ny);
+        if (has(s.w, j)) continue;
+        if (later[j] >= 0 && later[j] > s.pi) continue;   // a mascot whose turn has not come is solid
+        const pi = later[j] === s.pi ? s.pi + 1 : s.pi;
+        if (pi >= K) return { cleared: true, moves: s.mv + 1 };
+        const w = s.w.slice(); w[j >> 5] |= (1 << (j & 31));
+        const key = `${w.join(',')}|${j}|${pi}`;
+        if (sig.has(key)) continue; sig.add(key);
+        const r = room(w, pi, nx, ny); if (r < 0) continue;
+        next.push({ w, x: nx, y: ny, pi, mv: s.mv + 1, sc: pi * 100000 - manh([nx, ny], p.pellets[pi]) * 10 + r });
+      }
+    }
+    if (!next.length) break;
+    next.sort((a, b) => b.sc - a.sc);
+    beam = next.slice(0, W);
+  }
+  return { cleared: false, caught: beam.length ? Math.max(...beam.map((s) => s.pi)) : 0 };
 }
 
 // ---------- 1. row shape, cast and ranges -----------------------------------
@@ -289,24 +318,22 @@ function carefulClears(p) {
     prevNum = p.num;
     if (p.live <= prevLive) why.push('live date not strictly increasing');
     prevLive = p.live;
-    // board size and cast size are the weekday RAMP, so both are checked against
-    // the day of the week rather than against one fixed value
-    const dow = new Date(`${p.live}T12:00:00Z`).getUTCDay();
-    const rung = p.live < '2026-08-09' ? { w: 13, cast: 6 } : RAMP[dow];
-    if (p.w !== rung.w || p.h !== rung.w) why.push(`board is ${p.w}x${p.h}, expected ${rung.w}x${rung.w} on a ${DOW[dow]}`);
-    if (p.cast && p.cast.length !== rung.cast) why.push(`cast of ${p.cast.length}, expected ${rung.cast} on a ${DOW[dow]}`);
+    const dow = dowOf(p);
+    if (p.live >= REBUILT_FROM) {
+      const rung = RAMP[dow];
+      if (p.w !== rung.w || p.h !== rung.w) why.push(`board is ${p.w}x${p.h}, expected ${rung.w}x${rung.w} on a ${DOW[dow]}`);
+      if (p.cast && p.cast.length !== rung.cast) why.push(`cast of ${p.cast.length}, expected ${rung.cast} on a ${DOW[dow]}`);
+      if (!Array.isArray(p.cast) || p.cast.length < CAST_MIN || p.cast.length > CAST_MAX) {
+        why.push(`cast of ${p.cast && p.cast.length}, outside ${CAST_MIN}-${CAST_MAX}`);
+      }
+    }
     const d = new Date(`${p.live}T12:00:00Z`);
     const want = `chomp-${d.getUTCMonth() + 1}-${d.getUTCDate()}-${String(d.getUTCFullYear()).slice(2)}`;
     if (p.quizId !== want) why.push(`quizId ${p.quizId}, expected ${want}`);
-    if (!Array.isArray(p.cast) || p.cast.length < CAST_MIN || p.cast.length > CAST_MAX) {
-      why.push(`cast of ${p.cast && p.cast.length}, expected ${CAST_MIN}-${CAST_MAX}`);
-    } else {
-      if (p.cast[0] !== FIRST_MASCOT) why.push(`opens with ${p.cast[0]}, not the bulldog`);
-      if (new Set(p.cast).size !== p.cast.length) why.push('cast repeats a mascot');
-      for (const m of p.cast) if (!MASCOTS.includes(m)) why.push(`unknown mascot ${m}`);
-
-    }
-    if (p.pellets.length !== (p.cast || []).length) why.push('pellets and cast are different lengths');
+    if (p.cast[0] !== FIRST_MASCOT) why.push(`opens with ${p.cast[0]}, not the bulldog`);
+    if (new Set(p.cast).size !== p.cast.length) why.push('cast repeats a mascot');
+    for (const m of p.cast) if (!MASCOTS.includes(m)) why.push(`unknown mascot ${m}`);
+    if (p.pellets.length !== p.cast.length) why.push('pellets and cast are different lengths');
     const seen = new Set([idxOf(p, p.start[0], p.start[1])]);
     for (const c of p.pellets) {
       if (!insideOf(p, c[0], c[1])) why.push(`pellet ${c} off the board`);
@@ -318,8 +345,8 @@ function carefulClears(p) {
   if (bad.length) fail('shape', bad.slice(0, 4).join(' | '));
   else {
     const sizes = {};
-    for (const p of PUZZLES) sizes[p.cast.length] = (sizes[p.cast.length] || 0) + 1;
-    ok('shape', `${PUZZLES.length} rows, sequential, all opening with the bulldog, cast sizes ${Object.entries(sizes).sort().map(([k, v]) => `${k}x${v}`).join(' ')}`);
+    for (const p of PUZZLES) sizes[`${p.w}x${p.h}`] = (sizes[`${p.w}x${p.h}`] || 0) + 1;
+    ok('shape', `${PUZZLES.length} rows, sequential, all opening with the bulldog, boards ${Object.entries(sizes).map(([k, v]) => `${k}x${v}`).join(' ')}`);
   }
 })();
 
@@ -337,157 +364,172 @@ function carefulClears(p) {
   }
 })();
 
-// ---------- 3. FINDABLE, and the shipped engine agrees ----------------------
+// ---------- 3. the stored optimum is real, and the shipped engine walks it --
+// The stored `min` is not taken on trust: it is recomputed exhaustively, and the
+// route that achieves it is then replayed through lib/chomp-engine, the module
+// the game itself plays through, so a bank that verifies here cannot be
+// unplayable there.
+const MINS = new Map();
 (function findable() {
-  const unsolved = [], enginebad = [];
-  const lens = [], fills = [];
+  const wrong = [], unsolved = [], enginebad = [];
+  const fills = [];
   for (const p of PUZZLES) {
-    const route = findRoute(p, SOLVER_CAP);
-    if (!route) { unsolved.push(`#${p.num} (${p.live})`); continue; }
-    const r = replay(p, route);
-    if (!r.cleared) enginebad.push(`#${p.num} engine does not clear a route the solver found`);
-    else if (r.refused) enginebad.push(`#${p.num} engine refused ${r.refused} legal move(s)`);
-    else { lens.push(r.moves); fills.push(r.fill); }
+    const sr = shortestRoute(p);
+    if (sr.min == null) { unsolved.push(`#${p.num} (${p.live})${sr.capped ? ' [search capped]' : ''}`); continue; }
+    MINS.set(p.num, sr.min);
+    if (p.min !== sr.min) wrong.push(`#${p.num} stores min ${p.min}, recomputed ${sr.min}`);
+    const r = replay(p, sr.route);
+    if (!r.cleared) enginebad.push(`#${p.num} the engine does not clear the optimum the search found`);
+    else if (r.refused) enginebad.push(`#${p.num} the engine refused ${r.refused} legal move(s)`);
+    else if (r.moves !== sr.min) enginebad.push(`#${p.num} the engine walks ${r.moves} where the search says ${sr.min}`);
+    else fills.push(r.fill);
   }
-  if (unsolved.length) fail('findable', `an independent search cannot finish these, so they are not puzzles: ${unsolved.slice(0, 6).join(', ')}`);
+  if (unsolved.length) fail('findable', `an exhaustive search cannot finish these, so they are not puzzles: ${unsolved.slice(0, 6).join(', ')}`);
+  if (wrong.length) fail('findable', wrong.slice(0, 5).join(', '));
   if (enginebad.length) fail('findable', enginebad.slice(0, 4).join('; '));
-  if (!unsolved.length && !enginebad.length) {
-    ok('findable', `all ${PUZZLES.length} fall to a search that knows nothing about how they were built, and lib/chomp-engine replays every route move for move (${Math.min(...lens)}-${Math.max(...lens)} moves, board ${Math.round(Math.min(...fills) * 100)}%-${Math.round(Math.max(...fills) * 100)}% full at the finish)`);
+  if (!unsolved.length && !wrong.length && !enginebad.length) {
+    ok('findable', `every stored min is the true optimum, and lib/chomp-engine replays each one move for move (board ${Math.round(Math.min(...fills) * 100)}%-${Math.round(Math.max(...fills) * 100)}% full at the finish)`);
   }
 })();
 
 // ---------- 4. the Sunday Edition ------------------------------------------
-// Sunday is now the TOP RUNG of the weekday ramp rather than a separate rule:
-// the smallest board of the week carrying the whole cast. The old check compared
-// Manhattan floors, which is wrong now, because a 9x9 board has a shorter floor
-// than a 10x10 one even though it is far harder. Check the ramp instead.
 (function sunday() {
   const bad = [];
   for (const p of PUZZLES) {
-    const really = new Date(`${p.live}T12:00:00Z`).getUTCDay() === 0;
+    const really = dowOf(p) === 0;
     if (!!p.sunday !== really) bad.push(`#${p.num} ${p.live} sunday=${!!p.sunday} but the date says ${really}`);
   }
-  const sun = PUZZLES.filter((p) => p.sunday);
-  const wk = PUZZLES.filter((p) => !p.sunday && p.live >= HARD_FLOOR_FROM);
+  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
+  const sun = rows.filter((p) => p.sunday), wk = rows.filter((p) => !p.sunday);
   if (!sun.length) bad.push('the bank authors no Sunday Edition at all');
+  const smallest = Math.min(...rows.map((q) => q.w));
   for (const p of sun) {
     if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast`);
-    if (p.w !== Math.min(...PUZZLES.filter((q) => q.live >= HARD_FLOOR_FROM).map((q) => q.w))) {
-      bad.push(`#${p.num} Sunday is not on the smallest board of the week`);
-    }
+    if (p.w !== smallest) bad.push(`#${p.num} Sunday is not on the smallest board of the week`);
   }
   const maxWeekdayCast = Math.max(...wk.map((p) => p.cast.length));
   if (sun.length && maxWeekdayCast >= MASCOTS.length) bad.push('a weekday fields the full cast, so Sunday is not the peak');
+  // and the Sunday has to be the TIGHTEST board of the week, which is the point
+  const sunCov = sun.map((p) => coverOf(p, MINS.get(p.num))).filter((v) => !Number.isNaN(v));
+  const wkCov = wk.map((p) => coverOf(p, MINS.get(p.num))).filter((v) => !Number.isNaN(v));
+  if (sunCov.length && wkCov.length && Math.min(...sunCov) <= Math.max(...wkCov)) {
+    bad.push('a weekday board is at least as tight as the loosest Sunday, so Sunday is not the peak');
+  }
   if (bad.length) fail('sunday', bad.slice(0, 4).join('; '));
-  else ok('sunday', `${sun.length} Sunday Editions, every one ${sun[0].w}x${sun[0].w} with the full cast of ${MASCOTS.length}, against a weekday peak of ${maxWeekdayCast}`);
+  else {
+    const full = sun.filter((p) => coverOf(p, MINS.get(p.num)) >= 1).length;
+    ok('sunday', `${sun.length} Sunday Editions, every one ${smallest}x${smallest} with the full cast of ${MASCOTS.length}, forcing ${Math.round(Math.min(...sunCov) * 100)}-${Math.round(Math.max(...sunCov) * 100)}% of the board against a weekday peak of ${Math.round(Math.max(...wkCov) * 100)}%${full ? `, and ${full} needing literally every square` : ''}`);
+  }
 })();
 
-// ---------- 5. difficulty: no unplanned line clears it ----------------------
+// ---------- 5. difficulty: nothing that plays clears a board ----------------
 (function difficulty() {
-  const soft = [], tooFar = [], plannerStops = [];
-  let bfsCaught = [];
+  const soft = [], careless = [], planned = [];
+  const beamGot = [];
   let rows = 0;
   for (const p of PUZZLES) {
-    if (p.live < CHOMP_RULES_FROM) continue;
+    if (p.live < REBUILT_FROM) continue;
     rows += 1;
-    const lines = ['axis', 'straight', 'bfs'].map((m) => unplanned(p, m));
-    if (lines.some((r) => r.cleared)) soft.push(`#${p.num} (${p.live})`);
-    if (p.live >= HARD_FLOOR_FROM) {
-      const pl = carefulClears(p);
-      if (pl.cleared) tooFar.push(`#${p.num} (${p.live})`);
-      else plannerStops.push(pl.caught / p.cast.length);
-    }
-    bfsCaught.push({ got: lines[2].caught, of: p.cast.length });
+    if (['axis', 'straight', 'bfs'].some((m) => unplanned(p, m).cleared)) soft.push(`#${p.num} (${p.live})`);
+    if (carefulClears(p).cleared) careless.push(`#${p.num} (${p.live})`);
+    const b = beamClears(p);
+    if (b.cleared) planned.push(`#${p.num} (${p.live})`);
+    else beamGot.push(b.caught / p.cast.length);
   }
   if (soft.length) fail('difficulty', `an unplanned line clears these: ${soft.slice(0, 6).join(', ')}`);
-  if (tooFar.length) fail('difficulty', `a careful player clears these without ever being stuck, so they play themselves: ${tooFar.slice(0, 6).join(', ')}`);
-  if (!soft.length && !tooFar.length) {
-    // reported as a SHARE, since the cast length now differs day to day
-    const share = (bfsCaught.reduce((a, b) => a + b.got / b.of, 0) / bfsCaught.length * 100).toFixed(0);
-    const pshare = plannerStops.length ? (plannerStops.reduce((a, b) => a + b, 0) / plannerStops.length * 100).toFixed(0) : '-';
-    ok('difficulty', `across ${rows}: no unplanned line clears any board (the myopic one averages ${share}% of the cast), and from ${HARD_FLOOR_FROM} a CAREFUL player cannot clear one either, stalling at ${pshare}% of the cast on average`);
+  if (careless.length) fail('difficulty', `a careful player clears these without ever being stuck: ${careless.slice(0, 6).join(', ')}`);
+  if (planned.length) fail('difficulty', `a ${BEAM_WIDTH}-wide beam planner clears these, so a person who thinks two moves ahead walks them: ${planned.slice(0, 6).join(', ')}`);
+  if (!soft.length && !careless.length && !planned.length) {
+    const share = (beamGot.reduce((a, b) => a + b, 0) / beamGot.length * 100).toFixed(0);
+    ok('difficulty', `across ${rows}: no unplanned line, no careful player and no ${BEAM_WIDTH}-wide planner clears a single board, the planner stalling at ${share}% of the cast on average`);
   }
 })();
 
-// ---------- 5b. the ramp must actually RAMP ---------------------------------
-// Board size and cast size alone do NOT produce a ramp. Every rung defeats the
-// careful player by construction, so selecting only on that normalises every day
-// to "just barely beats it" and the week comes out flat: measured 68% on Monday
-// against 65% on Sunday on the first attempt. What separates the days is HOW FAR
-// that player gets before it is stuck, which the generator targets per weekday.
-// This checks the result rather than trusting it.
+// ---------- 5b. the ramp is FORCED COVERAGE, and it has to rise -------------
+// The old ramp measured how far a bot got, which normalises to "just barely beats
+// it" on every rung and comes out flat. This measures the BOARD instead: the
+// share of the squares a player has no choice but to use. It cannot be gamed by
+// tuning a bot, and it is the thing the rebuild was for.
 (function ramp() {
-  const rows = PUZZLES.filter((p) => p.live >= HARD_FLOOR_FROM);
+  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
   const by = {};
+  const stray = [];
   for (const p of rows) {
-    const d = new Date(`${p.live}T12:00:00Z`).getUTCDay();
-    const r = carefulClears(p);
-    (by[d] = by[d] || []).push(r.caught / p.cast.length);
+    const min = MINS.get(p.num);
+    if (min == null) continue;
+    const cov = coverOf(p, min), r = rungOf(p);
+    if (cov < r.cov[0] - 1e-9 || cov > r.cov[1] + 1e-9) {
+      stray.push(`#${p.num} ${DOW[dowOf(p)]} forces ${Math.round(cov * 100)}%, outside its ${Math.round(r.cov[0] * 100)}-${Math.round(r.cov[1] * 100)}% band`);
+    }
+    (by[dowOf(p)] = by[dowOf(p)] || []).push(cov);
   }
+  const bad = [...stray];
   const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
   const order = [1, 2, 3, 4, 5, 6, 0];   // Mon..Sun
   const got = order.map((d) => (by[d] ? mean(by[d]) : null));
-  const bad = [];
   for (const [i, v] of got.entries()) if (v == null) bad.push(`no boards on ${DOW[order[i]]}`);
   if (!bad.length) {
-    // Monday must be clearly easier than Sunday, and the week must trend down.
-    // A small wobble between adjacent days is fine (the windows touch); a day
-    // that is easier than the one two rungs before it is not.
-    if (got[0] - got[6] < 0.30) bad.push(`Monday to Sunday only spans ${Math.round((got[0] - got[6]) * 100)} points, so the ramp is flat`);
-    for (let i = 2; i < got.length; i++) {
-      if (got[i] > got[i - 2]) bad.push(`${DOW[order[i]]} (${Math.round(got[i] * 100)}%) plays easier than ${DOW[order[i - 2]]} (${Math.round(got[i - 2] * 100)}%)`);
+    // strictly rising, Monday to Sunday. The bands do not overlap between
+    // adjacent rungs, so unlike the old bot-progress ramp there is no wobble to
+    // tolerate here.
+    for (let i = 1; i < got.length; i++) {
+      if (got[i] <= got[i - 1]) bad.push(`${DOW[order[i]]} (${Math.round(got[i] * 100)}%) is not tighter than ${DOW[order[i - 1]]} (${Math.round(got[i - 1] * 100)}%)`);
     }
+    if (got[6] - got[0] < 0.25) bad.push(`Monday to Sunday only spans ${Math.round((got[6] - got[0]) * 100)} points, so the week is flat`);
   }
-  if (bad.length) fail('ramp', bad.slice(0, 4).join('; '));
-  else ok('ramp', `careful player gets ${order.map((d, i) => `${DOW[d]} ${Math.round(got[i] * 100)}%`).join(', ')}`);
+  if (bad.length) fail('ramp', bad.slice(0, 5).join('; '));
+  else ok('ramp', `forced coverage ${order.map((d, i) => `${DOW[d]} ${Math.round(got[i] * 100)}%`).join(', ')}`);
 })();
 
 // ---------- 6. pool variety across the whole bank ---------------------------
 (function variety() {
-  const rows = PUZZLES.filter((p) => p.live >= CHOMP_RULES_FROM);
+  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
   const startSeen = new Map(), cellSeen = new Map(), orders = new Set();
+  const sizeRows = {};
   for (const p of rows) {
-    const sk = idxOf(p, p.start[0], p.start[1]);
+    sizeRows[p.w] = (sizeRows[p.w] || 0) + 1;
+    const sk = `${p.w}:${p.start}`;
     startSeen.set(sk, (startSeen.get(sk) || 0) + 1);
-    for (const c of p.pellets) { const k = idxOf(p, c[0], c[1]); cellSeen.set(k, (cellSeen.get(k) || 0) + 1); }
+    for (const c of p.pellets) { const k = `${p.w}:${c}`; cellSeen.set(k, (cellSeen.get(k) || 0) + 1); }
     orders.add(p.cast.join('|'));
   }
-  const startCap = 4, cellCap = Math.ceil(rows.length / 5);
+  // keyed by BOARD SIZE, because a square on a 7x7 and a square on an 8x8 are
+  // different squares. The tight days genuinely need the corners (a long leg has
+  // to end somewhere extreme), so the cap is a share of the boards of that size
+  // rather than a flat count.
+  const startCap = 5, cellShare = 0.45;
   const hotStart = [...startSeen.values()].filter((n) => n > startCap).length;
-  const hotCell = [...cellSeen.values()].filter((n) => n > cellCap).length;
-  if (hotStart) fail('variety', `${hotStart} start cell(s) used more than ${startCap} times`);
-  if (hotCell) fail('variety', `${hotCell} cell(s) carry a mascot on more than ${cellCap} of ${rows.length} boards`);
-  // the cast rotates by design, so a bank that keeps re-dealing one order is a bug
+  const hotCell = [...cellSeen.entries()].filter(([k, n]) => n > Math.ceil(sizeRows[+k.split(':')[0]] * cellShare));
+  if (hotStart) fail('variety', `${hotStart} start square(s) used more than ${startCap} times`);
+  if (hotCell.length) fail('variety', `${hotCell.length} square(s) carry a mascot on more than ${Math.round(cellShare * 100)}% of the boards of their size: ${hotCell.slice(0, 4).map(([k, n]) => `${k} x${n}`).join(', ')}`);
   if (orders.size < rows.length / 3) fail('variety', `only ${orders.size} distinct cast orders across ${rows.length} boards`);
-  // every mascot has to get used, and the cast size has to actually vary, or the
-  // "as many as the board wants" rule is not doing anything
   const used = {};
   for (const p of rows) for (const m of p.cast) used[m] = (used[m] || 0) + 1;
   const never = MASCOTS.filter((m) => !used[m]);
   if (never.length) fail('variety', `${never.join(', ')} never appear`);
   const sizes = new Set(rows.map((p) => p.cast.length));
   if (sizes.size < 3) fail('variety', `only ${sizes.size} distinct cast sizes, the count is not varying`);
-  if (!hotStart && !hotCell && orders.size >= rows.length / 3 && !never.length && sizes.size >= 3) {
-    ok('variety', `${startSeen.size} distinct start cells (busiest ${Math.max(...startSeen.values())}), busiest mascot cell ${Math.max(...cellSeen.values())}/${rows.length}, ${orders.size} distinct cast orders`);
+  if (!hotStart && !hotCell.length && orders.size >= rows.length / 3 && !never.length && sizes.size >= 3) {
+    ok('variety', `${startSeen.size} distinct start squares (busiest ${Math.max(...startSeen.values())}), busiest mascot square ${Math.max(...cellSeen.values())}, ${orders.size} distinct cast orders across ${rows.length} boards`);
   }
 })();
 
 // ---------- 7. scoring ------------------------------------------------------
 (function scoring() {
   const scoreOf = (eaten, total) => (eaten >= total ? 10 : Math.max(0, Math.min(9, Math.round((eaten / total) * 10))));
-  // the cast length varies by day, so the curve has to behave at EVERY length
+  let bad = false;
   for (let n = CAST_MIN; n <= CAST_MAX; n++) {
-    if (scoreOf(n, n) !== 10) fail('scoring', `clearing a cast of ${n} does not score 10`);
-    if (scoreOf(0, n) !== 0) fail('scoring', `eating nothing out of ${n} does not score 0`);
-    if (scoreOf(n - 1, n) >= 10) fail('scoring', `a near miss on ${n} scores a perfect`);
+    if (scoreOf(n, n) !== 10) { fail('scoring', `clearing a cast of ${n} does not score 10`); bad = true; }
+    if (scoreOf(0, n) !== 0) { fail('scoring', `eating nothing out of ${n} does not score 0`); bad = true; }
+    if (scoreOf(n - 1, n) >= 10) { fail('scoring', `a near miss on ${n} scores a perfect`); bad = true; }
     let prev = -1;
     for (let e = 0; e <= n; e++) {
       const v = scoreOf(e, n);
-      if (v < prev) { fail('scoring', `score is not monotonic at a cast of ${n}`); break; }
+      if (v < prev) { fail('scoring', `score is not monotonic at a cast of ${n}`); bad = true; break; }
       prev = v;
     }
   }
-  if (!BAD) ok('scoring', `partial credit behaves at every cast length ${CAST_MIN}-${CAST_MAX}: monotonic to 0-10, only a full clear scores 10`);
+  if (!bad) ok('scoring', `partial credit behaves at every cast length ${CAST_MIN}-${CAST_MAX}: monotonic to 0-10, only a full clear scores 10`);
 })();
 
 // ---------- 8. US spellings -------------------------------------------------

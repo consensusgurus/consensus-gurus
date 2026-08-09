@@ -11,7 +11,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Chomp — Free Daily Route Puzzle | Mind Loft',
   description:
-    'Chomp is a free daily route puzzle. Seven mascots on a thirteen by thirteen board, eaten in order, and every square you touch stays yours for the rest of the run. Your own trail is the only obstacle. One board a day, the same for everybody, you do not need all seven, and replay is free.',
+    'Chomp is a free daily route puzzle. A cast of mascots on a small board, eaten in order, and every square you touch stays yours for the rest of the run. Your own trail is the only obstacle, and the board is tight enough that finishing takes most of it. One board a day, the same for everybody, you do not need them all, and replay is free.',
   alternates: { canonical: '/chomp' },
   openGraph: {
     title: 'Chomp — A Daily Route Puzzle',
@@ -34,7 +34,7 @@ const gameJsonLd = {
   alternateName: 'Chomp — Daily Route Puzzle',
   url: `${SITE_URL}/chomp`,
   description:
-    'A daily route puzzle. Seven mascots eaten in order on a shared board, where every square you touch becomes a permanent wall.',
+    'A daily route puzzle. A cast of mascots eaten in order on a shared board, where every square you touch becomes a permanent wall.',
   genre: ['Puzzle', 'Logic', 'Route planning'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

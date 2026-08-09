@@ -2,10 +2,13 @@
 
 // Chomp — the daily route puzzle.
 //
-// A handful of mascots on a 13x13 board, eaten in order, one square per
+// A handful of mascots on a small board, eaten in order, one square per
 // keypress. The BULLDOG always goes first and the rest are dealt fresh daily;
-// the cast runs five to seven on a weekday and the full eight on a Sunday. Two
-// rules carry it, and everything else here serves them:
+// the cast runs six to seven on a weekday and the full eight on a Sunday. The
+// board size is the weekday's too, 8x8 early in the week and 7x7 from Friday,
+// so read it off PUZZLE.w rather than assuming one (it was 13x13 at launch and
+// 10x10 after that, and the copy on this page outlived both). Two rules carry
+// it, and everything else here serves them:
 //
 //   1. THE BODY NEVER RETRACTS. Every square the head touches is yours for the
 //      rest of the run, so your trail is a permanent wall. The shortest hop to
@@ -437,7 +440,10 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     if (!box || !cvs) return;
     const fw = Math.max(140, box.clientWidth);
     const fh = (typeof window !== 'undefined' ? window.innerHeight : 800) - 330;
-    const cell = Math.max(15, Math.min(36, Math.floor(Math.min((fw - PAD * 2) / PUZZLE.w, (fh - PAD * 2) / PUZZLE.h))));
+    // The ceiling is per square, so a smaller board must be allowed BIGGER
+    // squares or it shrinks on screen as the puzzles get harder. 46 keeps a 7x7
+    // and an 8x8 at roughly the width the old 10x10 filled.
+    const cell = Math.max(15, Math.min(46, Math.floor(Math.min((fw - PAD * 2) / PUZZLE.w, (fh - PAD * 2) / PUZZLE.h))));
     cellRef.current = cell;
     const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
     const W = PUZZLE.w * cell + PAD * 2, H = PUZZLE.h * cell + PAD * 2;
@@ -714,7 +720,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Chomp is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Eat the seven mascots in order. Every square you touch stays yours for the rest of the run, so your own trail is the only thing in your way. Replay is free.</p>
+                <p style={{ margin: '0 0 6px' }}>Eat today&apos;s {NPEL} mascots in order. Every square you touch stays yours for the rest of the run, so your own trail is the only thing in your way. Replay is free.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -837,10 +843,11 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         <section style={{ maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: COLORS.faded }}>
           <h2 style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '0 0 8px' }}>About Chomp</h2>
           <p style={{ margin: '0 0 9px' }}>
-            Chomp is a daily route puzzle. A handful of mascots sit on a thirteen by thirteen board and have to be eaten in order,
+            Chomp is a daily route puzzle. A handful of mascots sit on a small board and have to be eaten in order,
             and every square you touch belongs to you for the rest of the run. Nothing chases you and nothing is on a timer.
             The only obstacle is the trail you have already laid, which is why the shortest line to the fourth mascot is so
-            often the line that walls off the fifth.
+            often the line that walls off the fifth. The board is deliberately tight: on most days the shortest legal route
+            uses most of the squares on it, and on a Sunday it can take very nearly all of them.
           </p>
           <p style={{ margin: '0 0 9px' }}>
             You do not need all of them. The score is how far down the cast you got, so a run that stalls still counts.
