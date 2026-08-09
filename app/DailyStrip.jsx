@@ -177,21 +177,20 @@ for (const [k, v] of Object.entries(CAT_COLOR)) {
 const catCol = (cat) => CAT_COLOR[cat] || T.muted;
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
-// The PHONE peek is a BUDGET, not a per-group count (owner, 2026-08-07): the
-// reader always sees six games across the two open groups, however the day
-// happens to be split. Paused takes what it needs up to three, unplayed takes
-// the rest, so no in-progress games means six ready to play and its band
-// disappears entirely, one means five, three means three.
+// The PHONE peek: six UNPLAYED games, and only unplayed ones (owner,
+// 2026-08-08). The collapsed slate is the "what should I play next" screen, so
+// every line of it goes to a game you have NOT started. Paused games are already
+// on the screen as cap cards directly above the board, so spending two of six
+// lines restating them cost a third of the peek to say nothing new; they sit at
+// the foot of Ready to play and appear when the group is expanded.
 //
-// Why a budget: a fixed count per group made the first screen swing by a whole
-// group's worth of rows depending on how many games you happened to have paused.
-// Finished games are outside it and peek NOTHING, since you already know how you
-// did, so the band plus its bar is the whole group until you ask.
+// Finished games peek NOTHING for the same reason, one step further along: you
+// already know how you did, so the band plus its bar is the whole group until
+// you ask.
 //
-// Desktop lists every row as before: the hide class and the bars are both inert
-// above 900px.
-const PHONE_ROWS = 6;     // games visible across paused + unplayed
-const PHONE_PROG_MAX = 2; // ...of which never more than two are paused
+// Desktop lists every unfinished row as before: the hide class and the bar are
+// both inert above 900px.
+const PHONE_ROWS = 6;     // unplayed games visible while the group is collapsed
 // From 641px the board runs TWO ACROSS (see the tablet tier in the stylesheet),
 // so the same budget would peek half as many LINES: six games became three rows
 // on an iPad mini in portrait. Doubled, so the peek is the same six lines deep
@@ -916,17 +915,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // group showing NOTHING renders no bar either: its band becomes the control
     // (see `band` below). The peek numbers are declared up here because the band
     // needs them.
-    // Spend the six-row budget: paused first, up to two, then unplayed. Paused
-    // rows are bought FIRST but rendered LAST, so a game you walked away from is
-    // always inside the peek rather than behind the bar while still sitting at
-    // the foot of the group. That is why the peek is measured against each
-    // sub-group's own index below rather than one running count.
-    const progPeek = Math.min(nProg, PHONE_PROG_MAX);
-    const todoPeek = Math.max(0, (twoUp ? TABLET_ROWS : PHONE_ROWS) - progPeek);
-    // What the one Ready-to-play bar has to promise: both sub-groups' overflow,
-    // and nothing at all under a filter, which shows every row by itself.
+    // The whole budget goes to UNPLAYED rows; paused rows peek zero and wait for
+    // the bar. That is why the peek is measured against each sub-group's own
+    // index below (`bucket`) rather than one running count.
+    const progPeek = 0;
+    const todoPeek = twoUp ? TABLET_ROWS : PHONE_ROWS;
+    // What the one Ready-to-play bar has to promise: the unplayed overflow PLUS
+    // every paused row, and nothing at all under a filter, which shows every row
+    // by itself.
     const readyHidden = filter === 'all'
-      ? Math.max(0, nTodo - todoPeek) + Math.max(0, nProg - progPeek)
+      ? Math.max(0, nTodo - todoPeek) + nProg
       : 0;
     // A FILTER already is the reader asking to narrow the slate, so peeking
     // inside it would be answering that request with another lid (owner,
