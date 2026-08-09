@@ -40,6 +40,10 @@ const COLORS = {
   cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent, rust: T.danger, faded: T.muted,
   accent: '#c2410c', accentSoft: '#ffedd5', accentDeep: '#9a3412', green: T.successDeep, greenSoft: '#dcfce7',
   redSoft: '#fee2e2', redInk: '#b91c1c', gold: '#b45309',
+  // The bracket's own rule colour. T.border (#e5e7eb) is a hairline meant to sit
+  // under text; drawn as a brace or a connector on the #f7f8fa ground it vanishes,
+  // so every structural line in this game uses this instead.
+  line: '#b9c3d1',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -364,6 +368,16 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
   // field shifts to the next matchup. The flight is imperative DOM on purpose, so no
   // React state changes mid-animation and nothing re-renders the arena underneath it.
   function commitPick(id, item, picks) {
+    // Undo the imperative marks before React sees new state. The arena is keyed on
+    // `cursor` so it remounts anyway, but a pick that lands on the SAME cursor (the
+    // last one, or a jump back) would otherwise keep a hidden card or an orange
+    // landing row from the previous flight. That is exactly what froze the board.
+    const arena = arenaRef.current;
+    if (arena) {
+      arena.querySelectorAll('.bk-flyer').forEach((f) => f.remove());
+      arena.querySelectorAll('[data-bk-card]').forEach((c) => { c.classList.remove('won', 'out'); c.style.visibility = ''; });
+      arena.querySelectorAll('.bk-nrow.landing').forEach((n) => n.classList.remove('landing'));
+    }
     setG((cur) => ({ ...cur, picks, t0: cur.t0 || Date.now() }));
     const nx = nextOpen(id, picks);
     if (nx < 0) setReviewing(true); else setCursor(nx);
@@ -387,14 +401,14 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
     fly.textContent = PUZZLE.items[item].name;
     fly.style.left = (sb.left - ab.left) + 'px'; fly.style.top = (sb.top - ab.top) + 'px';
     fly.style.width = sb.width + 'px'; fly.style.height = sb.height + 'px';
-    fly.style.fontSize = (mobileUi ? 19 : 25) + 'px';
+    fly.style.fontSize = (mobileUi ? 15 : 18) + 'px';
     arena.appendChild(fly);
     fly.getBoundingClientRect();                       // force the start frame
     window.setTimeout(() => {
       cardEl.style.visibility = 'hidden';
       fly.style.left = (db.left - ab.left) + 'px'; fly.style.top = (db.top - ab.top) + 'px';
       fly.style.width = db.width + 'px'; fly.style.height = db.height + 'px';
-      fly.style.fontSize = (mobileUi ? 11.5 : 13) + 'px';
+      fly.style.fontSize = (mobileUi ? 10 : 11.5) + 'px';
       dest.classList.add('landing');
     }, 170);
     window.setTimeout(() => commitPick(id, item, picks), 760);
@@ -455,7 +469,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           <div className="bk-trh">{showTruth ? 'Champion' : 'Your winner'}</div>
           <div className="bk-champ">
             <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.gold }}>{showTruth ? 'Takes the field' : 'You picked'}</div>
-            <div style={{ fontSize: 17, fontWeight: 900, marginTop: 5, lineHeight: 1.15, color: COLORS.ink }}>{ci >= 0 ? PUZZLE.items[ci].name : '—'}</div>
+            <div style={{ fontSize: 15, fontWeight: 900, marginTop: 4, lineHeight: 1.15, color: COLORS.ink }}>{ci >= 0 ? PUZZLE.items[ci].name : '—'}</div>
             {showTruth && ci >= 0 && <div style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded, marginTop: 5 }}>{fmtValue(PUZZLE.items[ci].value, PUZZLE.unit)}</div>}
           </div>
         </div>
@@ -537,48 +551,49 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .bk-btn:hover{background:var(--accent-soft);}
           /* ---- the arena: a bracket zoomed all the way in ---- */
-          .bk-arena{position:relative;display:grid;grid-template-columns:186px minmax(0,1fr) 226px;gap:0 30px;align-items:stretch;
-                    background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px 20px;overflow:hidden;}
+          .bk-arena{position:relative;display:grid;grid-template-columns:132px minmax(0,1fr) 172px;gap:0 20px;align-items:stretch;
+                    background:var(--white);border:1px solid ${COLORS.line};border-radius:12px;padding:13px 15px;overflow:hidden;}
           .bk-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;}
-          .bk-lanehd{position:absolute;top:-4px;left:0;right:0;font-family:${MONO};font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4;}
+          .bk-lanehd{position:absolute;top:-2px;left:0;right:0;font-family:${MONO};font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4;}
           .bk-hist .bk-hgroup{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;}
-          .bk-hchip{border:1px dashed var(--border);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;color:#a3adbb;
+          .bk-hchip{border:1px dashed ${COLORS.line};border-radius:5px;padding:3px 6px;font-size:10px;font-weight:700;color:#a3adbb;
                     text-decoration:line-through;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-          .bk-hempty{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6;}
-          .bk-bout{gap:14px;padding-right:16px;}
-          .bk-bout::after{content:'';position:absolute;right:0;top:25%;height:50%;width:16px;border-right:2px solid var(--border);
-                          border-top:2px solid var(--border);border-bottom:2px solid var(--border);border-radius:0 8px 8px 0;}
+          .bk-hempty{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6;}
+          .bk-bout{gap:10px;padding-right:14px;}
+          .bk-bout::after{content:'';position:absolute;right:0;top:25%;height:50%;width:14px;border-right:2px solid ${COLORS.line};
+                          border-top:2px solid ${COLORS.line};border-bottom:2px solid ${COLORS.line};border-radius:0 8px 8px 0;}
           .bk-card{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--white);
-                   border:2px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;min-height:88px;text-align:left;width:100%;
+                   border:2px solid ${COLORS.line};border-radius:9px;padding:9px 13px;cursor:pointer;min-height:54px;text-align:left;width:100%;
                    font-family:${SANS};transition:border-color .12s,background .12s,transform .12s,box-shadow .12s,opacity .25s;}
           .bk-card:hover:not(:disabled){border-color:${COLORS.accent};background:#fffaf6;transform:translateX(4px);box-shadow:0 6px 16px rgba(194,65,12,.13);}
-          .bk-card .nm{font-size:25px;font-weight:900;line-height:1.1;letter-spacing:-.02em;color:${COLORS.ink};}
-          .bk-card .sub{margin-top:6px;font-family:${MONO};font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;}
+          .bk-card .nm{font-size:18px;font-weight:900;line-height:1.15;letter-spacing:-.015em;color:${COLORS.ink};}
+          .bk-card .sub{margin-top:3px;font-family:${MONO};font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;}
           .bk-card.won{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:inset 0 0 0 2px ${COLORS.accent};transform:translateX(8px);}
           .bk-card.out{opacity:.28;transform:translateX(-6px);}
           .bk-card.wait{cursor:default;border-style:dashed;background:${COLORS.cream};}
-          .bk-card.wait .nm{font-size:15px;color:#a3adbb;font-weight:700;}
-          .bk-vs{position:absolute;left:-11px;top:50%;transform:translateY(-50%);z-index:3;background:var(--white);
-                 font-family:${MONO};font-size:9.5px;letter-spacing:.1em;color:#94a3b8;padding:3px 0;}
-          .bk-nextbox{border:2px solid ${COLORS.accent};border-radius:10px;background:${COLORS.cream};overflow:hidden;}
-          .bk-nrow{display:flex;align-items:center;min-height:36px;padding:7px 10px;font-size:13px;font-weight:800;line-height:1.2;
-                   border-bottom:1px solid var(--border);color:#a9b3c1;transition:background .3s,color .3s;}
+          .bk-card.wait .nm{font-size:12.5px;color:#a3adbb;font-weight:700;}
+          .bk-vs{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:${COLORS.cream};
+                 border:1px solid ${COLORS.line};border-radius:999px;font-family:${MONO};font-size:9.5px;letter-spacing:.1em;
+                 color:#7c8798;padding:2px 9px;pointer-events:none;}
+          .bk-nextbox{border:1.5px solid ${COLORS.accent};border-radius:8px;background:${COLORS.cream};overflow:hidden;}
+          .bk-nrow{display:flex;align-items:center;min-height:27px;padding:4px 8px;font-size:11.5px;font-weight:800;line-height:1.2;
+                   border-bottom:1px solid ${COLORS.line};color:#a9b3c1;transition:background .3s,color .3s;}
           .bk-nrow:last-child{border-bottom:none;}
           .bk-nrow.filled{color:${COLORS.ink};background:var(--white);}
           .bk-nrow.target{box-shadow:inset 3px 0 0 ${COLORS.accent};}
           .bk-nrow.landing{background:${COLORS.accentSoft};color:${COLORS.accentDeep};}
-          .bk-trophy{border:2px solid ${COLORS.gold};background:#fffbeb;border-radius:10px;padding:12px 10px;text-align:center;}
-          .bk-trophy .lbl{font-family:${MONO};font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.gold};}
-          .bk-flyer{position:absolute;z-index:9;background:${COLORS.accentSoft};border:2px solid ${COLORS.accent};border-radius:10px;
-                    display:flex;align-items:center;padding:0 12px;font-weight:900;color:${COLORS.accentDeep};overflow:hidden;white-space:nowrap;
+          .bk-trophy{border:1.5px solid ${COLORS.gold};background:#fffbeb;border-radius:8px;padding:8px 8px;text-align:center;}
+          .bk-trophy .lbl{font-family:${MONO};font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.gold};}
+          .bk-flyer{position:absolute;z-index:9;background:${COLORS.accentSoft};border:2px solid ${COLORS.accent};border-radius:9px;
+                    display:flex;align-items:center;padding:0 10px;font-weight:900;color:${COLORS.accentDeep};overflow:hidden;white-space:nowrap;
                     transition:all .46s cubic-bezier(.5,0,.2,1);pointer-events:none;}
-          .bk-roundtag{text-align:center;font-family:${MONO};font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:${COLORS.faded};margin:0 0 9px;}
+          .bk-roundtag{text-align:center;font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${COLORS.faded};margin:0 0 7px;}
           .bk-roundtag b{color:${COLORS.accentDeep};font-weight:500;}
           /* ---- the draw strip: the whole field, and the way back to any pick ---- */
-          .bk-map{display:flex;gap:14px;align-items:stretch;height:88px;}
+          .bk-map{display:flex;gap:10px;align-items:stretch;height:60px;}
           .bk-mapcol{display:flex;flex-direction:column;justify-content:space-around;flex:1;}
           .bk-mapcell{position:relative;flex:1;display:flex;align-items:center;}
-          .bk-dot{width:100%;height:8px;border-radius:3px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;padding:0;transition:.12s;}
+          .bk-dot{width:100%;height:7px;border-radius:3px;border:1.5px solid ${COLORS.line};background:var(--white);cursor:pointer;padding:0;transition:.12s;}
           .bk-dot:hover:not(:disabled){border-color:${COLORS.accent};}
           .bk-dot.done{background:${COLORS.accent};border-color:${COLORS.accent};}
           .bk-dot.cur{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(194,65,12,.22);background:${COLORS.accentSoft};}
@@ -586,17 +601,17 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-dot.hit{background:${COLORS.green};border-color:${COLORS.green};}
           .bk-dot.miss{background:${COLORS.redInk};border-color:${COLORS.redInk};}
           /* ---- the whole sheet: review before handing in, and the reveal ---- */
-          .bk-tree{display:flex;gap:26px;align-items:stretch;min-height:400px;}
+          .bk-tree{display:flex;gap:22px;align-items:stretch;min-height:330px;}
           .bk-tround{display:flex;flex-direction:column;flex:1;min-width:0;}
           .bk-trh{font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.faded};margin-bottom:8px;height:14px;}
           .bk-tbody{display:flex;flex-direction:column;justify-content:space-around;flex:1;}
           .bk-tmatch{position:relative;flex:1;display:flex;align-items:center;}
           .bk-tmatch::before{content:'';position:absolute;left:-13px;top:25%;height:50%;width:13px;
-                             border-left:1px solid var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+                             border-left:1px solid ${COLORS.line};border-top:1px solid ${COLORS.line};border-bottom:1px solid ${COLORS.line};}
           .bk-tround.first .bk-tmatch::before{display:none;}
-          .bk-tmatch::after{content:'';position:absolute;right:-13px;top:50%;width:13px;border-top:1px solid var(--border);}
-          .bk-tbox{width:100%;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--white);}
-          .bk-trow{display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12px;font-weight:700;border-bottom:1px solid var(--border);line-height:1.25;}
+          .bk-tmatch::after{content:'';position:absolute;right:-13px;top:50%;width:13px;border-top:1px solid ${COLORS.line};}
+          .bk-tbox{width:100%;border:1px solid ${COLORS.line};border-radius:7px;overflow:hidden;background:var(--white);}
+          .bk-trow{display:flex;align-items:center;gap:5px;padding:4px 7px;font-size:11.5px;font-weight:700;border-bottom:1px solid ${COLORS.line};line-height:1.25;}
           .bk-trow:last-child{border-bottom:none;}
           .bk-trow .v{margin-left:auto;font-family:${MONO};font-size:9.5px;font-weight:500;color:${COLORS.faded};white-space:nowrap;padding-left:6px;}
           .bk-trow .mk{font-family:${MONO};font-size:10px;font-weight:500;width:11px;flex:0 0 11px;text-align:center;}
@@ -606,18 +621,18 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-trow.mine{box-shadow:inset 3px 0 0 ${COLORS.accent};background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:800;}
           .bk-trow.bust{background:${COLORS.redSoft};color:#7f1d1d;box-shadow:inset 3px 0 0 ${COLORS.redInk};}
           .bk-trow.bust .n{text-decoration:line-through;}
-          .bk-tchamp{display:flex;flex-direction:column;justify-content:center;flex:0 0 162px;}
-          .bk-champ{border:2px solid ${COLORS.gold};background:#fffbeb;border-radius:10px;padding:14px 12px;text-align:center;}
+          .bk-tchamp{display:flex;flex-direction:column;justify-content:center;flex:0 0 140px;}
+          .bk-champ{border:1.5px solid ${COLORS.gold};background:#fffbeb;border-radius:9px;padding:10px 10px;text-align:center;}
           .bk-stack{display:none;}
           .bk-srh{font-family:${MONO};font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.faded};margin:15px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border);}
           .bk-stack .bk-tbox{margin-bottom:7px;}
           @media(max-width:760px){
-            .bk-arena{grid-template-columns:minmax(0,1fr) 112px;gap:0 18px;padding:14px 12px;}
+            .bk-arena{grid-template-columns:minmax(0,1fr) 96px;gap:0 12px;padding:11px 10px;}
             .bk-hist{display:none;}
             .bk-vs{display:none;}
-            .bk-card{min-height:70px;padding:12px 13px;}
-            .bk-card .nm{font-size:19px;}
-            .bk-nrow{font-size:11.5px;min-height:32px;padding:6px 8px;}
+            .bk-card{min-height:48px;padding:8px 10px;}
+            .bk-card .nm{font-size:15px;}
+            .bk-nrow{font-size:10px;min-height:25px;padding:4px 6px;}
             .bk-tree{display:none;}
             .bk-stack{display:block;}
           }
@@ -681,7 +696,6 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
                 const road = pathOf(it, r, m);
                 return (
                   <button key={i} type="button" data-bk-card className="bk-card" onClick={(e) => pick(cursor, it, e.currentTarget)}>
-                    {i === 1 && <span className="bk-vs">VS</span>}
                     <span className="nm">{PUZZLE.items[it].name}</span>
                     {road.length > 0 && <span className="sub">beat {road[road.length - 1]}</span>}
                   </button>
@@ -704,7 +718,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
                     <div className="bk-lanehd">Plays for</div>
                     <div className="bk-trophy">
                       <div className="lbl">Champion</div>
-                      <div data-bk-target style={{ fontSize: 15, fontWeight: 900, marginTop: 4, lineHeight: 1.15, color: COLORS.ink }}>&mdash;</div>
+                      <div data-bk-target style={{ fontSize: 13, fontWeight: 900, marginTop: 3, lineHeight: 1.15, color: COLORS.ink }}>&mdash;</div>
                     </div>
                   </div>
                 );
@@ -731,9 +745,17 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
               return (
                 <>
                   <div className="bk-roundtag"><b>{ROUND_NAME(r, ROUNDS)}</b> &middot; match {m + 1} of {w}</div>
-                  <div className="bk-arena" ref={arenaRef}>
-                    <div className="bk-lane bk-hist"><div className="bk-lanehd">Beaten so far</div>{hist(kids[0], 0)}{hist(kids[1], 1)}</div>
-                    <div className="bk-lane bk-bout">{card(kids[0], 0)}{card(kids[1], 1)}</div>
+                  {/* keyed on the cursor so every matchup mounts fresh: the flight
+                      writes classes and styles straight onto these nodes, and React
+                      would otherwise reuse them and carry the marks forward. */}
+                  <div className="bk-arena" key={cursor} ref={arenaRef}>
+                    <div className="bk-lane bk-hist">
+                      <div className="bk-lanehd">Beaten so far</div>
+                      {r === 0
+                        ? <div className="bk-hempty" style={{ textAlign: 'center' }}>No games yet</div>
+                        : <>{hist(kids[0], 0)}{hist(kids[1], 1)}</>}
+                    </div>
+                    <div className="bk-lane bk-bout">{card(kids[0], 0)}<span className="bk-vs">VS</span>{card(kids[1], 1)}</div>
                     {nextLane}
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0 6px' }}>
