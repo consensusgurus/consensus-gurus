@@ -1914,14 +1914,14 @@ byte-identical.
   between every row (that shipped once and the owner caught it). A row and its own drawer carry the SAME order value and
   equal-order flex items keep source order, so a drawer never leaves its row: any new per-row
   element must follow that rule or it will float out of its group.
-- **The peek is a BUDGET of six games, not a per-group count** (`PHONE_ROWS = 6`,
-  `PHONE_PROG_MAX = 2`, `TABLET_ROWS = 12` from 641px where the slate runs two across, owner
-  2026-08-07): the reader always sees six LINES across paused + unplayed, however the day is split.
-  Paused takes what it needs up to two, unplayed takes the rest, so no paused games means six ready
-  to play, one means five, two means four. Paused rows are bought FIRST but rendered LAST, so a
-  game you walked away from is always inside the peek while still sitting at the foot of the group,
-  which is why `renderSlate` measures the peek against each sub-group's own index (`bucket`) rather
-  than one running count. A fixed count per group made the first screen swing by a whole group's
+- **The peek is six UNPLAYED games, and only unplayed ones** (`PHONE_ROWS = 6`, `TABLET_ROWS = 12`
+  from 641px where the slate runs two across; owner 2026-08-08, tightening the 08-07 budget): the
+  collapsed slate is the "what should I play next" screen, so every line of it goes to a game you
+  have NOT started. Paused rows peek ZERO and wait for the expand bar, because they are already on
+  screen as cap cards directly above the board and restating two of them cost a third of the peek to
+  say nothing new. `renderSlate` therefore measures the peek against each sub-group's own index
+  (`bucket`, `progPeek = 0`) rather than one running count, and the bar's count is the unplayed
+  overflow PLUS every paused row. A fixed count per group made the first screen swing by a whole group's
   worth of rows depending on how many games you happened to have paused. Finished games sit outside
   the budget and peek NOTHING: you
   already know how you did, so the band plus its bar is the whole group until you ask. The reason is
