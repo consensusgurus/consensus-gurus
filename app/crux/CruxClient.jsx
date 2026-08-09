@@ -83,6 +83,11 @@ const STATS_KEY = 'sot_crux_stats';
 
 // Every puzzle answer is always a legal guess, even the proper nouns that a
 // Scrabble-style list omits (JUNO, MINERVA, URANUS...).
+// A length is only judgeable if the guess dictionary carries a real vocabulary
+// at it. Below this, the list is padding rather than coverage and the gate
+// stands down. See the dictionary loader in the component.
+const DICT_COVER_MIN = 500;
+
 function buildAnswerWords(puzzles) {
   return new Set(puzzles.flatMap((pz) => pz.categories.flatMap((c) => c.words.map((w) => w.toLowerCase()))));
 }
@@ -351,6 +356,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const wordSetRef = useRef(null);
+  const coveredLenRef = useRef(null);
   const triesRef = useRef(null);
   const viewedRef = useRef(false);
 
@@ -420,16 +426,32 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   }, [g, hydrated, PUZZLE]);
 
   // ---- metrics + leaderboard (same /api/quiz/* flow as every other board) ----
-  // Guess dictionary (lazy, cached, ~115k words). Fail-open: until it loads,
-  // any letters are accepted — never block play on a fetch.
+  // Guess dictionary (lazy, cached, ~255k words, 3 to 13 letters). It fails
+  // open TWICE over, because a gate that cannot judge must never be the thing
+  // that says no:
+  //
+  //   1. Until it loads, any letters are accepted. Never block play on a fetch.
+  //   2. A guess whose LENGTH the list barely covers is accepted too, and the
+  //      covered lengths are derived from the file itself rather than assumed.
+  //
+  // Rule 2 exists because rule 1 did not save us. The list shipped 3 to 8
+  // letters only (it was the 2-to-8 Scrabble list the rack games use), so on
+  // crux-8-9-26 the 9-letter TRIBUTARY slot had a guess space of five words:
+  // every real word a player typed came back "Not in the word list", and a
+  // regular abandoned the board. The list now runs to 13 letters, the longest
+  // a 13-wide grid can hold, and if it is ever truncated again the affected
+  // lengths degrade to "accepts anything" instead of "accepts nothing".
   useEffect(() => {
     fetch('/crux-words.txt')
       .then((r) => (r.ok ? r.text() : ''))
       .then((t) => {
-        if (t) {
-          const words = t.split('\n').filter((w) => /^[a-z]{2,}$/.test(w));
-          if (words.length > 10000) wordSetRef.current = new Set(words);
-        }
+        if (!t) return;
+        const words = t.split('\n').filter((w) => /^[a-z]{2,}$/.test(w));
+        if (words.length <= 10000) return;
+        const byLen = new Map();
+        for (const w of words) byLen.set(w.length, (byLen.get(w.length) || 0) + 1);
+        coveredLenRef.current = new Set([...byLen].filter(([, n]) => n >= DICT_COVER_MIN).map(([L]) => L));
+        wordSetRef.current = new Set(words);
       })
       .catch(() => {});
   }, []);
@@ -537,7 +559,10 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
     const guess = letters.join('');
     if (guess !== slot.word && !ANSWER_WORDS.has(guess.toLowerCase())) {
       const ws = wordSetRef.current;
-      if (ws && !ws.has(guess.toLowerCase())) {
+      const covered = coveredLenRef.current;
+      // Only judge a guess at a length the list actually covers. See the
+      // dictionary loader above for why this guard is not paranoia.
+      if (ws && covered && covered.has(guess.length) && !ws.has(guess.toLowerCase())) {
         say('Not in the word list');
         return;
       }

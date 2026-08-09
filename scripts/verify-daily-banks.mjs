@@ -462,6 +462,10 @@ if (RUN('crux')) {
   const CRUX_VARIETY_FROM = '2026-09-30';
   const cruxPool = new Map();
   const cruxFresh = new Map();
+  // The client validates a guess against public/crux-words.txt, NOT the rack
+  // games' tuck-dict, so this is the list to check answers against and the one
+  // whose coverage decides whether a slot is playable at all.
+  const cruxDict = new Set(readFileSync(join(here, '../public/crux-words.txt'), 'utf8').trim().split('\n'));
   for (const p of PUZZLES) {
     const errs = [], review = [];
     const catWords = p.categories.flatMap((c) => c.words);
@@ -481,7 +485,7 @@ if (RUN('crux')) {
         if (cells[k] && cells[k] !== s.word[i]) errs.push(`crossing clash at ${k} (${cells[k]} vs ${s.word[i]})`);
         cells[k] = s.word[i];
       }
-      if (!dict.has(s.word.toLowerCase())) review.push(s.word);
+      if (!cruxDict.has(s.word.toLowerCase())) review.push(s.word);
     }
     // ── exactly one geometric filing ───────────────────────────────────────
     // A solver who has deduced the words must be able to place them one way
@@ -542,6 +546,26 @@ if (RUN('crux')) {
     }
     errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `slots+crossings OK${review.length ? ` — REVIEW non-dict: ${review.join(',')}` : ''}`);
   }
+  // ── guess-space coverage, per slot length ─────────────────────────────────
+  // A slot is only playable if the dictionary holds a real vocabulary at its
+  // length: the client rejects anything outside the list, so a length with no
+  // entries rejects every word a player can type. crux-8-9-26 shipped a
+  // 9-letter slot against a list that stopped at 8, which gave that slot a
+  // guess space of five words and cost a player the board. Proved per length,
+  // over the whole bank, so the next long answer cannot repeat it.
+  const cruxLenCount = new Map();
+  for (const w of cruxDict) cruxLenCount.set(w.length, (cruxLenCount.get(w.length) || 0) + 1);
+  const CRUX_COVER_MIN = 500;   // keep in sync with DICT_COVER_MIN in CruxClient.jsx
+  const slotLens = [...new Set(PUZZLES.flatMap((p) => p.slots.map((s) => s.word.length)))].sort((a, b) => a - b);
+  const thinLens = slotLens.filter((L) => (cruxLenCount.get(L) || 0) < CRUX_COVER_MIN);
+  if (thinLens.length) {
+    fail('crux dict', `public/crux-words.txt holds fewer than ${CRUX_COVER_MIN} words at slot length${thinLens.length > 1 ? 's' : ''} ${thinLens.join(', ')} ` +
+      `(${thinLens.map((L) => `${L}:${cruxLenCount.get(L) || 0}`).join(', ')}) — a player guessing at that length is rejected whatever they type`);
+  } else {
+    ok('crux dict', `guess space covers every slot length ${slotLens[0]} to ${slotLens[slotLens.length - 1]} (thinnest: ${
+      slotLens.map((L) => [L, cruxLenCount.get(L) || 0]).sort((a, b) => a[1] - b[1])[0].join(' letters, ')} words)`);
+  }
+
   // ── collision-pool variety ────────────────────────────────────────────────
   const stale = [...cruxPool.entries()].filter(([, n]) => n > 2).sort((a, b) => b[1] - a[1]);
   const staleFresh = [...cruxFresh.entries()].filter(([, n]) => n > 2);

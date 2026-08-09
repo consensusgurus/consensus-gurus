@@ -3092,6 +3092,22 @@ must not be punished for the author's collision.
   words pass via public/crux-words.txt; proper-noun answers (JUNO, MINERVA,
   URANUS) are covered by the ANSWER_WORDS union in the client — keep them in
   PUZZLES data or they become unguessable.
+- **The GUESS SPACE matters as much as the answer, and it is checked per WORD
+  LENGTH (owner rule, 2026-08-09).** A player types into a slot of a fixed
+  length, so a length the dictionary does not carry rejects every word they can
+  type, not just unusual ones. public/crux-words.txt shipped the rack games'
+  2-to-8-letter Scrabble list, so crux-8-9-26's 9-letter TRIBUTARY slot had a
+  guess space of FIVE words: a regular hit "Not in the word list" on every
+  guess and abandoned the board. Making the answer itself pass (it always does,
+  via ANSWER_WORDS) hides this completely, which is why hand-adding the long
+  answers to the file in the past did not fix it. Two mechanics now:
+  (a) the list runs 3 to 13 letters, 13 being the widest a Sunday grid can hold;
+  (b) the client derives its covered lengths from the file and STANDS DOWN at
+  any length holding fewer than 500 words, so a future truncation degrades to
+  accepting anything rather than accepting nothing.
+  `scripts/verify-daily-banks.mjs crux` fails the bank if any slot length in it
+  falls under that floor. The rack games (Tuck, Babel, Shards) keep the 8-letter
+  tuck-dict.txt on purpose: their pars were played out over exactly that list.
 - Changing a LIVE puzzle's words or grid requires bumping its `rev` field so
   in-flight localStorage saves reset cleanly instead of corrupting.
 
