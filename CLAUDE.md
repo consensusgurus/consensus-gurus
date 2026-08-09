@@ -2012,6 +2012,22 @@ pair keeps its two navy tones; the paused cards take the slate's gold (`var(--go
   pill strip.
 - **The expand bars sit on `#e8edf5` between two 2px `#c2ccdc` rules.** On `--surface` between two
   `--border` hairlines they dissolved into the page at the console's edge.
+- **A group that shows NOTHING has no expand bar: its BAND is the toggle** (owner, 2026-08-08). Done
+  today peeked zero rows, so a band reading "Done today 6" sat on a bar reading "Show all 6", two
+  rows for one shut group. The band renders as a `<button>` with a chevron and `more()` returns null
+  when `peekOf(grp) === 0`. Done is collapsed at BOTH widths now (`.sl-row.done.sl-hid` is hidden in
+  the desktop block too, scoped to `.done` because the same class marks the Ready-to-play rows
+  outside the PHONE's six-row budget, which desktop deliberately lists in full). A group that peeks
+  SOME rows keeps its bar, since there the bar counts what is still hidden. **`globals.css` rounds
+  every `<button>` to 8px, so any full-width band or bar built out of one needs `border-radius:0`.**
+
+**Contest terms live in `app/ContestNote.jsx`, and EVERY share pop-up renders it (owner, 2026-08-08).**
+A button that names a dollar figure has to land the reader somewhere that states the prize, the
+deadline and the rules. `ShareCreditPop` (the global one) and the quiz-home "How to get credit" modal
+both render `<ContestNote />`; it reads `contestIsLive()` in an effect and renders nothing outside the
+window, and every figure in it comes from `lib/contest`. Do not restate the terms inline anywhere: add
+the component. The quiz-home header CTA itself is gold (`.qchm-bt.qchm-gold`) and reads
+`Share for ${CONTEST.prizeLabel}*`, from the constant, never a literal.
 
 **Puzzle drawer (`app/DailyTilePanel.jsx`)**
 
