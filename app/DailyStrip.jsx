@@ -237,8 +237,14 @@ const TWO_UP_MQ = TABLET_MQ + ', ' + STACKED_MQ;
 // The eyebrow each lower cap card carries. One line, so the three stay of a
 // piece and none of them can drift into a second wording.
 const CAP_LEAD_LABEL = { fav: 'Familiar favorite', fresh: 'New to you', crowd: 'Crowd favorite' };
-const CAP_PROG_D = 1;
-const CAP_PROG_M = 1;
+// How many STATE cards the cap shows before its expander takes over: games you
+// have already opened today, paused ones first and incomplete ones after. TWO at
+// both widths (owner, 2026-08-09), which is exactly the cap's second row, and
+// the pair share slots 3 and 4 with Familiar favorite giving way as they fill.
+// So: nothing opened yet gives you favorite + New to you, one opened game gives
+// favorite + that game, and two or more give the two games and an expander for
+// the rest. The cards this leaves out are all still listed in the slate below.
+const CAP_STATE_MAX = 2;
 // EXPANDING THE PAUSED CARDS MUST NOT RESIZE THE CONSOLE (owner, 2026-08-08).
 // The bar used to simply reveal every paused card, and with fifteen games open
 // the cap grew past the whole window: the three-column row stretched, both
@@ -689,10 +695,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // games you have already opened today, and the paused one still has a live
   // board to return to where the incomplete one has a spent score and a puzzle
   // you can still solve for yourself.
-  const capFail = capProg.length ? null : (games.find((g) => isFail(g.key)) || null);
+  // Everything you have already opened today, in one list. Paused leads
+  // incomplete throughout: a paused board is still live where an incomplete one
+  // is spent, so it is the better thing to hand back.
+  const capState = capProg.map((g) => ({ game: g, kind: 'prog' }))
+    .concat(games.filter((g) => isFail(g.key)).map((g) => ({ game: g, kind: 'fail' })));
+  const capStateShown = capOpen ? capState : capState.slice(0, CAP_STATE_MAX);
   const capLead = (() => {
-    // Two cards when nothing is paused, one when the gold card has slot 4.
-    const want = (capProg.length || capFail) ? 1 : 2;
+    // Whatever the state cards leave of the two lower slots.
+    const want = Math.max(0, 2 - capStateShown.length);
     const taken = new Set([nextGame && nextGame.key, easiest && easiest.game.key].filter(Boolean));
     const out = [];
     const pick = (pool) => pool.find((g) => !taken.has(g.key)) || null;
@@ -708,9 +719,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Expanding the paused list is a request to see paused games, so the cap hands
   // that block the room: the lead cards step aside, which also keeps the fixed
   // count even (two) while the block runs as its own full-width grid.
-  const capLeadShown = capOpen ? [] : capLead;
-  const capFixed = 2 + capLeadShown.length + (capFail ? 1 : 0);
-  const capShownD = capOpen ? capProg.length : Math.min(capProg.length, CAP_PROG_D);
+  // Open, `want` is already 0 (capStateShown is the whole list), so the lead
+  // cards step aside on their own and the block gets the room.
+  const capLeadShown = capLead;
+  const capFixed = 2 + capLeadShown.length;
   // Which column a paused card lands in. SHUT the block is display:contents, so
   // its cards continue the cap's own grid and the fixed cards above them set the
   // parity; OPEN it is its own two-column grid and starts at column one. Only
@@ -718,13 +730,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // no colour change between them. A class, not :nth-child, because the wrapper
   // makes the DOM position and the grid position disagree.
   const capCol1 = (i) => ((capOpen ? i : capFixed + i) % 2 === 0);
+  const capShownN = capStateShown.length;
   // Desktop runs the cap two cards to a row, so an ODD total would leave a
   // half-width hole beside the last card: it takes the full width instead. With
   // four cards this never fires; it is the backstop for the states that cannot
   // fill all four (a brand new viewer, or the open paused block).
-  const capOddD = ((capOpen ? capShownD : capFixed + capShownD) % 2 === 1);
-  const capWideAt = capOddD && capShownD > 0 ? capShownD - 1 : -1;
-  const capLeadWideAt = capOddD && capShownD === 0 ? capLeadShown.length - 1 : -1;
+  const capOddD = ((capOpen ? capShownN : capFixed + capShownN) % 2 === 1);
+  const capWideAt = capOddD && capShownN > 0 ? capShownN - 1 : -1;
+  const capLeadWideAt = capOddD && capShownN === 0 ? capLeadShown.length - 1 : -1;
   // The sub line each lower card carries. Familiar favorite prints the habit it
   // was chosen on, which is the one figure that explains why the card is there;
   // New to you says plainly that there is no history to print.
@@ -1852,7 +1865,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              for a game you have started. Hairlines between them, since two gold
              cards side by side have no colour change to divide them. */
           .dhome.slate .dh-cell.prog{background:var(--gold);color:#2a1f04;text-decoration:none;border-bottom:1px solid rgba(20,22,28,.12);}
-          .dhome.slate .dh-cell.prog.capL{border-right:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog.capL,.dhome.slate .dh-cell.failc.capL{border-right:1px solid rgba(20,22,28,.12);}
           .dhome.slate .dh-cell.prog:hover{background:#e0a92c;}
           .dhome.slate .dh-cell.prog::before{background:rgba(42,31,4,.55);}
           .dhome.slate .dh-cell.prog .dh-bue{color:#7a5a10;}
@@ -1860,6 +1873,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .dh-cell.prog .dh-busub{color:#6b5210;}
           .dhome.slate .dh-cell.prog .dh-play{background:var(--white);color:#8a5306;}
           .dhome.slate .dh-cell.prog:hover .dh-play{background:var(--white);}
+          .dhome.slate .dh-cell.failc.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.prog.capw{grid-column:1/-1;border-right:none;}
           /* Familiar favorite and New to you: the third and fourth tones of the
              cap's blue ramp (owner, 2026-08-09). Hairlines above them the way
@@ -1906,10 +1920,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-radius:0;box-shadow:none;}
           .dhome.slate .sl-bar{border-left:none;border-right:none;border-radius:0;border-top:none;margin-top:0;}
           .dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
-          /* the two lead-in bars come FIRST on a phone, above the slate's own
-             title band. .dhome is a flex column, so this is an order flip, not
-             a second copy of the markup. */
-          .dhome.slate .dh-sbar{order:-1;flex-direction:column;align-items:stretch;gap:0;padding:0;background:transparent;border:none;}
+          /* THE PHONE ORDER MATCHES THE DESKTOP ONE (owner, 2026-08-09): the
+             slate's title band leads, the hero cards sit under the band that
+             names them, then the category strip, then the board. The cap used to
+             carry order:-1 and lead the whole page, which put four cards above
+             any label saying what they were. Source order is already title, cap,
+             strip, board, so DROPPING the order off the cap is the entire
+             change; the board keeps order:1 so it always lands last whatever
+             else is added above it. */
+          .dhome.slate .dh-sbar{flex-direction:column;align-items:stretch;gap:0;padding:0;background:transparent;border:none;}
           .dhome.slate .sl-bar{order:0;}
           .dhome.slate .dh-boardwrap{order:1;}
           .dhome.slate .dh-cell > img{display:none !important;}
@@ -2337,7 +2356,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              column one here, which is the same trick the desktop cap uses. */
           .dhome.slate .dh-sbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
           .dhome.slate .dh-cell{width:auto;}
-          .dhome.slate .dh-cell.prog.capL{border-right:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog.capL,.dhome.slate .dh-cell.failc.capL{border-right:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.failc.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.prog.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.fav.capw,.dhome.slate .dh-cell.fresh.capw{grid-column:1/-1;}
           /* The board. The centre hairline is the same painted gradient the
@@ -2591,70 +2611,56 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             </span>
           </a>
         ))}
-        {/* The incomplete card. Red, and its button says Play rather than
-            Resume: there is no live board to resume, the score is already
-            banked, and what is on offer is the puzzle itself, which this game
-            never showed the answer to. */}
-        {capFail ? (
-          <a href={capFail.href} aria-label={`Play ${capFail.name}`} className="dh-cell failc">
-            <div className="dh-bupt">
-              <div className="dh-bue">Incomplete</div>
-              <div className="dh-bun">{capFail.name}</div>
-              <div className="dh-busub">{capFail.tag}{' \u00b7 the answer is still yours to find'}</div>
-            </div>
-            <span className="dh-play">
-              <Play size={11} fill="currentColor" strokeWidth={0} />Play
-            </span>
-          </a>
-        ) : null}
-        {/* The paused cards. Same card as the two above it, in gold: same
-            padding, same white rule where the emblem would be, an eyebrow over
-            the name over a sub line, and the same button on the right edge.
-            The WHOLE card is the link (the button is a span inside it, not a
-            second link), because the one thing you want from a paused game is
-            to get back into it. */}
-        {capProg.length ? (
+        {/* The state cards: paused in gold, incomplete in red, in one block so
+            one budget and one expander cover both. Each is a single link with
+            the button as a span inside it, never a second anchor, because the
+            one thing you want from a game you have already opened is to get
+            back into it. The paused card says Resume because its board is still
+            live; the incomplete one says Play because there is nothing to
+            resume, only a puzzle this game never showed you the answer to. */}
+        {capState.length ? (
           <div className={'dh-cprog' + (capOpen ? ' open' : '')}>
-            {capProg.map((g, i) => (
-              <a
-                key={g.key}
-                href={g.href}
-                aria-label={`Resume ${g.name}`}
-                className={'dh-cell prog'
-                  + (capCol1(i) ? ' capL' : '')
-                  + (i === capWideAt ? ' capw' : '')
-                  + (!capOpen && i >= CAP_PROG_D ? ' cap-hd' : '')
-                  + (!capOpen && i >= CAP_PROG_M ? ' cap-hm' : '')}
-              >
-                <div className="dh-bupt">
-                  <div className="dh-bue">In progress</div>
-                  <div className="dh-bun">{g.name}</div>
-                  <div className="dh-busub">{g.tag}{playsNote(playsOf(g.key))}</div>
-                </div>
-                <span className="dh-play">
-                  <Play size={11} fill="currentColor" strokeWidth={0} />Resume
-                </span>
-              </a>
-            ))}
+            {capStateShown.map((c, i) => {
+              const paused = c.kind === 'prog';
+              return (
+                <a
+                  key={c.game.key}
+                  href={c.game.href}
+                  aria-label={`${paused ? 'Resume' : 'Play'} ${c.game.name}`}
+                  className={'dh-cell ' + (paused ? 'prog' : 'failc')
+                    + (capCol1(i) ? ' capL' : '')
+                    + (i === capWideAt ? ' capw' : '')}
+                >
+                  <div className="dh-bupt">
+                    <div className="dh-bue">{paused ? 'In progress' : 'Incomplete'}</div>
+                    <div className="dh-bun">{c.game.name}</div>
+                    <div className="dh-busub">
+                      {c.game.tag}
+                      {paused ? playsNote(playsOf(c.game.key)) : ' \u00b7 the answer is still yours to find'}
+                    </div>
+                  </div>
+                  <span className="dh-play">
+                    <Play size={11} fill="currentColor" strokeWidth={0} />{paused ? 'Resume' : 'Play'}
+                  </span>
+                </a>
+              );
+            })}
           </div>
         ) : null}
         {/* One bar for the whole cap, spanning both columns at the foot of the
-            cards. Each width prints its own count, the way the board's group
-            bars do, since the two widths hide a different number of cards. */}
-        {capProg.length > CAP_PROG_M ? (
+            cards. One count now, not one per width: the cut is the same two at
+            every width, so there is nothing left for the two labels to say
+            differently. */}
+        {capState.length > CAP_STATE_MAX ? (
           <button
             type="button"
-            className={'dh-cmore' + (capProg.length > CAP_PROG_D ? '' : ' mo')}
+            className="dh-cmore"
             onClick={() => setCapOpen((v) => !v)}
             aria-expanded={capOpen}
           >
             {capOpen
               ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
-              : <>
-                  <span className="sl-mtxt d">{`Show ${Math.max(0, capProg.length - CAP_PROG_D)} more paused`}</span>
-                  <span className="sl-mtxt p">{`Show ${Math.max(0, capProg.length - CAP_PROG_M)} more paused`}</span>
-                  <ChevronDown size={12} strokeWidth={2.8} />
-                </>}
+              : <>{`Show ${capState.length - CAP_STATE_MAX} more started`}<ChevronDown size={12} strokeWidth={2.8} /></>}
           </button>
         ) : null}
       </div>
