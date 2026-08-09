@@ -201,12 +201,6 @@ const TABLET_ROWS = 12;
 // phone's whole-row-opens-the-drawer model. Portrait tablets (744, 768, 820) and
 // the larger phones in landscape (844) all land here.
 const TABLET_MQ = '(min-width:641px) and (max-width:900px)';
-// Desktop shows at most this many In progress rows before the expand bar takes
-// over. Two, matching the phone: the slate runs two columns there, so a paused
-// game is either the full width of the console or half of it, and a third card
-// would push the games you have NOT started off the first screen. Two paused is
-// the rule at every width (owner, 2026-08-08).
-const DESK_PROG_MAX = 2;
 // How many PAUSED cards the cap shows before its expand bar takes over (owner,
 // 2026-08-08). TWO at both widths: the cap runs two columns above 900px, so two
 // is exactly one row of cards there, and the point of the cap is to hand you
@@ -876,13 +870,24 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // directly under its own row rather than as an overlay over the board.
   const renderSlate = (rows0, dim) => {
     const out = [];
-    // Paused games left the board for the cap (owner, 2026-08-08), so the slate
-    // holds two groups: Ready to play and Done today. The In progress band, its
-    // rows and its expand bar all fall away from this one filter, since each of
-    // the three renders only when its own count is non-zero.
-    const arr = rows0.filter((g) => done.has(g.key) || !inprog.has(g.key));
+    // A PAUSED GAME IS A READY-TO-PLAY ROW AT THE FOOT OF THAT GROUP (owner,
+    // 2026-08-08). Paused games left the board for the cap earlier that day,
+    // which left a game you had started findable in exactly one place, and only
+    // while the cap still had a slot for it. They are back in the slate as
+    // ordinary rows: same group as everything else you have not finished, sorted
+    // BELOW the untouched ones, carrying the faint amber ground and gold left
+    // rule that say the game is already open. The cap still promotes the first
+    // couple of them; this is the copy you can always scroll to.
+    //
+    // So the slate holds TWO bands: Ready to play (untouched, then paused) and
+    // Done today. There is no In progress band, its rows or its bar any more.
+    // The partition is stable, so each of the three keeps the order the sort
+    // handed it.
+    const arr = rows0.filter((g) => !done.has(g.key) && !inprog.has(g.key))
+      .concat(rows0.filter((g) => !done.has(g.key) && inprog.has(g.key)))
+      .concat(rows0.filter((g) => done.has(g.key)));
     // Phone layout groups the slate by state (owner-approved direction B,
-    // 2026-08-07). The three band headers are pushed FIRST and moved into place
+    // 2026-08-07). The band headers are pushed FIRST and moved into place
     // by CSS `order` inside the <=900px block, NOT interleaved here, so the
     // DESKTOP source order is byte-identical to before and the sortable column
     // headers keep working exactly as they did. Above 900px the bands are
@@ -895,6 +900,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       else if (inprog.has(g.key)) nProg += 1;
       else nTodo += 1;
     });
+    // Ready to play is BOTH sub-groups: the untouched rows and the paused ones
+    // beneath them.
+    const nReady = nTodo + nProg;
     // A band normally prints its own size on the right. Ready to play prints the
     // DAY instead (owner, 2026-08-08): how many of the whole slate are finished.
     // That figure used to be the third box in the phone header, where it competed
@@ -908,9 +916,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // group showing NOTHING renders no bar either: its band becomes the control
     // (see `band` below). The peek numbers are declared up here because the band
     // needs them.
-    // Spend the six-row budget: paused first, up to three, then unplayed.
+    // Spend the six-row budget: paused first, up to two, then unplayed. Paused
+    // rows are bought FIRST but rendered LAST, so a game you walked away from is
+    // always inside the peek rather than behind the bar while still sitting at
+    // the foot of the group. That is why the peek is measured against each
+    // sub-group's own index below rather than one running count.
     const progPeek = Math.min(nProg, PHONE_PROG_MAX);
     const todoPeek = Math.max(0, (twoUp ? TABLET_ROWS : PHONE_ROWS) - progPeek);
+    // What the one Ready-to-play bar has to promise: both sub-groups' overflow,
+    // and nothing at all under a filter, which shows every row by itself.
+    const readyHidden = filter === 'all'
+      ? Math.max(0, nTodo - todoPeek) + Math.max(0, nProg - progPeek)
+      : 0;
     // A FILTER already is the reader asking to narrow the slate, so peeking
     // inside it would be answering that request with another lid (owner,
     // 2026-08-07): any filter other than All shows every paused and unplayed
@@ -961,17 +978,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         <div className={`sl-band ${grp}`} key={`band-${grp}`}>{inner}</div>
       );
     };
-    out.push(band('prog', 'In progress', nProg));
-    out.push(band('todo', 'Ready to play', nTodo, `${n}/${GAMES.length} played`));
+    out.push(band('todo', 'Ready to play', nReady, `${n}/${GAMES.length} played`));
     out.push(band('dn', 'Done today', nDone));
     // The bar names how many rows are HIDDEN, not how many the group holds
     // (owner, 2026-08-07): "Show all 38" made you do the subtraction against a
     // band that already printed the total.
-    // `dmin` is the DESKTOP cap, which is its own number: the phone spends a
-    // six-row budget across the groups, while desktop caps nothing in the board
-    // now that the paused games ride in the cap. The bar renders when either
-    // width has something hidden, and each width prints its own count.
-    const more = (grp, count, dmin) => ((peekOf(grp) > 0 && count > peekOf(grp)) || (dmin != null && count > dmin) ? (
+    // PHONE ONLY, and one bar. Desktop lists every unfinished row (its .sl-hid
+    // rule is scoped to the finished ones) and shuts Done today from the band
+    // itself, so there is nothing left for a desktop bar to do: .sl-more is
+    // display:none above 900px.
+    const more = (grp, hidden) => (hidden > 0 ? (
       <button
         type="button"
         className={`sl-more ${grp}`}
@@ -994,18 +1010,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       >
         {grpOpen[grp]
           ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
-          : <>
-              <span className="sl-mtxt p">{`Show ${count - peekOf(grp)} more`}</span>
-              <span className="sl-mtxt d">{(dmin != null && count > dmin)
-                ? `Show ${count - dmin} more`
-                : `Show ${count - peekOf(grp)} more`}</span>
-              <ChevronDown size={12} strokeWidth={2.8} />
-            </>}
+          : <>{`Show ${hidden} more`}<ChevronDown size={12} strokeWidth={2.8} /></>}
       </button>
     ) : null);
-    out.push(more('prog', nProg, DESK_PROG_MAX));
-    out.push(more('todo', nTodo));
-    out.push(more('dn', nDone));
+    out.push(more('todo', readyHidden));
     // Counted in DOM order, which IS the visual order WITHIN a group (equal
     // `order` values keep source order), so "the first two" means the same thing
     // to the reader as it does here.
@@ -1013,15 +1021,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     arr.forEach((g) => {
       const isDone = done.has(g.key);
       const ip = !isDone && inprog.has(g.key);
-      const grp = isDone ? 'dn' : (ip ? 'prog' : 'todo');
-      const gi = seen[grp];
-      seen[grp] = gi + 1;
-      const hid = !grpOpen[grp] && gi >= peekOf(grp);
-      // Desktop caps In progress at two and lays a lone one across both columns
-      // (owner, 2026-08-08). Both are desktop-only classes: the phone block
-      // never styles them, so its own six-row budget is untouched.
-      const dhid = grp === 'prog' && !grpOpen[grp] && gi >= DESK_PROG_MAX;
-      const wide = grp === 'prog' && nProg === 1;
+      // A paused row BELONGS to Ready to play (one band, one bar, one open
+      // state) but is COUNTED against the paused half of the budget, since the
+      // two halves peek different numbers of rows.
+      const grp = isDone ? 'dn' : 'todo';
+      const bucket = isDone ? 'dn' : (ip ? 'prog' : 'todo');
+      const gi = seen[bucket];
+      seen[bucket] = gi + 1;
+      const hid = !grpOpen[grp] && gi >= peekOf(bucket);
       const st = streaks[g.key] >= 2 ? streaks[g.key] : 0;
       const pl = playsOf(g.key);
       const bd = byKey[g.key];
@@ -1035,7 +1042,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       out.push(
         <div
           key={g.key}
-          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}${dhid ? ' sl-dhid' : ''}${wide ? ' sl-wide' : ''}`}
+          className={`sl-row${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${open ? ' open' : ''}${dim ? ' dim' : ''}${hid ? ' sl-hid' : ''}`}
           style={{ '--rc': col }}
           onClick={(e) => {
             // A click anywhere on the row, the emblem included, opens the stats
@@ -1165,7 +1172,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       // `order` grouping; it has no effect above 900px.
       // The drawer inherits sl-hid, so collapsing a group takes an open drawer
       // with it rather than leaving a panel with no row above it.
-      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${hid ? ' sl-hid' : ''}${dhid ? ' sl-dhid' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
+      if (open) out.push(<div className={`sl-drawer${isDone ? ' done' : ''}${ip ? ' inprog' : ''}${hid ? ' sl-hid' : ''}`} key={`drawer-${g.key}`}>{renderPanel(g)}</div>);
     });
     return out;
   };
@@ -1813,15 +1820,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;position:sticky;top:0;z-index:3;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
-          .sl-band.prog{order:1;}
-          .sl-band.dn{order:7;background:var(--success-deep);}
+          .sl-band.dn{order:8;background:var(--success-deep);}
           .sl-drawer{grid-column:1/-1;}
           /* Same order scheme the phone uses, since grid honours it too: a row
              and its own drawer carry the same value and equal-order items keep
              source order, so a drawer never leaves its row. */
           .sl-row,.sl-drawer{order:5;}
-          .sl-row.inprog,.sl-drawer.inprog{order:2;}
-          .sl-row.done,.sl-drawer.done{order:8;}
+          /* Paused rows sink to the FOOT of Ready to play (owner, 2026-08-08),
+             above the group's bar and below every untouched row. */
+          .sl-row.inprog,.sl-drawer.inprog{order:6;}
+          .sl-row.done,.sl-drawer.done{order:9;}
           /* THREE tracks: emblem, name, crowd size. Pins add no track, the same
              call the phone made: the star left the row and the pin control is
              the chip at the top of the drawer. */
@@ -1848,7 +1856,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              is actually showing. */
           .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);z-index:2;opacity:0;pointer-events:none;}
           .sl-row.done .sl-status{opacity:1;pointer-events:auto;}
-          .sl-dhid{display:none;}
           /* DONE TODAY IS SHUT AT THIS WIDTH TOO (owner, 2026-08-08). Its band
              is the toggle, so the rows it hides have to actually hide here as
              well; until now sl-hid only meant anything below 900px and the
@@ -1858,50 +1865,24 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              Three classes, because the base sl-row display:grid rule sits later
              in this stylesheet and would otherwise win. */
           .dh-board.slate .sl-row.done.sl-hid,.dh-board.slate .sl-drawer.done.sl-hid{display:none;}
-          .sl-row.sl-wide{grid-column:1/-1;}
+          /* Each width prints its own count on the CAP's expand bar (the board's
+             own bar is phone-only now, so this pair serves the cap alone). */
           .sl-mtxt.p{display:none;}
-          /* The expand bar is the PHONE'S bar, restated. It was inheriting
-             nothing but display, so it rendered as a raw <button> carrying a UA
-             border in the middle of the console (owner, 2026-08-08). The band
-             above it stays the same blue as every other band: the gold belongs
-             to the cards, not to the furniture around them. */
-          .sl-more.prog{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;grid-column:1/-1;order:3;
-            padding:6px 13px;border:0;border-radius:0;border-top:2px solid #c2ccdc;border-bottom:2px solid #c2ccdc;background:#e8edf5;
-            font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
-            line-height:1.5;color:var(--gold-ink);cursor:pointer;}
-          .sl-more.prog:hover{background:#dde5f0;}
-          /* A PAUSED GAME IS A CAP-SHAPED CARD (owner, 2026-08-08). The first
-             pass filled the ordinary row with #a16207, which came out muddy
-             brown against a page of blue and read as a warning rather than an
-             invitation. It takes the CAP BARS' shape instead, the two cells
-             directly above it: same padding, same 4px rule where the emblem
-             would be, an eyebrow over a 20px name over a sub line, and the same
-             wide button on the right edge. Only the ground differs, the brand
-             gold the phone's share bar already pairs with #3a2a05 ink, so a
-             paused game reads as one more of those cards rather than a row that
-             has gone a strange colour. The emblem drops for the same reason it
-             drops on the cap: at this size on a saturated ground it is
-             unreadable, and the rule does its job. */
-          .dh-board.slate .sl-row.inprog,.dh-board.slate .sl-row.inprog.open{grid-template-columns:minmax(0,1fr) auto auto;gap:12px;
-            padding:13px 16px 13px 26px;background:var(--gold);box-shadow:inset 4px 0 0 #8a5306;}
-          .sl-row.inprog:hover{background:#e0a92c;}
-          .sl-row.inprog .sl-ic{display:none;}
-          .sl-row.inprog .sl-nm b{font-size:20px;color:#2a1f04;}
-          /* The eyebrow's colour is an inline style (the category hue), so this
-             is the one place the desktop block has to outrank it. */
-          .sl-row.inprog .sl-cm{color:#7a5a10 !important;}
-          .sl-row.inprog .sl-tg,.sl-row.inprog .sl-dot{color:#6b5210;}
-          .sl-row.inprog .sl-mld{color:#4a3708;}
-          .sl-row.inprog .sl-mld svg{color:#8a6a12;}
-          .sl-row.inprog .sl-pl b{color:#2a1f04;}
-          .sl-row.inprog .sl-pl i{color:#6b5210;}
-          /* The one row whose control is permanent: it is the reason the card is
-             there, so it never waits for a hover. */
-          .sl-row.inprog .sl-status{order:4;position:static;transform:none;opacity:1;pointer-events:auto;}
-          .sl-row.inprog .sl-btn.prog{width:104px;padding:11px 0;gap:7px;border-radius:8px;
-            background:var(--white);border-color:var(--white);color:#8a5306;font-size:12px;letter-spacing:.05em;}
+          /* A PAUSED GAME IS A FAINTLY SHADED ROW (owner, 2026-08-08). It spent
+             one deploy as a cap-shaped gold card at the top of the slate, which
+             is the shape the CAP already uses for the same games directly above
+             the board: the same card twice on one screen, and a row that shouted
+             where the group it sits in is a quiet list. It keeps the ordinary
+             row's shape and columns now, and says what it is with the base
+             amber ground and the gold left rule instead. Its Resume chip is the
+             one control that does NOT wait for a hover, since resuming is the
+             reason you scrolled to it. */
+          .sl-row.inprog .sl-status{opacity:1;pointer-events:auto;}
+          .sl-row.inprog .sl-pl,.sl-row.done .sl-pl{visibility:hidden;}
+          /* The chip reads RESUME here rather than a bare triangle, so it sits
+             in the same 64px shape as the Play chip on every row above it. */
           .sl-row.inprog .sl-rz{display:inline;}
-          .sl-row.done .sl-pl{visibility:hidden;}
+          .sl-row.inprog .sl-btn.prog svg{display:none;}
           .sl-btn{width:64px;}
         }
         @media(min-width:901px) and (hover:hover){
@@ -1925,18 +1906,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              rows separate with their own 1px bottom border and nothing else. */
           .dh-board.slate{height:auto;max-height:none;min-height:0;overflow:visible;display:flex;flex-direction:column;gap:0;}
           .sl-head{display:none;}
-          /* Nine ordered slots, three per group: band, rows, expand bar.
-             prog 1-2-3, todo 4-5-6, done 7-8-9. A drawer shares its row's
-             value, and equal-order items keep source order, so a drawer stays
-             under its own row. */
+          /* Ordered slots, one group per band: Ready to play is 4 (band), 5
+             (untouched rows), 6 (paused rows) and 7 (its expand bar); Done
+             today is 8 (band) and 9 (rows), shut from its own band. A drawer
+             shares its row's value, and equal-order items keep source order, so
+             a drawer stays under its own row. */
           .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
-          .sl-band.prog{order:1;}
-          .sl-band.dn{order:7;background:var(--success-deep);}
+          .sl-band.dn{order:8;background:var(--success-deep);}
           .sl-row,.sl-drawer{order:5;}
-          .sl-row.inprog,.sl-drawer.inprog{order:2;}
-          .sl-row.done,.sl-drawer.done{order:8;}
+          .sl-row.inprog,.sl-drawer.inprog{order:6;}
+          .sl-row.done,.sl-drawer.done{order:9;}
           /* The rows a group is not peeking. Nothing else may set display on a
              .sl-row inside the slate without excluding this class, or the row
              comes back: see the :not(.sl-hid) on the .mcut rule in the 640px
@@ -1949,10 +1930,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#dde5f0;}
-          .sl-more.prog{order:3;color:#a16207;}
+          .sl-more.todo{order:7;}
           .sl-mtxt.d{display:none;}
-          .sl-more.todo{order:6;}
-          .sl-more.dn{order:9;color:var(--success-deep);}
           /* THREE tracks: name, count, icon (owner, 2026-08-07, against a
              reference image). The row used to carry a star, a tile plate, the
              name, a Play button and a chevron, five things competing with the
@@ -2035,7 +2014,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            either way and the desktop row's hover-to-reveal Play would be
            unreachable. Only the CONTAINERS become two-column grids. The bands,
            the expand bars and an open drawer still span both columns, and the
-           phone's nine ordered slots keep working because grid honours the order
+           phone's ordered slots keep working because grid honours the order
            property exactly as flex does.
            Below 641 nothing changes: there the second column would be 170px. */
         @media(min-width:641px) and (max-width:900px){
@@ -2052,7 +2031,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              still shows the split all the way down. */
           .dh-board.slate{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;
             background:linear-gradient(to right,transparent calc(50% - .5px),#eef0f4 calc(50% - .5px),#eef0f4 calc(50% + .5px),transparent calc(50% + .5px));}
-          .sl-band,.sl-more,.sl-drawer,.sl-row.sl-wide{grid-column:1/-1;}
+          .sl-band,.sl-more,.sl-drawer{grid-column:1/-1;}
           /* 42vw of leader chip is most of a 364px track, and the tagline is the
              item that should be shrinking, not the thing after it. */
           .sl-mld{max-width:19vw;}
