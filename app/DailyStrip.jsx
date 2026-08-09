@@ -632,6 +632,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       if (typeof document !== 'undefined' && document.hidden) { fit(); return; }
       raf = requestAnimationFrame(fit);
     };
+    // A HIDDEN DOCUMENT RUNS NO RENDERING STEPS, so a ResizeObserver in one
+    // never DELIVERS, and the branch above never gets called. Plain timers do
+    // still run, so two late re-fits are the safety net under the observer
+    // (the same belt-and-braces the rails' own measure uses).
+    const t1 = setTimeout(q, 450);
+    const t2 = setTimeout(q, 1400);
     // The FIRST fit is direct, not queued: requestAnimationFrame never fires in
     // a background tab, so a page opened in one would have sat at the fallback
     // calc until it was looked at.
@@ -650,10 +656,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     return () => {
       window.removeEventListener('resize', q);
       document.removeEventListener('visibilitychange', q);
+      clearTimeout(t1);
+      clearTimeout(t2);
       if (ro) ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [slate, capOpen, phone]);
+    // Deps: everything that changes the CAP's height, since that is the only
+    // thing above the board that moves it. This is the deterministic path; the
+    // observer and the timers above are the backstop for a late data arrival.
+  }, [slate, capOpen, phone, capProg.length, nextGame && nextGame.key, easiest && easiest.game.key]);
 
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
