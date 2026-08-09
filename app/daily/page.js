@@ -188,7 +188,7 @@ const GAMES = [
   { key: 'mate', name: 'Mate', path: '/mate', tag: 'White to play and mate', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)', src: MATE },
   { key: 'four', name: 'Four', path: '/four', tag: 'One column wins', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(30,58,138,0.35)', src: FOUR },
   { key: 'park', name: 'Parker', path: '/parker', tag: 'Get the red one out', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)', src: PARK },
-  { key: 'check', name: 'Check', path: '/check', tag: 'Give a piece, take them all', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)', src: CHECK },
+  { key: 'check', name: 'Check', path: '/check', tag: 'Red to play and sweep', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)', src: CHECK },
   { key: 'rung', name: 'Rung', path: '/rung', tag: 'One letter at a time', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)', src: RUNG },
   { key: 'crunch', name: 'Crunch', path: '/crunch', tag: 'Six numbers, one target', accent: '#b45309', bg: '#fdf3e3', border: 'rgba(180,83,9,0.35)', src: CRUNCH },
   { key: 'taire', name: 'Taire', path: '/taire', tag: 'The daily solitaire', accent: '#1d6b4f', bg: '#e6f2ec', border: 'rgba(29,107,79,0.35)', src: TAIRE },

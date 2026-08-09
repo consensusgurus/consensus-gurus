@@ -86,7 +86,7 @@ const GAMES = [
   { key: 'mate', href: '/mate', name: 'Mate', img: '/games/btn-mate.png', store: 'sot_mate_day', tag: "White to play and mate" , cat: 'End Game' },
   { key: 'four', href: '/four', name: 'Four', img: '/games/btn-four.png', store: 'sot_four_day', tag: "One column wins" , cat: 'End Game' },
   { key: 'park', href: '/parker', name: 'Parker', img: '/games/btn-park.png', store: 'sot_park_day', tag: "Get the red one out" , cat: 'Logic' },
-  { key: 'check', href: '/check', name: 'Check', img: '/games/btn-check.png', store: 'sot_check_day', tag: "Give a piece, take them all" , cat: 'End Game' },
+  { key: 'check', href: '/check', name: 'Check', img: '/games/btn-check.png', store: 'sot_check_day', tag: "Red to play and sweep" , cat: 'End Game' },
   { key: 'rung', href: '/rung', name: 'Rung', img: '/games/btn-rung.png', store: 'sot_rung_day', tag: "One letter at a time" , cat: 'Word' },
   { key: 'crunch', href: '/crunch', name: 'Crunch', img: '/games/btn-crunch.png', store: 'sot_crunch_day', tag: "Six numbers, one target" , cat: 'Numbers' },
   { key: 'taire', href: '/taire', name: 'Taire', img: '/games/btn-taire.png', store: 'sot_taire_day', tag: "The daily solitaire" , cat: 'Cards' },

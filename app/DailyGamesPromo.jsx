@@ -48,7 +48,7 @@ export const DAILY_GAMES = [
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'white to play and mate', store: 'sot_mate_day', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)' },
   { key: 'four', href: '/four', name: 'Four', tag: 'one column wins', store: 'sot_four_day', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(30,58,138,0.35)' },
   { key: 'park', href: '/parker', name: 'Parker', tag: 'get the red one out', store: 'sot_park_day', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)' },
-  { key: 'check', href: '/check', name: 'Check', tag: 'give a piece, take them all', store: 'sot_check_day', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)' },
+  { key: 'check', href: '/check', name: 'Check', tag: 'red to play and sweep', store: 'sot_check_day', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)' },
   { key: 'rung', href: '/rung', name: 'Rung', tag: 'one letter at a time', store: 'sot_rung_day', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)' },
   { key: 'crunch', href: '/crunch', name: 'Crunch', tag: 'six numbers, one target', store: 'sot_crunch_day', accent: '#b45309', bg: '#fdf3e3', border: 'rgba(180,83,9,0.35)' },
   { key: 'taire', href: '/taire', name: 'Taire', tag: 'the daily solitaire', store: 'sot_taire_day', accent: '#1d6b4f', bg: '#e6f2ec', border: 'rgba(29,107,79,0.35)' },

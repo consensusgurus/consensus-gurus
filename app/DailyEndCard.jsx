@@ -242,7 +242,7 @@ const ALL_DAILY_GAMES = [
   { key: 'mate',   cat: 'endgame',     name: 'Mate',   tag: 'White to play and mate',      blurb: 'A real chess position with a forced mate hiding in it. Find the move that ends it.', href: '/mate' },
   { key: 'four',   cat: 'endgame',     name: 'Four',   tag: 'One column wins',             blurb: 'A Connect Four board where exactly one drop wins. Pick the column and play it out.', href: '/four' },
   { key: 'park',   cat: 'logic',     name: 'Parker', tag: 'Get the red one out',         blurb: 'A jammed parking lot. Slide the other cars aside and drive the red one free in as few moves as you can.', href: '/parker' },
-  { key: 'check',  cat: 'endgame',     name: 'Check',  tag: 'Give a piece, take them all', blurb: 'A checkers position where one sacrifice sets off a chain that clears the whole board.', href: '/check' },
+  { key: 'check',  cat: 'endgame',     name: 'Check',  tag: 'Red to play and sweep',       blurb: 'A checkers position where one move sets off a chain that clears the whole board.', href: '/check' },
   { key: 'chain',  cat: 'endgame',     name: 'Chain',  tag: 'Take them, or leave them',    blurb: 'A dots and boxes endgame you are already winning. One edge keeps it, and the free box is usually bait.', href: '/chain' },
   { key: 'suffice', cat: 'logic',      name: 'Suffice', tag: 'Decide what is enough',      blurb: 'Eight questions you never answer. For each one, decide whether the two statements are enough to settle it.', href: '/suffice' },
   { key: 'turn',   cat: 'endgame',     name: 'Turn',   tag: 'Ten squares left',            blurb: 'An Othello endgame you are already winning. One square keeps it, and the careful little move is not always it.', href: '/turn' },

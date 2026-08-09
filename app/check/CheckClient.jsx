@@ -4,9 +4,11 @@
 //
 // Every board is Red to play with a forced sweep: capture EVERY black piece
 // inside a fixed number of your own moves. Weekdays take three, Sundays four.
-// Exactly one first move does it, and on every board in the bank that move is a
-// sacrifice, because captures are compulsory in this game and the whole art is
-// feeding a piece to force the reply you want.
+// Exactly one first move does it, and every board in the bank turns on the same
+// idea, which is exactly why no reader-facing copy may NAME that idea. Share
+// cards, tile tags, metadata, the rules panel and the first-run help describe the
+// GOAL only. The one place the key is named is the payoff block below, gated on
+// !playing, which renders after the board is over.
 //
 // A wrong move is NOT refused. The engine answers, the clock on your move budget
 // keeps ticking down, and you play the rest out knowing the sweep is gone. The
@@ -573,7 +575,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
         <>Standard checkers: men step one square diagonally forward, kings go both ways, and reaching the far row crowns you and ends the turn.</>,
         <><b>Captures are compulsory</b>, and a jump must be carried on for as long as the same piece can keep jumping.</>,
       ]}
-      knack="That compulsory jump is the whole puzzle: the winning move is nearly always a sacrifice that forces black to jump into a sweep."
+      knack="Black never gets a choice about its reply. Work out what each of your moves forces black to do, and what the board looks like once it has done it."
       note={<>Exactly <b>one</b> first move clears the board in time, and a wrong one is <b>not taken back</b>: black answers, your budget still runs down, and the sweep is gone.</>}
       footer={<>Clearing the board scores 10. Falling short scores nothing, the same as giving up. One free <b>hint</b>, on your first ever play, names the piece to move. Sundays give you four moves instead of three, and need them.</>}
     />
@@ -627,7 +629,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Check is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>You are red. Take every black piece in {BUDGET} moves. Captures are compulsory, which is exactly what you are going to use against black. One first move works, and there is no take-back.</p>
+                <p style={{ margin: '0 0 6px' }}>You are red. Take every black piece in {BUDGET} moves. Captures are compulsory, so black&rsquo;s reply is never a choice. One first move works, and there is no take-back.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -833,7 +835,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
           Check is a free daily checkers puzzle from Mind Loft. Every board is red to play with a forced sweep on it: take every black piece inside three moves, four on Sundays. Tap a piece and its legal squares light up, so you never need notation to play.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The trick is always the same and always satisfying: captures are compulsory in checkers, so giving a piece away is how you decide what your opponent does next. Every board in the bank opens with a sacrifice, and every one was solved twice, by the engine that ships and by a second one written independently, to confirm the sweep exists, takes exactly the stated number of moves, and has exactly one first move that works.
+          Captures are compulsory in checkers, so black never chooses its own reply, and that is what makes a forced sweep possible at all. Finding the line is the puzzle, so we will not spoil it here. Every board in the bank was solved twice, by the engine that ships and by a second one written independently, to confirm the sweep exists, takes exactly the stated number of moves, and has exactly one first move that works.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new board drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/parker" style={{ color: COLORS.ink, fontWeight: 800 }}>Parker</a>, our daily sliding-block jam, <a href="/four" style={{ color: COLORS.ink, fontWeight: 800 }}>Four</a>, our daily Connect Four position, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess endgame.

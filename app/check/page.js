@@ -8,15 +8,22 @@ import { SITE_URL } from '@/lib/site';
 // the footer, the /daily archive, and the sitemap (/check is the canonical,
 // evergreen URL). Weekdays are a sweep in three moves, Sundays in four. Puzzles are gated by Eastern date here, so tomorrow's board never reaches
 // the browser.
+//
+// COPY RULE (owner, 2026-08-09): nothing reader-facing about Check may name the
+// method that solves it. Every board turns on the same idea, so saying it once on
+// a share card, a tile tag or the rules panel gives away every future board too.
+// Describe the GOAL (red to play, sweep the board in three, four on Sundays, one
+// first move, no take-back) and stop there. The payoff line in CheckClient, which
+// renders only after the board is over, is the one place the key may be named.
 
 export const metadata = {
   title: 'Check — Free Daily Checkers Puzzle | Mind Loft',
   description:
-    'A free daily checkers puzzle. Red to play, with a forced sweep on the board: capture every black piece in three moves, four on Sundays. Captures are compulsory, so the key is always a sacrifice. No app, no signup, and a new board every day.',
+    'A free daily checkers puzzle. Red to play, with a forced sweep on the board: capture every black piece in three moves, four on Sundays. Exactly one first move does it, and there is no take-back. No app, no signup, and a new board every day.',
   alternates: { canonical: '/check' },
   openGraph: {
     title: 'Check — A Daily Checkers Puzzle',
-    description: 'One move sweeps the board. It is always a sacrifice, and there is no take-back. A new shot from Mind Loft, daily.',
+    description: 'One move sweeps the board, and there is no take-back. A new shot from Mind Loft, daily.',
     url: '/check', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
@@ -31,7 +38,7 @@ const gameJsonLd = {
   alternateName: 'Check — Daily Checkers Puzzle',
   url: `${SITE_URL}/check`,
   description:
-    'A free daily checkers puzzle. Each board is red to play with a forced sweep: capture every black piece within a fixed number of moves, three on weekdays and four on Sundays, with exactly one first move that works. Captures are compulsory in checkers, so the winning move is a sacrifice that forces the reply. A wrong move is not refused: the engine answers and you finish the board knowing the sweep has gone.',
+    'A free daily checkers puzzle. Each board is red to play with a forced sweep: capture every black piece within a fixed number of moves, three on weekdays and four on Sundays, with exactly one first move that works. A wrong move is not refused: the engine answers and you finish the board knowing the sweep has gone.',
   genre: ['Checkers puzzle', 'Draughts puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
@@ -64,7 +71,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Check launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily checkers shot. One sacrifice takes the whole board. Come back when the first one drops.
+          The daily checkers shot. One move takes the whole board. Come back when the first one drops.
         </p>
         <a href="/daily" style={{ color: '#166e5a', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
