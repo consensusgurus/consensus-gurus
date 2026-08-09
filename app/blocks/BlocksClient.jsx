@@ -702,7 +702,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         <><b>Pause</b> whenever. The board is saved, so you can come back through the day and pick the same run up where you left it.</>,
       ]}
       knack="It never speeds up. The well is only 16 rows and the drop rate is the same on shape 400 as on shape one, so runs end because of a hole you left three shapes ago, not because your hands gave out."
-      footer={`Scored on ROWS CLEARED, and your FIRST run is the one the leaderboard keeps, so play again as often as you like: your score IS the number of rows you clear, with no ceiling on it, and ${nf(PAR)} rows is par for the day. Ties break on FEWEST SHAPES USED, then on time, since the same rows off fewer shapes is the tidier run, and a run that clears nothing ranks on shapes survived instead. The points figure on screen (100, 300, 500 and 800 a line, 1,200 for a quad, plus a combo bonus) is there to play against, not to be scored on. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
+      footer={`Scored on ROWS CLEARED, and you can play the day as many times as you like, because Blocks keeps your BEST run rather than your first: your score IS the number of rows you clear, with no ceiling on it, and ${nf(PAR)} rows is par for the day. Ties break on FEWEST SHAPES USED, then on time, since the same rows off fewer shapes is the tidier run, and a run that clears nothing ranks on shapes survived instead. The points figure on screen (100, 300, 500 and 800 a line, 1,200 for a quad, plus a combo bonus) is there to play against, not to be scored on. Blocks pays at most 1 IQ point a day however long the run goes and however many runs you play, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
     />
   );
 
@@ -737,7 +737,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Blocks is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Fit the falling shapes together and clear full rows. It never speeds up, you can pause and come back whenever you like, and you can play the day again as often as you want. Your first run is the one that counts.</p>
+                <p style={{ margin: '0 0 6px' }}>Fit the falling shapes together and clear full rows. It never speeds up, you can pause and come back whenever you like, and you can play the day again as often as you want. Your best run is the one that counts.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -832,7 +832,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                 full width, filled, directly under the well where the run just
                 ended. Mid-run the same control becomes a quiet two-tap Restart,
                 because throwing away a long run should take a deliberate second
-                press. Neither one re-posts: the first run is what counts. */}
+                press. Every finished run posts, and the board keeps your best. */}
             {over && (
               <button
                 onClick={replayRun}

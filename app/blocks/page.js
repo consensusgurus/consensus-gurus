@@ -13,11 +13,11 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Blocks — Free Daily Falling-Shapes Puzzle | Mind Loft',
   description:
-    'Blocks is a free daily falling-shapes puzzle. Everyone gets the same shapes in the same order, so the leaderboard compares decisions and not luck. One life a day, it never speeds up, and you can pause and come back whenever you like. Nine shapes: the classic seven plus a corner and a plus.',
+    'Blocks is a free daily falling-shapes puzzle. Everyone gets the same shapes in the same order, so the leaderboard compares decisions and not luck. Play as many runs as you like and your best one takes the board, it never speeds up, and you can pause and come back whenever you like. Nine shapes: the classic seven plus a corner and a plus.',
   alternates: { canonical: '/blocks' },
   openGraph: {
     title: 'Blocks — A Daily Falling-Shapes Puzzle',
-    description: 'Same shapes, same order, for everybody. One life a day, and it never speeds up.',
+    description: 'Same shapes, same order, for everybody. Unlimited runs, best one counts, and it never speeds up.',
     url: '/blocks',
     type: 'website',
     siteName: 'Mind Loft',
@@ -25,7 +25,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Blocks — A Daily Falling-Shapes Puzzle',
-    description: 'Same shapes, same order, for everybody. One life a day, and it never speeds up.',
+    description: 'Same shapes, same order, for everybody. Unlimited runs, best one counts, and it never speeds up.',
   },
 };
 
@@ -36,7 +36,7 @@ const gameJsonLd = {
   alternateName: 'Blocks — Daily Falling-Shapes Puzzle',
   url: `${SITE_URL}/blocks`,
   description:
-    'A daily falling-shapes puzzle. The same shape order for every player, one life a day, a fixed drop rate and a short well.',
+    'A daily falling-shapes puzzle. The same shape order for every player, unlimited runs with your best one scored, a fixed drop rate and a short well.',
   genre: ['Arcade', 'Puzzle', 'Falling blocks'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
