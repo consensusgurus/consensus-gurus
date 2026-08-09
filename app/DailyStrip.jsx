@@ -230,6 +230,9 @@ const TWO_UP_MQ = TABLET_MQ + ', ' + STACKED_MQ;
 // game has lived since 2026-08-08. The cut is CSS on the cards (.cap-hd /
 // .cap-hm), not a slice in the JSX, so the server and the client render the
 // same list at either width.
+// The eyebrow each lower cap card carries. One line, so the three stay of a
+// piece and none of them can drift into a second wording.
+const CAP_LEAD_LABEL = { fav: 'Familiar favorite', fresh: 'New to you', crowd: 'Crowd favorite' };
 const CAP_PROG_D = 1;
 const CAP_PROG_M = 1;
 // EXPANDING THE PAUSED CARDS MUST NOT RESIZE THE CONSOLE (owner, 2026-08-08).
@@ -633,20 +636,36 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     && !(easiest && g.key === easiest.game.key)) || null;
   // Games this viewer has never touched, in board order.
   const freshPool = games.filter((g) => !done.has(g.key) && !inprog.has(g.key) && !hasHabit(g));
+  // What the CROWD is on today, most played first (`games` is already in that
+  // order wherever a board payload has arrived). This is the card that keeps
+  // BOTH ends of the roster honest (owner, 2026-08-09): a brand new account has
+  // no habit, so slots 3 and 4 both fell to New to you and printed the same
+  // eyebrow twice; someone who has played every game has nothing new left, so
+  // both fell to Familiar favorite and did the same at the other extreme. Each
+  // card TYPE may appear once, and the crowd is the one signal that is always
+  // available, whoever is looking.
+  const crowdPool = games.filter((g) => !done.has(g.key) && !inprog.has(g.key)
+    && !(nextGame && g.key === nextGame.key)
+    && !(easiest && g.key === easiest.game.key));
+  // Whether this viewer's history is KNOWN, rather than merely empty.
+  // /api/quiz/daily-status answers a signed-out request with no archive at all,
+  // so every game reads as untouched for a guest who in fact plays daily. The
+  // New to you card states "never played", and it may only state that where the
+  // history exists to back it.
+  const knowsHistory = Object.keys(archive).length > 0;
   const capLead = (() => {
     // Two cards when nothing is paused, one when the gold card has slot 4.
     const want = capProg.length ? 1 : 2;
     const taken = new Set([nextGame && nextGame.key, easiest && easiest.game.key].filter(Boolean));
     const out = [];
-    const take = (g, kind) => { out.push({ game: g, kind }); taken.add(g.key); };
-    if (favGame) take(favGame, 'fav');
-    for (const g of freshPool) { if (out.length >= want) break; if (!taken.has(g.key)) take(g, 'fresh'); }
-    // Nothing new left either (a viewer who has played the whole slate): fall
-    // further down the habit ranking rather than leave a hole in the grid.
-    for (const g of habitRank) {
-      if (out.length >= want) break;
-      if (!taken.has(g.key) && !inprog.has(g.key)) take(g, 'fav');
-    }
+    const pick = (pool) => pool.find((g) => !taken.has(g.key)) || null;
+    const take = (g, kind) => { if (!g) return false; out.push({ game: g, kind }); taken.add(g.key); return true; };
+    // Slot 3 is the habit card, and the crowd stands in for a viewer who has
+    // not built one yet, which is every brand new account.
+    take(favGame && !taken.has(favGame.key) ? favGame : null, 'fav') || take(pick(crowdPool), 'crowd');
+    // Slot 4, whenever no paused game is taking it: something they have never
+    // opened, and the crowd again for the viewer who has opened everything.
+    if (out.length < want) take(pick(freshPool), 'fresh') || take(pick(crowdPool), 'crowd');
     return out.slice(0, want);
   })();
   // Expanding the paused list is a request to see paused games, so the cap hands
@@ -672,6 +691,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // The sub line each lower card carries. Familiar favorite prints the habit it
   // was chosen on, which is the one figure that explains why the card is there;
   // New to you says plainly that there is no history to print.
+  // New to you says "never played" only where the history is known; a guest
+  // gets the tagline alone rather than a claim nothing backs. Crowd favorite
+  // prints the same plays figure Up next does, which is the whole point of it.
+  const leadNote = (c) => (c.kind === 'fav' ? habitNote(c.game)
+    : c.kind === 'crowd' ? playsNote(playsOf(c.game.key))
+    : (knowsHistory ? ' \u00b7 never played' : ''));
   const habitNote = (g) => (habitDays(g) > 0
     ? ` \u00b7 played ${habitDays(g)} of the last ${RECENT_DAYS} days`
     : (habitAllTime(g) > 0 ? ` \u00b7 ${habitAllTime(g)} days played all time` : ''));
@@ -1530,7 +1555,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* daily leaderboard: always-visible Today's Top 3 + expand */
         @media(max-width:640px){.dh-dtop{gap:8px 10px;padding:8px 11px;}.dh-dtop-exp{font-size:11px;padding:6px 10px;}}
         /* ── tile board ── */
-        .dh-boardwrap{position:relative;background:var(--white);border:1.5px solid var(--border);border-top:none;border-radius:0 0 13px 13px;padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
+        .dh-boardwrap{position:relative;background:var(--white);border:1.5px solid var(--border);border-top:none;border-radius:0 0 13px 13px;
+          /* SLATE HAS NO SIDE BORDERS (owner, 2026-08-09): every band above the
+             board runs the full width of the console, and a 1.5px border here
+             insets the board, so each group band inside it started one pixel in
+             from the strip directly above. The rule lives beside the shorthand
+             it overrides so the two are read together. */padding:10px;flex:1 1 auto;display:flex;flex-direction:column;min-height:0;}
         .dh-boardwrap.open{min-height:475px;}
         .dh-board{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;flex:1 1 auto;align-content:stretch;grid-auto-rows:minmax(118px,1fr);}
 /* The board window. Until it has been measured (and always below 861px) this is
@@ -1789,6 +1819,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              apart to divide themselves, do not. */
           .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.crowd:hover{background:#3170ec;}
+          .dhome.slate .dh-cell.crowd.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.fav:hover{background:#4a7ce0;}
           .dhome.slate .dh-cell.fresh:hover{background:#1d3d85;}
           .dhome.slate .dh-cell.fav.capw,.dhome.slate .dh-cell.fresh.capw{grid-column:1/-1;}
@@ -1846,6 +1879,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              desktop cap uses, so the ramp reads the same at both widths. */
           .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;}
           .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;}
+          .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;}
           /* The phone cut. */
           .dh-cell.cap-hm{display:none;}
         }
@@ -1857,6 +1891,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            min-height in HomeRails.jsx means moving this one too. */
         .sl-bar{display:flex;align-items:center;gap:9px;padding:9px 13px;min-height:43px;box-sizing:border-box;background:var(--accent);border:1.5px solid var(--accent);border-bottom:none;border-radius:13px 13px 0 0;}
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
+        .dhome.slate .dh-boardwrap{border-left:none;border-right:none;}
         .dhome.slate{border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);}
         .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
@@ -2456,9 +2491,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             className={'dh-cell ' + c.kind + (i === capLeadWideAt ? ' capw' : '')}
           >
             <div className="dh-bupt">
-              <div className="dh-bue">{c.kind === 'fav' ? 'Familiar favorite' : 'New to you'}</div>
+              <div className="dh-bue">{CAP_LEAD_LABEL[c.kind]}</div>
               <div className="dh-bun">{c.game.name}</div>
-              <div className="dh-busub">{c.game.tag}{c.kind === 'fav' ? habitNote(c.game) : ' \u00b7 never played'}</div>
+              <div className="dh-busub">{c.game.tag}{leadNote(c)}</div>
             </div>
             <span className="dh-play">
               <Play size={11} fill="currentColor" strokeWidth={0} />Play
