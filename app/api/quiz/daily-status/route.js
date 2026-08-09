@@ -109,6 +109,14 @@ export async function GET(request) {
         : r.correct_count > 0;
       if (solved) completed.add(qid); else unsolved.add(qid);
     }
+    // A SOLVED ATTEMPT WINS (owner, 2026-08-09). A replayable game can carry
+    // several rows for one drop: lose it, come back, solve it. The losing row
+    // put the drop in `unsolved` and the winning one put it in `completed`, and
+    // with both sets populated the slate went on calling it incomplete. Once any
+    // attempt has solved a drop the player has the answer, so the drop is
+    // complete whatever its other rows say. (The LEADERBOARD is unaffected: it
+    // still scores the first attempt, per scoreGame in lib/daily-combined.)
+    for (const q of completed) unsolved.delete(q);
     // Report a game as abandoned only when the player never finished it.
     const abandoned = [...abandonedOnly].filter((q) => !played.has(q));
     // Per-game consecutive-day streaks (ET days), counted back from today.

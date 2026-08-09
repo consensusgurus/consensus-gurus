@@ -508,8 +508,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         const played = new Set(data.played || []);
         const abandoned = new Set(data.abandoned || []);
         const unsolvedIds = new Set(data.unsolved || []);
-        setUnsolved((cur) => {
-          const next = new Set(cur);
+        // REBUILT, not merged. `done` and `inprog` merge into what the
+        // same-device breadcrumbs already put there, but nothing seeds this set
+        // locally, and merging would make it one-way: solve a game on a retry
+        // and the key it had already added could never leave again within the
+        // session. Building it fresh from each payload lets it heal.
+        setUnsolved(() => {
+          const next = new Set();
           for (const g of GAMES) {
             const id = `${g.key}-${M}-${D}-${yy}`;
             if (unsolvedIds.has(id) && KEEPS_ANSWER.has(g.key)) next.add(g.key);
