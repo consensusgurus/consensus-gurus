@@ -74,7 +74,22 @@ export default function useDayStats() {
       const played = new Set(data.played || []);
       for (const k of DAY_ROSTER) {
         const id = `${k}-${M}-${D}-${yy}`;
-        if (completed.has(id) || played.has(id)) done.add(k);
+        if (!completed.has(id) && !played.has(id)) continue;
+        done.add(k);
+        // Cross-device first paint (2026-08-09). The server is the only thing
+        // that knows a game was finished on ANOTHER device, so write the same
+        // breadcrumb the game itself writes on finishing. Every surface that
+        // paints before its own fetch resolves (the slate, the rail, this
+        // counter) then shows the right status straight away instead of
+        // flashing the game as unplayed. ONE DIRECTION ONLY: a missing server
+        // row must never erase a local finish, so nothing here clears a
+        // breadcrumb, and the board's own per-puzzle save is untouched.
+        try {
+          const cur = JSON.parse(localStorage.getItem(`sot_${k}_day`) || 'null');
+          if (!cur || cur.d !== today || !cur.done) {
+            localStorage.setItem(`sot_${k}_day`, JSON.stringify({ d: today, done: true }));
+          }
+        } catch (e) {}
       }
       setS({
         todayXp: typeof data.todayXp === 'number' ? data.todayXp : null,

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResults } from '@/lib/quiz-results-load';
-import { findQuizIdentity } from '@/lib/quiz-identity';
+import { resolvePlayerKeys } from '@/lib/quiz-identity';
 import { computeXpCached, computeTrophiesCached } from '@/lib/quiz-derived-cache';
 import { buildProfile } from '@/lib/quiz-profile';
 import { buildTrophyList } from '@/lib/quiz-trophies';
@@ -74,8 +74,8 @@ export async function GET(request) {
   const fresh = searchParams.get('fresh') === '1' || searchParams.get('fresh') === 'true';
   try {
     let myKey = null, signed = false, username = null;
-    const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
-    if (ident && ident.id) { myKey = `u:${ident.id}`; signed = true; username = ident.username || null; }
+    const who = await resolvePlayerKeys(supabaseAdmin, { email, anonId });
+    if (who.userId) { myKey = who.primary; signed = true; username = who.username; }
     else if (anonId) { myKey = `a:${anonId}`; }
 
     const { data, error } = await loadQuizResults(supabaseAdmin);
@@ -94,13 +94,21 @@ export async function GET(request) {
       : history
         ? computeXpCached(data || [], { recentN: 100000 })
         : computeXpCached(data || [], { recentN: 100000, rankFor: myKey });
-    const profile = buildProfile(players, myKey, { signed, username });
+    // A member with no entry under their account key has their rows filed under
+    // a browser anon they never joined from, so read the profile from that key
+    // rather than reporting an empty one. /api/quiz/daily-status attributes those
+    // rows permanently the next time it runs, after which this stops triggering.
+    let profileKey = myKey;
+    if (myKey && !players.has(myKey)) {
+      for (const k of who.keys) if (players.has(k)) { profileKey = k; break; }
+    }
+    const profile = buildProfile(players, profileKey, { signed, username });
     // buildProfile copies `recent` into a fresh array, so emptying it here can
     // never reach back into the shared memo entry.
     if (light) profile.recent = [];
     if (!light && !history && profile.found) {
       const res = computeTrophiesCached(data || [], players);
-      profile.trophies = buildTrophyList(res, myKey, { includeDuels: false });
+      profile.trophies = buildTrophyList(res, profileKey, { includeDuels: false });
     }
     // profile.signed is `signed || !p.isAnon`, so it catches a registered player
     // whether they were resolved by email or by an anon id already claimed by an

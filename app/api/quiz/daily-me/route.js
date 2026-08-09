@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadDailyResultsCached } from '@/lib/daily-results-cache';
-import { findQuizIdentity } from '@/lib/quiz-identity';
+import { resolvePlayerKeys } from '@/lib/quiz-identity';
 import { scoreGame, DAILY_KEYS, GAME_MAX } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
@@ -146,11 +146,25 @@ export async function GET(request) {
     }
 
     let myKey = null;
+    let myKeys = new Set();
     try {
-      const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
-      if (ident && ident.id) myKey = `u:${ident.id}`;
-      else if (anonId) myKey = `a:${anonId}`;
-    } catch (e) { /* identity is best-effort; guests still score by anon key */ }
+      const who = await resolvePlayerKeys(supabaseAdmin, { email, anonId });
+      myKey = who.primary;
+      myKeys = who.keys;
+    } catch (e) {
+      // identity is best-effort; guests still score by anon key
+      if (anonId) { myKey = `a:${anonId}`; myKeys = new Set([myKey]); }
+    }
+
+    // One player's rows for a single day can be filed under u:<id> or a:<anon>
+    // depending on which device played it, so check every key they own instead
+    // of the account key alone.
+    const mineIn = (players) => {
+      if (!players) return null;
+      if (myKey && players.has(myKey)) return { key: myKey, value: players.get(myKey) };
+      for (const k of myKeys) if (players.has(k)) return { key: k, value: players.get(k) };
+      return null;
+    };
 
     // Score every game from the day's rows. This is pure in-memory work over the
     // ~780 rows the scoped loader returned, no extra queries, and it is what
@@ -163,10 +177,11 @@ export async function GET(request) {
       const rows = rowsByQuiz.get(g.quizId) || [];
       const gr = scoreGame(rows);
       const { rankByKey } = registeredBoard(gr.players);
-      const mine = myKey ? gr.players.get(myKey) : null;
-      if (mine) {
+      const hit = mineIn(gr.players);
+      if (hit) {
+        const mine = hit.value;
         perGame[g.key] = {
-          rank: rankByKey.has(myKey) ? rankByKey.get(myKey) : mine.rank,
+          rank: rankByKey.has(hit.key) ? rankByKey.get(hit.key) : mine.rank,
           field: gr.field,
           points: Math.round(mine.points * 10) / 10,
           score: mine.score,
@@ -211,10 +226,11 @@ export async function GET(request) {
           points: Math.round(p.points * 10) / 10,
         })),
       };
-      const mine = myKey ? gr.players.get(myKey) : null;
-      if (mine) {
+      const hit = mineIn(gr.players);
+      if (hit) {
+        const mine = hit.value;
         perGame[selfGame.key] = {
-          rank: rankByKey.has(myKey) ? rankByKey.get(myKey) : mine.rank,
+          rank: rankByKey.has(hit.key) ? rankByKey.get(hit.key) : mine.rank,
           field: gr.field,
           points: Math.round(mine.points * 10) / 10,
           score: mine.score,

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
-import { findQuizIdentity } from '@/lib/quiz-identity';
+import { resolvePlayerKeys, attributeAnonGames } from '@/lib/quiz-identity';
 import { computeXpCached, dailyStandingCached } from '@/lib/quiz-derived-cache';
 
 // Midnight "today" in US Eastern (handles EST/EDT) as a UTC epoch ms. Same
@@ -50,10 +50,12 @@ export async function GET(request) {
   const anonId = (searchParams.get('anonId') || '').trim() || null;
   const email = (searchParams.get('email') || '').trim() || null;
   try {
-    let myKey = null;
-    const ident = await findQuizIdentity(supabaseAdmin, { email, anonId });
-    if (ident && ident.id) myKey = `u:${ident.id}`;
-    else if (anonId) myKey = `a:${anonId}`;
+    // EVERY key this player's rows can be filed under, not just one. Matching on
+    // a single key is what hid a game played on one device from every other
+    // device; see resolvePlayerKeys.
+    const who = await resolvePlayerKeys(supabaseAdmin, { email, anonId });
+    const myKey = who.primary;
+    const myKeys = who.keys;
     if (!myKey) return NextResponse.json({ played: [], completed: [], abandoned: [] }, { headers: CACHE_HEADERS });
 
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
@@ -64,6 +66,9 @@ export async function GET(request) {
     const played = new Set();
     const completed = new Set();
     const abandonedOnly = new Set();
+    // Anon ids of this player's own rows that were never attributed to their
+    // account. Collected for free in the pass below and healed after it.
+    const orphans = new Set();
     // Per-game archive progress, free from this same pass: how many of a game's
     // days this player has played, over how many days that game has ever run.
     // The denominator counts DISTINCT dated ids across every player's rows,
@@ -78,7 +83,8 @@ export async function GET(request) {
       const gkey = qid.slice(0, qid.indexOf('-'));
       bump(archiveAll, gkey, qid);
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
-      if (pk !== myKey) continue;
+      if (!pk || !myKeys.has(pk)) continue;
+      if (!r.user_id && r.anon_id) orphans.add(r.anon_id);
       if (!r.abandoned) bump(archiveMine, gkey, qid);
       // An abandoned in-progress row (opened the board, made a move, then left
       // before finishing) is NOT a played game. It still counts as a play for
@@ -134,7 +140,12 @@ export async function GET(request) {
       // Going through the shared memo means the first caller after a row lands pays
       // and the rest get a map lookup.
       const { players } = computeXpCached(data || [], { recentN: 400 });
-      const me = players.get(myKey);
+      // Fall back across the player's other keys: a member who played today as a
+      // guest on this browser has that day's IQ filed under a:<anon>, so looking
+      // only under the account key reports a zero day.
+      let xpKey = myKey;
+      let me = players.get(xpKey);
+      if (!me) { for (const k of myKeys) if (players.has(k)) { xpKey = k; me = players.get(k); break; } }
       if (me) {
         // Today's gain and the two field-wide rankings (now, and on the IQ
         // everyone held before today) are the same for every player against the
@@ -145,25 +156,39 @@ export async function GET(request) {
         const st = dailyStandingCached(data || [], players, { dayStartMs: dayStart, recentN: 400 });
         const { gained, posNow, posThen } = st;
 
-        const mineToday = gained.get(myKey) || 0;
+        const mineToday = gained.get(xpKey) || 0;
         todayXp = Math.round(mineToday);
 
         // Today's board only ranks players who have banked something today, so a
         // player who has not played yet is simply not on it: report nulls rather
         // than a phantom last place.
         if (mineToday > 0 && st.posDay) {
-          dayRank = st.posDay.get(myKey) || null;
+          dayRank = st.posDay.get(xpKey) || null;
           dayField = st.dayField || null;
         }
 
         // A player whose first ever game is today had no standing to move from.
         if ((me.xp || 0) - mineToday > 0) {
-          const now = posNow.get(myKey) || 0;
-          const then = posThen.get(myKey) || 0;
+          const now = posNow.get(xpKey) || 0;
+          const then = posThen.get(xpKey) || 0;
           if (now > 0 && then > 0) rankChange = then - now; // positive = climbed
         }
       }
     } catch (e) { console.error('daily-status todayXp', e); }
+    // Self-healing merge (2026-08-09). Rows this account owns by anon but that
+    // were never attributed (played as a guest on a device that never joined)
+    // stay invisible to every derivation keyed on u:<id>: IQ Points, trophies,
+    // and the public boards. The pass above already found them for free, so
+    // attribute them once. attributeAnonGames only touches rows whose user_id is
+    // still null, which makes this idempotent AND self-extinguishing: after the
+    // first request there are no orphans left and it never fires again.
+    if (who.userId && who.username && orphans.size) {
+      try {
+        for (const a of [...orphans].slice(0, 10)) {
+          await attributeAnonGames(supabaseAdmin, a, { id: who.userId, username: who.username });
+        }
+      } catch (e) { console.error('daily-status attribute', e); }
+    }
     const archive = {};
     for (const [k, all] of archiveAll) {
       archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
