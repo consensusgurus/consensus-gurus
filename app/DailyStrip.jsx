@@ -624,12 +624,22 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const h = Math.max(BOARD_MIN, Math.round(window.innerHeight - top - FOLD_SLIVER));
       board.style.setProperty('--dh-fit', h + 'px');
     };
-    const q = () => { if (!raf) raf = requestAnimationFrame(fit); };
+    // requestAnimationFrame NEVER FIRES in a background tab, so a queued fit in
+    // one would sit unmeasured until the reader looked at the page. Coalesce
+    // with a frame when there are frames, and just measure when there are not.
+    const q = () => {
+      if (raf) return;
+      if (typeof document !== 'undefined' && document.hidden) { fit(); return; }
+      raf = requestAnimationFrame(fit);
+    };
     // The FIRST fit is direct, not queued: requestAnimationFrame never fires in
     // a background tab, so a page opened in one would have sat at the fallback
     // calc until it was looked at.
     fit();
     window.addEventListener('resize', q);
+    // ...and re-measure when a tab that loaded in the background is finally
+    // shown, since everything above it may have settled while it was hidden.
+    document.addEventListener('visibilitychange', q);
     // The cap is the thing above the board whose height moves (expanding the
     // paused cards). Observe IT, never the console: the console's height is
     // driven by the board we are setting, which would loop.
@@ -639,6 +649,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     if (cap && typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(q); ro.observe(cap); }
     return () => {
       window.removeEventListener('resize', q);
+      document.removeEventListener('visibilitychange', q);
       if (ro) ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
