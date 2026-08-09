@@ -35,9 +35,15 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
   // Words untangled: new rows post it as `correct`; older rows fall back to
   // deriving from score (score > 5 means the finale's 5 points are included).
   const wordsOf = (r) => { const v = r.correct != null ? r.correct : r.score; return v > wordsCol.total ? v - 5 : v; };
+  // Two rows are shown as TIED only when nothing the board sorts on separates
+  // them. `progress` (migration 51) is one of those terms on the End Game
+  // titles, so a deeper loss and a shallower one at the same score and clock
+  // are genuinely different runs and must not share a rank number. It is null
+  // everywhere else, so every other board reads exactly as before.
+  const samePerf = (x, y) => x.score === y.score && (x.progress ?? null) === (y.progress ?? null) && x.timeElapsed === y.timeElapsed;
   const lbRanks = [], lbTied = [];
-  for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; lbRanks[i] = p ? lbRanks[i - 1] : i + 1; }
-  for (let i = 0; i < lb.length; i++) { const p = i > 0 && lb[i].score === lb[i - 1].score && lb[i].timeElapsed === lb[i - 1].timeElapsed; const n = i < lb.length - 1 && lb[i].score === lb[i + 1].score && lb[i].timeElapsed === lb[i + 1].timeElapsed; lbTied[i] = p || n; }
+  for (let i = 0; i < lb.length; i++) { const p = i > 0 && samePerf(lb[i], lb[i - 1]); lbRanks[i] = p ? lbRanks[i - 1] : i + 1; }
+  for (let i = 0; i < lb.length; i++) { const p = i > 0 && samePerf(lb[i], lb[i - 1]); const n = i < lb.length - 1 && samePerf(lb[i], lb[i + 1]); lbTied[i] = p || n; }
   const chip = (on) => ({ padding: '6px 14px', background: on ? T.white : 'transparent', color: on ? C.ink : C.soft, border: 'none', borderRadius: 7, fontFamily: FONT, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' });
   return (
     <div>

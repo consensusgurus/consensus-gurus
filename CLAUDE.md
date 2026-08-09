@@ -3554,6 +3554,82 @@ above came to be.
 
 ---
 
+## A LOSS RANKS ON HOW FAR YOU GOT, not on how fast you lost (owner rule, 2026-08-09)
+
+The End Game titles are binary: you either solve the position or you do not, and a loss posts
+`score: 0`. That left the entire losing cohort tied at zero, so the board fell through to its next
+terms, `guesses_used` then `time_elapsed`, and effectively **ranked the losers by who lost FASTEST**.
+Two things the owner caught:
+
+- On a day nobody solves it, whoever threw it away in four seconds **tops the leaderboard**.
+- A **give-up outranks a genuine loss**, because revealing records no errors and a player who fought
+  on and missed by one move records one.
+
+### `progress`: the depth term (migration 51)
+
+`quiz_results.progress` is an integer measuring how far into the puzzle the run actually got, in
+whatever unit that game already measures itself in. It sits in the comparator **between score and
+the clock**:
+
+```
+score DESC → (pricer) → progress DESC → time ASC
+```
+
+**It is a RANKING term ONLY.** The score is untouched, so a loss still earns zero completion points
+and zero IQ Points, and the `endgame-loss-scores-zero` ruling stands exactly as written. Progress
+only orders the losers among themselves, deepest run first, with the clock settling genuine ties.
+Per the owner's call, a give-up and a played-out loss that reached the same depth are treated the
+same; quitting is not separately penalised beyond the depth it stopped at.
+
+### The rules
+
+1. **`progress` REPLACES the guesses tiebreak, it does not stack with it.** When either row carries a
+   value, the comparator runs progress then time and skips `guesses_used` entirely (errors are close
+   to meaningless in End Game: in Mate and Check a single error IS the loss, so every loser has one).
+   When NEITHER row carries a value the old guesses term runs untouched.
+2. **Null means "this game does not post it", not "last".** Every historical row and every game that
+   does not send the field is null, and a null-vs-null pair falls back to the old comparator, so **no
+   already-played day can be reordered by this**. A null row inside a game that DOES post it counts
+   as depth 0, which is what a pre-migration row for that game honestly represents.
+3. **Each game defines its own unit, and it must be a non-negative integer where higher is further.**
+   Currently:
+
+   | Game | `progress` | Why that measure |
+   |---|---|---|
+   | Mate | key moves already found, `floor(moves.length / 2)` | every White move in the list is correct by construction, since the first wrong one ends the puzzle |
+   | Check | black pieces swept, `PUZZLE.blk - countPieces(board, false)` | the sweep IS the puzzle, and the share squares already grade on it |
+   | Four | correct drops, `ceil(moves.length / 2) - errors` | you move first, and a drop that threw the win away was already counted as an error |
+   | Chain | boxes taken, `stateAfter(moves).score.mine` | a capture keeps the turn, so the move list has no parity to read your own moves off |
+   | Turn | discs held, `stateAfter(moves).score.mine` | same as Chain, and it is the number the game already reports to you |
+   | Babel | **none** | its score is already a graded spread against a benchmark, so it needs no tiebreak |
+
+4. **Post it from the abandon flush too**, not just the finish path, or a bailed run ranks as depth 0
+   when it was not.
+5. **THE COMPARATOR HAS TWO MIRRORS THAT MUST STAY BYTE-IDENTICAL:** `lib/quiz-anon.js`
+   `buildLeaderboard` and `lib/daily-combined.js` `scoreGame`. A change to one without the other makes
+   the per-game board and the combined board disagree on order. Four more places carry a copy of the
+   ordering and were updated in the same pass: the `perfKey` tie group in `scoreGame` (two runs the
+   comparator SEPARATES must not then share averaged placement points), `guestGameResult`'s hand-rolled
+   "who beats me" test, the board row output map in `buildLeaderboard`, and the tied-rank display test
+   in `app/quiz/[id]/QuizLeaderboard.jsx`.
+6. **Verify with a real field before shipping a change here.** Import the actual modules and assert:
+   a deep loss outranks a fast shallow one, a win still beats every loss, a game posting no progress
+   sorts byte-identically to before, both mirrors agree across a few thousand random fields, and a
+   losing run still shows `completion === 0`.
+
+### Adding progress to another game
+
+Any binary daily where a loss is currently score 0 and players can get partway is a candidate. Pick
+the unit the game already shows the player (that is the one they will find fair), compute it inside
+`postResult` from the game state rather than from render-scope memos, send it on BOTH the finish and
+the abandon paths, and add a row to the table above. No comparator change is needed: the term is
+already there and keys off the field being present.
+
+**Turn's stray consolation point was removed in the same pass.** Turn shipped after the ruling that
+zeroed Four, Chain, Check and Mate and carried `SCORE = { won: 10, lost: 1 }`, so a losing Turn player
+collected completion and IQ Points nobody else got. It is `lost: 0` now, and how far they got is
+carried by `progress` instead, which ranks without paying.
+
 ## Quiz home layout: search + tool row moved out of the header (owner rule, 2026-07-29)
 
 The blue command header on `/quizzes` (`app/quizzes/QuizCommandHeader.jsx`) no longer carries the

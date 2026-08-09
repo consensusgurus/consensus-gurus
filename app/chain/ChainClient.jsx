@@ -363,8 +363,20 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (cur.t0 || Date.now())) / 1000)));
     try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
-    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: cur.errors, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+    return { quizId: PUZZLE.quizId, score: 0, total: 10, correct: 0, guessesUsed: cur.errors, progress: progressOf(cur), timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
   });
+
+  // HOW FAR THIS RUN GOT (migration 51). A loss here scores 0, which used to
+  // leave every losing player tied and let the board rank them by who lost
+  // FASTEST. This is the ranking term that separates them: boxes taken at the
+  // final count. A capture keeps the turn here, so the move list has no fixed
+  // parity to read your own moves off, and the boxes you actually finished
+  // with is both derivable and the number the game already reports to you.
+  // It is NOT score, so a loss still earns nothing; it only orders the losers,
+  // deepest first, with the clock settling the rest.
+  function progressOf(g2) {
+    try { return Math.max(0, stateAfter(g2.moves || []).score.mine); } catch (e) { return 0; }
+  }
 
   function postResult(g2, score) {
     abandon.markFlushed();
@@ -375,7 +387,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: g2.status === 'won' ? 1 : 0, guessesUsed: g2.errors, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score, total: 10, correct: g2.status === 'won' ? 1 : 0, guessesUsed: g2.errors, progress: progressOf(g2), timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })

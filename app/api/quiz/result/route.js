@@ -62,6 +62,18 @@ export async function POST(request) {
     const priceTiebreak = typeof body.priceTiebreak === 'number' && Number.isFinite(body.priceTiebreak) && body.priceTiebreak >= 0
       ? Math.min(body.priceTiebreak, 1e15)
       : null;
+    // HOW FAR A LOSING PLAYER GOT (migration 51). The End Game titles are
+    // binary and post score 0 on a loss, which left every loser tied and the
+    // board ranking them by who lost FASTEST. `progress` is that game's own
+    // measure of depth reached (key moves found, pieces swept, boxes won,
+    // discs held), used as a RANKING term only: the score is untouched, so a
+    // loss still earns no completion or IQ Points. null on every other game
+    // and on every historical row, and null falls back to the old guesses
+    // term rather than sorting last, so no played day is reordered. Its own
+    // insert tier below, so a database without the column simply drops it.
+    const progress = Number.isInteger(body.progress) && body.progress >= 0 && body.progress <= 100000
+      ? body.progress
+      : null;
     const anonId = typeof body.anonId === 'string' && body.anonId.trim() ? body.anonId.trim().slice(0, 64) : null;
     // Traffic metadata: client may pass an explicit isMobile flag; otherwise we
     // derive it (and the browser/OS) from the user-agent. Country/region come
@@ -155,7 +167,9 @@ export async function POST(request) {
     const withCampaign = campaign ? { campaign } : {};
     const withIpHash = ipHash ? { ip_hash: ipHash } : {};
     const withPriceTiebreak = priceTiebreak != null ? { price_tiebreak: priceTiebreak } : {};
+    const withProgress = progress != null ? { progress } : {};
     const attempts = [
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign, ...withIpHash, ...withPriceTiebreak, ...withProgress },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign, ...withIpHash, ...withPriceTiebreak },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign, ...withIpHash },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign },
@@ -199,7 +213,7 @@ export async function POST(request) {
     }
 
     const data = [];
-    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile, guesses_used, abandoned';
+    let cols = 'id, user_id, username, score, time_elapsed, anon_id, created_at, is_mobile, guesses_used, abandoned, progress';
     for (let from = 0; ; from += 1000) {
       let { data: page, error } = await supabaseAdmin
         .from('quiz_results')
@@ -207,6 +221,9 @@ export async function POST(request) {
         .eq('quiz_id', quizId)
         .order('id', { ascending: true })
         .range(from, from + 999);
+      if (error && cols.includes(', progress') && (error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || ''))) {
+        cols = cols.replace(', progress', ''); from -= 1000; continue;
+      }
       if (error && cols.includes(', abandoned') && (error.code === '42703' || error.code === 'PGRST204' || /column|schema cache/i.test(error.message || ''))) {
         cols = cols.replace(', abandoned', ''); from -= 1000; continue;
       }
