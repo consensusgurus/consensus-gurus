@@ -190,7 +190,13 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     : 'Best 10';
   const header = (
     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 13, gap: 10 }}>
-      <div style={{ fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: th.label, fontWeight: th.labelWeight }}>Daily Leaderboard</div>
+      <div style={{ fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: th.label, fontWeight: th.labelWeight }}>
+        Daily Leaderboard
+        {/* A past day's combined board is final (see the day freeze in
+            lib/daily-combined). Per-game boards stay open, so this label is the
+            only thing telling an archive player which of the two they moved. */}
+        {data && data.frozen ? <span style={{ marginLeft: 8, color: th.sub, fontWeight: 700 }}>Final</span> : null}
+      </div>
       <div style={{ fontSize: 11, letterSpacing: '0.04em', color: th.sub, fontWeight: 600 }}>{subtitle}</div>
     </div>
   );

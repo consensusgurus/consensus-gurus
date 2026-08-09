@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadDailyResultsCached } from '@/lib/daily-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix, dayIsFrozen, etDayEndMs, isoOfSuffix, rowsWithinDay } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
@@ -33,7 +33,7 @@ const BOARD = 10;   // per-game rows returned per tab
 // the frozen quiz_results snapshot, resolving registered names the same way
 // /api/outwit does. Returns a scoreGame-shaped { field, plays, players:Map } or
 // null if the picks table is unavailable (caller then falls back to quiz_results).
-async function scoreOutwitLive(puzzle) {
+async function scoreOutwitLive(puzzle, cutoffMs) {
   let rows = [];
   try {
     const { data, error } = await supabaseAdmin
@@ -44,6 +44,11 @@ async function scoreOutwitLive(puzzle) {
     if (error || !Array.isArray(data)) return null;
     rows = data;
   } catch (e) { return null; }
+
+  // On a FROZEN day (see the day freeze in lib/daily-combined) the crowd pool
+  // is cut off at Eastern midnight along with everything else, so an adaptive
+  // game's final board cannot drift under a crown that is already awarded.
+  if (cutoffMs) rows = rows.filter((r) => !r.created_at || Date.parse(r.created_at) < cutoffMs);
 
   const picks = rows
     .filter((r) => Array.isArray(r.answers))
@@ -80,7 +85,7 @@ async function scoreOutwitLive(puzzle) {
 // Outrank is adaptive exactly like Outwit: recompute its per-game board from
 // outrank_picks (the live crowd) instead of the frozen quiz_results snapshot.
 // Same name-resolution flow as scoreOutwitLive above.
-async function scoreOutrankLive(puzzle) {
+async function scoreOutrankLive(puzzle, cutoffMs) {
   let rows = [];
   try {
     const { data, error } = await supabaseAdmin
@@ -91,6 +96,8 @@ async function scoreOutrankLive(puzzle) {
     if (error || !Array.isArray(data)) return null;
     rows = data;
   } catch (e) { return null; }
+
+  if (cutoffMs) rows = rows.filter((r) => !r.created_at || Date.parse(r.created_at) < cutoffMs);
 
   const picks = rows
     .filter((r) => Array.isArray(r.answers))
@@ -125,7 +132,7 @@ async function scoreOutrankLive(puzzle) {
 // Feud is adaptive exactly like Outwit/Outrank: recompute its per-game board
 // from feud_picks (the live crowd) instead of the frozen quiz_results
 // snapshot. Same name-resolution flow as scoreOutwitLive above.
-async function scoreFeudLive(puzzle) {
+async function scoreFeudLive(puzzle, cutoffMs) {
   let rows = [];
   try {
     const { data, error } = await supabaseAdmin
@@ -136,6 +143,8 @@ async function scoreFeudLive(puzzle) {
     if (error || !Array.isArray(data)) return null;
     rows = data;
   } catch (e) { return null; }
+
+  if (cutoffMs) rows = rows.filter((r) => !r.created_at || Date.parse(r.created_at) < cutoffMs);
 
   const picks = rows
     .filter((r) => Array.isArray(r.answers))
@@ -208,6 +217,12 @@ export async function GET(request) {
   // (streak-counting), an archived day links to that exact puzzle via ?p=<num>.
   const games = gamesForSuffix(DAILY_KEYS, suffix, today);
   const wanted = new Set(games.map((g) => g.quizId));
+  // FROZEN: the Eastern day is over, so this board is final. Rows that landed
+  // after midnight still count for their own game's leaderboard (read straight
+  // out of /api/quiz/board and /api/quiz/daily-me, neither of which is cut off)
+  // but never re-open the combined day or its crown.
+  const frozen = dayIsFrozen(suffix, today);
+  const cutoffMs = frozen ? etDayEndMs(isoOfSuffix(suffix)) : 0;
   // Best-N and the ceiling scale to how many games existed that day (1..10).
   const gameCount = games.length;
   // best-N is per-day: best 10 from the 2026-07-24 slate on, best 5 before.
@@ -215,7 +230,7 @@ export async function GET(request) {
   const effBestN = gameCount ? Math.min(dayBestN, gameCount) : dayBestN;
   const maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: suffix, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
+  const empty = { date: suffix, frozen, maxTotal, gameMax: GAME_MAX, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
     // Read ONLY this day's quizIds (indexed by quiz_results_quiz, migration 20)
     // rather than the whole table. This route never looks at a row outside
@@ -233,7 +248,8 @@ export async function GET(request) {
     // to `wanted`, so the guard below is now belt-and-braces rather than a real
     // filter, and is kept so the pass stays correct if the loader ever widens.
     const rowsByQuiz = new Map();
-    for (const r of (data || [])) {
+    const dayRows = frozen ? rowsWithinDay(data || [], suffix) : (data || []);
+    for (const r of dayRows) {
       if (!r || !wanted.has(r.quiz_id)) continue;
       let arr = rowsByQuiz.get(r.quiz_id);
       if (!arr) { arr = []; rowsByQuiz.set(r.quiz_id, arr); }
@@ -261,21 +277,21 @@ export async function GET(request) {
     const outwitGame = games.find((g) => g.key === 'outwit');
     if (outwitGame) {
       const op = (GAME_PUZZLES.outwit || []).find((x) => x && x.quizId === outwitGame.quizId);
-      if (op) outwitLive = await scoreOutwitLive(op);
+      if (op) outwitLive = await scoreOutwitLive(op, cutoffMs);
     }
     // Same override for Outrank (also adaptive; see lib/outrank-score).
     let outrankLive = null;
     const outrankGame = games.find((g) => g.key === 'outrank');
     if (outrankGame) {
       const op = (GAME_PUZZLES.outrank || []).find((x) => x && x.quizId === outrankGame.quizId);
-      if (op) outrankLive = await scoreOutrankLive(op);
+      if (op) outrankLive = await scoreOutrankLive(op, cutoffMs);
     }
     // Same override for Feud (live crowd-survey key; see lib/feud-score).
     let feudLive = null;
     const feudGame = games.find((g) => g.key === 'feud');
     if (feudGame) {
       const fp = (GAME_PUZZLES.feud || []).find((x) => x && x.quizId === feudGame.quizId);
-      if (fp) feudLive = await scoreFeudLive(fp);
+      if (fp) feudLive = await scoreFeudLive(fp, cutoffMs);
     }
 
     const gameResults = games.map((g) => {
@@ -394,6 +410,9 @@ export async function GET(request) {
 
     return NextResponse.json({
       date: suffix,
+      // The day is over and this board is final. Clients label it, and nothing
+      // posted since Eastern midnight is in it.
+      frozen,
       maxTotal,
       gameMax: GAME_MAX,
       bestN: effBestN,

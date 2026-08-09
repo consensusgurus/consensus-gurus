@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
-import { scoreGame, combineDaily, DAILY_KEYS, GAME_MAX, bestNForSuffix } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, DAILY_KEYS, GAME_MAX, bestNForSuffix, etDayEndMs } from '@/lib/daily-combined';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -15,6 +15,17 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=120, stale-while-reva
 const DAILY_RE = new RegExp(`^(${DAILY_KEYS.join('|')})-(\\d+)-(\\d+)-(\\d+)$`);
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const HISTORY_DAYS = 30;
+
+// A crown is FINAL at Eastern midnight (see the day freeze in lib/daily-combined).
+// Rows that land later still count on their game's own leaderboard; they just
+// never re-open a day that is already crowned. Cutoffs are memoized per day, so
+// this is one Intl format per day rather than one per row.
+const dayEndCache = new Map();
+function dayEndFor(iso) {
+  let end = dayEndCache.get(iso);
+  if (end === undefined) { end = etDayEndMs(iso); dayEndCache.set(iso, end); }
+  return end;
+}
 
 // Today's date suffix ("M-D-YY") in US Eastern, matching the daily quizId scheme.
 function etTodaySuffix() {
@@ -78,7 +89,14 @@ export async function GET() {
       ga.totalDen += total;
       if (score > ga.best) ga.best = score;
 
-      if (parseSuffix(suffix).iso >= todayISO) continue; // skip today (in progress) and any future-dated day
+      const { iso: rowDayISO } = parseSuffix(suffix);
+      if (rowDayISO >= todayISO) continue; // skip today (in progress) and any future-dated day
+      // Posted after that Eastern day ended: counts for the game board, never
+      // for the crown. A row with no usable created_at is kept (fail open).
+      if (r.created_at) {
+        const t = Date.parse(r.created_at);
+        if (!Number.isNaN(t) && t >= dayEndFor(rowDayISO)) continue;
+      }
       let dm = byDay.get(suffix);
       if (!dm) { dm = new Map(); byDay.set(suffix, dm); }
       let arr = dm.get(key);
