@@ -2292,7 +2292,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#dde5f0;}
-          .sl-more.todo{order:7;}
+          /* READY TO PLAY'S BAR SITS AT THE FOOT OF THE WHOLE BOARD (owner,
+             2026-08-09), below Complete today rather than between the groups.
+             It was breaking the run of coloured bands in half: three bands that
+             belong together, with a grey strip driven through the middle of
+             them. At 13 it lands after every band and row (todo 4-6, incomplete
+             8-10, complete 11-12), so the board ends on it and the rails start
+             directly under. Incomplete's own bar keeps its place inside its
+             group, since it is tinted to that group and reads as part of it. */
+          .sl-more.todo{order:13;}
           /* The phone bar, tinted to its own band rather than the shared grey. */
           .sl-more.fail{order:10;border-top-color:#f3c2bd;border-bottom-color:#f3c2bd;background:#fdeceb;color:#b91c1c;}
           .sl-more.fail:active{background:#fbdedb;}
@@ -2445,7 +2453,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
             line-height:1.5;color:var(--blue-deep);cursor:pointer;}
           .sl-more:active{background:#dde5f0;}
-          .sl-more.todo{order:7;}
+          /* READY TO PLAY'S BAR SITS AT THE FOOT OF THE WHOLE BOARD (owner,
+             2026-08-09), below Complete today rather than between the groups.
+             It was breaking the run of coloured bands in half: three bands that
+             belong together, with a grey strip driven through the middle of
+             them. At 13 it lands after every band and row (todo 4-6, incomplete
+             8-10, complete 11-12), so the board ends on it and the rails start
+             directly under. Incomplete's own bar keeps its place inside its
+             group, since it is tinted to that group and reads as part of it. */
+          .sl-more.todo{order:13;}
           /* The phone bar, tinted to its own band rather than the shared grey. */
           .sl-more.fail{order:10;border-top-color:#f3c2bd;border-bottom-color:#f3c2bd;background:#fdeceb;color:#b91c1c;}
           .sl-more.fail:active{background:#fbdedb;}
