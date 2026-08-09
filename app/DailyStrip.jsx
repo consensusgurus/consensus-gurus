@@ -337,6 +337,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // strict subset of `done`: these rows leave Complete today for the red group
   // above it, because the puzzle is still live for this player.
   const [unsolved, setUnsolved] = useState(() => new Set());
+  // A finished game is one of two things now. `isFail` is the red group; note it
+  // is ALWAYS a subset of `done`, so every existing done/!done test still reads
+  // correctly and only the places that need the split have to know about it.
+  //
+  // Declared HERE, beside the state it reads, and NOT beside the slate code that
+  // uses it most: the cap calls it some 240 lines earlier, so a const declared
+  // at the slate sits in the temporal dead zone at that call site and the build
+  // dies on "Cannot access 'isFail' before initialization". esbuild parses that
+  // happily, which is why the deploy is the first thing that sees it.
+  const isFail = (key) => done.has(key) && unsolved.has(key);
   const [streaks, setStreaks] = useState({}); // per-game consecutive-day streaks, from daily-status
   const [archive, setArchive] = useState({}); // per-game { played, total }, from the same payload
   // Per-game plays by THIS viewer over the last RECENT_DAYS ET days, derived
@@ -912,10 +922,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   }, [slate, capOpen, phone, capProg.length, nextGame && nextGame.key, easiest && easiest.game.key]);
 
   // filtered tile set
-  // A finished game is one of two things now. `isFail` is the red group; note it
-  // is ALWAYS a subset of `done`, so every existing done/!done test still reads
-  // correctly and only the places that need the split have to know about it.
-  const isFail = (key) => done.has(key) && unsolved.has(key);
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
   // The slate filters for real (the tile board still dims rather than removes).
   const slateMatch = (g) => (filter === 'all' ? true : filter === 'todo' ? !done.has(g.key) : g.cat === filter);
