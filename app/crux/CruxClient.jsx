@@ -425,7 +425,12 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     fetch('/crux-words.txt')
       .then((r) => (r.ok ? r.text() : ''))
-      .then((t) => { if (t) wordSetRef.current = new Set(t.split('\n')); })
+      .then((t) => {
+        if (t) {
+          const words = t.split('\n').filter((w) => /^[a-z]{2,}$/.test(w));
+          if (words.length > 10000) wordSetRef.current = new Set(words);
+        }
+      })
       .catch(() => {});
   }, []);
 

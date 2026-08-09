@@ -25719,6 +25719,7 @@ detects
 detent
 detente
 detentes
+detention
 detents
 detenu
 detenue
@@ -45740,6 +45741,8 @@ highish
 highjack
 highland
 highlife
+highlight
+highlights
 highly
 highman
 highmen
@@ -59300,6 +59303,7 @@ matatas
 matatu
 matatus
 match
+matcha
 matchbox
 matched
 matcher
@@ -73329,6 +73333,7 @@ pinpoint
 pinprick
 pins
 pinscher
+pinsetter
 pinswell
 pint
 pinta
@@ -103781,6 +103786,8 @@ tribrach
 tribunal
 tribune
 tribunes
+tributaries
+tributary
 tribute
 tributer
 tributes
@@ -109213,6 +109220,8 @@ ventrals
 ventre
 ventred
 ventres
+ventricle
+ventricles
 ventring
 ventrous
 vents
