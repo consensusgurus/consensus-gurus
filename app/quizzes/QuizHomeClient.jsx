@@ -1670,6 +1670,22 @@ export default function QuizHomeClient() {
       .qzh .catcard{border-left:none;border-right:none;border-radius:0;}
       .qzh .mc-open .colhead{border-radius:0;}
     }
+    /* ...BUT THE BLEED ABOVE ASSUMES ONE COLUMN, AND .qcols IS TWO FROM ~645px
+       UP (owner, 2026-08-08). The grid is repeat(auto-fill,minmax(min(100%,300px),
+       1fr)), so a 744px iPad mini in portrait lays TWO 340px tracks, and every
+       card in them was still taking the phone's 50%-50vw bleed: two 729px cards
+       stacked on top of each other, hero photo over hero photo, with the card
+       beneath showing through in strips. It broke every viewport from about 645
+       to 900px, which is both tablets in portrait and the larger phones in
+       landscape.
+       So the edge-to-edge treatment stops where the second column starts, and a
+       card inside the grid keeps its track and stays a card. Child selectors,
+       deliberately: mc-open is a shared "expanded on mobile" state class that
+       the boards and the duel tile also carry, and those keep the bleed. */
+    @media(min-width:641px) and (max-width:900px){
+      .qzh .qcols > .mc-open{margin-left:0;margin-right:0;}
+      .qzh .qcols > .catcard{border-left:1px solid ${C.line};border-right:1px solid ${C.line};border-radius:12px;}
+    }
     /* Hero height = 7 row-units (7 x 31px .qrow) so its bottom edge lands flush
    on a list-row gridline instead of ending mid-row; keeps quiz rows aligned
    across neighbouring columns with no ragged end gap. cover = crop, no stretch. */
