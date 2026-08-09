@@ -78,6 +78,7 @@ const GAMES = [
   { key: 'venn', href: '/venn', name: 'Venn', tag: 'Sort the overlaps', img: '/games/btn-venn.png' },
   { key: 'stands', href: '/stands', name: 'Stands', tag: 'Rebuild the results', img: '/games/btn-stands.png' },
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'Name every winner', img: '/games/btn-bracket.png' },
+  { key: 'pricer', href: '/pricer', name: 'Pricer', tag: 'Higher price wins', img: '/games/btn-pricer.png' },
   { key: 'lode', href: '/lode', name: 'Lode', tag: 'Seven letters, rare words pay', img: '/games/btn-lode.png' },
   { key: 'etch', href: '/etch', name: 'Etch', tag: 'A picture in the numbers', img: '/games/btn-etch.png' },
   { key: 'glyph', href: '/glyph', name: 'Glyph', tag: 'A crossword with no clues', img: '/games/btn-glyph.png' },
@@ -120,7 +121,7 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon', 'rung'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'crunch'] },
+  { key: 'numbers', label: 'Numbers', keys: ['pricer', 'tally', 'suds', 'carve', 'cipher', 'crunch'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp'] },

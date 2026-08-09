@@ -3195,6 +3195,7 @@ archive and hub chips use the short form `Sun`.
 | Warmer | a rarer secret word, deeper in the frequency-ordered vocab (from 2026-07-26) |
 | Links | four cross-category collisions instead of two (from 2026-07-26) |
 | Turn | twelve empty squares instead of ten (from 2026-08-05) |
+| Pricer | a field of 32 instead of 16, so 31 picks and five rounds (from 2026-08-16) |
 
 **All twenty dailies now run a Sunday Edition.** A new daily game should decide at launch
 whether it has one (see "Adding a BRAND NEW daily game" below).

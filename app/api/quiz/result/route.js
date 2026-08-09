@@ -54,6 +54,14 @@ export async function POST(request) {
     // Normal completions omit it and default to false = completed.
     const abandoned = body.abandoned === true;
     const correct = Number.isInteger(body.correct) ? Math.max(0, Math.min(total, body.correct)) : null;
+    // Pricer tiebreaker (migration 50): how far the player's guess landed from
+    // the champion's real figure, so a tie on score is broken by the closest
+    // guess. null when the player skipped, when the guess was unusable, or on
+    // every other game, and null deliberately sorts LAST on the board. Its own
+    // insert tier below, so a database without the column simply drops it.
+    const priceTiebreak = typeof body.priceTiebreak === 'number' && Number.isFinite(body.priceTiebreak) && body.priceTiebreak >= 0
+      ? Math.min(body.priceTiebreak, 1e15)
+      : null;
     const anonId = typeof body.anonId === 'string' && body.anonId.trim() ? body.anonId.trim().slice(0, 64) : null;
     // Traffic metadata: client may pass an explicit isMobile flag; otherwise we
     // derive it (and the browser/OS) from the user-agent. Country/region come
@@ -146,7 +154,9 @@ export async function POST(request) {
     const campaign = normalizeCampaign(request.cookies.get('sot_camp')?.value);
     const withCampaign = campaign ? { campaign } : {};
     const withIpHash = ipHash ? { ip_hash: ipHash } : {};
+    const withPriceTiebreak = priceTiebreak != null ? { price_tiebreak: priceTiebreak } : {};
     const attempts = [
+      { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign, ...withIpHash, ...withPriceTiebreak },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign, ...withIpHash },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned, ...withCampaign },
       { ...baseRow, anon_id: anonId, ...withCorrect, ...withMobile, ...withMeta, ...withMeta27, ...withGuesses, ...withAbandoned },

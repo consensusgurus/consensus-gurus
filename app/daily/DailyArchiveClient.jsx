@@ -41,7 +41,7 @@ const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const FAMILIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'carve', 'cipher', 'crunch'] },
+  { key: 'numbers', label: 'Numbers', keys: ['pricer', 'tally', 'suds', 'carve', 'cipher', 'crunch'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp'] },
@@ -74,7 +74,7 @@ const NAVY_ACCENT = {
   tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',
   jester: '#a78bfa', sworn: '#f472b6', outrank: '#8b8af5', shards: '#2dd4bf',
-  axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', stands: '#93c5fd', bracket: '#fb923c',
+  axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', stands: '#93c5fd', bracket: '#fb923c', pricer: '#4ade80',
   lode: '#e0b13f', etch: '#a3e635', hedge: '#67e8f9', listed: '#e9b8f5', mate: '#d9b38c', four: '#9db8ff', park: '#f0cf9a', check: '#5fd6b8', rung: '#7fd4e8', crunch: '#f0c07a', taire: '#86efac', fib: '#c4b5fd', streak: '#fb7185', feud: '#fda4af',
 };
 

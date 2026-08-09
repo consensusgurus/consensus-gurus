@@ -42,7 +42,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const SLATE_KEYS = [
   'crux', 'emcee', 'shards', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'carve',
   'extra', 'stet', 'outwit', 'outrank', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester',
-  'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'glyph', 'hedge',
+  'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'pricer', 'lode', 'etch', 'glyph', 'hedge',
   'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib', 'streak',
   'feud', 'babel', 'hands', 'chain', 'turn', 'suffice', 'strata', 'redact', 'paths',
   'deep', 'anon', 'blocks', 'chomp', 'sweep',
