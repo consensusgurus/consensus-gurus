@@ -50,6 +50,7 @@ import { PUZZLES as REDACT_FULL } from '../redact/puzzles';
 import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
 import { PUZZLES as BLOCKS_FULL } from '../blocks/puzzles';
 import { PUZZLES as CHOMP_FULL } from '../chomp/puzzles';
+import { PUZZLES as SWEEP_FULL } from '../sweep/puzzles';
 import { PUZZLES as PATHS_FULL } from '../paths/puzzles';
 import { PUZZLES as DEEP_FULL } from '../deep/puzzles';
 import { PUZZLES as ANON_FULL } from '../anon/puzzles';
@@ -99,6 +100,9 @@ const REDACT = REDACT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLOCKS = BLOCKS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CHOMP = CHOMP_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+// The field is dropped here on purpose: the archive card needs the frame only,
+// and shipping 60 days of mine maps to a page that never digs would be silly.
+const SWEEP = SWEEP_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const PATHS = PATHS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DEEP = DEEP_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const ANON = ANON_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -200,6 +204,7 @@ const GAMES = [
   { key: 'strata', name: 'Strata', path: '/strata', tag: 'Dig the words out', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)', src: STRATA },
   { key: 'chomp', name: 'Chomp', path: '/chomp', tag: 'Eat them in order', accent: '#a8430f', bg: '#fbeadf', border: 'rgba(168,67,15,0.4)', src: CHOMP },
   { key: 'blocks', name: 'Blocks', path: '/blocks', tag: 'Same shapes, same order', accent: '#1d4ed8', bg: '#e8edfa', border: 'rgba(29,78,216,0.4)', src: BLOCKS },
+  { key: 'sweep', name: 'Sweep', path: '/sweep', tag: 'No bottom edge', accent: '#0f766e', bg: '#e2f2f0', border: 'rgba(15,118,110,0.4)', src: SWEEP },
 ];
 
 const breadcrumbJsonLd = {

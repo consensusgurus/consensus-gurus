@@ -61,6 +61,7 @@ export const DAILY_GAMES = [
   { key: 'turn', href: '/turn', name: 'Turn', tag: 'ten squares left', store: 'sot_turn_day', accent: '#226218', bg: '#e9f3e6', border: 'rgba(34,98,24,0.4)' },
   { key: 'strata', href: '/strata', name: 'Strata', tag: 'dig the words out', store: 'sot_strata_day', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)' },
   { key: 'chomp', href: '/chomp', name: 'Chomp', tag: 'eat them in order', store: 'sot_chomp_day', accent: '#a8430f', bg: '#fbeadf', border: 'rgba(168,67,15,0.4)' },
+  { key: 'sweep', href: '/sweep', name: 'Sweep', tag: 'no bottom edge', store: 'sot_sweep_day', accent: '#0f766e', bg: '#e2f2f0', border: 'rgba(15,118,110,0.4)' },
   { key: 'blocks', href: '/blocks', name: 'Blocks', tag: 'same shapes, same order', store: 'sot_blocks_day', accent: '#1d4ed8', bg: '#e8edfa', border: 'rgba(29,78,216,0.4)' },
   { key: 'paths', href: '/paths', name: 'Paths', tag: 'link every town', store: 'sot_paths_day', accent: '#065f46', bg: '#e6f4ee', border: 'rgba(6,95,70,0.4)' },
   { key: 'deep', href: '/deep', name: 'Deep', tag: 'one topic, fifteen questions', store: 'sot_deep_day', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)' },

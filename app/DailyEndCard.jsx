@@ -110,7 +110,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn']
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
+const LAUNCH_PIN = { keys: ['sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -177,6 +177,7 @@ export const GAME_META = {
   suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
   blocks: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid3x3 },
+  sweep:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: T.white, Fin: Flag },
   chomp:  { accent: '#a8430f', badgeBg: '#a8430f', badgeInk: T.white, Fin: Route },
   redact: { accent: '#27272a', badgeBg: '#18181b', badgeInk: T.white, Fin: FileText },
   paths: { accent: '#065f46', badgeBg: '#065f46', badgeInk: T.white, Fin: Waypoints },
@@ -247,6 +248,7 @@ const ALL_DAILY_GAMES = [
   { key: 'paths', cat: 'logic',      name: 'Paths',  tag: 'Link every town, cheaply',  blurb: 'One depot, a scatter of towns, a river and two ridges. Link them all for as little as you can, against a proven cheapest network.', href: '/paths' },
   { key: 'redact', cat: 'trivia',     name: 'Redact', tag: 'Uncover the blacked-out article', blurb: 'A whole article about one famous subject, every word behind a block. Guess words to uncover it and name the subject.', href: '/redact' },
   { key: 'chomp', cat: 'logic',      name: 'Chomp', tag: 'Eat them in order',        blurb: 'Seven mascots, eaten in order, and a trail that never goes away. The only thing in your way is where you have already been.', href: '/chomp' },
+  { key: 'sweep', cat: 'arcade',     name: 'Sweep', tag: 'No bottom edge',           blurb: 'Minesweeper that runs downward forever. The same field for everybody, never a guess, one life a run and as many runs as you like.', href: '/sweep' },
   { key: 'blocks', cat: 'arcade',    name: 'Blocks', tag: 'Same shapes, same order',   blurb: 'Falling shapes in a short well, the same order for everybody, and as many runs as you like with your best one scored. It never speeds up.', href: '/blocks' },
   { key: 'strata', cat: 'word',       name: 'Strata', tag: 'Dig the words out',          blurb: 'Every letter belongs to a buried word. Take one out and the letters above it fall, which is what lets you read the next.', href: '/strata' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
