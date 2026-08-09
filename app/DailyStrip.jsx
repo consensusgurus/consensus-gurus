@@ -2149,8 +2149,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         }
         /* -- the STACKED tier, 901-1200px: the desktop slate, with the phone's
            peek (owner, 2026-08-08) --------------------------------------------
-           The width band where `.qzh .dhx` has already dropped to two equal
-           columns and put `.dhx-center` first, so the console is full width with
+           NO BACKTICKS IN HERE. This whole stylesheet is one template literal,
+           so a backtick around a class name CLOSES it: the comment naming
+           '.qzh .dhx' below shipped a pair of them, and the parser read the rest
+           as a member access on the string, which prerendered as "Cannot read
+           properties of undefined (reading 'dhx')" and failed the build. Quote a
+           selector with apostrophes, never backticks.
+           The width band where '.qzh .dhx' has already dropped to two equal
+           columns and put '.dhx-center' first, so the console is full width with
            the rails BELOW it. 46 rows of slate there is a screen and a half
            between the reader and the leaderboard.
            This keeps everything the min-width:901px block just built (the
