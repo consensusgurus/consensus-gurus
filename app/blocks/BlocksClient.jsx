@@ -5,7 +5,8 @@
 // Two things make it different from the rest of the roster and both are
 // deliberate:
 //
-//  1. ONE LIFE, ALL DAY. The run persists across visits. Leaving the page
+//  1. THE RUN PERSISTS ALL DAY, and you may replay it. The run survives across
+//     visits. Leaving the page
 //     pauses it and saves the board, so a player can come back through the day
 //     and pick the same run up. That is why there is no clock pressure: the
 //     drop rate is FIXED for the whole run (lib/blocks-seq GRAVITY_MS) and the
@@ -20,7 +21,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Pause, Play } from 'lucide-react';
+import { HelpCircle, X, Pause, Play, RotateCcw } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -173,6 +174,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(true);
   const [endClosed, setEndClosed] = useState(false);
+  const [armRestart, setArmRestart] = useState(false);
   const [copied, setCopied] = useState(false);
   const [identity, setIdentity] = useState(null);
   const [board, setBoard] = useState(EMPTY_BOARD);
@@ -582,6 +584,12 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
 
   // leaving the page never costs a run
   useEffect(() => {
+    if (!armRestart) return undefined;
+    const t = setTimeout(() => setArmRestart(false), 3500);
+    return () => clearTimeout(t);
+  }, [armRestart]);
+
+  useEffect(() => {
     const hide = () => { if (document.hidden) { pausedRef.current = true; setPaused(true); } };
     document.addEventListener('visibilitychange', hide);
     return () => document.removeEventListener('visibilitychange', hide);
@@ -627,6 +635,26 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
     setTimeout(sizeWell, 0);
   }
+
+  // ---- replay --------------------------------------------------------------
+  // A fresh run on the SAME day's shape order (the sequence comes from the
+  // quizId, so a replay is the same 6,000 shapes, not a new deal).
+  //
+  // It deliberately clears NOTHING that records the day: not REC_KEY, not the
+  // stats entry, not the posted row. recordStat never overwrites an existing
+  // entry and the server keeps the first attempt, so the run that counts stays
+  // the run that counted. A replay is practice, and it cannot buy a better
+  // place on the board.
+  const replayRun = useCallback(() => {
+    const st = { ...freshState(COLS, ROWS), t0: Date.now() };
+    nextPiece(st);
+    lastRef.current = 0; dropRef.current = 0; lockRef.current = 0; resetsRef.current = 0;
+    pausedRef.current = false; setPaused(false);
+    setArmRestart(false);
+    setEndClosed(true);
+    commit(st);
+    setTimeout(sizeWell, 0);
+  }, [COLS, ROWS, nextPiece, commit, sizeWell]);
 
   // ---- share ---------------------------------------------------------------
   function shareText() {
@@ -674,7 +702,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         <><b>Pause</b> whenever. The board is saved, so you can come back through the day and pick the same run up where you left it.</>,
       ]}
       knack="It never speeds up. The well is only 16 rows and the drop rate is the same on shape 400 as on shape one, so runs end because of a hole you left three shapes ago, not because your hands gave out."
-      footer={`One life a day, scored on ROWS CLEARED: your score IS the number of rows you clear, with no ceiling on it, and ${nf(PAR)} rows is par for the day. Ties break on FEWEST SHAPES USED, then on time, since the same rows off fewer shapes is the tidier run, and a run that clears nothing ranks on shapes survived instead. The points figure on screen (100, 300, 500 and 800 a line, 1,200 for a quad, plus a combo bonus) is there to play against, not to be scored on. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
+      footer={`Scored on ROWS CLEARED, and your FIRST run is the one the leaderboard keeps, so play again as often as you like: your score IS the number of rows you clear, with no ceiling on it, and ${nf(PAR)} rows is par for the day. Ties break on FEWEST SHAPES USED, then on time, since the same rows off fewer shapes is the tidier run, and a run that clears nothing ranks on shapes survived instead. The points figure on screen (100, 300, 500 and 800 a line, 1,200 for a quad, plus a combo bonus) is there to play against, not to be scored on. Blocks pays at most 1 IQ point a day however long the run goes, so nobody can grind their way up the standings: the real competition is today\u2019s leaderboard. Sundays narrow the well from 10 columns to 8.`}
     />
   );
 
@@ -709,7 +737,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Blocks is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Fit the falling shapes together and clear full rows. One life today, it never speeds up, and you can pause and come back whenever you like.</p>
+                <p style={{ margin: '0 0 6px' }}>Fit the falling shapes together and clear full rows. It never speeds up, you can pause and come back whenever you like, and you can play the day again as often as you want. Your first run is the one that counts.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -798,6 +826,38 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
               Flick down the well to hard drop &middot; or swipe to move and tap to rotate &middot; hold an arrow to repeat
             </div>
 
+            {/* PLAY AGAIN, on the page as well as on the end card. The end card
+                is dismissible, and once it is gone a finished Blocks board had
+                no route back onto itself at all. This bar is the prominent one:
+                full width, filled, directly under the well where the run just
+                ended. Mid-run the same control becomes a quiet two-tap Restart,
+                because throwing away a long run should take a deliberate second
+                press. Neither one re-posts: the first run is what counts. */}
+            {over && (
+              <button
+                onClick={replayRun}
+                style={{
+                  marginTop: 12, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  fontFamily: SANS, fontWeight: 800, fontSize: 15, color: T.white,
+                  background: T.cta, border: `2px solid ${T.cta}`, borderRadius: 10, padding: '13px 18px', cursor: 'pointer',
+                }}
+              >
+                <RotateCcw size={16} /> Play again
+              </button>
+            )}
+            {!over && g.t0 && (
+              <div style={{ textAlign: 'center', marginTop: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => { if (armRestart) replayRun(); else setArmRestart(true); }}
+                  title={armRestart ? 'Starts this run over' : 'Start this run over'}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.accent : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                >
+                  <RotateCcw size={13} /> {armRestart ? 'Press again to start over' : 'Restart run'}
+                </button>
+              </div>
+            )}
+
             {paused && playing && g.t0 && (
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.96)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 6 }}>
                 <div style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
@@ -851,7 +911,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
             run, the well is a short 16 rows, and a run ends when the stack reaches the ceiling.
           </p>
           <p style={{ margin: '0 0 9px' }}>
-            You get one life a day, and it waits for you. Pause whenever, close the tab, come back after lunch: the board
+            Your run waits for you. Pause whenever, close the tab, come back after lunch: the board
             is saved and the same run picks up where you left it. On Sundays the well narrows from ten columns to eight.
             However long a run goes, Blocks pays at most 1 IQ point a day, so a long sitting cannot buy a place in the
             standings. The day&rsquo;s leaderboard is where the run actually counts.
@@ -884,6 +944,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           subline={<>{nf(g.raw)} points &middot; {nf(g.quads)} quad{g.quads === 1 ? '' : 's'} &middot; best combo {nf(g.bestCombo)} &middot; {nf(g.pieces)} shapes</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={replayRun}
           onClose={() => setEndClosed(true)}
         />
       )}
