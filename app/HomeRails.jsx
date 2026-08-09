@@ -524,6 +524,17 @@ export default function HomeRails({
            draw a second 1px line right under the first one's. */
         .hr-panel + .hr-panel,.hr-share + .hr-panel{border-top:0;}
       }
+      /* ...but from 641px the two rails sit SIDE BY SIDE (the tablet tier in
+         QuizHomeClient), and a full-bleed child of a two-column grid escapes its
+         column: measured once at 800px, every panel came out 785px wide with the
+         left rail at x=-190 and the right at x=190, overlapping each other and
+         hanging off the page. The BLEED MOVES UP THERE, onto .dhx itself, so the
+         bands still run to both page edges; a panel just stays inside its own
+         half. It keeps the square, borderless, shadowless edge-to-edge look the
+         phone gives it, since the rails are still full-bleed as a pair. */
+      @media(min-width:641px) and (max-width:900px){
+        .hr-panel,.hr-share{margin-left:0;margin-right:0;width:100%;}
+      }
     `}</style>
   );
 

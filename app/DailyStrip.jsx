@@ -192,6 +192,15 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // above 900px.
 const PHONE_ROWS = 6;     // games visible across paused + unplayed
 const PHONE_PROG_MAX = 2; // ...of which never more than two are paused
+// From 641px the board runs TWO ACROSS (see the tablet tier in the stylesheet),
+// so the same budget would peek half as many LINES: six games became three rows
+// on an iPad mini in portrait. Doubled, so the peek is the same six lines deep
+// it is on a phone (owner, 2026-08-08). Lines are what the reader counts.
+const TABLET_ROWS = 12;
+// The tablet tier: two columns, but still a touch device, so the row keeps the
+// phone's whole-row-opens-the-drawer model. Portrait tablets (744, 768, 820) and
+// the larger phones in landscape (844) all land here.
+const TABLET_MQ = '(min-width:641px) and (max-width:900px)';
 // Desktop shows at most this many In progress rows before the expand bar takes
 // over. Two, matching the phone: the slate runs two columns there, so a paused
 // game is either the full width of the console or half of it, and a third card
@@ -398,6 +407,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
     const mq = window.matchMedia('(max-width: 900px)');
     const on = () => setPhone(mq.matches);
+    on();
+    if (mq.addEventListener) { mq.addEventListener('change', on); return () => mq.removeEventListener('change', on); }
+    mq.addListener(on); return () => mq.removeListener(on);
+  }, []);
+  // Two across from 641px (the tablet tier). Same shape as `phone` above: a
+  // media query, resolved after mount, so the server and the client agree on the
+  // first paint and the budget corrects itself a frame later.
+  const [twoUp, setTwoUp] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(TABLET_MQ);
+    const on = () => setTwoUp(mq.matches);
     on();
     if (mq.addEventListener) { mq.addEventListener('change', on); return () => mq.removeEventListener('change', on); }
     mq.addListener(on); return () => mq.removeListener(on);
@@ -889,7 +910,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // needs them.
     // Spend the six-row budget: paused first, up to three, then unplayed.
     const progPeek = Math.min(nProg, PHONE_PROG_MAX);
-    const todoPeek = Math.max(0, PHONE_ROWS - progPeek);
+    const todoPeek = Math.max(0, (twoUp ? TABLET_ROWS : PHONE_ROWS) - progPeek);
     // A FILTER already is the reader asking to narrow the slate, so peeking
     // inside it would be answering that request with another lid (owner,
     // 2026-08-07): any filter other than All shows every paused and unplayed
@@ -2004,6 +2025,37 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-filt button.on{border-bottom-color:transparent;}
           .sl-filt button:hover{color:var(--white);}
           .sl-filt button.on{background:var(--white);color:var(--blue-deep);border-bottom-color:transparent;}
+        }
+        /* ── TABLET AND LANDSCAPE PHONE: THE PHONE SLATE, TWO ACROSS ──────────
+           (owner, 2026-08-08.) From 641px there is room for two of everything,
+           and one game per full-width row left 300px of empty middle on an iPad
+           mini in portrait (744) or an iPhone in landscape (844).
+           The ROW ITSELF is untouched: same three tracks, same 18px name, same
+           whole-row-opens-the-drawer model, because this tier is a touch device
+           either way and the desktop row's hover-to-reveal Play would be
+           unreachable. Only the CONTAINERS become two-column grids. The bands,
+           the expand bars and an open drawer still span both columns, and the
+           phone's nine ordered slots keep working because grid honours the order
+           property exactly as flex does.
+           Below 641 nothing changes: there the second column would be 170px. */
+        @media(min-width:641px) and (max-width:900px){
+          /* The cap: Up next | Easiest leaderboard, then the paused cards two to
+             a row. The two blue cards carry different tones so they need no
+             divider; two gold cards side by side do. Odd children are always
+             column one here, which is the same trick the desktop cap uses. */
+          .dhome.slate .dh-sbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+          .dhome.slate .dh-cell{width:auto;}
+          .dhome.slate .dh-cell.prog:nth-child(odd){border-right:1px solid rgba(20,22,28,.12);}
+          .dhome.slate .dh-cell.prog.capw{grid-column:1/-1;}
+          /* The board. The centre hairline is the same painted gradient the
+             desktop slate uses, so a column with fewer rows than its neighbour
+             still shows the split all the way down. */
+          .dh-board.slate{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;
+            background:linear-gradient(to right,transparent calc(50% - .5px),#eef0f4 calc(50% - .5px),#eef0f4 calc(50% + .5px),transparent calc(50% + .5px));}
+          .sl-band,.sl-more,.sl-drawer,.sl-row.sl-wide{grid-column:1/-1;}
+          /* 42vw of leader chip is most of a 364px track, and the tagline is the
+             item that should be shrinking, not the thing after it. */
+          .sl-mld{max-width:19vw;}
         }
         @media(max-width:1080px){.dh-board{grid-template-columns:repeat(5,minmax(0,1fr));}}
         @media(max-width:940px){.dh-cell + .dh-cell{padding-left:10px;}}

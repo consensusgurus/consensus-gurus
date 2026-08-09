@@ -2200,6 +2200,30 @@ export default function QuizHomeClient() {
                  row's own rule at equal specificity, so it wins. */
               .qzh .qz-toolrow{margin-top:0;}
             }
+            /* TABLET AND LANDSCAPE PHONE: the two rails SIDE BY SIDE (owner,
+               2026-08-08). Stacked, the five panels ran 1,575px tall on a 744px
+               iPad mini, which put the browse row two screens below the board.
+               Same shape as the 901-1200 tier above: the console keeps its own
+               full-width row, the rails pair beneath it.
+               The BLEED MOVES, it does not come off. Below 900px every rail
+               panel bleeds itself edge to edge, and a full-bleed child of a
+               two-column grid escapes its column, which is the exact fight the
+               901 floor above was set to avoid. So .dhx takes the bleed, its
+               panels drop theirs (see HomeRails), and the console drops its own,
+               since its parent now spans the viewport for it. The page still
+               reads as one continuous edge-to-edge stack, with a seam down the
+               middle of the rails.
+               Below 641 the rails stay stacked: a 320px rail column would put
+               the leaderboard's name and score on top of each other. */
+            @media(min-width:641px) and (max-width:900px){
+              .qzh .dhx{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;
+                grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;}
+              .qzh .dhx-center{grid-column:1 / -1;}
+              .qzh .dhx-left{grid-column:1;}
+              .qzh .dhx-right{grid-column:2;border-left:1px solid var(--border);}
+              .qzh .dhx-rail{height:auto !important;}
+              .qzh .dhx-center .dhome.slate{margin-left:0;margin-right:0;width:auto;max-width:none;}
+            }
             @media(max-width:760px){
               /* rails stack full width on phones: the leaderboards stay a top 5 */
               .qzh .dhx-lb-gi:nth-child(n+5){display:none !important;}
