@@ -1,0 +1,225 @@
+// Puzzle data for Blitz, the daily mental-arithmetic ladder. Each day lists
+// twenty problem ids from problems.js in play order: five rounds of four,
+// warm-up to flat out. Imported by the server page (which resolves and gates by
+// Eastern date), the archive map, and the daily APIs. The extra qids field is
+// ignored by the shared daily consumers.
+//
+// THERE IS NO 'sunday' FIELD, AND THAT IS DELIBERATE, not an unfinished job.
+// Blitz has no Sunday Edition, matching Streak and Deep, the two games it shares
+// an engine with. Per the daily authoring standard an always-false sunday flag
+// reads to the next session as a half-built feature, so the field is simply
+// absent. If Blitz ever gets a Sunday (a sixth round, or a tighter clock), add
+// 'sunday: true' to those days AND add 'blitz' to SUNDAY_EDITION_GAMES in
+// lib/sunday-editions.js. The two must never drift apart.
+export const PUZZLES = [
+  {
+    num: 1,
+    quizId: 'blitz-8-11-26',
+    live: '2026-08-11',
+    dateLabel: 'August 11, 2026',
+    qids: ['b01p01', 'b01p02', 'b01p03', 'b01p04', 'b01p05', 'b01p06', 'b01p07', 'b01p08', 'b01p09', 'b01p10', 'b01p11', 'b01p12', 'b01p13', 'b01p14', 'b01p15', 'b01p16', 'b01p17', 'b01p18', 'b01p19', 'b01p20'],
+  },
+  {
+    num: 2,
+    quizId: 'blitz-8-12-26',
+    live: '2026-08-12',
+    dateLabel: 'August 12, 2026',
+    qids: ['b02p01', 'b02p02', 'b02p03', 'b02p04', 'b02p05', 'b02p06', 'b02p07', 'b02p08', 'b02p09', 'b02p10', 'b02p11', 'b02p12', 'b02p13', 'b02p14', 'b02p15', 'b02p16', 'b02p17', 'b02p18', 'b02p19', 'b02p20'],
+  },
+  {
+    num: 3,
+    quizId: 'blitz-8-13-26',
+    live: '2026-08-13',
+    dateLabel: 'August 13, 2026',
+    qids: ['b03p01', 'b03p02', 'b03p03', 'b03p04', 'b03p05', 'b03p06', 'b03p07', 'b03p08', 'b03p09', 'b03p10', 'b03p11', 'b03p12', 'b03p13', 'b03p14', 'b03p15', 'b03p16', 'b03p17', 'b03p18', 'b03p19', 'b03p20'],
+  },
+  {
+    num: 4,
+    quizId: 'blitz-8-14-26',
+    live: '2026-08-14',
+    dateLabel: 'August 14, 2026',
+    qids: ['b04p01', 'b04p02', 'b04p03', 'b04p04', 'b04p05', 'b04p06', 'b04p07', 'b04p08', 'b04p09', 'b04p10', 'b04p11', 'b04p12', 'b04p13', 'b04p14', 'b04p15', 'b04p16', 'b04p17', 'b04p18', 'b04p19', 'b04p20'],
+  },
+  {
+    num: 5,
+    quizId: 'blitz-8-15-26',
+    live: '2026-08-15',
+    dateLabel: 'August 15, 2026',
+    qids: ['b05p01', 'b05p02', 'b05p03', 'b05p04', 'b05p05', 'b05p06', 'b05p07', 'b05p08', 'b05p09', 'b05p10', 'b05p11', 'b05p12', 'b05p13', 'b05p14', 'b05p15', 'b05p16', 'b05p17', 'b05p18', 'b05p19', 'b05p20'],
+  },
+  {
+    num: 6,
+    quizId: 'blitz-8-16-26',
+    live: '2026-08-16',
+    dateLabel: 'August 16, 2026',
+    qids: ['b06p01', 'b06p02', 'b06p03', 'b06p04', 'b06p05', 'b06p06', 'b06p07', 'b06p08', 'b06p09', 'b06p10', 'b06p11', 'b06p12', 'b06p13', 'b06p14', 'b06p15', 'b06p16', 'b06p17', 'b06p18', 'b06p19', 'b06p20'],
+  },
+  {
+    num: 7,
+    quizId: 'blitz-8-17-26',
+    live: '2026-08-17',
+    dateLabel: 'August 17, 2026',
+    qids: ['b07p01', 'b07p02', 'b07p03', 'b07p04', 'b07p05', 'b07p06', 'b07p07', 'b07p08', 'b07p09', 'b07p10', 'b07p11', 'b07p12', 'b07p13', 'b07p14', 'b07p15', 'b07p16', 'b07p17', 'b07p18', 'b07p19', 'b07p20'],
+  },
+  {
+    num: 8,
+    quizId: 'blitz-8-18-26',
+    live: '2026-08-18',
+    dateLabel: 'August 18, 2026',
+    qids: ['b08p01', 'b08p02', 'b08p03', 'b08p04', 'b08p05', 'b08p06', 'b08p07', 'b08p08', 'b08p09', 'b08p10', 'b08p11', 'b08p12', 'b08p13', 'b08p14', 'b08p15', 'b08p16', 'b08p17', 'b08p18', 'b08p19', 'b08p20'],
+  },
+  {
+    num: 9,
+    quizId: 'blitz-8-19-26',
+    live: '2026-08-19',
+    dateLabel: 'August 19, 2026',
+    qids: ['b09p01', 'b09p02', 'b09p03', 'b09p04', 'b09p05', 'b09p06', 'b09p07', 'b09p08', 'b09p09', 'b09p10', 'b09p11', 'b09p12', 'b09p13', 'b09p14', 'b09p15', 'b09p16', 'b09p17', 'b09p18', 'b09p19', 'b09p20'],
+  },
+  {
+    num: 10,
+    quizId: 'blitz-8-20-26',
+    live: '2026-08-20',
+    dateLabel: 'August 20, 2026',
+    qids: ['b10p01', 'b10p02', 'b10p03', 'b10p04', 'b10p05', 'b10p06', 'b10p07', 'b10p08', 'b10p09', 'b10p10', 'b10p11', 'b10p12', 'b10p13', 'b10p14', 'b10p15', 'b10p16', 'b10p17', 'b10p18', 'b10p19', 'b10p20'],
+  },
+  {
+    num: 11,
+    quizId: 'blitz-8-21-26',
+    live: '2026-08-21',
+    dateLabel: 'August 21, 2026',
+    qids: ['b11p01', 'b11p02', 'b11p03', 'b11p04', 'b11p05', 'b11p06', 'b11p07', 'b11p08', 'b11p09', 'b11p10', 'b11p11', 'b11p12', 'b11p13', 'b11p14', 'b11p15', 'b11p16', 'b11p17', 'b11p18', 'b11p19', 'b11p20'],
+  },
+  {
+    num: 12,
+    quizId: 'blitz-8-22-26',
+    live: '2026-08-22',
+    dateLabel: 'August 22, 2026',
+    qids: ['b12p01', 'b12p02', 'b12p03', 'b12p04', 'b12p05', 'b12p06', 'b12p07', 'b12p08', 'b12p09', 'b12p10', 'b12p11', 'b12p12', 'b12p13', 'b12p14', 'b12p15', 'b12p16', 'b12p17', 'b12p18', 'b12p19', 'b12p20'],
+  },
+  {
+    num: 13,
+    quizId: 'blitz-8-23-26',
+    live: '2026-08-23',
+    dateLabel: 'August 23, 2026',
+    qids: ['b13p01', 'b13p02', 'b13p03', 'b13p04', 'b13p05', 'b13p06', 'b13p07', 'b13p08', 'b13p09', 'b13p10', 'b13p11', 'b13p12', 'b13p13', 'b13p14', 'b13p15', 'b13p16', 'b13p17', 'b13p18', 'b13p19', 'b13p20'],
+  },
+  {
+    num: 14,
+    quizId: 'blitz-8-24-26',
+    live: '2026-08-24',
+    dateLabel: 'August 24, 2026',
+    qids: ['b14p01', 'b14p02', 'b14p03', 'b14p04', 'b14p05', 'b14p06', 'b14p07', 'b14p08', 'b14p09', 'b14p10', 'b14p11', 'b14p12', 'b14p13', 'b14p14', 'b14p15', 'b14p16', 'b14p17', 'b14p18', 'b14p19', 'b14p20'],
+  },
+  {
+    num: 15,
+    quizId: 'blitz-8-25-26',
+    live: '2026-08-25',
+    dateLabel: 'August 25, 2026',
+    qids: ['b15p01', 'b15p02', 'b15p03', 'b15p04', 'b15p05', 'b15p06', 'b15p07', 'b15p08', 'b15p09', 'b15p10', 'b15p11', 'b15p12', 'b15p13', 'b15p14', 'b15p15', 'b15p16', 'b15p17', 'b15p18', 'b15p19', 'b15p20'],
+  },
+  {
+    num: 16,
+    quizId: 'blitz-8-26-26',
+    live: '2026-08-26',
+    dateLabel: 'August 26, 2026',
+    qids: ['b16p01', 'b16p02', 'b16p03', 'b16p04', 'b16p05', 'b16p06', 'b16p07', 'b16p08', 'b16p09', 'b16p10', 'b16p11', 'b16p12', 'b16p13', 'b16p14', 'b16p15', 'b16p16', 'b16p17', 'b16p18', 'b16p19', 'b16p20'],
+  },
+  {
+    num: 17,
+    quizId: 'blitz-8-27-26',
+    live: '2026-08-27',
+    dateLabel: 'August 27, 2026',
+    qids: ['b17p01', 'b17p02', 'b17p03', 'b17p04', 'b17p05', 'b17p06', 'b17p07', 'b17p08', 'b17p09', 'b17p10', 'b17p11', 'b17p12', 'b17p13', 'b17p14', 'b17p15', 'b17p16', 'b17p17', 'b17p18', 'b17p19', 'b17p20'],
+  },
+  {
+    num: 18,
+    quizId: 'blitz-8-28-26',
+    live: '2026-08-28',
+    dateLabel: 'August 28, 2026',
+    qids: ['b18p01', 'b18p02', 'b18p03', 'b18p04', 'b18p05', 'b18p06', 'b18p07', 'b18p08', 'b18p09', 'b18p10', 'b18p11', 'b18p12', 'b18p13', 'b18p14', 'b18p15', 'b18p16', 'b18p17', 'b18p18', 'b18p19', 'b18p20'],
+  },
+  {
+    num: 19,
+    quizId: 'blitz-8-29-26',
+    live: '2026-08-29',
+    dateLabel: 'August 29, 2026',
+    qids: ['b19p01', 'b19p02', 'b19p03', 'b19p04', 'b19p05', 'b19p06', 'b19p07', 'b19p08', 'b19p09', 'b19p10', 'b19p11', 'b19p12', 'b19p13', 'b19p14', 'b19p15', 'b19p16', 'b19p17', 'b19p18', 'b19p19', 'b19p20'],
+  },
+  {
+    num: 20,
+    quizId: 'blitz-8-30-26',
+    live: '2026-08-30',
+    dateLabel: 'August 30, 2026',
+    qids: ['b20p01', 'b20p02', 'b20p03', 'b20p04', 'b20p05', 'b20p06', 'b20p07', 'b20p08', 'b20p09', 'b20p10', 'b20p11', 'b20p12', 'b20p13', 'b20p14', 'b20p15', 'b20p16', 'b20p17', 'b20p18', 'b20p19', 'b20p20'],
+  },
+  {
+    num: 21,
+    quizId: 'blitz-8-31-26',
+    live: '2026-08-31',
+    dateLabel: 'August 31, 2026',
+    qids: ['b21p01', 'b21p02', 'b21p03', 'b21p04', 'b21p05', 'b21p06', 'b21p07', 'b21p08', 'b21p09', 'b21p10', 'b21p11', 'b21p12', 'b21p13', 'b21p14', 'b21p15', 'b21p16', 'b21p17', 'b21p18', 'b21p19', 'b21p20'],
+  },
+  {
+    num: 22,
+    quizId: 'blitz-9-1-26',
+    live: '2026-09-01',
+    dateLabel: 'September 1, 2026',
+    qids: ['b22p01', 'b22p02', 'b22p03', 'b22p04', 'b22p05', 'b22p06', 'b22p07', 'b22p08', 'b22p09', 'b22p10', 'b22p11', 'b22p12', 'b22p13', 'b22p14', 'b22p15', 'b22p16', 'b22p17', 'b22p18', 'b22p19', 'b22p20'],
+  },
+  {
+    num: 23,
+    quizId: 'blitz-9-2-26',
+    live: '2026-09-02',
+    dateLabel: 'September 2, 2026',
+    qids: ['b23p01', 'b23p02', 'b23p03', 'b23p04', 'b23p05', 'b23p06', 'b23p07', 'b23p08', 'b23p09', 'b23p10', 'b23p11', 'b23p12', 'b23p13', 'b23p14', 'b23p15', 'b23p16', 'b23p17', 'b23p18', 'b23p19', 'b23p20'],
+  },
+  {
+    num: 24,
+    quizId: 'blitz-9-3-26',
+    live: '2026-09-03',
+    dateLabel: 'September 3, 2026',
+    qids: ['b24p01', 'b24p02', 'b24p03', 'b24p04', 'b24p05', 'b24p06', 'b24p07', 'b24p08', 'b24p09', 'b24p10', 'b24p11', 'b24p12', 'b24p13', 'b24p14', 'b24p15', 'b24p16', 'b24p17', 'b24p18', 'b24p19', 'b24p20'],
+  },
+  {
+    num: 25,
+    quizId: 'blitz-9-4-26',
+    live: '2026-09-04',
+    dateLabel: 'September 4, 2026',
+    qids: ['b25p01', 'b25p02', 'b25p03', 'b25p04', 'b25p05', 'b25p06', 'b25p07', 'b25p08', 'b25p09', 'b25p10', 'b25p11', 'b25p12', 'b25p13', 'b25p14', 'b25p15', 'b25p16', 'b25p17', 'b25p18', 'b25p19', 'b25p20'],
+  },
+  {
+    num: 26,
+    quizId: 'blitz-9-5-26',
+    live: '2026-09-05',
+    dateLabel: 'September 5, 2026',
+    qids: ['b26p01', 'b26p02', 'b26p03', 'b26p04', 'b26p05', 'b26p06', 'b26p07', 'b26p08', 'b26p09', 'b26p10', 'b26p11', 'b26p12', 'b26p13', 'b26p14', 'b26p15', 'b26p16', 'b26p17', 'b26p18', 'b26p19', 'b26p20'],
+  },
+  {
+    num: 27,
+    quizId: 'blitz-9-6-26',
+    live: '2026-09-06',
+    dateLabel: 'September 6, 2026',
+    qids: ['b27p01', 'b27p02', 'b27p03', 'b27p04', 'b27p05', 'b27p06', 'b27p07', 'b27p08', 'b27p09', 'b27p10', 'b27p11', 'b27p12', 'b27p13', 'b27p14', 'b27p15', 'b27p16', 'b27p17', 'b27p18', 'b27p19', 'b27p20'],
+  },
+  {
+    num: 28,
+    quizId: 'blitz-9-7-26',
+    live: '2026-09-07',
+    dateLabel: 'September 7, 2026',
+    qids: ['b28p01', 'b28p02', 'b28p03', 'b28p04', 'b28p05', 'b28p06', 'b28p07', 'b28p08', 'b28p09', 'b28p10', 'b28p11', 'b28p12', 'b28p13', 'b28p14', 'b28p15', 'b28p16', 'b28p17', 'b28p18', 'b28p19', 'b28p20'],
+  },
+  {
+    num: 29,
+    quizId: 'blitz-9-8-26',
+    live: '2026-09-08',
+    dateLabel: 'September 8, 2026',
+    qids: ['b29p01', 'b29p02', 'b29p03', 'b29p04', 'b29p05', 'b29p06', 'b29p07', 'b29p08', 'b29p09', 'b29p10', 'b29p11', 'b29p12', 'b29p13', 'b29p14', 'b29p15', 'b29p16', 'b29p17', 'b29p18', 'b29p19', 'b29p20'],
+  },
+  {
+    num: 30,
+    quizId: 'blitz-9-9-26',
+    live: '2026-09-09',
+    dateLabel: 'September 9, 2026',
+    qids: ['b30p01', 'b30p02', 'b30p03', 'b30p04', 'b30p05', 'b30p06', 'b30p07', 'b30p08', 'b30p09', 'b30p10', 'b30p11', 'b30p12', 'b30p13', 'b30p14', 'b30p15', 'b30p16', 'b30p17', 'b30p18', 'b30p19', 'b30p20'],
+  },
+];
