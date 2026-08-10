@@ -191,10 +191,12 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 //
 // Desktop lists every unfinished row as before: the hide class and the bar are
 // both inert above 900px.
-// Incomplete today peeks TWO at both widths (owner, 2026-08-09). It is a group
-// you want to see the SIZE of without it pushing Complete off the screen, and
-// unlike Ready to play every row in it is a game you have already spent today.
-const FAIL_PEEK = 2;
+// IN PROGRESS AND INCOMPLETE START SHUT ON A PHONE AND OPEN ON DESKTOP (owner,
+// 2026-08-09). Both groups are already represented in the cap directly above the
+// board, so on a phone, where the cap and the board cannot be seen at once,
+// listing them again costs a screen to say what the hero cards just said. On
+// desktop the cap and the board share the fold, so there is nothing to save and
+// a collapsed group is just a lid over rows that had room anyway.
 const PHONE_ROWS = 6;     // unplayed games visible while the group is collapsed
 // From 641px the board runs TWO ACROSS (see the tablet tier in the stylesheet),
 // so the same budget would peek half as many LINES: six games became three rows
@@ -1169,25 +1171,26 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // The whole budget goes to UNPLAYED rows; paused rows peek zero and wait for
     // the bar. That is why the peek is measured against each sub-group's own
     // index below (`bucket`) rather than one running count.
-    const progPeek = 0;
     const todoPeek = twoUp ? TABLET_ROWS : PHONE_ROWS;
     // What the one Ready-to-play bar has to promise: the unplayed overflow PLUS
     // every paused row, and nothing at all under a filter, which shows every row
     // by itself.
-    const readyHidden = filter === 'all'
-      ? Math.max(0, nTodo - todoPeek) + nProg
-      : 0;
+    // Paused rows have their own band now, so they are no longer part of what
+    // this figure has to promise.
+    const readyHidden = filter === 'all' ? Math.max(0, nTodo - todoPeek) : 0;
     // A FILTER already is the reader asking to narrow the slate, so peeking
     // inside it would be answering that request with another lid (owner,
     // 2026-08-07): any filter other than All shows every paused and unplayed
     // row, with no bar. Finished games stay collapsed regardless, since the
     // reason they are collapsed is that you already know how you did.
-    const failHidden = filter === 'all' ? Math.max(0, nFail - FAIL_PEEK) : 0;
     const peekOf = (grp) => {
       if (grp === 'dn') return 0;
       if (filter !== 'all') return Infinity;
-      if (grp === 'fail') return FAIL_PEEK;
-      return grp === 'prog' ? progPeek : todoPeek;
+      // Shut on a phone, open on desktop. Infinity rather than a count, so on
+      // desktop no row carries sl-hid and the band renders as a plain label
+      // instead of a chevron that would toggle nothing.
+      if (grp === 'prog' || grp === 'fail') return phone ? 0 : Infinity;
+      return todoPeek;
     };
     const toggle = (grp) => setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }));
     // A band normally prints its own size on the right. Ready to play prints the
@@ -1230,7 +1233,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       );
     };
     out.push(band('todo', 'Ready to play', nReady, `${n}/${GAMES.length} played`));
-    // Incomplete sits ABOVE Complete: it is the group with something left in it.
+    // The two started groups sit between the untouched games and the finished
+    // ones, in the order a game passes through them: still going, then over and
+    // unsolved, then done.
+    out.push(band('prog', 'In progress', nProg));
     out.push(band('fail', 'Incomplete today', nFail));
     out.push(band('dn', 'Complete today', nDone));
     // The bar names how many rows are HIDDEN, not how many the group holds
@@ -1272,9 +1278,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // Complete today shut directly under a control that had said "show more".
     // It opens both and names the whole figure. Complete's own band keeps its
     // chevron, for opening that group by itself.
-    const allOpen = grpOpen.todo && grpOpen.dn;
-    const hiddenAll = (grpOpen.todo ? 0 : readyHidden) + (grpOpen.dn ? 0 : nDone);
-    if (readyHidden > 0 || nDone > 0) {
+    const shutGroups = ['todo', 'prog', 'fail', 'dn'];
+    const allOpen = shutGroups.every((g) => grpOpen[g]);
+    const hiddenOf = { todo: readyHidden, prog: nProg, fail: nFail, dn: nDone };
+    // Only a group a lid is actually ON counts toward the figure: on desktop the
+    // two started groups peek Infinity, so nothing of theirs is hidden and the
+    // bar must not offer to reveal it.
+    const hiddenAll = shutGroups.reduce(
+      (n, g) => n + (grpOpen[g] || peekOf(g) === Infinity ? 0 : hiddenOf[g]), 0);
+    if (hiddenAll > 0 || allOpen) {
       out.push(
         <button
           type="button"
@@ -1283,7 +1295,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           onClick={(e) => {
             const el = e.currentTarget;
             const next = !allOpen;
-            setGrpOpen((cur) => ({ ...cur, todo: next, dn: next }));
+            setGrpOpen((cur) => ({ ...cur, todo: next, prog: next, fail: next, dn: next }));
             // Collapsing follows the reader, exactly as the per-group bar does:
             // taking dozens of rows back out of the page otherwise leaves them
             // wherever those rows used to be, a long way from what they pressed.
@@ -1301,9 +1313,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         </button>
       );
     }
-    // Incomplete keeps its bar at BOTH widths, unlike Ready to play's, because
-    // it peeks a fixed two rather than filling the screen.
-    out.push(more('fail', failHidden));
     // Counted in DOM order, which IS the visual order WITHIN a group (equal
     // `order` values keep source order), so "the first two" means the same thing
     // to the reader as it does here.
@@ -1315,7 +1324,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       // A paused row BELONGS to Ready to play (one band, one bar, one open
       // state) but is COUNTED against the paused half of the budget, since the
       // two halves peek different numbers of rows.
-      const grp = fail ? 'fail' : (isDone ? 'dn' : 'todo');
+      const grp = fail ? 'fail' : (isDone ? 'dn' : (ip ? 'prog' : 'todo'));
       const bucket = fail ? 'fail' : (isDone ? 'dn' : (ip ? 'prog' : 'todo'));
       const gi = seen[bucket];
       seen[bucket] = gi + 1;
@@ -2197,6 +2206,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;position:sticky;top:0;z-index:3;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
+          /* In progress: the gold the slate has always used for a game you have
+             started, and dark ink on it, since white on gold does not read. */
+          .sl-band.prog{order:6;background:var(--gold);}
+          .sl-band.prog .sl-bt{color:#2a1f04;}
+          .sl-band.prog .sl-bc{color:#7a5a10;}
+          .sl-band.prog .sl-bch{color:#2a1f04;opacity:.75;}
           .sl-band.fail{order:8;background:#dc2626;}
           .sl-band.fail .sl-bc{color:#ffe0dd;}
           .sl-band.dn{order:11;background:var(--success-deep);}
@@ -2207,21 +2222,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-row,.sl-drawer{order:5;}
           /* Paused rows sink to the FOOT of Ready to play (owner, 2026-08-08),
              above the group's bar and below every untouched row. */
-          .sl-row.inprog,.sl-drawer.inprog{order:6;}
+          .sl-row.inprog,.sl-drawer.inprog{order:7;}
           .sl-row.fail,.sl-drawer.fail{order:9;}
           .sl-more.fail{order:10;}
           .sl-row.done,.sl-drawer.done{order:12;}
-          /* Incomplete keeps a real bar on desktop, where Ready to play needs
-             none: desktop lists every unfinished row, but this group peeks a
-             fixed two at both widths. .sl-more is display:none above 900px and
-             carries no other styling up here, so the bar is drawn in full, on
-             the pattern of the cap's own .dh-cmore, tinted to its band. */
-          .dh-board.slate .sl-more.fail{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;grid-column:1/-1;
-            padding:7px 13px;border:0;border-top:2px solid #f3c2bd;border-bottom:2px solid #f3c2bd;border-radius:0;
-            background:#fdeceb;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
-            text-transform:uppercase;line-height:1.5;color:#b91c1c;cursor:pointer;}
-          .dh-board.slate .sl-more.fail:hover{background:#fbdedb;}
-          .dh-board.slate .sl-row.fail.sl-hid,.dh-board.slate .sl-drawer.fail.sl-hid{display:none;}
           /* THREE tracks: emblem, name, crowd size. Pins add no track, the same
              call the phone made: the star left the row and the pin control is
              the chip at the top of the drawer. */
@@ -2307,11 +2311,17 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
+          /* In progress: the gold the slate has always used for a game you have
+             started, and dark ink on it, since white on gold does not read. */
+          .sl-band.prog{order:6;background:var(--gold);}
+          .sl-band.prog .sl-bt{color:#2a1f04;}
+          .sl-band.prog .sl-bc{color:#7a5a10;}
+          .sl-band.prog .sl-bch{color:#2a1f04;opacity:.75;}
           .sl-band.fail{order:8;background:#dc2626;}
           .sl-band.fail .sl-bc{color:#ffe0dd;}
           .sl-band.dn{order:11;background:var(--success-deep);}
           .sl-row,.sl-drawer{order:5;}
-          .sl-row.inprog,.sl-drawer.inprog{order:6;}
+          .sl-row.inprog,.sl-drawer.inprog{order:7;}
           .sl-row.fail,.sl-drawer.fail{order:9;}
           .sl-row.done,.sl-drawer.done{order:12;}
           /* The rows a group is not peeking. Nothing else may set display on a
