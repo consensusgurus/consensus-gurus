@@ -660,12 +660,27 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       else todo += 1;
     }
     return [
-      { k: 'todo', n: todo, word: 'ready to play' },
+      // `short` is the phone's wording. Only READY needs one: it is the pip
+      // that rides up onto the first line beside the title and the date, so
+      // it has to be the narrowest thing it can be without losing meaning.
+      { k: 'todo', n: todo, word: 'ready to play', short: 'ready' },
       { k: 'prog', n: prog, word: 'in progress' },
       { k: 'fail', n: fail, word: 'incomplete' },
       { k: 'dn', n: dn, word: 'complete' },
     ].filter((t) => t.n > 0);
   })();
+  // role="img" + the label, because the word can be display:none (the short
+  // form swaps in on a phone), which takes a string out of the accessibility
+  // tree as well as off the screen. The pip has to say what it is on its own,
+  // and it always says the LONG word there whatever is drawn.
+  const slatePip = (t, extra) => (
+    <i key={t.k} className={`sl-pip ${t.k}${extra || ''}`} role="img" title={`${t.n} ${t.word}`} aria-label={`${t.n} ${t.word}`}>
+      <i className="sl-pd" aria-hidden="true" />
+      <b>{t.n}</b>
+      <i className={`sl-pw${t.short ? ' alt' : ''}`} aria-hidden="true">{t.word}</i>
+      {t.short ? <i className="sl-ps" aria-hidden="true">{t.short}</i> : null}
+    </i>
+  );
   // UP NEXT IS CATEGORY FIRST (owner, 2026-08-10). It takes the category this
   // viewer played MOST RECENTLY and offers the most popular unplayed game in
   // it; where that category has nothing open left, it walks to the second most
@@ -2262,14 +2277,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
         .dhome.slate .dh-boardwrap{border-left:none;border-right:none;}
         .dhome.slate{border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
-        .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);order:1;}
-        /* The date is a SIBLING of the pip group rather than a child of it, and
-           the three children are placed by the order property. Desktop reads
-           exactly as before, title then pips then date; a phone reorders it to
-           title-date
-           on the first line and hands the pips a line of their own, which is
-           what lets them keep their words. */
-        .sl-count{order:2;margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
+        /* The bar has FOUR flex children: the title, the ready pip, the pip
+           group and the date, placed by the order property. Desktop reads
+           title / ready / the rest / date, one continuous run. A phone reorders
+           it to title / ready / date on the first line and hands the remaining
+           pips a line of their own, which is what holds the header to two lines
+           while every pip keeps its word.
+           The right-grouping lives on the TITLE's margin rather than on any one
+           of the three that follow it, because which of those exist depends on
+           the day: an auto margin on two of them would split the free space. */
+        .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);order:1;margin-right:auto;}
+        .sl-ptodo{order:2;}
+        .sl-count{order:3;display:flex;align-items:center;gap:6px;}
         /* The four state counts. Each pip is a coloured dot, the number, and the
            word — and the WORD is the part that carries it on a wide viewport,
            because the phone bands that teach these colours are display:none
@@ -2277,15 +2296,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            bands are on screen, so the word comes off and the dot reads against
            them. Dot colours are the bands' hues lifted for the navy ground:
            #2c4fa8 and #16a34a are legible on white and invisible on this bar. */
-        .sl-pip{display:inline-flex;align-items:center;gap:5px;font-style:normal;padding:2px 8px 2px 6px;border-radius:999px;background:rgba(255,255,255,0.11);}
+        /* Typography sits on the PIP, not on .sl-count, since the ready pip
+           lives outside that group and has to look identical to the ones in it. */
+        .sl-pip{display:inline-flex;align-items:center;gap:5px;font-style:normal;padding:2px 8px 2px 6px;border-radius:999px;background:rgba(255,255,255,0.11);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
         .sl-pip b{font-weight:800;color:var(--white);font-variant-numeric:tabular-nums;}
-        .sl-pw{font-style:normal;font-weight:700;letter-spacing:.07em;color:var(--blue-200);}
+        .sl-pw,.sl-ps{font-style:normal;font-weight:700;letter-spacing:.07em;color:var(--blue-200);}
+        .sl-ps{display:none;}
         .sl-pd{width:7px;height:7px;border-radius:50%;flex:none;background:currentColor;}
         .sl-pip.todo{color:#8fb4ff;}
         .sl-pip.prog{color:var(--gold);}
         .sl-pip.fail{color:#f87171;}
         .sl-pip.dn{color:#4ade80;}
-        .sl-dt{order:3;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
+        .sl-dt{order:4;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
         .sl-dt i{font-style:normal;}
         .sl-dt .p{display:none;}
         /* The category strip and the expand bars were var(--surface) between two
@@ -2677,13 +2699,21 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              rather than overflowing. The title stays "Today's slate" in full,
              which is what the reordering buys back. */
           .sl-bar{flex-wrap:wrap;row-gap:7px;}
-          .sl-dt{order:1;margin-left:auto;}
-          .sl-count{order:2;flex-basis:100%;margin-left:0;flex-wrap:wrap;justify-content:flex-start;gap:6px 14px;}
+          .sl-ttl{margin-right:0;}
+          /* Line one is title / ready / date, spread by the two auto margins;
+             line two is everything else. Measured at 356px, where all four
+             states plus the date come to a 54px header, two lines. A 320px
+             screen still wraps the pip row on a four-state day, which is the
+             width where something has to give. */
+          .sl-ptodo{margin-left:auto;}
+          .sl-dt{order:3;margin-left:auto;}
+          .sl-count{order:4;flex-basis:100%;flex-wrap:wrap;justify-content:flex-start;gap:6px 9px;}
           /* On its own row the pill chrome is doing nothing (nothing sits beside
-             a pip to be separated from), and dropping it is what keeps all four
-             on one line at 390px. */
-          .sl-pip{padding:0;background:none;gap:6px;}
-          .sl-pw{letter-spacing:.05em;}
+             a pip to be separated from), and dropping it, with a hair off the
+             type, is what fits three worded pips on one line at 356px. */
+          .sl-pip{padding:0;background:none;gap:5px;font-size:10.5px;letter-spacing:.02em;}
+          .sl-pw.alt{display:none;}
+          .sl-ps{display:inline;}
           .sl-dt .d{display:none;}
           .sl-dt .p{display:inline;}
           .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
@@ -2900,20 +2930,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       {slate ? (
         <div className="sl-bar">
           <span className="sl-ttl">Today&rsquo;s slate</span>
+          {/* THE READY PIP IS ITS OWN FLEX CHILD, not one of the group (owner,
+              2026-08-10), which is what holds the phone header to two lines: it
+              rides up beside the title and the date, leaving the other three to
+              share the second line. On a desktop the order property puts it back
+              at the head of the run and the bar renders exactly as before. */}
+          {dayTally.filter((t) => t.k === 'todo').map((t) => slatePip(t, ' sl-ptodo'))}
           {etLabel.long ? <i className="sl-dt"><i className="d">{etLabel.long}</i><i className="p">{etLabel.short}</i></i> : null}
-          <span className="sl-count">
-            {dayTally.map((t) => (
-              /* role="img" + the label, because below 900px the word is
-                 display:none, which takes it out of the accessibility tree as
-                 well as off the screen: the pip has to be able to say what it
-                 is on its own. */
-              <i key={t.k} className={`sl-pip ${t.k}`} role="img" title={`${t.n} ${t.word}`} aria-label={`${t.n} ${t.word}`}>
-                <i className="sl-pd" aria-hidden="true" />
-                <b>{t.n}</b>
-                <i className="sl-pw" aria-hidden="true">{t.word}</i>
-              </i>
-            ))}
-          </span>
+          <span className="sl-count">{dayTally.filter((t) => t.k !== 'todo').map((t) => slatePip(t))}</span>
         </div>
       ) : null}
       <div className="dh-sbar">
