@@ -214,6 +214,37 @@ export default function DailyTilePanel({
   const todayTop = (standings || []).slice(0, 3);
   const meInTodayTop = !!(meKey && todayTop.some((r) => r.userKey === meKey));
 
+  // ── THE SLAB (DESKTOP ONLY, owner-approved direction B2, 2026-08-10) ──────
+  // The drawer opens to answer one question, "how am I doing at this game", and
+  // the desktop version used to answer it with four dashes in a 2x2 grid of
+  // bordered tiles. This is that answer in one line, in the shape of the
+  // slate's Up next cap bar: eyebrow, big name, sub, one control on the right
+  // edge. It carries PLAY, so the desktop header keeps only Close.
+  //
+  // THE PHONE DRAWER IS DELIBERATELY UNCHANGED by this pass (owner,
+  // 2026-08-10). Every rule that builds the slab, the bands and the recoloured
+  // calendar lives in a min-width:901px block appended at the END of the
+  // stylesheet, so nothing below 900px resolves differently than it did before:
+  // the phone drawer already carries Play in its navy header strip and already
+  // renders each card as a band plus full-width content, which is the same
+  // direction, arrived at first.
+  const playLabel = isDone ? 'Play again' : (inProgress ? 'Resume' : 'Play');
+  const slabEyebrow = isDone ? 'Today · done' : (inProgress ? 'Today · in progress' : 'Today · not played yet');
+  const slabHeadline = todayScore
+    ? 'You scored ' + todayScore
+    : (mine && mine.avgPoints != null
+      ? 'You average ' + fmtPts(mine.avgPoints) + ' a day'
+      : (loading ? '…' : 'Your first run'));
+  const slabBits = [];
+  if (todayRow && todayRow.rank) slabBits.push('#' + todayRow.rank + ' today');
+  if (mine && mine.bestPoints != null) slabBits.push('best ' + fmtPts(mine.bestPoints));
+  if (myRank) slabBits.push('#' + myRank + (allTime && allTime.field ? ' of ' + allTime.field.toLocaleString() : '') + ' all time');
+  if (longest) slabBits.push(longest + ' day streak');
+  if (archivePct != null) slabBits.push(archivePct + '% of the archive');
+  const slabSub = slabBits.length
+    ? slabBits.join(' · ')
+    : (loading ? ' ' : 'Play it once and your record starts here.');
+
   return (
     <div className="dtp" style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
       <div className="dtp-hd">
@@ -262,6 +293,19 @@ export default function DailyTilePanel({
         </div>
       </div>
 
+      {/* Desktop only, see the slab comment above. display:none below 901px,
+          where the phone header strip is already the drawer's control row. */}
+      <div className="dtp-slab">
+        <div className="dtp-stxt">
+          <div className="dtp-seye">{slabEyebrow}</div>
+          <div className="dtp-snm">{slabHeadline}</div>
+          <div className="dtp-ssub">{slabSub}</div>
+        </div>
+        <a href={game.href} className="dtp-sgo">
+          <Play size={14} fill="currentColor" strokeWidth={0} />{playLabel}
+        </a>
+      </div>
+
       {/* Phone-only section bands. They are rendered here but PLACED by CSS
           order inside the <=900px block, each one immediately above the block it
           opens, so the reader gets band / content / band / content down the
@@ -280,7 +324,10 @@ export default function DailyTilePanel({
         </button>
       ))}
 
-      <div className="dtp-grid">
+      {/* `cw` = a crowd game, whose bottom strip is a grid of prompt cards and
+          therefore needs the full panel width rather than the record column.
+          See the desktop grid placement at the foot of the stylesheet. */}
+      <div className={`dtp-grid${isCrowdGame ? ' cw' : ''}`}>
         <section className={`dtp-col${sec === 'rec' ? ' open' : ''}`}>
           <div className="dtp-lab">Your record</div>
           <div className="dtp-stats">
@@ -397,7 +444,6 @@ export default function DailyTilePanel({
             <span><i className="sw today" />Today</span>
           </div>
         </section>
-      </div>
 
       {/* The bottom strip: today's crowd answers on the three crowd games (the
           default there), the day-by-day history everywhere else. Both fill the
@@ -505,6 +551,7 @@ export default function DailyTilePanel({
           <div className="dtp-empty">Play it once and your day by day history shows up here.</div>
         )}
       </section>
+      </div>
 
       {/* Phone-only, and deliberately at the very bottom: see .dtp-mclose. */}
       <button type="button" className="dtp-mclose" onClick={onClose}>
@@ -700,6 +747,17 @@ export default function DailyTilePanel({
           .dtp-cwrap{overflow:visible;min-height:0;}
           .dtp-grid{grid-template-columns:1fr 1fr;gap:16px;}
           .dtp-col:nth-child(3){grid-column:1/-1;}
+          /* .dtp-trend joined the grid on 2026-08-10, so the tablet layout has
+             to place it too or it lands in a half-width auto cell. */
+          .dtp-trend{grid-column:1/-1;}
+        }
+        /* 901-980: two columns from the block above, but the bands, the slab
+           and the gap:0 divider treatment from the desktop block below. Column
+           three spans the row, so its right border would land on the panel edge
+           and it needs a top border instead. */
+        @media(min-width:901px) and (max-width:980px){
+          .dtp-col:nth-child(3){border-right:0;border-top:1px solid var(--border);}
+          .dtp-trend{border-right:0;border-top:1px solid var(--border);}
         }
         /* ── phone drawer: direction A, full bleed (owner-approved 2026-08-07) ──
            Breakpoint is 900px, matching the SLATE's phone breakpoint, so the
@@ -781,9 +839,11 @@ export default function DailyTilePanel({
              promotes the three cards to children of .dtp, which is already a
              flex column, so the cards, the history section and the new bands are
              all siblings and the order property can interleave them band /
-             content / band / content. .dtp-trend lives OUTSIDE .dtp-grid, so
-             this is the only way
-             to get it under the Your record band without moving it in the JSX.
+             content / band / content. .dtp-trend is the FOURTH child of
+             .dtp-grid (it was a sibling of the grid until 2026-08-10, when the
+             desktop layout moved it under the record column); display:contents
+             promotes it here exactly like the three cards, so the order below
+             still puts it under the Your record band with no JSX branch.
              Nothing but the bands shows until one is tapped: the single-level
              version ran ~1,100px, three screens for a drawer you opened to check
              one number. */
@@ -887,6 +947,144 @@ export default function DailyTilePanel({
             font-family:inherit;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
             color:var(--slate);cursor:pointer;}
           .dtp-mclose:active{background:#eef1f6;color:var(--ink);}
+        }
+        /* ── DESKTOP DRAWER: direction B2 (owner-approved 2026-08-10) ─────────
+           EVERY rule in this block is min-width:901px, and nothing above it was
+           touched, so the phone drawer resolves exactly as it did before. That
+           is the owner's explicit call: the phone version already arrived at
+           this direction in August 2026, and only the desktop version was left
+           behind on three bordered cards with DM Mono labels.
+
+           What changes, and why:
+           - THE SLAB. The panel opens with a one-line answer instead of four
+             dashes, in the shape of the slate's Up next cap bar, and it takes
+             Play so there is one control on the right edge rather than a Play
+             and a Close side by side in the header.
+           - BANDS, NOT CARDS. Three 1.5px bordered cards holding bordered stat
+             tiles was three levels of border. One border around the grid, a
+             navy band per column, hairline rows: the same objects the slate and
+             the rails already ship.
+           - THE CHART MOVES INTO THE RECORD COLUMN. It is the best object in
+             the panel and it sat below the fold. In the left column it also
+             fills the height the calendar sets, which is what lets the columns
+             end on one line without spreading the rows to get there.
+           - THE 2x2 STAT TILES GO. Today, rank, streak and all-time rank are
+             all on the slab now, so the tiles were saying it twice; the four
+             detail rows underneath are what is left, and they are the part the
+             slab does not carry.
+           - THE CALENDAR JOINS THE BLUE RAMP. A green/red/grey month read as a
+             traffic light next to a page that retired that palette in August
+             2026 (see ringBlue in lib/home-blues.js). Solid blue solved, faint
+             red missed, pale outline open, gold ring today. */
+        @media(min-width:901px){
+          /* Play lives on the slab. The header keeps Close. */
+          .dtp-play{display:none;}
+          .dtp-slab{position:relative;display:flex;align-items:center;gap:12px;flex:none;
+                    padding:13px 14px 13px 22px;border-radius:11px;background:var(--blue);color:var(--white);}
+          .dtp-slab::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:var(--gold);}
+          .dtp-stxt{min-width:0;flex:1;}
+          .dtp-seye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          /* line-height 1.3 plus a pixel of pad, not 1.1: these lines are
+             overflow:hidden for the ellipsis, so a tight box clips a descender.
+             Same reasoning as .hr-hnm in HomeRails. */
+          .dtp-snm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3;padding-bottom:1px;
+                   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .dtp-ssub{font-size:11px;font-weight:600;line-height:1.35;padding-bottom:1px;color:var(--blue-200);
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .dtp-sgo{margin-left:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+                   background:var(--white);color:var(--blue-deep);font-weight:800;font-size:13px;letter-spacing:.04em;
+                   border-radius:9px;padding:11px 22px;text-decoration:none;transition:background .12s,transform .12s;}
+          .dtp-sgo:hover{background:var(--blue-200);transform:translateY(-1px);}
+          /* ONE border around the grid, hairline dividers inside it. */
+          .dtp-grid{gap:0;border:1px solid var(--border);border-radius:11px;overflow:hidden;background:var(--white);}
+          .dtp-col{border:0;border-radius:0;padding:0;border-right:1px solid var(--border);background:transparent;}
+          .dtp-col:nth-child(3){border-right:0;}
+          /* Each column's first label becomes the band. The leaderboard's
+             second label (All-time) is a sub-heading, not a band, so it takes
+             the quiet surface treatment instead. */
+          .dtp-col > .dtp-lab:first-child{margin:0;padding:9px 13px;min-height:36px;box-sizing:border-box;
+            background:var(--accent);color:var(--white);
+            font-family:'Manrope',system-ui,sans-serif;font-size:11.5px;font-weight:800;letter-spacing:.13em;}
+          .dtp-col > .dtp-lab:first-child svg{color:var(--blue-200);}
+          .dtp-col > .dtp-lab:first-child .dtp-labct{color:var(--blue-200);font-family:'Manrope',system-ui,sans-serif;
+            font-size:10px;font-weight:800;letter-spacing:.06em;}
+          .dtp-lab.sm{margin:0;padding:6px 13px;background:var(--surface);
+            border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+            font-family:'Manrope',system-ui,sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;color:var(--slate);}
+          .dtp-lab.sm svg{color:var(--slate);}
+          .dtp-lab.sm .dtp-labct{font-family:'Manrope',system-ui,sans-serif;font-size:10px;font-weight:800;color:#9aa2b1;}
+          /* The slab carries today / rank / streak / all-time rank, so the tile
+             grid that also carried them is redundant here. */
+          .dtp-stats{display:none;}
+          .dtp-rows{margin:0;display:block;flex:none;}
+          .dtp-row{padding:7px 13px;border-bottom:1px solid #f0f2f6;font-size:12px;}
+          .dtp-row:last-child{border-bottom:1px solid #f0f2f6;}
+          .dtp-row span{color:var(--slate);}
+          /* leaderboard */
+          .dtp-lb{display:block;flex:none;}
+          .dtp-lrow{padding:6px 13px;border-bottom:1px solid #f0f2f6;font-size:12px;}
+          .dtp-lrow:last-child{border-bottom:1px solid #f0f2f6;}
+          .dtp-lrow b{font-weight:600;}
+          .dtp-lrow .pl{font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:800;color:#9aa2b1;width:16px;}
+          .dtp-lrow .sc{font-family:'Manrope',system-ui,sans-serif;font-size:12px;font-weight:700;}
+          /* Gold / silver / bronze numerals, the same podium the rails use, so
+             one board reads the same in the rail and in the drawer. */
+          .dtp-lb .dtp-lrow:nth-child(1) .pl{color:var(--gold);}
+          .dtp-lb .dtp-lrow:nth-child(2) .pl{color:var(--silver);}
+          .dtp-lb .dtp-lrow:nth-child(3) .pl{color:var(--bronze);}
+          .dtp-lrow.first .pl svg{color:var(--gold);}
+          /* .me last, so being #1 yourself reads as YOU rather than as the
+             leader you happen to be (same ordering rule as the phone block). */
+          .dtp-lrow.me{margin:0;padding:6px 13px;border-radius:0;background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--blue);}
+          .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:var(--blue-deep);}
+          .dtp-lrow.me b{font-weight:800;}
+          .dtp-lfoot{margin-top:auto;padding:8px 13px;border-top:1px solid var(--border);
+            font-family:'Manrope',system-ui,sans-serif;font-size:10.5px;font-weight:800;
+            letter-spacing:.04em;text-transform:uppercase;color:var(--slate);}
+          .dtp-lfoot a{color:var(--blue-deep);font-size:11px;text-transform:none;letter-spacing:0;}
+          .dtp-empty{padding:9px 13px;}
+          /* archive */
+          .dtp-calhd{margin:0;padding:9px 13px 5px;}
+          .dtp-wd{margin:0;padding:0 11px 3px;}
+          .dtp-wd span{font-family:'Manrope',system-ui,sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--slate);}
+          .dtp-cal{padding:0 11px;}
+          .dtp-cell.none{color:#b3bccb;}
+          a.dtp-cell.played{background:var(--blue);border:1px solid var(--blue);color:var(--white);}
+          a.dtp-cell.incomplete{background:#f3e3e2;border:1px solid #e6cfcc;color:#a8362c;}
+          a.dtp-cell.open{background:var(--accent-soft);border:1px solid var(--accent-border);color:var(--blue-deep);}
+          a.dtp-cell.open:hover{background:var(--blue-200);border-color:var(--blue);color:var(--blue-deep);}
+          .dtp-key{margin-top:auto;padding:9px 13px 11px;
+            font-family:'Manrope',system-ui,sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.06em;
+            text-transform:uppercase;color:var(--slate);}
+          .dtp-key .sw.played{background:var(--blue);border:1px solid var(--blue);}
+          .dtp-key .sw.incomplete{background:#f3e3e2;border:1px solid #e6cfcc;}
+          .dtp-key .sw.open{background:var(--accent-soft);border:1px solid var(--accent-border);}
+          /* the chart, now a cell of the grid rather than a strip under it */
+          .dtp-trend{min-height:0;padding:0 0 11px;}
+          .dtp-trend > .dtp-lab{margin:0;padding:9px 13px 7px;
+            font-family:'Manrope',system-ui,sans-serif;font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--slate);}
+          .dtp-trend > .dtp-lab svg{color:var(--slate);}
+          .dtp-tsum{font-size:10.5px;color:#9aa2b1;}
+          .dtp-tkey{margin:0;padding:0 13px 6px;font-family:'Manrope',system-ui,sans-serif;font-size:9px;font-weight:800;letter-spacing:.06em;}
+          .dtp-bars{margin:0 13px;}
+          .dtp-daterow,.dtp-bx{margin:5px 13px 0;font-family:'Manrope',system-ui,sans-serif;font-size:9px;font-weight:700;}
+          .dtp-cwrap{padding:0 13px;}
+        }
+        @media(min-width:981px){
+          /* Column one is the record band plus the chart under it; columns two
+             and three span both rows, and the calendar (always padded to six
+             week rows) is what sets the height they all end on. */
+          .dtp-grid{grid-template-rows:auto 1fr;}
+          .dtp-col:nth-child(1){grid-column:1;grid-row:1;}
+          .dtp-col:nth-child(2){grid-column:2;grid-row:1/3;}
+          .dtp-col:nth-child(3){grid-column:3;grid-row:1/3;}
+          .dtp-trend{grid-column:1;grid-row:2;border-right:1px solid var(--border);}
+          /* A crowd game's bottom strip is a grid of prompt cards, which needs
+             the full panel width, so on those three the columns keep to row one
+             and the strip runs underneath exactly as it always has. */
+          .dtp-grid.cw .dtp-col:nth-child(2),.dtp-grid.cw .dtp-col:nth-child(3){grid-row:1;}
+          .dtp-grid.cw .dtp-trend{grid-column:1/-1;grid-row:2;border-right:0;border-top:1px solid var(--border);}
         }
       `}</style>
     </div>

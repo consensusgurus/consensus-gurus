@@ -2098,11 +2098,72 @@ the component. The quiz-home header CTA itself is gold (`.qchm-bt.qchm-gold`) an
   contest countdown and the flip panel's face switcher, which a phone still needs, so a navy slab
   would abut a navy header with no edge. Blue over navy is the cap bars' own pairing. `tone:
   'lite'` gives the lighter `#4d84f3` so two adjacent rails do not read as one block.
-- Live feed and Featured are untouched: they already carry navy tabs and big stats.
+- Live feed and Featured were the last two elements left on the old look; they were brought over
+  2026-08-10, at every width. See the next section.
 
 **When adding anything to the phone home surface, match these tokens** (`globals.css` +
 `lib/home-blues.js`), and keep every rule inside the media query. A mock-up of the three
 directions considered lives at `mobile-home-mockups.html` in the repo root.
+
+## Direction B finished: the stats drawer, the Loft and Featured (owner-approved 2026-08-10)
+
+The three elements that were still on the pre-direction-B look. Mock-ups of the options considered
+live at `home-rails-mockups.html` in the repo root; the owner picked B2 / B2 + B1 / B2.
+
+**The shared vocabulary, now used by every element on the home surface.** A solid saturated ground,
+a 4px left rule where an icon used to be, a small uppercase eyebrow over a big 800-weight name, one
+control on the right edge, and BANDS rather than nested borders. Two things are now banned outright
+on this surface: **pastel tinted icon squares** and **chevrons**. One label spec everywhere, 11.5px
+/ .13em / 800 / uppercase, and NO `DM Mono` and no `--muted`, both of which are dead magazine-theme
+tokens that survived only in the desktop drawer.
+
+**1. The expanded game stats drawer (`app/DailyTilePanel.jsx`), DESKTOP ONLY.** The phone drawer
+reached this direction first (2026-08-07) and the owner's call was to leave it exactly as it is, so
+**every rule added in this pass sits in a `min-width:901px` block appended at the END of that
+component's stylesheet, and nothing above it was edited.** Verify that when touching this file: the
+`@media(max-width:900px)` block must stay byte-identical or the phone drawer has been changed by
+accident. What desktop gained: the SLAB (a cap bar carrying the one-line answer to "how am I doing
+at this game", which also takes Play, so the header keeps only Close); one border around the grid
+with a navy band per column instead of three bordered cards holding bordered tiles; the 2x2 stat
+tiles dropped, since the slab says all four; the history chart moved INTO the record column (it is
+the best object in the panel and it sat below the fold, and in the column it also absorbs the height
+the six-week calendar sets); gold/silver/bronze rank numerals matching the rails; and the calendar
+moved onto the blue ramp, because a green/red month read as a traffic light next to a page that
+retired that palette in August 2026.
+
+- `.dtp-trend` is now the FOURTH child of `.dtp-grid` rather than a sibling of it. The phone's
+  `display:contents` promotion still works unchanged, but a **crowd game** (outwit / outrank / feud)
+  needs the full panel width for its prompt cards, so `.dtp-grid` takes a `cw` class on those three
+  and the strip spans all columns exactly as before.
+- 901-980px is a real tier: two columns from the existing `max-width:980px` block plus the bands
+  from the new one. It has its own small block; do not collapse it.
+
+**2. The Loft (`app/HomeRails.jsx`).** Each face leads with its own cap slab (`.hr-lslab`), which
+also carries that face's headline figures, so the old `.hr-stats` strip is gone from this panel.
+
+- **THE LIVE FEED SLAB IS ANONYMOUS, and must stay that way (owner rule, 2026-08-10).** It shows the
+  DAY'S TOTALS, plays and time played, never the newest player's name or score. The rows below carry
+  results without attribution; promoting one person's run into a headline is a different product.
+- Mastery is banded **Nearly there / Done / Not started**, closest-to-done first. Sorted purely by
+  percentage the face opened on the games you had already finished, which is the least actionable
+  ordering a progress board can have. Bands are the slate's own band object and are sticky, since
+  the Not started band runs to 40-odd rows.
+- Mastery bars are coloured by the game's slate category (`catBlue`), so a 50-row column reads by
+  category as well as progress. One blue at that length was a field of grey.
+- The feed's 32px conic rings became the 4px left rule (`.hr-rl`), still coloured by `ringBlue`, with
+  the percentage as plain text on the right edge. Fourteen rings stacked in a 300px rail were the
+  busiest object on the page.
+
+**3. Featured (`app/HomeRails.jsx` + the `featured` prop in `app/quizzes/QuizHomeClient.jsx`).**
+Three equal pastel rows became three cap cards stepping navy / blue / pale down the ramp, each with
+a real control instead of a chevron. The leading card carries the gold rule that marks the day's
+event. The header carries a **resets-in chip** counting down to Eastern midnight, computed in an
+effect and never during render (it reads the clock, so a server-rendered value would hydrate
+against a different one, the same reason `contestIsLive` and `isSundayET` are deferred).
+
+The prop shape is `{ eyebrow, name, sub, leader, href, cta }`, with fallbacks onto the older
+`{ title, sub }` so an un-updated caller still renders. `icon` / `color` / `tint` are gone with the
+row that used them.
 
 ## Chrome tab hygiene (universal rule, owner-requested 2026-06-05)
 

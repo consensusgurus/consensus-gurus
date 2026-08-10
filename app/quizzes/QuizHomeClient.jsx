@@ -13,7 +13,7 @@ import {
   Search, ChevronDown, ArrowRight, BarChart3, Crown, Sparkles, Flame,
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
-  Check, Star, Target, Swords, Newspaper, Blocks, GraduationCap,
+  Check, Star, Swords, Newspaper, Blocks, GraduationCap,
   Flag, Gauge, QrCode,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
@@ -2311,29 +2311,37 @@ export default function QuizHomeClient() {
                 return { label, color, tint: (typeof color === 'string' && color.length === 7) ? `${color}18` : 'rgba(0,0,0,0.05)' };
               }}
               onAllLive={() => setListMode('live')}
+              /* Cap cards since 2026-08-10, so each slot names itself in the
+                 eyebrow and puts the thing you are actually picking on the big
+                 line: `eyebrow` labels the slot, `name` is the pick, `sub` and
+                 `leader` share the third line, `cta` is the button. The icon
+                 and pastel tint each row used to carry are gone with the row. */
               featured={[
                 ...((daily && DAILY_CHALLENGE_ON) ? [{
                   title: 'Daily Challenge',
-                  sub: dailyCat || 'Today',
+                  eyebrow: 'Daily challenge',
+                  name: dailyCat || 'Today',
+                  sub: dailyAllDone ? 'All done, see how you placed' : '',
                   leader: (dailyRows[0] && !dailyRows[0].isAnon) ? (dailyRows[0].username || '') : '',
                   href: dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl,
-                  icon: <Target size={16} strokeWidth={2.4} />,
-                  color: '#1e3a8a', tint: '#e9effc',
+                  cta: dailyAllDone ? 'Results' : 'Play',
                 }] : []),
                 ...(qotd ? [{
                   title: 'Quiz of the Day',
-                  sub: stripVerb(qotd.title),
+                  eyebrow: 'Quiz of the day',
+                  name: stripVerb(qotd.title),
+                  sub: '',
                   leader: qotdLeader,
                   href: `/quiz/${qotd.id}`,
-                  icon: <Play size={14} fill="currentColor" strokeWidth={0} />,
-                  color: '#1d4ed8', tint: '#e6edfd',
+                  cta: 'Play',
                 }] : []),
                 {
                   title: 'Start a duel',
+                  eyebrow: 'Head to head',
+                  name: 'Start a duel',
                   sub: 'Challenge someone 1 v 1',
                   href: '/quizzes/hub?tab=duels',
-                  icon: <Crown size={15} strokeWidth={2.4} />,
-                  color: '#3730a3', tint: '#eceafb',
+                  cta: 'Open',
                 },
               ]}
             />

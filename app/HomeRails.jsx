@@ -20,8 +20,9 @@
 //   2. Today's leaders       (dailyBoard/xpToday) - auto-flips every 7s
 //   3. Top player            (xpAll/xp30)         - auto-flips every 7s
 // Right rail:
-//   1. The Loft: Live feed | Daily mastery, auto-flips every 8s, over plays/time
-//   2. Featured: daily challenge, quiz of the day, duel
+//   1. The Loft: Live feed | Daily mastery, auto-flips every 8s, each face
+//      leading with its own cap slab
+//   2. Featured: daily challenge, quiz of the day, duel, as three cap cards
 //
 // The flip replaces the old dot-only affordance with a named pill plus dots, so
 // a reader can always tell WHICH board they are looking at; hovering the pill
@@ -34,6 +35,15 @@
 // day the game has ever run. That figure is `archive` on /api/quiz/daily-status,
 // which fetchDayStatus already returns, so the face costs no new request. The
 // old Category mastery footer link moved out to its own tile on the browse row.
+//
+// 2026-08-10 (owner, mockup home-rails-mockups.html): the last two elements
+// still on the pre-direction-B look were brought over. The Loft gained a cap
+// slab per face (the live one deliberately anonymous: day TOTALS, never the
+// newest player), its feed rings became 4px left rules, and its mastery list is
+// now banded closest-to-done first with category-coloured bars. Featured became
+// three cap cards on the ramp with a real control each, replacing three equal
+// pastel rows. The remaining pastel-free rule: no tinted icon squares and no
+// chevrons anywhere in these rails.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -41,7 +51,7 @@ import { T } from '@/lib/theme';
 import { DAILY_GAME_MAP, liveDailyKeys } from '@/lib/daily-games';
 import { fetchDayStatus } from './useDayStats';
 import { notifyShareCredit } from './ShareCreditPop';
-import { ringBlue } from '@/lib/home-blues';
+import { ringBlue, catBlue } from '@/lib/home-blues';
 import { CONTEST, COPY, contestIsLive, formatScore } from '@/lib/contest';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
@@ -315,12 +325,63 @@ export default function HomeRails({
     return { played, total, pct: total > 0 ? Math.round((played / total) * 100) : 0 };
   }, [masteryRows]);
 
+  // THREE BANDS, CLOSEST TO DONE FIRST (owner-approved direction B2,
+  // 2026-08-10). Sorted purely by percentage, the face opened on the games the
+  // player has ALREADY FINISHED, which is the least actionable ordering a
+  // progress board can have: the rows worth acting on were somewhere in the
+  // middle of fifty. Games under way lead, finished ones follow so the wins are
+  // still visible, and the untouched majority sits last under its own count.
+  // masteryRows arrives sorted by percentage descending, so `nearly` comes out
+  // closest-to-done first for free. Empty bands drop out rather than printing a
+  // heading over nothing.
+  const masteryGroups = useMemo(() => {
+    const nearly = [], done = [], fresh = [];
+    for (const r of masteryRows) {
+      if (r.played <= 0) fresh.push(r);
+      else if (r.pct >= 100) done.push(r);
+      else nearly.push(r);
+    }
+    return {
+      bands: [
+        { key: 'nearly', label: 'Nearly there', rows: nearly },
+        { key: 'done', label: 'Done', rows: done },
+        { key: 'fresh', label: 'Not started', rows: fresh },
+      ].filter((g) => g.rows.length),
+      nearly: nearly.length,
+      fresh: fresh.length,
+    };
+  }, [masteryRows]);
+
   const playsToday = (totals && totals.today) || 0;
   const timeToday = (() => {
     const x = Math.round((totals && totals.todayTime) || 0);
     const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60);
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   })();
+
+  // Time left on today's slate, for the Featured header chip. Every puzzle on
+  // the panel rolls at Eastern midnight, and a panel of today-only things
+  // should say how much of today is left. Resolved in an effect and re-ticked
+  // once a minute, never during render: it reads the clock, so evaluating it on
+  // the server would hydrate against a different value (the same reason
+  // contestIsLive above is deferred, and the reason isSundayET is called from
+  // an effect in the daily surfaces). An empty string renders no chip, which is
+  // what the server emits.
+  const [resetIn, setResetIn] = useState('');
+  useEffect(() => {
+    if (side !== 'right') return undefined;
+    const calc = () => {
+      let et;
+      try { et = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })); }
+      catch (e) { et = new Date(); }
+      const left = 86400 - (et.getHours() * 3600 + et.getMinutes() * 60 + et.getSeconds());
+      const h = Math.floor(left / 3600); const m = Math.floor((left % 3600) / 60);
+      setResetIn(h > 0 ? `${h}h ${m}m` : `${Math.max(1, m)}m`);
+    };
+    calc();
+    const id = setInterval(calc, 60000);
+    return () => clearInterval(id);
+  }, [side]);
 
   const CSS = (
     <style>{`
@@ -413,6 +474,37 @@ export default function HomeRails({
          the live feed's rings for attention. A 5px rule reads as progress and
          nothing else. Game art uses the BLUE tile copies, as the slate does, so
          a long column of icons stays one palette. */
+      /* The Loft's own slab, one per face. Same object as .hr-hero above (the
+         leaderboard #1 on a phone) but it shows at EVERY width, because the two
+         Loft faces are lists rather than boards and neither had an anchor of
+         any kind. The mastery face takes the deeper navy and the live face the
+         lighter blue, so a flip is visible even before the pill is read. */
+      .hr-lslab{position:relative;display:flex;align-items:center;gap:12px;flex:none;
+                padding:13px 14px 13px 22px;background:var(--accent);color:var(--white);}
+      .hr-lslab::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:var(--blue-400);}
+      .hr-lslab.lite{background:var(--blue);}
+      .hr-lslab.lite::before{background:var(--blue-200);}
+      .hr-lstxt{min-width:0;flex:1;}
+      .hr-lseye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      /* line-height 1.3 plus a pixel of pad, not 1.1: overflow:hidden for the
+         ellipsis clips a descender out of a tight box. Same as .hr-hnm. */
+      .hr-lsnm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3;padding-bottom:1px;
+               font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-lssub{font-size:11px;font-weight:600;line-height:1.35;padding-bottom:1px;color:var(--blue-200);
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-lsval{margin-left:auto;flex:none;text-align:right;}
+      .hr-lsval b{display:block;font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums;}
+      .hr-lsval span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-200);margin-top:2px;}
+      /* Mastery band. The slate's own group band, so "Nearly there" here and
+         "Ready to play" there are visibly the same object. Sticky, because the
+         list scrolls inside the panel and a reader who has scrolled into the
+         44-row Not started band should still be told which band they are in. */
+      .hr-bandhd{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:6px 13px;
+                 background:var(--surface-alt);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+      .hr-mband:first-child .hr-bandhd{border-top:0;}
+      .hr-bandhd h5{margin:0;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
+      .hr-bandhd span{margin-left:auto;font-size:10px;font-weight:800;color:var(--slate);font-variant-numeric:tabular-nums;}
       .hr-mrow{display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-mrow:last-child{border-bottom:none;}
       .hr-mrow:hover{background:var(--surface);}
@@ -433,11 +525,6 @@ export default function HomeRails({
       .hr-mrow.zero .hr-mnm{font-weight:600;color:var(--slate);}
       .hr-mrow.zero .hr-mpct{color:#9aa2b1;}
       .hr-mrow.zero .hr-mic{opacity:.55;}
-      .hr-stats{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex:none;}
-      .hr-stats > div{flex:1;padding:10px 13px;border-right:1px solid var(--border);}
-      .hr-stats > div:last-child{border-right:none;}
-      .hr-stats b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;}
-      .hr-stats span{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);font-weight:800;}
       .hr-res{display:flex;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-res:last-child{border-bottom:none;}
       .hr-res:hover{background:var(--surface);}
@@ -448,24 +535,48 @@ export default function HomeRails({
       /* "(x25)": how many times this game has been played today, site-wide. */
       .hr-x{flex:none;font-size:10.5px;font-weight:700;color:#8b90a0;font-variant-numeric:tabular-nums;}
       .hr-s{display:block;font-size:11px;color:var(--slate);}
-      .hr-ring{width:32px;height:32px;flex:none;border-radius:999px;display:flex;align-items:center;justify-content:center;}
-      .hr-ring .in{width:25px;height:25px;border-radius:999px;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+      /* The live feed's completion cue: a 4px left rule on the blue ramp, which
+         replaced the 32px conic ring this panel used to stack fourteen of
+         (2026-08-10). ringBlue still supplies the colour, so a strong run still
+         renders deep and a weak one pale; only the shape changed, and the
+         printed percentage on the right edge was always the real readout. */
+      .hr-res.rule{position:relative;padding-left:20px;}
+      .hr-rl{position:absolute;left:9px;top:9px;bottom:9px;width:4px;border-radius:2px;}
+      .hr-pc{flex:none;font-size:13px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
       .hr-res-sc{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
       .hr-sc{font-family:var(--font-mono,ui-monospace,monospace);font-size:12.5px;font-weight:700;padding:4px 8px;border-radius:6px;flex:none;min-width:54px;text-align:center;font-variant-numeric:tabular-nums;}
       .hr-feat{flex:none;}
-      .hr-frow{display:flex;align-items:center;gap:11px;padding:11px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
-      .hr-frow:last-child{border-bottom:none;}
-      .hr-frow:hover{background:var(--surface);}
-      .hr-fic{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:9px;flex:none;}
-      .hr-fm{flex:1;min-width:0;}
-      .hr-ft{display:flex;align-items:center;gap:6px;min-width:0;font-size:13px;font-weight:800;}
-      /* Current leader, beside the title (owner, 2026-08-04). Only the two rows
-         that HAVE a live board carry one (Daily Challenge, Quiz of the Day);
-         the duel row passes no leader and simply renders without it. */
-      .hr-fl{display:inline-flex;align-items:center;gap:3px;min-width:0;font-size:10.5px;font-weight:800;color:var(--gold-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      /* Featured cap cards. Each one is .hr-lslab's shape at a slightly tighter
+         padding, on its own step of the ramp, with a real control on the right
+         edge instead of a chevron. */
+      .hr-fcard{position:relative;display:flex;align-items:center;gap:11px;padding:12px 13px 12px 22px;
+                text-decoration:none;color:var(--white);border-bottom:1px solid rgba(255,255,255,.16);}
+      .hr-fcard:last-child{border-bottom:none;}
+      .hr-fcard::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:var(--blue-200);}
+      /* The leading card is the day's event, so it takes the deepest ground and
+         the gold rule the site reserves for "this is the one". */
+      .hr-fcard.t0{background:var(--accent);}
+      .hr-fcard.t0::before{background:var(--gold);}
+      .hr-fcard.t1{background:var(--blue);}
+      .hr-fcard.t2{background:#4d84f3;}
+      .hr-fcard:hover .hr-fcgo{background:var(--blue-200);}
+      .hr-fctxt{flex:1;min-width:0;}
+      .hr-fceye{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-fcnm{display:block;font-size:16px;font-weight:800;letter-spacing:-.2px;line-height:1.3;padding-bottom:1px;
+               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-fcsub{display:flex;align-items:center;gap:5px;min-width:0;font-size:11px;font-weight:600;line-height:1.35;
+                color:var(--blue-200);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-fcdot{flex:none;opacity:.7;}
+      /* Current leader (owner, 2026-08-04). Only the cards that HAVE a live
+         board carry one; the duel card passes no leader and renders without it.
+         On a coloured ground the gold ink it used on white is unreadable, so it
+         takes the medal gold itself. */
+      .hr-fl{display:inline-flex;align-items:center;gap:3px;min-width:0;flex:none;max-width:60%;
+             font-size:10.5px;font-weight:800;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .hr-fl svg{flex:none;}
-      .hr-fs{display:block;font-size:11px;color:var(--slate);}
-      .hr-fa{margin-left:auto;color:#9aa2b1;font-size:18px;line-height:1;}
+      .hr-fcgo{margin-left:auto;flex:none;font-size:11px;font-weight:800;letter-spacing:.04em;
+               background:var(--white);color:var(--blue-deep);border-radius:8px;padding:8px 15px;transition:background .12s;}
       /* PHONE SHARE STRIP (owner, 2026-08-08). The only share affordance on the
          phone home used to be a text button far down the page, below every
          board, which nobody was going to find. This is a full-bleed bar sitting
@@ -682,18 +793,41 @@ export default function HomeRails({
           <h2>The Loft</h2>
           <FlipPill labels={['Live feed', 'Daily mastery']} ix={loft.ix} setIx={loft.setIx} holdRef={loft.holdRef} />
         </div>
-        <div className="hr-stats">
-          {loft.ix === 0 ? (
-            <>
-              <div><b>{num(playsToday)}</b><span>plays today</span></div>
-              <div><b>{timeToday}</b><span>played today</span></div>
-            </>
-          ) : (
-            <>
-              <div><b>{masteryAll.pct}%</b><span>of the daily archive done</span></div>
-            </>
-          )}
-        </div>
+        {/* THE SLAB, one per face (owner-approved direction B1/B2, 2026-08-10).
+            The panel used to open on a bordered stat strip and then fifty rows
+            of 12.5px type with nothing to anchor the eye, and the two faces were
+            structurally different but rendered identically. Each face now leads
+            with the same cap-bar shape the slate's Up next bar uses, which is
+            also what carries each face's headline figures, so the old .hr-stats
+            strip is gone from this panel.
+
+            THE LIVE FACE'S SLAB IS DELIBERATELY ANONYMOUS (owner, 2026-08-10).
+            It reads the day's TOTALS, plays and time played, never the newest
+            player's name or score: the rows below already carry results without
+            attribution, and promoting one person's run into a headline is a
+            different thing from a live feed. */}
+        {loft.ix === 0 ? (
+          <div className="hr-lslab lite">
+            <div className="hr-lstxt">
+              <div className="hr-lseye">Live &middot; today</div>
+              <div className="hr-lsnm">{num(playsToday)} {playsToday === 1 ? 'play' : 'plays'}</div>
+              <div className="hr-lssub">across every puzzle and quiz</div>
+            </div>
+            <div className="hr-lsval"><b>{timeToday}</b><span>played</span></div>
+          </div>
+        ) : (
+          <div className="hr-lslab">
+            <div className="hr-lstxt">
+              <div className="hr-lseye">Daily mastery</div>
+              <div className="hr-lsnm">{masteryAll.pct}% done</div>
+              <div className="hr-lssub">
+                {masteryGroups.nearly
+                  ? `${masteryGroups.nearly} game${masteryGroups.nearly === 1 ? '' : 's'} under way · ${masteryGroups.fresh} not started`
+                  : 'Play a daily and your progress starts here'}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="hr-scroll hr-flex hr-actbody">
           {loft.ix === 0 ? (
             (lastPlayed || []).slice(0, 14).map((f, i) => {
@@ -701,7 +835,14 @@ export default function HomeRails({
               const pct = Math.round(frac * 100);
               const cat = catFor ? catFor(f.quizId) : null;
               return (
-                <Link key={`${f.quizId}-${i}`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res">
+                /* The 32px conic ring became the 4px left rule the rest of the
+                   page uses: fourteen of them stacked down a 300px rail were
+                   the busiest object on the homepage, and the percentage was
+                   always the real readout. The rule keeps the depth cue (ramp
+                   deep for a strong run, pale for a weak one) and the number
+                   moves out to the right edge as plain text. */
+                <Link key={`${f.quizId}-${i}`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
+                  <i className="hr-rl" style={{ background: ringTone(pct) }} aria-hidden="true" />
                   <span className="hr-mid">
                     <span className="hr-t">
                       <span className="hr-ttl">{titleFor ? titleFor(f.quizId) : f.quizId}</span>
@@ -713,18 +854,26 @@ export default function HomeRails({
                       {typeof f.pct === 'number' ? ` · beat ${f.pct}%` : ''}{f.when ? ` · ${f.when}` : ''}
                     </span>
                   </span>
-                  <span className="hr-ring" style={{ background: `conic-gradient(${ringTone(pct)} ${pct}%, #eef1f6 0)` }}><span className="in">{pct}%</span></span>
+                  <span className="hr-pc">{pct}%</span>
                 </Link>
               );
             })
           ) : (
-            masteryRows.map((g) => (
-              <Link key={g.key} href={`/${g.key}`} className={`hr-mrow${g.played ? '' : ' zero'}`} title={`${g.name}: ${g.played} of ${g.total} days played`}>
-                {g.img ? <img src={blueTile(g.img)} onError={tileFallback} alt="" aria-hidden="true" className="hr-mic" /> : null}
-                <span className="hr-mnm">{g.name}</span>
-                <span className="hr-mtrack" aria-hidden="true"><i style={{ width: `${Math.max(0, Math.min(100, g.pct))}%` }} /></span>
-                <span className="hr-mpct">{g.pct}%</span>
-              </Link>
+            masteryGroups.bands.map((band) => (
+              <div key={band.key} className="hr-mband">
+                <div className="hr-bandhd"><h5>{band.label}</h5><span>{band.rows.length}</span></div>
+                {band.rows.map((g) => (
+                  <Link key={g.key} href={`/${g.key}`} className={`hr-mrow${g.played ? '' : ' zero'}`} title={`${g.name}: ${g.played} of ${g.total} days played`}>
+                    {g.img ? <img src={blueTile(g.img)} onError={tileFallback} alt="" aria-hidden="true" className="hr-mic" /> : null}
+                    <span className="hr-mnm">{g.name}</span>
+                    {/* Bar coloured by the game's own slate category, so a long
+                        column reads by category as well as by progress. One
+                        blue at fifty rows was a field of grey. */}
+                    <span className="hr-mtrack" aria-hidden="true"><i style={{ width: `${Math.max(0, Math.min(100, g.pct))}%`, background: catBlue(g.cat) }} /></span>
+                    <span className="hr-mpct">{g.pct}%</span>
+                  </Link>
+                ))}
+              </div>
             ))
           )}
           {loft.ix === 0 && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
@@ -741,15 +890,47 @@ export default function HomeRails({
         </div>
       </section>
 
+      {/* FEATURED: every slot is a cap card (owner-approved direction B2,
+          2026-08-10). It was three identical rows, each with a pastel tinted
+          icon square (the only pastels left on the page, in three near
+          identical blues) and a chevron (the only chevrons on the page), and
+          nothing on any of them was a control. The Daily Challenge has a board
+          and a deadline; Start a duel is an evergreen link. Rendering them at
+          the same weight said they were the same kind of thing.
+
+          Each card is the slate's cap-bar shape, stepping navy / blue / pale
+          down the ramp so three solid blocks still read as three, with the
+          leading card carrying the gold rule that marks the day's event. The
+          header chip says how long today's slate has left, which is the fact
+          that makes the panel worth a second look.
+
+          Fields: `eyebrow` / `name` / `sub` / `cta`, with fallbacks onto the
+          older { title, sub } shape so a caller that has not been updated still
+          renders something sensible rather than a blank card. */}
       <section className="hr-panel hr-feat">
-        <div className="hr-ph"><span className="hr-pi"><SparkIcon /></span><h2>Featured</h2></div>
-        {featured.map((f) => (
-          <Link key={f.title} href={f.href} className="hr-frow">
-            <span className="hr-fic" style={{ background: f.tint, color: f.color }}>{f.icon}</span>
-            <span className="hr-fm"><span className="hr-ft">{f.title}{f.leader ? <span className="hr-fl"><CrownIcon />{f.leader}</span> : null}</span><span className="hr-fs">{f.sub}</span></span>
-            <span className="hr-fa">&rsaquo;</span>
-          </Link>
-        ))}
+        <div className="hr-ph">
+          <span className="hr-pi"><SparkIcon /></span><h2>Featured</h2>
+          {resetIn ? <span className="hr-chip">RESETS IN {resetIn}</span> : null}
+        </div>
+        {featured.map((f, i) => {
+          const eyebrow = f.eyebrow || f.title;
+          const name = f.name || f.sub;
+          const sub = f.name ? f.sub : '';
+          return (
+            <Link key={f.title || eyebrow} href={f.href} className={`hr-fcard t${Math.min(i, 2)}`}>
+              <span className="hr-fctxt">
+                <span className="hr-fceye">{eyebrow}</span>
+                <span className="hr-fcnm">{name}</span>
+                <span className="hr-fcsub">
+                  {f.leader ? <span className="hr-fl"><CrownIcon />{f.leader}</span> : null}
+                  {f.leader && sub ? <span className="hr-fcdot">&middot;</span> : null}
+                  {sub || null}
+                </span>
+              </span>
+              <span className="hr-fcgo">{f.cta || 'Play'}</span>
+            </Link>
+          );
+        })}
       </section>
     </>
   );
