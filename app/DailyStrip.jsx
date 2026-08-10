@@ -373,6 +373,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // client side from the same daily-status payload (its `played` array is a
   // list of dated quiz ids). Drives Up next: the game you actually play most.
   const [recent, setRecent] = useState({});
+  // The newest ET day this viewer finished each game, as a sortable ordinal,
+  // over their WHOLE history rather than the RECENT_DAYS window. Drives the
+  // category order Up next walks: a category has to stay rankable for a player
+  // who last showed up six weeks ago, which a windowed count cannot do.
+  const [lastPlay, setLastPlay] = useState({});
   // NOTE the day figures this component used to own (IQ Points earned today,
   // the day's move on the IQ board, the cross-game day streak) moved into the
   // page header on 2026-08-03 and are read there from useDayStats. Do not
@@ -610,11 +615,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             days.add(`${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear() % 100}`);
           }
           const counts = {};
+          const last = {};
           for (const qid of played) {
-            const m = /^([a-z]+)-(\d+-\d+-\d+)$/.exec(qid);
-            if (m && days.has(m[2])) counts[m[1]] = (counts[m[1]] || 0) + 1;
+            const m = /^([a-z]+)-(\d+)-(\d+)-(\d+)$/.exec(qid);
+            if (!m) continue;
+            const key = m[1];
+            if (days.has(`${Number(m[2])}-${Number(m[3])}-${Number(m[4])}`)) {
+              counts[key] = (counts[key] || 0) + 1;
+            }
+            // yyyymmdd, so a December day never outranks the January after it.
+            const ord = (2000 + Number(m[4])) * 10000 + Number(m[2]) * 100 + Number(m[3]);
+            if (ord > (last[key] || 0)) last[key] = ord;
           }
           setRecent(counts);
+          setLastPlay(last);
         } catch (e) {}
       })
       .catch(() => {});
@@ -624,41 +638,79 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const n = GAMES.filter((g) => done.has(g.key)).length;
   const pct = Math.round((n / GAMES.length) * 100);
   const left = GAMES.length - n;
-  // Up Next = the unfinished game THIS VIEWER plays the most (owner, 2026-08-07).
-  // It used to be simply the first unfinished game in board order, which is the
-  // day's most played game globally, so a regular with three games they actually
-  // play was pointed at whatever the crowd was doing. Ranked by plays over the
-  // last RECENT_DAYS ET days (a changing habit beats an old one), all time days
-  // played as the tiebreak, board order last, so the pick is stable within a day.
-  // An in-progress game still counts as unfinished and becomes a Resume target.
-  // A viewer with NO history on any open game (a guest, or a first visit) falls
-  // back to the old behaviour: first unfinished in board order. It still renders
-  // as a tile in the board too.
-  // ONE ranking, read twice (owner, 2026-08-09). Up next takes the first game
-  // and Familiar favorite the second, so the two cards can never disagree about
-  // which game this viewer plays most. `games` is already in board order and the
-  // index is the last tiebreak, so a tie keeps the game sitting higher on the
-  // board, exactly as the strict comparisons it replaced did.
+  // UP NEXT IS CATEGORY FIRST (owner, 2026-08-10). It takes the category this
+  // viewer played MOST RECENTLY and offers the most popular unplayed game in
+  // it; where that category has nothing open left, it walks to the second most
+  // recently played category, and so on. The rule it replaces ranked individual
+  // GAMES by how often this viewer played them, which kept handing back the same
+  // two or three titles and never pointed at the rest of a category the player
+  // had just shown an appetite for.
+  //
+  // "Most recently" is the newest ET day the viewer finished anything in that
+  // category, read off lastPlay so it counts the whole history, with plays over
+  // the last RECENT_DAYS days as the tiebreak when two categories were last
+  // played on the SAME day. "Most popular" is today's crowd plays, the very
+  // figure this card prints and the board's Players column shows, so the two can
+  // never contradict each other.
   const habitDays = (g) => (recent[g.key] || 0);
   const habitAllTime = (g) => ((archive[g.key] && archive[g.key].played) || 0);
   const hasHabit = (g) => (habitDays(g) > 0 || habitAllTime(g) > 0);
+  // The habit ranking survives, and Familiar favorite in slot 3 still reads it
+  // (owner, 2026-08-10). The two cards are no longer first and second place in
+  // one list, which is the point: Up next answers "what else is in the thing you
+  // were just doing" and the favourite answers "what do YOU play most".
+  // `games` is already in board order and the index is the last tiebreak.
   const habitRank = games.filter((g) => !done.has(g.key))
     .map((g, i) => ({ g, i }))
     .sort((a, b) => (habitDays(b.g) - habitDays(a.g))
       || (habitAllTime(b.g) - habitAllTime(a.g))
       || (a.i - b.i))
     .map((x) => x.g);
-  // A viewer with NO history on any open game (a guest, or a first visit) falls
-  // back to the old behaviour: first unfinished in board order, which is what an
-  // all-zero ranking sorts to.
-  // A PAUSED GAME IS NOT UP NEXT (owner, 2026-08-09). Paused games have their
-  // own card in the cap now, so pointing the first two cards at one as well both
-  // says the same thing twice and forces those cards to read Resume, which is
-  // not what they are for. Both cards therefore pick from games this viewer has
-  // NOT started today, and both say Play. The fallback keeps them populated on a
-  // day when every open game has been started.
   const habitFresh = habitRank.filter((g) => !inprog.has(g.key));
-  const nextGame = habitFresh[0] || habitRank[0] || null;
+  // Categories, most recently played first. A category nobody has touched is
+  // dropped rather than ranked last, so the walk below runs out and hands over
+  // to the fallback instead of picking on a zero.
+  const catRank = (() => {
+    const last = {}; const plays = {};
+    for (const g of GAMES) {
+      if (!g.cat) continue;
+      const d = lastPlay[g.key] || 0;
+      if (d > (last[g.cat] || 0)) last[g.cat] = d;
+      plays[g.cat] = (plays[g.cat] || 0) + habitDays(g);
+    }
+    return Object.keys(last).filter((c) => last[c] > 0).sort((a, b) => (last[b] - last[a])
+      || ((plays[b] || 0) - (plays[a] || 0)) || a.localeCompare(b));
+  })();
+  // Most crowd plays today, board order as the tiebreak so the pick holds still
+  // through an ET morning when every count is still 0. Board order, NOT the
+  // `games` array's first entry: `games` is pin-sorted, and a pinned game must
+  // not jump the category's popularity order.
+  const boardAt = new Map(games.map((g, i) => [g.key, i]));
+  const topByPlays = (pool) => (pool.length
+    ? [...pool].sort((a, b) => ((playsOf(b.key) || 0) - (playsOf(a.key) || 0))
+      || (boardAt.get(a.key) - boardAt.get(b.key)))[0]
+    : null);
+  const byCategory = (pool) => {
+    for (const c of catRank) {
+      const hit = topByPlays(pool.filter((g) => g.cat === c));
+      if (hit) return hit;
+    }
+    return null;
+  };
+  // A PAUSED GAME IS NOT UP NEXT (owner, 2026-08-09). Paused games have their
+  // own card in the cap now, so pointing this one at a paused game as well says
+  // the same thing twice and forces the card to read Resume, which is not what
+  // it is for. The pool is therefore games this viewer has NOT started today,
+  // and the card says Play.
+  //
+  // Everything after the first term is a fallback, in order: a started game in a
+  // played category, then the habit ranking, which for a viewer with NO history
+  // at all (a guest, or a first visit) sorts to the first unfinished game in
+  // board order, the day's most played game globally.
+  const openFresh = games.filter((g) => !done.has(g.key) && !inprog.has(g.key));
+  const openAny = games.filter((g) => !done.has(g.key));
+  const nextGame = byCategory(openFresh) || byCategory(openAny)
+    || habitFresh[0] || habitRank[0] || null;
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   // bgames / byKey / hasBoard are built above, beside the display order.
@@ -726,9 +778,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // number along (3 with nothing paused, 5 with two), so the fix is parity, not
   // an extra card: the cap now fills FOUR slots and the count is always even.
   //
-  //   1  Up next            the game you play most, unchanged
+  //   1  Up next            the crowd's pick in your most recent category
   //   2  Easiest board      the thinnest field today, unchanged
-  //   3  Familiar favorite  second in the same ranking Up next uses
+  //   3  Familiar favorite  the game YOU play most, on the habit ranking
   //   4  a paused game      else New to you, a game with no history at all
   //
   // Familiar favorite skips in-progress games on purpose: a paused game belongs
@@ -1733,8 +1785,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            The Your-day stat row and its phone-only variant moved OUT of this bar
            and up into the page header, where each figure pairs with its lifetime
            counterpart. What is left is a pure "where to go next" cap, split down
-           the middle: Up next (the first unfinished daily in board order) on the
-           left, Easiest leaderboard (fewest players today) on the right. Both
+           the middle: Up next (the most played open game in the category this
+           viewer played last) on the left, Easiest leaderboard (fewest players
+           today) on the right. Both
            halves are flex:1 1 0 so they hold exactly 50% each at every width,
            desktop and phone alike, rather than one growing to fit its text. */
         /* flex-basis 50%, not 0: with a 0 basis the right half's 14px padding
