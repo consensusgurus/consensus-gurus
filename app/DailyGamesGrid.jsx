@@ -78,7 +78,7 @@ const GAMES = [
   { key: 'venn', href: '/venn', name: 'Venn', tag: 'Sort the overlaps', img: '/games/btn-venn.png' },
   { key: 'stands', href: '/stands', name: 'Stands', tag: 'Rebuild the results', img: '/games/btn-stands.png' },
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'Name every winner', img: '/games/btn-bracket.png' },
-  { key: 'pricer', href: '/pricer', name: 'Pricer', tag: 'Higher price wins', img: '/games/btn-pricer.png' },
+  { key: 'pricer', href: '/pricer', name: 'Pricer', tag: 'Some days more, some days less', img: '/games/btn-pricer.png' },
   { key: 'lode', href: '/lode', name: 'Lode', tag: 'Seven letters, rare words pay', img: '/games/btn-lode.png' },
   { key: 'etch', href: '/etch', name: 'Etch', tag: 'A picture in the numbers', img: '/games/btn-etch.png' },
   { key: 'glyph', href: '/glyph', name: 'Glyph', tag: 'A crossword with no clues', img: '/games/btn-glyph.png' },

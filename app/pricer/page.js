@@ -13,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // and the client recomputes each matchup, exactly as the verifier does.
 
 export const metadata = {
-  title: 'Pricer — Free Daily Puzzle: Which Costs More? | Mind Loft',
+  title: 'Pricer — Free Daily Puzzle: Which Costs More, or Less? | Mind Loft',
   description:
     'A free daily price puzzle. Sixteen real things from one category, one money question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
   alternates: { canonical: '/pricer' },

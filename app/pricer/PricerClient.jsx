@@ -102,15 +102,28 @@ function pickPuzzle(puzzles, forceNum) {
   return open.length ? open[open.length-1] : puzzles[0];
 }
 function fmtTime(ms) { const s = Math.max(0, Math.round(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
-// The tiebreaker guess. Whole units only, and digits are taken from whatever was
-// typed so a pasted "$1,200" reads cleanly. Returns null for anything that is not
-// a usable number, which is the same value a deliberate Skip stores.
+// The tiebreaker guess, parsed into CENTS to match the board's own unit. The player
+// types DOLLARS, so "400" is 40000 and "12.50" is 1250.
+//
+// This is not a rounding nit. The returned value is diffed straight against
+// CHAMPION_VALUE and rendered through fmtValue, both of which are in cents, so
+// returning dollars reported a $400 guess on a $400 champion as off by $396 and
+// printed it as "$4.00". Cents also have to be typeable: half the bank is menus and
+// fares where the answer is $2.39, and a whole-dollar guess cannot break a tie there.
+//
+// Digits are taken from whatever was typed so a pasted "$1,200.99" reads cleanly, and
+// only the FIRST decimal point survives so "12.3.4" cannot produce NaN. Returns null
+// for anything unusable, which is the same value a deliberate Skip stores.
 function parsePriceGuess(raw) {
   if (raw == null) return null;
-  const s = String(raw).replace(/[^0-9.]/g, '');
+  let s = String(raw).replace(/[^0-9.]/g, '');
   if (!s) return null;
-  const n = Math.round(Number(s));
-  return Number.isFinite(n) && n >= 0 ? n : null;
+  const dot = s.indexOf('.');
+  if (dot !== -1) s = s.slice(0, dot + 1) + s.slice(dot + 1).replace(/\./g, '');
+  const dollars = Number(s);
+  if (!Number.isFinite(dollars) || dollars < 0) return null;
+  const cents = Math.round(dollars * 100);
+  return Number.isFinite(cents) ? cents : null;
 }
 function msToMidnightET() {
   try { const now = new Date(); const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })); const next = new Date(et); next.setHours(24,0,0,0); return next - et; }
@@ -969,14 +982,14 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
                     <p className="pr-guess-label">Bonus: Price Guess</p>
                     <p className="pr-guess-sub">{GUESS_Q} Closest guess wins ties.</p>
                     <div className="pr-guess-row">
-                      {PUZZLE.unit === 'usd' && <span className="pr-guess-dollar">$</span>}
+                      {(PUZZLE.unit === 'usd' || PUZZLE.unit === 'usdc') && <span className="pr-guess-dollar">$</span>}
                       <input
                         className="pr-guess-input"
                         type="number"
                         min="0"
-                        step="1"
-                        inputMode="numeric"
-                        placeholder="your guess"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
                         value={priceGuessInput}
                         onChange={(e) => setPriceGuessInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handPriceGuess(false); } }}
