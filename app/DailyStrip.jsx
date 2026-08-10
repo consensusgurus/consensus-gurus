@@ -48,6 +48,7 @@ import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
 import { fetchDayStatus } from './useDayStats';
 import { catBlue } from '@/lib/home-blues';
+import { isSundayET } from '@/lib/sunday-editions';
 import { isRetiredDaily, dailyScoreText, KEEPS_ANSWER } from '@/lib/daily-games';
 
 const GAMES = [
@@ -301,6 +302,15 @@ function slateLineHeight(board, lines) {
 // dropped last month stops winning.
 const RECENT_DAYS = 30;
 
+// "Jul 27", from the ISO date a puzzle goes live on. Built by hand rather than
+// through toLocaleDateString, which would read the VIEWER's timezone and can
+// slide an ET date back a day for anyone west of it.
+const SUN_MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function sunDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return m ? `${SUN_MON[Number(m[2]) - 1]} ${Number(m[3])}` : '';
+}
+
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -460,6 +470,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [etLabel, setEtLabel] = useState({ long: '', short: '' });
   useEffect(() => { setEtLabel(etDateLabel()); }, []);
   const [phone, setPhone] = useState(false);
+  // The Sundays tab. `sunToday` is computed in an effect, never during render:
+  // the server has no idea what day it is in Eastern time and a mismatch is a
+  // hydration error. It starts false, so the chip is present on the server's
+  // markup and removed on the client if today IS Sunday, which is the safe
+  // direction (a chip that vanishes beats one that appears).
+  const [sunToday, setSunToday] = useState(false);
+  const [sunRows, setSunRows] = useState(null);   // null = not fetched yet
+  const [sunErr, setSunErr] = useState(false);
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
     const mq = window.matchMedia('(max-width: 900px)');
@@ -491,6 +509,25 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Which phone groups the reader has expanded. Collapsed is the default on
   // every load, deliberately: the point is what the FIRST screen shows.
   const [grpOpen, setGrpOpen] = useState({ prog: false, todo: false, fail: false, dn: false });
+  useEffect(() => { setSunToday(isSundayET()); }, []);
+  // Fetched only when the tab is actually opened, and only once: the answer is
+  // per-player and the route is force-dynamic, so there is no reason to spend
+  // the request on the many more visitors who never touch the tab.
+  useEffect(() => {
+    if (filter !== 'sunday' || sunRows || sunErr) return undefined;
+    let alive = true;
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    const qs = new URLSearchParams();
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    fetch('/api/quiz/sunday-slate' + (qs.toString() ? '?' + qs.toString() : ''))
+      .then((r) => r.json())
+      .then((d) => { if (alive) setSunRows((d && d.games) || []); })
+      .catch(() => { if (alive) setSunErr(true); });
+    return () => { alive = false; };
+  }, [filter, sunRows, sunErr]);
   // Paused games ride in the CAP now, beside Up next and Easiest leaderboard
   // (owner, 2026-08-08), as cards of the cap's own shape in gold rather than a
   // group of rows inside the board. The board therefore opens on Ready to play,
@@ -1133,6 +1170,41 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // Done today. There is no In progress band, its rows or its bar any more.
     // The partition is stable, so each of the three keeps the order the sort
     // handed it.
+    // THE SUNDAYS TAB is its own view, not a filter over today's games: every
+    // row points at an ARCHIVED puzzle, so none of today's state (played,
+    // paused, incomplete) means anything here and none of the bands apply.
+    if (filter === 'sunday') {
+      const out = [<div className="sl-note" key="sun-note">
+        This is a slate of your unplayed or oldest Sunday Editions of each game.
+      </div>];
+      if (sunErr) {
+        out.push(<div className="sl-note dim" key="sun-e">That did not load. Try the tab again in a moment.</div>);
+      } else if (!sunRows) {
+        out.push(<div className="sl-note dim" key="sun-l">Finding your Sunday Editions&hellip;</div>);
+      } else if (!sunRows.length) {
+        out.push(<div className="sl-note dim" key="sun-0">No Sunday Editions have run yet.</div>);
+      } else {
+        for (const r of sunRows) {
+          const g = GAMES.find((x) => x.key === r.key);
+          if (!g) continue;
+          out.push(
+            <a className="sl-row sun" key={'sun-' + r.key} href={r.href}>
+              <span className="sl-ic"><img src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} /></span>
+              <span className="sl-nm">
+                <b>{g.name}</b><span className="sl-cm">{g.cat}</span>
+                <span className="sl-sub">
+                  <span className="sl-tg">{g.tag}</span>
+                  <span className="sl-dot">&middot;</span>
+                  <span className="sl-mld">{r.live ? sunDate(r.live) : `No. ${r.num}`}</span>
+                </span>
+              </span>
+              <span className="sl-status"><span className="sl-btn play">{r.played ? 'Replay' : 'Play'}</span></span>
+            </a>
+          );
+        }
+      }
+      return out;
+    }
     const arr = rows0.filter((g) => !done.has(g.key) && !inprog.has(g.key))
       .concat(rows0.filter((g) => !done.has(g.key) && inprog.has(g.key)))
       .concat(rows0.filter((g) => isFail(g.key)))
@@ -2101,6 +2173,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            list. The Play chip is the one thing that separates it from a
            complete row at a glance, which is the point of the group. */
         .sl-row.fail{background:#fef4f3;}
+        /* The Sundays tab's own row: a plain white row like Ready to play's,
+           since nothing about today applies to it. */
+        .sl-row.sun{background:var(--white);text-decoration:none;color:var(--ink);}
+        .sl-row.sun:hover{background:var(--surface);}
+        /* The line under the strip that says what the tab is showing. Full
+           width in both grids, and quiet: it explains, it does not announce. */
+        .sl-note{grid-column:1/-1;padding:10px 14px;font-size:12px;line-height:1.5;
+          color:var(--muted);background:var(--surface);border-bottom:1px solid var(--border);}
+        .sl-note.dim{color:var(--slate);background:var(--white);}
         .sl-row.inprog{background:#fffaeb;}
         .sl-row.open{background:var(--accent-soft);}
         /* An OPEN row keeps its STATE colour (owner, 2026-08-07). .open sits
@@ -2274,8 +2355,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              amber ground and the gold left rule instead. Its Resume chip is the
              one control that does NOT wait for a hover, since resuming is the
              reason you scrolled to it. */
-          .sl-row.inprog .sl-status{opacity:1;pointer-events:auto;}
-          .sl-row.inprog .sl-pl,.sl-row.done .sl-pl{visibility:hidden;}
+          .sl-row.inprog .sl-status,.sl-row.fail .sl-status,.sl-row.sun .sl-status{opacity:1;pointer-events:auto;}
+          .sl-row.inprog .sl-pl,.sl-row.done .sl-pl,.sl-row.fail .sl-pl{visibility:hidden;}
           /* The chip reads RESUME here rather than a bare triangle, so it sits
              in the same 64px shape as the Play chip on every row above it. */
           .sl-row.inprog .sl-rz{display:inline;}
@@ -2871,7 +2952,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           the title band and the board on source order alone. */}
       {slate ? (
         <div className="sl-filt" role="tablist" aria-label="Filter the slate">
-          {[['all', 'All'], ['todo', 'Unplayed']].concat(slateCats.map((c) => [c, CAT_SHORT[c] || c])).map(([k, label]) => (
+          {[['all', 'All'], ['todo', 'Unplayed']]
+            .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c]))
+            // LAST in the strip, and absent on a Sunday: on the day itself the
+            // Sunday Editions ARE the board, so a tab pointing at last week's
+            // would only be competing with them.
+            .concat(sunToday ? [] : [['sunday', 'Sundays']])
+            .map(([k, label]) => (
             <button
               key={k}
               type="button"
