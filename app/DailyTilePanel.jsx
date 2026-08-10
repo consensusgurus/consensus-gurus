@@ -391,7 +391,8 @@ export default function DailyTilePanel({
             })}
           </div>
           <div className="dtp-key">
-            <span><i className="sw played" />Played</span>
+            <span><i className="sw played" />Solved</span>
+            {drops.some((d) => d.incomplete) ? <span><i className="sw incomplete" />Not solved</span> : null}
             <span><i className="sw open" />Open</span>
             <span><i className="sw today" />Today</span>
           </div>
@@ -600,6 +601,7 @@ export default function DailyTilePanel({
         .dtp-key span{display:inline-flex;align-items:center;gap:5px;}
         .dtp-key .sw{width:10px;height:10px;border-radius:3px;flex:none;}
         .dtp-key .sw.played{background:rgba(34,197,94,0.35);border:1px solid rgba(34,197,94,0.55);}
+        .dtp-key .sw.incomplete{background:rgba(220,38,38,0.28);border:1px solid rgba(220,38,38,0.55);}
         .dtp-key .sw.open{background:var(--surface);border:1px solid #c8d0dc;}
         .dtp-key .sw.today{background:transparent;border:2px solid var(--gold);}
         /* leaderboard rows share the leftover height the same way: the two
