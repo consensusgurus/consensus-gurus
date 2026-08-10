@@ -5,7 +5,7 @@ import { PROBLEM_MAP } from './problems';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
-// Blitz launched 2026-08-11. Twenty mental-arithmetic problems a day in five
+// Blitz launched 2026-08-10. Twenty mental-arithmetic problems a day in five
 // rounds of four, warm-up to flat out, fifteen seconds each and one life. The
 // problem bank is resolved HERE, on the server, and only the picked day's
 // twenty ship to the browser, so the rest of the bank never reaches a client.

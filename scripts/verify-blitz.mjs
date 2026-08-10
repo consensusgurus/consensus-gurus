@@ -25,7 +25,7 @@
 import { PROBLEMS, PROBLEM_MAP } from '../app/blitz/problems.js';
 import { PUZZLES } from '../app/blitz/puzzles.js';
 
-const BLITZ_FLOOR_FROM = '2026-08-11';   // launch day; nothing is grandfathered yet
+const BLITZ_FLOOR_FROM = '2026-08-10';   // launch day; nothing is grandfathered yet
 const PER_TIER = 4;
 const TOTAL = 20;
 const DIGIT_RULE_FROM = 100;

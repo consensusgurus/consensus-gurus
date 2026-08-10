@@ -417,7 +417,7 @@ function positionsFor() {
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 function dayInfo(i) {
-  const d = new Date(Date.UTC(2026, 7, 11 + i));       // launches 2026-08-11
+  const d = new Date(Date.UTC(2026, 7, 10 + i));       // launches 2026-08-10
   const iso = d.toISOString().slice(0, 10);
   return {
     live: iso,
