@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
 import PricerClient from './PricerClient';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
@@ -54,6 +55,15 @@ const breadcrumbJsonLd = {
   ],
 };
 
+// PRICER PULLED 2026-08-09. The bank shipped two structural problems worth
+// fixing before anyone plays it: 63% of first-round matchups are decided by
+// the seeding before the player reads them, and 20 matchups across 9 boards
+// pit the same product against itself at a different size (40pc nuggets vs
+// 4pc), which is arithmetic rather than a price question. Data, engine,
+// verifier and rolodex all stay in the tree; only the door is shut.
+// Flip this to true and uncomment the registry entries to bring it back.
+const PRICER_LIVE = false;
+
 export const dynamic = 'force-dynamic';
 function etTodayServer() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -70,6 +80,7 @@ function ComingSoon({ first }) {
   );
 }
 export default function PricerPage({ searchParams }) {
+  if (!PRICER_LIVE) notFound();
   const today = etTodayServer();
   const preview = searchParams && searchParams.preview === '1';
   const visiblePuzzles = preview ? PUZZLES : PUZZLES.filter((p) => p.live <= today);

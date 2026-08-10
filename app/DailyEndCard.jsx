@@ -269,7 +269,8 @@ const ALL_DAILY_GAMES = [
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          blurb: 'Drop every item into the right slice of the overlapping circles, overlaps included.', href: '/venn' },
   { key: 'stands', cat: 'logic',     name: 'Stands', tag: 'Rebuild the results',       blurb: 'Reconstruct a full league table from a handful of scattered results and clues.', href: '/stands' },
   { key: 'bracket', cat: 'trivia',   name: 'Bracket', tag: 'Name every winner',        blurb: 'A real tournament bracket, empty. Fill in every winner round by round from memory.', href: '/bracket' },
-  { key: 'pricer',  cat: 'numbers',  name: 'Pricer',  tag: 'Some days more, some days less', blurb: 'Sixteen real things from one category, seeded by price. Call every matchup before a single price tag is revealed.', href: '/pricer' },
+  // PRICER PULLED 2026-08-09 (see CLAUDE.md). Restore: grep -rn 'PRICER PULLED' end-card suggestion
+  // { key: 'pricer',  cat: 'numbers',  name: 'Pricer',  tag: 'Some days more, some days less', blurb: 'Sixteen real things from one category, seeded by price. Call every matchup before a single price tag is revealed.', href: '/pricer' },
   { key: 'lode',    cat: 'word',     name: 'Lode',    tag: 'Seven letters, rare words pay',     blurb: 'Seven letters and unlimited words. The rarer the word you find, the bigger it scores.', href: '/lode' },
   { key: 'etch',    cat: 'logic',    name: 'Etch',    tag: 'A picture in the numbers',   blurb: 'A nonogram: follow the row and column counts to uncover the picture hidden in the grid.', href: '/etch' },
   { key: 'hedge',   cat: 'logic',    name: 'Hedge',   tag: 'Draw one closed loop',       blurb: 'Draw a single unbroken loop that satisfies every number printed on the board.', href: '/hedge' },
