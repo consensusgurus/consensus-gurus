@@ -3717,6 +3717,36 @@ work is shared.
 
 ---
 
+## Opening a game is not starting it: t0 is the started signal (owner rule, 2026-08-10)
+
+A daily game is "in progress" only once the player has actually MOVED. Clicking into a
+game and leaving is not a start, and must not put the row into the paused block on the
+slate.
+
+The trap is that the save file says otherwise. Every daily client seeds its state as
+`{ ..., t0: null, status: 'playing' }` and persists it in an effect that runs as soon as
+hydration finishes, so merely loading `/<game>` writes `sot_<key>_<num>` with
+`status: 'playing'` and no interaction of any kind. **A save whose status is 'playing'
+therefore proves nothing.** `DailyStrip`'s per-puzzle detection read status alone and
+labelled every game the player had merely opened today as paused (owner report: clicked
+into Docket, never pressed start, got an in-progress label). Fixed 2026-08-10 by gating
+the 'playing' branch on `sv.t0`.
+
+- **`t0` is the signal, and it is universal.** All 55 clients that seed `status: 'playing'`
+  seed `t0: null` alongside it and stamp `t0: Date.now()` on the first real move; several
+  name the state directly (`const preStart = playing && !g.t0` in `DocketClient`). Any NEW
+  daily game must keep that contract, or it will report itself paused the moment it loads.
+- **This is the same definition two other systems already use**, so do not invent a third:
+  the `sot_<key>_day` breadcrumb is written only `if (done || g.t0)` and REMOVED otherwise,
+  and `useAbandonFlush` files a row only once a real answer exists ("opening the page and
+  leaving is not" a start).
+- **Anything that reads a per-puzzle save must gate the same way.** As of 2026-08-10
+  `app/DailyStrip.jsx` is the only reader outside the clients themselves; a second reader
+  copying the old status-only test reintroduces the bug.
+- **Do not fix this by making the clients write later.** The save has to exist from the
+  first render for the archive and for crash recovery; the reader is what needs to be
+  strict.
+
 ## Results post DURABLY: the ResultQueue retry (added 2026-08-02)
 
 A finished game used to be recorded by exactly one fire-and-forget

@@ -864,8 +864,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       let playing = false, finished = false;
       for (const k of saveKeys) {
         try {
-          const st = (JSON.parse(localStorage.getItem(k) || 'null') || {}).status;
-          if (st === 'playing') playing = true; else if (st) finished = true;
+          const sv = JSON.parse(localStorage.getItem(k) || 'null') || {};
+          // 'playing' alone is NOT started. Every client seeds its state as
+          // { t0: null, status: 'playing' } and persists it the moment hydration
+          // finishes, so simply OPENING a game writes that save with no
+          // interaction, and reading status alone marked the row paused on the
+          // slate (owner report, 2026-08-10: clicked into Docket, never pressed
+          // start, got an in-progress label). t0 is the real started signal and
+          // is universal: every client that seeds status 'playing' seeds
+          // t0: null with it and stamps t0: Date.now() on the first real move.
+          // This matches the definition the sot_<key>_day breadcrumb and the
+          // abandon flush already use, that answering is the start and opening
+          // the page and leaving is not.
+          if (sv.status === 'playing') { if (sv.t0) playing = true; }
+          else if (sv.status) finished = true;
         } catch (e) {}
       }
       if (finished) dn.add(g.key);
