@@ -2262,10 +2262,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dhome.slate .dh-sbar{border-radius:0;border-top:none;}
         .dhome.slate .dh-boardwrap{border-left:none;border-right:none;}
         .dhome.slate{border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
-        .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);}
-        .sl-ttl i{font-style:normal;}
-        .sl-tn{display:none;}
-        .sl-count{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
+        .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);order:1;}
+        /* The date is a SIBLING of the pip group rather than a child of it, and
+           the three children are placed by the order property. Desktop reads
+           exactly as before, title then pips then date; a phone reorders it to
+           title-date
+           on the first line and hands the pips a line of their own, which is
+           what lets them keep their words. */
+        .sl-count{order:2;margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
         /* The four state counts. Each pip is a coloured dot, the number, and the
            word — and the WORD is the part that carries it on a wide viewport,
            because the phone bands that teach these colours are display:none
@@ -2281,7 +2285,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .sl-pip.prog{color:var(--gold);}
         .sl-pip.fail{color:#f87171;}
         .sl-pip.dn{color:#4ade80;}
-        .sl-dt{font-style:normal;}
+        .sl-dt{order:3;font-style:normal;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
         .sl-dt i{font-style:normal;}
         .sl-dt .p{display:none;}
         /* The category strip and the expand bars were var(--surface) between two
@@ -2662,11 +2666,24 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              drop to dot-and-number, the title drops to "Today:" and the date
              drops to its short form. Under 400px the date goes entirely: it is
              the least important thing on the bar (owner, 2026-08-10). */
-          .sl-tw{display:none;}
-          .sl-tn{display:inline;}
-          .sl-count{gap:5px;}
-          .sl-pip{padding:2px 7px 2px 5px;}
-          .sl-pw{display:none;}
+          /* THE PIPS KEEP THEIR WORDS ON A PHONE (owner, 2026-08-10). They lost
+             them in the first pass on the theory that the bands below teach the
+             colours, which left four bare dots at the top of the page and a bar
+             two thirds empty. There is no room for them BESIDE the title, so
+             they get a line of their own: the bar wraps, the date moves up
+             beside the title, and the pip row spreads across the full width.
+             It costs one line only when there is something to say, since a day
+             with two states still fits on one and four wrap among themselves
+             rather than overflowing. The title stays "Today's slate" in full,
+             which is what the reordering buys back. */
+          .sl-bar{flex-wrap:wrap;row-gap:7px;}
+          .sl-dt{order:1;margin-left:auto;}
+          .sl-count{order:2;flex-basis:100%;margin-left:0;flex-wrap:wrap;justify-content:flex-start;gap:6px 14px;}
+          /* On its own row the pill chrome is doing nothing (nothing sits beside
+             a pip to be separated from), and dropping it is what keeps all four
+             on one line at 390px. */
+          .sl-pip{padding:0;background:none;gap:6px;}
+          .sl-pw{letter-spacing:.05em;}
           .sl-dt .d{display:none;}
           .sl-dt .p{display:inline;}
           .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
@@ -2806,12 +2823,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              it simply re-shows the ninth tile. */
           .dh-board.mcut > .dh-tile:nth-child(9){display:flex;}
         }
-        /* Measured on the live bar rather than guessed: at a 356px viewport the
-           worst case (all four pips, the short date, the short title) uses 276px
-           of 341px, so a phone keeps its date and only a genuinely tiny screen
-           has to drop it. The date is the thing to lose when something must go
-           (owner, 2026-08-10). */
-        @media(max-width:330px){.sl-dt{display:none;}}
+        /* No tiny-screen date drop any more: the date shares the first line with
+           the title and nothing else, so "Today's slate  Mon, Aug 10" fits at
+           320px with room to spare, and the pips have their own row to wrap in.
+           The 330px rule this replaces was solving a crowding problem that the
+           reordering removed. */
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
         /* Small screens: the expanded panel is IN FLOW (see DailyTilePanel), so
            the grid hides beneath it and the wrapper takes the panel's own
@@ -2883,7 +2899,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           moved into the page header on 2026-08-03. */}
       {slate ? (
         <div className="sl-bar">
-          <span className="sl-ttl"><i className="sl-tw">Today&rsquo;s slate</i><i className="sl-tn">Today:</i></span>
+          <span className="sl-ttl">Today&rsquo;s slate</span>
+          {etLabel.long ? <i className="sl-dt"><i className="d">{etLabel.long}</i><i className="p">{etLabel.short}</i></i> : null}
           <span className="sl-count">
             {dayTally.map((t) => (
               /* role="img" + the label, because below 900px the word is
@@ -2896,7 +2913,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 <i className="sl-pw" aria-hidden="true">{t.word}</i>
               </i>
             ))}
-            {etLabel.long ? <i className="sl-dt"><i className="d">{etLabel.long}</i><i className="p">{etLabel.short}</i></i> : null}
           </span>
         </div>
       ) : null}
