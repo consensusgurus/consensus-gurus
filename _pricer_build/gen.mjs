@@ -3,7 +3,7 @@ import {B1} from './data1.mjs'; import {B2} from './data2.mjs'; import {B3} from
 // rule set: the four 32-item boards must land on the four Sundays, family caps and
 // gaps hold, no direction run over 4, and shoppable boards stay at 2-3 per week.
 // McDonald's opens (owner, 2026-08-09).
-const ORDER=[2,13,7,9,18,25,5,3,16,24,10,27,20,19,8,28,1,6,4,17,26,21,22,15,11,14,23,12,29,30];
+const ORDER=[2,8,14,9,18,11,5,10,20,4,28,17,24,19,6,25,29,3,1,27,12,22,23,13,30,15,16,26,7,21];
 const POOL=[...B1,...B2,...B3,...B4];
 const ALL=ORDER.map((id,i)=>({...POOL.find(b=>b.n===id), n:i+1}));
 if(ALL.some(b=>!b.cat)) throw new Error('ORDER references a board id that does not exist');
