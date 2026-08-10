@@ -36,7 +36,8 @@ import { PUZZLES as P_hearsay } from '@/app/hearsay/puzzles';
 import { PUZZLES as P_venn } from '@/app/venn/puzzles';
 import { PUZZLES as P_stands } from '@/app/stands/puzzles';
 import { PUZZLES as P_bracket } from '@/app/bracket/puzzles';
-import { PUZZLES as P_pricer } from '@/app/pricer/puzzles';
+// PRICER PULLED 2026-08-09 (see CLAUDE.md). Restore: grep -rn 'PRICER PULLED'
+// import { PUZZLES as P_pricer } from '@/app/pricer/puzzles';
 import { PUZZLES as P_lode } from '@/app/lode/puzzles';
 import { PUZZLES as P_etch } from '@/app/etch/puzzles';
 import { PUZZLES as P_glyph } from '@/app/glyph/puzzles';
@@ -78,7 +79,7 @@ const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
   tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
   tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer,
-  jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, pricer: P_pricer, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak, feud: P_feud, babel: P_babel, hands: P_hands, glyph: P_glyph, chain: P_chain, turn: P_turn, suffice: P_suffice, strata: P_strata, redact: P_redact, paths: P_paths, deep: P_deep, anon: P_anon, blocks: P_blocks, chomp: P_chomp, sweep: P_sweep, docket: P_docket, blitz: P_blitz,
+  jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak, feud: P_feud, babel: P_babel, hands: P_hands, glyph: P_glyph, chain: P_chain, turn: P_turn, suffice: P_suffice, strata: P_strata, redact: P_redact, paths: P_paths, deep: P_deep, anon: P_anon, blocks: P_blocks, chomp: P_chomp, sweep: P_sweep, docket: P_docket, blitz: P_blitz,
 };
 
 const BOARD = 10; // all-time rows returned (the viewer's own rank is always in `myRank`)

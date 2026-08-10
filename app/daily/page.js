@@ -26,7 +26,8 @@ import { PUZZLES as HEARSAY_FULL } from '../hearsay/puzzles';
 import { PUZZLES as VENN_FULL } from '../venn/puzzles';
 import { PUZZLES as STANDS_FULL } from '../stands/puzzles';
 import { PUZZLES as BRACKET_FULL } from '../bracket/puzzles';
-import { PUZZLES as PRICER_FULL } from '../pricer/puzzles';
+// PRICER PULLED 2026-08-09 (see CLAUDE.md). Restore: grep -rn 'PRICER PULLED' daily index import
+// import { PUZZLES as PRICER_FULL } from '../pricer/puzzles';
 import { PUZZLES as LODE_FULL } from '../lode/puzzles';
 import { PUZZLES as ETCH_FULL } from '../etch/puzzles';
 import { PUZZLES as GLYPH_FULL } from '../glyph/puzzles';
@@ -79,7 +80,7 @@ const HEARSAY = HEARSAY_FULL.map(({ num, quizId, live, dateLabel, sunday }) => (
 const VENN = VENN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const STANDS = STANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BRACKET = BRACKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
-const PRICER = PRICER_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+// const PRICER = PRICER_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const LODE = LODE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const ETCH = ETCH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const GLYPH = GLYPH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
