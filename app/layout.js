@@ -4,6 +4,7 @@ import './globals.css';
 import { Analytics } from '@vercel/analytics/next';
 import VisitorBeacon from './VisitorBeacon';
 import ResultQueue from './ResultQueue';
+import DailyStartPing from './DailyStartPing';
 import ShareCreditPop from './ShareCreditPop';
 import ContestPop from './ContestPop';
 import QrPosterPop from './QrPosterPop';
@@ -109,6 +110,7 @@ export default function RootLayout({ children }) {
         {children}
         <VisitorBeacon />
         <ResultQueue />
+        <DailyStartPing />
         <ShareCreditPop />
         {/* Mounted AFTER ShareCreditPop: its CTA dispatches the share-credit
             event, and the listener must already exist. Renders null on every

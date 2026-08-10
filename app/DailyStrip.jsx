@@ -574,6 +574,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         const completed = new Set(data.completed || []);
         const played = new Set(data.played || []);
         const abandoned = new Set(data.abandoned || []);
+        // Started and still open, per daily_in_progress. This is the half that
+        // actually crosses devices: an abandoned row only exists when the exit
+        // fired `pagehide`, and a phone that gets backgrounded frequently never
+        // does, which is why a game paused on a phone used to be invisible here
+        // (owner report, 2026-08-10). daily-status has already superseded any id
+        // the player has since finished, so everything in this set is genuinely
+        // still open.
+        const openIds = new Set(data.inProgress || []);
         const unsolvedIds = new Set(data.unsolved || []);
         // REBUILT, not merged. `done` and `inprog` merge into what the
         // same-device breadcrumbs already put there, but nothing seeds this set
@@ -600,7 +608,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           const next = new Set(cur);
           for (const g of GAMES) {
             const id = `${g.key}-${M}-${D}-${yy}`;
-            if (abandoned.has(id) && !completed.has(id) && !played.has(id)) next.add(g.key);
+            if ((abandoned.has(id) || openIds.has(id)) && !completed.has(id) && !played.has(id)) next.add(g.key);
           }
           return next;
         });

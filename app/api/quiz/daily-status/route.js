@@ -56,12 +56,12 @@ export async function GET(request) {
     const who = await resolvePlayerKeys(supabaseAdmin, { email, anonId });
     const myKey = who.primary;
     const myKeys = who.keys;
-    if (!myKey) return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [] }, { headers: CACHE_HEADERS });
+    if (!myKey) return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [], inProgress: [] }, { headers: CACHE_HEADERS });
 
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
       console.error('daily-status error', error);
-      return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [] });
+      return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [], inProgress: [] });
     }
     const played = new Set();
     const completed = new Set();
@@ -117,6 +117,31 @@ export async function GET(request) {
     // complete whatever its other rows say. (The LEADERBOARD is unaffected: it
     // still scores the first attempt, per scoreGame in lib/daily-combined.)
     for (const q of completed) unsolved.delete(q);
+    // STARTED AND STILL OPEN, from daily_in_progress (migration 52). This is
+    // the signal that actually crosses devices: an abandoned row only exists
+    // when the exit fired `pagehide`, which a backgrounded phone frequently
+    // never does. A hint is SUPERSEDED rather than deleted, so anything the
+    // player has since played, completed or abandoned is dropped here and
+    // finishing a game costs no write. Wrapped: until the migration is applied
+    // the table is missing, and this route's real job must still answer.
+    const inProgress = [];
+    try {
+      const { data: hints, error: hintErr } = await supabaseAdmin
+        .from('daily_in_progress')
+        .select('quiz_id')
+        .in('player_key', [...myKeys]);
+      if (hintErr) throw hintErr;
+      for (const h of (hints || [])) {
+        const qid = h && h.quiz_id;
+        if (!qid || !DAILY_RE.test(qid)) continue;
+        if (played.has(qid) || completed.has(qid) || abandonedOnly.has(qid)) continue;
+        inProgress.push(qid);
+      }
+    } catch (e) {
+      const missing = e && (e.code === '42P01' || /does not exist|schema cache/i.test(e.message || ''));
+      if (!missing) console.error('daily-status in-progress', e);
+    }
+
     // Report a game as abandoned only when the player never finished it.
     const abandoned = [...abandonedOnly].filter((q) => !played.has(q));
     // Per-game consecutive-day streaks (ET days), counted back from today.
@@ -216,9 +241,9 @@ export async function GET(request) {
     for (const [k, all] of archiveAll) {
       archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
     }
-    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, streaks, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, inProgress, streaks, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
-    return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [] });
+    return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [], inProgress: [] });
   }
 }
