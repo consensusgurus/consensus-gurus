@@ -639,6 +639,33 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const n = GAMES.filter((g) => done.has(g.key)).length;
   const pct = Math.round((n / GAMES.length) * 100);
   const left = GAMES.length - n;
+  // The day in four numbers, for the slate header (owner, 2026-08-10). It
+  // REPLACED the slate size, which said 56 every single day, and it outranks
+  // the date: what the reader wants off that bar is where their day stands.
+  // The four states, their order and their colours are the phone bands' own
+  // (todo / prog / fail / dn), so the header is a legend for the groups
+  // directly below it and there is only one vocabulary to learn.
+  //
+  // Counted over the WHOLE roster, never the filtered rows: the bar sits ABOVE
+  // the category strip and describes the day, so narrowing to Word Games must
+  // not rewrite it. Same reasoning as the Ready-to-play band printing the
+  // global `n` rather than its own size. A zero state renders nothing at all,
+  // so a fresh day reads "56 ready to play" and fills in as you play.
+  const dayTally = (() => {
+    let todo = 0, prog = 0, fail = 0, dn = 0;
+    for (const g of GAMES) {
+      if (isFail(g.key)) fail += 1;
+      else if (done.has(g.key)) dn += 1;
+      else if (inprog.has(g.key)) prog += 1;
+      else todo += 1;
+    }
+    return [
+      { k: 'todo', n: todo, word: 'ready to play' },
+      { k: 'prog', n: prog, word: 'in progress' },
+      { k: 'fail', n: fail, word: 'incomplete' },
+      { k: 'dn', n: dn, word: 'complete' },
+    ].filter((t) => t.n > 0);
+  })();
   // UP NEXT IS CATEGORY FIRST (owner, 2026-08-10). It takes the category this
   // viewer played MOST RECENTLY and offers the most popular unplayed game in
   // it; where that category has nothing open left, it walks to the second most
@@ -2236,9 +2263,27 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dhome.slate .dh-boardwrap{border-left:none;border-right:none;}
         .dhome.slate{border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);}
-        .sl-count{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
+        .sl-ttl i{font-style:normal;}
+        .sl-tn{display:none;}
+        .sl-count{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
+        /* The four state counts. Each pip is a coloured dot, the number, and the
+           word — and the WORD is the part that carries it on a wide viewport,
+           because the phone bands that teach these colours are display:none
+           above 900px, so up here a bare dot would mean nothing. Below 900px the
+           bands are on screen, so the word comes off and the dot reads against
+           them. Dot colours are the bands' hues lifted for the navy ground:
+           #2c4fa8 and #16a34a are legible on white and invisible on this bar. */
+        .sl-pip{display:inline-flex;align-items:center;gap:5px;font-style:normal;padding:2px 8px 2px 6px;border-radius:999px;background:rgba(255,255,255,0.11);}
+        .sl-pip b{font-weight:800;color:var(--white);font-variant-numeric:tabular-nums;}
+        .sl-pw{font-style:normal;font-weight:700;letter-spacing:.07em;color:var(--blue-200);}
+        .sl-pd{width:7px;height:7px;border-radius:50%;flex:none;background:currentColor;}
+        .sl-pip.todo{color:#8fb4ff;}
+        .sl-pip.prog{color:var(--gold);}
+        .sl-pip.fail{color:#f87171;}
+        .sl-pip.dn{color:#4ade80;}
         .sl-dt{font-style:normal;}
-        .sl-dt.p{display:none;}
+        .sl-dt i{font-style:normal;}
+        .sl-dt .p{display:none;}
         /* The category strip and the expand bars were var(--surface) between two
            1px --border rules, which is the page's own background between two
            hairlines: at the console's edge they dissolved into it (owner,
@@ -2613,8 +2658,17 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              2026-08-07), so it belongs to the navy slate header above it rather
              than reading as a pale gap between the header and the first row.
              Desktop keeps its light underline tabs. */
-          .sl-dt.d{display:none;}
-          .sl-dt.p{display:inline;}
+          /* Space is short and the bands below now carry the words, so the pips
+             drop to dot-and-number, the title drops to "Today:" and the date
+             drops to its short form. Under 400px the date goes entirely: it is
+             the least important thing on the bar (owner, 2026-08-10). */
+          .sl-tw{display:none;}
+          .sl-tn{display:inline;}
+          .sl-count{gap:5px;}
+          .sl-pip{padding:2px 7px 2px 5px;}
+          .sl-pw{display:none;}
+          .sl-dt .d{display:none;}
+          .sl-dt .p{display:inline;}
           .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
           .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
           .sl-filt button.on{border-bottom-color:transparent;}
@@ -2752,6 +2806,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              it simply re-shows the ninth tile. */
           .dh-board.mcut > .dh-tile:nth-child(9){display:flex;}
         }
+        /* The narrowest phones: four pips plus a title plus a date is one
+           thing too many, and the date is the one to lose. */
+        @media(max-width:400px){.sl-dt{display:none;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
         /* Small screens: the expanded panel is IN FLOW (see DailyTilePanel), so
            the grid hides beneath it and the wrapper takes the panel's own
@@ -2823,8 +2880,21 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           moved into the page header on 2026-08-03. */}
       {slate ? (
         <div className="sl-bar">
-          <span className="sl-ttl">Today&rsquo;s slate</span>
-          <span className="sl-count">{games.length} games{etLabel.long ? <> &middot; <i className="sl-dt d">{etLabel.long}</i><i className="sl-dt p">{etLabel.short}</i></> : null}</span>
+          <span className="sl-ttl"><i className="sl-tw">Today&rsquo;s slate</i><i className="sl-tn">Today:</i></span>
+          <span className="sl-count">
+            {dayTally.map((t) => (
+              /* role="img" + the label, because below 900px the word is
+                 display:none, which takes it out of the accessibility tree as
+                 well as off the screen: the pip has to be able to say what it
+                 is on its own. */
+              <i key={t.k} className={`sl-pip ${t.k}`} role="img" title={`${t.n} ${t.word}`} aria-label={`${t.n} ${t.word}`}>
+                <i className="sl-pd" aria-hidden="true" />
+                <b>{t.n}</b>
+                <i className="sl-pw" aria-hidden="true">{t.word}</i>
+              </i>
+            ))}
+            {etLabel.long ? <i className="sl-dt"><i className="d">{etLabel.long}</i><i className="p">{etLabel.short}</i></i> : null}
+          </span>
         </div>
       ) : null}
       <div className="dh-sbar">
