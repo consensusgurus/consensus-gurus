@@ -5,8 +5,9 @@ const D0=Date.UTC(2026,7,10);                        // Monday 2026-08-10
 const dayOf=s=>new Date(D0+(s-1)*86400000);
 const SUN=[]; for(let s=1;s<=30;s++) if(dayOf(s).getUTCDay()===0) SUN.push(s);
 const BIG=ALL.filter(b=>b.items.length===32).map(b=>b.n);      // 5,12,19,26
-const PIN={1:2, 2:1};                                          // slot1 McDonald's(n=2), slot2 Coffee(n=1)
-const rest=ALL.map(b=>b.n).filter(n=>!BIG.includes(n)&&n!==1&&n!==2);
+const PIN={1:2};                                               // slot1 McDonald's(n=2). Coffee is gone, so slot 2 is free.
+const pinned=new Set(Object.values(PIN));
+const rest=ALL.map(b=>b.n).filter(n=>!BIG.includes(n)&&!pinned.has(n));
 const freeSlots=[]; for(let s=1;s<=30;s++) if(!SUN.includes(s)&&!PIN[s]) freeSlots.push(s);
 if(freeSlots.length!==rest.length) throw new Error('slot/board mismatch');
 
