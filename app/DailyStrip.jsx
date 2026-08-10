@@ -2374,9 +2374,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* Room for the last tab to clear the chip once it is scrolled to. */
         .sl-filtw.mr .sl-filt{padding-right:26px;}
         .sl-filtw.ml .sl-filt{padding-left:26px;}
-        .sl-filtw.ml::before,.sl-filtw.mr::after{content:'';position:absolute;top:0;bottom:2px;width:38px;pointer-events:none;z-index:1;}
-        .sl-filtw.ml::before{left:0;background:linear-gradient(to right,var(--accent),rgba(30,58,138,0));}
-        .sl-filtw.mr::after{right:0;background:linear-gradient(to left,var(--accent),rgba(30,58,138,0));}
+        /* The fade holds SOLID under the chip before it starts fading, rather
+           than fading the whole way from the edge. A plain gradient left the
+           sliced last tab showing through at about a third strength, so the
+           strip read "SU" with a button sitting on it, which looks broken
+           rather than scrollable. Solid to just past the chip, then out. */
+        .sl-filtw.ml::before,.sl-filtw.mr::after{content:'';position:absolute;top:0;bottom:2px;width:60px;pointer-events:none;z-index:1;}
+        .sl-filtw.ml::before{left:0;background:linear-gradient(to right,var(--accent) 0,var(--accent) 30px,rgba(30,58,138,0) 100%);}
+        .sl-filtw.mr::after{right:0;background:linear-gradient(to left,var(--accent) 0,var(--accent) 30px,rgba(30,58,138,0) 100%);}
         .sl-fnav{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;border:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.18);color:var(--white);cursor:pointer;z-index:2;-webkit-tap-highlight-color:transparent;}
         .sl-fnav:hover{background:rgba(255,255,255,0.34);}
         .sl-fnav:focus{outline:none;}
@@ -2785,8 +2790,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* Same fade, the phone strip's own ground. The bottom is flush here
              because this strip carries no 2px bottom rule to sit above. */
           .sl-filtw.ml::before,.sl-filtw.mr::after{bottom:0;}
-          .sl-filtw.ml::before{background:linear-gradient(to right,#2c4fa8,rgba(44,79,168,0));}
-          .sl-filtw.mr::after{background:linear-gradient(to left,#2c4fa8,rgba(44,79,168,0));}
+          .sl-filtw.ml::before{background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
+          .sl-filtw.mr::after{background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
           .sl-filtw.mr .sl-filt{padding-right:30px;}
           .sl-filtw.ml .sl-filt{padding-left:30px;}
           .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
