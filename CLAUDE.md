@@ -3766,3 +3766,126 @@ twelve quiz boards that carry a critique modal. The fields stay editable and
 still optional (a guest sees empty fields exactly as before), and the prefill
 uses `setX((v) => v || who.x)` so it never overwrites something already typed.
 Any NEW form that collects reader feedback should do the same.
+
+## Pricer (`/pricer`): eligibility, pricing basis, and the reveal rolodex
+
+Pricer is the daily price bracket: sixteen real things from one category (thirty-two on Sunday),
+one money question for the whole day, and picks that propagate like a pool sheet. The engine is
+forked from Bracket. What follows is what makes a Pricer BOARD correct, which is a different
+problem from what makes the bracket work.
+
+The whole section exists because the launch bank, built 2026-08, shipped fabricated NFL salaries
+(Kyler Murray at $51M against a real $1.3M), a Volvo priced two different ways four days apart,
+three discontinued game consoles, and thirty consecutive boards asking the same question. Every
+one of those was mechanically checkable. `scripts/verify-pricer.mjs` now checks all of them.
+
+### The eligibility rule: buyable AND observable (owner rule, 2026-08-09)
+
+**Every Pricer item must be a thing a person can buy, at an observable price.** Two tests, and an
+item has to pass both.
+
+- **Buyable.** Could you put it in a cart, book it, or sign up for it? A salary, a net worth, a
+  market cap or a median home price is a number *about* a thing, not a price tag on one. BANNED:
+  athlete salaries, contracts, earnings, revenues, box office, endowments, and any median or index.
+- **Observable.** Is the price printed on a page the SELLER controls, and will it still be that
+  number tomorrow? BANNED: resale and auction figures (Pappy Van Winkle's $4,200 secondary price
+  against a ~$300 shelf price), dynamic event pricing (concert and Broadway tickets, ski lift day
+  rates, movie tickets. Verified 2026-08: no major US cinema chain publishes a rate card, and all
+  five Vail Resorts properties publish pass marketing and no day rate), quote-only pricing (Equinox
+  publishes no membership rate), and headline rates (the $100,000-a-night Palms suite is a press
+  release, not a booking).
+
+**This is the line between Pricer and Bracket.** Bracket compares measurements: lake area,
+population, home runs. Pricer compares price tags. A board of big numbers about things is a Bracket
+board wearing a dollar sign. Eligibility is NOT machine-checkable; enforce it at review.
+
+### Values are CENTS (`unit: 'usdc'`)
+
+`value` is an integer number of cents, never dollars. This is not cosmetic. The cheapest boards to
+gather are single-source ones (a chain menu, a transit fare table, a subscription pricing page), and
+those live inside a narrow band where whole dollars collide constantly: the entire Starbucks menu
+holds only 8 distinct whole-dollar prices, Dunkin' 9, and every US transit base fare sits between
+$1.25 and $3.00. A tie makes a matchup unanswerable and hard-fails the verifier, so whole dollars
+would cost the game its whole cheap tier. `fmtValue` shows cents only when the figure has them, so
+$40.00 renders as `$40`.
+
+### One pricing basis per board, declared (`basis`)
+
+`basis` is REQUIRED and is one of `'msrp'` (the brand's own list price), `'street'` (current retail),
+`'rate'` (a published rate or fee), `'delivery'` (a marketplace menu price). **Never mix two bases
+inside one board.** A drip coffee board that mixed list price for some items with street price for
+others came out with 12 of 16 wrong and its entire podium inverted; that was not carelessness, it is
+what mixing bases does, because the two produce different orderings. The basis renders to the reader.
+
+`'delivery'` exists because McDonald's, Starbucks, Chipotle, Dunkin' and Cheesecake Factory publish
+no prices on any site they control. Their boards are gathered from DoorDash at a pinned market and
+labelled as such. That is honest and observable; it is just not the menu price.
+
+### `gathered` is the real date, and it is reader-facing
+
+`gathered: 'YYYY-MM-DD'` is the date the prices were actually read. It renders on the board and on
+the reveal as "Prices checked <date>", not just in the rules panel where nobody looks. **`asOf` was
+retired and the verifier hard-fails any board still carrying it**: two date fields where one is real
+and one is a hand-written label is exactly how a board came to say "August 2026" over year-old NBA
+figures. The verifier fails a board going live more than 90 days after it was gathered and warns
+past 45, which is what forces a re-gather rather than letting a banked board rot to its live date.
+
+### Gathering: cost, and the shortcuts that cut it
+
+Measured 2026-08-09: a 16-item multi-brand Amazon board costs **~26 minutes and ~114 fetches**. The
+cost is not the sixteen prices, it is the sixteen different page structures. Shortcuts, in order of
+saving:
+
+- **One-source boards.** A chain menu, a fee table, a subscription pricing page or one brand's whole
+  lineup is 1 to 15 fetches instead of 114. Measured: 19 such boards cost ~130 fetches TOTAL.
+- **Shopify `/products.json`** returns a DTC brand's entire catalogue with prices in one call.
+- **Variant boards** (one product line across sizes or configs) beat competitor boards, and play
+  better: everyone knows a Ferrari beats a Miata, nobody knows what the 512GB step costs.
+- **Skip the separate ASIN pass** on non-Amazon boards; a brand page gives price and link together.
+- **Author for spread.** Items 2x apart tolerate a 10% price error without flipping the order.
+
+Maintenance matters more than the build: MSRP moves yearly, Amazon street price moves daily. Weight
+the bank toward `msrp` and `rate` boards. Cap shoppable boards (Amazon or brand-linked) at **2 to 3
+per week** (owner rule, 2026-08-09); the rest come from menus, fees and tier tables.
+
+**Amazon blocks `web_fetch` entirely** (empty body). The only route is the connected Chrome running
+same-origin `fetch('/dp/<ASIN>')` from inside an amazon.com tab, which is also ~10x cheaper on
+context. **Never trust an Amazon search title to identify a SKU**: only the `Item model number` on
+the `/dp/` page settles it. And read the SELLER's page, never a tracker. A re-verify pass against
+provider pages changed nine figures, including three Dropbox/Box "monthly" prices that were annual
+rates and two Google One tiers that no longer exist.
+
+### The reveal rolodex (`app/pricer/PricerRolodex.jsx`)
+
+The reveal renders every item on the board as a card you can step through: rank, name, real price,
+where it landed on your sheet, and a buy link. The spine rail doubles as a bust map. It replaced a
+three-item "Shop these on Amazon" strip that named only the top three by price (which on a `min`
+board recommended the three most EXPENSIVE items on a board about cheapness) and that rendered on
+no board at all, because the launch bank shipped 560 items and zero ASINs.
+
+Links come from `shop` on the board plus a per-item key: `shop: 'amazon'` with `asin`, or
+`shop: 'brand'` with `url`. Affiliate links carry `rel="noopener sponsored"` and the `cgurus-20` tag.
+A board with neither still renders; the cards just carry no buy button. **Never guess an ASIN.**
+
+### `family` caps topic repetition
+
+Every board declares a `family`. At most 2 boards per family per bank, never two within 10 days, and
+no two boards may share more than 3 items. The first bank ran four car boards, three footwear boards
+and a Luxury SUVs board that was largely a subset of Cars, Full Range.
+
+### Direction variety
+
+At least 15% of boards must ask "which costs LESS" (`dir: 'min'`) and no run of one direction may
+exceed 4. Cheap categories carry `min` best: groceries, drugstore basics, fast food, transit fares.
+
+### The moved-on chip lane (shared with Bracket)
+
+The "Beaten so far" column and the two contender cards are separate flex lanes that must stay
+visually aligned. Four things keep them so, and all four were broken until 2026-08-09: the history
+lane needs the SAME `gap:10px` the bout lane has (without it the two chip groups split the lane
+height evenly while the cards split it with a gap, so they sit ~5px off in opposite directions);
+`.hgroup` needs `min-height:54px` to match `.card`; `.lane` needs `padding-top:12px` because the
+lane header is absolutely positioned at `top:-2px` and otherwise sits over the first chip; and the
+chips clamp to two lines rather than `nowrap` + ellipsis, because Pricer's item names are product
+names and truncated to ~16 characters in the old 132px column. Pricer's history column is 150px,
+Bracket's stays 132px. **Both clients carry this CSS and must be changed together.**

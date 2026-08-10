@@ -600,12 +600,13 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           /* ---- the arena: a bracket zoomed all the way in ---- */
           .bk-arena{position:relative;display:grid;grid-template-columns:132px minmax(0,1fr) 172px;gap:0 20px;align-items:stretch;
                     background:var(--white);border:1px solid ${COLORS.line};border-radius:12px;padding:13px 15px;overflow:hidden;}
-          .bk-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;}
+          .bk-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;padding-top:12px;}
           .bk-lanehd{position:absolute;top:-2px;left:0;right:0;font-family:${MONO};font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4;}
-          .bk-hist .bk-hgroup{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;}
-          .bk-hchip{display:block;width:100%;text-align:left;font-family:${SANS};background:none;border:1px dashed ${COLORS.line};
+          .bk-hist{gap:10px;}
+          .bk-hist .bk-hgroup{flex:1;min-height:54px;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+          .bk-hchip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;width:100%;text-align:left;font-family:${SANS};background:none;border:1px dashed ${COLORS.line};
                     border-radius:5px;padding:3px 6px;font-size:10px;font-weight:700;color:#a3adbb;cursor:pointer;
-                    text-decoration:line-through;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.12s;}
+                    text-decoration:line-through;line-height:1.25;overflow:hidden;transition:.12s;}
           .bk-hchip:hover{border-style:solid;border-color:${COLORS.accent};color:${COLORS.accentDeep};background:${COLORS.accentSoft};text-decoration:none;}
           .bk-hempty{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6;}
           .bk-bout{gap:10px;padding-right:14px;}

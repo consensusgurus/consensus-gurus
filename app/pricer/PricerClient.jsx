@@ -39,6 +39,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import DailyRules from '../DailyRules';
+import PricerRolodex from './PricerRolodex';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -68,6 +69,11 @@ const ROUND_NAME = (r, rounds) => {
 // the two clients stay diffable and a future non-money Pricer variant is one
 // data change rather than a code change.
 function fmtValue(v, unit) {
+  // 'usdc' is an integer number of CENTS. Cheap single-source boards (menus,
+  // transit fares, subscription tiers) sit in a band where whole dollars collide
+  // constantly, and a tie makes a matchup unanswerable. Cents are shown only when
+  // the figure actually has them, so $40.00 renders as $40.
+  if (unit === 'usdc') return '$' + (v / 100).toLocaleString('en-US', { minimumFractionDigits: v % 100 ? 2 : 0, maximumFractionDigits: 2 });
   if (unit === 'usd') return '$' + Math.round(v).toLocaleString('en-US');
   if (unit === 'km2') return v.toLocaleString('en-US') + ' km²';
   if (unit === 'm') return v.toLocaleString('en-US') + ' m';
@@ -83,13 +89,10 @@ function fmtValue(v, unit) {
   return String(v);
 }
 
-// Amazon affiliate link for an item on an `amazon: true` board. The ASIN is
-// gathered live and is OPTIONAL: no asin, no chip, which is the launch state of
-// the whole bank (CLAUDE.md: never guess an ASIN). It is an affiliate link, so
-// it carries rel="sponsored" and opens in a new tab.
-const AMZ_TAG = 'cgurus-20';
-const shopUrl = (asin) => `https://www.amazon.com/dp/${asin}?tag=${AMZ_TAG}`;
 
+// What the day's prices actually are. ONE basis per board, never mixed: a board
+// that mixed list price with street price had its whole ordering inverted.
+const BASIS_LABEL = { msrp: 'manufacturer list price', street: 'current retail price', rate: 'published rate', delivery: 'delivery menu price' };
 const isIosDevice = () => typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent || '') || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 function etToday() { try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); } catch (e) { return new Date().toISOString().slice(0,10); } }
 function pickPuzzle(puzzles, forceNum) {
@@ -542,16 +545,11 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
         else if (isMine) { cls += ' bust'; mk = '✗'; }
         else cls += ' lose';
       } else cls += g.picks[id] === it ? ' mine' : ' lose';
-      const asin = PUZZLE.amazon ? PUZZLE.items[it].asin : null;
       return (
         <div key={k} className={cls}>
           <span className="mk">{mk}</span>
           <span className="n">{PUZZLE.items[it].name}</span>
           {showTruth && <span className="v">{fmtValue(PUZZLE.items[it].value, PUZZLE.unit)}</span>}
-          {showTruth && asin && (
-            <a className="pr-shop" href={shopUrl(asin)} target="_blank" rel="noopener sponsored"
-               onClick={(e) => e.stopPropagation()} title={`Shop ${PUZZLE.items[it].name}`}>Shop &#8599;</a>
-          )}
         </div>
       );
     });
@@ -641,21 +639,14 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
   // The top three by price, for the shop strip on the reveal. Only the items
   // that actually carry an ASIN show up, so the strip disappears entirely on a
   // board with none (which is every board at launch).
-  const shopPicks = useMemo(() => {
-    if (!PUZZLE.amazon) return [];
-    return [...PUZZLE.items]
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 3)
-      .filter((it) => it.asin);
-  }, [PUZZLE]);
   const rulesBody = (
     <DailyRules
       accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
       lead={`Fill the bracket. One money question, ${N} price tags.`}
       banner={`${PUZZLE.category} · ${PUZZLE.metric}`}
-      sub={PUZZLE.asOf ? (
+      sub={PUZZLE.gathered ? (
         <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500 }}>
-          Prices as of {PUZZLE.asOf}
+          Prices checked {PUZZLE.gathered} · {BASIS_LABEL[PUZZLE.basis] || PUZZLE.basis}
         </span>
       ) : null}
       steps={[
@@ -687,14 +678,15 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .pr-btn:hover{background:var(--accent-soft);}
           /* ---- the arena: a bracket zoomed all the way in ---- */
-          .pr-arena{position:relative;display:grid;grid-template-columns:132px minmax(0,1fr) 172px;gap:0 20px;align-items:stretch;
+          .pr-arena{position:relative;display:grid;grid-template-columns:150px minmax(0,1fr) 172px;gap:0 20px;align-items:stretch;
                     background:var(--white);border:1px solid ${COLORS.line};border-radius:12px;padding:13px 15px;overflow:hidden;}
-          .pr-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;}
+          .pr-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;padding-top:12px;}
           .pr-lanehd{position:absolute;top:-2px;left:0;right:0;font-family:${MONO};font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4;}
-          .pr-hist .pr-hgroup{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;}
-          .pr-hchip{display:block;width:100%;text-align:left;font-family:${SANS};background:none;border:1px dashed ${COLORS.line};
+          .pr-hist{gap:10px;}
+          .pr-hist .pr-hgroup{flex:1;min-height:54px;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+          .pr-hchip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;width:100%;text-align:left;font-family:${SANS};background:none;border:1px dashed ${COLORS.line};
                     border-radius:5px;padding:3px 6px;font-size:10px;font-weight:700;color:#a3adbb;cursor:pointer;
-                    text-decoration:line-through;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.12s;}
+                    text-decoration:line-through;line-height:1.25;overflow:hidden;transition:.12s;}
           .pr-hchip:hover{border-style:solid;border-color:${COLORS.accent};color:${COLORS.accentDeep};background:${COLORS.accentSoft};text-decoration:none;}
           .pr-hempty{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6;}
           .pr-bout{gap:10px;padding-right:14px;}
@@ -836,7 +828,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>{N} price tags, one question, {MATCHES} picks, and no feedback until you hand the sheet in.</p>
-                <p style={{ margin: 0 }}>{PUZZLE.metric} Prices as of {PUZZLE.asOf}.</p>
+                <p style={{ margin: 0 }}>{PUZZLE.metric} Prices checked {PUZZLE.gathered}.</p>
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
@@ -862,8 +854,8 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
                 picked <b style={{ color: COLORS.ink, fontWeight: 500 }}>{filled}</b> of {MATCHES}
                 {!playing && <> &nbsp;&middot;&nbsp; scored <b style={{ color: COLORS.ink, fontWeight: 500 }}>{score}</b>/{TOTAL}</>}
               </span>
-              {PUZZLE.asOf && (
-                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded }}>figures as of {PUZZLE.asOf}</span>
+              {PUZZLE.gathered && (
+                <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded }}>prices checked {PUZZLE.gathered}</span>
               )}
             </div>
 
@@ -1040,14 +1032,8 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
                 affiliate row lives on Pricer's own end-of-game panel. It renders
                 only for an `amazon` board whose top-priced items carry an ASIN,
                 so it is absent until ASINs are gathered. */}
-            {shopPicks.length > 0 && (
-              <div className="pr-shopbar">
-                <span className="lbl">Shop these on Amazon</span>
-                {shopPicks.map((it) => (
-                  <a key={it.name} href={shopUrl(it.asin)} target="_blank" rel="noopener sponsored">{it.name}</a>
-                ))}
-              </div>
-            )}
+            <PricerRolodex puzzle={PUZZLE} picks={g.picks} TRUE={TRUE} fmt={fmtValue}
+                           colors={COLORS} mono={MONO} sans={SANS} />
             <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>{countdown ? <>A new field is seeded in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new field is seeded at midnight Eastern.'}
