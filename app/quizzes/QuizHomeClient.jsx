@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { QUIZ_COUNT } from '../SiteHeader';
 import QuizCommandHeader, { jumpToQuizzes } from './QuizCommandHeader';
 import ContestNote from '../ContestNote';
+import QrPosterForm from '../QrPosterForm';
 import DuelTile from './DuelTile';
 import CommunityTile from './CommunityTile';
 import FeaturedFlipTile from './FeaturedFlipTile';
@@ -13,7 +14,7 @@ import {
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
   Check, Star, Target, Swords, Newspaper, Blocks, GraduationCap,
-  Flag, Gauge,
+  Flag, Gauge, QrCode,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
@@ -524,6 +525,10 @@ export default function QuizHomeClient() {
   const [dailyFlip, setDailyFlip] = useState(0); // Daily Puzzle board flips standings (even) <-> today's IQ gainers (odd)
   const [creditOpen, setCreditOpen] = useState(false); // "share a link to get credit" modal
   const [creditCopied, setCreditCopied] = useState(false);
+  // The QR poster offer inside that modal, collapsed until asked for. The modal
+  // is opened to copy a link, so the poster is an aside, never the thing in the
+  // way. Reset every time the modal opens.
+  const [creditQr, setCreditQr] = useState(false);
   useEffect(() => {
     let alive = true;
     const qs = new URLSearchParams();
@@ -1848,7 +1853,7 @@ export default function QuizHomeClient() {
       <Grain />
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
-      <QuizCommandHeader me={me} onSignup={() => setSignupOpen(true)} ticker={[]} variant="home" onCredit={() => setCreditOpen(true)} />
+      <QuizCommandHeader me={me} onSignup={() => setSignupOpen(true)} ticker={[]} variant="home" onCredit={() => { setCreditQr(false); setCreditOpen(true); }} />
       <div className="qzh qzf-w" style={{ maxWidth: 1560, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
         /* Phone: the daily console butts straight up against the command bar,
            so the page's own top padding goes and the section carries no gap
@@ -1933,10 +1938,34 @@ export default function QuizHomeClient() {
                     figure is for (owner, 2026-08-08). */}
                 <ContestNote />
                 {shareUrl ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: C.ink, background: C.bg, border: `1px solid ${C.line}`, borderRadius: 9, padding: '10px 12px' }} title={shareUrl}>{shareUrl.replace(/^https:\/\//, '')}</span>
-                    <button onClick={copyIt} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 9, padding: '10px 14px', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: FONT }}>{creditCopied ? <Check size={14} /> : null}{creditCopied ? 'Copied' : 'Copy'}</button>
-                  </div>
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: C.ink, background: C.bg, border: `1px solid ${C.line}`, borderRadius: 9, padding: '10px 12px' }} title={shareUrl}>{shareUrl.replace(/^https:\/\//, '')}</span>
+                      <button onClick={copyIt} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 9, padding: '10px 14px', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: FONT }}>{creditCopied ? <Check size={14} /> : null}{creditCopied ? 'Copied' : 'Copy'}</button>
+                    </div>
+                    {/* The offline half of the same job. Same component the
+                        contest board and the global share pop-up render, so the
+                        copy and the request payload cannot drift. It suppresses
+                        itself once the contest ends. */}
+                    <div style={{ marginTop: 14, border: `1px solid ${C.line}`, borderRadius: 12, padding: '13px 14px' }}>
+                      {creditQr ? <QrPosterForm /> : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap' }}>
+                          <span style={{ color: C.cta, flexShrink: 0, lineHeight: 1 }}><QrCode size={20} strokeWidth={2.2} /></span>
+                          <div style={{ flex: 1, minWidth: 165, fontSize: 12.5, color: C.muted, lineHeight: 1.45 }}>
+                            A link reaches the people you know. We will also make you a printable{' '}
+                            <b style={{ color: C.ink }}>QR poster</b> for a coffee shop, a classroom or work.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setCreditQr(true)}
+                            style={{ flexShrink: 0, background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 9, padding: '9px 14px', fontWeight: 800, fontSize: 13, cursor: 'pointer', fontFamily: FONT }}
+                          >
+                            Get a QR poster
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <button onClick={() => { setCreditOpen(false); setSignupOpen(true); }} style={{ width: '100%', background: C.cta, color: C.ctaInk, border: 'none', borderRadius: 10, padding: 12, fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: FONT }}>Register to get your link →</button>
                 )}
@@ -2260,7 +2289,7 @@ export default function QuizHomeClient() {
               xpToday={xpToday}
               xp30={xp30}
               xpAll={xpAll}
-              onCredit={() => setCreditOpen(true)}
+              onCredit={() => { setCreditQr(false); setCreditOpen(true); }}
             />
           </div>
           <div className="dhx-center" ref={centerRef}>

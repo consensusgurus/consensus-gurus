@@ -25,7 +25,7 @@
 import { useEffect, useState } from 'react';
 import { Trophy, Check } from 'lucide-react';
 import { T } from '@/lib/theme';
-import { CONTEST, daysLeft } from '@/lib/contest';
+import { CONTEST, daysLeft, contestIsLive } from '@/lib/contest';
 import { myRefCode, withRef } from '@/lib/referrals';
 import { savedIdentity } from '@/lib/saved-identity';
 
@@ -60,6 +60,10 @@ export default function QrPosterForm({ dismiss = null, hideDaysLeft = false }) {
   const [sent, setSent] = useState(false);
   const [already, setAlready] = useState(false);
   const [err, setErr] = useState('');
+  // Resolved after mount, not at render: contestIsLive() reads the clock, and
+  // this renders inside surfaces that are server-rendered. Defaults to true so
+  // the common case (a live contest) paints immediately with no flash.
+  const [live, setLive] = useState(true);
 
   // localStorage is read after mount, never during render, so the server and the
   // first client render agree.
@@ -68,6 +72,7 @@ export default function QrPosterForm({ dismiss = null, hideDaysLeft = false }) {
     setName(who.username || '');
     setEmail(who.email || '');
     if (qrPosterDone()) setAlready(true);
+    setLive(contestIsLive());
   }, []);
 
   async function submit(e) {
@@ -126,6 +131,11 @@ export default function QrPosterForm({ dismiss = null, hideDaysLeft = false }) {
     background: T.accentSoft, border: `1px solid ${T.accentBorder}`, borderRadius: 10,
     padding: '13px 14px', display: 'flex', gap: 9, alignItems: 'flex-start',
   };
+
+  // The whole offer is pitched on the prize, so it goes away with the contest.
+  // A just-sent confirmation still shows, since swallowing it would read as the
+  // request having failed.
+  if (!live && !sent) return null;
 
   if (sent) {
     return (
