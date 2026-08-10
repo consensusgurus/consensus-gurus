@@ -47,6 +47,7 @@ import { PUZZLES as CHAIN_FULL } from '../chain/puzzles';
 import { PUZZLES as HANDS_FULL } from '../hands/puzzles';
 import { PUZZLES as TURN_FULL } from '../turn/puzzles';
 import { PUZZLES as SUFFICE_FULL } from '../suffice/puzzles';
+import { PUZZLES as DOCKET_FULL } from '../docket/puzzles';
 import { PUZZLES as REDACT_FULL } from '../redact/puzzles';
 import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
 import { PUZZLES as BLOCKS_FULL } from '../blocks/puzzles';
@@ -98,6 +99,7 @@ const BABEL = BABEL_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const CHAIN = CHAIN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const TURN = TURN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SUFFICE = SUFFICE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const DOCKET = DOCKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const REDACT = REDACT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLOCKS = BLOCKS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -200,6 +202,7 @@ const GAMES = [
   { key: 'chain', name: 'Chain', path: '/chain', tag: 'Take them, or leave them', accent: '#4a044e', bg: '#f6ecf8', border: 'rgba(74,4,78,0.4)', src: CHAIN },
   { key: 'turn', name: 'Turn', path: '/turn', tag: 'Ten squares left', accent: '#226218', bg: '#e9f3e6', border: 'rgba(34,98,24,0.4)', src: TURN },
   { key: 'suffice', name: 'Suffice', path: '/suffice', tag: 'Decide what is enough', accent: '#4338ca', bg: '#eef0ff', border: 'rgba(67,56,202,0.4)', src: SUFFICE },
+  { key: 'docket', name: 'Docket', path: '/docket', tag: 'One setup, five deductions', accent: '#5b2333', bg: '#f7e8ec', border: 'rgba(91,35,51,0.4)', src: DOCKET },
   { key: 'redact', name: 'Redact', path: '/redact', tag: 'Uncover the story', accent: '#27272a', bg: '#f4f4f5', border: 'rgba(39,39,42,0.4)', src: REDACT },
   { key: 'paths', name: 'Paths', path: '/paths', tag: 'Link every town', accent: '#065f46', bg: '#e6f4ee', border: 'rgba(6,95,70,0.4)', src: PATHS },
   { key: 'deep', name: 'Deep', path: '/deep', tag: 'One topic, fifteen questions', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)', src: DEEP },

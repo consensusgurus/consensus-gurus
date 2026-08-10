@@ -102,6 +102,7 @@ const GAMES = [
   { key: 'strata', href: '/strata', name: 'Strata', img: '/games/btn-strata.png', store: 'sot_strata_day', tag: "Dig the words out" , cat: 'Word' },
   { key: 'chomp', href: '/chomp', name: 'Chomp', img: '/games/btn-chomp.png', store: 'sot_chomp_day', tag: "Eat them in order" , cat: 'Logic' },
   { key: 'blocks', href: '/blocks', name: 'Blocks', img: '/games/btn-blocks.png', store: 'sot_blocks_day', tag: "Same shapes, same order" , cat: 'Arcade' },
+  { key: 'docket', href: '/docket', name: 'Docket', img: '/games/btn-docket.png', store: 'sot_docket_day', tag: "One setup, five deductions" , cat: 'Logic' },
   { key: 'sweep', href: '/sweep', name: 'Sweep', img: '/games/btn-sweep.png', store: 'sot_sweep_day', tag: "No bottom edge" , cat: 'Arcade' },
   { key: 'redact', href: '/redact', name: 'Redact', img: '/games/btn-redact.png', store: 'sot_redact_day', tag: "Uncover the story" , cat: 'Trivia' },
   { key: 'paths', href: '/paths', name: 'Paths', img: '/games/btn-paths.png', store: 'sot_paths_day', tag: "Link every town" , cat: 'Logic' },

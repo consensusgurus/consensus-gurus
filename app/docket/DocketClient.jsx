@@ -1,0 +1,534 @@
+'use client';
+
+// Docket — the daily deduction game.
+//
+// One setup, four to seven conditions, five questions. The conditions stay PINNED
+// on screen while you work, because that is the whole shape of the format: you
+// read a small formal system once, diagram it, and then answer several questions
+// off the same diagram. Reusing the deductions is the game, so anything that made
+// you scroll back to the rules would be taking the game away.
+//
+// The format is a familiar but retired section of an important standardized test.
+// We do not name it anywhere, here or in the metadata, on purpose.
+//
+// Scoring: one point per question, out of five. Ties on the daily board break by
+// fewest wrong, then fastest time, so `guessesUsed` posts the wrong count.
+//
+// No answer key is shipped: page.js sends each day's formal spec and its rendered
+// prose, and solveDay() here enumerates every arrangement the conditions allow to
+// derive which choice is correct. That is for integrity rather than secrecy, since
+// anyone holding the conditions can already deduce the answers, which is the whole
+// point of the format. Deriving beats storing because a stored key is a second
+// copy of the truth and second copies drift. Enumeration is milliseconds, memoised
+// for the day.
+//
+// Same daily plumbing as Suffice/Sworn/Alibi: banked days gated by Eastern date
+// on the server, per-day localStorage saves, /docket?p=N archive pinning, streaks
+// and stats, and the shared /api/quiz/* board flow.
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { HelpCircle, X, Check, Minus, ChevronDown, ChevronUp, Scale } from 'lucide-react';
+import Grain from '../Grain';
+import Footer from '../Footer';
+import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
+import DailyGamesGrid from '../DailyGamesGrid';
+import DailyEndCard from '../DailyEndCard';
+import DailyChrome from '../DailyChrome';
+import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
+import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import DailyMasthead from '../DailyMasthead';
+import DailyRules from '../DailyRules';
+import { isMobileDevice } from '@/lib/is-mobile';
+import { T } from '@/lib/theme';
+import { solveDay, CHOICE_KEYS, showSolution } from './engine';
+
+const COLORS = {
+  ink: T.ink,
+  faded: T.muted,
+  accent: '#5b2333',        // Docket identity — a law-library oxblood
+  accentSoft: '#f7e8ec',
+  accentDeep: '#3d1622',
+  green: T.successDeep,
+};
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
+const HELP_KEY = 'sot_docket_help_seen';
+
+function etToday() {
+  try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function pickPuzzle(puzzles, forceNum) {
+  if (forceNum) { const p = puzzles.find((x) => x.num === forceNum); if (p) return p; }
+  const today = etToday();
+  const open = puzzles.filter((p) => p.live <= today);
+  return open.length ? open[open.length - 1] : puzzles[0];
+}
+function fmtTime(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function getAnonId() {
+  try {
+    let a = localStorage.getItem('sot_quiz_anon');
+    if (!a) { a = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('sot_quiz_anon', a); }
+    return a;
+  } catch (e) { return ''; }
+}
+
+const freshState = (n) => ({ v: 1, i: 0, picks: Array(n).fill(null), t0: null, tEnd: null, status: 'playing' });
+const EMPTY_BOARD = { plays: 0, best: null, leaderboard: [] };
+
+// ── stats (same shape every daily uses) ──────────────────────────────────────
+const STATS_KEY = 'sot_docket_stats';
+function getStats() {
+  try { const s = JSON.parse(localStorage.getItem(STATS_KEY)); return s && s.byNum ? s : { byNum: {} }; }
+  catch (e) { return { byNum: {} }; }
+}
+function recordStat(num, rec) {
+  const s = getStats();
+  const s2 = { ...s, byNum: { ...s.byNum, [num]: rec } };
+  try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
+  return s2;
+}
+function deriveStats(stats, todayNum) {
+  if (!stats) return { played: 0, wins: 0, cur: 0, max: 0 };
+  const byNum = stats.byNum || {};
+  const nums = Object.keys(byNum).map(Number).sort((a, b) => a - b);
+  const played = nums.length;
+  const wins = nums.filter((n) => byNum[n].won).length;
+  let cur = 0;
+  for (let n = todayNum; n >= 1; n--) {
+    const r = byNum[n];
+    if (!r) { if (n === todayNum) continue; break; }
+    if (!r.won) break;
+    cur++;
+  }
+  let max = 0, run = 0, prev = null;
+  for (const n of nums) {
+    if (!byNum[n].won) { run = 0; prev = n; continue; }
+    run = prev !== null && n === prev + 1 ? run + 1 : 1;
+    if (run > max) max = run;
+    prev = n;
+  }
+  return { played, wins, cur, max: Math.max(max, cur) };
+}
+
+export default function DocketClient({ puzzles = [], forceNum = null }) {
+  const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
+  const QS = PUZZLE.questions;
+  const TOTAL = QS.length;
+  const STORE_KEY = `sot_docket_${PUZZLE.num}`;
+
+  // Every arrangement the conditions allow, and the derived key. Once per day.
+  const SOLVED = useMemo(() => solveDay(PUZZLE), [PUZZLE]);
+  const KEY = SOLVED.keys.map((k) => k.correct);
+
+  const [g, setG] = useState(() => freshState(TOTAL));
+  const [revealed, setRevealed] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [gateRules, setGateRules] = useState(false);
+  const [endClosed, setEndClosed] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [identity, setIdentity] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [mobileUi, setMobileUi] = useState(false);
+  const [setupOpen, setSetupOpen] = useState(true);
+  const searchParams = useSearchParams();
+  const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
+  const viewedRef = useRef(false);
+
+  const playing = g.status === 'playing';
+  const [showChrome, setShowChrome] = useState(false);
+  const focusMode = playing && !showChrome;
+  const preStart = playing && !g.t0;
+  const idx = Math.min(g.i, TOTAL - 1);
+  const q = QS[idx];
+  const correct = g.picks.filter((p, i) => p !== null && p === KEY[i]).length;
+  const wrong = g.picks.filter((p, i) => p !== null && p !== KEY[i]).length;
+  const score = correct;
+
+  useEffect(() => { try { setMobileUi(isMobileDevice()); } catch (e) {} }, []);
+  // On a phone the setup paragraph folds away once you start, because the
+  // CONDITIONS are what you keep needing and the setup is read once.
+  useEffect(() => { if (mobileUi && g.t0) setSetupOpen(false); }, [mobileUi, g.t0]);
+
+  // ---- persistence ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && saved.v === 1 && Array.isArray(saved.picks) && saved.picks.length === TOTAL) setG({ ...freshState(TOTAL), ...saved });
+      }
+      setGateRules(!localStorage.getItem(HELP_KEY));
+    } catch (e) {}
+    try { setStats(getStats()); } catch (e) {}
+    setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!hydrated) return;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(g)); } catch (e) {}
+    try {
+      if (PUZZLE.num === pickPuzzle(puzzles, null).num) {
+        const done = g.status !== 'playing';
+        if (done || g.t0) localStorage.setItem('sot_docket_day', JSON.stringify({ d: etToday(), done }));
+        else localStorage.removeItem('sot_docket_day');
+      }
+    } catch (e) {}
+  }, [g, hydrated, STORE_KEY, PUZZLE, puzzles]);
+
+  // Live clock, ticked from state so the readout moves on its own.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    if (!playing || !g.t0 || g.tEnd) return undefined;
+    setNowTick(Date.now());
+    const iv = setInterval(() => setNowTick(Date.now()), 500);
+    return () => clearInterval(iv);
+  }, [playing, g.t0, g.tEnd]);
+  const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
+
+  // ---- metrics + leaderboard ----
+  useEffect(() => {
+    try {
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity'));
+      if (id && id.email) setIdentity(id);
+    } catch (e) {}
+    fetch(`/api/quiz/board?quizId=${encodeURIComponent(PUZZLE.quizId)}`)
+      .then((r) => r.json())
+      .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+      .catch(() => {});
+    if (!viewedRef.current) {
+      viewedRef.current = true;
+      fetch('/api/quiz/view', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quizId: PUZZLE.quizId }) }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // An abandoned day still records, per the site-wide rule. Answering at least
+  // one question is the "started" signal; opening the page and leaving is not.
+  const REC_KEY = `sot_docket_rec_${PUZZLE.num}`;
+  const abandon = useAbandonFlush(() => {
+    if (!playing || !g.picks.some((p) => p !== null)) return null;
+    try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
+    const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
+    try { localStorage.setItem(REC_KEY, '1'); } catch (e) {}
+    return { quizId: PUZZLE.quizId, score: correct, total: TOTAL, correct, guessesUsed: wrong, timeElapsed: el, abandoned: true, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') };
+  });
+
+  function postResult(g2, sc, wr) {
+    abandon.markFlushed();
+    const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: TOTAL, g: wr, won: sc === TOTAL })); } catch (e) {}
+    try {
+      fetch('/api/quiz/result', {
+        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: TOTAL, correct: sc, guessesUsed: wr, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+      })
+        .then((r) => r.json())
+        .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
+        .catch(() => {});
+    } catch (e) {}
+  }
+
+  function start() {
+    setG((cur) => (cur.t0 ? cur : { ...cur, t0: Date.now() }));
+    try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {}
+    setGateRules(false);
+  }
+
+  function answer(ci) {
+    if (!playing || revealed || g.picks[idx] !== null) return;
+    setG((cur) => {
+      const picks = cur.picks.slice();
+      picks[idx] = ci;
+      return { ...cur, picks };
+    });
+    setRevealed(true);
+  }
+
+  function next() {
+    setRevealed(false);
+    if (idx + 1 >= TOTAL) {
+      setG((cur) => {
+        const g2 = { ...cur, status: 'done', tEnd: Date.now() };
+        const c = g2.picks.filter((p, i) => p !== null && p === KEY[i]).length;
+        const w = g2.picks.filter((p, i) => p !== null && p !== KEY[i]).length;
+        postResult(g2, c, w);
+        return g2;
+      });
+    } else {
+      setG((cur) => ({ ...cur, i: cur.i + 1 }));
+    }
+  }
+
+  function resetGame() {
+    setG(freshState(TOTAL));
+    setRevealed(false);
+    setEndClosed(false);
+    setSetupOpen(true);
+  }
+
+  function copyShare() {
+    // Squares only. The pattern shows how you did and never which choice was
+    // right, so a shared result cannot hand anyone the key.
+    const marks = g.picks.map((p, i) => (p === KEY[i] ? '🟥' : '⬜')).join('');
+    const txt = `Docket #${PUZZLE.num}\n${score}/${TOTAL} · ${elapsed}\n${marks}\nmindloftdaily.com/docket`;
+    try {
+      navigator.clipboard.writeText(txt);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {}
+  }
+
+  const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
+  const picked = g.picks[idx];
+  const answerKey = KEY[idx];
+  const hyb = PUZZLE.spec.k === 'hyb';
+
+  return (
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+      <Grain />
+      <DailyChrome slug="docket" name="Docket" collapsed={!!g.t0} />
+      <div className="dk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+        <style>{`
+          @media(max-width:560px){.dk-wrap{padding-left:12px !important;padding-right:12px !important;}}
+          .dk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .dk-btn:hover{background:${COLORS.accentSoft};}
+          .dk-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .dk-btn.primary:hover{background:${COLORS.accentDeep};}
+          .dk-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${COLORS.ink};}
+          .dk-choice:hover:not(:disabled){border-color:${COLORS.accent};background:${COLORS.accentSoft};}
+          .dk-choice:disabled{cursor:default;}
+          .dk-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
+          .dk-choice.right{border-color:${COLORS.green};background:#dcfce7;}
+          .dk-choice.right .k{background:${COLORS.green};color:var(--white);}
+          .dk-choice.wrong{border-color:#b91c1c;background:#fee2e2;}
+          .dk-choice.wrong .k{background:#b91c1c;color:var(--white);}
+          .dk-choice .mono{font-family:${MONO};letter-spacing:0.02em;}
+          .dk-cond{display:flex;gap:9px;font-size:13.5px;line-height:1.5;color:${COLORS.ink};padding:4px 0;}
+          .dk-cond .n{font-family:${MONO};font-weight:700;color:${COLORS.accent};flex:0 0 auto;}
+          .dk-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
+          .dk-pip.on{background:${COLORS.accent};}
+          .dk-pip.miss{background:#b91c1c;}
+          .dk-panel{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:11px;padding:12px 14px;margin-bottom:10px;}
+          .dk-setup{font-size:14px;line-height:1.6;color:${COLORS.faded};font-weight:600;}
+          .dk-fold{background:none;border:none;padding:0;cursor:pointer;font-family:${MONO};font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;font-weight:700;color:${COLORS.accent};display:inline-flex;align-items:center;gap:4px;}
+        `}</style>
+
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <DailyMasthead
+            slug="docket"
+            num={PUZZLE.num}
+            dateLabel={PUZZLE.dateLabel}
+            accent={COLORS.accent}
+            blockGap={4}
+            helpTop={8}
+            onHelp={() => setShowHelp(true)}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Two Dimensions</span>}
+            blocks={'DOCKET'.split('').map((ch, i) => (
+              <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            ))}
+          />
+
+          {/* start tile */}
+          {preStart && (
+            <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
+              <h2 style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, margin: '0 0 8px' }}>
+                One small world, {TOTAL} questions about it.
+              </h2>
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: COLORS.faded, fontWeight: 600, margin: '0 0 12px' }}>
+                Today it is <b style={{ color: COLORS.accentDeep }}>{PUZZLE.title}</b>. Read the setup and the
+                conditions, work out what they force, then answer. The conditions stay on screen the whole
+                time, because <b style={{ color: COLORS.accentDeep }}>the deductions are meant to be reused</b>.
+                If the format feels familiar, it is: this is the reasoning section a well known standardized
+                test used to run, and quietly retired.
+              </p>
+              {gateRules && (
+                <div style={{ marginBottom: 14 }}>
+                  <DailyRules
+                    accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
+                    steps={[
+                      <>Diagram the conditions <b>before</b> you look at the first question.</>,
+                      <>Chain them. Two conditions together usually force a third thing neither says.</>,
+                      <>&ldquo;Must be true&rdquo; means true in <b>every</b> arrangement the conditions allow, not just a likely one.</>,
+                    ]}
+                    knack="For could-be-true, try to build one arrangement that does it. For must-be-true, try to build one that does not. One counterexample settles it either way."
+                    footer={`One point per question, ${TOTAL} today. No going back once you answer.`}
+                  />
+                </div>
+              )}
+              <button className="dk-btn primary" onClick={start}>Start</button>
+              {!gateRules && (
+                <button className="dk-btn" style={{ marginLeft: 8 }} onClick={() => setGateRules(true)}>Show instructions</button>
+              )}
+            </div>
+          )}
+
+          {/* ── the pinned brief: setup + conditions, always available ───────── */}
+          <div className="dk-panel">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: setupOpen ? 7 : 0 }}>
+              <Scale size={15} color={COLORS.accent} />
+              <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.accent }}>
+                {PUZZLE.title}
+              </span>
+              <button className="dk-fold" style={{ marginLeft: 'auto' }} onClick={() => setSetupOpen((v) => !v)}>
+                {setupOpen ? <>Hide setup <ChevronUp size={13} /></> : <>Show setup <ChevronDown size={13} /></>}
+              </button>
+            </div>
+            {setupOpen && <div className="dk-setup" style={{ marginBottom: 9 }}>{PUZZLE.setup}</div>}
+            <div style={{ borderTop: setupOpen ? '1px solid rgba(28,30,36,0.09)' : 'none', paddingTop: setupOpen ? 8 : 6 }}>
+              {PUZZLE.rules.map((r, i) => (
+                <div className="dk-cond" key={i}><span className="n">({i + 1})</span><span>{r}</span></div>
+              ))}
+            </div>
+          </div>
+
+          {!preStart && (
+            <>
+              {/* progress + clock */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 0 12px' }}>
+                <div style={{ display: 'flex', gap: 4, flex: 1 }}>
+                  {QS.map((_, i) => (
+                    <div key={i} className={`dk-pip${g.picks[i] !== null ? (g.picks[i] === KEY[i] ? ' on' : ' miss') : ''}`} />
+                  ))}
+                </div>
+                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>
+                  {Math.min(idx + 1, TOTAL)}/{TOTAL} &middot; {elapsed}
+                </div>
+              </div>
+
+              {playing && (
+                <>
+                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 700, marginBottom: 6 }}>
+                    Question {idx + 1}
+                  </div>
+                  <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 11, padding: '14px 16px', marginBottom: 10 }}>
+                    <div style={{ fontSize: 16.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.45 }}>{q.q}</div>
+                  </div>
+
+                  {q.choices.map((c, ci) => {
+                    let cls = 'dk-choice';
+                    if (revealed) {
+                      if (ci === answerKey) cls += ' right';
+                      else if (ci === picked) cls += ' wrong';
+                    }
+                    const mono = q.kind === 'accept' || q.kind === 'list';
+                    return (
+                      <button key={ci} className={cls} disabled={revealed || picked !== null} onClick={() => answer(ci)}>
+                        <span className="k">{CHOICE_KEYS[ci]}</span>
+                        <span className={mono ? 'mono' : undefined}>{c}</span>
+                        {revealed && ci === answerKey && <Check size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.green }} />}
+                        {revealed && ci === picked && ci !== answerKey && <X size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: '#b91c1c' }} />}
+                      </button>
+                    );
+                  })}
+
+                  {/* the reveal, which is where the format actually teaches */}
+                  {revealed && (
+                    <div style={{ background: COLORS.accentSoft, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.accentDeep, marginBottom: 7 }}>
+                        {picked === answerKey ? 'Correct.' : `Not quite. The answer is ${CHOICE_KEYS[answerKey]}.`}
+                      </div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.6, color: COLORS.ink }}>{q.note}</div>
+                      <button className="dk-btn primary" style={{ marginTop: 11 }} onClick={next}>
+                        {idx + 1 >= TOTAL ? 'Finish' : 'Next question'}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!playing && (
+                <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: COLORS.ink, marginBottom: 4 }}>{score}/{TOTAL} &middot; {elapsed}</div>
+                  <div style={{ fontFamily: MONO, fontSize: 11.5, color: COLORS.faded, marginBottom: 10 }}>
+                    {SOLVED.sols.length} arrangement{SOLVED.sols.length === 1 ? '' : 's'} satisfied every condition
+                    {hyb ? ' (an asterisk marks the second dimension)' : ''}
+                  </div>
+                  {QS.map((qq, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '5px 0', borderTop: i ? '1px solid rgba(28,30,36,0.08)' : 'none', fontSize: 13.5 }}>
+                      <span style={{ fontFamily: MONO, color: COLORS.faded, flex: '0 0 auto', width: 20 }}>{i + 1}</span>
+                      <span style={{ flex: '0 0 auto', width: 22, height: 22, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, background: g.picks[i] === KEY[i] ? COLORS.green : '#b91c1c', color: T.white }}>{CHOICE_KEYS[KEY[i]]}</span>
+                      <span style={{ color: COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{qq.q}</span>
+                      {g.picks[i] !== null && g.picks[i] !== KEY[i] && <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>you said {CHOICE_KEYS[g.picks[i]]}</span>}
+                      {g.picks[i] === null && <Minus size={14} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.faded }} />}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {focusMode && (
+            <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
+              <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
+              <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
+            </div>
+          )}
+          <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
+            <DailyGamesGrid
+              self="docket"
+              maxWidth={640}
+              replay={!playing ? resetGame : null}
+              challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
+              share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }}
+              light
+              divider
+              boardSlot={<DailyBoardPanel self="docket" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />}
+            />
+          </div>
+        </div>
+      </div>
+
+      {!playing && !endClosed && (
+        <DailyEndCard
+          modal
+          self="docket"
+          won={score === TOTAL}
+          completed
+          headline={score === TOTAL ? <>All five</> : <>{score} of {TOTAL}</>}
+          subline={<>Docket #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {wrong} wrong &middot; {elapsed}</>}
+          onShare={copyShare}
+          shareLabel={copied ? 'Copied' : 'Share Result'}
+          onReplay={resetGame}
+          onClose={() => setEndClosed(true)}
+        />
+      )}
+
+      <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
+
+      {showHelp && (
+        <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
+              <HelpCircle size={19} color={COLORS.accent} />
+              <b style={{ fontSize: 17, color: COLORS.ink }}>How Docket works</b>
+              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, margin: '0 0 10px' }}>
+              A setup describes a small world, the numbered conditions constrain it, and every question is
+              about what those conditions do and do not force. It is the analytical reasoning format a
+              well known standardized test ran for decades before retiring it.
+            </p>
+            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 12px', paddingLeft: 20 }}>
+              <li>Diagram first. The conditions stay pinned so you only do that once.</li>
+              <li>&ldquo;Could be true&rdquo; needs one arrangement that works. &ldquo;Must be true&rdquo; needs all of them.</li>
+              <li>A question that starts &ldquo;If ...&rdquo; applies only inside that question.</li>
+              <li>One point per question, {TOTAL} on the board today.</li>
+            </ul>
+            <button className="dk-btn primary" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}>Play</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+    </div>
+  );
+}
