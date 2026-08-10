@@ -4,11 +4,11 @@
 //
 // A handful of mascots on a small board, eaten in order, one square per
 // keypress. The BULLDOG always goes first and the rest are dealt fresh daily;
-// the cast runs six to seven on a weekday and the full eight on a Sunday. The
-// board size is the weekday's too, 8x8 early in the week and 7x7 from Friday,
-// so read it off PUZZLE.w rather than assuming one (it was 13x13 at launch and
-// 10x10 after that, and the copy on this page outlived both). Two rules carry
-// it, and everything else here serves them:
+// the cast runs six to seven on a weekday and the full eight on a Sunday. Every
+// board is 7x7 from 2026-08-11, but read the size off PUZZLE.w rather than
+// assuming it: this game has been 13x13, then 10x10, then a mix of 8x8 and 7x7,
+// and the copy on this page outlived every one of them. Two rules carry it, and
+// everything else here serves them:
 //
 //   1. THE BODY NEVER RETRACTS. Every square the head touches is yours for the
 //      rest of the run, so your trail is a permanent wall. The shortest hop to

@@ -3,22 +3,36 @@
 //
 // Everything here is RECOMPUTED from the board, never read back off the row.
 //
-// ⚠️ REWRITTEN 2026-08-09, because the version this replaced passed a bank that
-// played itself. It is worth being precise about how, since the failure was in
-// the CHECK rather than in the data:
+// ⚠️ REWRITTEN AGAIN 2026-08-10, because the 2026-08-09 rewrite passed a bank
+// the owner still called far too easy, early-week days included. Both failures
+// are recorded here because the second one repeated the first one's mistake in a
+// stronger disguise:
 //
-//   It gated on a CAREFUL GREEDY BOT: head for the mascot in front of you, refuse
-//   any move that visibly strands something. A board that bot could not finish
-//   was called hard. Measured after the complaint, a BEAM PLANNER holding a few
-//   hundred ideas at once cleared 63 of those 70 boards. The bank was hard for a
-//   bot and easy for a person, which is the wrong way round, and it was the third
-//   player model in a row to be beaten this way (myopic, then careful, now this).
+//   ROUND ONE gated on a CAREFUL GREEDY BOT. A 300-wide BEAM PLANNER cleared 63
+//   of the 70 boards it approved.
 //
-//   So the model is no longer the whole story. The bank also has to be TIGHT: a
-//   board where the shortest legal route uses 40 of 100 squares leaves the trail
-//   too much room to ever be a wall, whatever bot you point at it. That is the
-//   coverage ramp below, and it is a property of the BOARD rather than of any
-//   player, which is why it is the check worth trusting.
+//   ROUND TWO gated on that beam, at width 300. The SAME beam at width 2000
+//   clears 90% of the boards THAT approved, and a 300-wide beam with a different
+//   scoring function clears several of them outright. Fourth player model, fourth
+//   time beaten.
+//
+// So there is NO BOT GATE HERE any more, at either end. A beam is still run, but
+// only to PRINT what it managed, because normalising a bank to "just barely beats
+// the current bot" is what produced two easy banks in a row. The gates are all
+// properties of the BOARD, which cannot be gamed by tuning a player:
+//
+//   SPARE SQUARES. The sum of the legs' Manhattan distances is a proven lower
+//   bound on any legal route, so `cells - (min + 1)` is the number of squares the
+//   player is FREE TO WASTE. Round one let Monday waste twenty-four of sixty-four.
+//   Monday now wastes nine of forty-nine and Sunday wastes none.
+//
+//   FORGIVENESS. Walk a winning route and ask, at every ply, how many of the legal
+//   moves still leave the board winnable. Coverage says how much of the board you
+//   have to use; this says what a careless move costs. Round one's Monday ran 79%,
+//   so four moves in five were survivable. Nothing here is above 72%.
+//
+// The two are not the same thing and a board can pass one and fail the other,
+// which is why both are gates.
 //
 // The claims checked, in order:
 //   shape       row shape, the weekday ramp, cast rules, pellet placement
@@ -26,36 +40,51 @@
 //   findable    an independent exhaustive search finds the optimum, and
 //               lib/chomp-engine replays it move for move
 //   sunday      the flag matches the calendar, and Sunday is the peak rung
-//   difficulty  no unplanned line, no careful player, AND NO BEAM PLANNER clears
-//               any board
-//   ramp        forced coverage rises Monday to Sunday and lands in each day's
-//               band
+//   difficulty  no unplanned line and no careful player clears a board, every
+//               board is punishing enough on the forgiveness measure, and the
+//               beam planner's score is printed rather than gated on
+//   ramp        spare squares fall Monday to Sunday and land in each day's band
 //   variety     start squares, mascot squares and cast orders spread out
 //   scoring     partial credit behaves at every cast length
 import { PUZZLES, MASCOTS } from '../app/chomp/puzzles.js';
 import { replay } from '../lib/chomp-engine.js';
 
-// Days one and two shipped before the rebuild and have been PLAYED and scored,
-// so their boards are frozen history and the new gates do not run on them. Their
-// annotations (floor, min) are still recomputed, because those are derived facts
-// rather than the puzzle.
-const REBUILT_FROM = '2026-08-10';
+// Days one to three shipped before this tightening and have been PLAYED and
+// scored, so their boards are frozen history and the new gates do not run on
+// them. Their annotations (floor, min) are still recomputed, because those are
+// derived facts rather than the puzzle. Never move this date backwards: it would
+// re-gate a board somebody already has a result on.
+const REBUILT_FROM = '2026-08-11';
 
 const FIRST_MASCOT = 'bulldog';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-// THE WEEKDAY RAMP. Board size, cast size, and the forced-coverage band, indexed
-// by getUTCDay so index 0 is Sunday. Coverage is (min + 1) / cells: the share of
-// the board the player has NO CHOICE but to use. 6x6 is deliberately absent, see
+// THE WEEKDAY RAMP, indexed by getUTCDay so index 0 is Sunday.
+//
+// The dial is SPARE SQUARES: cells - (min + 1), the number of squares the player
+// is free to waste, because no leg can be walked in fewer moves than its Manhattan
+// distance. It is quoted in squares rather than in percent because that is the
+// thing you can feel, and because a percentage hid how loose the old bank was (a
+// Monday "forcing 63%" is a Monday handing you twenty-four free squares).
+//
+// The whole week is 7x7 from 2026-08-11. 8x8 with a cast of six cannot be squeezed
+// past about 80%, and 9x9 and up cannot be squeezed at all: long enough legs to
+// force it make the board unsolvable instead. 6x6 is out the other end. See
 // app/chomp/puzzles.js.
 const RAMP = [
-  { w: 7, cast: 8, cov: [0.88, 1.00] },  // Sun
-  { w: 8, cast: 6, cov: [0.56, 0.66] },  // Mon
-  { w: 8, cast: 6, cov: [0.64, 0.72] },
-  { w: 8, cast: 7, cov: [0.70, 0.78] },
-  { w: 8, cast: 7, cov: [0.76, 0.84] },
-  { w: 7, cast: 6, cov: [0.80, 0.88] },
-  { w: 7, cast: 7, cov: [0.84, 0.92] },  // Sat
+  { w: 7, cast: 8, spare: [0, 1] },   // Sun: the whole cast, and no room at all
+  { w: 7, cast: 6, spare: [9, 10] },  // Mon: the most slack of the week, and it is nine squares
+  { w: 7, cast: 6, spare: [7, 8] },
+  { w: 7, cast: 7, spare: [6, 6] },
+  { w: 7, cast: 7, spare: [5, 5] },
+  { w: 7, cast: 7, spare: [4, 4] },
+  { w: 7, cast: 7, spare: [2, 3] },   // Sat
 ];
+// A board may not leave more than 72% of the moves open to you survivable, and at
+// least 40% of the plies where you HAVE a choice must have exactly one right
+// answer. Both are ceilings the bank clears with room, not targets to build to:
+// the bank runs 59-70% and 59-100%.
+const FORGIVE_MAX = 0.72;
+const FORCED_MIN = 0.40;
 const CAST_MIN = 6, CAST_MAX = 8;
 const SOLVER_CAP = 4000000;
 const BEAM_WIDTH = 300;
@@ -72,6 +101,7 @@ const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const dowOf = (p) => new Date(`${p.live}T12:00:00Z`).getUTCDay();
 const rungOf = (p) => RAMP[dowOf(p)];
 const coverOf = (p, min) => (min + 1) / (p.w * p.h);
+const spareOf = (p, min) => p.w * p.h - (min + 1);
 
 function floorOf(p) {
   let L = manh(p.start, p.pellets[0]);
@@ -308,6 +338,81 @@ function beamClears(p, W = BEAM_WIDTH) {
   return { cleared: false, caught: beam.length ? Math.max(...beam.map((s) => s.pi)) : 0 };
 }
 
+// FORGIVENESS: what a careless move costs, measured on the BOARD.
+//
+// Walk one winning route and, at every single ply, ask of each LEGAL move whether
+// the board is still winnable after it. A board where nearly every move survives
+// does not punish anybody, however much of it the route has to cover, and that is
+// exactly the bank the owner rejected twice. Reported as two numbers: the share of
+// available moves that survive, and the share of the plies where you actually had
+// a choice that had exactly ONE right answer.
+//
+// The winnability oracle is the same exhaustive search used everywhere else,
+// restarted from a mid-run position with the trail already down. `capped` means it
+// ran out of nodes and the number is not to be trusted, which is a failure rather
+// than a pass: an unmeasurable board does not ship.
+function forgiveness(p, cap = 400000) {
+  const C = p.w * p.h, K = p.pellets.length;
+  let capped = false;
+  const winnable = (occ0, hx, hy, pi) => {
+    const occ = Uint8Array.from(occ0); occ[idxOf(p, hx, hy)] = 1;
+    const bl = blocker(p, occ), reach = reacher(p, occ);
+    let n = 0, hit = false;
+    const dfs = (x, y, k) => {
+      if (k >= K) return true;
+      if (++n > cap) { hit = true; return false; }
+      const t = p.pellets[k];
+      const opts = DIRS.filter((d) => !bl(k, x + d[0], y + d[1]))
+        .sort((a, b) => manh([x + a[0], y + a[1]], t) - manh([x + b[0], y + b[1]], t));
+      for (const d of opts) {
+        const nx = x + d[0], ny = y + d[1];
+        const nk = (nx === t[0] && ny === t[1]) ? k + 1 : k;
+        occ[idxOf(p, nx, ny)] = 1;
+        if (nk >= K || reach(nk, nx, ny)) { if (dfs(nx, ny, nk)) { occ[idxOf(p, nx, ny)] = 0; return true; } }
+        occ[idxOf(p, nx, ny)] = 0;
+      }
+      return false;
+    };
+    const r = dfs(hx, hy, pi);
+    if (hit) capped = true;
+    return r;
+  };
+  const occ = new Uint8Array(C);
+  let hx = p.start[0], hy = p.start[1], pi = 0;
+  occ[idxOf(p, hx, hy)] = 1;
+  let legalTot = 0, winTot = 0, forced = 0, choicePlies = 0;
+  for (let step = 0; step < C * 2 && pi < K; step++) {
+    const cands = [];
+    for (const d of DIRS) {
+      const nx = hx + d[0], ny = hy + d[1];
+      if (!insideOf(p, nx, ny) || occ[idxOf(p, nx, ny)]) continue;
+      let solid = false;
+      for (let k = pi + 1; k < K; k++) if (p.pellets[k][0] === nx && p.pellets[k][1] === ny) solid = true;
+      if (solid) continue;
+      cands.push([nx, ny]);
+    }
+    if (!cands.length) break;
+    const wins = [];
+    for (const [nx, ny] of cands) {
+      const npi = (p.pellets[pi][0] === nx && p.pellets[pi][1] === ny) ? pi + 1 : pi;
+      const o2 = Uint8Array.from(occ); o2[idxOf(p, nx, ny)] = 1;
+      if (npi >= K) { wins.push([nx, ny, npi]); continue; }
+      if (winnable(o2, nx, ny, npi)) wins.push([nx, ny, npi]);
+    }
+    if (!wins.length) break;
+    legalTot += cands.length; winTot += wins.length;
+    if (cands.length > 1) { choicePlies += 1; if (wins.length === 1) forced += 1; }
+    const pick = wins[0];
+    hx = pick[0]; hy = pick[1]; pi = pick[2]; occ[idxOf(p, hx, hy)] = 1;
+  }
+  if (pi < K || !legalTot) return { ok: false, capped };
+  return {
+    ok: true, capped,
+    forgive: winTot / legalTot,
+    forcedShare: choicePlies ? forced / choicePlies : 1,
+  };
+}
+
 // ---------- 1. row shape, cast and ranges -----------------------------------
 (function shape() {
   const bad = [];
@@ -422,34 +527,51 @@ const MINS = new Map();
   }
 })();
 
-// ---------- 5. difficulty: nothing that plays clears a board ----------------
+// ---------- 5. difficulty: the board punishes, and no bot decides that ------
+// The two cheap player models stay as GATES, because a board an unplanned line or
+// a careful greedy player can finish is trivial by inspection and there is no
+// argument about it. The beam planner is NOT a gate: it was one, twice, and both
+// times the bank simply learned to beat that exact beam. It is run and printed so
+// the number is on the record, and nothing fails on it.
+//
+// The gate that replaced it is FORGIVENESS, above: a property of the board, so it
+// cannot be satisfied by out-tuning whatever bot is fashionable this week.
 (function difficulty() {
-  const soft = [], careless = [], planned = [];
-  const beamGot = [];
+  const soft = [], careless = [], loose = [], unmeasured = [];
+  const beamGot = []; let beamCleared = 0;
+  const fg = [], fs = [];
   let rows = 0;
   for (const p of PUZZLES) {
     if (p.live < REBUILT_FROM) continue;
     rows += 1;
     if (['axis', 'straight', 'bfs'].some((m) => unplanned(p, m).cleared)) soft.push(`#${p.num} (${p.live})`);
     if (carefulClears(p).cleared) careless.push(`#${p.num} (${p.live})`);
+    const f = forgiveness(p);
+    if (!f.ok || f.capped) { unmeasured.push(`#${p.num}`); continue; }
+    fg.push(f.forgive); fs.push(f.forcedShare);
+    if (f.forgive > FORGIVE_MAX + 1e-9) loose.push(`#${p.num} leaves ${Math.round(f.forgive * 100)}% of your moves survivable`);
+    else if (f.forcedShare < FORCED_MIN - 1e-9) loose.push(`#${p.num} has one right answer on only ${Math.round(f.forcedShare * 100)}% of its choices`);
     const b = beamClears(p);
-    if (b.cleared) planned.push(`#${p.num} (${p.live})`);
-    else beamGot.push(b.caught / p.cast.length);
+    if (b.cleared) beamCleared += 1; else beamGot.push(b.caught / p.cast.length);
   }
   if (soft.length) fail('difficulty', `an unplanned line clears these: ${soft.slice(0, 6).join(', ')}`);
   if (careless.length) fail('difficulty', `a careful player clears these without ever being stuck: ${careless.slice(0, 6).join(', ')}`);
-  if (planned.length) fail('difficulty', `a ${BEAM_WIDTH}-wide beam planner clears these, so a person who thinks two moves ahead walks them: ${planned.slice(0, 6).join(', ')}`);
-  if (!soft.length && !careless.length && !planned.length) {
-    const share = (beamGot.reduce((a, b) => a + b, 0) / beamGot.length * 100).toFixed(0);
-    ok('difficulty', `across ${rows}: no unplanned line, no careful player and no ${BEAM_WIDTH}-wide planner clears a single board, the planner stalling at ${share}% of the cast on average`);
+  if (unmeasured.length) fail('difficulty', `forgiveness could not be measured on ${unmeasured.slice(0, 6).join(', ')}, so they are unverified`);
+  if (loose.length) fail('difficulty', `too forgiving: ${loose.slice(0, 5).join('; ')}`);
+  if (!soft.length && !careless.length && !unmeasured.length && !loose.length) {
+    const pc = (a) => `${Math.round(Math.min(...a) * 100)}-${Math.round(Math.max(...a) * 100)}%`;
+    ok('difficulty', `across ${rows}: no unplanned line and no careful player clears a board, ${pc(fg)} of the moves open to you survive (ceiling ${Math.round(FORGIVE_MAX * 100)}%) and ${pc(fs)} of your real choices have exactly one right answer`);
+    const share = beamGot.length ? (beamGot.reduce((a, b) => a + b, 0) / beamGot.length * 100).toFixed(0) : '0';
+    note('planner', `for the record and NOT a gate: a ${BEAM_WIDTH}-wide beam clears ${beamCleared} of ${rows} and stalls at ${share}% of the cast on the rest. A wider one clears more. That is why it does not decide anything here`);
   }
 })();
 
-// ---------- 5b. the ramp is FORCED COVERAGE, and it has to rise -------------
+// ---------- 5b. the ramp is SPARE SQUARES, and it has to fall --------------
 // The old ramp measured how far a bot got, which normalises to "just barely beats
-// it" on every rung and comes out flat. This measures the BOARD instead: the
-// share of the squares a player has no choice but to use. It cannot be gamed by
-// tuning a bot, and it is the thing the rebuild was for.
+// it" on every rung and comes out flat. This measures the BOARD: how many squares
+// the player is free to waste. It cannot be gamed by tuning a bot, and it is quoted
+// in squares because a percentage is what let a Monday leaving twenty-four spare
+// squares read as a respectable 63%.
 (function ramp() {
   const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
   const by = {};
@@ -457,11 +579,11 @@ const MINS = new Map();
   for (const p of rows) {
     const min = MINS.get(p.num);
     if (min == null) continue;
-    const cov = coverOf(p, min), r = rungOf(p);
-    if (cov < r.cov[0] - 1e-9 || cov > r.cov[1] + 1e-9) {
-      stray.push(`#${p.num} ${DOW[dowOf(p)]} forces ${Math.round(cov * 100)}%, outside its ${Math.round(r.cov[0] * 100)}-${Math.round(r.cov[1] * 100)}% band`);
+    const sp = spareOf(p, min), r = rungOf(p);
+    if (sp < r.spare[0] || sp > r.spare[1]) {
+      stray.push(`#${p.num} ${DOW[dowOf(p)]} leaves ${sp} spare square${sp === 1 ? '' : 's'}, outside its ${r.spare[0]}-${r.spare[1]}`);
     }
-    (by[dowOf(p)] = by[dowOf(p)] || []).push(cov);
+    (by[dowOf(p)] = by[dowOf(p)] || []).push(sp);
   }
   const bad = [...stray];
   const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
@@ -469,16 +591,25 @@ const MINS = new Map();
   const got = order.map((d) => (by[d] ? mean(by[d]) : null));
   for (const [i, v] of got.entries()) if (v == null) bad.push(`no boards on ${DOW[order[i]]}`);
   if (!bad.length) {
-    // strictly rising, Monday to Sunday. The bands do not overlap between
-    // adjacent rungs, so unlike the old bot-progress ramp there is no wobble to
-    // tolerate here.
+    // strictly falling, Monday to Sunday. The bands do not overlap between
+    // adjacent rungs, so there is no wobble to tolerate here.
     for (let i = 1; i < got.length; i++) {
-      if (got[i] <= got[i - 1]) bad.push(`${DOW[order[i]]} (${Math.round(got[i] * 100)}%) is not tighter than ${DOW[order[i - 1]]} (${Math.round(got[i - 1] * 100)}%)`);
+      if (got[i] >= got[i - 1]) bad.push(`${DOW[order[i]]} (${got[i].toFixed(1)} spare) is not tighter than ${DOW[order[i - 1]]} (${got[i - 1].toFixed(1)} spare)`);
     }
-    if (got[6] - got[0] < 0.25) bad.push(`Monday to Sunday only spans ${Math.round((got[6] - got[0]) * 100)} points, so the week is flat`);
+    // and the week has to actually GO somewhere. Six squares is the gap between a
+    // day you can wander on and a day you cannot.
+    if (got[0] - got[6] < 6) bad.push(`Monday to Sunday only closes ${(got[0] - got[6]).toFixed(1)} squares, so the week is flat`);
+    // the loosest day of the week is still a real board. This is the check the
+    // owner's complaint was actually about: round one would have passed a Monday
+    // with twenty-four spare squares.
+    const worst = Math.max(...rows.map((p) => spareOf(p, MINS.get(p.num))).filter((v) => Number.isFinite(v)));
+    if (worst > 10) bad.push(`the loosest board of the bank leaves ${worst} spare squares, which is a walk`);
   }
   if (bad.length) fail('ramp', bad.slice(0, 5).join('; '));
-  else ok('ramp', `forced coverage ${order.map((d, i) => `${DOW[d]} ${Math.round(got[i] * 100)}%`).join(', ')}`);
+  else {
+    const covs = rows.map((p) => coverOf(p, MINS.get(p.num)));
+    ok('ramp', `spare squares ${order.map((d, i) => `${DOW[d]} ${got[i].toFixed(1)}`).join(', ')}, so the board forces ${Math.round(Math.min(...covs) * 100)}-${Math.round(Math.max(...covs) * 100)}% of itself`);
+  }
 })();
 
 // ---------- 6. pool variety across the whole bank ---------------------------
