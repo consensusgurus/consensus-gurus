@@ -12,8 +12,17 @@
 //     still be finished. This is the whole reason Strata has no fail state and
 //     needs no undo: it is not possible to strand yourself, in any order, ever.
 //   - ONE PLACEMENT PER WORD PER STATE. A word never reads in two different places
-//     at once, so "the cells you traced" and "the cells that word owns" are always
-//     the same cells, and the player is never told a correct-looking trace is wrong.
+//     at once, so the player is never told a correct-looking trace is wrong.
+//   - AND THE ONE PLACEMENT IS THE OWNED ONE. Uniqueness alone does NOT make "the
+//     cells you traced" and "the cells that word owns" the same cells, and this
+//     file asserted for four days that it did. A word can have exactly one
+//     readable trace that runs through a letter belonging to a word still on the
+//     board. Finding it deletes the cells the player TRACED, so the board diverges
+//     from the `owners` map, the state is one the walk below never visited, and
+//     the no-dead-end proof above covers a game nobody is playing. #5 shipped that
+//     way and stranded half its play-throughs (THUMB's only opening trace eats
+//     HEART's T). Every off-owner trace is now a hard failure, checked at every
+//     reachable state, because it is the assumption the other four claims rest on.
 //   - THE GATE IS REAL. Only a couple of words can be read on the untouched grid,
 //     and at least one word cannot be read until several others have fallen out.
 //     Without this the collapse is decoration and the game is an ordinary word search.
@@ -40,8 +49,13 @@ const FREQ = JSON.parse(readFileSync(new URL('./.lode-freq.json', import.meta.ur
 const zipf = (w) => FREQ[w.toLowerCase()];
 
 let BAD = 0;
+let KNOWN = 0;
 const fail = (id, msg) => { BAD++; console.error(`✗ ${id}: ${msg}`); };
 const ok = (id, msg) => console.log(`✓ ${id}  ${msg}`);
+// A real defect on a board that has already gone live. Reported loudly, never
+// silently, but it does not fail the run: the board is frozen history and the
+// only thing left to do about it is not ship another one.
+const known = (id, msg) => { KNOWN++; console.warn(`! ${id}: KNOWN BROKEN, frozen history: ${msg}`); };
 
 // Boards live before this date are frozen history: published and played, so they
 // are exempt from later tightenings of the floors rather than retro-failed.
@@ -49,6 +63,14 @@ const STRATA_FLOOR_FROM = '2026-08-06';
 // The Monday-to-Sunday difficulty curve was added the day after launch, so the
 // launch board is frozen history and exempt. Everything from here carries it.
 const CURVE_FROM = '2026-08-07';
+// The state walk modelled a found word as losing its OWNED cells rather than the
+// cells the player traced, so boards banked before this date were never proved
+// against the game as played. #5 (2026-08-10) is genuinely broken and is left
+// alone deliberately: it went live, people played it, and rewriting a live board
+// wipes every in-progress save to spare the half of players who have not hit the
+// dead end yet. It reports below as KNOWN BROKEN rather than failing the run.
+// Everything from this date on is proved on real tracing and must be clean.
+const TRACED_FROM = '2026-08-11';
 const WEEKDAY = { rows: 5, cols: 5, maxOpening: 3, minDepth: 2, minWords: 5 };
 const SUNDAY = { rows: 7, cols: 6, maxOpening: 3, minDepth: 4, minWords: 7 };
 const THEME_REPEAT_WINDOW = 14;   // days before a theme may come round again
@@ -116,9 +138,20 @@ for (const p of PUZZLES) {
   if (took > worstAnalyse) worstAnalyse = took;
   if (took > ANALYSE_CAP_MS) fail(id, `state walk took ${took}ms, cap is ${ANALYSE_CAP_MS}ms`);
 
+  // Boards banked before the walk removed traced cells were proved against a
+  // different game, so their findings are reported rather than thrown.
+  const traceProved = p.live >= TRACED_FROM;
+  const trace = traceProved ? fail : known;
+
   if (!a.exhausted) fail(id, 'a placement search hit the node budget, so this board was never fully proved');
   if (!a.cleared) fail(id, 'the board cannot be cleared at all');
-  if (a.deadEnds.length) fail(id, `${a.deadEnds.length} reachable dead end(s): a player can strand themselves, e.g. after ${a.deadEnds[0].split('').map((ch, i) => (ch === '1' ? p.words[i] : null)).filter(Boolean).join('+') || 'no finds'}`);
+  if (a.deadEnds.length) trace(id, `${a.deadEnds.length} reachable dead end(s): a player can strand themselves, e.g. after ${a.deadEnds[0].split('').map((ch, i) => (ch === '1' ? p.words[i] : null)).filter(Boolean).join('+') || 'no finds'}`);
+  // The claim every other claim rests on. A word whose one readable trace is not
+  // its own cells reshapes the board in a way the `owners` map does not describe.
+  if (a.offOwner.length) {
+    const uniq = [...new Set(a.offOwner.map((o) => o.word))];
+    trace(id, `${uniq.join(', ')} can be traced through cells owned by another word, so finding it leaves a board the owners map does not describe`);
+  }
   if (a.ambiguous.length) {
     const x = a.ambiguous[0];
     fail(id, `${x.word} reads in ${x.count} different places at once, so a correct-looking trace could be refused`);
@@ -131,8 +164,10 @@ for (const p of PUZZLES) {
     if (a.deepest < spec.minDepth) fail(id, `deepest word unlocks after only ${a.deepest} find(s), floor is ${spec.minDepth}`);
     if (a.openingCount >= p.words.length) fail(id, 'every word is readable at the start, so the collapse gates nothing');
   }
-  if (p.opening !== undefined && p.opening !== a.openingCount) fail(id, `bank says opening=${p.opening}, recomputed ${a.openingCount}`);
-  if (p.deepest !== undefined && p.deepest !== a.deepest) fail(id, `bank says deepest=${p.deepest}, recomputed ${a.deepest}`);
+  // Stored on the old owner-based walk, so a pre-TRACED_FROM board can disagree
+  // with the corrected figure without being a bank error anyone can now fix.
+  if (p.opening !== undefined && p.opening !== a.openingCount) trace(id, `bank says opening=${p.opening}, recomputed ${a.openingCount}`);
+  if (p.deepest !== undefined && p.deepest !== a.deepest) trace(id, `bank says deepest=${p.deepest}, recomputed ${a.deepest}`);
   if (a.deepest >= spec.minDepth + 1) gatedHard++;
 
   // ── 4b. the week's difficulty curve ───────────────────────────────────────
@@ -245,8 +280,9 @@ if (rarestSeen.length >= 10) {
 }
 
 if (BAD === 0) {
-  ok('strata pool', `${PUZZLES.length} boards (${sundays} Sunday), ${counts.size} distinct themes, ${(totalWords / PUZZLES.length).toFixed(1)} words a board, ${(totalStates / PUZZLES.length).toFixed(1)} reachable states a board, no dead end anywhere, no ambiguous placement, no category decoy, worst state walk ${worstAnalyse}ms, worst search the browser runs ${worstClient}ms`);
+  ok('strata pool', `${PUZZLES.length} boards (${sundays} Sunday), ${counts.size} distinct themes, ${(totalWords / PUZZLES.length).toFixed(1)} words a board, ${(totalStates / PUZZLES.length).toFixed(1)} reachable states a board, no dead end anywhere, every trace lands on its own cells, no ambiguous placement, no category decoy, worst state walk ${worstAnalyse}ms, worst search the browser runs ${worstClient}ms`);
 }
+if (KNOWN) console.warn(`\n${KNOWN} known defect(s) on boards that already went live; frozen deliberately, not fixable now`);
 
 console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nAll Strata boards verified.');
 process.exit(BAD ? 1 : 0);

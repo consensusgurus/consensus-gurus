@@ -47,7 +47,7 @@ export const DIFFICULTY = {
 };
 export const dayRule = (iso) => DIFFICULTY[new Date(iso + 'T12:00:00Z').getUTCDay()];
 
-function rng(seed) {
+export function rng(seed) {
   let a = seed >>> 0;
   return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
@@ -58,7 +58,7 @@ function shuffle(r, arr) { const a = arr.slice(); for (let i = a.length - 1; i >
 // range. An exact search, not a greedy fill: greedy takes words while they fit and
 // then dead-ends two letters short, which quietly made every weekday a five word
 // board because only the longest-first pass ever landed on the number.
-function subsets(r, pool, target, minW, maxW, tries = 900) {
+export function subsets(r, pool, target, minW, maxW, tries = 900) {
   const out = new Map();
   for (let t = 0; t < tries && out.size < 40; t++) {
     const want = minW + Math.floor(r() * (maxW - minW + 1));
@@ -233,6 +233,11 @@ export function findBoard(seed, spec) {
     // not fully proved. Never ship one of those; throw it away and move on.
     if (!a.exhausted) continue;
     if (!a.cleared || a.deadEnds.length || a.ambiguous.length || a.unreachable.length) continue;
+    // A word whose one readable trace runs through another word's cells reshapes
+    // the board away from the `owners` map, which is what the whole proof above
+    // is written against. Boards built before this check shipped dead ends the
+    // state walk never saw: #5, #8, #32. Throw them away here, not in review.
+    if (a.offOwner.length) continue;
     if (a.openingCount > maxOpening || a.deepest < minDepth) continue;
     const dec = decoys(p);
     if (dec.length || dec.exhausted === false) continue;

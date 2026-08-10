@@ -3512,6 +3512,19 @@ nobody had written the check. These twelve rules are how that stops.
    solution, count solutions with a cap of 2 and fail at 2. Two Glyph boards have two
    valid mappings and shipped anyway.
 
+4b. **The state walk applies the move the PLAYER makes, never the move the bank
+   describes.** A verifier that advances the game by its own answer key is proving a
+   different game, and every state reachable only through a real move is outside the
+   proof entirely. Strata modelled a found word as losing the cells its `owners` map
+   said it owned; the game deletes the cells the player TRACED, and those differ the
+   moment a word's one readable trace runs through a letter still owned by another
+   word. Board #5 (2026-08-10) shipped stranding half its play-throughs, and the
+   verifier reported it clean the whole time, because the stranded state was never in
+   the graph. Note the shape of the mistake, since it generalizes: the file asserted
+   "one placement per word per state" and then treated that as proof the placement was
+   the OWNED one. Uniqueness is not identity. Where a claim rests on an assumption
+   like that, assert the assumption too rather than reasoning to it in a comment.
+
 5. **The Sunday Edition proves its own scaling.** Assert that the knob which is supposed
    to grow actually grew on every `sunday: true` board, and that the flag lands on a real
    Sunday.

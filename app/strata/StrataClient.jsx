@@ -31,7 +31,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Lightbulb, Flag } from 'lucide-react';
+import { HelpCircle, X, Lightbulb, Flag, RotateCcw } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -384,6 +384,77 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
     });
   }
 
+  // ---- the backstop ----
+  // A VERIFIED BOARD CAN NEVER REACH THIS. scripts/verify-strata.mjs walks every
+  // state a player can trace into and fails any board with a dead end, so this
+  // is here for the day that proof is wrong again rather than for the game.
+  //
+  // It was wrong once. The state walk modelled a found word as losing the cells
+  // the bank says it OWNS, not the cells the player traced, and those differ the
+  // moment a word's only readable trace runs through a letter belonging to a word
+  // still on the board. #5 (2026-08-10) shipped that way: THUMB's opening trace
+  // eats HEART's T, and half of that day's play-throughs ended on a board holding
+  // HEART's letters in a shape HEART cannot be read in. The engine is fixed and
+  // the bank is clean, but "you cannot get stuck" is printed in the rules two
+  // inches above the grid, so the game should be able to make that true by itself.
+  //
+  // Taking the last word back costs NOTHING: not a hint, not the clock, not the
+  // score. The board is at fault, never the player, and charging them for our
+  // proof having a hole in it is the wrong way round.
+  const stuck = useMemo(() => {
+    if (!playing || !g.t0 || lifting || !remaining.length) return false;
+    const grid = gridOf(rows, cols, columns, removed);
+    return !remaining.some((w) => findOne(grid, w, cells, rows, cols));
+  }, [playing, g.t0, lifting, remaining, rows, cols, columns, removed, cells]);
+
+  // Can the rest of the board still be cleared from here, in SOME order? The same
+  // question the verifier asks, asked from one state instead of all of them. It
+  // is only ever called on a stuck board, which a clean bank never produces, and
+  // a real board settles it in a few dozen states.
+  const finishable = useCallback((rem0, left0) => {
+    const seen = new Set();
+    let budget = 4000;
+    const go = (rem, left) => {
+      if (!left.length) return true;
+      if (--budget < 0) return false;
+      const k = `${[...rem].sort((a, b) => a - b).join(',')}|${left.join(',')}`;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      const grid = gridOf(rows, cols, columns, rem);
+      for (const w of left) {
+        const path = findOne(grid, w, cells, rows, cols);
+        if (!path) continue;
+        const rem2 = new Set(rem); for (const id of path) rem2.add(id);
+        if (go(rem2, left.filter((x) => x !== w))) return true;
+      }
+      return false;
+    };
+    return go(rem0, left0);
+  }, [rows, cols, columns, cells]);
+
+  // How far back the board has to go to be winnable again. One step is not enough
+  // on a genuinely broken board: rewinding WRIST on #5 hands back a grid whose
+  // only readable word is WRIST, so the player is stuck again on the next tap and
+  // has to keep pressing. Walk back to the deepest state the board can still be
+  // FINISHED from, so one press always ends the problem. 0 means back to a clean
+  // grid, which on #5 is the honest answer: its opening THUMB is the fatal move.
+  const unstickTo = useMemo(() => {
+    if (!stuck) return null;
+    for (let k = g.found.length - 1; k >= 0; k--) {
+      const keep = g.found.slice(0, k);
+      const rem = new Set();
+      for (const f of keep) for (const id of f.ids) rem.add(id);
+      if (finishable(rem, words.filter((w) => !keep.some((f) => f.word === w)))) return k;
+    }
+    return Math.max(0, g.found.length - 1);
+  }, [stuck, g.found, words, finishable]);
+
+  function unstick() {
+    if (unstickTo === null) return;
+    setTrace([]);
+    setG((cur) => ({ ...cur, found: cur.found.slice(0, unstickTo) }));
+  }
+
   function resetGame() {
     setG(freshState());
     setTrace([]); setLifting(null); setEndClosed(false);
@@ -564,6 +635,25 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                 {playing && remaining.map((w) => <span key={w} className="st-slot">{'·'.repeat(w.length)}</span>)}
                 {!playing && remaining.map((w) => <span key={w} className="st-slot" style={{ letterSpacing: '0.08em', color: '#b91c1c' }}>{w}</span>)}
               </div>
+
+              {stuck && (
+                <div style={{ border: `1.5px solid ${COLORS.accentDeep}`, borderRadius: 10, padding: '12px 14px', marginBottom: 14, background: COLORS.accentSoft }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 14, color: COLORS.accentDeep, marginBottom: 4 }}>
+                    Nothing left to read. That is our fault, not yours.
+                  </div>
+                  <div style={{ fontFamily: SANS, fontSize: 13, color: COLORS.faded, fontWeight: 600, marginBottom: 10 }}>
+                    This board should never have been able to do that. Put {unstickTo === 0 ? 'the board' : 'it'} back
+                    to where it can still be finished and try another order. It costs nothing: no hint, no time,
+                    no points.
+                  </div>
+                  <button className="st-btn primary" onClick={unstick}>
+                    <RotateCcw size={15} />
+                    {unstickTo === 0
+                      ? 'Put every word back'
+                      : `Put ${foundWords.length - unstickTo} word${foundWords.length - unstickTo > 1 ? 's' : ''} back`}
+                  </button>
+                </div>
+              )}
 
               {playing && (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
