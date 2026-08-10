@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/next';
 import VisitorBeacon from './VisitorBeacon';
 import ResultQueue from './ResultQueue';
 import DailyStartPing from './DailyStartPing';
+import DailySaveSync from './DailySaveSync';
 import ShareCreditPop from './ShareCreditPop';
 import ContestPop from './ContestPop';
 import QrPosterPop from './QrPosterPop';
@@ -111,6 +112,11 @@ export default function RootLayout({ children }) {
         <VisitorBeacon />
         <ResultQueue />
         <DailyStartPing />
+        {/* Mounted AFTER DailyStartPing, which also wraps localStorage.setItem.
+            The wrappers chain (each binds whatever setItem it found), so the
+            order is not load-bearing, but keeping the marker before the board
+            it belongs to reads correctly. */}
+        <DailySaveSync />
         <ShareCreditPop />
         {/* Mounted AFTER ShareCreditPop: its CTA dispatches the share-credit
             event, and the listener must already exist. Renders null on every
