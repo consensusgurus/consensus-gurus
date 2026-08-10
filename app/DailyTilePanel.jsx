@@ -979,18 +979,23 @@ export default function DailyTilePanel({
         @media(min-width:901px){
           /* Play lives on the slab. The header keeps Close. */
           .dtp-play{display:none;}
+          /* Type and padding are the CAP BAR'S, copied from .dh-cell in
+             DailyStrip.jsx and mirrored in .hr-lslab in HomeRails.jsx, so all
+             three slabs on the home surface are one object at one size: 14px
+             padding, a 9.5px eyebrow, a 20px name on a 26px line, an 11px sub.
+             84.8px tall. Move one and move all three. */
           .dtp-slab{position:relative;display:flex;align-items:center;gap:12px;flex:none;
-                    padding:13px 14px 13px 22px;border-radius:11px;background:var(--blue);color:var(--white);}
-          .dtp-slab::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:var(--gold);}
+                    padding:14px 14px 14px 22px;border-radius:11px;background:var(--blue);color:var(--white);}
+          .dtp-slab::before{content:'';position:absolute;left:10px;top:13px;bottom:13px;width:4px;border-radius:2px;background:var(--gold);}
           .dtp-stxt{min-width:0;flex:1;}
           .dtp-seye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;
                     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-          /* line-height 1.3 plus a pixel of pad, not 1.1: these lines are
-             overflow:hidden for the ellipsis, so a tight box clips a descender.
-             Same reasoning as .hr-hnm in HomeRails. */
-          .dtp-snm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3;padding-bottom:1px;
+          /* An explicit 26px line plus a pixel of pad, not a tight multiple:
+             these lines are overflow:hidden for the ellipsis, so a tight box
+             clips a descender. Same reasoning as .hr-hnm in HomeRails. */
+          .dtp-snm{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:26px;padding-bottom:1px;
                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-          .dtp-ssub{font-size:11px;font-weight:600;line-height:1.35;padding-bottom:1px;color:var(--blue-200);
+          .dtp-ssub{font-size:11px;font-weight:600;line-height:1.35;margin-top:1px;padding-bottom:1px;color:var(--blue-200);
                     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .dtp-sgo{margin-left:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;
                    background:var(--white);color:var(--blue-deep);font-weight:800;font-size:13px;letter-spacing:.04em;

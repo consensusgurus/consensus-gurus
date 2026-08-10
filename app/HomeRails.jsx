@@ -479,19 +479,32 @@ export default function HomeRails({
          Loft faces are lists rather than boards and neither had an anchor of
          any kind. The mastery face takes the deeper navy and the live face the
          lighter blue, so a flip is visible even before the pill is read. */
+      /* IT IS EXACTLY AS TALL AS A CAP BAR, and that is measured, not eyeballed
+         (owner, 2026-08-10: the first cut came out 80.5px against the cap's
+         84.8px and read as a near miss, which is worse than an obvious
+         difference). It sits directly beside the Up next / Easiest cap cards in
+         the three-column console, so the two have to start and end on the same
+         lines. Every number below is copied from .dh-cell / .dh-bue / .dh-bun /
+         .dh-busub in DailyStrip.jsx: 14px padding, a 9.5px eyebrow, a 20px name
+         on a 26px line with 1px of pad, and an 11px sub with a 1px top margin.
+         14 + 13 + 27 + 15.8 + 14 = 84.8. IF THE CAP BAR'S TYPE OR PADDING
+         CHANGES, CHANGE IT HERE TOO, and re-measure both rather than trusting
+         the arithmetic in this comment. */
       .hr-lslab{position:relative;display:flex;align-items:center;gap:12px;flex:none;
-                padding:13px 14px 13px 22px;background:var(--accent);color:var(--white);}
-      .hr-lslab::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:var(--blue-400);}
+                padding:14px 14px 14px 22px;background:var(--accent);color:var(--white);}
+      .hr-lslab::before{content:'';position:absolute;left:10px;top:13px;bottom:13px;width:4px;border-radius:2px;background:var(--blue-400);}
       .hr-lslab.lite{background:var(--blue);}
       .hr-lslab.lite::before{background:var(--blue-200);}
       .hr-lstxt{min-width:0;flex:1;}
       .hr-lseye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      /* line-height 1.3 plus a pixel of pad, not 1.1: overflow:hidden for the
-         ellipsis clips a descender out of a tight box. Same as .hr-hnm. */
-      .hr-lsnm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3;padding-bottom:1px;
+      /* An explicit 26px line plus a pixel of pad, not a tight multiple: these
+         lines are overflow:hidden for the ellipsis, so a tight box clips a
+         descender, and a unitless line-height would drift from the cap bar the
+         moment either font size moved. Same reasoning as .hr-hnm. */
+      .hr-lsnm{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:26px;padding-bottom:1px;
                font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .hr-lssub{font-size:11px;font-weight:600;line-height:1.35;padding-bottom:1px;color:var(--blue-200);
+      .hr-lssub{font-size:11px;font-weight:600;line-height:1.35;margin-top:1px;padding-bottom:1px;color:var(--blue-200);
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .hr-lsval{margin-left:auto;flex:none;text-align:right;}
       .hr-lsval b{display:block;font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums;}
