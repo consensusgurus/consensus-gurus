@@ -377,8 +377,17 @@ export default function DailyTilePanel({
               const iso = calY + '-' + String(calM).padStart(2, '0') + '-' + String(d).padStart(2, '0');
               const drop = dropByISO.get(iso);
               if (!drop) return <span key={iso} className="dtp-cell none">{d}</span>;
-              const cls = 'dtp-cell' + (drop.played ? ' played' : ' open') + (drop.isToday ? ' today' : '');
-              return <a key={iso} href={drop.href} className={cls} title={drop.played ? 'Played' : 'Not played yet'}>{d}</a>;
+              // THREE states, not two (owner, 2026-08-09). Green is a day you
+              // solved, red a day you played and did not, and only the games
+              // that never showed you the answer can be red at all: everywhere
+              // else the day is simply over. Grey stays "not played yet".
+              const cls = 'dtp-cell'
+                + (drop.played ? (drop.incomplete ? ' incomplete' : ' played') : ' open')
+                + (drop.isToday ? ' today' : '');
+              const label = drop.played
+                ? (drop.incomplete ? 'Played, not solved' : 'Played')
+                : 'Not played yet';
+              return <a key={iso} href={drop.href} className={cls} title={label}>{d}</a>;
             })}
           </div>
           <div className="dtp-key">
@@ -583,6 +592,7 @@ export default function DailyTilePanel({
         .dtp-cell.empty{background:transparent;}
         .dtp-cell.none{color:#3d4f70;}
         a.dtp-cell.played{background:#dcfce7;border:1px solid rgba(34,197,94,0.45);color:var(--success-deep);}
+        a.dtp-cell.incomplete{background:#fee2e2;border:1px solid rgba(220,38,38,0.45);color:#b91c1c;}
         a.dtp-cell.open{background:var(--surface);border:1px solid #c8d0dc;color:var(--slate);}
         a.dtp-cell.open:hover{border-color:var(--gc);color:var(--ink);}
         a.dtp-cell.today{box-shadow:0 0 0 2px var(--gold);}

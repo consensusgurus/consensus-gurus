@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
+import { KEEPS_ANSWER } from '@/lib/daily-games';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, guestGameResult, DAILY_KEYS } from '@/lib/daily-combined';
 import { creditedFor } from '@/lib/daily-credits';
@@ -158,6 +159,12 @@ export async function GET(request) {
     const prefix = game + '-';
     const byDrop = new Map();  // quizId -> rows[]
     const played = new Set();  // quizIds the viewer has played
+    // ...and the ones they actually SOLVED. Only the games that never disclose
+    // their answer can show the difference in the calendar (see KEEPS_ANSWER):
+    // on every other game an unsolved run has already been shown the answer, so
+    // the day is finished with nothing left to go back for. Painting a Streak
+    // that ended at 12 of 40 as unfinished would be calling a score a failure.
+    const solved = new Set();
     for (const r of (data || [])) {
       const qid = r && r.quiz_id;
       if (!qid || qid.indexOf(prefix) !== 0 || !DAILY_ONE_RE.test(qid)) continue;
@@ -165,14 +172,25 @@ export async function GET(request) {
       if (!arr) { arr = []; byDrop.set(qid, arr); }
       arr.push(r);
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
-      if (pk && myKey && pk === myKey) played.add(qid);
+      if (pk && myKey && pk === myKey) {
+        played.add(qid);
+        // The verdict the client already posts, exactly as daily-status reads
+        // it, with the pre-column rows falling back to the old score test.
+        const ok = r.correct_count == null
+          ? (r.total > 0 && r.score === r.total)
+          : r.correct_count > 0;
+        if (ok) solved.add(qid);
+      }
     }
     // Hand-granted credits: drops this player really finished but whose result
     // post was lost. Calendar, archive percentage and streaks only, never score
     // (no row exists, so nothing enters scoreGame or any board). See
     // lib/daily-credits.js. DAILY_ONE_RE already scopes the id to THIS game.
     for (const qid of creditedFor(myKey)) {
-      if (DAILY_ONE_RE.test(qid)) played.add(qid);
+      // A credit exists because the row was LOST, so there is no verdict to
+      // read. Credited days count as solved rather than be painted unfinished
+      // for something that was the pipeline's fault, not the player's.
+      if (DAILY_ONE_RE.test(qid)) { played.add(qid); solved.add(qid); }
     }
 
     // A guest (anon viewer) is never on the registered cumulative board, but we
@@ -272,6 +290,7 @@ export async function GET(request) {
         num: p.num,
         href: isToday ? `/${game}` : `/${game}?p=${p.num}`,
         played: played.has(p.quizId),
+        incomplete: KEEPS_ANSWER.has(game) && played.has(p.quizId) && !solved.has(p.quizId),
         players: playersPerDrop.get(p.quizId) || 0,
         isToday,
       };

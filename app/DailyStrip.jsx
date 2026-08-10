@@ -478,6 +478,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [sunToday, setSunToday] = useState(false);
   const [sunRows, setSunRows] = useState(null);   // null = not fetched yet
   const [sunErr, setSunErr] = useState(false);
+  // Incomplete cards the viewer has waved off TODAY. The red card is loud on
+  // purpose, which is exactly why it needs a way out: a game you have decided
+  // not to go back to should not keep shouting at you for the rest of the day.
+  // Dismissing takes it out of the CAP only. The slate's Incomplete today group
+  // still lists it, so nothing is actually hidden, it just stops being a hero.
+  // Same-device and same-day by design: it is a mood, not a preference, and it
+  // clears itself at midnight along with the state it is about.
+  const [capDismiss, setCapDismiss] = useState(() => new Set());
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return undefined;
     const mq = window.matchMedia('(max-width: 900px)');
@@ -510,6 +518,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // every load, deliberately: the point is what the FIRST screen shows.
   const [grpOpen, setGrpOpen] = useState({ prog: false, todo: false, fail: false, dn: false });
   useEffect(() => { setSunToday(isSundayET()); }, []);
+  useEffect(() => {
+    try {
+      const c = JSON.parse(localStorage.getItem('sot_cap_dismiss') || 'null');
+      if (c && c.d === etToday() && Array.isArray(c.keys)) setCapDismiss(new Set(c.keys));
+    } catch (e) { /* no breadcrumb, nothing dismissed */ }
+  }, []);
   // Fetched only when the tab is actually opened, and only once: the answer is
   // per-player and the route is force-dynamic, so there is no reason to spend
   // the request on the many more visitors who never touch the tab.
@@ -755,7 +769,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // a paused board is live where an incomplete one is spent.
   const capState = (() => {
     const prog = capProg.map((g) => ({ game: g, kind: 'prog' }));
-    const fail = games.filter((g) => isFail(g.key)).map((g) => ({ game: g, kind: 'fail' }));
+    const fail = games.filter((g) => isFail(g.key) && !capDismiss.has(g.key))
+      .map((g) => ({ game: g, kind: 'fail' }));
     const out = [];
     for (let i = 0; i < Math.max(prog.length, fail.length); i += 1) {
       if (prog[i]) out.push(prog[i]);
@@ -764,6 +779,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     return out;
   })();
   const capStateShown = capOpen ? capState : capState.slice(0, CAP_STATE_MAX);
+  const dismissFail = (key) => setCapDismiss((cur) => {
+    const next = new Set(cur);
+    next.add(key);
+    try { localStorage.setItem('sot_cap_dismiss', JSON.stringify({ d: etToday(), keys: [...next] })); } catch (e) {}
+    return next;
+  });
   const capLead = (() => {
     // Whatever the state cards leave of the two lower slots.
     const want = Math.max(0, 2 - capStateShown.length);
@@ -2036,6 +2057,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              cap and the group below it read as the same thing said twice. */
           .dhome.slate .dh-cell.failc{background:#dc2626;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           .dhome.slate .dh-cell.failc:hover{background:#e33f3f;}
+          .dh-cx{position:absolute;top:4px;right:5px;z-index:2;width:21px;height:21px;padding:0;
+            display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;
+            background:transparent;color:rgba(255,255,255,.72);cursor:pointer;font-family:inherit;
+            -webkit-tap-highlight-color:transparent;transition:background .12s,color .12s;}
+          .dh-cx:hover{background:rgba(255,255,255,.2);color:var(--white);}
+          .dh-cx:focus{outline:none;}
+          .dh-cx:focus-visible{outline:2px solid var(--white);outline-offset:-2px;}
           .dhome.slate .dh-cell.failc .dh-play{color:#b91c1c;}
           .dhome.slate .dh-cell.failc.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.crowd:hover{background:#3170ec;}
@@ -2821,6 +2849,22 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                         starting a game you have not touched. */}
                     <Play size={11} fill="currentColor" strokeWidth={0} />{paused ? 'Resume' : 'Retry'}
                   </span>
+                  {/* The card is one big link, so the dismiss has to swallow the
+                      click itself; without preventDefault it would open the game
+                      on its way out. Offered on the red card only: a paused game
+                      is a standing invitation with a live board behind it, where
+                      an incomplete one is just a puzzle you may be done with. */}
+                  {!paused ? (
+                    <button
+                      type="button"
+                      className="dh-cx"
+                      aria-label={`Dismiss ${c.game.name} for today`}
+                      title="Dismiss for today. It stays in Incomplete today below."
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); dismissFail(c.game.key); }}
+                    >
+                      <X size={12} strokeWidth={3} />
+                    </button>
+                  ) : null}
                 </a>
               );
             })}
