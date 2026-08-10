@@ -613,27 +613,31 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     return null;
   }
 
-  // The open squares of the line in order, plus the reach: a tile pinned to the
-  // PERPENDICULAR line (it has proven that column, or is certain) is a wall,
-  // because a slide must never shove a tile out of a line it has proven.
+  // The squares of the line a slide may rearrange. A tile pinned to the
+  // PERPENDICULAR line (it has proven that column, or is certain and locked)
+  // keeps its square, because a slide must never shove a tile out of a line it
+  // has proven — but it is NOT a wall. It sits the slide out and the dragged
+  // tile passes straight over it to the free squares beyond, so one locked
+  // tile in the middle of a row no longer strands everything on either side of
+  // it. Blocked squares and printed givens sit out the same way. Every offset
+  // below is measured from real grid coordinates, so the gaps left by the
+  // squares sitting out take care of themselves.
   function slideSession(i, axis, rect) {
     const r = Math.floor(i / N), c = i % N;
+    const wall = axis === 'row' ? M_COL : M_ROW;
     const slots = [];
     for (let j = 0; j < N; j++) {
       const rr = axis === 'row' ? r : j;
       const cc = axis === 'row' ? j : c;
+      const s = rr * N + cc;
       if (BLOCK[rr][cc] || GIVEN[rr][cc]) continue;
-      slots.push(rr * N + cc);
+      if (s !== i && cells[s] && (mark[s] & wall)) continue;  // proven its crossing line: stays put
+      slots.push(s);
     }
     const from = slots.indexOf(i);
-    if (from < 0 || slots.length < 2) return null;
-    const wall = axis === 'row' ? M_COL : M_ROW;
-    let lo = 0, hi = slots.length - 1;
-    for (let k = from - 1; k >= 0; k--) { const s = slots[k]; if (cells[s] && (mark[s] & wall)) { lo = k + 1; break; } }
-    for (let k = from + 1; k < slots.length; k++) { const s = slots[k]; if (cells[s] && (mark[s] & wall)) { hi = k - 1; break; } }
-    if (lo === hi) return null; // walled in on both sides — nowhere to go
+    if (from < 0 || slots.length < 2) return null; // nothing left to trade places with
     const pitch = (axis === 'row' ? rect.width : rect.height) + GAP;
-    return { i, r, c, axis, slots, from, lo, hi, pitch, to: from, live: false, x0: 0, y0: 0 };
+    return { i, r, c, axis, slots, from, lo: 0, hi: slots.length - 1, pitch, to: from, live: false, x0: 0, y0: 0 };
   }
 
   const slotCoord = (d, s) => (d.axis === 'row' ? s % N : Math.floor(s / N));
@@ -932,10 +936,10 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         <>Tap a placed tile to <b>lift it back</b>, which is free. <b>Undo</b> steps back one change, <b>Clear board</b> lifts every tile at once. Both are free, and neither refunds a move: they restore the grid, not the score.</>,
         <>Certainty arrives in halves, so the notes do too: often the rack proves a digit belongs somewhere in a <b>row</b> before you can say which square, and a half-marked tile is still free to slide. Two proven lines meet at one square, so a tile carrying <b>both</b> halves is certain and locks. Tap it once to unlock.</>,
         <><b>Hold</b> a tile (or right-click) to mark it certain outright, or use the <b>&#10003; Mark</b> tool and tap to cycle. Tapping a <b>row or column target</b> notes that half on every tile in the line. Notes are free: they never cost a move and never count against your score. The full key sits under the board.</>,
-        <><b>Drag a half-marked tile</b> along its proven line to move it without lifting, so the note survives. Tiles in the way shuffle one square toward the one it left, however many there are. It costs one move, the same as lifting and re-placing.</>,
+        <><b>Drag a half-marked tile</b> along its proven line to move it without lifting, so the note survives. Tiles in the way shuffle one square toward the one it left, however many there are, and any tile that has proven the crossing line holds its square while you slide over it. It costs one move, the same as lifting and re-placing.</>,
       ]}
       knack="The rack supply is the lever. When the sums leave two ways to fill a line, the tiles you have left leave one."
-      note="A tile that has proven the crossing line will not be pushed out of it, so it blocks the slide there."
+      note="A tile that has proven the crossing line will not be pushed out of it, so it sits the slide out and you pass straight over it."
       footer="The fewest possible placements is a perfect 10, every extra placement costs a point. Ties break on fewest errors, then fastest time. One free hint, on your first ever play, fills a correct square."
     />
   );
