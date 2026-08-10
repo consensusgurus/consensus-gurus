@@ -8,10 +8,11 @@
 // and the pop-up use, so all three can never disagree on a standing.
 
 import { useEffect, useState, useCallback } from 'react';
-import { Copy, Check, UserPlus } from 'lucide-react';
+import { Copy, Check, UserPlus, QrCode } from 'lucide-react';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, formatScore } from '@/lib/contest';
 import JoinLeaderboardForm from '../../quiz/[id]/JoinLeaderboardForm';
+import QrPosterForm from '../../QrPosterForm';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
 
@@ -122,6 +123,24 @@ export default function ContestBoard() {
           </>
         )}
       </div>
+
+      {/* The offline half of the same job the invite link does. Only for a
+          player who HAS a standing (an invite link to encode) and only while the
+          contest is live, since the pitch is framed on the prize. The form and
+          its copy are shared with the pop-up and the share pop-up. */}
+      {me && meta.live ? (
+        <div style={card}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <QrCode size={17} strokeWidth={2.2} color={T.blue} />
+            <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, letterSpacing: '-.01em', color: T.ink }}>Put your code on a wall</h2>
+          </div>
+          <p style={{ fontSize: 13.5, color: T.muted, margin: '0 0 14px', lineHeight: 1.5 }}>
+            Ask us for a printable poster with your own QR code on it. Everyone who scans it
+            and plays counts as your invite, exactly like the link.
+          </p>
+          <QrPosterForm hideDaysLeft />
+        </div>
+      ) : null}
 
       <div style={card}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>

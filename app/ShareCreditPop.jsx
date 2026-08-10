@@ -17,7 +17,7 @@
 // itself from the current page URL.
 
 import { useEffect, useState } from 'react';
-import { X, Check, Copy } from 'lucide-react';
+import { X, Check, Copy, QrCode } from 'lucide-react';
 import { myRefCode, withRef, ensureMyRefCode } from '@/lib/referrals';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { T } from '@/lib/theme';
@@ -26,6 +26,7 @@ import { CONTEST, contestIsLive } from '@/lib/contest';
 // with the quiz-home credit modal so no share pop-up can state the terms
 // differently from another.
 import ContestNote from './ContestNote';
+import QrPosterForm from './QrPosterForm';
 
 export const SHARE_CREDIT_EVENT = 'sot:share-credit';
 
@@ -62,6 +63,9 @@ export default function ShareCreditPop() {
   const [result, setResult] = useState('');
   const [copiedKey, setCopiedKey] = useState(null);
   const [srcUrl, setSrcUrl] = useState(''); // page the credit link should point at
+  // The QR poster offer, collapsed until asked for. A share pop-up is opened to
+  // copy a link, so the poster is an aside here, never the thing in the way.
+  const [qrOpen, setQrOpen] = useState(false);
 
   useEffect(() => {
     const onEvt = (e) => {
@@ -79,6 +83,7 @@ export default function ShareCreditPop() {
       setResult(registered && rt && rt !== u ? rt : '');
       setCopiedKey(null);
       setMode(registered ? 'credit' : 'signup');
+      setQrOpen(false);
       setOpen(true);
     };
     window.addEventListener(SHARE_CREDIT_EVENT, onEvt);
@@ -192,6 +197,27 @@ export default function ShareCreditPop() {
             {copyBtn(link, 'link')}
           </div>
         )}
+
+        {promo ? (
+          <div style={{ marginBottom: 16, border: `1px solid ${BORD}`, borderRadius: 12, padding: '13px 14px', background: PAPER }}>
+            {qrOpen ? <QrPosterForm /> : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap' }}>
+                <span style={{ color: BLUE, flexShrink: 0, lineHeight: 1 }}><QrCode size={20} strokeWidth={2.2} /></span>
+                <div style={{ flex: 1, minWidth: 170, fontSize: 12.5, color: SLATE, lineHeight: 1.45 }}>
+                  A link reaches the people you know. We will also make you a printable{' '}
+                  <b style={{ color: INK }}>QR poster</b> for a coffee shop, a classroom or work.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setQrOpen(true)}
+                  style={{ flexShrink: 0, fontSize: 13, fontWeight: 800, color: T.white, background: BLUE, border: `1px solid ${BLUE}`, borderRadius: 10, padding: '9px 14px', cursor: 'pointer', fontFamily: SANS }}
+                >
+                  Get a QR poster
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
           <a href="/quizzes/community" onClick={() => setOpen(false)} style={{ fontSize: 13, fontWeight: 800, color: SLATE, textDecoration: 'none', padding: '9px 14px', borderRadius: 10, border: `1px solid ${BORD}`, background: T.white, display: 'inline-flex', alignItems: 'center' }}>Community leaderboard</a>
