@@ -2806,9 +2806,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              it simply re-shows the ninth tile. */
           .dh-board.mcut > .dh-tile:nth-child(9){display:flex;}
         }
-        /* The narrowest phones: four pips plus a title plus a date is one
-           thing too many, and the date is the one to lose. */
-        @media(max-width:400px){.sl-dt{display:none;}}
+        /* Measured on the live bar rather than guessed: at a 356px viewport the
+           worst case (all four pips, the short date, the short title) uses 276px
+           of 341px, so a phone keeps its date and only a genuinely tiny screen
+           has to drop it. The date is the thing to lose when something must go
+           (owner, 2026-08-10). */
+        @media(max-width:330px){.sl-dt{display:none;}}
         @media(max-width:720px){.dh-boardwrap.open{min-height:620px;}}
         /* Small screens: the expanded panel is IN FLOW (see DailyTilePanel), so
            the grid hides beneath it and the wrapper takes the panel's own
