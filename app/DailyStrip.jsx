@@ -2057,13 +2057,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              cap and the group below it read as the same thing said twice. */
           .dhome.slate .dh-cell.failc{background:#dc2626;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           .dhome.slate .dh-cell.failc:hover{background:#e33f3f;}
-          .dh-cx{position:absolute;top:4px;right:5px;z-index:2;width:21px;height:21px;padding:0;
-            display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;
-            background:transparent;color:rgba(255,255,255,.72);cursor:pointer;font-family:inherit;
-            -webkit-tap-highlight-color:transparent;transition:background .12s,color .12s;}
-          .dh-cx:hover{background:rgba(255,255,255,.2);color:var(--white);}
-          .dh-cx:focus{outline:none;}
-          .dh-cx:focus-visible{outline:2px solid var(--white);outline-offset:-2px;}
           .dhome.slate .dh-cell.failc .dh-play{color:#b91c1c;}
           .dhome.slate .dh-cell.failc.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.crowd:hover{background:#3170ec;}
@@ -2089,6 +2082,34 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* With exactly four paused games desktop shows them all, so its bar
              has nothing to say; the phone, showing three, still needs one. */
           .dh-cmore.mo{display:none;}
+        }
+        /* The Incomplete card's dismiss X. BASE SCOPE, NEVER inside a width
+           query (owner, 2026-08-09): these rules used to live in the
+           @media(min-width:901px) block above, so below 901px the button got no
+           styling at all and fell back to a raw native control, a grey #f0f0f0
+           chip with a 2px outset border, black icon, sitting STATIC in the
+           card's flex row beside Retry rather than in its corner, which also ate
+           the sub line's width. The card's top-right corner is free at both
+           widths, so one rule serves both and there is nothing width-specific
+           left to say. */
+        .dh-cx{position:absolute;top:4px;right:5px;z-index:2;width:21px;height:21px;padding:0;
+          display:flex;align-items:center;justify-content:center;border:0;border-radius:6px;
+          background:transparent;color:rgba(255,255,255,.72);cursor:pointer;font-family:inherit;
+          -webkit-tap-highlight-color:transparent;transition:background .12s,color .12s;}
+        /* HOVER STAYS BEHIND @media(hover:hover), the file's own rule: at base
+           scope a tap would otherwise leave the lit state stuck on the button. */
+        @media(hover:hover){
+          .dh-cx:hover{background:rgba(255,255,255,.2);color:var(--white);}
+        }
+        .dh-cx:focus{outline:none;}
+        .dh-cx:focus-visible{outline:2px solid var(--white);outline-offset:-2px;}
+        /* 21px is fine under a cursor and small under a thumb, so on a touch
+           pointer the HIT BOX grows to 34 while the DRAWING stays 21: an
+           ::after overlay centred on the button, which cannot move the icon or
+           the corner it sits in the way a width change would. */
+        @media(pointer:coarse){
+          .dh-cx::after{content:'';position:absolute;top:50%;left:50%;width:34px;height:34px;
+            transform:translate(-50%,-50%);}
         }
         @media(max-width:900px){
           /* edge to edge. Negative margins, NOT the 50%/translateX trick: a
