@@ -6,6 +6,7 @@ import VisitorBeacon from './VisitorBeacon';
 import ResultQueue from './ResultQueue';
 import ShareCreditPop from './ShareCreditPop';
 import ContestPop from './ContestPop';
+import QrPosterPop from './QrPosterPop';
 import TrophyPop from './TrophyPop';
 import { getAllSources } from '@/lib/sources';
 import { T } from '@/lib/theme';
@@ -114,6 +115,7 @@ export default function RootLayout({ children }) {
             page except a live contest on a promo path with an undismissed
             browser, so the cost elsewhere is one localStorage read. */}
         <ContestPop />
+        <QrPosterPop />
         <TrophyPop />
         <Analytics />
       </body>

@@ -1,8 +1,10 @@
 // Public, read-only activity feed for a single list page (ActivityFeed.jsx).
 // Anonymized streams; runs server-side with the service-role key.
 //
-// PRIVACY: manager notes come from `complaints` but this route selects ONLY
-// message, created_at, and the editor_response -- never name or email.
+// PRIVACY: manager notes are OFFLINE as of 2026-08-09. They came from
+// `complaints`, which also stores private reader feedback and QR poster
+// requests under synthetic list ids, so no public surface reads that table now.
+// The manager stream is left wired up but always empty.
 
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
@@ -23,7 +25,10 @@ export async function GET(request) {
 
     const [votesRes, managerRes, researchRes, commentsRes, seenRes, notesRes] = await Promise.all([
       Promise.resolve({ data: [] }), // vote_events removed (2026-06-18); votes return empty
-      supabaseAdmin.from('complaints').select('message,created_at,editor_response').eq('list_id', listId).eq('feed_hidden', false).order('created_at', { ascending: false }).limit(12),
+      // Manager notes taken offline (2026-08-09); see app/feed/page.js. The
+      // complaints table doubles as private feedback storage, so it no longer
+      // feeds any public surface. Admin Notices remains the place to read it.
+      Promise.resolve({ data: [] }),
       supabaseAdmin.from('consensus_alerts').select('item_name,change_type,rank,prev_rank,cause,detected_at').eq('list_id', listId).order('detected_at', { ascending: false }).limit(24),
       supabaseAdmin.from('list_comments').select('id,name,body,created_at,editor_response').eq('list_id', listId).eq('hidden', false).order('created_at', { ascending: false }).limit(60),
       supabaseAdmin.from('list_sources_seen').select('source_id,first_seen_at,label,removed_at,label_updated_at').eq('list_id', listId),

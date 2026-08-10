@@ -20,7 +20,7 @@
 import { useEffect, useState } from 'react';
 import { X, Trophy, Mail, Globe, Clock, AlertTriangle } from 'lucide-react';
 import { T } from '@/lib/theme';
-import { CONTEST, COPY, canShowPromo, readGeoCookie } from '@/lib/contest';
+import { CONTEST, COPY, canShowPromo, readGeoCookie, onPromoPath } from '@/lib/contest';
 import { notifyShareCredit } from './ShareCreditPop';
 
 const INK = T.ink;
@@ -42,19 +42,8 @@ const SEEN_KEY = `sot_contest_seen_${CONTEST.id}`;
 // week elapses re-opens it. Roughly four impressions across the contest.
 const SEEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Surfaces the promo belongs on. The pop-up is for players, so it stays off the
-// editorial list pages (/list/...) and off admin entirely.
-//
-// The HOMEPAGE (/) is the single most important entry point and was missing
-// from this list on first ship, which silently suppressed the pop-up for every
-// first-time visitor landing on the root, i.e. exactly the audience the promo
-// exists to reach. Anchored as /^\/$/ so it matches the root ONLY and does not
-// turn into a match-everything rule.
-const PROMO_PATHS = [/^\/$/, /^\/quizzes/, /^\/quiz\//, /^\/daily/, /^\/player\//];
-
-function onPromoPath(path) {
-  return PROMO_PATHS.some((re) => re.test(path || ''));
-}
+// PROMO_PATHS / onPromoPath moved to lib/contest.js when the QR poster pop-up
+// was added, so both promo surfaces gate on the same list of pages.
 
 // True while the browser is still inside its one-week quiet period. An
 // unparseable or absent value means never shown, so it shows. A read failure
@@ -74,6 +63,20 @@ function seen() {
 
 function markSeen() {
   try { localStorage.setItem(SEEN_KEY, String(Date.now())); } catch { /* private mode */ }
+}
+
+// When this browser last had the contest pop-up shown and dealt with, as an
+// epoch ms, or 0 if it never has. Exported because the QR poster pop-up is a
+// FOLLOW-ON to this one: it may only appear to someone who has already met the
+// prize, on a later visit. Reading the stamp through a function keeps the key
+// format in one file.
+export function contestSeenAt() {
+  try {
+    const t = Number(localStorage.getItem(SEEN_KEY));
+    return Number.isFinite(t) && t > 0 ? t : 0;
+  } catch {
+    return 0;
+  }
 }
 
 export default function ContestPop() {
