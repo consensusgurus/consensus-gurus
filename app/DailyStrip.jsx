@@ -477,6 +477,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // it for a frame, which read as a flicker, so it is not rendered at all.
   const [etLabel, setEtLabel] = useState({ long: '', short: '' });
   useEffect(() => { setEtLabel(etDateLabel()); }, []);
+  // The category strip runs past the console's right edge (Sundays was cut in
+  // half on a 1180px desktop), and a horizontal scroller with its scrollbar
+  // hidden gives a mouse no way to reach the rest and no hint there IS a rest.
+  // So: one small chevron chip on whichever edge has more to show, which nudges
+  // the strip along, plus a short fade under it. Same idea as the quiz ribbon's
+  // scroll cue, made clickable, since that one is touch-only and this strip has
+  // to work under a mouse. Nothing renders when everything already fits.
+  const filtRef = useRef(null);
+  const [filtMore, setFiltMore] = useState({ l: false, r: false });
   const [phone, setPhone] = useState(false);
   // The Sundays tab. `sunToday` is computed in an effect, never during render:
   // the server has no idea what day it is in Eastern time and a mismatch is a
@@ -1189,6 +1198,30 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   ));
   const slateCats = [];
   for (const g of games) if (!slateCats.includes(g.cat)) slateCats.push(g.cat);
+  // Re-measured on scroll, on resize, and whenever the TAB SET changes, which is
+  // the only thing that moves the strip's width: the Sundays tab comes and goes
+  // with the day and the categories are built from the board just above. Note
+  // the dep list is load-bearing rather than tidy. Without one this re-subscribes
+  // on every render, and the clock ticking once a second means every render.
+  useEffect(() => {
+    const el = filtRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const more = el.scrollWidth - el.clientWidth;
+      setFiltMore({ l: el.scrollLeft > 2, r: more > 2 && el.scrollLeft < more - 2 });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, [slate, sunToday, slateCats.join('|')]);
+  const nudgeFilt = (dir) => {
+    const el = filtRef.current;
+    if (!el) return;
+    // Most of a screenful, not all of it: leaving a tab or two in view is what
+    // tells the reader the strip moved rather than jumped somewhere new.
+    el.scrollBy({ left: dir * Math.max(120, Math.round(el.clientWidth * 0.7)), behavior: 'smooth' });
+  };
   const shift = metrics ? Math.min(rowOffset, metrics.maxOffset) : 0;
   const selGame = sel != null ? list.find((g) => g.key === sel) || games.find((g) => g.key === sel) || null : null;
 
@@ -2324,8 +2357,32 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            2026-08-08). Each takes the deeper --surface-alt fill and a darker
            rule top AND bottom now, so it reads as a band across the console
            rather than a gap in it. */
-        .sl-filt{flex:none;display:flex;background:var(--accent);border-top:1.5px solid #16306e;border-bottom:2px solid #16306e;overflow-x:auto;scrollbar-width:none;}
+        /* THE STRIP SCROLLS, AND SAYS SO (owner, 2026-08-10). Its scrollbar is
+           hidden, which on a desktop left the last tab sliced by the console
+           edge with no way to reach it and no sign there was more. The wrapper
+           is the positioning context for one chevron chip per overflowing edge;
+           .ml / .mr are set from the measured scroll, so nothing renders at all
+           when the tabs already fit.
+           The fade is a pseudo-element on the WRAPPER rather than a border on
+           the strip, so it sits above the tabs and below the chip and no tab
+           appears to run under the chevron. Its colour has to be quoted per
+           breakpoint because the strip is --accent on a desktop and #2c4fa8 on
+           a phone. */
+        .sl-filtw{position:relative;flex:none;}
+        .sl-filt{flex:none;display:flex;background:var(--accent);border-top:1.5px solid #16306e;border-bottom:2px solid #16306e;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;}
         .sl-filt::-webkit-scrollbar{display:none;}
+        /* Room for the last tab to clear the chip once it is scrolled to. */
+        .sl-filtw.mr .sl-filt{padding-right:26px;}
+        .sl-filtw.ml .sl-filt{padding-left:26px;}
+        .sl-filtw.ml::before,.sl-filtw.mr::after{content:'';position:absolute;top:0;bottom:2px;width:38px;pointer-events:none;z-index:1;}
+        .sl-filtw.ml::before{left:0;background:linear-gradient(to right,var(--accent),rgba(30,58,138,0));}
+        .sl-filtw.mr::after{right:0;background:linear-gradient(to left,var(--accent),rgba(30,58,138,0));}
+        .sl-fnav{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;border:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.18);color:var(--white);cursor:pointer;z-index:2;-webkit-tap-highlight-color:transparent;}
+        .sl-fnav:hover{background:rgba(255,255,255,0.34);}
+        .sl-fnav:focus{outline:none;}
+        .sl-fnav:focus-visible{outline:2px solid var(--white);outline-offset:1px;}
+        .sl-fnav.l{left:4px;}
+        .sl-fnav.r{right:4px;}
         .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#b9cbec;padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--white);}
         /* Still an UNDERLINE, not a pill: navy simply changed what colour the
@@ -2725,6 +2782,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-dt .d{display:none;}
           .sl-dt .p{display:inline;}
           .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
+          /* Same fade, the phone strip's own ground. The bottom is flush here
+             because this strip carries no 2px bottom rule to sit above. */
+          .sl-filtw.ml::before,.sl-filtw.mr::after{bottom:0;}
+          .sl-filtw.ml::before{background:linear-gradient(to right,#2c4fa8,rgba(44,79,168,0));}
+          .sl-filtw.mr::after{background:linear-gradient(to left,#2c4fa8,rgba(44,79,168,0));}
+          .sl-filtw.mr .sl-filt{padding-right:30px;}
+          .sl-filtw.ml .sl-filt{padding-left:30px;}
           .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
           .sl-filt button.on{border-bottom-color:transparent;}
           .sl-filt button:hover{color:var(--white);}
@@ -3205,7 +3269,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           the phone's order flip (bar -1, title 0, board 1) still lands it between
           the title band and the board on source order alone. */}
       {slate ? (
-        <div className="sl-filt" role="tablist" aria-label="Filter the slate">
+        <div className={`sl-filtw${filtMore.l ? ' ml' : ''}${filtMore.r ? ' mr' : ''}`}>
+        <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
           {[['all', 'All'], ['todo', 'Unplayed']]
             .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c]))
             // LAST in the strip, and absent on a Sunday: on the day itself the
@@ -3222,6 +3287,17 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
               onClick={() => setFilter(k)}
             >{label}</button>
           ))}
+        </div>
+        {filtMore.l ? (
+          <button type="button" className="sl-fnav l" onClick={() => nudgeFilt(-1)} aria-label="Scroll the categories left">
+            <ChevronLeft size={14} strokeWidth={3} />
+          </button>
+        ) : null}
+        {filtMore.r ? (
+          <button type="button" className="sl-fnav r" onClick={() => nudgeFilt(1)} aria-label="Scroll the categories right">
+            <ChevronRight size={14} strokeWidth={3} />
+          </button>
+        ) : null}
         </div>
       ) : null}
       <div className={'dh-boardwrap' + (selGame ? ' open' : '') + (slate ? ' slate' : '')}>
