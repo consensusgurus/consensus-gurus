@@ -39,7 +39,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
-  SIZE, deserialize, legalMoves, clearIn, blackReply, countPieces,
+  SIZE, deserialize, legalMoves, clearIn, scoreMoves, blackReply, countPieces,
   playable, isRed, isKing,
 } from './draughts';
 import { T } from '@/lib/theme';
@@ -475,13 +475,12 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     // before the move with what is reachable after it. Note the budget passed
     // is redLeft, NOT redLeft - 1: see the convention note in draughts.js.
     const stillOn = clearIn(mv.board, redLeft, false) <= redLeft - 1;
-    if (wasOn && !stillOn) {
-      vibrate(HAPT.wrong);
-      say('That lets the sweep go. Not every piece falls now.');
-      g2.errors = cur.errors + 1;
-    } else {
-      vibrate(HAPT.ok);
-    }
+    // A move that lets the sweep go is COUNTED but never ANNOUNCED. Saying so
+    // the moment it happened decided the round out loud while there were still
+    // moves in the budget; the verdict now waits for the budget to run out. The
+    // tally still feeds the tie-break and the end card.
+    if (wasOn && !stillOn) g2.errors = cur.errors + 1;
+    vibrate(HAPT.ok);   // the same tick either way, so touch never grades the move
     commit(g2);
     scheduleReply(nextMoves);
   }
@@ -502,11 +501,18 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
     const cur = gRef.current;
     if (cur.status !== 'playing' || cur.hintUsed) return;
     const redLeft = Math.max(0, BUDGET - Math.ceil(cur.moves.length / 2));
-    const winner = legalMoves(pos, true).find((m) => clearIn(m.board, redLeft, false) <= redLeft - 1);
+    // The sweeping move if one is still there, otherwise the move that clears
+    // the most. Both point at a piece and both say the same thing, so asking for
+    // the hint can never be read as "the sweep is already gone". Infinity is a
+    // real value here (a line that never clears), so the sort compares rather
+    // than subtracts, which would give NaN.
+    const winner = legalMoves(pos, true).find((m) => clearIn(m.board, redLeft, false) <= redLeft - 1)
+      || (scoreMoves(pos, redLeft).sort((a, b) => (a.clear === b.clear ? 0 : a.clear < b.clear ? -1 : 1))[0] || {}).move
+      || null;
     const g2 = { ...cur, hintUsed: true };
     if (!g2.t0) g2.t0 = Date.now();
     commit(g2);
-    if (!winner) { say('There is no sweep left from here. Take what you can.'); return; }
+    if (!winner) return;
     setHintSq(winner.from);
     setSel(winner.from);
     say('That is the piece to move. Where it goes is still on you.');

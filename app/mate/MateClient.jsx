@@ -45,8 +45,9 @@ import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   parseFen, applyMove, legalTargetsFrom, parseUci, uci,
-  squareName, colorOf, inCheck, isCheckmate, toSan, rowOf, fileOf,
+  squareName, colorOf, inCheck, isCheckmate, toSan, rowOf, fileOf, legalMoves,
 } from './chess';
+import { makeMateSearch } from '../defend/defense';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -247,6 +248,40 @@ function pickReply(node, quizId) {
 const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
+// BLACK'S DEFENCE OFF THE SOLUTION TREE.
+//
+// The bank stores a reply for every position ON the line and nothing at all off
+// it, because until 2026-08-11 a move off the line ended the round on the spot.
+// The round plays on now, so Black needs an answer to positions no generator
+// ever saw.
+//
+// "Stubbornest" here is the mirror of Defend's: the reply that puts mate off
+// longest, measured with the SAME forced-mate search Defend and its bank
+// generator use, so the site has one engine rather than two that can drift.
+// forcesMateWithin takes the attacking colour as an argument, so it reads from
+// this side of the board unchanged; only stubbornestReply is White-shaped, which
+// is why the pick is written out here instead of imported.
+//
+// Ties break on the lowest UCI string, which cannot tie, so two players who
+// leave the line at the same position meet the same defence.
+function stubbornestDefence(board, budget) {
+  const search = makeMateSearch();
+  let best = null;
+  for (const mv of legalMoves(board, 'b')) {
+    const next = applyMove(board, mv.from, mv.to);
+    // The shallowest depth at which White can still force mate. A reply White
+    // cannot punish inside the whole budget scores budget + 1 and wins outright.
+    let survives = budget + 1;
+    for (let n = 1; n <= budget; n++) {
+      if (search.forcesMateWithin(next, 'w', n)) { survives = n; break; }
+    }
+    if (!best || survives > best.survives || (survives === best.survives && mv.uci < best.uci)) {
+      best = { uci: mv.uci, survives };
+    }
+  }
+  return best;
+}
+
 function freshState() {
   return { v: 1, moves: [], errors: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null };
 }
@@ -259,7 +294,9 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(() => freshState());
   const gRef = useRef(g);
   const [sel, setSel] = useState(null);           // selected square, or null
-  const [shake, setShake] = useState(0);          // bumps to replay the refusal flash
+  // The board no longer flashes: the only thing that used to bump this was the
+  // move that lost the round, and that move is now just a move.
+  const [shake] = useState(0);
   const [hintPiece, setHintPiece] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
@@ -312,16 +349,17 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     for (const m of moves) { const { from, to } = parseUci(m); b = applyMove(b, from, to); }
     return b;
   }, [START, moves]);
-  const node = useMemo(() => nodeAfter(PUZZLE.solution, moves), [PUZZLE, moves]);
   const lastMove = moves.length ? parseUci(moves[moves.length - 1]) : null;
   const myTurn = playing && started && !awaitingReply;
   const whiteInCheck = useMemo(() => inCheck(pos, 'w'), [pos]);
   const blackInCheck = useMemo(() => inCheck(pos, 'b'), [pos]);
-  // Moves left for White, for the "mate in N" line above the board. While
-  // Black's reply is still in flight the count belongs to the position that
-  // reply arrives at, which is one node deeper, so it is read off the node the
-  // player will actually face.
-  const movesLeft = awaitingReply ? Math.max(1, mateDistance(node) - 1) : Math.max(1, mateDistance(node));
+  // Moves left for White, for the "mate in N" line above the board. This is
+  // WHITE'S BUDGET, not the tree's distance. mateDistance reads the solution
+  // tree, so a player who left it would watch the count collapse to "deliver
+  // mate" and learn from the header that the line was gone. Moves made against
+  // the puzzle's own mate-in-N is identical to the tree distance while you are
+  // on the line, and keeps counting honestly once you are not.
+  const movesLeft = Math.max(0, PUZZLE.mateIn - Math.ceil(moves.length / 2));
 
   // SAN of everything played, for the move list under the board.
   const sanList = useMemo(() => {
@@ -476,7 +514,15 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   // and floors away).
   // It is NOT score, so a loss still earns nothing; it only orders the losers,
   // deepest first, with the clock settling the rest.
-  function progressOf(g2) { return Math.floor((g2.moves || []).length / 2); }
+  // HOW FAR THIS RUN GOT (migration 51), and it can no longer be read off the
+  // move count alone. Until the round played on, every White move in the list
+  // was correct by construction because the first wrong one ended the puzzle;
+  // a player can now leave the line and keep moving, so the depth is White's
+  // moves less the one that left it.
+  function progressOf(g2) {
+    const whiteMoves = Math.ceil((g2.moves || []).length / 2);
+    return Math.max(0, whiteMoves - (g2.errors || 0));
+  }
 
   function postResult(g2, score) {
     abandon.markFlushed();
@@ -512,8 +558,29 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
       const cur = gRef.current;
       if (cur.status !== 'playing' || cur.moves.length !== afterMoves.length) return;
       const n = nodeAfter(PUZZLE.solution, cur.moves);
-      if (!n || !n.lines) return;
-      commit({ ...cur, moves: [...cur.moves, pickReply(n, PUZZLE.quizId)] });
+      // ON the tree the bank picks the defence, so everyone playing the line
+      // faces the same one. OFF it there is nothing stored, so Black defends
+      // live.
+      let mv = n && n.lines ? pickReply(n, PUZZLE.quizId) : null;
+      if (!mv) {
+        let b = START.board;
+        for (const m of cur.moves) { const { from, to } = parseUci(m); b = applyMove(b, from, to); }
+        const best = stubbornestDefence(b, Math.max(1, PUZZLE.mateIn - Math.ceil(cur.moves.length / 2)));
+        mv = best ? best.uci : null;
+      }
+      if (!mv) {
+        // Black has no legal move and is not mated, which is stalemate: the game
+        // is over and the mate never came. Same conclusion as running out of
+        // budget, so it is scored the same way. (A real mate is caught in
+        // tryMove, so control cannot reach here on a win.)
+        const done = { ...cur, status: 'lost', tEnd: Date.now() };
+        vibrate(HAPT.wrong);
+        postResult(done, 0);
+        endHold.hold();
+        commit(done);
+        return;
+      }
+      commit({ ...cur, moves: [...cur.moves, mv] });
       vibrate(HAPT.ok);
     }, 620);
   }
@@ -556,28 +623,37 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
       commit(g2);
       return;
     }
-    if (move !== want) {
-      // Not the key. The move is played rather than refused, so you see what you
-      // did, and the puzzle ends right there: off the solution tree there is no
-      // scripted defence left to answer with, and missing the key is how this
-      // puzzle is lost. mateDistance/nodeAfter both return safely for the null
-      // node the off-book position produces, and the deferred Black reply is
-      // gated on `playing`, so nothing fires after the loss lands.
-      g2.status = 'lost';
-      g2.errors = cur.errors + 1;
-      g2.tEnd = Date.now();
-      vibrate(HAPT.wrong);
-      setShake((k) => k + 1);
-      postResult(g2, 0);
-      endHold.hold();
-      commit(g2);
-      return;
-    }
-    if (n.mate) {
+    // OFF THE KEY IS NOT THE END OF THE ROUND (owner rule, 2026-08-11). The
+    // puzzle used to stop dead on the first move that was not the bank's key,
+    // which handed down the verdict before the player had played a single move
+    // of the line. Every legal move is played now and Black keeps answering,
+    // from the bank on the line and from a live search off it, until White
+    // either mates or runs out of moves. Two things fall out of that and both
+    // are wanted: a DUAL mate the bank does not store now wins on its merits,
+    // and a player who blunders gets to see the position lost rather than being
+    // told it was.
+    //
+    // The miss is counted only on the move that LEAVES the line. Once off it
+    // every move is "not the key", and tallying each one would make the miss
+    // count read as length of play rather than as mistakes.
+    if (n && move !== want) g2.errors = cur.errors + 1;
+    if (n && n.mate && move === want) {
       g2.status = 'won';
       g2.tEnd = Date.now();
       vibrate(HAPT.win);
       postResult(g2, 10);
+      endHold.hold();
+      commit(g2);
+      return;
+    }
+    // Budget spent with no mate on the board: that is the conclusion, and it is
+    // a loss. Tested here rather than after Black's answer so the round never
+    // asks for a reply to a move that can have no follow-up.
+    if (Math.ceil(nextMoves.length / 2) >= PUZZLE.mateIn) {
+      g2.status = 'lost';
+      g2.tEnd = Date.now();
+      vibrate(HAPT.wrong);
+      postResult(g2, 0);
       endHold.hold();
       commit(g2);
       return;
@@ -674,7 +750,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     const head2 = won
       ? `Mate #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · mate in ${PUZZLE.mateIn} · ${errors === 0 ? 'first try' : `${errors} miss${errors === 1 ? '' : 'es'}`} · ${elapsed}${hintBit}${streakBit}`
       : g.status === 'lost'
-        ? `Mate #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · missed the key · ${elapsed}`
+        ? `Mate #${PUZZLE.num}${PUZZLE.sunday ? ' · Sunday' : ''} · no mate · ${elapsed}`
         : `Mate #${PUZZLE.num} · gave up`;
     return `${head2}\n${squares}\n${shareUrl()}`;
   }
@@ -708,7 +784,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         <>One free <b>hint</b>, on your first ever play, tells you which piece moves, never where it goes.</>,
       ]}
       knack={<>Count Black&rsquo;s escapes before you commit. The key is the move that leaves the defence no answer, not the loudest check.</>}
-      note={<>Exactly <b>one</b> first move forces mate; every other move, however forcing it looks, lets Black wriggle out. You may play <b>any legal move</b> and there is <b>no take-back</b>, so a move that does not force mate ends the puzzle there.</>}
+      note={<>Exactly <b>one</b> first move forces mate; every other move, however forcing it looks, lets Black wriggle out. You may play <b>any legal move</b> and there is <b>no take-back</b>. Nothing is refused and nothing stops early: Black keeps defending, and the round ends when you deliver mate or run out of moves.</>}
       footer="The mate scores 10, and missing it scores nothing, the same as giving up. Ties break on fastest time. Weekdays are mate in two, Sundays step up to mate in three."
     />
   );
@@ -777,7 +853,9 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>misses <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            {/* Kept and posted throughout, shown only once the round is over:
+                a counter ticking up is itself a notice that the move was wrong. */}
+            {!playing && <span style={{ whiteSpace: 'nowrap' }}>misses <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
               {playing ? <>mate in <b style={{ color: COLORS.accent, fontWeight: 500 }}>{Math.max(1, movesLeft)}</b></> : <>mate in <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.mateIn}</b></>}
@@ -833,7 +911,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
               {!playing
-                ? (won ? 'Checkmate.' : g.status === 'lost' ? 'Not the move. The mate is still there.' : 'You ended it there. The mate is still there.')
+                ? (won ? 'Checkmate.' : g.status === 'lost' ? 'Out of moves. The mate is still there.' : 'You ended it there. The mate is still there.')
                 : awaitingReply
                   ? 'Black is thinking...'
                   : movesLeft <= 1
@@ -997,7 +1075,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           headline={won ? <>Checkmate!</> : g.status === 'lost' ? <>You missed it.</> : <>You scored 0%</>}
           subline={won
             ? <>10/10 &middot; found the key &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
-            : g.status === 'lost' ? <>0/10 &middot; that was not the move</>
+            : g.status === 'lost' ? <>0/10 &middot; the mate never came</>
             : <>0/10 &middot; the mate is still in the position</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}

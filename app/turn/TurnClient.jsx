@@ -244,7 +244,6 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
   }, [PUZZLE, g.moves]);
 
   const myTurn = playing && started && view.turn === 1 && !view.over;
-  const stillWinning = view.outlook > 0;
 
   // A hint marks three squares, one of which is the key. Deterministic from the
   // puzzle id so everyone who spends their one hint sees the same three.
@@ -448,14 +447,16 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
     const moves = gRef.current.moves.concat([sq]);
     let next = { ...gRef.current, moves };
     if (!next.t0) next.t0 = Date.now();
+    // A square that costs discs is COUNTED but never ANNOUNCED. The board used
+    // to shake and say the win was gone the moment it went, which decided the
+    // round out loud while there were still squares to play; the verdict now
+    // waits for the board to be counted. The tally still feeds the errors
+    // tie-break and the end card.
     if (isPlayer && outlookAfter < outlookBefore) {
       next.errors = next.errors + 1;
-      vibrate(HAPT.wrong);
-      setShake((s) => s + 1);
-      say(outlookBefore > 0 && outlookAfter <= 0 ? 'That hands it over. No take-back.' : 'That costs you discs.');
-    } else if (isPlayer) {
-      vibrate(flipped && flipped.length > 2 ? HAPT.take : HAPT.ok);
     }
+    // The same tick either way, so touch never grades the move.
+    if (isPlayer) vibrate(flipped && flipped.length > 2 ? HAPT.take : HAPT.ok);
 
     if (before.over) {
       finish(next, before.margin > 0 ? 'won' : 'lost');
@@ -622,8 +623,9 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
     if (thinking || view.turn === 2) return 'The engine is answering...';
     if (!started) return 'Ready when you are.';
     if (view.passedBack) return 'The engine has no move. Play again.';
-    if (stillWinning) return g.moves.length === 0 ? 'Your move. One square keeps this.' : 'Your move. You are still winning it.';
-    return 'Your move. The win is gone now.';
+    // No live evaluation: a line that stopped saying you were winning would
+    // announce the loss by its absence, which is the leak the toast was.
+    return g.moves.length === 0 ? 'Your move. One square keeps this.' : 'Your move.';
   };
 
   // ── board ────────────────────────────────────────────────────────────────
@@ -744,7 +746,9 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           {!preStart && (
             <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+                {/* Kept and posted throughout, shown only once the board is
+                    counted: a counter ticking up is itself a notice. */}
+                {!playing && <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
                 <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
                 <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
                   discs <b style={{ color: COLORS.ink, fontWeight: 500 }}>{view.score.mine}</b>
@@ -767,7 +771,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: playing && !stillWinning ? COLORS.rust : COLORS.ink }}>{statusLine()}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.ink }}>{statusLine()}</div>
                 <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: DISC_YOU, display: 'inline-block' }} /> you
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: DISC_FOE, border: '1px solid rgba(28,30,36,0.3)', display: 'inline-block', marginLeft: 4 }} /> engine

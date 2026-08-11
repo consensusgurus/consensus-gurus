@@ -50,7 +50,7 @@ import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   parseFen, applyMove, legalMoves, legalTargetsFrom, parseUci, uci,
-  squareName, colorOf, inCheck, toSan,
+  squareName, colorOf, inCheck, isCheckmate, toSan,
 } from '../mate/chess';
 import { makeMateSearch, stubbornestReply } from './defense';
 import { T } from '@/lib/theme';
@@ -207,8 +207,37 @@ function mergeServerStats(s, recent, puzzles) {
 const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
+// WHITE COLLECTING THE MATE IT WAS PROMISED.
+//
+// Returns the first move, in legalMoves order, that forces mate inside `budget`.
+// The order is fixed, so this is as deterministic as scanning them all and two
+// players who throw the save away the same way meet the same execution.
+//
+// It EARLY-EXITS, which is the whole reason it is not just matingMoves: that
+// one costs a full search of every White move, and this runs on the player's
+// phone inside the reply timeout. Measured over all 801 losing first moves in
+// the bank, the worst case falls from 1386ms to 516ms and 774 of them come in
+// under 100ms. The free immediate-mate scan goes first for the same reason.
+function firstMatingMove(search, board, budget) {
+  const moves = legalMoves(board, 'w');
+  for (const mv of moves) if (isCheckmate(applyMove(board, mv.from, mv.to), 'b')) return mv.uci;
+  if (budget < 2) return null;
+  for (const mv of moves) {
+    const next = applyMove(board, mv.from, mv.to);
+    const replies = legalMoves(next, 'b');
+    if (!replies.length) continue;                 // stalemate, which is not a mate
+    if (replies.every((r) => search.forcesMateWithin(applyMove(next, r.from, r.to), 'w', budget - 1))) return mv.uci;
+  }
+  return null;
+}
+
+// `doomedAt` is the save you were on when the position went, or null while it is
+// still savable. It exists because the round no longer ends on the move that
+// allows the mate: it is the depth the leaderboard ranks the loss by, it stops
+// every later move being tallied as another miss, and it is what tells White to
+// stop defending stubbornly and go and collect the mate.
 function freshState() {
-  return { v: 1, moves: [], errors: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null };
+  return { v: 1, moves: [], errors: 0, hintUsed: false, status: 'playing', t0: null, tEnd: null, doomedAt: null };
 }
 
 export default function DefendClient({ puzzles = [], forceNum = null }) {
@@ -220,7 +249,9 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(() => freshState());
   const gRef = useRef(g);
   const [sel, setSel] = useState(null);
-  const [shake, setShake] = useState(0);
+  // The board no longer flashes: the only thing that used to bump this was the
+  // move that lost the round, and that move is now just a move.
+  const [shake] = useState(0);
   const [hintPiece, setHintPiece] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
@@ -412,8 +443,13 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
   // A wrong move ends the puzzle on the spot, so every one of your moves already
   // on the board was correct, and half the list is exactly that count.
   // It is NOT score, so a loss still earns nothing; it only orders the losers.
+  // HOW FAR THIS RUN GOT (migration 51): saves made. Once the round plays on
+  // past a blunder the move count is no longer that, because the moves after
+  // the save was lost are the mate being collected rather than saves, so the
+  // recorded depth comes off `doomedAt`.
   function progressOf(g2) {
     if (g2.status === 'won') return HOLD;
+    if (g2.doomedAt != null) return g2.doomedAt;
     return Math.floor((g2.moves || []).length / 2);
   }
 
@@ -461,8 +497,10 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
   // expensive (it is the full-budget one) and precomputing it also guarantees
   // every player faces the same defence on the move that decides the day. Later
   // replies run against a smaller budget and are cheap enough to search here.
-  function replyTo(board2, afterCount) {
-    if (afterCount === 1 && PUZZLE.reply) {
+  function replyTo(board2, afterCount, doomed) {
+    // The bank's reply answers the SAVE. It is not an answer to a move that gave
+    // the mate away, so a doomed position skips it and is searched instead.
+    if (!doomed && afterCount === 1 && PUZZLE.reply) {
       const { from, to } = parseUci(PUZZLE.reply);
       const legal = legalMoves(board2, 'w').some((m) => m.from === from && m.to === to);
       if (legal) return PUZZLE.reply;
@@ -472,7 +510,20 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
     // HOLD minus that is exactly the budget White has left to mate in. This is
     // the same argument stubbornestReply is called with in the generator, where
     // the count is zero and the budget is the whole of HOLD.
-    const best = stubbornestReply(board2, Math.max(1, HOLD - Math.floor(afterCount / 2)), makeMateSearch());
+    const budget = Math.max(1, HOLD - Math.floor(afterCount / 2));
+    const search = makeMateSearch();
+    // ONCE THE SAVE IS GONE, WHITE TAKES THE MATE. stubbornestReply is the wrong
+    // tool for that and would actively refuse it: it scores a move leaving Black
+    // no reply as Infinity so the engine can never hand over a stalemate, which
+    // rules out the mating move along with it. So the mating moves are asked for
+    // directly and White walks the line in, lowest UCI for determinism.
+    // Only a doomed position has a mate to collect, so the happy path never
+    // pays for the search at all.
+    if (doomed) {
+      const mate = firstMatingMove(search, board2, budget);
+      if (mate) return mate;
+    }
+    const best = stubbornestReply(board2, budget, search);
     return best ? best.uci : null;
   }
 
@@ -483,7 +534,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
       if (cur.status !== 'playing' || cur.moves.length !== afterMoves.length) return;
       let b = START.board;
       for (const m of cur.moves) { const { from, to } = parseUci(m); b = applyMove(b, from, to); }
-      const mv = replyTo(b, cur.moves.length);
+      const mv = replyTo(b, cur.moves.length, cur.doomedAt != null);
       if (!mv) return;
       commit({ ...cur, moves: [...cur.moves, mv] });
       vibrate(HAPT.ok);
@@ -534,13 +585,24 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
       ? move === PUZZLE.key
       : !makeMateSearch().forcesMateWithin(next, 'w', budget);
 
-    if (!survives) {
+    // A MOVE THAT ALLOWS THE MATE NO LONGER ENDS THE ROUND (owner rule,
+    // 2026-08-11). It used to stop dead the instant the save was gone, which
+    // handed down the verdict before White had played a thing. The move is
+    // played now, White comes and collects the mate it was promised, and the
+    // round ends when the mate is actually on the board. That ending is already
+    // handled: the effect below finishes the game the moment Black has no legal
+    // move, as lost when in check and won when stalemated.
+    //
+    // The miss is counted once, on the move that loses the save. Every later
+    // move is also unsavable and tallying those would make the count read as
+    // length of play rather than as mistakes.
+    if (!survives && cur.doomedAt == null) {
       g2.errors = cur.errors + 1;
-      setShake((k) => k + 1);
-      finish(g2, 'lost', 0);
-      return;
+      g2.doomedAt = decision;
     }
-    if (decision + 1 >= HOLD) { finish(g2, 'won', 10); return; }   // budget spent, you held
+    // Reaching the end of White's budget is the hold, but only from a position
+    // that was still savable. A player mated on the last save has not held.
+    if (g2.doomedAt == null && decision + 1 >= HOLD) { finish(g2, 'won', 10); return; }
     vibrate(HAPT.ok);
     commit(g2);
     scheduleReply(g2.moves);
@@ -670,7 +732,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
         <>One free <b>hint</b>, on your first ever play, tells you which piece moves, never where it goes.</>,
       ]}
       knack={<>Count what each move gives away, not what it attacks. Three or four moves will look like they stop the mate and only one of them does.</>}
-      note={<>You may play <b>any legal move</b> and there is <b>no take-back</b>, so a move that allows the mate ends the puzzle there. Mating White yourself, or being stalemated, both count as holding.</>}
+      note={<>You may play <b>any legal move</b> and there is <b>no take-back</b>. Nothing is refused and nothing stops early: allow the mate and White will come and play it out on the board. Mating White yourself, or being stalemated, both count as holding.</>}
       footer="Holding scores 10, and getting mated scores nothing, the same as giving up. Ties break on fastest time. Weekdays hold for two, Sundays hold for three."
     />
   );
@@ -735,7 +797,9 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>misses <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            {/* Kept and posted throughout, shown only once the round is over:
+                a counter ticking up is itself a notice that the move was wrong. */}
+            {!playing && <span style={{ whiteSpace: 'nowrap' }}>misses <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
               {playing ? <>hold for <b style={{ color: COLORS.accent, fontWeight: 500 }}>{Math.max(1, holdLeft)}</b></> : <>hold for <b style={{ color: COLORS.ink, fontWeight: 500 }}>{HOLD}</b></>}

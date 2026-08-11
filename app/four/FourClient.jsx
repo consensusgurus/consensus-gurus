@@ -43,7 +43,7 @@ import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   deserialize, play, legalMoves, winsAt, winningCells, scoreMoves, engineMove,
-  idOrder, movesToWin, COLS, ROWS, SIZE,
+  idOrder, COLS, ROWS,
 } from './c4';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -258,14 +258,11 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   const myTurn = playing && started && !awaitingReply && !thinking;
   // The value of the position for you, carried in state so the header can say
   // how many moves the win still needs without re-solving on every render.
-  const val = g.val == null ? PUZZLE.rootScore : g.val;
-  const emptyNow = SIZE - pos.plies;
-  // `val` is always your value at a position where YOU are to move, so while the
-  // engine's disc is still in flight the count belongs to the board one drop
-  // further on. Measuring it against the current board would land half a move
-  // out and print a fraction.
-  const winBasis = awaitingReply ? emptyNow - 1 : emptyNow;
-  const winLeft = val > 0 ? movesToWin(winBasis, val) : 0;
+  // The position's value is still CARRIED in state (scheduleReply reads it to
+  // decide whether a drop cost anything) but it is no longer READ OUT. A header
+  // that counted the win down and then said "gone" was the loudest loss notice
+  // on the board, and the point of the 2026-08-11 rule is that nothing tells you
+  // the round is decided while you still have drops to make.
   const hintCols = useMemo(() => (g.hintUsed ? hintColumns(PUZZLE) : []), [g.hintUsed, PUZZLE]);
 
   // The four cells to light up once somebody connects.
@@ -475,12 +472,13 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
       const before = cur.pending == null ? outcomeOf(cur.val == null ? PUZZLE.rootScore : cur.val) : cur.pending;
       const after = outcomeOf(-em.score);
       let next = { ...cur, moves: [...cur.moves, em.col], val: -em.score, pending: null };
+      // A drop that gives value away is COUNTED but never ANNOUNCED. The board
+      // used to say the win was gone the moment it went, which decided the round
+      // out loud while there were still drops to make; the verdict now waits for
+      // the game to actually end. The tally still feeds the errors tie-break,
+      // the progress term and the end card, so nothing downstream changes.
       if (after < before) {
         next = { ...next, errors: next.errors + 1 };
-        vibrate(HAPT.wrong);
-        say(before > 0 && after === 0 ? 'That lets it slip. The win is gone, a draw is still there.'
-          : before > 0 ? 'That drop loses the win, and the position with it.'
-          : 'That gives the game away.');
       }
       const r = b.heights[em.col];
       const engineWins = winsAt(b, em.col, r, 2);
@@ -489,7 +487,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
       const b2 = boardFrom(PUZZLE.cells, next.moves);
       if (!legalMoves(b2).length) { finish(next, 'drawn'); return; }
       commit(next);
-      if (after >= before) vibrate(HAPT.ok);
+      vibrate(HAPT.ok);   // the same tick either way, so touch never grades the drop
     }, 430);
   }
   // A save made inside that window would restore a half-finished turn, so the
@@ -632,9 +630,9 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
       return 'You ended it there. The win is still in the position.';
     }
     if (thinking || awaitingReply) return 'The engine is thinking...';
-    if (val > 0) return winLeft <= 1 ? 'Drop the winner.' : `Your move. The win takes ${winLeft} more.`;
-    if (val === 0) return 'Your move. The win is gone, a draw is still there.';
-    return 'Your move. You are losing this now.';
+    // No live evaluation. A line that counted the win down would announce the
+    // loss by falling silent, which is the same leak as the old toast.
+    return moves.length === 0 ? 'Your move. One column keeps this.' : 'Your move.';
   };
 
   return (
@@ -706,14 +704,14 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>wrong drops <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            {/* The tally is kept and posted throughout, but only SHOWN once the
+                game is over: a counter ticking up is itself a notice that the
+                drop was wrong. */}
+            {!playing && <span style={{ whiteSpace: 'nowrap' }}>wrong drops <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
-              {playing && val > 0
-                ? <>win in <b style={{ color: COLORS.accent, fontWeight: 500 }}>{Math.max(1, winLeft)}</b></>
-                : playing
-                  ? <>win in <b style={{ color: COLORS.rust, fontWeight: 500 }}>gone</b></>
-                  : <>win in <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.winIn}</b></>}
+              {/* The puzzle's brief, not a live readout. */}
+              <>win in <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.winIn}</b></>
             </span>
           </div>
 
@@ -772,7 +770,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? (val > 0 ? COLORS.accent : COLORS.rust) : COLORS.faded }}>
+            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
               {statusLine()}
             </span>
             <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11, color: COLORS.faded, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6 }}>

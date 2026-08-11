@@ -3683,6 +3683,65 @@ above came to be.
 
 ---
 
+## NOTHING TELLS YOU THE ROUND IS LOST WHILE YOU CAN STILL PLAY (owner rule, 2026-08-11)
+
+All six End Game titles knew the position was decided before the player did, and all six said so.
+Two different ways, and both are gone:
+
+- **Four, Chain, Turn and Check** played the game out but ANNOUNCED the blunder: a toast ("That drop
+  loses the win, and the position with it", "That hands it over. No take-back."), a status line that
+  flipped to "Your move. The win is gone now" in red, an errors counter ticking up beside the clock,
+  and in Four a header that counted the win down and then read **gone**.
+- **Mate and Defend** did not play out at all. The first move off the bank's key ENDED the round on
+  the spot, with the end card up before the player had played a move of the line.
+
+The rule: **the only things that end an End Game round are the game's own conclusion and the Give up
+button.** Nothing on the board may tell a player the position is decided while they still have a
+move to make. The verdict waits for the mate, the last box, a full board, or the budget running out.
+
+What to know before touching one of these:
+
+- **The absence of a readout is itself a readout.** Four's "win in N" header and Chain's and Turn's
+  "you are still winning it" were not verdicts, but they stop the moment the win goes, and stopping
+  IS the announcement. So the live evaluation came out entirely rather than being softened: Four's
+  header prints the puzzle's own `winIn` and the status lines read "Your move." Do not reintroduce a
+  position-value readout in any form.
+- **The tally is kept; only the display moved.** `errors` still increments, still posts as
+  `guessesUsed`, still feeds `progress`, still prints on the end card. It is wrapped in
+  `{!playing && ...}` in the stat bar, nothing more. Haptics count as a notice you can feel, so the
+  blunder no longer buzzes `HAPT.wrong` or shakes the board: every move gets the same neutral tick
+  and `HAPT.wrong` fires only from `finish`.
+- **Playing on needs an engine for positions the bank never saw.** Mate's bank stores a Black reply
+  for every position ON the solution tree and nothing off it, so off-book Black defends live through
+  `stubbornestDefence` in `MateClient.jsx`, the mirror of Defend's `stubbornestReply` and built on
+  the SAME `makeMateSearch` from `app/defend/defense.js` rather than a second engine. Defend's White
+  stops defending stubbornly once `doomedAt` is set and collects the mate through `firstMatingMove`;
+  `stubbornestReply` cannot do that job, because it scores a move leaving Black no reply as Infinity
+  so the engine can never hand over a stalemate, which rules out the mating move along with it.
+- **A round must be PROVEN to conclude, on every board, from every wrong move.** This is the one
+  thing that can strand a player forever, so it is not an eyeball check.
+  `scripts/verify-endgame-playout.mjs` walks all 1,924 off-key Mate lines and all 801 losing Defend
+  lines against a player that squirms as long as it can, asserts every run ends and every engine
+  reply is legal, and replays the winning line on all 118 boards to prove a solve is unchanged. It
+  LIFTS both searches out of the client files rather than retyping them, so it cannot drift from
+  what it certifies. Run it before shipping any change to these two.
+- **Cost is a real constraint: these searches run on a phone inside the reply timeout.**
+  `firstMatingMove` early-exits on the first mating move in `legalMoves` order rather than scanning
+  them all, which is exactly as deterministic and takes the worst case on the bank from 1386ms to
+  516ms, 774 of the 801 under 100ms. Defend only searches at all once `doomedAt` is set, so a player
+  who is holding never pays for it.
+- **Scoring did not move.** A loss still posts 0 and `endgame-loss-scores-zero` stands untouched.
+  What DID move is `progress`, because a run that plays on past its mistake can no longer read its
+  depth off the move count: see the table in the next section.
+
+One thing fell out of this that is worth having. A Mate move the bank does not store as the key but
+which forces mate anyway now WINS on its merits, because the player gets to play it out instead of
+being stopped on the spot. Duals were previously only credited when the alternative mate landed
+immediately.
+
+Babel is the one End Game title untouched by this: it has no loss state at all, scoring a spread
+against a benchmark instead.
+
 ## A LOSS RANKS ON HOW FAR YOU GOT, not on how fast you lost (owner rule, 2026-08-09)
 
 The End Game titles are binary: you either solve the position or you do not, and a loss posts
@@ -3725,11 +3784,12 @@ same; quitting is not separately penalised beyond the depth it stopped at.
 
    | Game | `progress` | Why that measure |
    |---|---|---|
-   | Mate | key moves already found, `floor(moves.length / 2)` | every White move in the list is correct by construction, since the first wrong one ends the puzzle |
+   | Mate | moves played on the line, `ceil(moves.length / 2) - errors` | it was `floor(moves.length / 2)` while the first wrong move ended the puzzle, which made every White move in the list correct by construction. The round plays on from 2026-08-11, so the miss has to come back off |
    | Check | black pieces swept, `PUZZLE.blk - countPieces(board, false)` | the sweep IS the puzzle, and the share squares already grade on it |
    | Four | correct drops, `ceil(moves.length / 2) - errors` | you move first, and a drop that threw the win away was already counted as an error |
    | Chain | boxes taken, `stateAfter(moves).score.mine` | a capture keeps the turn, so the move list has no parity to read your own moves off |
    | Turn | discs held, `stateAfter(moves).score.mine` | same as Chain, and it is the number the game already reports to you |
+   | Defend | saves made, `doomedAt` once the position has gone | the move list keeps growing after the save is lost, but those moves are the mate being collected rather than saves, so the depth is frozen at the save you were on when it went |
    | Babel | **none** | its score is already a graded spread against a benchmark, so it needs no tiebreak |
 
 4. **Post it from the abandon flush too**, not just the finish path, or a bailed run ranks as depth 0
