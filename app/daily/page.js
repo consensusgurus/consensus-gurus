@@ -7,6 +7,8 @@ import { PUZZLES as SPAN } from '../span/puzzles';
 import { PUZZLES as DATING } from '../dating/puzzles';
 import { PUZZLES as TALLY } from '../tally/puzzles';
 import { PUZZLES as SUDS } from '../suds/puzzles';
+import { PUZZLES as QUILT_FULL } from '../quilt/puzzles';
+const QUILT = QUILT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 import { PUZZLES as CARVE } from '../carve/puzzles';
 import { PUZZLES as CIRCA } from '../circa/puzzles';
 import { PUZZLES as OUTRANK } from '../outrank/puzzles';
@@ -168,6 +170,7 @@ const GAMES = [
   { key: 'dating', name: 'Dating', path: '/dating', tag: 'Put five moments in order', accent: '#6d28d9', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: DATING },
   { key: 'tally', name: 'Tally', path: '/tally', tag: 'Balance every row and column', accent: T.successDeep, bg: '#eefaf1', border: 'rgba(21,128,61,0.45)', src: TALLY },
   { key: 'suds', name: 'Suds', path: '/suds', tag: 'Fill the 9×9 grid, 1–9', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)', src: SUDS },
+  { key: 'quilt', name: 'Quilt', path: '/quilt', tag: 'Nine crooked regions, 1–9', accent: '#a21caf', bg: '#fdf4ff', border: 'rgba(162,28,175,0.4)', src: QUILT },
   { key: 'carve', name: 'Carve', path: '/carve', tag: 'Carve the grid into equal sums', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: CARVE },
   { key: 'circa', name: 'Circa', path: '/circa', tag: 'Pin the year of the moment', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)', src: CIRCA },
   { key: 'extra', name: 'Extra', path: '/extra', tag: 'Unredact the front page', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)', src: EXTRA },

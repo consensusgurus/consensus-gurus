@@ -110,7 +110,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
+const LAUNCH_PIN = { keys: ['quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -139,6 +139,7 @@ export const GAME_META = {
   extra:  { accent: '#b91c1c', badgeBg: '#b91c1c', badgeInk: T.white, Fin: Newspaper },
   tally:  { accent: T.successDeep, badgeBg: T.successDeep, badgeInk: T.white, Fin: Scale },
   suds:   { accent: '#ea580c', badgeBg: '#ea580c', badgeInk: T.white, Fin: Grid3x3 },
+  quilt:  { accent: '#a21caf', badgeBg: '#a21caf', badgeInk: T.white, Fin: Puzzle },
   carve:  { accent: '#7c3aed', badgeBg: '#7c3aed', badgeInk: T.white, Fin: LayoutGrid },
   stet:   { accent: '#0369a1', badgeBg: '#0369a1', badgeInk: T.white, Fin: Pencil },
   outwit: { accent: '#1f2937', badgeBg: '#1f2937', badgeInk: T.gold, Fin: Users },
@@ -233,6 +234,7 @@ const ALL_DAILY_GAMES = [
   { key: 'ping',   cat: 'geography', name: 'Ping',   tag: 'Find the secret city',        blurb: 'Name any city and get the distance back. Triangulate your way to the hidden one.', href: '/ping' },
   { key: 'tally',  cat: 'numbers',   name: 'Tally',  tag: 'Balance every row and column', blurb: 'Place the numbers so every row and column lands exactly on its target total.', href: '/tally' },
   { key: 'suds',   cat: 'numbers',   name: 'Suds',   tag: 'The daily 9x9 sudoku',      blurb: 'A fresh, hand-checked 9x9 sudoku with one clean solving path from start to finish.', href: '/suds' },
+  { key: 'quilt',  cat: 'numbers',   name: 'Quilt',  tag: 'Sudoku with no straight lines', blurb: 'The same 9x9 grid, but the boxes are nine crooked regions instead of squares.', href: '/quilt' },
   { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   blurb: 'Slice the number grid into regions that every one of them adds up to the same total.', href: '/carve' },
   { key: 'outwit', cat: 'crowd',     name: 'Outwit', tag: 'Beat the crowd',            blurb: 'Pick the answers today’s other players will not. The rarer your pick, the more it pays.', href: '/outwit' },
   { key: 'outrank', cat: 'crowd',    name: 'Outrank', tag: "Call the crowd's order",   blurb: 'Predict how everyone else ranked the list today, not how you would rank it yourself.', href: '/outrank' },

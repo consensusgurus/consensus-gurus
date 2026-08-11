@@ -3311,6 +3311,7 @@ archive and hub chips use the short form `Sun`.
 | Span | a via/avoid rule constrains the route |
 | Tally | 6×6 board instead of 5×5 |
 | Suds | harder grid, fewer givens |
+| Quilt | 26 printed clues instead of the weekday 30 to 34 (from 2026-08-11) |
 | Circa | a trickier moment to place |
 | Extra | a trickier story to name |
 | Carve | 7×7 board in nine blocks |
