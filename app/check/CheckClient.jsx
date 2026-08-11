@@ -10,10 +10,12 @@
 // GOAL only. The one place the key is named is the payoff block below, gated on
 // !playing, which renders after the board is over.
 //
-// A wrong move is NOT refused. The engine answers, the clock on your move budget
-// keeps ticking down, and you play the rest out knowing the sweep is gone. The
-// engine is a depth-bounded exact search (app/check/draughts.js), so it answers
-// any position, on or off the line, which is what makes that possible.
+// A wrong move is NOT refused, and nothing on the board announces it. The engine
+// answers, the clock on your move budget keeps ticking down, and you play the
+// rest out; whether the sweep is still alive is yours to work out, because the
+// verdict waits for the budget to run down (owner rule, 2026-08-11). The engine
+// is a depth-bounded exact search (app/check/draughts.js), so it answers any
+// position, on or off the line, which is what makes that possible.
 //
 // Same daily plumbing as Park/Four/Mate: banked boards gated by Eastern date on
 // the server (app/check/page.js), per-puzzle localStorage saves, /check?p=N

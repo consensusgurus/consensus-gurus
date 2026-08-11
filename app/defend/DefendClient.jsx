@@ -440,14 +440,12 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
 
   // HOW FAR THIS RUN GOT (migration 51). A loss scores 0, which would otherwise
   // leave every losing player tied and let the board rank them by who lost
-  // FASTEST. This is the ranking term that separates them: saves already found.
-  // A wrong move ends the puzzle on the spot, so every one of your moves already
-  // on the board was correct, and half the list is exactly that count.
+  // FASTEST. This is the ranking term that separates them: saves made. Half the
+  // move list used to be exactly that count, because a wrong move ended the
+  // puzzle on the spot. The round plays on from 2026-08-11, so the moves after
+  // the save was lost are the mate being collected rather than saves, and the
+  // recorded depth comes off `doomedAt` instead.
   // It is NOT score, so a loss still earns nothing; it only orders the losers.
-  // HOW FAR THIS RUN GOT (migration 51): saves made. Once the round plays on
-  // past a blunder the move count is no longer that, because the moves after
-  // the save was lost are the mate being collected rather than saves, so the
-  // recorded depth comes off `doomedAt`.
   function progressOf(g2) {
     if (g2.status === 'won') return HOLD;
     if (g2.doomedAt != null) return g2.doomedAt;

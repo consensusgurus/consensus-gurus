@@ -508,18 +508,14 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
 
   // HOW FAR THIS RUN GOT (migration 51). A loss here scores 0, which used to
   // leave every losing player tied and let the board rank them by who lost
-  // FASTEST. This is the ranking term that separates them: the key moves
-  // already found. Every White move in the list is correct by construction,
-  // because the first wrong one ends the puzzle on the spot, so half the move
-  // count IS the number of moves solved (the losing move makes the length odd
-  // and floors away).
+  // FASTEST. This is the ranking term that separates them: the moves played on
+  // the line. It can no longer be read off the move count alone: until the round
+  // played on (2026-08-11) every White move in the list was correct by
+  // construction, the first wrong one having ended the puzzle. A player can now
+  // leave the line and keep moving, so the depth is White's moves less the one
+  // that left it.
   // It is NOT score, so a loss still earns nothing; it only orders the losers,
   // deepest first, with the clock settling the rest.
-  // HOW FAR THIS RUN GOT (migration 51), and it can no longer be read off the
-  // move count alone. Until the round played on, every White move in the list
-  // was correct by construction because the first wrong one ended the puzzle;
-  // a player can now leave the line and keep moving, so the depth is White's
-  // moves less the one that left it.
   function progressOf(g2) {
     const whiteMoves = Math.ceil((g2.moves || []).length / 2);
     return Math.max(0, whiteMoves - (g2.errors || 0));
