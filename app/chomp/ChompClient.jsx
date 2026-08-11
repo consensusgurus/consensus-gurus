@@ -67,6 +67,7 @@ const PAD = 5;
 const LABEL = {
   bulldog: 'Bulldog', ibis: 'Ibis', gamecock: 'Gamecock', wildcat: 'Wildcat',
   seminole: 'Seminole', tiger: 'Tiger', eagle: 'Eagle', longhorn: 'Longhorn',
+  knight: 'Knight', smokey: 'Smokey', bull: 'Bull',
 };
 
 function etToday() {
@@ -678,8 +679,8 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         <>Steering into a wall is <b>refused</b>, not punished, and costs no move. The run ends only when the head has nowhere legal left to go.</>,
         <>Boxed in early? <b>Give up</b> ends the run and <b>records it as it stands</b>, and then <b>Try again</b> re-deals the same board. Only your first result counts on the leaderboard.</>,
       ]}
-      knack="Getting to the mascot in front of you is easy. The board is about the one after it: the shortest line to the fourth is very often the line that walls off the fifth. Look one mascot further than you want to."
-      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all seven: stall on the fifth and you still score five. Clearing all ${NPEL} of today's cast is a perfect 10. Ties break on fewest moves, then on time. Giving up records the run as it stood, and only your first result is leaderboard eligible. Sunday Editions field the whole cast of eight and spread them further apart, so more of the board is wall by the time the last one is in reach.`}
+      knack="The mascots sit close together, and that is the trap: the direct line to the next one is very often the line that walls off the one after it. When the way forward looks obvious, check what it costs you two mascots later."
+      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all ${NPEL}: stall on the fifth and you still score five. Clearing the whole cast is a perfect 10. Ties break on fewest moves, then on time. Giving up records the run as it stood, and only your first result is leaderboard eligible. The cast grows through the week, and Sunday Editions field all eleven on the same small board, so almost every square is wall by the time the last one is in reach.`}
     />
   );
 

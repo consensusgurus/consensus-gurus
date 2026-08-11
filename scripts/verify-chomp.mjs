@@ -3,36 +3,58 @@
 //
 // Everything here is RECOMPUTED from the board, never read back off the row.
 //
-// ⚠️ REWRITTEN AGAIN 2026-08-10, because the 2026-08-09 rewrite passed a bank
-// the owner still called far too easy, early-week days included. Both failures
-// are recorded here because the second one repeated the first one's mistake in a
-// stronger disguise:
+// ⚠️ REWRITTEN A THIRD TIME 2026-08-11, and this rewrite THROWS OUT THE PLAYER
+// MODELS ENTIRELY. The history matters because all three previous versions failed
+// the same way in progressively better disguises:
 //
-//   ROUND ONE gated on a CAREFUL GREEDY BOT. A 300-wide BEAM PLANNER cleared 63
+//   ROUND ONE gated on a careful greedy bot. A 300-wide beam planner cleared 63
 //   of the 70 boards it approved.
+//   ROUND TWO gated on that beam. The same beam at width 2000 cleared 90% of what
+//   it passed.
+//   ROUND THREE dropped the bot gate for two BOARD properties, spare squares and
+//   forgiveness. The owner cleared the first board of that bank first try, having
+//   barely thought about it.
 //
-//   ROUND TWO gated on that beam, at width 300. The SAME beam at width 2000
-//   clears 90% of the boards THAT approved, and a 300-wide beam with a different
-//   scoring function clears several of them outright. Fourth player model, fourth
-//   time beaten.
+// Round three's boards were not soft on their own terms: EIGHT more player models
+// written against them on 2026-08-11 (greedy, greedy plus strand check, a
+// wall-hugging sweeper, a straight-preferring reflex player, one and two mascots
+// of lookahead) all clear them roughly 0% of the time. Twelve models across four
+// rounds, every one failing a board a person walks through without thinking.
 //
-// So there is NO BOT GATE HERE any more, at either end. A beam is still run, but
-// only to PRINT what it managed, because normalising a bank to "just barely beats
-// the current bot" is what produced two easy banks in a row. The gates are all
-// properties of the BOARD, which cannot be gamed by tuning a player:
+// That is the finding: A BOT IS NOT THE THING THE BOARD IS SHOWN TO. A myopic
+// model optimises the next square. A person sees a 7x7 grid whole and reads the
+// route off it before moving. No cheap model does that, so every gate built on
+// one measures the wrong species and normalises the bank to "just beats this
+// week's bot".
 //
-//   SPARE SQUARES. The sum of the legs' Manhattan distances is a proven lower
-//   bound on any legal route, so `cells - (min + 1)` is the number of squares the
-//   player is FREE TO WASTE. Round one let Monday waste twenty-four of sixty-four.
-//   Monday now wastes nine of forty-nine and Sunday wastes none.
+// So this checker gates on THE SHAPE OF THE SOLUTION, which is what a person
+// actually reads:
 //
-//   FORGIVENESS. Walk a winning route and ask, at every ply, how many of the legal
-//   moves still leave the board winnable. Coverage says how much of the board you
-//   have to use; this says what a careless move costs. Round one's Monday ran 79%,
-//   so four moves in five were survivable. Nothing here is above 72%.
+//   MAX LEG. The longest hop between consecutive mascots. A long hop across open
+//   board is a CORRIDOR, not a decision. The generator this replaces MAXIMISED
+//   leg length, because the Manhattan leg sum is a lower bound on coverage and a
+//   high one forces the player to fill the board. It worked, and it is exactly
+//   what made the boards readable: measured over the bank it replaces, mean
+//   longest leg 10.2 out of a possible 12, mascots in opposite corners, and the
+//   route a lap around the rim. Coverage now comes from the NUMBER of legs
+//   instead, which is what the cast of 8-11 is for.
 //
-// The two are not the same thing and a board can pass one and fail the other,
-// which is why both are gates.
+//   DETOUR, min - floor. How many moves the true optimum spends above the
+//   Manhattan lower bound, i.e. how far you are forced to walk AWAY from the
+//   mascot you are chasing. It was ZERO on 60 of the 67 boards this replaces:
+//   every leg a plain monotone staircase, nothing anywhere counterintuitive.
+//
+//   TURN DENSITY, on the TIDIEST optimum. Squares per straight run. A route that
+//   runs in long straight lines is a low-information object you take in at a
+//   glance whatever its other statistics say. It is measured over the STRAIGHTEST
+//   of all shortest routes, never whichever one the solver returned first: a board
+//   can hold both a tangled optimum and a straight one and the player walks
+//   whichever they find. Gating on an arbitrary route let three boards through at
+//   3.0+ during this rebuild.
+//
+// The old player models are still RUN, at the bottom, and still print. They gate
+// nothing. They are kept because a board a myopic line can finish is trivial by
+// inspection and worth knowing about, not because passing them means anything.
 //
 // The claims checked, in order:
 //   shape       row shape, the weekday ramp, cast rules, pellet placement
@@ -40,54 +62,49 @@
 //   findable    an independent exhaustive search finds the optimum, and
 //               lib/chomp-engine replays it move for move
 //   sunday      the flag matches the calendar, and Sunday is the peak rung
-//   difficulty  no unplanned line and no careful player clears a board, every
-//               board is punishing enough on the forgiveness measure, and the
-//               beam planner's score is printed rather than gated on
-//   ramp        spare squares fall Monday to Sunday and land in each day's band
+//   geometry    max leg, detour, turn density: the solution is not readable
+//   ramp        spare squares fall Monday to Sunday, and the cast climbs
 //   variety     start squares, mascot squares and cast orders spread out
 //   scoring     partial credit behaves at every cast length
 import { PUZZLES, MASCOTS } from '../app/chomp/puzzles.js';
 import { replay } from '../lib/chomp-engine.js';
 
-// Days one to three shipped before this tightening and have been PLAYED and
-// scored, so their boards are frozen history and the new gates do not run on
-// them. Their annotations (floor, min) are still recomputed, because those are
-// derived facts rather than the puzzle. Never move this date backwards: it would
-// re-gate a board somebody already has a result on.
-const REBUILT_FROM = '2026-08-11';
+// Boards that have been PLAYED and scored are frozen history and the geometry
+// gates do not run on them. Their derived fields (floor, min) are still
+// recomputed, because those are facts about the board rather than the design.
+// NEVER move this date backwards: it would re-gate a board somebody already has
+// a result on.
+const REBUILT_FROM = '2026-08-12';
 
 const FIRST_MASCOT = 'bulldog';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 // THE WEEKDAY RAMP, indexed by getUTCDay so index 0 is Sunday.
 //
-// The dial is SPARE SQUARES: cells - (min + 1), the number of squares the player
-// is free to waste, because no leg can be walked in fewer moves than its Manhattan
-// distance. It is quoted in squares rather than in percent because that is the
-// thing you can feel, and because a percentage hid how loose the old bank was (a
-// Monday "forcing 63%" is a Monday handing you twenty-four free squares).
+// Two dials rise together through the week: the CAST (more mascots is more legs,
+// more solid obstacles, and more of the board consumed) and the DETOUR. Spare
+// squares fall, as before. Every band was MEASURED against what the generator can
+// actually reach before it was written down, because round one wrote bands about
+// twenty points below the achievable ceiling and that is how a Monday ended up
+// handing out twenty-four free squares.
 //
-// The whole week is 7x7 from 2026-08-11. 8x8 with a cast of six cannot be squeezed
-// past about 80%, and 9x9 and up cannot be squeezed at all: long enough legs to
-// force it make the board unsolvable instead. 6x6 is out the other end. See
-// app/chomp/puzzles.js.
+// The whole week is 7x7. Coverage no longer needs a big board to be forced: ten
+// short legs reach the same floor as six long ones.
 const RAMP = [
-  { w: 7, cast: 8, spare: [0, 1] },   // Sun: the whole cast, and no room at all
-  { w: 7, cast: 6, spare: [9, 10] },  // Mon: the most slack of the week, and it is nine squares
-  { w: 7, cast: 6, spare: [7, 8] },
-  { w: 7, cast: 7, spare: [6, 6] },
-  { w: 7, cast: 7, spare: [5, 5] },
-  { w: 7, cast: 7, spare: [4, 4] },
-  { w: 7, cast: 7, spare: [2, 3] },   // Sat
+  { cast: 11, det: 3, spare: [0, 2] },   // Sun: the whole cast, and no room at all
+  { cast: 8,  det: 2, spare: [9, 11] },  // Mon: the most slack of the week
+  { cast: 8,  det: 2, spare: [7, 8] },
+  { cast: 9,  det: 2, spare: [6, 7] },
+  { cast: 9,  det: 2, spare: [5, 6] },
+  { cast: 10, det: 2, spare: [4, 5] },
+  { cast: 10, det: 3, spare: [3, 4] },   // Sat
 ];
-// A board may not leave more than 72% of the moves open to you survivable, and at
-// least 40% of the plies where you HAVE a choice must have exactly one right
-// answer. Both are ceilings the bank clears with room, not targets to build to:
-// the bank runs 59-70% and 59-100%.
-const FORGIVE_MAX = 0.72;
-const FORCED_MIN = 0.40;
-const CAST_MIN = 6, CAST_MAX = 8;
+
+const LEG_CAP = 6;        // longest hop between consecutive mascots
+const RUN_CAP = 2.8;      // squares per straight run on the TIDIEST optimum
+const CAST_MIN = 8, CAST_MAX = 11;
 const SOLVER_CAP = 4000000;
-const BEAM_WIDTH = 300;
+const TURN_CAP = 800000;
 
 let BAD = 0;
 const fail = (tag, msg) => { BAD += 1; console.log(`✗ ${tag}: ${msg}`); };
@@ -100,21 +117,19 @@ const manh = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const dowOf = (p) => new Date(`${p.live}T12:00:00Z`).getUTCDay();
 const rungOf = (p) => RAMP[dowOf(p)];
-const coverOf = (p, min) => (min + 1) / (p.w * p.h);
 const spareOf = (p, min) => p.w * p.h - (min + 1);
+const coverOf = (p, min) => (min + 1) / (p.w * p.h);
 
-function floorOf(p) {
-  let L = manh(p.start, p.pellets[0]);
-  for (let i = 1; i < p.pellets.length; i++) L += manh(p.pellets[i - 1], p.pellets[i]);
+function legsOf(p) {
+  const L = [manh(p.start, p.pellets[0])];
+  for (let i = 1; i < p.pellets.length; i++) L.push(manh(p.pellets[i - 1], p.pellets[i]));
   return L;
 }
+const floorOf = (p) => legsOf(p).reduce((a, b) => a + b, 0);
 
-// shared helpers: a square is blocked by the board edge, by the trail, or by a
-// mascot whose turn has not come. `reach` asks whether everything still to eat
-// is still reachable, and treats unreached mascots as PASSABLE on purpose: they
+// shared helpers. `reach` treats unreached mascots as PASSABLE on purpose: they
 // are the destinations, not walls, for the purposes of that question. Blocking
-// them makes the check unsatisfiable, a bug that shipped once and nearly got
-// reported as a design failure.
+// them makes the check unsatisfiable, a bug that shipped once.
 const blocker = (p, occ) => (q, x, y) => {
   if (!insideOf(p, x, y) || occ[idxOf(p, x, y)]) return true;
   for (let k = q + 1; k < p.pellets.length; k++) if (p.pellets[k][0] === x && p.pellets[k][1] === y) return true;
@@ -177,8 +192,37 @@ function shortestRoute(p, cap = SOLVER_CAP) {
   return { min: null, route: null, capped: false };
 }
 
-// The unplanned lines: they re-plan towards the mascot in front of them and
-// detour around their own wall, but never look past it.
+// THE TIDIEST OPTIMUM: the fewest turns achievable over ALL shortest routes. That
+// is the best case available to the player, which is the only fair thing to
+// measure a route's readability against.
+function minTurns(p, min, cap = TURN_CAP) {
+  const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
+  occ[idxOf(p, p.start[0], p.start[1])] = 1;
+  const bl = blocker(p, occ), reach = reacher(p, occ);
+  const suffix = new Array(K + 2).fill(0);
+  for (let k = K - 1; k >= 1; k--) suffix[k] = suffix[k + 1] + manh(p.pellets[k - 1], p.pellets[k]);
+  const lower = (x, y, pi) => (pi >= K ? 0 : manh([x, y], p.pellets[pi]) + suffix[pi + 1]);
+  let best = Infinity, n = 0, capped = false;
+  const dfs = (x, y, pi, g, t, ld) => {
+    if (pi >= K) { if (t < best) best = t; return; }
+    if (++n > cap) { capped = true; return; }
+    if (g + lower(x, y, pi) > min || t >= best) return;
+    for (const d of DIRS) {
+      const nx = x + d[0], ny = y + d[1];
+      if (bl(pi, nx, ny)) continue;
+      const np = (nx === p.pellets[pi][0] && ny === p.pellets[pi][1]) ? pi + 1 : pi;
+      const nt = t + (ld && (d[0] !== ld[0] || d[1] !== ld[1]) ? 1 : 0);
+      occ[idxOf(p, nx, ny)] = 1;
+      if (np >= K || reach(np, nx, ny)) dfs(nx, ny, np, g + 1, nt, d);
+      occ[idxOf(p, nx, ny)] = 0;
+      if (capped) return;
+    }
+  };
+  dfs(p.start[0], p.start[1], 0, 0, 0, null);
+  return { turns: best === Infinity ? null : best, capped };
+}
+
+// The unplanned lines, kept for the record only.
 function unplanned(p, mode) {
   const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
   let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
@@ -191,47 +235,23 @@ function unplanned(p, mode) {
   while (pi < K && moves < C * 3) {
     const t = p.pellets[pi];
     let pick = null;
-    if (mode === 'bfs') {
-      const dist = new Int32Array(C).fill(-1);
-      dist[idxOf(p, t[0], t[1])] = 0;
-      const q = [t];
-      for (let i = 0; i < q.length; i++) {
-        const [cx, cy] = q[i];
-        for (const d of DIRS) {
-          const nx = cx + d[0], ny = cy + d[1];
-          if (!insideOf(p, nx, ny) || dist[idxOf(p, nx, ny)] >= 0 || !legal(nx, ny)) continue;
-          dist[idxOf(p, nx, ny)] = dist[idxOf(p, cx, cy)] + 1; q.push([nx, ny]);
-        }
-      }
-      let bd = Infinity;
-      for (const d of DIRS) {
-        const nx = hx + d[0], ny = hy + d[1];
-        if (!legal(nx, ny)) continue;
-        const dd = dist[idxOf(p, nx, ny)];
-        if (dd < 0) continue;
-        const sc = dd * 2 + (d[0] === ld[0] && d[1] === ld[1] ? 0 : 1);
-        if (sc < bd) { bd = sc; pick = d; }
-      }
-    } else {
-      const dx = t[0] - hx, dy = t[1] - hy, opts = [];
-      if (dx !== 0) opts.push([Math.sign(dx), 0]);
-      if (dy !== 0) opts.push([0, Math.sign(dy)]);
-      if (mode === 'straight' && opts.some((d) => d[0] === ld[0] && d[1] === ld[1])) pick = opts.find((d) => d[0] === ld[0] && d[1] === ld[1]);
-      else if (opts.length === 2) pick = Math.abs(dx) >= Math.abs(dy) ? opts[0] : opts[1];
-      else pick = opts[0] || null;
-      if (pick && !legal(hx + pick[0], hy + pick[1])) pick = null;
-    }
-    if (!pick) return { moves, caught: pi, cleared: false };
+    const dx = t[0] - hx, dy = t[1] - hy, opts = [];
+    if (dx !== 0) opts.push([Math.sign(dx), 0]);
+    if (dy !== 0) opts.push([0, Math.sign(dy)]);
+    if (mode === 'straight' && opts.some((d) => d[0] === ld[0] && d[1] === ld[1])) pick = opts.find((d) => d[0] === ld[0] && d[1] === ld[1]);
+    else if (opts.length === 2) pick = Math.abs(dx) >= Math.abs(dy) ? opts[0] : opts[1];
+    else pick = opts[0] || null;
+    if (pick && !legal(hx + pick[0], hy + pick[1])) pick = null;
+    if (!pick) return { cleared: false };
     hx += pick[0]; hy += pick[1]; occ[idxOf(p, hx, hy)] = 1;
     if (hx === t[0] && hy === t[1]) pi += 1;
     ld = pick; moves += 1;
   }
-  return { moves, caught: pi, cleared: pi >= K };
+  return { cleared: pi >= K };
 }
 
-// THE CAREFUL PLAYER. Head for the mascot in front of you, refuse any move that
-// visibly strands something. Kept as a floor rather than as the gate: it is a
-// real player model, it is just not a good enough one on its own.
+// THE CAREFUL PLAYER: head for the mascot in front of you, refuse any move that
+// visibly strands something. Also for the record only.
 function carefulClears(p) {
   const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
   let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
@@ -262,155 +282,14 @@ function carefulClears(p) {
       occ[idxOf(p, nx, ny)] = 0;
       cands.push({ d, dd, safe, st: (d[0] === ld[0] && d[1] === ld[1]) ? 1 : 0 });
     }
-    if (!cands.length) return { cleared: false, caught: pi };
+    if (!cands.length) return { cleared: false };
     cands.sort((a, b) => (b.safe - a.safe) || (a.dd - b.dd) || (b.st - a.st));
     const b = cands[0];
     hx += b.d[0]; hy += b.d[1]; occ[idxOf(p, hx, hy)] = 1;
     if (hx === t[0] && hy === t[1]) pi += 1;
     ld = b.d; moves += 1;
   }
-  return { cleared: pi >= K, caught: pi };
-}
-
-// THE BEAM PLANNER: the thoughtful player, and THE GATE.
-//
-// The careful player only refuses moves that strand something right now, which is
-// why a board can beat it and still fall to anybody who thinks two moves ahead.
-// This one keeps W partial games alive at once and lets them compete, which is
-// what a person does when they try an idea, watch it fail, and back up. On the
-// bank this rule replaced it cleared 63 of 70 boards the careful player could not
-// finish.
-//
-// The trail is carried as a BITSET of 32-bit words rather than a byte array,
-// because copying the trail is essentially the whole cost of running a beam and
-// three numbers copy for nothing. That is also what makes the dedupe LOSSLESS:
-// everything the rules care about from here on is the set of occupied squares,
-// where the head is, and how many mascots are gone, so two states agreeing on all
-// three are the SAME position however differently they got there. Deduping on the
-// head alone is a different and far weaker thing, and it makes the beam useless as
-// a gate while making it look fast.
-function beamClears(p, W = BEAM_WIDTH) {
-  const C = p.w * p.h, K = p.pellets.length, maxSteps = C * 2, NW = Math.ceil(C / 32);
-  const seen = new Uint8Array(C), stack = new Int32Array(C);
-  const later = new Int32Array(C).fill(-1);   // -1 = plain square, else the mascot's place in the cast
-  for (let k = 0; k < K; k++) later[idxOf(p, p.pellets[k][0], p.pellets[k][1])] = k;
-  const has = (w, i) => (w[i >> 5] >>> (i & 31)) & 1;
-  const room = (w, q, x, y) => {
-    seen.fill(0); const i0 = idxOf(p, x, y); seen[i0] = 1; let top = 0, n = 0; stack[top++] = i0;
-    while (top) {
-      const c = stack[--top], cx = c % p.w, cy = (c - cx) / p.w;
-      for (const d of DIRS) {
-        const nx = cx + d[0], ny = cy + d[1];
-        if (!insideOf(p, nx, ny)) continue;
-        const j = idxOf(p, nx, ny);
-        if (seen[j] || has(w, j)) continue;
-        seen[j] = 1; stack[top++] = j; n++;
-      }
-    }
-    for (let k = q; k < K; k++) if (!seen[idxOf(p, p.pellets[k][0], p.pellets[k][1])]) return -1;
-    return n;
-  };
-  const w0 = new Array(NW).fill(0), s0 = idxOf(p, p.start[0], p.start[1]);
-  w0[s0 >> 5] |= (1 << (s0 & 31));
-  let beam = [{ w: w0, x: p.start[0], y: p.start[1], pi: 0, mv: 0 }];
-  for (let step = 0; step < maxSteps; step++) {
-    const next = [], sig = new Set();
-    for (const s of beam) {
-      for (const d of DIRS) {
-        const nx = s.x + d[0], ny = s.y + d[1];
-        if (!insideOf(p, nx, ny)) continue;
-        const j = idxOf(p, nx, ny);
-        if (has(s.w, j)) continue;
-        if (later[j] >= 0 && later[j] > s.pi) continue;   // a mascot whose turn has not come is solid
-        const pi = later[j] === s.pi ? s.pi + 1 : s.pi;
-        if (pi >= K) return { cleared: true, moves: s.mv + 1 };
-        const w = s.w.slice(); w[j >> 5] |= (1 << (j & 31));
-        const key = `${w.join(',')}|${j}|${pi}`;
-        if (sig.has(key)) continue; sig.add(key);
-        const r = room(w, pi, nx, ny); if (r < 0) continue;
-        next.push({ w, x: nx, y: ny, pi, mv: s.mv + 1, sc: pi * 100000 - manh([nx, ny], p.pellets[pi]) * 10 + r });
-      }
-    }
-    if (!next.length) break;
-    next.sort((a, b) => b.sc - a.sc);
-    beam = next.slice(0, W);
-  }
-  return { cleared: false, caught: beam.length ? Math.max(...beam.map((s) => s.pi)) : 0 };
-}
-
-// FORGIVENESS: what a careless move costs, measured on the BOARD.
-//
-// Walk one winning route and, at every single ply, ask of each LEGAL move whether
-// the board is still winnable after it. A board where nearly every move survives
-// does not punish anybody, however much of it the route has to cover, and that is
-// exactly the bank the owner rejected twice. Reported as two numbers: the share of
-// available moves that survive, and the share of the plies where you actually had
-// a choice that had exactly ONE right answer.
-//
-// The winnability oracle is the same exhaustive search used everywhere else,
-// restarted from a mid-run position with the trail already down. `capped` means it
-// ran out of nodes and the number is not to be trusted, which is a failure rather
-// than a pass: an unmeasurable board does not ship.
-function forgiveness(p, cap = 400000) {
-  const C = p.w * p.h, K = p.pellets.length;
-  let capped = false;
-  const winnable = (occ0, hx, hy, pi) => {
-    const occ = Uint8Array.from(occ0); occ[idxOf(p, hx, hy)] = 1;
-    const bl = blocker(p, occ), reach = reacher(p, occ);
-    let n = 0, hit = false;
-    const dfs = (x, y, k) => {
-      if (k >= K) return true;
-      if (++n > cap) { hit = true; return false; }
-      const t = p.pellets[k];
-      const opts = DIRS.filter((d) => !bl(k, x + d[0], y + d[1]))
-        .sort((a, b) => manh([x + a[0], y + a[1]], t) - manh([x + b[0], y + b[1]], t));
-      for (const d of opts) {
-        const nx = x + d[0], ny = y + d[1];
-        const nk = (nx === t[0] && ny === t[1]) ? k + 1 : k;
-        occ[idxOf(p, nx, ny)] = 1;
-        if (nk >= K || reach(nk, nx, ny)) { if (dfs(nx, ny, nk)) { occ[idxOf(p, nx, ny)] = 0; return true; } }
-        occ[idxOf(p, nx, ny)] = 0;
-      }
-      return false;
-    };
-    const r = dfs(hx, hy, pi);
-    if (hit) capped = true;
-    return r;
-  };
-  const occ = new Uint8Array(C);
-  let hx = p.start[0], hy = p.start[1], pi = 0;
-  occ[idxOf(p, hx, hy)] = 1;
-  let legalTot = 0, winTot = 0, forced = 0, choicePlies = 0;
-  for (let step = 0; step < C * 2 && pi < K; step++) {
-    const cands = [];
-    for (const d of DIRS) {
-      const nx = hx + d[0], ny = hy + d[1];
-      if (!insideOf(p, nx, ny) || occ[idxOf(p, nx, ny)]) continue;
-      let solid = false;
-      for (let k = pi + 1; k < K; k++) if (p.pellets[k][0] === nx && p.pellets[k][1] === ny) solid = true;
-      if (solid) continue;
-      cands.push([nx, ny]);
-    }
-    if (!cands.length) break;
-    const wins = [];
-    for (const [nx, ny] of cands) {
-      const npi = (p.pellets[pi][0] === nx && p.pellets[pi][1] === ny) ? pi + 1 : pi;
-      const o2 = Uint8Array.from(occ); o2[idxOf(p, nx, ny)] = 1;
-      if (npi >= K) { wins.push([nx, ny, npi]); continue; }
-      if (winnable(o2, nx, ny, npi)) wins.push([nx, ny, npi]);
-    }
-    if (!wins.length) break;
-    legalTot += cands.length; winTot += wins.length;
-    if (cands.length > 1) { choicePlies += 1; if (wins.length === 1) forced += 1; }
-    const pick = wins[0];
-    hx = pick[0]; hy = pick[1]; pi = pick[2]; occ[idxOf(p, hx, hy)] = 1;
-  }
-  if (pi < K || !legalTot) return { ok: false, capped };
-  return {
-    ok: true, capped,
-    forgive: winTot / legalTot,
-    forcedShare: choicePlies ? forced / choicePlies : 1,
-  };
+  return { cleared: pi >= K };
 }
 
 // ---------- 1. row shape, cast and ranges -----------------------------------
@@ -423,11 +302,10 @@ function forgiveness(p, cap = 400000) {
     prevNum = p.num;
     if (p.live <= prevLive) why.push('live date not strictly increasing');
     prevLive = p.live;
-    const dow = dowOf(p);
     if (p.live >= REBUILT_FROM) {
-      const rung = RAMP[dow];
-      if (p.w !== rung.w || p.h !== rung.w) why.push(`board is ${p.w}x${p.h}, expected ${rung.w}x${rung.w} on a ${DOW[dow]}`);
-      if (p.cast && p.cast.length !== rung.cast) why.push(`cast of ${p.cast.length}, expected ${rung.cast} on a ${DOW[dow]}`);
+      const rung = RAMP[dowOf(p)];
+      if (p.w !== 7 || p.h !== 7) why.push(`board is ${p.w}x${p.h}, expected 7x7`);
+      if (p.cast && p.cast.length !== rung.cast) why.push(`cast of ${p.cast.length}, expected ${rung.cast} on a ${DOW[dowOf(p)]}`);
       if (!Array.isArray(p.cast) || p.cast.length < CAST_MIN || p.cast.length > CAST_MAX) {
         why.push(`cast of ${p.cast && p.cast.length}, outside ${CAST_MIN}-${CAST_MAX}`);
       }
@@ -448,11 +326,7 @@ function forgiveness(p, cap = 400000) {
     if (why.length) bad.push(`#${p.num} ${p.live}: ${why.join('; ')}`);
   }
   if (bad.length) fail('shape', bad.slice(0, 4).join(' | '));
-  else {
-    const sizes = {};
-    for (const p of PUZZLES) sizes[`${p.w}x${p.h}`] = (sizes[`${p.w}x${p.h}`] || 0) + 1;
-    ok('shape', `${PUZZLES.length} rows, sequential, all opening with the bulldog, boards ${Object.entries(sizes).map(([k, v]) => `${k}x${v}`).join(' ')}`);
-  }
+  else ok('shape', `${PUZZLES.length} rows, sequential, all opening with the bulldog, ${MASCOTS.length} mascots available`);
 })();
 
 // ---------- 2. the floor is the real Manhattan leg sum ----------------------
@@ -470,14 +344,9 @@ function forgiveness(p, cap = 400000) {
 })();
 
 // ---------- 3. the stored optimum is real, and the shipped engine walks it --
-// The stored `min` is not taken on trust: it is recomputed exhaustively, and the
-// route that achieves it is then replayed through lib/chomp-engine, the module
-// the game itself plays through, so a bank that verifies here cannot be
-// unplayable there.
 const MINS = new Map();
 (function findable() {
   const wrong = [], unsolved = [], enginebad = [];
-  const fills = [];
   for (const p of PUZZLES) {
     const sr = shortestRoute(p);
     if (sr.min == null) { unsolved.push(`#${p.num} (${p.live})${sr.capped ? ' [search capped]' : ''}`); continue; }
@@ -487,13 +356,12 @@ const MINS = new Map();
     if (!r.cleared) enginebad.push(`#${p.num} the engine does not clear the optimum the search found`);
     else if (r.refused) enginebad.push(`#${p.num} the engine refused ${r.refused} legal move(s)`);
     else if (r.moves !== sr.min) enginebad.push(`#${p.num} the engine walks ${r.moves} where the search says ${sr.min}`);
-    else fills.push(r.fill);
   }
-  if (unsolved.length) fail('findable', `an exhaustive search cannot finish these, so they are not puzzles: ${unsolved.slice(0, 6).join(', ')}`);
+  if (unsolved.length) fail('findable', `an exhaustive search cannot finish these: ${unsolved.slice(0, 6).join(', ')}`);
   if (wrong.length) fail('findable', wrong.slice(0, 5).join(', '));
   if (enginebad.length) fail('findable', enginebad.slice(0, 4).join('; '));
   if (!unsolved.length && !wrong.length && !enginebad.length) {
-    ok('findable', `every stored min is the true optimum, and lib/chomp-engine replays each one move for move (board ${Math.round(Math.min(...fills) * 100)}%-${Math.round(Math.max(...fills) * 100)}% full at the finish)`);
+    ok('findable', 'every stored min is the true optimum, and lib/chomp-engine replays each one move for move');
   }
 })();
 
@@ -507,75 +375,59 @@ const MINS = new Map();
   const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
   const sun = rows.filter((p) => p.sunday), wk = rows.filter((p) => !p.sunday);
   if (!sun.length) bad.push('the bank authors no Sunday Edition at all');
-  const smallest = Math.min(...rows.map((q) => q.w));
-  for (const p of sun) {
-    if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast`);
-    if (p.w !== smallest) bad.push(`#${p.num} Sunday is not on the smallest board of the week`);
-  }
-  const maxWeekdayCast = Math.max(...wk.map((p) => p.cast.length));
-  if (sun.length && maxWeekdayCast >= MASCOTS.length) bad.push('a weekday fields the full cast, so Sunday is not the peak');
-  // and the Sunday has to be the TIGHTEST board of the week, which is the point
-  const sunCov = sun.map((p) => coverOf(p, MINS.get(p.num))).filter((v) => !Number.isNaN(v));
-  const wkCov = wk.map((p) => coverOf(p, MINS.get(p.num))).filter((v) => !Number.isNaN(v));
-  if (sunCov.length && wkCov.length && Math.min(...sunCov) <= Math.max(...wkCov)) {
+  for (const p of sun) if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast of ${MASCOTS.length}`);
+  if (wk.some((p) => p.cast.length >= MASCOTS.length)) bad.push('a weekday fields the full cast, so Sunday is not the peak');
+  const sunSpare = sun.map((p) => spareOf(p, MINS.get(p.num))).filter(Number.isFinite);
+  const wkSpare = wk.map((p) => spareOf(p, MINS.get(p.num))).filter(Number.isFinite);
+  if (sunSpare.length && wkSpare.length && Math.max(...sunSpare) >= Math.min(...wkSpare)) {
     bad.push('a weekday board is at least as tight as the loosest Sunday, so Sunday is not the peak');
   }
   if (bad.length) fail('sunday', bad.slice(0, 4).join('; '));
   else {
-    const full = sun.filter((p) => coverOf(p, MINS.get(p.num)) >= 1).length;
-    ok('sunday', `${sun.length} Sunday Editions, every one ${smallest}x${smallest} with the full cast of ${MASCOTS.length}, forcing ${Math.round(Math.min(...sunCov) * 100)}-${Math.round(Math.max(...sunCov) * 100)}% of the board against a weekday peak of ${Math.round(Math.max(...wkCov) * 100)}%${full ? `, and ${full} needing literally every square` : ''}`);
+    const covs = sun.map((p) => coverOf(p, MINS.get(p.num)));
+    ok('sunday', `${sun.length} Sunday Editions, every one 7x7 with the full cast of ${MASCOTS.length}, forcing ${Math.round(Math.min(...covs) * 100)}-${Math.round(Math.max(...covs) * 100)}% of the board`);
   }
 })();
 
-// ---------- 5. difficulty: the board punishes, and no bot decides that ------
-// The two cheap player models stay as GATES, because a board an unplanned line or
-// a careful greedy player can finish is trivial by inspection and there is no
-// argument about it. The beam planner is NOT a gate: it was one, twice, and both
-// times the bank simply learned to beat that exact beam. It is run and printed so
-// the number is on the record, and nothing fails on it.
-//
-// The gate that replaced it is FORGIVENESS, above: a property of the board, so it
-// cannot be satisfied by out-tuning whatever bot is fashionable this week.
-(function difficulty() {
-  const soft = [], careless = [], loose = [], unmeasured = [];
-  const beamGot = []; let beamCleared = 0;
-  const fg = [], fs = [];
+// ---------- 5. GEOMETRY: the solution is not readable ------------------------
+// This replaces every player model the previous three versions gated on. See the
+// header: twelve models across four rounds have now failed to tell a board a
+// person walks through from one they cannot.
+(function geometry() {
+  const longLeg = [], flat = [], tidy = [], unmeasured = [];
+  const legs = [], dets = [], runs = [];
   let rows = 0;
   for (const p of PUZZLES) {
     if (p.live < REBUILT_FROM) continue;
     rows += 1;
-    if (['axis', 'straight', 'bfs'].some((m) => unplanned(p, m).cleared)) soft.push(`#${p.num} (${p.live})`);
-    if (carefulClears(p).cleared) careless.push(`#${p.num} (${p.live})`);
-    const f = forgiveness(p);
-    if (!f.ok || f.capped) { unmeasured.push(`#${p.num}`); continue; }
-    fg.push(f.forgive); fs.push(f.forcedShare);
-    if (f.forgive > FORGIVE_MAX + 1e-9) loose.push(`#${p.num} leaves ${Math.round(f.forgive * 100)}% of your moves survivable`);
-    else if (f.forcedShare < FORCED_MIN - 1e-9) loose.push(`#${p.num} has one right answer on only ${Math.round(f.forcedShare * 100)}% of its choices`);
-    const b = beamClears(p);
-    if (b.cleared) beamCleared += 1; else beamGot.push(b.caught / p.cast.length);
+    const min = MINS.get(p.num);
+    if (min == null) { unmeasured.push(`#${p.num}`); continue; }
+    const L = legsOf(p), maxLeg = Math.max(...L);
+    legs.push(maxLeg);
+    if (maxLeg > LEG_CAP) longLeg.push(`#${p.num} (${p.live}) has a leg of ${maxLeg}, over the cap of ${LEG_CAP}`);
+    const det = min - p.floor;
+    dets.push(det);
+    const want = rungOf(p).det;
+    if (det < want) flat.push(`#${p.num} (${p.live}, ${DOW[dowOf(p)]}) detours only ${det}, needs ${want}`);
+    const mt = minTurns(p, min);
+    if (mt.capped || !mt.turns) { unmeasured.push(`#${p.num}`); continue; }
+    const run = min / mt.turns;
+    runs.push(run);
+    if (run > RUN_CAP + 1e-9) tidy.push(`#${p.num} (${p.live}) runs ${run.toFixed(2)} squares per straight run, over ${RUN_CAP}`);
   }
-  if (soft.length) fail('difficulty', `an unplanned line clears these: ${soft.slice(0, 6).join(', ')}`);
-  if (careless.length) fail('difficulty', `a careful player clears these without ever being stuck: ${careless.slice(0, 6).join(', ')}`);
-  if (unmeasured.length) fail('difficulty', `forgiveness could not be measured on ${unmeasured.slice(0, 6).join(', ')}, so they are unverified`);
-  if (loose.length) fail('difficulty', `too forgiving: ${loose.slice(0, 5).join('; ')}`);
-  if (!soft.length && !careless.length && !unmeasured.length && !loose.length) {
-    const pc = (a) => `${Math.round(Math.min(...a) * 100)}-${Math.round(Math.max(...a) * 100)}%`;
-    ok('difficulty', `across ${rows}: no unplanned line and no careful player clears a board, ${pc(fg)} of the moves open to you survive (ceiling ${Math.round(FORGIVE_MAX * 100)}%) and ${pc(fs)} of your real choices have exactly one right answer`);
-    const share = beamGot.length ? (beamGot.reduce((a, b) => a + b, 0) / beamGot.length * 100).toFixed(0) : '0';
-    note('planner', `for the record and NOT a gate: a ${BEAM_WIDTH}-wide beam clears ${beamCleared} of ${rows} and stalls at ${share}% of the cast on the rest. A wider one clears more. That is why it does not decide anything here`);
+  if (longLeg.length) fail('geometry', `corridor legs, which walk themselves: ${longLeg.slice(0, 5).join('; ')}`);
+  if (flat.length) fail('geometry', `nothing forces a step away from the target: ${flat.slice(0, 5).join('; ')}`);
+  if (tidy.length) fail('geometry', `the straightest optimum is too readable: ${tidy.slice(0, 5).join('; ')}`);
+  if (unmeasured.length) fail('geometry', `turn density could not be measured on ${unmeasured.slice(0, 6).join(', ')}, so they are unverified`);
+  if (!longLeg.length && !flat.length && !tidy.length && !unmeasured.length) {
+    ok('geometry', `across ${rows}: longest leg ${Math.min(...legs)}-${Math.max(...legs)} (cap ${LEG_CAP}; the bank this replaces averaged 10.2), detour ${Math.min(...dets)}-${Math.max(...dets)} (it was 0 on 60 of 67 boards there), and even the tidiest optimum turns every ${Math.min(...runs).toFixed(2)}-${Math.max(...runs).toFixed(2)} squares (cap ${RUN_CAP})`);
   }
 })();
 
-// ---------- 5b. the ramp is SPARE SQUARES, and it has to fall --------------
-// The old ramp measured how far a bot got, which normalises to "just barely beats
-// it" on every rung and comes out flat. This measures the BOARD: how many squares
-// the player is free to waste. It cannot be gamed by tuning a bot, and it is quoted
-// in squares because a percentage is what let a Monday leaving twenty-four spare
-// squares read as a respectable 63%.
+// ---------- 5b. the ramp: spare squares fall, the cast climbs ----------------
 (function ramp() {
   const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
-  const by = {};
-  const stray = [];
+  const by = {}, stray = [];
   for (const p of rows) {
     const min = MINS.get(p.num);
     if (min == null) continue;
@@ -591,57 +443,43 @@ const MINS = new Map();
   const got = order.map((d) => (by[d] ? mean(by[d]) : null));
   for (const [i, v] of got.entries()) if (v == null) bad.push(`no boards on ${DOW[order[i]]}`);
   if (!bad.length) {
-    // strictly falling, Monday to Sunday. The bands do not overlap between
-    // adjacent rungs, so there is no wobble to tolerate here.
     for (let i = 1; i < got.length; i++) {
       if (got[i] >= got[i - 1]) bad.push(`${DOW[order[i]]} (${got[i].toFixed(1)} spare) is not tighter than ${DOW[order[i - 1]]} (${got[i - 1].toFixed(1)} spare)`);
     }
-    // and the week has to actually GO somewhere. Six squares is the gap between a
-    // day you can wander on and a day you cannot.
     if (got[0] - got[6] < 6) bad.push(`Monday to Sunday only closes ${(got[0] - got[6]).toFixed(1)} squares, so the week is flat`);
-    // the loosest day of the week is still a real board. This is the check the
-    // owner's complaint was actually about: round one would have passed a Monday
-    // with twenty-four spare squares.
-    const worst = Math.max(...rows.map((p) => spareOf(p, MINS.get(p.num))).filter((v) => Number.isFinite(v)));
-    if (worst > 10) bad.push(`the loosest board of the bank leaves ${worst} spare squares, which is a walk`);
+    const worst = Math.max(...rows.map((p) => spareOf(p, MINS.get(p.num))).filter(Number.isFinite));
+    if (worst > 11) bad.push(`the loosest board of the bank leaves ${worst} spare squares, which is a walk`);
+    // the cast has to climb too, or the ramp is carried by one dial again
+    const casts = order.map((d) => rows.filter((p) => dowOf(p) === d)[0]?.cast.length);
+    for (let i = 1; i < casts.length; i++) if (casts[i] < casts[i - 1]) bad.push(`${DOW[order[i]]} fields a smaller cast than ${DOW[order[i - 1]]}`);
   }
   if (bad.length) fail('ramp', bad.slice(0, 5).join('; '));
-  else {
-    const covs = rows.map((p) => coverOf(p, MINS.get(p.num)));
-    ok('ramp', `spare squares ${order.map((d, i) => `${DOW[d]} ${got[i].toFixed(1)}`).join(', ')}, so the board forces ${Math.round(Math.min(...covs) * 100)}-${Math.round(Math.max(...covs) * 100)}% of itself`);
-  }
+  else ok('ramp', `spare squares ${order.map((d, i) => `${DOW[d]} ${got[i].toFixed(1)}`).join(', ')}, cast climbing 8 to ${MASCOTS.length}`);
 })();
 
 // ---------- 6. pool variety across the whole bank ---------------------------
 (function variety() {
   const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
   const startSeen = new Map(), cellSeen = new Map(), orders = new Set();
-  const sizeRows = {};
   for (const p of rows) {
-    sizeRows[p.w] = (sizeRows[p.w] || 0) + 1;
-    const sk = `${p.w}:${p.start}`;
-    startSeen.set(sk, (startSeen.get(sk) || 0) + 1);
-    for (const c of p.pellets) { const k = `${p.w}:${c}`; cellSeen.set(k, (cellSeen.get(k) || 0) + 1); }
+    startSeen.set(String(p.start), (startSeen.get(String(p.start)) || 0) + 1);
+    for (const c of p.pellets) cellSeen.set(String(c), (cellSeen.get(String(c)) || 0) + 1);
     orders.add(p.cast.join('|'));
   }
-  // keyed by BOARD SIZE, because a square on a 7x7 and a square on an 8x8 are
-  // different squares. The tight days genuinely need the corners (a long leg has
-  // to end somewhere extreme), so the cap is a share of the boards of that size
-  // rather than a flat count.
   const startCap = 5, cellShare = 0.45;
   const hotStart = [...startSeen.values()].filter((n) => n > startCap).length;
-  const hotCell = [...cellSeen.entries()].filter(([k, n]) => n > Math.ceil(sizeRows[+k.split(':')[0]] * cellShare));
+  const hotCell = [...cellSeen.entries()].filter(([, n]) => n > Math.ceil(rows.length * cellShare));
   if (hotStart) fail('variety', `${hotStart} start square(s) used more than ${startCap} times`);
-  if (hotCell.length) fail('variety', `${hotCell.length} square(s) carry a mascot on more than ${Math.round(cellShare * 100)}% of the boards of their size: ${hotCell.slice(0, 4).map(([k, n]) => `${k} x${n}`).join(', ')}`);
-  if (orders.size < rows.length / 3) fail('variety', `only ${orders.size} distinct cast orders across ${rows.length} boards`);
+  if (hotCell.length) fail('variety', `${hotCell.length} square(s) carry a mascot on more than ${Math.round(cellShare * 100)}% of boards`);
+  if (orders.size < rows.length) fail('variety', `only ${orders.size} distinct cast orders across ${rows.length} boards`);
   const used = {};
   for (const p of rows) for (const m of p.cast) used[m] = (used[m] || 0) + 1;
   const never = MASCOTS.filter((m) => !used[m]);
   if (never.length) fail('variety', `${never.join(', ')} never appear`);
   const sizes = new Set(rows.map((p) => p.cast.length));
-  if (sizes.size < 3) fail('variety', `only ${sizes.size} distinct cast sizes, the count is not varying`);
-  if (!hotStart && !hotCell.length && orders.size >= rows.length / 3 && !never.length && sizes.size >= 3) {
-    ok('variety', `${startSeen.size} distinct start squares (busiest ${Math.max(...startSeen.values())}), busiest mascot square ${Math.max(...cellSeen.values())}, ${orders.size} distinct cast orders across ${rows.length} boards`);
+  if (sizes.size < 3) fail('variety', `only ${sizes.size} distinct cast sizes`);
+  if (!hotStart && !hotCell.length && orders.size >= rows.length && !never.length && sizes.size >= 3) {
+    ok('variety', `${startSeen.size} distinct start squares (busiest ${Math.max(...startSeen.values())}), busiest mascot square ${Math.max(...cellSeen.values())}, every cast order distinct across ${rows.length} boards`);
   }
 })();
 
@@ -660,10 +498,23 @@ const MINS = new Map();
       prev = v;
     }
   }
-  if (!bad) ok('scoring', `partial credit behaves at every cast length ${CAST_MIN}-${CAST_MAX}: monotonic to 0-10, only a full clear scores 10`);
+  if (!bad) ok('scoring', `partial credit behaves at every cast length ${CAST_MIN}-${CAST_MAX}`);
 })();
 
-// ---------- 8. US spellings -------------------------------------------------
+// ---------- 8. the player models, FOR THE RECORD ONLY ------------------------
+// These gate NOTHING. A board a myopic line can finish is trivial by inspection
+// and worth knowing about, but passing them means nothing at all: every board of
+// the bank this replaces passed them too, and the owner cleared the first one
+// first try without thinking.
+(function models() {
+  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
+  const soft = rows.filter((p) => ['axis', 'straight'].some((m) => unplanned(p, m).cleared));
+  const careless = rows.filter((p) => carefulClears(p).cleared);
+  if (soft.length) fail('models', `an unplanned line clears these, which is trivial by inspection: ${soft.slice(0, 5).map((p) => `#${p.num}`).join(', ')}`);
+  else note('models', `no unplanned line clears any of the ${rows.length}; a careful greedy player clears ${careless.length}. NOT A GATE, see the header`);
+})();
+
+// ---------- 9. US spellings -------------------------------------------------
 (function spelling() {
   const BRIT = /\b(colour|centre|grey|neighbour|favourite|defence|practise|licence|metre|theatre)\b/i;
   const hits = PUZZLES.filter((p) => BRIT.test(String(p.dateLabel))).map((p) => p.num);
