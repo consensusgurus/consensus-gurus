@@ -35,6 +35,8 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
+import { isLoft } from '@/lib/loft';
+import LoftCap from '../LoftCap';
 import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
@@ -505,6 +507,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('crux');
 
   // ---- input ----
   const onKey = useCallback((k) => {
@@ -1059,7 +1062,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome: home's #1e3a8a masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs
@@ -1068,6 +1071,22 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
       <DailyChrome slug="crux" name="Crux" collapsed={started}
         stats={[{ k: 'Guesses', v: g.left },
                 { k: 'Words', v: `${PUZZLE.slots.filter((s) => g.solved[s.id]).length}/${PUZZLE.slots.length}` }]} />
+      {LOFT && (
+        <LoftCap
+          name="Crux"
+          cat="Word"
+          num={PUZZLE.num}
+          dateLabel={PUZZLE.dateLabel}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          progress={(g.left / PUZZLE.guesses) * 100}
+          figures={[
+            { v: `${g.order.length}/${PUZZLE.slots.length}`, k: 'words' },
+            { v: g.left, k: 'guesses left' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           .cx-a{margin:0 auto;}
@@ -1110,6 +1129,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
         {/* masthead: pressed CRUX tiles with the issue no. + date on the same
             line, a single rule beneath (they stack on mobile) */}
+        {!LOFT && (
         <DailyMasthead
           slug="crux"
           num={PUZZLE.num}
@@ -1126,8 +1146,10 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SERIF, fontWeight: 900, fontSize: 28, background: i === 2 ? COLORS.ember : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
 
         <div className="cx-a">
+        <div className={LOFT ? 'loft-stage' : undefined}>
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}
           {preStart && (
@@ -1151,7 +1173,8 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
 
           {/* the puzzle, one card: guesses + category clues + the grid */}
           {!preStart && (
-          <div className="cl-panel" style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div className={LOFT ? 'cl-panel loft-card' : 'cl-panel'} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            {!LOFT && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
               <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
               <span style={{ flex: 1, height: 5, background: 'rgba(28,30,36,0.1)', borderRadius: 3, overflow: 'hidden', minWidth: 36 }}>
@@ -1159,6 +1182,7 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               </span>
               <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.order.length}</b>/{PUZZLE.slots.length} words</span>
             </div>
+            )}
 
             {/* category clues — the headline turns into a filing prompt once
                 there are solved words waiting to be placed */}
@@ -1219,8 +1243,6 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               })}
               </div>
             </div>
-          </div>
-          )}
 
           {/* selected slot bar — only while there are still words to guess */}
           {started && slot && !allWordsSolved && (
@@ -1314,6 +1336,9 @@ export default function CruxClient({ puzzles = [], forceNum = null }) {
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
+          </div>
+          )}
+        </div>
 
           {/* result */}
           {!playing && (
