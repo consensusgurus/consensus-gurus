@@ -1352,7 +1352,7 @@ BASE_COMMIT=$(git rev-parse FETCH_HEAD)
 git show ${BASE_COMMIT}:lib/data.js > /tmp/data_orig.js
 
 # 2. Build the new lib/data.js (splice the new entry in before the closing '];' of LISTS), then:
-node --check /tmp/new_data.js                         # non-negotiable syntax check
+node --input-type=module --check < /tmp/new_data.js   # non-negotiable syntax check
 
 # 3. blob -> tree -> tree -> commit -> push, all based on $BASE_COMMIT.
 NEW_BLOB=$(git hash-object -w /tmp/new_data.js)
@@ -1369,6 +1369,27 @@ git -c credential.helper= push "https://${GITHUB_PAT}@github.com/${GITHUB_REPO}.
 
 To commit more than `lib/data.js` in one push (e.g. updating this file too), add each changed file as its own
 blob and fold it into the tree the same way before `commit-tree`.
+
+### ⚠️ `node --check <file>` IS A NO-OP ON AN ESM FILE. Pipe it instead (measured 2026-08-10)
+
+Node 22 detects a file carrying `import` / `export` as an ES module and **exits 0 without
+parsing it**. Verified in the sandbox on node v22.22.3: a copy of `lib/daily-games.js` with a
+literal `const x = ;` appended passes `node --check` cleanly, and so does a two-line file that
+is nothing but an `import` and a syntax error. The same broken code piped in fails correctly.
+So EVERY "node --check the file before pushing" step in this document has been silently doing
+nothing on the ESM half of the repo, which is every `lib/*.js` and every `app/**/*.jsx`. Only
+`lib/data.js`-style files that happen to parse as CommonJS were ever really checked.
+
+Use the stdin form on any file that imports or exports:
+
+```bash
+node --input-type=module --check < /tmp/new_file.js   # real check, non-zero exit on a syntax error
+```
+
+It reads the file as a module explicitly, so there is no detection to fall through. `node --check`
+by path is still fine for a genuinely script-shaped file, but there is no cost to piping
+everything, so pipe everything. A file that would have failed the check is a Vercel build
+failure the moment it lands, which is exactly what the check exists to catch before the push.
 
 **Critical: always use two separate steps to build the new lib tree** — never combine them into one pipe, or you get a double-nested `lib/lib/` tree that breaks Vercel:
 
