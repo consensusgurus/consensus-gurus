@@ -379,16 +379,48 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   }
 
   // ---- the live ladder -----------------------------------------------------
+  // THE REAL BOARD, not a slice of one. Fixed here 2026-08-10 alongside the
+  // identical pair of bugs in Blocks, which this panel was copied from:
+  //
+  //  1. IT READ THE WRONG AXIS. `board.leaderboard` is 'registered:all', which
+  //     is signed-in players only and EVERY attempt they posted. Sweep is an
+  //     arcade game, so it takes unlimited runs and keeps the best one, and one
+  //     player's several runs could take most of the rows while an anonymous
+  //     leader was not on the board at all. The axis that reads true here is
+  //     'all:first' (`leaderboardFirst`), which on an arcade game is ONE ROW
+  //     PER PLAYER, their best run, guests included. See buildLeaderboard in
+  //     lib/quiz-anon.js. `leaderboard` stays only as a stale-payload fallback.
+  //  2. IT SHOWED A WINDOW AROUND YOU, +/-2 rows, so a player on nothing opened
+  //     near the bottom and could not see who was winning. The TOP FIVE now
+  //     always render, and your live row pins beneath them behind a gap marker
+  //     whenever this run sits outside them.
   const ladder = useMemo(() => {
-    const rows = (board.leaderboard || []).slice(0, 40).map((r, i) => ({ rank: i + 1, name: r.username || 'player', score: r.score, me: false }));
+    const anon = hydrated ? getAnonId() : null;
+    const myKey = anon ? `a:${anon}` : null;
+    const myName = String((identity && identity.username) || '').toLowerCase();
+    // Drop my OWN stored row: the live run below is already on the ladder as
+    // "You", so leaving it in lists the same person twice. Guests match on the
+    // anon key buildLeaderboard returns; a signed-in player matches on the
+    // display name, because the board carries no user_id to compare against.
+    const isMine = (r) => (!!myKey && r.userKey === myKey)
+      || (!!myName && String(r.username || '').toLowerCase() === myName);
+    const rows = (board.leaderboardFirst || board.leaderboard || [])
+      .filter((r) => !isMine(r))
+      .slice(0, 40)
+      .map((r) => ({ name: r.username || 'player', score: r.score, me: false }));
     const mine = g.score;
     let at = rows.findIndex((r) => r.score < mine);
     if (at < 0) at = rows.length;
-    const meRow = { rank: at + 1, name: 'You', score: mine, me: true };
-    const out = rows.slice(0, at).concat([meRow], rows.slice(at)).map((r, i) => ({ ...r, rank: i + 1 }));
+    const out = rows.slice(0, at).concat([{ name: 'You', score: mine, me: true }], rows.slice(at))
+      .map((r, i) => ({ ...r, rank: i + 1 }));
     const meAt = out.findIndex((r) => r.me);
-    return { rows: out.slice(Math.max(0, meAt - 2), meAt + 3), rank: meAt + 1, field: out.length };
-  }, [board.leaderboard, g.score]);
+    const TOP = 5;
+    return {
+      rows: out.slice(0, TOP).concat(meAt >= TOP ? [{ gap: true }, out[meAt]] : []),
+      rank: meAt + 1,
+      field: out.length,
+    };
+  }, [board.leaderboardFirst, board.leaderboard, g.score, identity, hydrated]);
 
   // ---- rules ---------------------------------------------------------------
   const rulesBody = (
@@ -533,13 +565,15 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
 
               <aside className="sw-ladder" style={{ width: 132, flex: 'none', borderLeft: `1px solid ${COLORS.line}`, paddingLeft: 11, display: 'flex', flexDirection: 'column', fontSize: 11.5, color: COLORS.faded }}>
                 <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 7 }}>Today &middot; you #{ladder.rank}</div>
-                {ladder.rows.map((r) => (
+                {ladder.rows.map((r) => (r.gap ? (
+                  <div key="gap" aria-hidden="true" style={{ textAlign: 'center', color: '#c3cad6', fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', lineHeight: '11px', padding: '4px 0 2px' }}>&middot;&middot;&middot;</div>
+                ) : (
                   <div key={`${r.rank}-${r.name}`} style={{ display: 'flex', gap: 6, padding: '3px 0', color: r.me ? COLORS.ink : COLORS.faded, fontWeight: r.me ? 800 : 600 }}>
                     <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? COLORS.accent : '#9aa2b1' }}>#{r.rank}</span>
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
                     <span style={{ fontWeight: 800 }}>{r.score}</span>
                   </div>
-                ))}
+                )))}
                 <div style={{ marginTop: 'auto', paddingTop: 9, borderTop: `1px solid ${COLORS.line}` }}>
                   <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>{nf(g.score)}<em style={{ fontStyle: 'normal', fontSize: 11, fontWeight: 700, color: '#94a3b8' }}> cell{g.score === 1 ? '' : 's'}</em></div>
                   <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', color: '#94a3b8', marginTop: 3 }}>par {nf(PAR)}</div>
