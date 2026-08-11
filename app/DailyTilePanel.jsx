@@ -35,6 +35,7 @@ import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy,
 import { notifyShareCredit } from './ShareCreditPop';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 import { T } from '@/lib/theme';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -101,6 +102,13 @@ export default function DailyTilePanel({
   // the whole point is height, and two open sections is most of the way back to
   // the single-level drawer this replaced.
   const [sec, setSec] = useState(null);
+  // The share chip named a dollar figure as a hardcoded literal, which went
+  // stale the moment the prize changed (it still said $20 after the top prize
+  // became $200) and promised a contest outside its own window. Both come from
+  // lib/contest now. Resolved after mount, never during render: contestIsLive()
+  // reads the clock and this panel ships inside a statically rendered page.
+  const [promo, setPromo] = useState(false);
+  useEffect(() => { setPromo(contestIsLive()); }, []);
   const [calMonth, setCalMonth] = useState(() => todayISO.slice(0, 7));
   useEffect(() => { setCalMonth(todayISO.slice(0, 7)); }, [game.key, todayISO]);
 
@@ -263,7 +271,7 @@ export default function DailyTilePanel({
                 const base = (typeof window !== 'undefined' && window.location) ? window.location.origin : '';
                 notifyShareCredit('', base + game.href);
               }}
-            ><Share2 size={11} strokeWidth={2.6} />Share for $20*</button>
+            ><Share2 size={11} strokeWidth={2.6} />{promo ? `Share for ${CONTEST.prizeLabel}*` : 'Share for credit'}</button>
             {/* Pin this game to the top of the home board (owner, 2026-08-02).
                 This is the ONLY pin control for a FINISHED game: that tile is
                 itself a button, so it can only carry a static star, and the

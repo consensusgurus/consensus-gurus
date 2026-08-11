@@ -2,14 +2,26 @@
 
 // Global share-for-credit pop-up.
 //
-// Every Share button on the site says "(for credit)" and, on click, opens THIS
-// pop-up (mounted once in the root layout) instead of copying directly.
-//   - Registered viewer (has a referral code): the pop-up shows their credit
-//     link with Copy buttons — "Result + link" (the game status / quiz score,
-//     which already carries their ref link) and "Just the link".
-//   - Signed-out viewer: the pop-up first shows the Join-the-Leaderboard sign-up
-//     inputs. After they sign up we resolve their new referral code and switch
-//     to the credit-link view.
+// SHARE FIRST, SIGN UP SECOND (owner, 2026-08-11). Every visitor gets the
+// thing they pressed the button for: the result text and the link, with Copy
+// and the native share sheet, ABOVE any mention of an account. The sign-up is
+// an invite underneath a divider, never a gate.
+//
+// It used to be a wall. A signed-out viewer got the Join form and NOTHING
+// else: no result, no link, no "share anyway", and since notifyShareCredit
+// always returns true the caller's own clipboard/native-share path never ran
+// either, so closing the modal dropped the share entirely. Signing up then
+// DISCARDED the result text they were trying to post, which meant pressing
+// Share a second time. Both are fixed here; see restampResult below for how
+// the result survives the sign-up.
+//
+//   - Registered viewer (has a referral code): their credit link, with Copy
+//     buttons for "Result + link" (the game status / quiz score, which already
+//     carries their ref link) and "Just the link".
+//   - Signed-out viewer: the same share rows built from the UNSTAMPED link,
+//     then the contest note and a Sign up button that opens the join form in
+//     place. After they sign up we resolve their new referral code, re-stamp
+//     the link inside their result, and switch to the credit view.
 //
 // Wiring: a share handler calls notifyShareCredit(resultText?), which ALWAYS
 // returns true on the client (the pop-up handles the share for everyone), so
@@ -17,7 +29,7 @@
 // itself from the current page URL.
 
 import { useEffect, useState } from 'react';
-import { X, Check, Copy, QrCode } from 'lucide-react';
+import { X, Check, Copy, QrCode, Share2 } from 'lucide-react';
 import { myRefCode, withRef, ensureMyRefCode } from '@/lib/referrals';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { T } from '@/lib/theme';
@@ -44,6 +56,34 @@ export function notifyShareCredit(resultText, url) {
   }
 }
 
+// Put the freshly-resolved referral code into the link EMBEDDED IN the result
+// text, so a player who signs up keeps the emoji grid they were about to post
+// instead of being sent back to press Share again.
+//
+// The two strings are built by different code and do not have to match
+// byte-for-byte: the pop-up's own link comes from location.href (absolute,
+// with the scheme), while a daily client builds its share text around a
+// BARE-HOST url ('mindloftdaily.com/crux'). So try the absolute form first and
+// fall back to the scheme-stripped one.
+//
+// Returns '' when neither form is found. That is deliberate and it matters:
+// showing a row labelled "Result + link" whose link is NOT the new member's
+// would credit nobody, which is the exact thing they just signed up for. An
+// empty result falls through to the "Just the link" row, which is always
+// correct.
+export function restampResult(text, oldLink, newLink) {
+  if (!text || !oldLink || !newLink) return '';
+  if (oldLink === newLink) return text;
+  if (text.includes(oldLink)) return text.split(oldLink).join(newLink);
+  const strip = (u) => u.replace(/^https?:\/\//, '');
+  const oldBare = strip(oldLink);
+  const newBare = strip(newLink);
+  if (oldBare && oldBare !== oldLink && text.includes(oldBare)) {
+    return text.split(oldBare).join(newBare);
+  }
+  return '';
+}
+
 const INK = T.ink;
 const SLATE = T.slate;
 const BORD = '#e7eaf1';
@@ -58,11 +98,21 @@ export default function ShareCreditPop() {
   // this component is mounted in the root layout on every page.
   const [promo, setPromo] = useState(false);
   useEffect(() => { setPromo(contestIsLive()); }, []);
+  // navigator.share is read after mount for the same reason (it is absent on
+  // the server and on most desktop browsers).
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => {
+    try { setCanShare(typeof navigator !== 'undefined' && typeof navigator.share === 'function'); } catch (e) {}
+  }, []);
   const [mode, setMode] = useState('credit'); // 'credit' | 'signup'
   const [link, setLink] = useState('');
   const [result, setResult] = useState('');
   const [copiedKey, setCopiedKey] = useState(null);
   const [srcUrl, setSrcUrl] = useState(''); // page the credit link should point at
+  // The join form, collapsed until asked for. A guest opened this pop-up to
+  // share, so the form is an offer below the share rows, never the thing in
+  // the way.
+  const [joinOpen, setJoinOpen] = useState(false);
   // The QR poster offer, collapsed until asked for. A share pop-up is opened to
   // copy a link, so the poster is an aside here, never the thing in the way.
   const [qrOpen, setQrOpen] = useState(false);
@@ -80,9 +130,12 @@ export default function ShareCreditPop() {
       const rt = (e && e.detail && typeof e.detail.resultText === 'string') ? e.detail.resultText.trim() : '';
       const registered = !!myRefCode();
       setLink(u);
-      setResult(registered && rt && rt !== u ? rt : '');
+      // Shown to EVERYONE now. For a guest withRef is a no-op, so this is the
+      // plain uncredited link they would have copied themselves.
+      setResult(rt && rt !== u ? rt : '');
       setCopiedKey(null);
       setMode(registered ? 'credit' : 'signup');
+      setJoinOpen(false);
       setQrOpen(false);
       setOpen(true);
     };
@@ -98,15 +151,17 @@ export default function ShareCreditPop() {
   }, [open]);
 
   async function handleJoined() {
-    // The result text captured before sign-up embeds an UN-stamped link (the
-    // viewer had no code yet), so drop it and show only the freshly-stamped
-    // credit link. Resolve the new code first so withRef includes it.
+    // Resolve the new code first so withRef includes it, then carry the result
+    // text across by swapping the un-stamped link inside it for the stamped
+    // one (restampResult). Dropping the text here is what used to force a
+    // second trip through the Share button.
     try { await ensureMyRefCode(); } catch (e) {}
     let u = '';
     try { u = withRef(srcUrl || window.location.href); } catch (err) { u = ''; }
+    setResult((prev) => restampResult(prev, link, u));
     setLink(u);
-    setResult('');
     setCopiedKey(null);
+    setJoinOpen(false);
     setMode('credit');
   }
 
@@ -121,6 +176,12 @@ export default function ShareCreditPop() {
     } catch (e) {}
   }
 
+  function shareNative(txt) {
+    try {
+      if (navigator.share) navigator.share({ text: txt }).catch(() => {});
+    } catch (e) {}
+  }
+
   if (!open) return null;
 
   const backdrop = { position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(20,22,28,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', fontFamily: SANS };
@@ -131,29 +192,11 @@ export default function ShareCreditPop() {
     </button>
   );
 
-  if (mode === 'signup') {
-    return (
-      <div onClick={() => setOpen(false)} style={backdrop}>
-        <div onClick={(e) => e.stopPropagation()} style={card}>
-          {closeBtn}
-          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.02em', marginBottom: 8, paddingRight: 28 }}>
-            {promo ? `Share for your chance at ${CONTEST.prizeLabel}` : 'Share for credit'}
-          </div>
-          <ContestNote />
-          <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.5, color: SLATE }}>
-            Sign up (no password) to get your own share link. Anyone who opens it and finishes a game or quiz credits <b style={{ color: INK }}>you</b> on the community leaderboard.
-          </p>
-          <JoinLeaderboardForm identity={null} heading="Sign up" hideIcon onJoined={handleJoined} />
-        </div>
-      </div>
-    );
-  }
-
   const copyBtn = (txt, key) => (
     <button
       type="button"
       onClick={() => copyText(txt, key)}
-      style={{ flexShrink: 0, alignSelf: 'stretch', fontSize: 13, fontWeight: 800, color: T.white, background: copiedKey === key ? T.successDeep : INK, border: `1px solid ${copiedKey === key ? T.successDeep : INK}`, borderRadius: 10, padding: '0 16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap' }}
+      style={{ flexShrink: 0, alignSelf: 'stretch', fontSize: 13, fontWeight: 800, color: T.white, background: copiedKey === key ? T.successDeep : INK, border: `1px solid ${copiedKey === key ? T.successDeep : INK}`, borderRadius: 10, padding: '0 16px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', fontFamily: SANS }}
     >
       {copiedKey === key ? <><Check size={15} strokeWidth={2.6} /> Copied</> : <><Copy size={15} strokeWidth={2.4} /> Copy</>}
     </button>
@@ -162,6 +205,100 @@ export default function ShareCreditPop() {
     <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', color: SLATE, margin: '0 0 6px' }}>{t}</div>
   );
   const boxStyle = { flex: 1, minWidth: 0, fontFamily: MONO, fontSize: 12.5, color: INK, background: PAPER, border: `1px solid ${BORD}`, borderRadius: 10, padding: '10px 12px', wordBreak: 'break-word' };
+  const ghostBtn = { flex: 1, fontFamily: SANS, fontSize: 13, fontWeight: 800, color: SLATE, background: T.white, border: `1px solid ${BORD}`, borderRadius: 10, padding: '10px 14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, whiteSpace: 'nowrap' };
+
+  // The share rows, identical for a guest and a member. The only difference is
+  // whether the link they carry has a ref code in it.
+  const shareRows = (
+    result ? (
+      <>
+        <div style={{ marginBottom: 12 }}>
+          {rowLabel('Result + link')}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+            <div style={{ ...boxStyle, whiteSpace: 'pre-wrap', maxHeight: 132, overflowY: 'auto' }}>{result}</div>
+            {copyBtn(result, 'result')}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+          {canShare ? (
+            <button type="button" onClick={() => shareNative(result)} style={ghostBtn}>
+              <Share2 size={15} strokeWidth={2.4} /> Share
+            </button>
+          ) : null}
+          <button type="button" onClick={() => copyText(link, 'link')} style={ghostBtn}>
+            {copiedKey === 'link' ? <><Check size={15} strokeWidth={2.6} /> Copied</> : 'Copy just the link'}
+          </button>
+        </div>
+      </>
+    ) : (
+      <div style={{ marginBottom: 4, display: 'flex', gap: 8, alignItems: 'stretch' }}>
+        <div style={boxStyle}>{link}</div>
+        {copyBtn(link, 'link')}
+      </div>
+    )
+  );
+
+  if (mode === 'signup') {
+    const divider = (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '18px 0 14px' }}>
+        <i style={{ flex: 1, height: 1, background: BORD }} />
+        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: SLATE }}>
+          {promo ? 'and if you want credit' : 'get credit for it'}
+        </span>
+        <i style={{ flex: 1, height: 1, background: BORD }} />
+      </div>
+    );
+    return (
+      <div onClick={() => setOpen(false)} style={backdrop}>
+        <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Share" style={card}>
+          {closeBtn}
+          <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-.02em', marginBottom: 4, paddingRight: 28 }}>
+            {result ? 'Share your result' : 'Share this link'}
+          </div>
+          <p style={{ margin: '0 0 16px', fontSize: 13.5, lineHeight: 1.5, color: SLATE }}>
+            Copy it and post it anywhere. No account needed.
+          </p>
+
+          {shareRows}
+          {divider}
+
+          <div style={{ border: `1px solid ${BORD}`, borderRadius: 12, padding: 14, background: T.surface }}>
+            {/* Collapsed, this block supplies its own heading and pitch. Opened,
+                JoinLeaderboardForm brings its own heading and the same
+                explanation, so ours come out rather than say it twice. */}
+            {joinOpen ? null : (
+              <div style={{ fontSize: 14.5, fontWeight: 800, margin: '0 0 8px' }}>Make this link yours</div>
+            )}
+            <ContestNote />
+            {joinOpen ? null : (
+              <p style={{ margin: '0 0 12px', fontSize: 12.5, lineHeight: 1.5, color: SLATE }}>
+                Sign up (no password) and anyone who opens your link and finishes a game or quiz credits{' '}
+                <b style={{ color: INK }}>you</b> on the community leaderboard.
+              </p>
+            )}
+            {joinOpen ? (
+              <>
+                <JoinLeaderboardForm identity={null} heading="Sign up" hideIcon onJoined={handleJoined} />
+                {result ? (
+                  <p style={{ margin: '10px 0 0', fontSize: 11.5, lineHeight: 1.45, color: SLATE }}>
+                    <b style={{ color: T.successDeep }}>Your result above is kept.</b> The link inside it gets your code.
+                  </p>
+                ) : null}
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setJoinOpen(true)}
+                style={{ width: '100%', fontFamily: SANS, fontSize: 14, fontWeight: 800, color: T.white, background: BLUE, border: `1px solid ${BLUE}`, borderRadius: 10, padding: '11px 15px', cursor: 'pointer' }}
+              >
+                {result ? 'Sign up, keep my result' : 'Sign up and get my link'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div onClick={() => setOpen(false)} style={backdrop}>
@@ -174,29 +311,7 @@ export default function ShareCreditPop() {
           {' '}<b style={{ color: INK }}>I&rsquo;m a one person startup! Please help us grow!</b>
         </p>
 
-        {result ? (
-          <>
-            <div style={{ marginBottom: 14 }}>
-              {rowLabel('Result + link')}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
-                <div style={{ ...boxStyle, whiteSpace: 'pre-wrap', maxHeight: 132, overflowY: 'auto' }}>{result}</div>
-                {copyBtn(result, 'result')}
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              {rowLabel('Just the link')}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
-                <div style={boxStyle}>{link}</div>
-                {copyBtn(link, 'link')}
-              </div>
-            </div>
-          </>
-        ) : (
-          <div style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'stretch' }}>
-            <div style={boxStyle}>{link}</div>
-            {copyBtn(link, 'link')}
-          </div>
-        )}
+        <div style={{ marginBottom: 16 }}>{shareRows}</div>
 
         {promo ? (
           <div style={{ marginBottom: 16, border: `1px solid ${BORD}`, borderRadius: 12, padding: '13px 14px', background: PAPER }}>
