@@ -11,8 +11,9 @@
 // You play the position out rather than just naming the move: after your save
 // White keeps coming with its stubbornest try and you have to hold for the whole
 // budget, two moves on a weekday and three on a Sunday. ANY legal move can be
-// played and none of them are taken back. A move that allows the mate lands on
-// the board and ends the puzzle there.
+// played, none of them are taken back, and nothing ends early: a move that
+// allows the mate lands on the board and White comes and plays the mate out
+// (owner rule, 2026-08-11).
 //
 // The board is drawn from BLACK'S SIDE, because that is who you are.
 //
@@ -780,7 +781,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Defend is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Black to play. White mates in {HOLD} against every move on the board but one. Find it, then hold the position. A wrong move ends it.</p>
+                <p style={{ margin: '0 0 6px' }}>Black to play. White mates in {HOLD} against every move on the board but one. Find it, then hold the position. There is no take-back.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>

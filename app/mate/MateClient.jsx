@@ -10,10 +10,11 @@
 //
 // You play the whole line, not just the key: after your first move Black
 // answers with its stiffest defence and you have to finish the job. ANY legal
-// move can be played and none of them are taken back: a move that is not the
-// key lands on the board and ends the puzzle there, because off the solution
-// tree there is no scripted defence left to answer with. Score is the outcome,
-// 10 for the mate and nothing otherwise, and ties break on fastest time.
+// move can be played, none of them are taken back, and nothing ends early: a
+// move that is not the key lands on the board and the game plays ON from there,
+// with Black defending live once you are off the solution tree, until you mate
+// or run out of moves (owner rule, 2026-08-11). Score is the outcome, 10 for the
+// mate and nothing otherwise, and ties break on fastest time.
 //
 // All chess rules live in ./chess.js, a small engine that skips castling, en
 // passant and promotion because the bank guarantees none is ever legal (that
@@ -836,7 +837,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Mate is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>White to play and force checkmate in {PUZZLE.mateIn}. Tap a piece, tap where it goes. Only one first move works, and a wrong one ends it.</p>
+                <p style={{ margin: '0 0 6px' }}>White to play and force checkmate in {PUZZLE.mateIn}. Tap a piece, tap where it goes. Only one first move works, and there is no take-back.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -1112,7 +1113,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           Mate is a free daily chess puzzle from Mind Loft. Every position has White to play and a forced checkmate, and your job is to find it. Tap a piece and its legal squares light up, so you never need to know chess notation to play.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Each board has exactly one first move that works, verified by two independent solvers, and the mate is in exactly the stated number of moves, never fewer. You play the line out to the end: Black answers your key move with its best defence and you have to finish. Any legal move can be played and none of them are taken back, so a move that does not force mate ends the puzzle then and there.
+          Each board has exactly one first move that works, verified by two independent solvers, and the mate is in exactly the stated number of moves, never fewer. You play the line out to the end: Black answers your key move with its best defence and you have to finish. Any legal move can be played and none of them are taken back, so a move that does not force mate simply costs you one of the moves you needed.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new position drops every day at midnight Eastern, and Sundays step up to a mate in three. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/etch" style={{ color: COLORS.ink, fontWeight: 800 }}>Etch</a>, our daily nonogram, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
