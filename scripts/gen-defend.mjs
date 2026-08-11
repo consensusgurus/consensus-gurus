@@ -2,44 +2,59 @@
 //
 // THE SHAPE IT SEARCHES FOR. Black to move, Black NOT in check, and White
 // already threatening mate. Every legal black move loses to a forced mate
-// within `holdFor` white moves EXCEPT ONE. That one move is the puzzle.
+// within `holdFor` white moves EXCEPT ONE. Then, after White's stubbornest
+// answer, exactly one move survives AGAIN.
 //
-// Not in check is deliberate. A defender in check has three or four legal
-// moves and the puzzle solves itself by elimination; the whole point here is a
-// wide board where a dozen moves look playable and one of them is not a
-// disaster. The floor is MIN_MOVES legal replies.
+// Not in check is deliberate. A defender in check has three or four legal moves
+// and the puzzle solves itself by elimination; the point here is a wide board
+// where a dozen moves look playable and one of them is not a disaster.
 //
 // PARRIES IS THE QUALITY BAR, not the move count. A board where only one move
-// even answers the immediate threat is not a puzzle, it is a forced move. So
-// the search counts how many black moves stop the CURRENT threat (that is, how
-// many look like a defence at a glance) and demands at least MIN_PARRIES of
-// them, which means at least two convincing decoys alongside the real save.
+// even answers the immediate threat is a forced move, not a puzzle. So the
+// search counts how many black moves stop the CURRENT threat (how many look
+// like a defence at a glance) and demands at least MIN_PARRIES of them, which
+// means at least four convincing decoys alongside the real save. Day one of the
+// live bank ran a floor of three and players brute-forced it by trying each
+// parry in turn, so the floor is what makes the board cost more than five
+// ten-second attempts.
 //
-// THE SAVE MUST BE A REFUTATION, NOT A DELAY. A move that pushes mate from two
-// to three is not a save, so an accepted key is re-searched at holdFor + 1 and
-// thrown out if White still forces mate. What the game claims when you survive
-// is that the attack was answered, and this is the line that makes that true.
+// THE FOLLOW-UP IS A SECOND PUZZLE, NOT A CONFIRMATION. MAX_FOLLOWUP caps how
+// many saving replies exist after White's best try. At 1 the player has to find
+// a second only-move, so surviving the key buys the next question rather than
+// the day.
+//
+// THE SAVE MUST BE A REFUTATION, NOT A DELAY. An accepted key is re-searched at
+// holdFor + 1 and thrown out if White still forces mate. What the game claims
+// when you survive is that the attack was answered, and this is the line that
+// makes that true.
+//
+// TWO ENGINES, ON PURPOSE. The sifting runs on scripts/defend-fast.mjs, which is
+// quick and is NOT what ships. Every candidate that survives the sift is then
+// re-checked in full (every legal move, the parry count, uniqueness, the deeper
+// refutation) by app/defend/defense.js, the engine the browser actually plays,
+// and only then written out. scripts/verify-defend.mjs re-derives all of it a
+// third time. So the fast core can only cost throughput, never correctness.
 //
 // Run:  node scripts/gen-defend.mjs <holdFor> <seconds> <outfile>
-//       node scripts/gen-defend.mjs 2 900 /tmp/cand2.json
-//
-// It appends to the outfile, deduping on position, so several runs (or several
-// processes) can pile into the same pool. scripts/verify-defend.mjs re-derives
-// every claim here from the FEN with its own solver, so nothing in this file is
-// trusted by the shipped bank.
-import { legalMoves, applyMove, inCheck, toSan, rowOf, fileOf, squareName, WHITE, BLACK } from '../app/mate/chess.js';
+import { legalMoves as slowLegal, applyMove as slowApply, inCheck as slowInCheck, toSan, squareName, WHITE, BLACK } from '../app/mate/chess.js';
 import { makeMateSearch, stubbornestReply } from '../app/defend/defense.js';
+import { makeFastSearch, legal as fastLegal, inCheck as fastInCheck, uciOf, from64 } from './defend-fast.mjs';
 import { writeFileSync, existsSync, readFileSync } from 'node:fs';
 
-const HOLD = Number(process.argv[2] || 2);
+const HOLD = Number(process.argv[2] || 3);
 const SECS = Number(process.argv[3] || 300);
 const OUT = process.argv[4] || `/tmp/defend-cand${HOLD}.json`;
 
 const MIN_MOVES = 12;      // legal black replies, so the board is a real search
-const MIN_PARRIES = 3;     // moves that answer the immediate threat: the decoys
-const MAX_FOLLOWUP = 3;    // saving replies left after White's stubbornest try
+const MIN_PARRIES = 5;     // moves that answer the immediate threat: the decoys
+const MAX_FOLLOWUP = 1;    // saving replies after White's best try: a second only-move
 const MIN_PIECES = 6;
 const MAX_PIECES = 9;
+// A hold-for-four board is already four only-moves deep, and searching a fifth
+// costs more than the rest of the run put together, so the deeper refutation is
+// checked at holdFor + 1 only while that is affordable. Above it the board still
+// has to survive its full budget, which is the claim the game actually makes.
+const REFUTE_DEPTH = HOLD <= 3 ? HOLD + 1 : HOLD;
 
 const R = (n) => Math.floor(Math.random() * n);
 const WSETS = [['Q', 'R'], ['Q', 'N'], ['R', 'R'], ['Q', 'B'], ['R', 'B'], ['R', 'N'], ['Q', 'R', 'N'],
@@ -48,36 +63,43 @@ const BSETS = [['r'], ['b'], ['n'], ['q'], ['r', 'n'], ['r', 'b'], ['b', 'n'], [
   ['b', 'p'], ['q', 'p'], ['r', 'r'], ['r', 'b', 'p'], ['n', 'n'], ['q', 'n']];
 const VAL = { q: 9, r: 5, b: 3, n: 3, p: 1 };
 const NAME = { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight', P: 'pawn' };
+const CODE = { P: 1, N: 2, B: 3, R: 4, Q: 5, K: 6 };
 
-// A sparse, mate-net-shaped position. The black king is pushed toward an edge
-// because that is where mating nets live, which is a search heuristic and not a
-// rule: nothing downstream assumes it.
 function randPos() {
   const b = new Array(64).fill(null);
   const free = () => { for (let t = 0; t < 200; t++) { const s = R(64); if (!b[s]) return s; } return -1; };
   let bk;
-  for (;;) { bk = R(64); const r = rowOf(bk), f = fileOf(bk); if (r <= 1 || r >= 6 || f <= 1 || f >= 6) break; }
+  for (;;) { bk = R(64); const r = bk >> 3, f = bk & 7; if (r <= 1 || r >= 6 || f <= 1 || f >= 6) break; }
   b[bk] = 'k';
   let wk;
   for (;;) {
     wk = R(64);
     if (b[wk]) continue;
-    if (Math.max(Math.abs(rowOf(wk) - rowOf(bk)), Math.abs(fileOf(wk) - fileOf(bk))) > 1) break;
+    if (Math.max(Math.abs((wk >> 3) - (bk >> 3)), Math.abs((wk & 7) - (bk & 7))) > 1) break;
   }
   b[wk] = 'K';
   for (const p of WSETS[R(WSETS.length)]) {
     const s = free(); if (s < 0) continue;
-    if (p === 'P' && (rowOf(s) < 2 || rowOf(s) > 5)) continue;   // no promotion, no double push
+    if (p === 'P' && ((s >> 3) < 2 || (s >> 3) > 5)) continue;   // no promotion, no double push
     b[s] = p;
   }
   for (const p of BSETS[R(BSETS.length)]) {
     const s = free(); if (s < 0) continue;
-    if (p === 'p' && (rowOf(s) < 2 || rowOf(s) > 5)) continue;
+    if (p === 'p' && ((s >> 3) < 2 || (s >> 3) > 5)) continue;
     b[s] = p;
   }
   return b;
 }
-
+function toFast(a) {
+  const bd = new Int8Array(128);
+  for (let i = 0; i < 64; i++) {
+    const p = a[i];
+    if (!p) continue;
+    const k = CODE[p.toUpperCase()];
+    bd[from64(i)] = p === p.toUpperCase() ? k : -k;
+  }
+  return bd;
+}
 function toFen(board, turn) {
   let out = '';
   for (let r = 0; r < 8; r++) {
@@ -93,12 +115,43 @@ function toFen(board, turn) {
   return `${out} ${turn} - - 0 1`;
 }
 
-// Does `to` sit on a line between the black king and a white slider, so the
-// move plugs a line rather than guarding a square? Used only to name the motif.
+// White to move and unable to force mate. How few saving replies can it leave
+// Black? This mirrors stubbornestReply in app/defend/defense.js on the fast
+// core, including its stalemate trap: a white move leaving Black no legal move
+// at all is a DRAW, which for Defend is a save, so it scores Infinity and is
+// never chosen. The search stops at 1 because that is the cap it is measured
+// against and nothing can beat it.
+function fastFollowUp(bd, f, remaining) {
+  let best = Infinity;
+  for (const m of fastLegal(bd, true)) {
+    const fr = m >> 8, to = m & 255;
+    const cap = bd[to];
+    bd[to] = bd[fr]; bd[fr] = 0;
+    const reps = fastLegal(bd, false);
+    let saving;
+    if (!reps.length) saving = Infinity;
+    else {
+      saving = 0;
+      for (const r of reps) {
+        const rf = r >> 8, rt = r & 255;
+        const rcap = bd[rt];
+        bd[rt] = bd[rf]; bd[rf] = 0;
+        if (!f(bd, true, remaining - 1)) saving++;
+        bd[rf] = bd[rt]; bd[rt] = rcap;
+      }
+      if (saving === 0) saving = Infinity;
+    }
+    bd[fr] = bd[to]; bd[to] = cap;
+    if (saving < best) best = saving;
+    if (best <= 1) break;
+  }
+  return best;
+}
+
 function isInterposition(board, to) {
   const kingSq = board.indexOf('k');
   if (kingSq < 0) return false;
-  const kr = rowOf(kingSq), kf = fileOf(kingSq), tr = rowOf(to), tf = fileOf(to);
+  const kr = kingSq >> 3, kf = kingSq & 7, tr = to >> 3, tf = to & 7;
   const dr = Math.sign(tr - kr), df = Math.sign(tf - kf);
   if (dr === 0 && df === 0) return false;
   if (dr !== 0 && df !== 0 && Math.abs(tr - kr) !== Math.abs(tf - kf)) return false;
@@ -107,7 +160,7 @@ function isInterposition(board, to) {
     const p = board[r * 8 + f];
     if (p) {
       const kind = p.toUpperCase();
-      if (p !== kind) return false;                                  // a black piece blocks first
+      if (p !== kind) return false;
       if (kind === 'Q') return true;
       if (kind === 'R') return dr === 0 || df === 0;
       if (kind === 'B') return dr !== 0 && df !== 0;
@@ -118,14 +171,11 @@ function isInterposition(board, to) {
   return false;
 }
 
-// Reader-facing flavour, shown only to a player who survived. Every string
-// names the actual piece and square, so two boards can only collide when the
-// same idea lands on the same square, which the bank verifier still polices.
 function motifFor(board, key, after) {
   const piece = NAME[(board[key.from] || 'P').toUpperCase()];
   const sq = squareName(key.to);
   const captured = board[key.to] ? NAME[board[key.to].toUpperCase()] : null;
-  const gives = inCheck(after, WHITE);
+  const gives = slowInCheck(after, WHITE);
   const pick = (arr) => arr[(key.from * 7 + key.to * 3) % arr.length];
   if (captured) {
     return pick([
@@ -162,52 +212,94 @@ function motifFor(board, key, after) {
   ]);
 }
 
+// The full claim, re-derived with the SHIPPED engine. Nothing reaches the bank
+// on the fast core's word alone.
+function confirm(a) {
+  const s = makeMateSearch();
+  if (slowInCheck(a, WHITE) || slowInCheck(a, BLACK)) return null;
+  const bm = slowLegal(a, BLACK);
+  if (bm.length < MIN_MOVES) return null;
+  if (!s.forcesMateWithin(a, WHITE, HOLD - 1)) return null;
+  const survivors = [];
+  let parries = 0;
+  for (const mv of bm) {
+    const next = slowApply(a, mv.from, mv.to);
+    if (s.forcesMateWithin(next, WHITE, HOLD - 1)) continue;
+    parries++;
+    if (!s.forcesMateWithin(next, WHITE, HOLD)) survivors.push(mv);
+  }
+  if (survivors.length !== 1 || parries < MIN_PARRIES) return null;
+  const key = survivors[0];
+  const after = slowApply(a, key.from, key.to);
+  if (s.forcesMateWithin(after, WHITE, REFUTE_DEPTH)) return null;
+  const reply = stubbornestReply(after, HOLD, s);
+  if (!reply) return null;
+  if (reply.saving === Infinity || reply.saving > MAX_FOLLOWUP) return null;
+  return { key, after, reply, parries, moves: bm.length };
+}
+
 const prior = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : [];
 const out = prior.slice();
 const seen = new Set(prior.map((x) => x.fen.split(' ')[0]));
 const t0 = Date.now();
-let tried = 0, threat = 0;
+let tried = 0, threat = 0, sifted = 0;
 
 while ((Date.now() - t0) / 1000 < SECS) {
   tried++;
-  const b = randPos();
-  const pieces = b.filter(Boolean).length;
+  const a = randPos();
+  const pieces = a.filter(Boolean).length;
   if (pieces < MIN_PIECES || pieces > MAX_PIECES) continue;
-  if (inCheck(b, WHITE)) continue;                 // illegal: it is Black to move
-  if (inCheck(b, BLACK)) continue;                 // want a wide board, not a forced escape
-  if (!b.some((p) => p && p !== 'k' && p === p.toLowerCase())) continue;   // Black needs material
-  const bm = legalMoves(b, BLACK);
-  if (bm.length < MIN_MOVES) continue;
+  if (!a.some((p) => p && p !== 'k' && p === p.toLowerCase())) continue;
 
-  const s = makeMateSearch();
-  if (!s.forcesMateWithin(b, WHITE, HOLD - 1)) continue;   // there must be a live threat
+  // ── the fast sift ────────────────────────────────────────────────────────
+  const bd = toFast(a);
+  if (fastInCheck(bd, true) || fastInCheck(bd, false)) continue;
+  const moves = fastLegal(bd, false);
+  if (moves.length < MIN_MOVES) continue;
+  const f = makeFastSearch();
+  if (!f(bd, true, HOLD - 1)) continue;
   threat++;
 
-  // A move that already loses to the SHORTER mate cannot survive the longer one,
-  // so the expensive holdFor-deep search only ever runs on moves that answered
-  // the immediate threat. On a Sunday that is three or four moves out of twenty
-  // rather than all twenty, which is most of what makes a hold-for-three bank
-  // generable at all.
-  const survivors = [];
-  let parries = 0;
-  for (const mv of bm) {
-    const next = applyMove(b, mv.from, mv.to);
-    if (s.forcesMateWithin(next, WHITE, HOLD - 1)) continue;
-    parries++;
-    if (!s.forcesMateWithin(next, WHITE, HOLD)) { survivors.push(mv); if (survivors.length > 1) break; }
+  // A move that loses to the SHORTER mate cannot survive the longer one, so the
+  // expensive holdFor-deep search only ever runs on moves that answered the
+  // threat. On a hold-for-four board that is four moves out of twenty rather
+  // than all twenty, which is most of what makes the bank generable at all.
+  let parries = 0, survivors = 0, keyMove = -1, dead = false;
+  for (const m of moves) {
+    const fr = m >> 8, to = m & 255;
+    const cap = bd[to];
+    bd[to] = bd[fr]; bd[fr] = 0;
+    const shorter = f(bd, true, HOLD - 1);
+    if (!shorter) {
+      parries++;
+      if (!f(bd, true, HOLD)) { survivors++; keyMove = m; if (survivors > 1) dead = true; }
+    }
+    bd[fr] = bd[to]; bd[to] = cap;
+    if (dead) break;
   }
-  if (survivors.length !== 1) continue;
-  if (parries < MIN_PARRIES) continue;
+  if (dead || survivors !== 1 || parries < MIN_PARRIES) continue;
 
-  const key = survivors[0];
-  const after = applyMove(b, key.from, key.to);
-  if (s.forcesMateWithin(after, WHITE, HOLD + 1)) continue;   // a delay is not a save
+  // The refutation and the follow-up are the two checks that reject most
+  // candidates, so they run HERE on the fast core rather than in confirm().
+  // Paying the shipped engine's price to reject twenty boards for every one it
+  // keeps was the whole cost of the run.
+  {
+    const fr = keyMove >> 8, to = keyMove & 255;
+    const cap = bd[to];
+    bd[to] = bd[fr]; bd[fr] = 0;
+    const delays = f(bd, true, REFUTE_DEPTH);
+    const follow = delays ? Infinity : fastFollowUp(bd, f, HOLD);
+    bd[fr] = bd[to]; bd[to] = cap;
+    if (delays || follow > MAX_FOLLOWUP) continue;
+  }
+  sifted++;
 
-  const reply = stubbornestReply(after, HOLD, s);
-  if (!reply) continue;
-  if (reply.saving !== Infinity && reply.saving > MAX_FOLLOWUP) continue;
+  // ── the shipped engine has the last word ─────────────────────────────────
+  const ok = confirm(a);
+  if (!ok) continue;
+  if (uciOf(keyMove >> 8, keyMove & 255) !== ok.key.uci) continue;   // the two engines must agree
 
-  const fen = toFen(b, 'b');
+  const fen = toFen(a, 'b');
   const pos = fen.split(' ')[0];
   if (seen.has(pos)) continue;
   seen.add(pos);
@@ -215,19 +307,19 @@ while ((Date.now() - t0) / 1000 < SECS) {
   out.push({
     fen,
     holdFor: HOLD,
-    key: key.uci,
-    keySan: toSan(b, key.from, key.to),
-    reply: reply.uci,
-    parries,
-    followUp: reply.saving === Infinity ? 0 : reply.saving,
-    moves: bm.length,
+    key: ok.key.uci,
+    keySan: toSan(a, ok.key.from, ok.key.to),
+    reply: ok.reply.uci,
+    parries: ok.parries,
+    followUp: ok.reply.saving,
+    moves: ok.moves,
     pieces,
-    white: b.reduce((a, p) => a + (p && p === p.toUpperCase() && p !== 'K' ? VAL[p.toLowerCase()] : 0), 0),
-    black: b.reduce((a, p) => a + (p && p === p.toLowerCase() && p !== 'k' ? VAL[p] : 0), 0),
-    motif: motifFor(b, key, after),
+    white: a.reduce((acc, p) => acc + (p && p === p.toUpperCase() && p !== 'K' ? VAL[p.toLowerCase()] : 0), 0),
+    black: a.reduce((acc, p) => acc + (p && p === p.toLowerCase() && p !== 'k' ? VAL[p] : 0), 0),
+    motif: motifFor(a, ok.key, ok.after),
   });
-  if (out.length % 5 === 0) writeFileSync(OUT, JSON.stringify(out));
+  writeFileSync(OUT, JSON.stringify(out));   // every keep: a hold-for-four run finds fewer than five, so a periodic write would lose the lot if the run is cut short
 }
 
 writeFileSync(OUT, JSON.stringify(out));
-console.log(JSON.stringify({ holdFor: HOLD, tried, threat, kept: out.length, secs: ((Date.now() - t0) / 1000).toFixed(0) }));
+console.log(JSON.stringify({ holdFor: HOLD, tried, threat, sifted, kept: out.length, secs: ((Date.now() - t0) / 1000).toFixed(0) }));

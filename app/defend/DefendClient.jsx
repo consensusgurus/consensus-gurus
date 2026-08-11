@@ -497,12 +497,22 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
   // every player faces the same defence on the move that decides the day. Later
   // replies run against a smaller budget and are cheap enough to search here.
   function replyTo(board2, afterCount, doomed) {
-    // The bank's reply answers the SAVE. It is not an answer to a move that gave
-    // the mate away, so a doomed position skips it and is searched instead.
-    if (!doomed && afterCount === 1 && PUZZLE.reply) {
-      const { from, to } = parseUci(PUZZLE.reply);
-      const legal = legalMoves(board2, 'w').some((m) => m.from === from && m.to === to);
-      if (legal) return PUZZLE.reply;
+    // The bank's replies answer the SAVE. They are not answers to a move that
+    // gave the mate away, so a doomed position skips them and is searched.
+    //
+    // White's first TWO answers are stored, because both positions are forced
+    // and so identical for every player: the key is the only save, and the
+    // follow-up after White's first answer is an only-move by construction. The
+    // second is stored because searching it here is not free. On a hold-for-four
+    // board it measured one to three seconds on a desktop, which is a frozen
+    // page on a phone.
+    const stored = doomed ? null
+      : afterCount === 1 ? PUZZLE.reply
+      : afterCount === 3 ? PUZZLE.reply2
+      : null;
+    if (stored) {
+      const { from, to } = parseUci(stored);
+      if (legalMoves(board2, 'w').some((m) => m.from === from && m.to === to)) return stored;
     }
     // afterCount is odd here (your move has landed, White's has not), so
     // floor(afterCount / 2) is the number of saves you have already made and
@@ -723,16 +733,16 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
     <DailyRules
       accent={COLORS.accent} accentSoft={COLORS.accentSoft}
       lead="Survive the attack."
-      banner={<>You are <b>Black</b> and you move first. White is threatening mate, and exactly <b>one move</b> on the board saves you.</>}
+      banner={<>You are <b>Black</b> and you move first. White is threatening mate. At least <b>five moves</b> look like they stop it and exactly <b>one</b> does.</>}
       steps={[
         <><b>Tap one of your pieces</b> and the squares it can legally reach light up. <b>Tap one</b> to play the move.</>,
         <>Every other legal move is <b>mate in {HOLD}</b>. Not most of them. Every one.</>,
-        <>Then hold. White keeps coming with its best try and you have to survive <b>{HOLD} moves</b>{HOLD > 2 ? ', three on a Sunday' : ''}.</>,
+        <>Finding it only buys the next one. White answers with its best try and <b>exactly one move survives again</b>, and you have to hold for <b>{HOLD} moves</b> in all.</>,
         <>One free <b>hint</b>, on your first ever play, tells you which piece moves, never where it goes.</>,
       ]}
-      knack={<>Count what each move gives away, not what it attacks. Three or four moves will look like they stop the mate and only one of them does.</>}
+      knack={<>Count what each move gives away, not what it attacks. At least five moves will look like they stop the mate, and the one that holds is rarely the loudest.</>}
       note={<>You may play <b>any legal move</b> and there is <b>no take-back</b>. Nothing is refused and nothing stops early: allow the mate and White will come and play it out on the board. Mating White yourself, or being stalemated, both count as holding.</>}
-      footer="Holding scores 10, and getting mated scores nothing, the same as giving up. Ties break on fastest time. Weekdays hold for two, Sundays hold for three."
+      footer="Holding scores 10, and getting mated scores nothing, the same as giving up. Ties break on fastest time. Weekdays hold for three, Sundays hold for four."
     />
   );
 
@@ -768,7 +778,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Hold for 3</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Hold for 4</span>}
           blocks={'DEFEND'.split('').map((ch, i) => (
               <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
@@ -779,7 +789,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Defend is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Black to play. White mates in {HOLD} against every move on the board but one. Find it, then hold the position. There is no take-back.</p>
+                <p style={{ margin: '0 0 6px' }}>Black to play. White mates in {HOLD} against every move on the board but one, and finding it only buys the next one. There is no take-back.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -933,7 +943,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             {PUZZLE.sunday && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a hold for three.</div>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a hold for four.</div>
             )}
             {isTodays && myStats.cur >= 2 && (
               <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -1059,10 +1069,10 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
           Defend is a free daily chess puzzle from Mind Loft, and it is the other half of a mate puzzle. You are Black, White is threatening checkmate, and your job is to find the one move that survives. Tap a piece and its legal squares light up, so you never need to know chess notation to play.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          On every board, every legal move loses to a forced mate except one, checked by two independent solvers. Three or four of them answer the immediate threat, which is what makes the board hard: the moves that look like a defence mostly are not one. Then you play the position out, because finding the move is not the same as holding the game. Any legal move can be played and none of them are taken back.
+          On every board, every legal move loses to a forced mate except one, checked by three independent solvers. At least five of them answer the immediate threat, which is what makes the board hard: the moves that look like a defence mostly are not one. Then you play the position out, and White's answer leaves exactly one move that survives again, because finding the save is not the same as holding the game. Any legal move can be played and none of them are taken back.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new position drops every day at midnight Eastern, and Sundays step up to a hold for three. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, the same puzzle from the attacking side, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/four" style={{ color: COLORS.ink, fontWeight: 800 }}>Four</a>, our daily Connect Four position.
+          A new position drops every day at midnight Eastern, and Sundays step up to a hold for four. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, the same puzzle from the attacking side, <a href="/check" style={{ color: COLORS.ink, fontWeight: 800 }}>Check</a>, our daily checkers shot, and <a href="/four" style={{ color: COLORS.ink, fontWeight: 800 }}>Four</a>, our daily Connect Four position.
         </p>
       </section>
 

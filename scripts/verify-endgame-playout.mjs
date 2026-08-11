@@ -97,9 +97,18 @@ for (const p of MATE_PUZZLES) {
 if (!BAD) ok('mate play-out', `${runs} off-key runs on ${MATE_PUZZLES.length} boards all conclude, deepest ${deepest} ply, ${duals} immediate duals now win`);
 
 // ─── 2. Defend collects the mate ───────────────────────────────────────────
+// Defend's half is much the slower one: every losing first move on every board
+// is walked to a real checkmate, and a hold-for-four board searches deep to
+// find it. `--defend-slice i/n` narrows WHICH BOARDS are walked so the sweep
+// fits inside a short command timeout. It changes nothing about what a full run
+// checks, and a sliced run says so rather than reporting a clean pass.
+const dSliceArg = (process.argv.find((a) => a.startsWith('--defend-slice=')) || '').split('=')[1]
+  || (process.argv.includes('--defend-slice') ? process.argv[process.argv.indexOf('--defend-slice') + 1] : null);
+const [dI, dN] = dSliceArg ? dSliceArg.split('/').map(Number) : [1, 1];
 const before2 = BAD;
 let dRuns = 0, dMated = 0, dDeep = 0;
-for (const p of DEFEND_PUZZLES) {
+for (const [dIdx, p] of DEFEND_PUZZLES.entries()) {
+  if (dN > 1 && (dIdx % dN) !== (dI - 1)) continue;
   const HOLD = p.holdFor;
   const root0 = parseFen(p.fen).board;
   for (const first of legalMoves(root0, 'b')) {
@@ -129,7 +138,7 @@ for (const p of DEFEND_PUZZLES) {
     dRuns++;
   }
 }
-if (BAD === before2) ok('defend play-out', `all ${dRuns} losing first moves on ${DEFEND_PUZZLES.length} boards play out to a real checkmate, deepest took ${dDeep} white moves`);
+if (BAD === before2) ok('defend play-out', `all ${dRuns} losing first moves on ${dN > 1 ? `slice ${dI}/${dN} of ` : ''}${DEFEND_PUZZLES.length} boards play out to a real checkmate, deepest took ${dDeep} white moves`);
 
 // ─── 3. the winning path is untouched ──────────────────────────────────────
 const before3 = BAD;

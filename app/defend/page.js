@@ -7,19 +7,21 @@ import { SITE_URL } from '@/lib/site';
 // Defend launched 2026-08-11 as the 58th daily and the sixth End Game title:
 // linked from the hub puzzles row, the footer, the /daily archive, and the
 // sitemap (/defend is the canonical, evergreen URL). It is Mate read from the
-// other side of the board, Black to play and survive. Weekdays hold for two,
-// Sundays step up to a hold for three. Puzzles are gated by Eastern date here,
+// other side of the board, Black to play and survive. Weekdays hold for three,
+// Sundays step up to a hold for four. The launch bank held for two with three
+// parries; the floors moved on 2026-08-12 after day one showed a three-parry
+// board could be brute-forced by trying each parry in turn. Puzzles are gated by Eastern date here,
 // so tomorrow's position (and the move that saves it) never reaches the browser.
 
 export const metadata = {
   title: 'Defend — Free Daily Chess Puzzle (Black to Play and Survive) | Mind Loft',
   description:
-    'A free daily chess puzzle from the defending side. White is threatening mate and exactly one move on the board saves you, while three or four others only look like they do. Tap a piece and its legal squares light up, so no chess notation is needed. Hold the position against White’s best try, keep a streak, and Sundays step up to a hold for three.',
+    'A free daily chess puzzle from the defending side. White is threatening mate, at least five moves look like they answer it, and exactly one does. Tap a piece and its legal squares light up, so no chess notation is needed. Finding the save only buys the next one: hold the position for three moves against White’s best try, keep a streak, and Sundays hold for four.',
   alternates: { canonical: '/defend' },
   openGraph: {
     title: 'Defend — A Daily Chess Puzzle',
     description:
-      'Black to play and survive. One move saves you and every other is mate. A new position from Mind Loft, daily.',
+      'Black to play and survive. Five moves look like a defence, one is, and finding it only buys you the next one. A new position from Mind Loft, daily.',
     url: '/defend',
     type: 'website',
     siteName: 'Mind Loft',
@@ -27,7 +29,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Defend — A Daily Chess Puzzle',
-    description: 'White is threatening mate. Exactly one move on the board saves you.',
+    description: 'White is threatening mate. Five moves look like they stop it. One does.',
   },
 };
 
@@ -38,7 +40,7 @@ const gameJsonLd = {
   alternateName: 'Defend — Daily Chess Puzzle',
   url: `${SITE_URL}/defend`,
   description:
-    'A free daily chess defence puzzle. Each position has Black to move with White already threatening checkmate, and every legal move loses to a forced mate except one. Tap a piece to see its legal squares, then play the position out: White answers with its stubbornest try and you have to hold. Surviving earns a perfect score, and ties break on fewest misses then fastest time. Weekdays hold for two moves and Sundays hold for three.',
+    'A free daily chess defence puzzle. Each position has Black to move with White already threatening checkmate, and every legal move loses to a forced mate except one, with at least five that look like they answer the threat. Tap a piece to see its legal squares, then play the position out: White answers with its stubbornest try and exactly one move survives again. Surviving earns a perfect score, and ties break on fewest misses then fastest time. Weekdays hold for three moves and Sundays hold for four.',
   genre: ['Chess puzzle', 'Logic puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
@@ -79,7 +81,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Defend launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily chess save. White is threatening mate and exactly one move on the board answers it. Come back when the first position drops.
+          The daily chess save. White is threatening mate, five moves look like they answer it, and one does. Come back when the first position drops.
         </p>
         <a href="/daily" style={{ color: '#2f4f4f', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>
