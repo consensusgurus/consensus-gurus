@@ -416,6 +416,20 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   // 170ms delay before the repeat starts (so a single tap is still a single
   // step) and then a step every 55ms sideways, 45ms down.
   const DAS = 170, ARR = 55, ARR_DOWN = 45;
+  // Touch device? Resolved once after hydration (never during render, so the
+  // server and client agree). Kills the keyboard as an input, and hides the
+  // keyboard hint line at every width rather than only under 640px.
+  const [touchOnly, setTouchOnly] = useState(false);
+  useEffect(() => { setTouchOnly(isMobileDevice()); }, []);
+  // If a keyboard IS up, touching the game puts it away. The join form sits
+  // under the board, so a player who tapped it and then reached for the pad
+  // was otherwise left playing behind the keyboard.
+  const dropFocus = useCallback(() => {
+    try {
+      const el = typeof document !== 'undefined' ? document.activeElement : null;
+      if (el && el !== document.body && typeof el.blur === 'function') el.blur();
+    } catch (e) {}
+  }, []);
   const repRef = useRef({ t: null, i: null });
   const stopRepeat = useCallback(() => {
     if (repRef.current.t) { clearTimeout(repRef.current.t); repRef.current.t = null; }
@@ -431,12 +445,12 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   useEffect(() => stopRepeat, [stopRepeat]);
 
   const holdProps = (what) => ({
-    onPointerDown: (e) => { e.preventDefault(); e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); startRepeat(what); },
+    onPointerDown: (e) => { e.preventDefault(); dropFocus(); e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); startRepeat(what); },
     onPointerUp: stopRepeat, onPointerLeave: stopRepeat, onPointerCancel: stopRepeat,
     onContextMenu: (e) => e.preventDefault(),
   });
   const tapProps = (what) => ({
-    onPointerDown: (e) => { e.preventDefault(); act(what); },
+    onPointerDown: (e) => { e.preventDefault(); dropFocus(); act(what); },
     onContextMenu: (e) => e.preventDefault(),
   });
 
@@ -448,6 +462,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
       const cur = gRef.current;
       if (cur.status !== 'playing' || !cur.t0 || pausedRef.current) return;
       e.preventDefault();
+      dropFocus();
       swRef.current = { x: e.clientX, y: e.clientY, ax: e.clientX, ay: e.clientY, t: Date.now(), moved: false, dropped: false };
       e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId);
     },
@@ -517,12 +532,36 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   }, [COLS, ROWS, settle, commit, postResult]);
 
   // ---- canvas --------------------------------------------------------------
+  // THE ON-SCREEN KEYBOARD MUST NOT RESIZE THE WELL (owner report, 2026-08-10).
+  // The well is sized off innerHeight and re-sized on every `resize`. On iOS,
+  // opening the keyboard fires exactly that event with a viewport roughly 40%
+  // shorter, so `fh` collapsed and the board dropped to the 14px cell floor:
+  // the game became unplayable the moment anything focused a field, and the
+  // join form sits directly under the board. Nothing recovered it until the
+  // next resize.
+  //
+  // So the well is sized off the TALLEST height seen AT THIS WIDTH instead. A
+  // shrink of more than a fifth at an unchanged width is a keyboard, never a
+  // new layout (the URL bar is worth about a tenth, and is still honored), so
+  // that height is ignored and the last good one stands. A rotation changes the
+  // width, which re-latches honestly.
+  const vhRef = useRef({ w: 0, h: 0 });
+  const stableVH = useCallback(() => {
+    if (typeof window === 'undefined') return 800;
+    const w = window.innerWidth, h = window.innerHeight;
+    const prev = vhRef.current;
+    if (!prev.h || w !== prev.w) { vhRef.current = { w, h }; return h; }
+    if (h < prev.h * 0.8) return prev.h;
+    vhRef.current = { w, h };
+    return h;
+  }, []);
+
   const sizeWell = useCallback(() => {
     const box = boxRef.current, cvs = cvsRef.current;
     if (!box || !cvs) return;
     const phone = typeof window !== 'undefined' && window.innerWidth <= 640;
     const fw = Math.max(120, box.clientWidth - (phone ? 0 : 146));
-    const fh = (typeof window !== 'undefined' ? window.innerHeight : 800) - (phone ? 310 : 300);
+    const fh = stableVH() - (phone ? 310 : 300);
     const cell = Math.max(14, Math.min(34, Math.floor(Math.min(fw / COLS, fh / ROWS))));
     cellRef.current = cell;
     const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
@@ -532,7 +571,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawWell();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [COLS, ROWS]);
+  }, [COLS, ROWS, stableVH]);
 
   const drawWell = useCallback(() => {
     const cvs = cvsRef.current;
@@ -607,6 +646,13 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   useEffect(() => {
     const onKey = (e) => {
       if (showHelp) { if (e.key === 'Escape') setShowHelp(false); return; }
+      // A PHONE IS DRIVEN BY THE PAD, NEVER BY A KEYBOARD (owner rule,
+      // 2026-08-10). On a touch device every key is ignored outright, so an
+      // on-screen keyboard can never be an input to this game: the four dock
+      // buttons and the swipe gestures on the well are the whole control set.
+      // Gated on the DEVICE rather than the viewport width, per the project
+      // rule, so a narrow desktop window keeps its arrow keys.
+      if (touchOnly) return;
       const cur = gRef.current;
       if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { e.preventDefault(); togglePause(); return; }
       if (cur.status !== 'playing' || !cur.t0 || pausedRef.current) return;
@@ -622,7 +668,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [act, togglePause, showHelp]);
+  }, [act, togglePause, showHelp, touchOnly]);
 
   function startGame() {
     const cur = gRef.current;
@@ -672,20 +718,54 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   }
 
   // ---- the live ladder -----------------------------------------------------
-  // Real rows from /api/quiz/board, fetched once. Only YOUR row moves as you
-  // clear, so nothing here is invented and nothing polls mid-run.
+  // THE REAL BOARD, not a slice of one (owner report, 2026-08-10). Two separate
+  // bugs made this panel lie, and both are fixed here:
+  //
+  //  1. IT READ THE WRONG AXIS. `board.leaderboard` is 'registered:all', which
+  //     is signed-in players only and EVERY attempt they posted. Blocks is an
+  //     arcade game: it takes unlimited runs and it keeps your BEST one, so one
+  //     player's four runs took four of the ten rows while the day's actual
+  //     best run, an anonymous 70, was not on the board at all. The axis that
+  //     reads true here is 'all:first' (`leaderboardFirst`), which on an arcade
+  //     game is ONE ROW PER PLAYER, their best run, guests included: exactly
+  //     what this game's own rules copy promises. See buildLeaderboard in
+  //     lib/quiz-anon.js. `leaderboard` stays as the fallback only so an old
+  //     cached payload still renders something.
+  //  2. IT SHOWED A WINDOW AROUND YOU, +/-2 rows, so a player who had cleared
+  //     nothing opened on ranks 8, 9 and 10 and could not see who was winning.
+  //     The TOP FIVE now always render, and your live row pins beneath them
+  //     behind a gap marker whenever this run sits outside them.
+  //
+  // Still fetched once and never polled: only YOUR row moves as you clear, so
+  // nothing here is invented mid-run.
   const ladder = useMemo(() => {
-    const rows = (board.leaderboard || []).slice(0, 40).map((r, i) => ({
-      rank: i + 1, name: r.username || 'player', score: r.score, me: false,
-    }));
+    const anon = hydrated ? getAnonId() : null;
+    const myKey = anon ? `a:${anon}` : null;
+    const myName = String((identity && identity.username) || '').toLowerCase();
+    // Drop my OWN stored row. The live run below is already on the ladder as
+    // "You", so leaving it in lists the same person twice, once under their
+    // name and once as You. Guests match on the anon key that buildLeaderboard
+    // returns; a signed-in player matches on the display name, because the
+    // board carries no user_id to compare against.
+    const isMine = (r) => (!!myKey && r.userKey === myKey)
+      || (!!myName && String(r.username || '').toLowerCase() === myName);
+    const rows = (board.leaderboardFirst || board.leaderboard || [])
+      .filter((r) => !isMine(r))
+      .slice(0, 40)
+      .map((r) => ({ name: r.username || 'player', score: r.score, me: false }));
     const mine = rowsCleared;
     let at = rows.findIndex((r) => r.score < mine);
     if (at < 0) at = rows.length;
-    const meRow = { rank: at + 1, name: 'You', score: mine, me: true };
-    const out = rows.slice(0, at).concat([meRow], rows.slice(at)).map((r, i) => ({ ...r, rank: i + 1 }));
+    const out = rows.slice(0, at).concat([{ name: 'You', score: mine, me: true }], rows.slice(at))
+      .map((r, i) => ({ ...r, rank: i + 1 }));
     const meAt = out.findIndex((r) => r.me);
-    return { rows: out.slice(Math.max(0, meAt - 2), meAt + 3), rank: meAt + 1, field: out.length };
-  }, [board.leaderboard, rowsCleared]);
+    const TOP = 5;
+    return {
+      rows: out.slice(0, TOP).concat(meAt >= TOP ? [{ gap: true }, out[meAt]] : []),
+      rank: meAt + 1,
+      field: out.length,
+    };
+  }, [board.leaderboardFirst, board.leaderboard, rowsCleared, identity, hydrated]);
 
   // ---- rules ---------------------------------------------------------------
   const rulesBody = (
@@ -781,7 +861,9 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
               <canvas ref={cvsRef} {...wellProps} style={{ display: 'block', touchAction: 'none', cursor: started ? 'grab' : 'default' }} />
               <aside className="bl-ladder" style={{ width: 132, flex: 'none', borderLeft: `1px solid ${COLORS.line}`, paddingLeft: 11, display: 'flex', flexDirection: 'column' }}>
                 <div style={{ margin: '0 0 7px', fontSize: 8.5, letterSpacing: '0.13em', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 800 }}>Today&rsquo;s board</div>
-                {ladder.rows.map((r) => (
+                {ladder.rows.map((r) => (r.gap ? (
+                  <div key="gap" aria-hidden="true" style={{ textAlign: 'center', color: '#c3cad6', fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', lineHeight: '11px', padding: '4px 0 2px' }}>&middot;&middot;&middot;</div>
+                ) : (
                   <div key={`${r.rank}-${r.name}`} style={{
                     display: 'flex', alignItems: 'baseline', gap: 6, padding: '3.5px 6px', margin: '0 -6px',
                     fontSize: 11.5, color: r.me ? COLORS.accent : COLORS.faded, fontWeight: r.me ? 800 : 500,
@@ -791,7 +873,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
                     <span style={{ fontWeight: 800 }}>{r.score}</span>
                   </div>
-                ))}
+                )))}
                 <div style={{ marginTop: 'auto', paddingTop: 9, borderTop: `1px solid ${COLORS.line}` }}>
                   <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>{nf(rowsCleared)}<em style={{ fontStyle: 'normal', fontSize: 11, fontWeight: 700, color: '#94a3b8' }}> row{rowsCleared === 1 ? '' : 's'}</em></div>
                   <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '0.04em', color: '#94a3b8', marginTop: 3 }}>par {nf(PAR)}</div>
@@ -819,10 +901,10 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                 <button className="bl-rgt" style={dockBtn} {...holdProps('right')} aria-label="Move right">&#9654;</button>
               </div>
             </div>
-            <div className="bl-keys" style={{ textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
+            <div className="bl-keys" style={{ display: touchOnly ? 'none' : 'block', textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
               &larr; &rarr; move &middot; &darr; soft drop &middot; &uarr; / Z rotate &middot; space hard drop &middot; C hold &middot; P pause
             </div>
-            <div className="bl-touchhint" style={{ display: 'none', textAlign: 'center', marginTop: 8, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
+            <div className="bl-touchhint" style={{ display: touchOnly ? 'block' : 'none', textAlign: 'center', marginTop: 8, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
               Flick down the well to hard drop &middot; or swipe to move and tap to rotate &middot; hold an arrow to repeat
             </div>
 
