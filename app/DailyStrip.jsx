@@ -2777,7 +2777,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              width where something has to give. */
           .sl-ptodo{margin-left:auto;}
           .sl-dt{order:3;margin-left:auto;}
-          .sl-count{order:4;flex-basis:100%;flex-wrap:wrap;justify-content:flex-start;gap:6px 9px;}
+          /* CENTERED, not left aligned (owner, 2026-08-10). Line one spreads
+             title / ready / date across the full width with two auto margins,
+             so a left-aligned second row of two or three pips sat under the
+             title with a wide empty gutter to its right and read as an
+             overflow rather than a row of its own. */
+          .sl-count{order:4;flex-basis:100%;flex-wrap:wrap;justify-content:center;gap:6px 9px;}
           /* On its own row the pill chrome is doing nothing (nothing sits beside
              a pip to be separated from), and dropping it, with a hair off the
              type, is what fits three worded pips on one line at 356px. */

@@ -597,6 +597,17 @@ export default function DailyTilePanel({
         .dtp-shrink{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--gold);background:var(--cta);color:var(--cta-ink);
                     font-weight:800;font-size:13px;border-radius:10px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:background .12s,transform .12s;}
         .dtp-shrink:hover{background:var(--cta-hover);border-color:var(--cta-hover);transform:translateY(-1px);}
+        /* THE SLAB IS DESKTOP ONLY, AND IT IS HIDDEN BY DEFAULT (fixed
+           2026-08-10). It was added in the 2026-08-10 desktop pass with every
+           one of its rules inside the min-width:901px block, and its comment in
+           the JSX already claimed it was "display:none below 901px" -- but
+           nobody wrote that rule, so on a phone it rendered as an unstyled
+           110px block of raw text between the navy button strip and the first
+           band. Hiding it at BASE level rather than inside the <=900px block is
+           deliberate: the desktop block below turns it back on with
+           display:flex, so any future breakpoint added between them cannot leak
+           it again. */
+        .dtp-slab{display:none;}
         /* THE THREE CARDS ARE ALWAYS THE SAME HEIGHT (owner rule, 2026-08-01).
            The archive card sets that height, because its calendar is padded to
            six week rows (the tallest possible month, see the cells builder), so
