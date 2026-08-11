@@ -51,6 +51,10 @@ const HELP_KEY = 'sot_sweep_help_seen';
 const STATS_KEY = 'sot_sweep_stats';
 const VIEW_ROWS = 15;          // rows of field on screen at once
 const LONG_PRESS_MS = 340;     // hold to flag, for a phone with no right button
+const PRESS_SLOP_PX = 12;      // drift a long press tolerates before it reads as a scroll
+const DIG_MAX_MS = 200;        // a press held longer than this NEVER digs. See the cell handlers.
+const FLAG_HAPT = [8];         // the buzz that says the flag landed, so you know to lift
+function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -132,7 +136,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const [armRestart, setArmRestart] = useState(false);
   const [showChrome, setShowChrome] = useState(false);
   const viewRef = useRef(null);
-  const pressRef = useRef({ t: 0, i: -1, long: false, timer: null });
+  const pressRef = useRef({ t: 0, x: 0, y: 0, touch: false, flaggedAt: 0, timer: null });
   const viewedRef = useRef(false);
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
 
@@ -432,7 +436,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
       sub="The top row is given to you already uncovered, so the first dig is a read and never a coin flip."
       steps={[
         <><b>Tap</b> a covered square to uncover it. A number counts the mines touching that square, and a blank clears everything around it.</>,
-        <><b>Long press</b> (or right click, or the <b>Flag</b> button) to mark a mine. Flags cost nothing and score nothing.</>,
+        <><b>Long press</b> (or right click, or the <b>Flag</b> button) to mark a mine. A press you hold never digs, so a mark that does not take costs you nothing. Flags cost nothing and score nothing.</>,
         <>Tap a <b>number</b> whose mines are all flagged to open the rest of its neighbours at once. Quick, and it trusts your flags without checking them.</>,
         <>There is no bottom. Keep going until you are wrong, then <b>play again</b> as many times as you like.</>,
       ]}
@@ -455,22 +459,59 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
       cells.push(
         <div
           key={i}
-          onContextMenu={(e) => { e.preventDefault(); toggleFlag(i); }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            // ONLY a real right click gets here. Android Chrome fires contextmenu
+            // on a touch long press at ~500ms, which is AFTER our own timer has
+            // already flagged the cell, so an unguarded handler toggled the flag
+            // straight back off: hold longer, lose your mark. That was half the
+            // complaint. The other half is the slop rule below.
+            if (pressRef.current.touch) return;
+            toggleFlag(i);
+          }}
           // Long press is a TOUCH gesture only. A mouse that rests on the
           // button for half a second is still a click, and turning that into a
-          // flag would make the desktop game feel haunted. Any movement cancels
-          // it, or scrolling the field would drop flags as it went.
+          // flag would make the desktop game feel haunted.
           onPointerDown={(e) => {
-            if (e.pointerType === 'mouse') return;
-            pressRef.current.long = false;
-            pressRef.current.timer = setTimeout(() => { pressRef.current.long = true; toggleFlag(i); }, LONG_PRESS_MS);
+            const p = pressRef.current;
+            if (e.pointerType === 'mouse') { p.touch = false; return; }
+            // flaggedAt resets per press. Left standing it would swallow the
+            // NEXT tap too, so a quick dig straight after a flag did nothing.
+            p.touch = true; p.t = Date.now(); p.x = e.clientX; p.y = e.clientY; p.flaggedAt = 0;
+            clearTimeout(p.timer);
+            p.timer = setTimeout(() => {
+              p.timer = null; p.flaggedAt = Date.now();
+              vibrate(FLAG_HAPT);   // the mark is down, lift whenever you like
+              toggleFlag(i);
+            }, LONG_PRESS_MS);
           }}
-          onPointerUp={() => { clearTimeout(pressRef.current.timer); }}
-          onPointerMove={() => { clearTimeout(pressRef.current.timer); }}
-          onPointerCancel={() => { clearTimeout(pressRef.current.timer); }}
-          onPointerLeave={() => { clearTimeout(pressRef.current.timer); }}
+          onPointerUp={() => { clearTimeout(pressRef.current.timer); pressRef.current.timer = null; }}
+          // Drift tolerance, NOT zero tolerance. A finger on a 20px cell always
+          // moves a pixel or two, and cancelling on that turned an intended flag
+          // into a dig on the very cell the player had read as a mine. On a
+          // one-life game that ends the run. Past PRESS_SLOP_PX it is a scroll.
+          onPointerMove={(e) => {
+            const p = pressRef.current;
+            if (!p.timer) return;
+            if (Math.abs(e.clientX - p.x) > PRESS_SLOP_PX || Math.abs(e.clientY - p.y) > PRESS_SLOP_PX) {
+              clearTimeout(p.timer); p.timer = null;
+            }
+          }}
+          onPointerCancel={() => { clearTimeout(pressRef.current.timer); pressRef.current.timer = null; }}
+          onPointerLeave={() => { clearTimeout(pressRef.current.timer); pressRef.current.timer = null; }}
           onClick={() => {
-            if (pressRef.current.long) { pressRef.current.long = false; return; }
+            const p = pressRef.current;
+            if (p.touch) {
+              // The click after a long press is swallowed on a TIMESTAMP rather
+              // than a boolean. A boolean survives a browser that skips the
+              // click, and then eats the next legitimate tap.
+              if (p.flaggedAt && Date.now() - p.flaggedAt < 900) return;
+              // THE DEAD ZONE. A dig tap runs 80 to 120ms, so a press held past
+              // DIG_MAX_MS was never a dig: it was a flag attempt that got
+              // cancelled, and it used to fall through to dig(i) and detonate.
+              // It is a no-op now. Tap again to dig.
+              if (p.t && Date.now() - p.t > DIG_MAX_MS) return;
+            }
             if (isOpen) chord(i);
             else if (flagMode) toggleFlag(i);
             else dig(i);
@@ -611,7 +652,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div className="sw-keys" style={{ textAlign: 'center', marginTop: 9, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.03em', color: '#9aa2b1' }}>
-              click to dig &middot; right click or long press to flag &middot; F switches mode &middot; click a finished number to open its neighbours
+              click to dig &middot; right click or long press to flag &middot; F switches mode &middot; click a finished number to open its neighbours &middot; a held press never digs
             </div>
 
             {over && (
