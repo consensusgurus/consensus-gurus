@@ -103,6 +103,7 @@ const GAMES = [
   { key: 'strata', href: '/strata', name: 'Strata', tag: 'Dig the words out', img: '/games/btn-strata.png' },
   { key: 'blocks', href: '/blocks', name: 'Blocks', tag: 'Same shapes, same order', img: '/games/btn-blocks.png' },
   { key: 'docket', href: '/docket', name: 'Docket', tag: 'One setup, five deductions', img: '/games/btn-docket.png' },
+  { key: 'defend', href: '/defend', name: 'Defend', tag: 'Black to play and survive', img: '/games/btn-defend.png' },
   { key: 'blitz', href: '/blitz', name: 'Blitz', tag: 'Twenty problems, one life', img: '/games/btn-blitz.png' },
   { key: 'sweep', href: '/sweep', name: 'Sweep', tag: 'No bottom edge', img: '/games/btn-sweep.png' },
   { key: 'chomp', href: '/chomp', name: 'Chomp', tag: 'Eat them in order', img: '/games/btn-chomp.png' },
@@ -128,7 +129,7 @@ const CATEGORIES = [
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket'] },
-  { key: 'endgame', label: 'End Game', keys: ['mate', 'four', 'check', 'babel', 'chain', 'turn'] },
+  { key: 'endgame', label: 'End Game', keys: ['mate', 'defend', 'four', 'check', 'babel', 'chain', 'turn'] },
   { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
   { key: 'arcade', label: 'Arcade', keys: ['blocks', 'sweep'] },
 ];

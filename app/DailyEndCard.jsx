@@ -83,7 +83,7 @@ import {
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
   Brain, Pencil, Users, ArrowRight, Puzzle, Blocks, Fingerprint, KeyRound, Thermometer, Crown, ListOrdered,
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
-  Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel,
+  Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel, Shield,
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2, Zap,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
@@ -104,13 +104,13 @@ const AMBER = '#b45309';
 // Hands is scored against par and Babel against its solver benchmark, so falling
 // short there is "Not perfect." like any other target game, and both are
 // deliberately NOT in this set.
-const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn']);
+const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn', 'defend']);
 
 // LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily puzzles lead the
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
+const LAUNCH_PIN = { keys: ['defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -177,6 +177,7 @@ export const GAME_META = {
   turn: { accent: '#226218', badgeBg: '#226218', badgeInk: T.white, Fin: Contrast },
   suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
   docket: { accent: '#5b2333', badgeBg: '#5b2333', badgeInk: T.white, Fin: Gavel },
+  defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
   blitz: { accent: '#657512', badgeBg: '#657512', badgeInk: T.white, Fin: Zap },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
   blocks: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid3x3 },
@@ -249,6 +250,7 @@ const ALL_DAILY_GAMES = [
   { key: 'suffice', cat: 'logic',      name: 'Suffice', tag: 'Decide what is enough',      blurb: 'Eight questions you never answer. For each one, decide whether the two statements are enough to settle it.', href: '/suffice' },
   { key: 'docket', cat: 'logic',      name: 'Docket', tag: 'One setup, five deductions',   blurb: 'A small world and a few conditions, then five questions about what they force. Diagram once, answer five times.', href: '/docket' },
   { key: 'blitz',  cat: 'numbers',   name: 'Blitz',  tag: 'Twenty problems, one life',   blurb: 'Mental arithmetic against a fifteen second clock. Twenty problems, getting harder, and one wrong answer ends the run.', href: '/blitz' },
+  { key: 'defend', cat: 'endgame',     name: 'Defend', tag: 'Black to play and survive',   blurb: 'The other half of a mate puzzle. White is threatening mate and one move on the board saves you.', href: '/defend' },
   { key: 'turn',   cat: 'endgame',     name: 'Turn',   tag: 'Ten squares left',            blurb: 'An Othello endgame you are already winning. One square keeps it, and the careful little move is not always it.', href: '/turn' },
   { key: 'paths', cat: 'logic',      name: 'Paths',  tag: 'Link every town, cheaply',  blurb: 'One depot, a scatter of towns, a river and two ridges. Link them all for as little as you can, against a proven cheapest network.', href: '/paths' },
   { key: 'redact', cat: 'trivia',     name: 'Redact', tag: 'Uncover the blacked-out article', blurb: 'A whole article about one famous subject, every word behind a block. Guess words to uncover it and name the subject.', href: '/redact' },

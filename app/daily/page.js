@@ -49,6 +49,7 @@ import { PUZZLES as HANDS_FULL } from '../hands/puzzles';
 import { PUZZLES as TURN_FULL } from '../turn/puzzles';
 import { PUZZLES as SUFFICE_FULL } from '../suffice/puzzles';
 import { PUZZLES as DOCKET_FULL } from '../docket/puzzles';
+import { PUZZLES as DEFEND_FULL } from '../defend/puzzles';
 import { PUZZLES as BLITZ_FULL } from '../blitz/puzzles';
 import { PUZZLES as REDACT_FULL } from '../redact/puzzles';
 import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
@@ -102,6 +103,7 @@ const CHAIN = CHAIN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const TURN = TURN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SUFFICE = SUFFICE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DOCKET = DOCKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const DEFEND = DEFEND_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLITZ = BLITZ_FULL.map(({ num, quizId, live, dateLabel }) => ({ num, quizId, live, dateLabel }));
 const REDACT = REDACT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -207,6 +209,7 @@ const GAMES = [
   { key: 'turn', name: 'Turn', path: '/turn', tag: 'Ten squares left', accent: '#226218', bg: '#e9f3e6', border: 'rgba(34,98,24,0.4)', src: TURN },
   { key: 'suffice', name: 'Suffice', path: '/suffice', tag: 'Decide what is enough', accent: '#4338ca', bg: '#eef0ff', border: 'rgba(67,56,202,0.4)', src: SUFFICE },
   { key: 'docket', name: 'Docket', path: '/docket', tag: 'One setup, five deductions', accent: '#5b2333', bg: '#f7e8ec', border: 'rgba(91,35,51,0.4)', src: DOCKET },
+  { key: 'defend', name: 'Defend', path: '/defend', tag: 'Black to play and survive', accent: '#2f4f4f', bg: '#e9f0ef', border: 'rgba(47,79,79,0.4)', src: DEFEND },
   { key: 'blitz', name: 'Blitz', path: '/blitz', tag: 'Twenty problems, one life', accent: '#657512', bg: '#f3f7de', border: 'rgba(101,117,18,0.4)', src: BLITZ },
   { key: 'redact', name: 'Redact', path: '/redact', tag: 'Uncover the story', accent: '#27272a', bg: '#f4f4f5', border: 'rgba(39,39,42,0.4)', src: REDACT },
   { key: 'paths', name: 'Paths', path: '/paths', tag: 'Link every town', accent: '#065f46', bg: '#e6f4ee', border: 'rgba(6,95,70,0.4)', src: PATHS },

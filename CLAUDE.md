@@ -3329,6 +3329,7 @@ archive and hub chips use the short form `Sun`.
 | Turn | twelve empty squares instead of ten (from 2026-08-05) |
 | Pricer | a field of 32 instead of 16, so 31 picks and five rounds (from 2026-08-16) |
 | Docket | seven entities over seven slots plus the second dimension, so fourteen open cells against a weekday's twelve, and one extra condition (from 2026-08-10) |
+| Defend | a hold for three instead of a hold for two, so a third only-move to find and a longer attack to read before committing to the first (from 2026-08-11) |
 
 **All twenty dailies now run a Sunday Edition.** A new daily game should decide at launch
 whether it has one (see "Adding a BRAND NEW daily game" below).

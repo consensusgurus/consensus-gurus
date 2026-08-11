@@ -209,7 +209,46 @@ function drawTurn(p) {
   return c;
 }
 
+// DEFEND: the same chessboard corner as Hold, read from the other side of the
+// game. The king is what you are trying to keep alive, so the square he stands
+// on carries the danger tint and the king himself is drawn in the lightest
+// step. That is what makes the tile say "this one is in trouble" rather than
+// "this one is winning", which is the whole difference between Defend and Mate.
+function drawDefend(p) {
+  const c = canvas();
+  roundRect(c, 0, 0, S, S, 16, hex(p.ground));
+  const o = 16, cell = 11;
+  for (let r = 0; r < 4; r++) {
+    for (let f = 0; f < 4; f++) {
+      if ((r + f) % 2 === 0) continue;
+      roundRect(c, o + f * cell, o + r * cell, cell, cell, 1, hex(p.line), 62);
+    }
+  }
+  // the file under fire, drawn under the piece. It runs two squares rather than
+  // one because a single tinted cell disappears behind the king's base at 76px,
+  // and a line reads as an attack where a square just reads as a highlight.
+  roundRect(c, o + cell * 2, o + cell * 1, cell, cell * 2, 1.5, hex(p.danger), 250);
+  // the king standing on it. The cross is what makes it read as a king rather
+  // than a pawn at 76px, so it sits clear of the crown with its own gap.
+  const cx = o + cell * 2.5, top = o + cell * 1.35;
+  bar(c, cx, top, cx, top + 5.2, 3.0, hex(p.claim));
+  bar(c, cx - 3.6, top + 1.9, cx + 3.6, top + 1.9, 3.0, hex(p.claim));
+  disc(c, cx, top + 10.6, 5.2, hex(p.claim));
+  roundRect(c, cx - 6.4, top + 14.6, 12.8, 3.0, 1.5, hex(p.claim));
+  roundRect(c, cx - 7.8, top + 18.2, 15.6, 4.4, 2, hex(p.claim));
+  return c;
+}
+
 const PALETTES = {
+  // Defend's roles are the board, the king and the square he is standing on.
+  // The blue copy takes a MID ground because the other End Game tiles are
+  // already at the two ends of the ramp: Chain and Four are deep navy, Check,
+  // Babel and Turn are pale, and a sixth tile at either end would be a fourth
+  // identical square in one category.
+  defend: {
+    colour: { ground: '#2f4f4f', line: '#e8f2ff', claim: '#f2efe4', danger: '#b34434' },
+    blue: { ground: '#214bb2', line: '#e8f2ff', claim: '#e8f2ff', danger: '#0f1f4d' },
+  },
   chain: {
     colour: { ground: '#4a044e', line: '#f6eef8', claim: '#c084fc', ghost: '#f6eef8' },
     blue: { ground: '#16306e', line: '#dbe9ff', claim: '#245edf', ghost: '#dbe9ff' },
@@ -226,7 +265,7 @@ const PALETTES = {
     blue: { ground: '#c2ddfe', felt: '#245edf', dark: '#0f1f4d', light: '#e8f2ff' },
   },
 };
-const DRAW = { chain: drawChain, hold: drawHold, turn: drawTurn };
+const DRAW = { chain: drawChain, hold: drawHold, turn: drawTurn, defend: drawDefend };
 
 mkdirSync('public/games/blue', { recursive: true });
 for (const key of Object.keys(DRAW)) {
