@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
+import { dailySolvedRow } from '@/lib/daily-games';
 import { resolvePlayerKeys, attributeAnonGames } from '@/lib/quiz-identity';
 import { computeXpCached, dailyStandingCached } from '@/lib/quiz-derived-cache';
 
@@ -102,11 +103,11 @@ export async function GET(request) {
       // inferred. score === total was wrong for the games that score by
       // EFFICIENCY rather than by answers found: Parker, Rung and Taire hand a
       // sloppy but genuine solve 7 out of 10, and this route has been calling
-      // those unfinished. Legacy rows written before the column existed fall
-      // back to the old test.
-      const solved = r.correct_count == null
-        ? (r.total > 0 && r.score === r.total)
-        : r.correct_count > 0;
+      // those unfinished. The test now lives in dailySolvedRow so this route and
+      // the archive calendar in api/quiz/daily-game cannot drift; it holds the
+      // legacy fallback and the one game whose win is a stretch benchmark rather
+      // than its completion (Babel, see SOLVES_ON_SCORE).
+      const solved = dailySolvedRow(r);
       if (solved) completed.add(qid); else unsolved.add(qid);
     }
     // A SOLVED ATTEMPT WINS (owner, 2026-08-09). A replayable game can carry

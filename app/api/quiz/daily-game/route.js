@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
-import { KEEPS_ANSWER } from '@/lib/daily-games';
+import { KEEPS_ANSWER, dailySolvedRow } from '@/lib/daily-games';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, guestGameResult, DAILY_KEYS } from '@/lib/daily-combined';
 import { creditedFor } from '@/lib/daily-credits';
@@ -177,11 +177,11 @@ export async function GET(request) {
       const pk = r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : null);
       if (pk && myKey && pk === myKey) {
         played.add(qid);
-        // The verdict the client already posts, exactly as daily-status reads
-        // it, with the pre-column rows falling back to the old score test.
-        const ok = r.correct_count == null
-          ? (r.total > 0 && r.score === r.total)
-          : r.correct_count > 0;
+        // The verdict the client already posts, read through the same shared
+        // helper daily-status uses so the calendar and the slate can never
+        // disagree about a day (legacy fallback and the SOLVES_ON_SCORE games
+        // both live in there).
+        const ok = dailySolvedRow(r);
         if (ok) solved.add(qid);
       }
     }
