@@ -4097,7 +4097,7 @@ and a Luxury SUVs board that was largely a subset of Cars, Full Range.
 At least 15% of boards must ask "which costs LESS" (`dir: 'min'`) and no run of one direction may
 exceed 4. Cheap categories carry `min` best: groceries, drugstore basics, fast food, transit fares.
 
-### The moved-on chip lane (shared with Bracket)
+### The moved-on chip lane (Pricer only, since 2026-08-11)
 
 The "Beaten so far" column and the two contender cards are separate flex lanes that must stay
 visually aligned. Four things keep them so, and all four were broken until 2026-08-09: the history
@@ -4106,5 +4106,10 @@ height evenly while the cards split it with a gap, so they sit ~5px off in oppos
 `.hgroup` needs `min-height:54px` to match `.card`; `.lane` needs `padding-top:12px` because the
 lane header is absolutely positioned at `top:-2px` and otherwise sits over the first chip; and the
 chips clamp to two lines rather than `nowrap` + ellipsis, because Pricer's item names are product
-names and truncated to ~16 characters in the old 132px column. Pricer's history column is 150px,
-Bracket's stays 132px. **Both clients carry this CSS and must be changed together.**
+names and truncated to ~16 characters in the old 132px column. Pricer's history column is 150px.
+
+**This lane is Pricer's alone now.** It was shared with Bracket until 2026-08-11, when Bracket's
+board was reverted to the full visible bracket tree (owner call: seeing the whole bracket is the
+point of that game). The zoomed-in arena went with it, and the chip lane was part of the arena, so
+there is no Bracket copy of this CSS to keep in sync. Do NOT go looking for one, and do not
+reintroduce the arena into Bracket to restore the pairing. Pricer keeps the layout unchanged.
