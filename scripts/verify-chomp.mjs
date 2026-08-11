@@ -90,18 +90,34 @@ const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 //
 // The whole week is 7x7. Coverage no longer needs a big board to be forced: ten
 // short legs reach the same floor as six long ones.
+// TIGHTENED AGAIN 2026-08-11, same day, after the owner played the first bank at
+// these settings and said it still looked easy. Both dials moved to the measured
+// edge instead of a comfortable middle: the detour floor from 2 to 4, and turn
+// density from 2.8 to 2.4. A floor of 2 on a 41-move route is about 5% of the
+// board asking anything of you, which is a walk with two speed bumps.
+//
+// The floor is 4 and not 5 because 5 was MEASURED as unreachable at Saturday's
+// rung and marginal on Sunday. A band nobody can hit is not a stricter gate, it
+// is a build that starves and gets quietly relaxed later.
+//
+// FRIDAY IS CAST 9, not 10. At cast 10 with spare 4-5 the rung is essentially
+// empty: of 27,000 boards in that spare band, eleven reached detour 4 and none
+// survived the turn-density cap. Spare 4-5 means min 43-44, detour 4 means
+// floor <= 39-40, and ten legs cannot be that short without the optimum
+// collapsing back onto the floor. Saturday is TIGHTER and therefore easier to
+// satisfy, because a higher min leaves more room above the floor.
 const RAMP = [
-  { cast: 11, det: 3, spare: [0, 2] },   // Sun: the whole cast, and no room at all
-  { cast: 8,  det: 2, spare: [9, 11] },  // Mon: the most slack of the week
-  { cast: 8,  det: 2, spare: [7, 8] },
-  { cast: 9,  det: 2, spare: [6, 7] },
-  { cast: 9,  det: 2, spare: [5, 6] },
-  { cast: 10, det: 2, spare: [4, 5] },
-  { cast: 10, det: 3, spare: [3, 4] },   // Sat
+  { cast: 11, det: 4, spare: [0, 2] },   // Sun: the whole cast, and no room at all
+  { cast: 8,  det: 4, spare: [9, 11] },  // Mon: the most slack of the week
+  { cast: 8,  det: 4, spare: [7, 8] },
+  { cast: 9,  det: 4, spare: [6, 7] },
+  { cast: 9,  det: 4, spare: [5, 6] },
+  { cast: 9,  det: 4, spare: [4, 5] },
+  { cast: 10, det: 4, spare: [3, 5] },   // Sat
 ];
 
 const LEG_CAP = 6;        // longest hop between consecutive mascots
-const RUN_CAP = 2.8;      // squares per straight run on the TIDIEST optimum
+const RUN_CAP = 2.4;      // squares per straight run on the TIDIEST optimum
 const CAST_MIN = 8, CAST_MAX = 11;
 const SOLVER_CAP = 4000000;
 const TURN_CAP = 800000;
