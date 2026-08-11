@@ -3467,6 +3467,38 @@ EARTH + SUN = SATURN, rather than a bag of letters. No theme two days running, n
 slots in a bank, no word more than 3 times, no two boards sharing 2+ words, and no board holding
 two words that share a four-letter stem (no ROAD + ROADS, no LATE + LATER).
 
+## Cipher has NO Check button: the board ends the day itself (owner rule, 2026-08-10)
+
+The scored Check was REMOVED. Do not reintroduce it. The reasoning is that the board already
+auto-calculates: the carry row derives itself as far as the assignment allows, and every column
+marks itself ✓ or ✗ the moment it is decided. Pressing a button to confirm what the board had
+just shown you was a formality that could only cost a point, so the day now ends the instant the
+assignment is right.
+
+**The win test is three conditions, not one.** Every column landing is necessary but NOT
+sufficient, and this is the part that is easy to get wrong. The columns test the ARITHMETIC only,
+while the digit pad merely DIMS a digit another letter has taken and GREYS a leading zero without
+blocking either, so a player can hold an assignment whose columns are all green but which breaks a
+rule of the puzzle. Measured on the banked bank: `EAT + THAT = APPLE` has TEN assignments that turn
+every column green and only ONE is legal, the other nine repeating a digit; `BEAR + DEER = ZEBRA`
+has ten, of which seven repeat a digit and two put a zero under a leading letter. So the client
+requires all columns landing AND every assigned digit distinct AND no leading letter at zero
+(`solvedNow = playing && colsSolved && !blocked` in `CipherClient.jsx`). Ship any change to that
+test only after re-running the brute force above; auto-winning on a duplicate-digit board would
+hand out a solve for a wrong answer.
+
+**When an all-green board is blocked, SAY SO.** Otherwise the player sits on a full row of ticks
+with nothing happening and no way to know why. `blocked` names the offending pair ("A and E are
+both 3. Every letter needs its own digit.") or the leading zero, and it renders in the desktop
+status line and the mobile dock.
+
+**Scoring.** A solve is a flat 10 of 10 and a reveal is still 0. Nothing can be failed, so
+`guessesUsed` posts 0, the registry's `miss` for cipher is `null` (was `'Checks'`), and the daily
+board falls through to time: it is a straight race on the clock. Historical rows keep their real
+failed-check counts and their sub-10 scores, so no already-played day is reordered. Reveal used to
+unlock after three failed checks; with no checks to fail it now unlocks after three minutes on the
+clock (`revealOk`).
+
 **No numerals inside a letter box.** The old key rack printed the digits still open to each
 letter as a 0-9 strip under every letter, and the mobile strip printed the COUNT of them as a
 pill. Players read both as "this letter is a 7". All of it is gone: an unassigned letter shows a

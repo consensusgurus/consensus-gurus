@@ -22,13 +22,27 @@
 //     the letter's value rather than a list of what was still open, which is
 //     the opposite of the help it was meant to be. Everything it tracked now
 //     lives on the pad keys, where there is only ever one number per box.
-// Column marks are FREE and never cost a point — only the scored Check does.
-// They are also sound: a column is marked correct only when its carry-in is
+// Column marks are sound: a column is marked correct only when its carry-in is
 // derived, and marked wrong only when no legal carry-in could satisfy it.
 //
-// Scoring mirrors Suds: solve it and the day scores max(1, 10 - failed
-// checks) out of 10. Ties on the daily board break by fewest failed checks,
-// then fastest time. Revealing the solution ends the day at 0.
+// THERE IS NO CHECK BUTTON, and there must not be one again (owner rule,
+// 2026-08-10). The scored Check was removed because the board already
+// auto-calculates: the carry row derives itself and every column marks itself,
+// so pressing a button to confirm what the board had just shown you was a
+// formality that could only cost a point. The day now ends the instant the
+// assignment is right.
+//
+// The win test is NOT the column marks alone. It is every column landing AND
+// all assigned digits distinct AND no leading letter at zero. Those last two
+// matter because the pad DIMS a taken digit and GREYS a leading zero without
+// blocking either, so a player can hold an assignment whose arithmetic works
+// but which is not the puzzle's one legal solution. When that happens the
+// board would otherwise sit on a full row of green marks doing nothing, so the
+// blocking condition is named on screen instead (see `blocked`).
+//
+// Scoring: solve it and the day scores a flat 10 of 10. There are no misses to
+// count, so the daily board ranks on time and the registry's Miss column is
+// null for cipher. Revealing the solution still ends the day at 0.
 //
 // Same daily plumbing as Circa/Suds/Stet: banked equations gated by Eastern
 // date on the server (app/cipher/page.js), per-puzzle localStorage saves,
@@ -37,7 +51,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Smartphone, Lock, Delete, Pencil } from 'lucide-react';
+import { HelpCircle, X, Smartphone, Delete, Pencil } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -294,7 +308,6 @@ function freshState() {
     excl: {},                 // letter -> [digits crossed off in Notes mode]
     carry: {},                // column index -> penciled carry/borrow (scratch only)
     status: 'playing',        // playing | done | lost
-    fails: 0,
     t0: null,
     tEnd: null,
   };
@@ -323,7 +336,6 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const [g, setG] = useState(freshState);
   const [noteMode, setNoteMode] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [verdict, setVerdict] = useState(null);   // { good, msg }
   const [clearArmed, setClearArmed] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact start card
@@ -348,6 +360,8 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
+  // Latches the auto-win so the effect below fires exactly once per puzzle.
+  const finishedRef = useRef(false);
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
@@ -358,8 +372,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   // Check move into a fixed dock at the bottom of the viewport, and the inline
   // rack + pad come out of the scroll flow. Everything else is unchanged.
   const dockUi = (mobileUi || narrowUi) && started;
-  const won = g.status === 'done' && g.fails === 0;
-  const score = g.status === 'done' ? Math.max(1, TOTAL - g.fails) : 0;
+  // Solving IS the win, so there is nothing left for a score to grade but
+  // whether you got there. A reveal ends the day at 0, as before.
+  const won = g.status === 'done';
+  const score = g.status === 'done' ? TOTAL : 0;
 
   useEffect(() => {
     try {
@@ -477,6 +493,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   }
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
+  // Reveal used to unlock after three failed checks. With no checks to fail,
+  // the honest analogue is time on the clock: it appears once the puzzle has
+  // genuinely been sat with, and nowTick makes it turn up on its own.
+  const revealOk = playing && !!g.t0 && nowTick - g.t0 >= 180000;
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
@@ -486,15 +506,31 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const colInfo = useMemo(() => deriveColumns(COLS, g.assign, OP, MAXC), [COLS, g.assign, OP, MAXC]);
   const colsSolved = colInfo.every((c) => c.ok === true);
   const badCol = colInfo.some((c) => c.ok === false);
+  // Why an otherwise-correct board is not a win yet. The columns only test the
+  // arithmetic, so a repeated digit or a zero under a leading letter can light
+  // every column green while breaking a rule of the puzzle. Naming it beats
+  // leaving the player staring at a full row of ticks.
+  const blocked = (() => {
+    const seen = {};
+    for (const l of LETTERS) {
+      const d = g.assign[l];
+      if (d === undefined) continue;
+      if (seen[d] !== undefined) return `${seen[d]} and ${l} are both ${d}. Every letter needs its own digit.`;
+      seen[d] = l;
+    }
+    for (const f of LETTERS) {
+      if (FIRSTS.has(f) && g.assign[f] === 0) return `${f} starts a word, so it cannot be 0.`;
+    }
+    return null;
+  })();
 
   // The dock's one-line status. It absorbs the three separate messages the
-  // desktop card spreads out (the tap hint, the check verdict, the column
-  // warning), because on a phone only one line of chrome is affordable and the
-  // most urgent of the three is always the one worth showing.
-  const dockTone = (verdict && !verdict.soft) || badCol ? 'bad' : colsSolved && !verdict ? 'good' : '';
-  const dockSay = verdict ? verdict.msg
-    : badCol ? 'A column is marked ✗. Checking now costs a point.'
-    : colsSolved ? 'Every column checks out. Lock it in.'
+  // desktop card spreads out (the tap hint and the column warning), because on
+  // a phone only one line of chrome is affordable and the most urgent of them
+  // is always the one worth showing.
+  const dockTone = badCol || blocked ? 'bad' : '';
+  const dockSay = blocked ? blocked
+    : badCol ? 'A column is marked ✗. Fix that column and the rest follow.'
     : noteMode ? (selected !== null ? `Notes on. Tap digits to cross them off ${selected}.` : 'Notes on. Pick a letter, then cross digits off it.')
     : selected === null ? 'Pick a letter, then tap its digit.'
     : g.assign[selected] !== undefined ? `${selected} = ${g.assign[selected]}. Tap another digit to change it.`
@@ -502,9 +538,9 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
 
   const REC_KEY = `sot_cipher_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
-    // A play counts only once the player actually acts (assigns a digit or fails a
-    // check). Merely opening the puzzle and dismissing the start gate does not log.
-    const acted = Object.keys(g.assign).length > 0 || g.fails > 0;
+    // A play counts only once the player actually acts (assigns a digit).
+    // Merely opening the puzzle and dismissing the start gate does not log.
+    const acted = Object.keys(g.assign).length > 0;
     if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
@@ -515,15 +551,18 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   function postResult(g2, sc) {
     abandon.markFlushed();
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    try { setStats(recordStat(PUZZLE.num, { s: sc, t: TOTAL, g: g2.fails, won: sc === TOTAL })); } catch (e) {}
+    try { setStats(recordStat(PUZZLE.num, { s: sc, t: TOTAL, g: 0, won: sc === TOTAL })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        // guessesUsed = failed checks, so the daily board's ties break by the
-        // cleaner solve.
-        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: TOTAL, correct: sc === TOTAL ? 1 : 0, guessesUsed: g2.fails, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
+        // guessesUsed is always 0 now that nothing can be failed, so the daily
+        // board's ties fall straight through to time. Kept in the payload
+        // rather than dropped, because the shared result API expects it.
+        // (It used to carry the failed-check count, which broke ties by the
+        // cleaner solve.)
+        body: JSON.stringify({ quizId: PUZZLE.quizId, score: sc, total: TOTAL, correct: sc === TOTAL ? 1 : 0, guessesUsed: 0, timeElapsed: el, email: identity?.email || undefined, anonId: getAnonId(), isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : '') }),
       })
         .then((r) => r.json())
         .then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); })
@@ -551,7 +590,6 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
         delete assign[ch];
         return { ...cur, assign };
       });
-      setVerdict(null);
       return;
     }
     setSelected((s) => (s === ch ? null : ch));
@@ -566,7 +604,6 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     const after = { ...g.assign, [ch]: d };
     const next = LETTERS.find((l) => after[l] === undefined);
     setSelected(next !== undefined ? next : null);
-    setVerdict(null);
   }
   // Notes mode: cross a candidate off a letter instead of assigning it. Purely
   // the player's bookkeeping, so it never costs a point and never blocks a move.
@@ -622,38 +659,32 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, selected, g.assign, LETTERS]);
 
-  function check() {
-    if (!playing) return;
-    const missing = LETTERS.filter((l) => g.assign[l] === undefined);
-    if (missing.length) { setVerdict({ good: false, soft: true, msg: `Still unassigned: ${missing.join(', ')}` }); return; }
-    const failIt = (msg) => {
-      setG((cur) => ({ ...cur, fails: cur.fails + 1, t0: cur.t0 || Date.now() }));
-      setVerdict({ good: false, msg });
-    };
-    const digitsUsed = new Set(Object.values(g.assign));
-    if (digitsUsed.size !== LETTERS.length) { setVerdict({ good: false, soft: true, msg: 'Two letters share a digit, every letter must be different.' }); return; }
-    for (const f of FIRSTS) { if (g.assign[f] === 0) { setVerdict({ good: false, soft: true, msg: `${f} starts a word, so it can't be 0.` }); return; } }
-    const num = (w) => [...w].reduce((acc, ch) => acc * 10 + g.assign[ch], 0);
-    const rhsVal = num(PUZZLE.rhs);
-    const lhsVal = OP === 'sub' ? PUZZLE.lhs.slice(1).reduce((a, w) => a - num(w), num(PUZZLE.lhs[0]))
-      : PUZZLE.lhs.reduce((a, w) => a + num(w), 0);
-    if (lhsVal !== rhsVal) {
-      failIt(`${PUZZLE.lhs.map(num).join(` ${opGlyph} `)} = ${lhsVal}, not ${rhsVal}. Back to the columns…`);
-      return;
-    }
+  // The board finishes itself. `colsSolved` already proves the arithmetic
+  // (every column full, its carry-in derived from a real chain, and the last
+  // column carrying out zero), and `blocked` covers the two constraints the
+  // columns cannot see. Together they are the puzzle's one legal solution,
+  // because every banked equation is machine-verified unique.
+  //
+  // Latched on a ref rather than on status alone: the effect reads `g` from
+  // the render in which the win became true, and re-entering it after setG
+  // would post the result twice.
+  const solvedNow = playing && colsSolved && !blocked;
+  useEffect(() => {
+    if (!solvedNow || finishedRef.current) return;
+    finishedRef.current = true;
     const g2 = { ...g, status: 'done', tEnd: Date.now(), t0: g.t0 || Date.now() };
     setG(g2);
-    setVerdict(null);
     setEndClosed(false);
-    postResult(g2, Math.max(1, TOTAL - g2.fails));
-  }
+    postResult(g2, TOTAL);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [solvedNow]);
 
   function reveal() {
     if (!playing) return;
     const sol = solveCipher(PUZZLE.op || 'add', PUZZLE.lhs, PUZZLE.rhs);
     const g2 = { ...g, assign: sol || g.assign, status: 'lost', tEnd: Date.now(), t0: g.t0 || Date.now() };
+    finishedRef.current = true;
     setG(g2);
-    setVerdict(null);
     setEndClosed(false);
     postResult(g2, 0);
   }
@@ -665,17 +696,17 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
     setClearArmed(false);
     setG((cur) => ({ ...cur, assign: {}, excl: {}, carry: {} }));
     setSelected(null);
-    setVerdict(null);
   }
 
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-    setG(freshState()); setSelected(null); setVerdict(null); setEndClosed(false);
+    finishedRef.current = false;
+    setG(freshState()); setSelected(null); setEndClosed(false);
   }
 
   function shareText() {
     const solvedBit = g.status === 'done'
-      ? `🔐 Cracked in ${elapsed} · ${g.fails} failed check${g.fails === 1 ? '' : 's'}`
+      ? `🔐 Cracked in ${elapsed}`
       : '🔒 The cipher beat me today';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     return `Cipher #${PUZZLE.num} · ${eqnText}\n${solvedBit}${streakBit}\n${shareUrl()}`;
@@ -830,10 +861,11 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
         <>Letters that start a word are <b>never zero</b>.</>,
         <><b>Tap a letter, then tap a digit</b>, or just type. Tap a filled letter again to clear it. The pad shows which letter owns each digit, and two letters sharing one both flag red.</>,
         <>The board keeps the scratch work: a digit already taken <b>dims on the pad</b> and shows whose it is, 0 greys out under a leading letter, <b>Notes</b> crosses off any digit you have ruled out, and the <b>{carryWord} row</b> above the equation fills in as far as your digits allow, with the rest yours to pencil.</>,
-        <>A <b>✓ or ✗</b> under each column shows exactly which column works, so a wrong digit turns up where it happened. Those marks are <b>free</b>; only <b>Check</b> is scored.</>,
+        <>A <b>✓ or ✗</b> under each column shows exactly which column works, so a wrong digit turns up where it happened.</>,
+        <>There is <b>no button to press</b>. Get every column to ✓ with a different digit for every letter, and the puzzle locks itself the moment it lands.</>,
       ]}
       knack={<>There is <b>exactly one solution</b> and pure logic reaches it: start with the leftmost column of the answer and let the carries do the talking. No guessing required.</>}
-      footer="Up to 10 points: a clean first check is a perfect 10, and every failed check costs one. Ties on the daily board break by fewest failed checks, then fastest time."
+      footer="Solve it and the day scores a perfect 10. Nothing costs you a point, so the daily leaderboard is a straight race on the clock. Revealing the answer ends the day at 0."
     />
   );
 
@@ -984,7 +1016,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
         <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '18px 20px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12, maxWidth: 472, marginLeft: 'auto', marginRight: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.14)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>every letter is a digit · {opWord}</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>failed checks <b style={{ color: g.fails ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.fails}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>placed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{Object.keys(g.assign).length}/{LETTERS.length}</b></span>
           </div>
           <div className="cf-eqn" style={{ maxWidth: (maxLen + 1) * 50, margin: '0 auto' }}>
             {renderCarryRow()}
@@ -995,7 +1027,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           </div>
           {playing && (
             <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 2 }}>
-              {carryWord}s on top · column checks below · both free
+              {carryWord}s on top · column marks below · it locks itself when it lands
             </div>
           )}
           {/* These three status lines are folded into the dock's single status
@@ -1019,26 +1051,18 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
               <button type="button" className="cf-pk foot" onClick={eraseSelected}><Delete size={13} /> erase letter</button>
             </div>
           )}
-          {verdict && !dockUi && (
-            <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: verdict.soft ? COLORS.faded : COLORS.rust, textAlign: 'center', marginTop: 10, lineHeight: 1.45 }}>
-              {verdict.msg}
-            </div>
-          )}
           {playing && (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
-              {/* Check lives in the dock on a phone, so it is never scrolled away. */}
-              {!dockUi && <button type="button" className={`cf-btn primary${colsSolved ? ' ready' : ''}`} onClick={check}><Lock size={14} strokeWidth={2.6} /> Check solution</button>}
-              <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: COLORS.rust } : undefined}>{clearArmed ? 'Clear all — tap again' : 'Clear'}</button>
-              {g.fails >= 3 && (
+              {/* No Check button by design: the board ends the day itself. */}
+              <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: COLORS.rust } : undefined}>{clearArmed ? 'Clear all, tap again' : 'Clear'}</button>
+              {revealOk && (
                 <button type="button" className="cf-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
               )}
             </div>
           )}
-          {playing && !dockUi && (badCol || colsSolved) && (
-            <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, textAlign: 'center', marginTop: 8, color: badCol ? COLORS.rust : COLORS.green }}>
-              {badCol
-                ? `A column is marked ✗ — checking now costs a point.`
-                : `Every column checks out. Lock it in.`}
+          {playing && !dockUi && (badCol || blocked) && (
+            <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, textAlign: 'center', marginTop: 8, color: COLORS.rust }}>
+              {blocked || `A column is marked ✗. Fix that column and the rest follow.`}
             </div>
           )}
         </div>
@@ -1052,7 +1076,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
                 <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
                   {g.status === 'done'
-                    ? (won ? `${eqnText} — cracked clean, first check.` : `Cracked with ${g.fails} failed check${g.fails === 1 ? '' : 's'}.`)
+                    ? `Cracked. ${eqnText}`
                     : 'The cipher kept its secret today.'}
                   {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
                 </span>
@@ -1137,8 +1161,8 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
       </div>
 
-      {/* Mobile dock. Everything a move needs — which letter, which digit, and
-          the scored Check — pinned to the bottom of the viewport, so the
+      {/* Mobile dock. Everything a move needs, which letter and which digit,
+          pinned to the bottom of the viewport, so the
           equation above it is read rather than scrolled to and from. The letter
           strip replaces the 194px rack: an unassigned letter shows how many
           digits are still open to it (green ring when only one is left, which
@@ -1175,7 +1199,6 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             <div className="cf-drow">
               <button type="button" className={`cf-db${noteMode ? ' on' : ''}`} onClick={() => setNoteMode((v) => !v)} aria-pressed={noteMode}><Pencil size={13} /> Notes</button>
               <button type="button" className="cf-db" onClick={eraseSelected}><Delete size={13} /> Erase</button>
-              <button type="button" className={`cf-db go${colsSolved ? ' ready' : ''}`} onClick={check}><Lock size={13} strokeWidth={2.6} /> Check</button>
             </div>
           </div>
         </div>
@@ -1189,7 +1212,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           won={won}
           completed={g.status === 'done'}
           headline={g.status === 'done' ? <>You cracked the cipher</> : <>The cipher held</>}
-          subline={<>Cipher #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.fails} failed check{g.fails === 1 ? '' : 's'} &middot; {elapsed}</>}
+          subline={<>Cipher #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {elapsed}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
@@ -1227,7 +1250,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           Cipher is a free daily cryptarithm puzzle from Mind Loft. Each day serves one alphametic equation &mdash; the classic puzzle form where SEND + MORE = MONEY and every letter hides a digit. Assign a different digit to each letter so the arithmetic works, and know that the puzzle is machine-verified to have exactly one solution: if your logic is sound, you never have to guess.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The craft is in the columns, and Cipher hands you the tools instead of asking you to reach for paper. The digit pad dims a digit the moment another letter takes it and tells you whose it is, the carry row above the equation fills itself in as far as your digits reach, and each column carries its own &#10003; or &#10007; the moment it is decided &mdash; all of it free. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. A clean solve on the first check is a perfect 10 &mdash; every failed check costs a point, and the daily leaderboard breaks ties by fewer failed checks, then time.
+          The craft is in the columns, and Cipher hands you the tools instead of asking you to reach for paper. The digit pad dims a digit the moment another letter takes it and tells you whose it is, the carry row above the equation fills itself in as far as your digits reach, and each column carries its own &#10003; or &#10007; the moment it is decided. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. There is no Check button and nothing to submit: because the board works the columns out with you, it simply ends the day the moment your assignment is right. A solve is a perfect 10, so the daily leaderboard is a straight race on the clock.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A new equation drops every day at midnight Eastern, and the week ramps: two addends Monday through Wednesday, three Thursday through Saturday, and four in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
