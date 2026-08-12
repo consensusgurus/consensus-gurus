@@ -4026,18 +4026,27 @@ The right rail's Loft (`app/HomeRails.jsx`) has TWO faces, and the second one su
   (the per-game boards the page already fetches), so no new route. Known limit, accepted: each
   per-game board carries its top 10 NAMED players, so a player outside every game's top 10 is
   invisible, which cannot cost anyone a category lead in practice.
-- **Nine categories do not fit one panel, so face 2 SUB-ROTATES three views of three**, on the same
-  8s beat. The flip therefore has FOUR steps (live, leaders 1, 2, 3); `catViews` chunks the category
-  list at `ceil(n / 3)` so it is always exactly three views however many categories exist. The
-  category list is built from the STATIC roster (`liveDailyKeys()` first-appearance order, the same
-  order the slate's filter strip uses), never from today's board: `useFlip` resets its interval when
-  its count changes, so a count that waited on a fetch would restart the rotation mid-cycle.
-- **Each leader is a hero slip**, and a slip IS `.hr-lslab`, the same object the live slab is. The
-  LEAD slip renders into the slab slot so it keeps the measured cap-bar height (the Loft's first
-  band has to start on the same line as the console's Up next bar); the other two go in the body and
-  GROW to fill it. Grounds step navy / blue / pale (`.hr-cls.c0/.c1/.c2`) and the left rule takes the
-  category's own colour from `lib/home-blues`. A category with no plays yet renders "Nobody yet"
-  rather than dropping out, so the rotation can never land on a hole.
+- **ALL NINE CATEGORIES ARE ON THE ONE FACE, and the face WATERFALLS.** It shipped as three slips a
+  view and then five, and both were the same mistake at different sizes: splitting the categories
+  across turns meant waiting out a rotation to see one that simply was not on this turn, and slips
+  that grew to fill the panel came out ~190px each when a view held two. The face is a SCROLLER of
+  nine equal slips now, and what changes between turns is the ORDER: each time it comes back the
+  list rotates by one, so every category takes its turn on top without anyone scrolling. The flip is
+  a plain two steps again.
+  - `spin` advances when the face turns AWAY from the leaders, not towards them, so the first turn
+    shows the natural order and the shuffle starts on the second. The scroller is KEYED on `spin` so
+    a new turn remounts it; without that it kept the last turn's scroll position and the freshly
+    promoted category opened off the top of its own view.
+  - The category list is built from the STATIC roster (`liveDailyKeys()` first-appearance order, the
+    same order the slate's filter strip uses), never from today's board.
+- **Each leader is a hero slip**, and a slip IS `.hr-lslab`, the same object the live slab is, at its
+  natural 85px with `flex:none`. So the FIRST slip stands in for the panel's slab and the Loft still
+  starts on the same line as the console's Up next bar; there is no separate slab on this face.
+  Grounds step navy / blue / pale (`.hr-cls.c0/.c1/.c2`) keyed on the CATEGORY's index, never its
+  position: position-based tones made every slip change colour every eight seconds, which read as the
+  panel redrawing itself rather than reordering. The left rule takes the category's own colour from
+  `lib/home-blues`. A category with no plays yet renders "Nobody yet" rather than dropping out, so
+  the rotation can never land on a hole.
 - **Pill labels are checked against the RENDERED header, not read on their own.** The header is one
   row of a 282px rail and its title must never wrap, so "Category leaders" cut the panel title down
   to "THE L...". It reads "Leaders".
