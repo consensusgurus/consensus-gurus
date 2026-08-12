@@ -710,6 +710,7 @@ export const PUZZLES = [
   {
     num: 28,
     quizId: 'emcee-8-12-26',
+    rev: 2,   // grid rebuilt mid-day; resets in-flight saves
     live: '2026-08-12',
     dateLabel: 'August 12, 2026',
     sunday: false,

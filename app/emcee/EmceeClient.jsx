@@ -172,7 +172,12 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const N = PUZZLE.size;
   const T = N * N;
-  const STORE_KEY = `sot_emcee_${PUZZLE.num}`;
+  // `rev` busts the saved board when a LIVE puzzle's grid or words change, so an
+  // in-flight save can't bleed its old letters onto the new grid (the whole bank
+  // from #28 on was rebuilt mid-day 2026-08-12). Bump rev in puzzles.js, never
+  // edit a live grid without it. Stats stay keyed on num, so streaks survive.
+  const REV = PUZZLE.rev ? `r${PUZZLE.rev}` : '';
+  const STORE_KEY = `sot_emcee_${PUZZLE.num}${REV}`;
   const solFlat = useMemo(() => PUZZLE.grid.join('').split(''), [PUZZLE]);
   // Every word, Across first, each with its cell indexes in order.
   const WORDS = useMemo(() => {
@@ -372,7 +377,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   [WORDS, solFlat]);
   const finalScore = won ? TOTAL : (g.status === 'revealed' ? (g.revealScore || 0) : 0);
 
-  const REC_KEY = `sot_emcee_rec_${PUZZLE.num}`;
+  const REC_KEY = `sot_emcee_rec_${PUZZLE.num}${REV}`;
   const abandon = useAbandonFlush(() => {
     // A play counts only once the player acts: a letter typed, a failed check,
     // or a hint. Opening the grid and dismissing the start tile does not log
