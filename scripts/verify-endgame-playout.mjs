@@ -8,10 +8,20 @@
 // never comes. That is not an eyeball check, so this walks it.
 //
 //   1. MATE, play-out. From EVERY legal White first move that is not the bank's
-//      key, on every board, Black defends with the client's own
-//      stubbornestDefence and the round is walked to its end. Every run must
+//      key, on every board, Black is picked THE WAY scheduleReply PICKS IT (the
+//      solution tree first, the client's own stubbornestDefence only where the
+//      tree has nothing) and the round is walked to its end. Every run must
 //      conclude, every Black reply must be legal, and the loss must land when
 //      White's mateIn budget is spent.
+//
+//      Calling stubbornestDefence straight, which is what this did until
+//      2026-08-11, proved the defence the client MEANT to play rather than the
+//      one it played, and a whole class of bug lived in the gap: nodeAfter
+//      walked only Black's moves, so an off-key White move still drew a
+//      SCRIPTED reply from a line nobody had played, illegal on 324 of the
+//      1,986 off-key first moves. This file reported clean the entire time.
+//      That is the §4b trap in CLAUDE.md, apply the move the player meets, not
+//      the move the bank describes.
 //   2. DEFEND, play-out. From EVERY legal Black first move that is not the key
 //      (all of which are doomed by construction, which the bank already
 //      proves), White must actually deliver checkmate inside holdFor, against a
@@ -59,6 +69,20 @@ const stubbornestDefence = new Function('legalMoves', 'applyMove', 'makeMateSear
   `${defenceSrc}; return stubbornestDefence;`)(legalMoves, applyMove, makeMateSearch);
 const firstMatingMove = new Function('legalMoves', 'applyMove', 'isCheckmate',
   `${matingSrc}; return firstMatingMove;`)(legalMoves, applyMove, isCheckmate);
+// The tree walk is lifted too, because BOTH play-out and key-line need it now.
+// One-liners have no braces to match, so they come across by line.
+function sliceLine(src, prefix, where) {
+  const a = src.indexOf(prefix);
+  if (a < 0) { fail(where, `could not find "${prefix}" in the client`); return ''; }
+  return src.slice(a, src.indexOf('\n', a));
+}
+const { nodeAfter, pickReply } = new Function(`
+  ${sliceLine(mateSrc, 'const expectedWhite =', 'lift')}
+  ${slice(mateSrc, 'function nodeAfter(solution, moves) {', 'lift')}
+  ${slice(mateSrc, 'function mateDistance(node) {', 'lift')}
+  ${slice(mateSrc, 'function pickReply(node, quizId) {', 'lift')}
+  return { nodeAfter, pickReply };
+`)();
 
 // ─── 1. Mate plays out ─────────────────────────────────────────────────────
 let runs = 0, duals = 0, deepest = 0;
@@ -71,15 +95,30 @@ for (const p of MATE_PUZZLES) {
     if (isCheckmate(board, 'b')) { duals++; continue; }   // a dual mate is a WIN now
     for (let guard = 0; guard < 40 && !done; guard++) {
       if (Math.ceil(moves.length / 2) >= p.mateIn) { done = 'lost'; break; }
-      const def = stubbornestDefence(board, Math.max(1, p.mateIn - Math.ceil(moves.length / 2)));
-      if (!def) { done = 'stalemate'; break; }            // also a conclusion, scored as a loss
-      if (!legalMoves(board, 'b').some((m) => m.uci === def.uci)) {
-        fail('mate play-out', `${p.quizId}: illegal black reply ${def.uci} after ${moves.join(' ')}`);
+      const legalBlack = legalMoves(board, 'b');
+      const node = nodeAfter(p.solution, moves);
+      const scripted = node && node.lines ? pickReply(node, p.quizId) : null;
+      // A stored reply belongs to the position the bank generated it for, so a
+      // scripted reply that is illegal here means the walk has lost the line.
+      // Checked BEFORE the client's own backstop discards it, or the backstop
+      // would hide exactly the bug this is here to catch.
+      if (scripted && !legalBlack.some((m) => m.uci === scripted)) {
+        fail('mate play-out', `${p.quizId}: scripted reply ${scripted} is ILLEGAL after ${moves.join(' ')}, the tree walk lost the line`);
         done = 'bad'; break;
       }
-      const b1 = parseUci(def.uci);
+      let replyUci = scripted;
+      if (!replyUci) {
+        const def = stubbornestDefence(board, Math.max(1, p.mateIn - Math.ceil(moves.length / 2)));
+        if (!def) { done = 'stalemate'; break; }          // also a conclusion, scored as a loss
+        replyUci = def.uci;
+      }
+      if (!legalBlack.some((m) => m.uci === replyUci)) {
+        fail('mate play-out', `${p.quizId}: illegal black reply ${replyUci} after ${moves.join(' ')}`);
+        done = 'bad'; break;
+      }
+      const b1 = parseUci(replyUci);
       board = applyMove(board, b1.from, b1.to);
-      moves.push(def.uci);
+      moves.push(replyUci);
       const wm = legalMoves(board, 'w');
       if (!wm.length) { done = 'lost'; break; }
       // The player tries hardest to still mate.
@@ -142,13 +181,6 @@ if (BAD === before2) ok('defend play-out', `all ${dRuns} losing first moves on $
 
 // ─── 3. the winning path is untouched ──────────────────────────────────────
 const before3 = BAD;
-const treeHelpers = new Function(`
-  ${slice(mateSrc, 'function nodeAfter(solution, moves) {', 'lift')}
-  ${slice(mateSrc, 'function mateDistance(node) {', 'lift')}
-  ${slice(mateSrc, 'function pickReply(node, quizId) {', 'lift')}
-  return { nodeAfter, pickReply };
-`)();
-const { nodeAfter, pickReply } = treeHelpers;
 
 for (const p of MATE_PUZZLES) {
   let board = parseFen(p.fen).board;

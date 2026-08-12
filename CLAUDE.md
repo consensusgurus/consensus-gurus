@@ -3728,6 +3728,35 @@ What to know before touching one of these:
   stops defending stubbornly once `doomedAt` is set and collects the mate through `firstMatingMove`;
   `stubbornestReply` cannot do that job, because it scores a move leaving Black no reply as Infinity
   so the engine can never hand over a stalemate, which rules out the mating move along with it.
+- **THE TREE WALK COVERS WHITE'S MOVES, not just Black's, and that is what routes a
+  deviation to the live engine.** `nodeAfter` in `MateClient.jsx` followed only the odd
+  indices, so an off-key White move left the walk sitting on the node it started from and
+  Black was handed a SCRIPTED reply belonging to a line nobody had played. On the 8-11
+  board that reply is Kf3, the answer to 1.Ke5, and after 1.Qh5+ it is not even legal: it
+  puts the king back on the queen's h5-g4-f3 diagonal. The board went illegal and then
+  demanded a mate in one that did not exist (owner report, 2026-08-11). Swept over the
+  whole bank the old walk produced an ILLEGAL reply on 324 of 1,986 off-key first moves,
+  across 61 of the 62 boards, and `stubbornestDefence` could never run on move one at all,
+  because the tree lookup never failed. Two mechanics now: the walk returns null the moment
+  a White move is not the tree's, and any stored reply is legality-checked against the
+  actual board before it is played. The miss count came right with it, since `tryMove`
+  tallies only while the node is non-null, i.e. on the move that LEAVES the line rather
+  than on every move after it.
+- **Ties among equally stubborn defences break on MATERIAL first, then UCI.** Depth alone
+  let Black walk past a free piece: 1.Qh5+ hangs the queen, both Kxh5 and Kf4 dodge mate
+  inside the budget, and the bare lowest-UCI tie-break took g4f4. Material never outranks
+  survival, it only settles a tie, so a capture that walks into mate is still refused
+  (1.Qg2+ Kxf5 2.Rf2#, so Black plays Kh5 and leaves the knight). Deterministic either way,
+  which is what keeps the leaderboard comparing like with like. The values live INSIDE
+  `stubbornestDefence` because the verifier lifts that one function out by brace-matching.
+- **A HARNESS THAT SKIPS THE TREE CERTIFIES A DECISION ORDER THE GAME DOES NOT USE.**
+  `verify-endgame-playout.mjs` called `stubbornestDefence` directly for every off-key run,
+  so it proved the defence the client MEANT to play and reported clean through all 324
+  illegal replies above. It now picks Black the way `scheduleReply` picks it, tree first
+  and search second, and fails outright on a scripted reply that is illegal in the position
+  (checked BEFORE the client's own backstop discards it, or the backstop hides the bug).
+  Re-run against the pre-fix client it raises 346 failures; against the fix it is clean.
+  This is the §4b trap in the authoring standard, walk the move the player MEETS.
 - **A round must be PROVEN to conclude, on every board, from every wrong move.** This is the one
   thing that can strand a player forever, so it is not an eyeball check.
   `scripts/verify-endgame-playout.mjs` walks all 1,924 off-key Mate lines and all 801 losing Defend

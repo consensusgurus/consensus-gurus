@@ -205,17 +205,32 @@ function mergeServerStats(s, recent, puzzles) {
 }
 
 // ─── solution-tree navigation ──────────────────────────────────────────────
-// `moves` alternates White, Black, White, ... so the node for the position after
-// k full move pairs is reached by following each of Black's replies in turn.
+const expectedWhite = (node) => (node ? (node.key || node.move || node.mate || null) : null);
+// `moves` alternates White, Black, White, ... and BOTH sides are part of the
+// path. This followed only the odd indices until 2026-08-11, so a White move
+// that was not the tree's left the walk sitting on the node it started from and
+// Black was handed a SCRIPTED reply belonging to a line nobody had played. On
+// the 8-11 board that reply is Kf3, the answer to 1.Ke5, and after 1.Qh5+ it is
+// not even legal: it puts the king back on the queen's h5-g4-f3 diagonal. The
+// board went illegal and then asked for a mate in one that did not exist (owner
+// report, 2026-08-11). Over the whole bank the old walk produced an ILLEGAL
+// reply on 324 of 1,986 off-key first moves, across 61 of the 62 boards, and
+// stubbornestDefence could never run on move one because the lookup never
+// failed.
+//
+// Returning null the moment a White move is not the tree's is what routes Black
+// to the live defence, and it also keeps the miss count honest: tryMove tallies
+// only while the node is non-null, i.e. on the move that LEAVES the line rather
+// than on every move after it.
 function nodeAfter(solution, moves) {
   let node = solution;
-  for (let i = 1; i < moves.length; i += 2) {
-    node = node && node.lines ? node.lines[moves[i]] : null;
+  for (let i = 0; i < moves.length; i++) {
     if (!node) return null;
+    if (i % 2 === 0) { if (moves[i] !== expectedWhite(node)) return null; }
+    else node = node.lines ? node.lines[moves[i]] : null;
   }
   return node;
 }
-const expectedWhite = (node) => (node ? (node.key || node.move || node.mate || null) : null);
 // How many White moves are still needed from this node. Counted from the tree
 // rather than from (mateIn - moves played), because a mate in three can finish
 // early down some defences and the board should say "deliver mate" when it is
@@ -263,10 +278,22 @@ function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vi
 // this side of the board unchanged; only stubbornestReply is White-shaped, which
 // is why the pick is written out here instead of imported.
 //
-// Ties break on the lowest UCI string, which cannot tie, so two players who
-// leave the line at the same position meet the same defence.
+// Among replies that hold out equally long the one that WINS THE MOST MATERIAL
+// is played, and only then the lowest UCI string, which cannot tie, so two
+// players who leave the line at the same position still meet the same defence.
+// Depth on its own let Black walk past a free piece: 1.Qh5+ on the 8-11 board
+// hangs the queen, both Kxh5 and Kf4 dodge mate inside the budget, and the bare
+// UCI tie-break took g4f4 (owner report, 2026-08-11). Material never outranks
+// survival, it only settles a tie, so a capture that walks into mate is still
+// refused: after 1.Qg2+ Black plays Kh5 and leaves the knight alone, because
+// 1...Kxf5 2.Rf2 is mate.
+//
+// The values live INSIDE the function on purpose: verify-endgame-playout.mjs
+// lifts this one function out of the file by brace-matching, so anything it
+// leans on from module scope would be undefined in the harness.
 function stubbornestDefence(board, budget) {
   const search = makeMateSearch();
+  const VALUE = { q: 9, r: 5, b: 3, n: 3, p: 1 };
   let best = null;
   for (const mv of legalMoves(board, 'b')) {
     const next = applyMove(board, mv.from, mv.to);
@@ -276,9 +303,12 @@ function stubbornestDefence(board, budget) {
     for (let n = 1; n <= budget; n++) {
       if (search.forcesMateWithin(next, 'w', n)) { survives = n; break; }
     }
-    if (!best || survives > best.survives || (survives === best.survives && mv.uci < best.uci)) {
-      best = { uci: mv.uci, survives };
-    }
+    const gain = VALUE[String(board[mv.to] || '').toLowerCase()] || 0;
+    const better = !best
+      || survives > best.survives
+      || (survives === best.survives && gain > best.gain)
+      || (survives === best.survives && gain === best.gain && mv.uci < best.uci);
+    if (better) best = { uci: mv.uci, survives, gain };
   }
   return best;
 }
@@ -555,13 +585,17 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
       const cur = gRef.current;
       if (cur.status !== 'playing' || cur.moves.length !== afterMoves.length) return;
       const n = nodeAfter(PUZZLE.solution, cur.moves);
+      let b = START.board;
+      for (const m of cur.moves) { const { from, to } = parseUci(m); b = applyMove(b, from, to); }
       // ON the tree the bank picks the defence, so everyone playing the line
       // faces the same one. OFF it there is nothing stored, so Black defends
       // live.
       let mv = n && n.lines ? pickReply(n, PUZZLE.quizId) : null;
+      // A stored reply is only ever legal in the position it was generated for.
+      // nodeAfter is what keeps the two in step; this is the backstop that puts
+      // a tree bug on the floor rather than on the board.
+      if (mv && !legalMoves(b, 'b').some((m) => m.uci === mv)) mv = null;
       if (!mv) {
-        let b = START.board;
-        for (const m of cur.moves) { const { from, to } = parseUci(m); b = applyMove(b, from, to); }
         const best = stubbornestDefence(b, Math.max(1, PUZZLE.mateIn - Math.ceil(cur.moves.length / 2)));
         mv = best ? best.uci : null;
       }
