@@ -697,7 +697,9 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     lastRef.current = 0; dropRef.current = 0; lockRef.current = 0; resetsRef.current = 0;
     pausedRef.current = false; setPaused(false);
     setArmRestart(false);
-    setEndClosed(true);
+    // FALSE, not true (fixed 2026-08-12): nothing else clears endClosed, so a
+    // replayed run used to finish with no end card at all. See ChompClient.
+    setEndClosed(false);
     commit(st);
     setTimeout(sizeWell, 0);
   }, [COLS, ROWS, nextPiece, commit, sizeWell]);

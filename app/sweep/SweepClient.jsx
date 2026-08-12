@@ -345,7 +345,9 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
     try { localStorage.removeItem(REC_KEY); } catch (e) {}
     commit({ ...freshState(), t0: Date.now() });
     setArmRestart(false);
-    setEndClosed(true);
+    // FALSE, not true (fixed 2026-08-12): nothing else clears endClosed, so a
+    // replayed run used to finish with no end card at all. See ChompClient.
+    setEndClosed(false);
     if (viewRef.current) viewRef.current.scrollTop = 0;
   }, [commit, REC_KEY]);
 

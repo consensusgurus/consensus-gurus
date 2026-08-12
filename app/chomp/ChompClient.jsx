@@ -69,6 +69,9 @@ const LABEL = {
   seminole: 'Seminole', tiger: 'Tiger', eagle: 'Eagle', longhorn: 'Longhorn',
   knight: 'Knight', smokey: 'Smokey', bull: 'Bull',
 };
+// The cast ramps 8,8,9,9,9,10,11 through the week, so the win headline cannot
+// name a number. It read "All seven." on every board until 2026-08-12.
+const NUMWORD = { 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven' };
 
 function etToday() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -626,7 +629,15 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     // tile exists to keep the FIRST attempt's clock honest, and this is not one.
     commit({ ...freshState(PUZZLE), t0: now, tMark: now });
     setBlocked(null);
-    setEndClosed(true);
+    // FALSE, not true (fixed 2026-08-12). endClosed hides the end card, and
+    // nothing else in this file ever cleared it, so a player who replayed once
+    // and then CLEARED THE BOARD got no end card: the run finished, the result
+    // posted, and the screen just sat there looking frozen. Replay is free here
+    // and the rules push it, so the winning run is usually the second one and
+    // almost every clear was swallowed. Setting it false on re-deal is the house
+    // pattern (Four, Paths and Tuck all do it in resetGame). The card is hidden
+    // while a run is live by the !playing gate, never by this flag.
+    setEndClosed(false);
   }, [PUZZLE, commit]);
 
   useEffect(() => {
@@ -670,7 +681,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       accent={COLORS.accent}
       accentSoft={COLORS.accentSoft}
       lead={`Eat today's ${NPEL} mascots in order. Every square you touch stays yours, so your own trail is the maze.`}
-      banner={`Everyone gets the same board today${PUZZLE.sunday ? ', and Sundays field the whole cast of eight' : ''}.`}
+      banner={`Everyone gets the same board today${PUZZLE.sunday ? ", and today's Sunday Edition fields all " + NPEL : ''}.`}
       sub="The bulldog always goes first. Everything after it is a fresh order every day, and some days the cast is shorter than others." 
       steps={[
         <>Move one square at a time with the <b>arrow keys</b> or the pad. Nothing moves until you do.</>,
@@ -680,7 +691,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         <>Boxed in early? <b>Give up</b> ends the run and <b>records it as it stands</b>, and then <b>Try again</b> re-deals the same board. Only your first result counts on the leaderboard.</>,
       ]}
       knack="The mascots sit close together, and that is the trap: the direct line to the next one is very often the line that walls off the one after it. When the way forward looks obvious, check what it costs you two mascots later."
-      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all ${NPEL}: stall on the fifth and you still score five. Clearing the whole cast is a perfect 10. Ties break on fewest moves, then on time. Giving up records the run as it stood, and only your first result is leaderboard eligible. The cast grows through the week, and Sunday Editions field all eleven on the same small board, so almost every square is wall by the time the last one is in reach.`}
+      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all ${NPEL}: stall on the fifth and you still score five. Clearing the whole cast is a perfect 10. Ties break on fewest moves, then on time. Giving up records the run as it stood, and only your first result is leaderboard eligible. The cast grows through the week, and Sunday Editions field the whole cast on the same small board, so almost every square is wall by the time the last one is in reach.`}
     />
   );
 
@@ -872,7 +883,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           self="chomp"
           won={won}
           quizId={PUZZLE.quizId}
-          headline={won ? <>All seven.</> : <>You got {g.pi} of {NPEL}</>}
+          headline={won ? <>All {NUMWORD[NPEL] || NPEL}.</> : <>You got {g.pi} of {NPEL}</>}
           subline={won
             ? <>{nf(g.moves)} moves &middot; board {fillPct}% full &middot; {fmtTime(g.ms)}</>
             : <>Boxed in on the {LABEL[CAST[g.pi]] || 'next one'} &middot; {nf(g.moves)} moves &middot; board {fillPct}% full</>}
