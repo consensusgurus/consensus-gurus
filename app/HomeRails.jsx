@@ -805,9 +805,14 @@ export default function HomeRails({
               one face that happens not to fit on one panel, so naming them
               "Leaders 1/3" would advertise the mechanism rather than the
               content. The dots still address each view individually, and
-              `names` gives assistive tech the distinct description. */}
+              `names` gives assistive tech the distinct description.
+              "Leaders", not "Category leaders": the panel header is one row of
+              a 282px rail and its TITLE is the thing that must never wrap, so a
+              long pill ate it down to "THE L..." (owner, 2026-08-12). Any new
+              pill label here gets checked against the rendered header, not
+              against how it reads on its own. */}
           <FlipPill
-            labels={['Live feed', ...catViews.map(() => 'Category leaders')]}
+            labels={['Live feed', ...catViews.map(() => 'Leaders')]}
             names={['Live feed', ...catViews.map((v, i) => `Daily category leaders, view ${i + 1} of ${catViews.length}`)]}
             ix={loft.ix}
             setIx={loft.setIx}
@@ -959,7 +964,10 @@ function CatSlip({ row, tone }) {
         <div className="hr-lsnm">{led ? led.name : 'Nobody yet'}</div>
         <div className="hr-lssub">
           {led
-            ? `Top across ${led.n} of ${games} · ${num(row.plays)} play${row.plays === 1 ? '' : 's'} today`
+            // No "Top across" prefix: the big line is already the leader, so
+            // the words are implied, and at 282px they pushed the play count
+            // into an ellipsis on the wider categories.
+            ? `${led.n} of ${games} · ${num(row.plays)} play${row.plays === 1 ? '' : 's'} today`
             : `${games} · first one on the board leads it`}
         </div>
       </div>

@@ -573,7 +573,11 @@ export default function QuizHomeClient() {
     else { lastTapRef.current = { k, t: now }; }
   };
 
-  const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0, todayByQuiz: {}, todayTime: 0, toughest: null });
+  // NOTE: this is a WHITELIST, not a spread, so a new field on /api/quiz/totals
+  // has to be added in BOTH places below or it silently arrives as undefined.
+  // todayPlayers did exactly that on 2026-08-12 and rendered "0 players" on the
+  // Loft's live slab while the endpoint itself was returning 94.
+  const [totals, setTotals] = useState({ byQuiz: {}, recent7: {}, leaders: {}, leaderKeys: {}, today: 0, todayPlayers: 0, todayByQuiz: {}, todayTime: 0, toughest: null });
   const [xpBoard, setXpBoard] = useState([]); // [{rank,name,isAnon,userKey}]
   const [xpScope, setXpScope] = useState('all');
   const [catBoards, setCatBoards] = useState({}); // { dept: [{rank,name,isAnon,userKey,rating}] } for the "Top Rated <Category>" slides
@@ -747,7 +751,7 @@ export default function QuizHomeClient() {
   // ── data loads ──
   useEffect(() => {
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => {
-      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0, todayByQuiz: d.todayByQuiz || {}, todayTime: d.todayTime || 0, toughest: d.toughest || null });
+      if (d && !d.error) setTotals({ byQuiz: d.byQuiz || {}, recent7: d.recent7 || {}, leaders: d.leaders || {}, leaderKeys: d.leaderKeys || {}, today: d.today || 0, todayPlayers: d.todayPlayers || 0, todayByQuiz: d.todayByQuiz || {}, todayTime: d.todayTime || 0, toughest: d.toughest || null });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (d && Array.isArray(d.plays)) setRecent(d.plays);
