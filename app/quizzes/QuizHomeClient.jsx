@@ -48,7 +48,7 @@ function Logo({ size = 22 }) {
 
 // ─── palette / type ─────────────────────────────────────────────────────────
 const C = {
-  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
+  bg: T.white, ground: T.ground, surface: T.white, ink: T.ink, muted: T.muted,
   soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
   accsoft: '#e8effb', live: T.success,
   cta: T.cta, ctaInk: T.ctaInk, ctaHover: T.ctaHover,
@@ -1786,6 +1786,38 @@ export default function QuizHomeClient() {
       .qzh .lblive-body{max-height:50vh;overflow-y:auto;padding:3px 0;}
       .qzh .lblive-sub{position:sticky;top:0;z-index:1;display:block;padding:9px 13px 8px;background:var(--white);border-bottom:1px solid ${C.line};font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${C.soft};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     }
+
+    /* ── THE LOFT GROUND (owner, 2026-08-12) ────────────────────────────────
+       Home used to be white cards on a white ground, so the browse cards were
+       held apart by a single 1px hairline and nothing else, and the navy
+       console ended at a cliff, with no middle value anywhere between the
+       header navy and the cards.
+       The page now sits on var(--ground), the same navy world the daily puzzle
+       pages moved to, and every card is a lit white object on it.
+
+       THE HEADER, THE CONSOLE AND THE CARDS THEMSELVES ARE UNCHANGED, and
+       .qzh keeps its dark ink, because that ink is what every white card
+       inherits. Only two things are touched: the handful of elements printed
+       STRAIGHT onto the ground, and the bare row lists (search results, a
+       category's full list, View all), which had no card of their own because
+       they never needed one against white. They get the same white sheet
+       every other block on this page already has. */
+    .qzh .qz-empty{padding:18px 2px;font-size:14px;color:${C.soft};}
+    .qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:15px 18px;box-shadow:0 10px 30px rgba(6,12,30,0.34);}
+    /* CategoryFull is a <section> whose own head bar must stay flush to the top
+       of the sheet, so the sheet carries no padding and the list inside does. */
+    .qzh > section{padding:0;overflow:hidden;}
+    .qzh > section > .colhead{border-radius:0;margin-bottom:0;}
+    .qzh > section > .qfull{border:none;border-radius:0;box-shadow:none;padding:13px 18px 16px;}
+    /* Cards lift off the ground rather than leaning on a hairline that is now
+       invisible against it. DailyStrip is deliberately excluded: on a phone its
+       stat bar goes transparent, and a shadow on nothing is a floating rectangle. */
+    .qzh .catcard,.qzh .qz-toolrow,.qzh .dhx-lone,.qzh .dhx-rone{box-shadow:0 10px 30px rgba(6,12,30,0.34);}
+    /* The footer component is shared with every LIGHT page on the site, so it is
+       re-inked HERE rather than in Footer.jsx. Its colours are inline styles,
+       which is why these need !important. */
+    .qzloft footer,.qzloft footer div,.qzloft footer a,.qzloft footer span{color:#c3d4ee !important;}
+    .qzloft footer,.qzloft footer *{border-top-color:rgba(255,255,255,0.16) !important;}
   `;
 
   const renderLb = () => (
@@ -1849,7 +1881,7 @@ export default function QuizHomeClient() {
 
   return (
     <QuizDoneContext.Provider value={doneCtx}>
-    <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
+    <div className="qzloft" style={{ background: C.ground, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
@@ -2393,9 +2425,9 @@ export default function QuizHomeClient() {
         {/* browse header + search (in the left column, beside the mastery rail) */}
         <div ref={quizzesRef} className="qz-browserow" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0, flexWrap: 'wrap' }}>
           {(searchResults || listMode || doneFilter !== 'all' || scope !== 'all') && (
-            <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2 style={{ fontSize: 17, fontWeight: 800, margin: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 10, color: T.white }}>
               {!searchResults && (listMode || doneFilter !== 'all' || scope !== 'all') && (
-                <button type="button" onClick={() => { setListMode(null); setDoneFilter('all'); setScope('all'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: C.accent, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
+                <button type="button" onClick={() => { setListMode(null); setDoneFilter('all'); setScope('all'); }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: T.blue200, fontWeight: 700, fontSize: 14 }}>‹ Back</button>
               )}
               {searchResults ? `Search Results · ${searchResults.length}`
                 : doneFilter !== 'all' ? `${STATUS_LABEL[doneFilter]} Quizzes · ${(statusList || []).length}`
@@ -2465,7 +2497,7 @@ export default function QuizHomeClient() {
             />
           </div>
           {(!searchResults && scope === 'all' && !listMode) && (
-            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.accent, color: T.white, border: `1px solid ${C.accent}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <Link href="/submit?for=quiz" className="qz-submit" style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, background: C.cta, color: C.ctaInk, border: `1px solid ${C.cta}`, padding: '8px 14px', borderRadius: 10, fontFamily: FONT, fontWeight: 700, fontSize: 12.5, textDecoration: 'none', whiteSpace: 'nowrap' }}>
               Submit a Quiz
             </Link>
           )}
@@ -2495,7 +2527,7 @@ export default function QuizHomeClient() {
         {/* lists */}
         {searchResults ? (
           searchResults.length === 0 ? (
-            <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>No quizzes match “{search}”.</div>
+            <div className="qz-empty">No quizzes match “{search}”.</div>
           ) : (
             <div className="qflow">
               {searchResults.map((r) => {
@@ -2525,14 +2557,14 @@ export default function QuizHomeClient() {
               })}
             </div>
           ) : (
-            <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>{doneFilter === 'unplayed' ? 'You have played every quiz. Nice.' : doneFilter === 'completed' ? 'No quizzes aced at 100% yet. Go get a perfect score.' : 'No quizzes in progress yet. Play one to start.'}</div>
+            <div className="qz-empty">{doneFilter === 'unplayed' ? 'You have played every quiz. Nice.' : doneFilter === 'completed' ? 'No quizzes aced at 100% yet. Go get a perfect score.' : 'No quizzes in progress yet. Play one to start.'}</div>
           )
         ) : scope !== 'all' ? (
           <CategoryFull cat={byKey[scope]} plays={plays} leader={leader} leaderKey={leaderKey} />
         ) : listMode === 'live' ? (
           <div className="qfull">
             {liveAll.length === 0 ? (
-              <div style={{ padding: '18px 2px', color: C.soft, fontSize: 14 }}>No recent plays yet.</div>
+              <div className="qz-empty">No recent plays yet.</div>
             ) : liveAll.map((f, i) => (
               <Link href={playHref(f.quizId)} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
@@ -2731,7 +2763,7 @@ export default function QuizHomeClient() {
       {/* close the dropdown on outside click */}
       {ddOpen && <div className="qz-dd-overlay" onClick={() => setDdOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 20 }} />}
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: '#9fb4d8', fontFamily: FONT }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check className="donemark" size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star className="donemark" size={14} strokeWidth={1.5} fill={T.gold} color={T.goldInk} /> Completed (100%)</span>
       </div>
@@ -2823,7 +2855,7 @@ function CategoryFull({ cat, plays, leader, leaderKey }) {
   const { Icon, c: color, t: tint } = cat;
   return (
     <section style={{ minWidth: 0 }}>
-      <div className="colhead" style={{ borderColor: C.ink, background: T.white }}>
+      <div className="colhead" style={{ borderColor: C.ink, background: C.accent }}>
         <span style={{ width: 24, height: 24, borderRadius: 7, background: 'rgba(255,255,255,0.22)', color: T.white, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} />
         </span>
