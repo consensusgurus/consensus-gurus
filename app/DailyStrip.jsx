@@ -1505,7 +1505,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           let foot = -Infinity, head = Infinity;
           rows.forEach((r) => { const b = r.getBoundingClientRect(); if (b.bottom > foot) foot = b.bottom; if (b.top < head) head = b.top; });
           const delta = Math.min(foot - box.bottom, head - box.top - (bi * BH));
-          if (delta > 1) port.scrollTo({ top: port.scrollTop + delta, behavior: 'smooth' });
+          // Assigned, NOT scrollTo({behavior:'smooth'}). Measured on the live
+          // board: a smooth scrollTo on this port is silently a NO-OP in some
+          // Chromes (a plain scrollTo(500) moved it, the same call with
+          // behavior:'smooth' left scrollTop where it was), which shipped a fix
+          // that did nothing. An instant landing also reads better here, since
+          // the rows it is scrolling to have only just appeared.
+          if (delta > 1) port.scrollTop = Math.min(port.scrollHeight - port.clientHeight, port.scrollTop + delta);
         } catch (x) { /* older Safari: leaving the scroll alone beats throwing */ }
       }));
     };
@@ -2221,7 +2227,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            category chip for a CTA line, so columns could never line up. This is
            its own markup (renderSlate) over the SAME data and the same pick(),
            and the per-game panel opens as a drawer under its own row. */
-        .dh-boardwrap.slate{padding:0;}
+        /* NO HAIRLINE UNDER THE BOARD (owner, 2026-08-12). The wrapper's 1.5px
+           bottom border drew a light line between the pinned Complete today
+           band and the ground behind the console, so the green stopped a pixel
+           short of the navy instead of running into it. Taking it off also
+           makes the wrapper's inner radius equal its outer one, which is why
+           the port below rounds at 13 and not 12. */
+        .dh-boardwrap.slate{padding:0;border-bottom:none;}
         .dh-boardwrap.slate.open{min-height:0;}
         /* --dh-fit is measured (see the fit effect); the calc is only the value
            before the first measurement lands. min-height stays BELOW the
@@ -2235,11 +2247,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            scroller itself is what clips them, since overflow-y:auto already
            makes this the clipping box. Putting overflow:hidden on the wrapper
            instead would ALSO clip the expanded .dtp panel, which fills .dhome.
-           12px and not 13: the wrapper carries a 1px bottom border, so its
-           inner radius is one less and a 13 here pokes into the border at the
-           corners. Squared again below 900px, where the wrapper goes full
-           bleed and square itself. */
-        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;height:var(--dh-fit,calc(100vh - 300px));min-height:240px;overflow-y:auto;border-radius:0 0 12px 12px;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
+           13px, matching the wrapper exactly: the wrapper's bottom border is
+           gone (see .dh-boardwrap.slate above), so there is no border to inset
+           the inner radius from. Squared again below 900px, where the wrapper
+           goes full bleed and square itself. */
+        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;height:var(--dh-fit,calc(100vh - 300px));min-height:240px;overflow-y:auto;border-radius:0 0 13px 13px;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
         .dh-board.slate::-webkit-scrollbar{width:6px;}
         .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
         .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
