@@ -21,7 +21,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function LoftCap({
   name,
-  won = false,        // the game is over: the cap turns green and states the result
+  outcome = null,     // null while playing, then 'won' or 'lost': the cap states the result
   cat = '',
   num = null,
   dateLabel = '',
@@ -34,14 +34,19 @@ export default function LoftCap({
   const eyebrow = [cat, num != null ? `No. ${num}` : null, dateLabel]
     .filter(Boolean).join(' · ');
   return (
-    <div className={won ? 'lcap lcap-won' : 'lcap'}>
+    <div className={outcome ? `lcap lcap-${outcome}` : 'lcap'}>
       <style>{`
 .lcap{background:var(--blue);border-left:4px solid var(--gold);display:flex;
   flex-wrap:wrap;align-items:center;position:relative;font-family:${SANS};z-index:4}
 /* Finished. The cap is already the object tracking your game, so it resolves
-   into the verdict rather than a card appearing over the top of everything. */
+   into the verdict rather than a card appearing over the top of everything, and
+   the colour carries the outcome: green solved, red not. Anything else would
+   make a miss look like a win at a glance, which is the one thing the cap is
+   there to say. */
 .lcap-won{background:var(--success-deep)}
 .lcap-won .lcap-eb,.lcap-won .lcap-k{color:#b9f0d0}
+.lcap-lost{background:var(--danger)}
+.lcap-lost .lcap-eb,.lcap-lost .lcap-k{color:#f6cfc9}
 .lcap-id{flex:1;min-width:0;padding:8px 12px}
 .lcap-eb{display:block;font-weight:800;font-size:11.5px;line-height:1;letter-spacing:.13em;
   text-transform:uppercase;color:var(--blue-200);margin-bottom:4px}
