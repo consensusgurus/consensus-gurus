@@ -1491,7 +1491,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // takes a chevron and the click instead, and `more` drops the second row. A
     // group that peeks SOME rows keeps its bar, since there the bar counts what
     // is still hidden, which is not what the band says.
-    const band = (grp, label, count, fig) => {
+    const band = (grp, label, count, fig, bi, bn) => {
       if (!count) return null;
       const shut = count > peekOf(grp) && peekOf(grp) === 0;
       const inner = (
@@ -1508,20 +1508,34 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           type="button"
           className={`sl-band ${grp} tog`}
           key={`band-${grp}`}
+          style={{ '--bi': String(bi), '--bn': String(bn) }}
           onClick={() => toggle(grp)}
           aria-expanded={grpOpen[grp]}
         >{inner}</button>
       ) : (
-        <div className={`sl-band ${grp}`} key={`band-${grp}`}>{inner}</div>
+        <div className={`sl-band ${grp}`} key={`band-${grp}`} style={{ '--bi': String(bi), '--bn': String(bn) }}>{inner}</div>
       );
     };
-    out.push(band('todo', 'Ready to play', nReady, `${n}/${GAMES.length} played`));
+    // EVERY BAND STAYS ON SCREEN (owner, 2026-08-12): the groups you have
+    // scrolled past stack at the top of the port and the groups still to come
+    // stack at the bottom, so Complete today is reachable in one click instead
+    // of a 1,400px scroll. That is a sticky TOP offset of the bands above it
+    // and a sticky BOTTOM offset of the bands below it, and both depend on how
+    // many bands ACTUALLY rendered, so the index and the count travel to CSS as
+    // --bi / --bn rather than being hardcoded: with only Ready to play and
+    // Complete today on the board the green band pins flush to the bottom edge
+    // instead of holding room for two groups that do not exist. The offsets
+    // themselves live on .sl-band in the min-width:901px block.
     // The two started groups sit between the untouched games and the finished
     // ones, in the order a game passes through them: still going, then over and
     // unsolved, then done.
-    out.push(band('prog', 'In progress', nProg));
-    out.push(band('fail', 'Incomplete today', nFail));
-    out.push(band('dn', 'Complete today', nDone));
+    const bandSpec = [
+      ['todo', 'Ready to play', nReady, `${n}/${GAMES.length} played`],
+      ['prog', 'In progress', nProg, null],
+      ['fail', 'Incomplete today', nFail, null],
+      ['dn', 'Complete today', nDone, null],
+    ].filter((b) => b[2]);
+    bandSpec.forEach(([grp, label, count, fig], i) => out.push(band(grp, label, count, fig, i, bandSpec.length)));
     // The bar names how many rows are HIDDEN, not how many the group holds
     // (owner, 2026-08-07): "Show all 38" made you do the subtraction against a
     // band that already printed the total.
@@ -2582,7 +2596,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           /* Bands and the open drawer are the only full-width items. A band is
              sticky inside the scroll port, so the group you are reading always
              names itself. */
-          .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;position:sticky;top:0;z-index:3;order:4;}
+          /* A BAND IS ALWAYS VISIBLE, at whichever edge it belongs to (owner,
+             2026-08-12). top:0 alone only pinned a band once you had scrolled
+             PAST it, so Complete today, the last group in the flow, sat about
+             1,370px down a 472px port: the group you most often want was the
+             one you had to go looking for. Each band now carries a sticky TOP
+             offset of the bands above it and a sticky BOTTOM offset of the
+             bands below it, so passed groups stack at the top of the port and
+             coming groups stack at the bottom, every one of them legible and
+             clickable. --bi (this band's index) and --bn (how many bands
+             rendered) come from renderSlate, so the offsets shrink to fit the
+             day. --bh is the band's own height; keep the two in step if the
+             padding or type size here changes. */
+          .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;order:4;
+            --bh:30px;position:sticky;top:calc(var(--bi,0) * var(--bh));bottom:calc((var(--bn,1) - 1 - var(--bi,0)) * var(--bh));z-index:3;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
           /* In progress: the gold the slate has always used for a game you have
@@ -2595,6 +2622,34 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-band.fail .sl-bc{color:#ffe0dd;}
           .sl-band.dn{order:11;background:var(--success-deep);}
           .sl-drawer{grid-column:1/-1;}
+          /* THE OPEN PANEL TAKES THE WHOLE CONSOLE, not just the board (owner,
+             2026-08-12). .dtp is position:absolute;inset:0 and overflow:hidden,
+             so it fills its nearest POSITIONED ancestor and clips whatever does
+             not fit. On the slate that ancestor was .dh-vp, the board window,
+             whose height is the measured --dh-fit: the panel is taller than
+             that at every desktop size, so the foot of the record chart was cut
+             off with no way to scroll to it. Making the three board wrappers
+             static hands the panel .dhome instead, which is the SAME box the
+             TILE board's panel has always filled (one expanded console, one
+             Play button, owner 2026-07-29), and adds the title band, the cap
+             and the filter strip to its height. All three are positioned only
+             for tile-board furniture, the .dh-vp.on translateY window and the
+             .dh-more pager, and both of those are gated on !slate in the JSX,
+             so neither exists at this width. overflow:auto is the backstop for
+             a short viewport, where even the whole console may not be enough:
+             the panel scrolls itself rather than losing its bottom. */
+          .dhome.slate .dh-boardwrap,.dhome.slate .dh-vpwrap,.dhome.slate .dh-vp{position:static;}
+          /* Flush at the top. The panel starts on the console's own top edge
+             now, and a 13px radius there read as a card floating inside the
+             console rather than as the console itself. The bottom keeps the
+             radius, because that IS the console's bottom edge. */
+          .dhome.slate .sl-drawer .dtp{border-radius:0 0 13px 13px;overflow:auto;}
+          /* ...and the three columns take the height that came with it. The
+             grid is flex:none by default, sized to the board window it used to
+             live in, so against the taller console it left ~150px of white
+             under the archive calendar. Growing it stretches the record chart
+             and the standings, which is where the extra room is worth having. */
+          .dhome.slate .sl-drawer .dtp .dtp-grid{flex:1 1 auto;min-height:0;}
           /* Same order scheme the phone uses, since grid honours it too: a row
              and its own drawer carry the same value and equal-order items keep
              source order, so a drawer never leaves its row. */
