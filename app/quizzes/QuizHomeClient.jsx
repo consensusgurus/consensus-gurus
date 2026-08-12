@@ -36,6 +36,12 @@ import { savedIdentity } from '@/lib/saved-identity';
 import { T } from '@/lib/theme';
 import SigninHelp, { isLockedOut } from '../SigninHelp';
 import { catBlue, deptBlue } from '@/lib/home-blues';
+// Daily Mastery moved here from the Loft on 2026-08-12, so this file now needs
+// the live roster and the archive figures behind it. fetchDayStatus is the same
+// memoized promise the command header already fires, so the second face costs
+// no request.
+import { liveDailyKeys, DAILY_GAME_MAP } from '@/lib/daily-games';
+import { fetchDayStatus } from '../useDayStats';
 import MindLoftMark from '../MindLoftMark';
 
 // Brand mark (gradient ids suffixed per render so multiple instances stay unique).
@@ -1361,6 +1367,12 @@ export default function QuizHomeClient() {
     else if (typeof navigator !== 'undefined' && navigator.clipboard) { navigator.clipboard.writeText(url).then(() => { setChCopied(true); setTimeout(() => setChCopied(false), 2000); }).catch(() => {}); }
   }
   function goCat(key) { setScope(key); setDoneFilter('all'); setListMode(null); setSearch(''); try { if (quizzesRef.current) quizzesRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {} }
+  const [dayArchive, setDayArchive] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetchDayStatus().then((d) => { if (alive) setDayArchive(d || {}); });
+    return () => { alive = false; };
+  }, []);
   const catMastery = useMemo(() => {
     if (!cats || !cats.length) return [];
     const bc = (me && me.byCategory) || {};
@@ -1379,6 +1391,35 @@ export default function QuizHomeClient() {
     if (!rows.length || rows[0].pct === 0) return [];
     return rows.map((r) => ({ key: r.key, label: r.label, acc: r.pct }));
   }, [me, cats, examsDone]);
+
+  // DAILY MASTERY (owner, 2026-08-12): one row per LIVE daily game, showing how
+  // much of that game's archive this player has played. `archive` comes straight
+  // off /api/quiz/daily-status as { <gameKey>: { total, played } }, where `total`
+  // is every day the game has ever run and `played` is the days THIS player
+  // finished, so the percentage answers "how much of this game have I done" the
+  // way Quiz Mastery answers it for a category. Retired games are excluded
+  // (liveDailyKeys): their archive is closed, so a bar for one can never move.
+  //
+  // ORDER IS UNDER WAY, THEN DONE, THEN UNTOUCHED, which is the same rule the
+  // Loft's banded version followed and it matters more here, because the tile
+  // shows eight rows out of fifty-odd. Sorted purely by percentage it would open
+  // on the games already finished, the least actionable rows it could pick.
+  const dailyMastery = useMemo(() => {
+    const arch = (dayArchive && dayArchive.archive) || null;
+    if (!arch) return [];
+    const rows = liveDailyKeys().map((k) => {
+      const g = DAILY_GAME_MAP[k] || { name: k, cat: '' };
+      const a = arch[k] || {};
+      const total = Number(a.total) || 0;
+      const played = Math.min(Number(a.played) || 0, total || Number(a.played) || 0);
+      return { key: k, label: g.name, cat: g.cat, played, acc: total > 0 ? Math.round((played / total) * 100) : 0 };
+    });
+    if (!rows.some((r) => r.played > 0)) return [];
+    const rank = (r) => (r.played <= 0 ? 2 : (r.acc >= 100 ? 1 : 0));
+    return rows
+      .sort((a, b) => rank(a) - rank(b) || b.acc - a.acc || b.played - a.played || a.label.localeCompare(b.label))
+      .map((r) => ({ key: r.key, label: r.label, acc: r.acc, href: `/${r.key}`, cat: r.cat }));
+  }, [dayArchive]);
 
   function colRows(cat, lim, exclude) {
     // Business tile preview hides the whole Business News quiz hub (daily/weekly
@@ -2615,7 +2656,13 @@ export default function QuizHomeClient() {
                 named when it moved out of the right rail. It self-suppresses
                 for a viewer with no plays, in which case Most Played leads as
                 it did before. */}
-            <CategoryMasteryTile rows={catMastery} onPick={goCat} colorFor={(k) => (byKey[k] && byKey[k].c)} />
+            <CategoryMasteryTile
+              rows={catMastery}
+              dailyRows={dailyMastery}
+              onPick={goCat}
+              colorFor={(k) => (byKey[k] && byKey[k].c)}
+              dailyColorFor={(cat) => catBlue(cat)}
+            />
             {/* Last Played / Most Played / Newest each lead with a hero photo
                 (added 2026-07-20 per Marshall), so the three activity columns
                 match the category columns beside them instead of reading as a
@@ -2966,46 +3013,120 @@ function usePillProbe(url, region, scrim, useParentBox) {
 // button that filters the feed to that category, the same jump the tile's
 // "Stat hub" CTA used to make in the rail.
 //
-// `rows` is the catMastery memo: [{ key, label, acc }] already sorted best
-// first, where acc is (quizzes played / quizzes in category) as a percent. An
-// empty array means the viewer has played nothing yet, in which case the tile
-// does not render at all: a column of 0% bars is a worse first impression than
-// simply not being there.
-function CategoryMasteryTile({ rows, onPick, colorFor }) {
-  if (!rows || !rows.length) return null;
+// `rows` is the catMastery memo and `dailyRows` the dailyMastery memo, both
+// [{ key, label, acc }] already sorted, where acc is a percentage: for a quiz
+// category, the share of its quizzes played; for a daily game, the share of its
+// archive played. A daily row also carries an `href`, which is what makes it a
+// link to the game rather than a filter on the feed below.
+//
+// TWO FACES ON AN 8s FLIP (owner, 2026-08-12). Daily Mastery used to be the
+// Loft's second face in the right rail; it moved here when that slot went to the
+// day's category leaders, and the tile that already answered "how much of the
+// site have I done" for quizzes is where the same question about the dailies
+// belongs. The old "Category Mastery" title is now QUIZ MASTERY, since the tile
+// itself is no longer about one of the two. The beat matches the Loft's, not the
+// left rail's 7s, so the two mastery-ish surfaces on the page tick together.
+//
+// Either face can be empty on its own: a viewer with no quiz plays but a week of
+// dailies gets a Daily Mastery tile that never flips, and vice versa. The tile
+// only disappears when BOTH are empty, in which case Most Played leads the grid
+// as it did before this tile existed. A face with nothing in it is never one of
+// the flip's stops, so the rotation can never land on a blank panel.
+function CategoryMasteryTile({ rows, dailyRows, onPick, colorFor, dailyColorFor }) {
+  const faces = [];
+  if (rows && rows.length) {
+    faces.push({
+      key: 'quiz',
+      title: 'Quiz Mastery',
+      rows,
+      note: 'Share of each category\u2019s quizzes you have played.',
+      href: '/quizzes/hub?tab=player&pview=category',
+      color: (r) => (colorFor && colorFor(r.key)) || C.accent,
+    });
+  }
+  if (dailyRows && dailyRows.length) {
+    faces.push({
+      key: 'daily',
+      title: 'Daily Mastery',
+      rows: dailyRows,
+      note: 'Share of each daily game\u2019s archive you have played.',
+      href: '/quizzes/hub?tab=daily',
+      color: (r) => (dailyColorFor && dailyColorFor(r.cat)) || C.accent,
+    });
+  }
+  const [ix, setIx] = useState(0);
+  const hold = useRef(false);
+  useEffect(() => {
+    if (faces.length < 2) return undefined;
+    const id = setInterval(() => { if (!hold.current) setIx((v) => (v + 1) % faces.length); }, 8000);
+    return () => clearInterval(id);
+  }, [faces.length]);
+  if (!faces.length) return null;
+  const face = faces[Math.min(ix, faces.length - 1)];
   return (
-    <section className="mc-open catcard cmt" style={{ minWidth: 0 }}>
+    <section
+      className="mc-open catcard cmt"
+      style={{ minWidth: 0 }}
+      onMouseEnter={() => { hold.current = true; }}
+      onMouseLeave={() => { hold.current = false; }}
+    >
       <style>{`
         .qzh .cmt-body{padding:9px 11px 11px;display:flex;flex-direction:column;gap:5px;}
-        .qzh .cmt-bar{position:relative;display:flex;align-items:center;gap:8px;width:100%;background:#eef1f6;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-family:inherit;overflow:hidden;text-align:left;}
+        .qzh .cmt-bar{position:relative;display:flex;align-items:center;gap:8px;width:100%;background:#eef1f6;border:none;border-radius:8px;padding:8px 10px;cursor:pointer;font-family:inherit;overflow:hidden;text-align:left;text-decoration:none;box-sizing:border-box;}
         .qzh .cmt-bar:hover{background:#e6ebf3;}
         .qzh .cmt-bar .mtr{position:absolute;left:0;top:0;bottom:0;background:#dbe6fb;border-radius:8px;pointer-events:none;}
         .qzh .cmt-bar .dot{position:relative;width:7px;height:7px;border-radius:2px;flex:none;}
         .qzh .cmt-bar .nm{position:relative;flex:1;min-width:0;font-size:12px;font-weight:700;color:${C.ink};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .qzh .cmt-bar .p{position:relative;flex:none;font-size:11.5px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
         .qzh .cmt-note{padding:0 11px 10px;font-size:10.5px;color:${C.soft};font-weight:600;}
+        /* The face switcher. Dots only, not the Loft's pill: this header already
+           carries a title, an icon and a Stat hub link across a narrow tile, and
+           the title IS the face name. */
+        .qzh .cmt-dots{display:flex;gap:4px;margin-left:6px;flex:none;}
+        .qzh .cmt-dots i{width:6px;height:6px;border-radius:50%;background:#c8d1de;cursor:pointer;display:block;}
+        .qzh .cmt-dots i.on{background:${T.blue};}
       `}</style>
       <div className="colhead cc-head cc-filled" style={{ borderColor: T.ink, background: T.white }}>
         <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: '#dbe6fb', color: T.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Gauge size={14} />
         </span>
-        <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: T.ink }}>Category Mastery</h3>
-        <Link href="/quizzes/hub?tab=player&pview=category" className="viewall vall" style={{ color: T.ink, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>Stat hub ›</Link>
+        <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: T.ink }}>{face.title}</h3>
+        {faces.length > 1 ? (
+          <span className="cmt-dots">
+            {faces.map((f, i) => (
+              <i
+                key={f.key}
+                className={i === ix ? 'on' : undefined}
+                role="button"
+                tabIndex={0}
+                aria-label={f.title}
+                onClick={() => setIx(i)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIx(i); }}
+              />
+            ))}
+          </span>
+        ) : null}
+        <Link href={face.href} className="viewall vall" style={{ color: T.ink, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>Stat hub &rsaquo;</Link>
       </div>
       <div className="cmt-body">
-        {rows.slice(0, 8).map((r) => {
-          const cc = (colorFor && colorFor(r.key)) || C.accent;
-          return (
-            <button type="button" key={r.key} className="cmt-bar" onClick={() => onPick(r.key)}>
+        {face.rows.slice(0, 8).map((r) => {
+          const cc = face.color(r);
+          const inner = (
+            <>
               <span className="mtr" style={{ width: `${Math.max(0, Math.min(100, r.acc))}%` }} />
               <span className="dot" style={{ background: cc }} />
               <span className="nm">{r.label}</span>
               <span className="p">{r.acc}%</span>
-            </button>
+            </>
           );
+          // A daily row goes to its game; a quiz category filters the feed
+          // below, which is the jump this tile has always made.
+          return r.href
+            ? <Link key={r.key} href={r.href} className="cmt-bar">{inner}</Link>
+            : <button type="button" key={r.key} className="cmt-bar" onClick={() => onPick(r.key)}>{inner}</button>;
         })}
       </div>
-      <div className="cmt-note">Share of each category&rsquo;s quizzes you have played.</div>
+      <div className="cmt-note">{face.note}</div>
     </section>
   );
 }

@@ -267,7 +267,17 @@ const CAP_STATE_MAX = 2;
 const CAP_PMIN = 170;   // ...but always at least two rows of cards.
 // The console is sized to leave this much of the page showing under it, so the
 // three-column row ends just above the fold rather than at it or past it.
-const FOLD_SLIVER = 34;
+//
+// 16, NOT 34 (owner, 2026-08-12). It is the GAP, not a peek: 16px is exactly
+// the .dhx row's own margin-bottom, so the console ends one standard gap above
+// the fold and the element under it (the search + tools row) starts precisely
+// at the fold with none of itself showing. At 34 the extra 18px was not enough
+// to read the tool row and was enough to CLIP it, which is the one outcome
+// worth avoiding: a half-drawn control under a console that had 18px it could
+// have spent on its own rows. Every panel in the row grows by the difference,
+// because all three columns are pinned to this measurement. If .dhx's margin
+// changes, change this with it.
+const FOLD_SLIVER = 16;
 // ...but never squeeze the board below this, however tall the cap has grown.
 const BOARD_MIN = 240;
 // HELD SIDEWAYS, THE FLOOR IS EIGHT LINES (owner, 2026-08-08). A phone or tablet

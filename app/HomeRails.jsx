@@ -9,10 +9,11 @@
 // carrying the expander and the real "Full leaderboard" link.
 //
 // It is deliberately a PRESENTATION component. Every figure it renders is
-// already fetched by QuizHomeClient and handed down as a prop, so no fetch,
-// no identity read, and no API surface moved. The one exception is the "Daily
-// mastery" face, which reuses the memoized fetchDayStatus() promise that
-// useDayStats already fires for the header, so it costs no extra request.
+// already fetched by QuizHomeClient and handed down as a prop, so no fetch, no
+// identity read, and no API surface moved. That held again on 2026-08-12: the
+// category leaders are derived from the per-game boards already in `dailyBoard`
+// and the day's player count is a field on the totals payload the header
+// already reads.
 //
 // Left rail, top to bottom:
 //   1. Top community member  (refData)          - fixed
@@ -20,8 +21,8 @@
 //   2. Today's leaders       (dailyBoard/xpToday) - auto-flips every 7s
 //   3. Top player            (xpAll/xp30)         - auto-flips every 7s
 // Right rail:
-//   1. The Loft: Live feed | Daily mastery, auto-flips every 8s, each face
-//      leading with its own cap slab
+//   1. The Loft: Live feed | Daily category leaders, auto-flips every 8s, each
+//      face leading with its own cap slab
 //   2. Featured: daily challenge, quiz of the day, duel, as three cap cards
 //
 // The flip replaces the old dot-only affordance with a named pill plus dots, so
@@ -29,12 +30,19 @@
 // pauses the rotation and the dots are clickable.
 //
 // 2026-08-08 (owner): the right rail's Live feed | Your results TABS became a
-// timed flip like the left rail's panels, and the "Your results" face (today's
-// finished games) was replaced by DAILY MASTERY: every live daily game with a
-// bar showing how many of that game's days this player has played, out of every
-// day the game has ever run. That figure is `archive` on /api/quiz/daily-status,
-// which fetchDayStatus already returns, so the face costs no new request. The
-// old Category mastery footer link moved out to its own tile on the browse row.
+// timed flip like the left rail's panels. The "Your results" face became DAILY
+// MASTERY, which in turn moved out to the Category Mastery tile on 2026-08-12,
+// see the note above.
+//
+// 2026-08-12 (owner): DAILY MASTERY LEFT THE LOFT for the Category Mastery tile
+// on the browse row, which now flips between Quiz mastery and Daily mastery on
+// the same 8s beat. In its place the Loft's second face is DAILY CATEGORY
+// LEADERS: who is top of End Game, Word, Logic and the rest today, each one a
+// hero slip. Nine categories do not fit one panel, so that face SUB-ROTATES
+// three views of three on the same timer, which is why the flip now has four
+// steps (live, then leaders 1/2/3) rather than two. The live face gained the
+// day's PLAYER count beside its play count: plays and time said how busy the
+// day was without saying how many people that was.
 //
 // 2026-08-10 (owner, mockup home-rails-mockups.html): the last two elements
 // still on the pre-direction-B look were brought over. The Loft gained a cap
@@ -49,7 +57,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { T } from '@/lib/theme';
 import { DAILY_GAME_MAP, liveDailyKeys } from '@/lib/daily-games';
-import { fetchDayStatus } from './useDayStats';
 import { notifyShareCredit } from './ShareCreditPop';
 import { ringBlue, catBlue } from '@/lib/home-blues';
 import { CONTEST, COPY, contestIsLive, formatScore } from '@/lib/contest';
@@ -71,16 +78,6 @@ function hasMore(rows) { return (rows || []).length > ROWS_COLLAPSED; }
 
 // Blue tile art, the same pair DailyStrip uses for the slate rows and cap tiles
 // (kept local rather than imported: DailyStrip does not export them, and this is
-// two lines). Each game's button art has a recoloured copy under /games/blue
-// mapped onto the brand blue ramp, so a stack of them reads as one palette
-// instead of fifty separate logos. A missing blue file falls back to the
-// original full-colour PNG rather than showing a broken image.
-const blueTile = (p) => (typeof p === 'string' ? p.replace('/games/btn-', '/games/blue/btn-') : p);
-const tileFallback = (e) => {
-  const el = e && e.currentTarget;
-  if (el && el.src && el.src.indexOf('/games/blue/') !== -1) el.src = el.src.replace('/games/blue/btn-', '/games/btn-');
-};
-
 function num(n) { return (n || 0).toLocaleString(); }
 
 // Two faint states only (owner, 2026-08-03): a solid green/gold/red chip column
@@ -146,7 +143,11 @@ function useFlip(count, ms) {
 
 // The pill naming the visible face, plus its clickable dots. Rendered into the
 // panel's navy header band, where the flip control has always lived.
-function FlipPill({ labels, ix, setIx, holdRef }) {
+// `names` is optional and only for assistive tech: the Loft's three leader
+// views all show the same pill label ("Category leaders"), so the labels array
+// carries duplicates and the dots need their own distinct descriptions. Keys are
+// the INDEX for the same reason, a duplicate label cannot be a React key.
+function FlipPill({ labels, names, ix, setIx, holdRef }) {
   if (labels.length < 2) return null;
   return (
     <span
@@ -158,11 +159,11 @@ function FlipPill({ labels, ix, setIx, holdRef }) {
       <span className="hr-dots">
         {labels.map((l, i) => (
           <i
-            key={l}
+            key={`${l}-${i}`}
             className={i === ix ? 'on' : undefined}
             role="button"
             tabIndex={0}
-            aria-label={l}
+            aria-label={(names && names[i]) || l}
             onClick={() => setIx(i)}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIx(i); }}
           />
@@ -277,82 +278,93 @@ export default function HomeRails({
   }, [dailyBoard]);
 
   // ── RIGHT ─────────────────────────────────────────────────────────────────
-  // The Loft flips between its two faces on an 8s timer (owner, 2026-08-08).
-  // The face list is fixed, so the labels can be declared inline.
-  const loft = useFlip(2, 8000);
-  const [mine, setMine] = useState(null);
-  useEffect(() => {
-    if (side !== 'right') return undefined;
-    let alive = true;
-    fetchDayStatus().then((d) => { if (alive) setMine(d || {}); });
-    return () => { alive = false; };
-  }, [side]);
-
-  // DAILY MASTERY: one row per LIVE daily game, with a bar showing how much of
-  // that game's archive this player has played. `archive` comes straight off
-  // /api/quiz/daily-status as { <gameKey>: { total, played } }, where `total` is
-  // every day the game has ever run (distinct dated ids across all players, the
-  // same set the per-game archive calendar draws from) and `played` is the days
-  // THIS player finished. So the percentage answers "how much of this game have
-  // I done", exactly as the old Category Mastery answered it for quizzes.
-  //
-  // EVERY live game is listed, unplayed ones at 0% (owner, 2026-08-08), which is
-  // why the body scrolls: at ~51 rows the point is the whole board of them, and
-  // hiding the untouched games would hide precisely the ones worth starting.
-  // Retired games are excluded (liveDailyKeys), matching the day roster: their
-  // archive is closed, so a bar for one can never move.
-  const masteryRows = useMemo(() => {
-    const arch = (mine && mine.archive) || {};
-    return liveDailyKeys().map((k) => {
-      const g = DAILY_GAME_MAP[k] || { name: k, cat: '', img: '' };
-      const a = arch[k] || {};
-      const total = Number(a.total) || 0;
-      const played = Math.min(Number(a.played) || 0, total || Number(a.played) || 0);
-      const pct = total > 0 ? Math.round((played / total) * 100) : 0;
-      return { key: k, name: g.name, cat: g.cat, img: g.img, played, total, pct };
-    }).sort((a, b) => b.pct - a.pct || b.played - a.played || a.name.localeCompare(b.name));
-  }, [mine]);
-
-  // Headline for the mastery face: ONE figure, the share of the whole daily
-  // archive this player has done, so the reader knows what the bars below are a
-  // breakdown OF before reading any of them. Only the PERCENT is rendered
-  // (owner, 2026-08-08): the raw "340 of 781 days" reads as calendar days and
-  // is not, it sums each game's own archive, so 781 is game-days across 50-odd
-  // games and the pair of numbers only invites the wrong reading.
-  const masteryAll = useMemo(() => {
-    let played = 0, total = 0;
-    for (const r of masteryRows) { played += r.played; total += r.total; }
-    return { played, total, pct: total > 0 ? Math.round((played / total) * 100) : 0 };
-  }, [masteryRows]);
-
-  // THREE BANDS, CLOSEST TO DONE FIRST (owner-approved direction B2,
-  // 2026-08-10). Sorted purely by percentage, the face opened on the games the
-  // player has ALREADY FINISHED, which is the least actionable ordering a
-  // progress board can have: the rows worth acting on were somewhere in the
-  // middle of fifty. Games under way lead, finished ones follow so the wins are
-  // still visible, and the untouched majority sits last under its own count.
-  // masteryRows arrives sorted by percentage descending, so `nearly` comes out
-  // closest-to-done first for free. Empty bands drop out rather than printing a
-  // heading over nothing.
-  const masteryGroups = useMemo(() => {
-    const nearly = [], done = [], fresh = [];
-    for (const r of masteryRows) {
-      if (r.played <= 0) fresh.push(r);
-      else if (r.pct >= 100) done.push(r);
-      else nearly.push(r);
+  // THE DAILY-GAME CATEGORIES, in the order the slate's filter strip lists them:
+  // first appearance down the live roster, so the two surfaces name the same
+  // groups in the same order without either owning a hardcoded list. Built from
+  // the STATIC roster rather than from today's board, which is what makes the
+  // view count stable from the first render: the flip timer resets whenever its
+  // count changes, and a count that waited on a fetch would restart the rotation
+  // the moment the board landed.
+  const catList = useMemo(() => {
+    const out = [];
+    for (const k of liveDailyKeys()) {
+      const c = (DAILY_GAME_MAP[k] || {}).cat;
+      if (c && !out.includes(c)) out.push(c);
     }
-    return {
-      bands: [
-        { key: 'nearly', label: 'Nearly there', rows: nearly },
-        { key: 'done', label: 'Done', rows: done },
-        { key: 'fresh', label: 'Not started', rows: fresh },
-      ].filter((g) => g.rows.length),
-      nearly: nearly.length,
-      fresh: fresh.length,
-    };
-  }, [masteryRows]);
+    return out;
+  }, []);
+
+  // DAILY CATEGORY LEADERS (owner, 2026-08-12). Who is top of End Game, of Word,
+  // of Logic today. The leader of a category is the player with the MOST
+  // COMBINED POINTS across every game in it, the same currency the combined
+  // daily board runs on, so sweeping five Word games beats one big Crux run,
+  // which is the behaviour the owner asked for.
+  //
+  // It is computed from `dailyBoard.games`, which the page already fetches, so
+  // this costs no request. The caveat that comes with that: each per-game board
+  // carries its top 10 NAMED players, so a player who is 11th in every game of a
+  // category is invisible here. That cannot cost anyone the lead in practice (a
+  // leader is by definition near the top of the games they played) and the
+  // alternative is a new server route to answer a rail slip.
+  const catLeaders = useMemo(() => {
+    const games = (dailyBoard && Array.isArray(dailyBoard.games)) ? dailyBoard.games : [];
+    const acc = new Map();
+    for (const c of catList) acc.set(c, { games: 0, plays: 0, players: new Map() });
+    for (const g of games) {
+      const c = acc.get((DAILY_GAME_MAP[g.key] || {}).cat);
+      if (!c) continue;
+      c.games += 1;
+      c.plays += Number(g.plays) || 0;
+      for (const pl of (g.board || [])) {
+        if (!pl || !pl.username) continue;
+        const cur = c.players.get(pl.username) || { name: pl.username, pts: 0, n: 0 };
+        cur.pts += Number(pl.points) || 0;
+        cur.n += 1;
+        c.players.set(pl.username, cur);
+      }
+    }
+    return catList.map((name) => {
+      const c = acc.get(name) || { games: 0, plays: 0, players: new Map() };
+      // Points, then games played in the category, then name: a tie on points
+      // goes to whoever earned it across more of the category.
+      const ranked = [...c.players.values()]
+        .sort((a, b) => b.pts - a.pts || b.n - a.n || a.name.localeCompare(b.name));
+      const best = ranked[0] || null;
+      return {
+        name,
+        games: c.games,
+        plays: c.plays,
+        field: c.players.size,
+        leader: best ? { name: best.name, pts: Math.round(best.pts * 10) / 10, n: best.n } : null,
+      };
+    });
+  }, [dailyBoard, catList]);
+
+  // ALWAYS THREE SUB-VIEWS (owner, 2026-08-12), whatever the category count: a
+  // hero slip is a third of the panel, so nine categories cannot share one face
+  // and a per-view cap would silently drop the tail. Chunking to
+  // ceil(n / 3) per view shows every category in three turns and keeps the last
+  // view from being a lone slip on a tall panel.
+  const catViews = useMemo(() => {
+    if (!catLeaders.length) return [];
+    const per = Math.ceil(catLeaders.length / 3);
+    const out = [];
+    for (let i = 0; i < catLeaders.length; i += per) out.push(catLeaders.slice(i, i + per));
+    return out;
+  }, [catLeaders]);
+
+  // The Loft's flip: face 0 is the live feed, faces 1..n are the leader views,
+  // all on the one 8s beat (owner, 2026-08-08 for the beat, 2026-08-12 for the
+  // sub-views). So a full turn is live, leaders, leaders, leaders, live.
+  const loft = useFlip(1 + catViews.length, 8000);
+  const leadView = loft.ix > 0 ? (catViews[loft.ix - 1] || null) : null;
 
   const playsToday = (totals && totals.today) || 0;
+  // Distinct PLAYERS today, guests included, straight off /api/quiz/totals
+  // (added 2026-08-12 with this slip). Plays and time said how busy the day was
+  // without ever saying how many people that was: 600 plays is a different day
+  // depending on whether it is eighty people or eight.
+  const playersToday = (totals && totals.todayPlayers) || 0;
   const timeToday = (() => {
     const x = Math.round((totals && totals.todayTime) || 0);
     const h = Math.floor(x / 3600); const m = Math.round((x % 3600) / 60);
@@ -464,21 +476,11 @@ export default function HomeRails({
       .hr-exp:hover{color:var(--blue-deep);}
       .hr-link{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep);text-decoration:none;white-space:nowrap;flex:none;}
       .hr-link:hover{text-decoration:underline;}
-      /* Daily mastery rows. A bar, not a ring: the ring on the live feed reads a
-         SCORE out of a possible one, whereas this reads progress along an
-         archive, and a bar is the shape that says "how far through".
-         The meter is a THIN TRACK taking the slack between the name and the
-         percentage, deliberately nondescript (owner, 2026-08-08). The first cut
-         was a tinted fill spanning the whole row behind the text, which at ~51
-         rows turned the panel into a block of shifting background and fought
-         the live feed's rings for attention. A 5px rule reads as progress and
-         nothing else. Game art uses the BLUE tile copies, as the slate does, so
-         a long column of icons stays one palette. */
       /* The Loft's own slab, one per face. Same object as .hr-hero above (the
          leaderboard #1 on a phone) but it shows at EVERY width, because the two
          Loft faces are lists rather than boards and neither had an anchor of
-         any kind. The mastery face takes the deeper navy and the live face the
-         lighter blue, so a flip is visible even before the pill is read. */
+         any kind. The live face takes the lighter blue and the leader slips the
+         navy ramp below, so a flip is visible even before the pill is read. */
       /* IT IS EXACTLY AS TALL AS A CAP BAR, and that is measured, not eyeballed
          (owner, 2026-08-10: the first cut came out 80.5px against the cap's
          84.8px and read as a near miss, which is worse than an obvious
@@ -509,35 +511,28 @@ export default function HomeRails({
       .hr-lsval{margin-left:auto;flex:none;text-align:right;}
       .hr-lsval b{display:block;font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums;}
       .hr-lsval span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-200);margin-top:2px;}
-      /* Mastery band. The slate's own group band, so "Nearly there" here and
-         "Ready to play" there are visibly the same object. Sticky, because the
-         list scrolls inside the panel and a reader who has scrolled into the
-         44-row Not started band should still be told which band they are in. */
-      .hr-bandhd{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:6px 13px;
-                 background:var(--surface-alt);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-      .hr-mband:first-child .hr-bandhd{border-top:0;}
-      .hr-bandhd h5{margin:0;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);}
-      .hr-bandhd span{margin-left:auto;font-size:10px;font-weight:800;color:var(--slate);font-variant-numeric:tabular-nums;}
-      .hr-mrow{display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
-      .hr-mrow:last-child{border-bottom:none;}
-      .hr-mrow:hover{background:var(--surface);}
-      /* A SQUARE box, not width:auto (owner, 2026-08-08). Every tile file is
-         76x76, but Bracket's shipped 88x76, so its icon rendered 28px wide
-         and pushed its NAME 4px right of every other row in the column. The
-         art was fixed in the same push; the fixed box means the next stray
-         file cannot break the alignment again. */
-      .hr-mic{height:24px;width:24px;object-fit:contain;border-radius:6px;flex:none;}
-      /* The name sizes to its text and never grows, so the track always gets
-         the leftover width rather than the two competing for it. */
-      .hr-mnm{flex:0 1 auto;min-width:0;font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .hr-mtrack{flex:1 1 auto;min-width:24px;height:5px;border-radius:999px;background:#eceff4;overflow:hidden;}
-      .hr-mtrack i{display:block;height:100%;border-radius:999px;background:var(--blue);}
-      .hr-mpct{flex:none;width:30px;text-align:right;font-size:11.5px;font-weight:800;color:var(--slate);font-variant-numeric:tabular-nums;}
-      /* Untouched games recede rather than vanish: still legible, still one tap
-         from a first play, but never mistaken for progress. */
-      .hr-mrow.zero .hr-mnm{font-weight:600;color:var(--slate);}
-      .hr-mrow.zero .hr-mpct{color:#9aa2b1;}
-      .hr-mrow.zero .hr-mic{opacity:.55;}
+      /* CATEGORY LEADER SLIPS (owner, 2026-08-12). Each one is .hr-lslab, the
+         same object the live face's totals bar is, so nothing new was invented
+         for this face and the LEAD slip inherits the cap-bar height the panel's
+         first band has to match. What varies is the ground (stepping navy /
+         blue / pale down the ramp, the Featured cards' own progression, so
+         three stacked slabs still read as three) and the left rule, which takes
+         that CATEGORY's colour from lib/home-blues, the same value its chip
+         wears on the slate. So the rule is the one thing on the slip that is
+         not a shade of the panel, and it names the category twice over.
+         The body slips GROW: the panel is pinned to the console's height, and
+         two fixed 85px bars under the lead one left a band of white above the
+         footer. */
+      .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+      .hr-clbody > .hr-lslab{flex:1 1 auto;border-top:1px solid rgba(255,255,255,.16);}
+      .hr-cls::before{background:var(--clr,var(--blue-400));}
+      .hr-cls.c0{background:var(--accent);}
+      .hr-cls.c1{background:var(--blue);}
+      .hr-cls.c2{background:#4d84f3;}
+      /* A category nobody has played today still gets its slip, greyed back:
+         an empty slot in a rotation reads as a bug, and "nobody yet" is a real
+         and useful thing for the panel to say. */
+      .hr-cls.open .hr-lsnm{color:var(--blue-200);font-weight:700;}
       .hr-res{display:flex;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-res:last-child{border-bottom:none;}
       .hr-res:hover{background:var(--surface);}
@@ -620,9 +615,11 @@ export default function HomeRails({
       .hr-share span{display:block;font-size:11px;font-weight:700;opacity:.78;line-height:1.35;margin-top:2px;}
       .hr-share .hr-sharr{flex:none;font-size:19px;font-weight:800;line-height:1;opacity:.55;}
       /* The rails stack at natural height on a phone, but the activity list is
-         unbounded, so it alone keeps a cap and scrolls inside it. Daily mastery
-         lists EVERY live game, so it scrolls inside the same cap. */
-      @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:360px;overflow-y:auto;}}
+         unbounded, so it alone keeps a cap and scrolls inside it. The leader
+         slips are two fixed bars and need no cap, but they DO need a height to
+         grow into once .hr-flex stops stretching them. */
+      @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:360px;overflow-y:auto;}
+        .hr-clbody{min-height:170px;}}
       /* The rail pins every panel to the center console's measured height, so a
          slab plus two names left a band of white sitting above the footer
          (owner, 2026-08-08). The TABLE takes that slack rather than the scroll
@@ -804,7 +801,18 @@ export default function HomeRails({
         <div className="hr-ph">
           <span className="hr-pi"><PulseIcon /></span>
           <h2>The Loft</h2>
-          <FlipPill labels={['Live feed', 'Daily mastery']} ix={loft.ix} setIx={loft.setIx} holdRef={loft.holdRef} />
+          {/* Every leader view shows the SAME pill label: the three of them are
+              one face that happens not to fit on one panel, so naming them
+              "Leaders 1/3" would advertise the mechanism rather than the
+              content. The dots still address each view individually, and
+              `names` gives assistive tech the distinct description. */}
+          <FlipPill
+            labels={['Live feed', ...catViews.map(() => 'Category leaders')]}
+            names={['Live feed', ...catViews.map((v, i) => `Daily category leaders, view ${i + 1} of ${catViews.length}`)]}
+            ix={loft.ix}
+            setIx={loft.setIx}
+            holdRef={loft.holdRef}
+          />
         </div>
         {/* THE SLAB, one per face (owner-approved direction B1/B2, 2026-08-10).
             The panel used to open on a bordered stat strip and then fifty rows
@@ -819,30 +827,29 @@ export default function HomeRails({
             player's name or score: the rows below already carry results without
             attribution, and promoting one person's run into a headline is a
             different thing from a live feed. */}
-        {loft.ix === 0 ? (
+        {!leadView ? (
           <div className="hr-lslab lite">
             <div className="hr-lstxt">
               <div className="hr-lseye">Live &middot; today</div>
               <div className="hr-lsnm">{num(playsToday)} {playsToday === 1 ? 'play' : 'plays'}</div>
               <div className="hr-lssub">across every puzzle and quiz</div>
             </div>
+            {/* Two figures, players then time. Players leads because it is the
+                one that tells you whether the day is busy; the play count above
+                is already the headline, so the pair reads people, plays,
+                minutes without repeating itself. */}
+            <div className="hr-lsval"><b>{num(playersToday)}</b><span>{playersToday === 1 ? 'player' : 'players'}</span></div>
             <div className="hr-lsval"><b>{timeToday}</b><span>played</span></div>
           </div>
         ) : (
-          <div className="hr-lslab">
-            <div className="hr-lstxt">
-              <div className="hr-lseye">Daily mastery</div>
-              <div className="hr-lsnm">{masteryAll.pct}% done</div>
-              <div className="hr-lssub">
-                {masteryGroups.nearly
-                  ? `${masteryGroups.nearly} game${masteryGroups.nearly === 1 ? '' : 's'} under way · ${masteryGroups.fresh} not started`
-                  : 'Play a daily and your progress starts here'}
-              </div>
-            </div>
-          </div>
+          /* The LEAD slip of a leader view sits in the slab slot, so it keeps
+             the measured cap-bar height and the Loft's first band still starts
+             on the same line as the console's Up next bar beside it. The other
+             two slips grow to fill the body below. */
+          <CatSlip row={leadView[0]} tone={0} />
         )}
-        <div className="hr-scroll hr-flex hr-actbody">
-          {loft.ix === 0 ? (
+        <div className={`hr-scroll hr-flex${leadView ? ' hr-clbody' : ' hr-actbody'}`}>
+          {!leadView ? (
             (lastPlayed || []).slice(0, 14).map((f, i) => {
               const frac = f.total ? f.score / f.total : 0;
               const pct = Math.round(frac * 100);
@@ -872,33 +879,16 @@ export default function HomeRails({
               );
             })
           ) : (
-            masteryGroups.bands.map((band) => (
-              <div key={band.key} className="hr-mband">
-                <div className="hr-bandhd"><h5>{band.label}</h5><span>{band.rows.length}</span></div>
-                {band.rows.map((g) => (
-                  <Link key={g.key} href={`/${g.key}`} className={`hr-mrow${g.played ? '' : ' zero'}`} title={`${g.name}: ${g.played} of ${g.total} days played`}>
-                    {g.img ? <img src={blueTile(g.img)} onError={tileFallback} alt="" aria-hidden="true" className="hr-mic" /> : null}
-                    <span className="hr-mnm">{g.name}</span>
-                    {/* Bar coloured by the game's own slate category, so a long
-                        column reads by category as well as by progress. One
-                        blue at fifty rows was a field of grey. */}
-                    <span className="hr-mtrack" aria-hidden="true"><i style={{ width: `${Math.max(0, Math.min(100, g.pct))}%`, background: catBlue(g.cat) }} /></span>
-                    <span className="hr-mpct">{g.pct}%</span>
-                  </Link>
-                ))}
-              </div>
-            ))
+            leadView.slice(1).map((row, i) => <CatSlip key={row.name} row={row} tone={i + 1} />)
           )}
-          {loft.ix === 0 && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
-          {loft.ix === 1 && !masteryRows.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>Play a daily puzzle and your mastery shows up here.</div> : null}
+          {!leadView && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
         </div>
         <div className="hr-foot">
           <button type="button" className="hr-exp" onClick={onAllLive}>All activity</button>
-          {/* The footer link follows the visible face. Category mastery moved
-              out to its own browse-row tile (owner, 2026-08-08), so this slot
-              now points at whichever board the reader is actually looking at. */}
-          <Link href={loft.ix === 1 ? '/quizzes/hub?tab=daily' : '/quizzes/hub?tab=player'} className="hr-link">
-            {loft.ix === 1 ? 'Daily boards' : 'Stat hub'} &rarr;
+          {/* The footer link follows the visible face, so it points at whichever
+              board the reader is actually looking at. */}
+          <Link href={leadView ? '/quizzes/hub?tab=daily' : '/quizzes/hub?tab=player'} className="hr-link">
+            {leadView ? 'Daily boards' : 'Stat hub'} &rarr;
           </Link>
         </div>
       </section>
@@ -946,6 +936,35 @@ export default function HomeRails({
         })}
       </section>
     </>
+  );
+}
+
+/* One category leader, as a hero slip. `tone` 0 is the lead slip, which the
+   Loft renders into its slab slot (so it keeps the cap-bar height); 1 and 2
+   are the pair below it, which grow to fill the body.
+
+   A category with no board yet renders the same slip reading "Nobody yet", so
+   the rotation never lands on a hole. */
+function CatSlip({ row, tone }) {
+  if (!row) return null;
+  const led = row.leader;
+  const games = `${row.games} game${row.games === 1 ? '' : 's'}`;
+  return (
+    <div
+      className={`hr-lslab hr-cls c${Math.min(tone, 2)}${led ? '' : ' open'}`}
+      style={{ '--clr': catBlue(row.name) }}
+    >
+      <div className="hr-lstxt">
+        <div className="hr-lseye">{row.name}</div>
+        <div className="hr-lsnm">{led ? led.name : 'Nobody yet'}</div>
+        <div className="hr-lssub">
+          {led
+            ? `Top across ${led.n} of ${games} · ${num(row.plays)} play${row.plays === 1 ? '' : 's'} today`
+            : `${games} · first one on the board leads it`}
+        </div>
+      </div>
+      {led ? <div className="hr-lsval"><b>{led.pts}</b><span>pts</span></div> : null}
+    </div>
   );
 }
 

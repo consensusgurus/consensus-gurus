@@ -66,6 +66,15 @@ export async function GET() {
     const cutoff12h = now - 12 * 60 * 60 * 1000;
     const cutoffToday = startOfEasternTodayUTC();
     let today = 0;
+    // Distinct PLAYERS today, guests included (owner, 2026-08-12). The Loft's
+    // live slab printed the day's plays and the day's time and nothing about how
+    // many people that was, which is the figure that says whether the site is
+    // busy or one person is on a run. Keyed the same way every other player
+    // count on the site is: the account where there is one, the browser's anon
+    // id where there is not, so a guest counts exactly once and a signed-in
+    // player is never double-counted against their own anon id. Free: this loop
+    // already walks every row, and anon_id is already in the cached columns.
+    const todayPlayers = new Set();
     let totalTime = 0;
     let todayTime = 0;
     let totalCorrect = 0;
@@ -90,7 +99,7 @@ export async function GET() {
         const t = new Date(r.created_at).getTime();
         if (t >= cutoff7) recent7[r.quiz_id] = (recent7[r.quiz_id] || 0) + 1;
         if (t >= cutoff12h) recent12h[r.quiz_id] = (recent12h[r.quiz_id] || 0) + 1;
-        if (t >= cutoffToday) { today += 1; todayByQuiz[r.quiz_id] = (todayByQuiz[r.quiz_id] || 0) + 1; if (Number.isFinite(te) && te > 0) todayTime += te; if (r.total > 0) { let a = todayAgg[r.quiz_id]; if (!a) { a = { plays: 0, sumFrac: 0, perfect: 0 }; todayAgg[r.quiz_id] = a; } a.plays += 1; a.sumFrac += (Number(r.score) || 0) / Number(r.total); if (Number(r.score) === Number(r.total)) a.perfect += 1; } }
+        if (t >= cutoffToday) { today += 1; todayByQuiz[r.quiz_id] = (todayByQuiz[r.quiz_id] || 0) + 1; if (r.user_id) todayPlayers.add(`u:${r.user_id}`); else if (r.anon_id) todayPlayers.add(`a:${r.anon_id}`); if (Number.isFinite(te) && te > 0) todayTime += te; if (r.total > 0) { let a = todayAgg[r.quiz_id]; if (!a) { a = { plays: 0, sumFrac: 0, perfect: 0 }; todayAgg[r.quiz_id] = a; } a.plays += 1; a.sumFrac += (Number(r.score) || 0) / Number(r.total); if (Number(r.score) === Number(r.total)) a.perfect += 1; } }
         const idx = Math.floor((now - t) / bucketMs);
         if (idx >= 0 && idx < TREND_MAX_BUCKETS) {
           let arr = buckets.get(r.quiz_id);
@@ -163,7 +172,7 @@ export async function GET() {
       }
       if (best) { toughest = best; break; }
     }
-    return NextResponse.json({ total: rows.length, today, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, todayByQuiz, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders, toughest }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ total: rows.length, today, todayPlayers: todayPlayers.size, totalCorrect, totalPerfect, totalTime, todayTime, byQuiz, recent7, recent12h, todayByQuiz, trendingByQuiz, trendingWindowH, leaders, leaderKeys, topLeaders, toughest }, { headers: CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ total: 0, byQuiz: {}, recent7: {}, recent12h: {}, trendingByQuiz: {}, trendingWindowH: 0, leaders: {} });
   }
