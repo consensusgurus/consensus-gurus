@@ -413,7 +413,17 @@ export default function HomeRails({
 
   const CSS = (
     <style>{`
-      .hr-panel{background:var(--white);border:1px solid #d9dfe9;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
+      /* The panel's white ground STOPS below its header (owner, 2026-08-12).
+         A square-cornered child clipped by a rounded parent double-blends at
+         the curve: the corner pixel comes out part header navy, part whatever
+         the parent paints under it, so a white panel ground surfaced as a white
+         nick on each rail cap that the centre console never showed, since
+         .dhome.slate is transparent and its .sl-bar draws its own 13px corner
+         over a border of its own fill colour (DailyStrip.jsx). Both halves of
+         that treatment are copied here: 24px of accent under the top of the
+         panel (well inside the header's 42px, so it can never surface below
+         it) and a header that carries the corner and a 1px ring of its own. */
+      .hr-panel{background:var(--white) linear-gradient(var(--accent) 0 24px,transparent 24px);border:1px solid #d9dfe9;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0;box-shadow:0 1px 2px rgba(16,24,40,.06),0 8px 20px -12px rgba(16,24,40,.28);}
       .hr-flex{flex:1 1 auto;min-height:0;}
       /* Every panel header is the SAME height across all three columns, so the
          first band of each panel (the hero slab here, the Up next bar on the
@@ -427,7 +437,7 @@ export default function HomeRails({
          the misalignment, it just clips. The slate's .sl-bar in DailyStrip.jsx
          carries the matching 43px (42 plus the 1px panel border the rails have
          above their header) and must move with this number. */
-      .hr-ph{display:flex;align-items:center;gap:9px;padding:9px 13px;min-height:42px;box-sizing:border-box;background:var(--accent);flex:none;}
+      .hr-ph{display:flex;align-items:center;gap:9px;padding:9px 13px;min-height:42px;box-sizing:border-box;background:var(--accent);flex:none;border-radius:12px 12px 0 0;box-shadow:inset 0 0 0 1px var(--accent);}
       .hr-ph h2{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);margin:0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .hr-pi{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);color:var(--white);display:flex;align-items:center;justify-content:center;flex:none;}
       /* Countdown chip in the panel header, contest only. Sits where the flip
@@ -667,6 +677,9 @@ export default function HomeRails({
          sitting as tiles inside the page gutter (owner, 2026-08-03). */
       @media(max-width:900px){
         .hr-panel{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-left:none;border-right:none;border-radius:0;box-shadow:none;}
+        /* Square panel, square cap: a 12px header corner inside a square
+           panel would put the nick back, on the other side of the curve. */
+        .hr-ph{border-radius:0;}
         .hr-tbl.cap3 tr:nth-child(n+4){display:table-row;}
         .hr-share{display:flex;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:100vw;max-width:none;}
         /* The panels butt against each other on a phone (the rail gap is zeroed
