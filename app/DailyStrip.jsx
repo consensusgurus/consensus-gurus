@@ -1504,7 +1504,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     const revealGroup = (port, grp, bi, bn) => {
       const BH = 30;
       if (!port || !GRP_ROWS[grp]) return;
-      requestAnimationFrame(() => requestAnimationFrame(() => {
+      // RUN IT TWICE, and the second pass is not belt and braces. Measured: the
+      // first landing came out exactly 30px (one band) short, because the
+      // browser clamps an assignment to scrollTop against the scroll range AS
+      // IT STANDS, and at two frames the range was still 30 short of what it
+      // settled at. Chasing the exact frame the layout finishes is a losing
+      // game, so the landing simply re-measures once more a beat later. It is
+      // idempotent: on a run that already landed, delta comes out under a pixel
+      // and nothing moves.
+      const land = () => {
         try {
           const rows = [...port.querySelectorAll(GRP_ROWS[grp])].filter((r) => !r.classList.contains('sl-hid'));
           if (!rows.length) return;
@@ -1520,7 +1528,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           // the rows it is scrolling to have only just appeared.
           if (delta > 1) port.scrollTop = Math.min(port.scrollHeight - port.clientHeight, port.scrollTop + delta);
         } catch (x) { /* older Safari: leaving the scroll alone beats throwing */ }
-      }));
+      };
+      requestAnimationFrame(() => requestAnimationFrame(() => { land(); setTimeout(land, 140); }));
     };
     // A band normally prints its own size on the right. Ready to play prints the
     // DAY instead (owner, 2026-08-08): how many of the whole slate are finished.
