@@ -43,10 +43,17 @@
 import React from 'react';
 import QuizNavHeader from './quizzes/QuizNavHeader';
 import DailySlateRail from './DailySlateRail';
+import { isLoft } from '@/lib/loft';
 
-export default function DailyChrome({ slug }) {
+export default function DailyChrome({ slug, loft: loftProp = false }) {
+  // LOFT FORMAT: drops the selector ribbon (choosing another daily belongs
+  // below the board, not above it) and hides the stat row, whose rank / IQ /
+  // played figures already live on the home page and the end card. Opt in by
+  // route (the preview passes `loft`) or by slug once a game ships on it.
+  // Every other page takes the untouched branch.
+  const loft = loftProp || isLoft(slug);
   return (
-    <div className="dch-wrap">
+    <div className={loft ? 'dch-wrap dch-loft' : 'dch-wrap'}>
       {/* STACKING: the wrapper caps the whole header group at z-index 5. The
           shared navy bar carries z-index 90 for the quiz surfaces, which on a
           daily page paints OVER the end-of-game card (its backdrop is 85) and
@@ -55,9 +62,9 @@ export default function DailyChrome({ slug }) {
           overlay on the page lands above the header, while 5 still clears the
           fixed Grain wash at z-index 1 and the page column at 2. Do not raise
           this without checking dec-backdrop in DailyEndCard. */}
-      <style>{'.dch-wrap{position:relative;z-index:5;}'}</style>
+      <style>{'.dch-wrap{position:relative;z-index:5;}' + (loft ? '.dch-loft .qchm-r2{display:none}' : '')}</style>
       <QuizNavHeader />
-      <DailySlateRail current={slug} />
+      {!loft && <DailySlateRail current={slug} />}
     </div>
   );
 }
