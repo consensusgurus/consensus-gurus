@@ -80,11 +80,6 @@ function hasMore(rows) { return (rows || []).length > ROWS_COLLAPSED; }
 // (kept local rather than imported: DailyStrip does not export them, and this is
 function num(n) { return (n || 0).toLocaleString(); }
 
-// How many category leaders one turn of the Loft's leaders face shows, counting
-// the lead slip in the slab slot. See catViews for why it is a target rather
-// than a hard size.
-const SLIPS_PER_VIEW = 5;
-
 // Two faint states only (owner, 2026-08-03): a solid green/gold/red chip column
 // read as a traffic light and pulled the eye off the feed itself.
 function scoreTone(pct) {
@@ -345,30 +340,40 @@ export default function HomeRails({
     });
   }, [dailyBoard, catList]);
 
-  // FIVE SLIPS A VIEW, so nine categories are two turns rather than three
-  // (owner, 2026-08-12). Three per view shipped first and the slips came out
-  // enormous: the body slips grow to fill the panel, so a view of three meant
-  // two of them splitting ~380px between them, ~190px each for a name and two
-  // short lines. Five (the lead slip plus four in the body) puts every body slip
-  // at roughly the lead's own 85px, which is the height the shape was drawn for.
+  // TWO FACES, AND THE LEADERS FACE WATERFALLS (owner, 2026-08-12). It went
+  // three slips a view, then five, and both were the same mistake in different
+  // sizes: splitting nine categories across two or three turns meant a reader
+  // had to wait out a whole rotation to see a category that simply was not on
+  // this turn. All nine are on the one face now, every slip the same height, and
+  // the face scrolls.
   //
-  // The chunk is computed from a VIEW COUNT rather than a fixed size, so the
-  // views stay as even as the category count allows: nine goes 5 + 4, never
-  // 5 + 5 + ... + 1. A lone slip on a tall panel is the thing to avoid.
-  const catViews = useMemo(() => {
-    if (!catLeaders.length) return [];
-    const views = Math.max(1, Math.ceil(catLeaders.length / SLIPS_PER_VIEW));
-    const per = Math.ceil(catLeaders.length / views);
-    const out = [];
-    for (let i = 0; i < catLeaders.length; i += per) out.push(catLeaders.slice(i, i + per));
-    return out;
-  }, [catLeaders]);
+  // What changes between turns is the ORDER. Each time the face comes back the
+  // list rotates by one, so the category that was second is now on top and the
+  // one that was on top has moved to the bottom. The panel is never showing the
+  // same thing twice, every category takes its turn at the top of the scroller
+  // without anyone scrolling, and the flip is back to a plain two steps.
+  const loft = useFlip(2, 8000);
+  const showLeaders = loft.ix === 1;
 
-  // The Loft's flip: face 0 is the live feed, faces 1..n are the leader views,
-  // all on the one 8s beat (owner, 2026-08-08 for the beat, 2026-08-12 for the
-  // sub-views). So a full turn is live, leaders, leaders, leaders, live.
-  const loft = useFlip(1 + catViews.length, 8000);
-  const leadView = loft.ix > 0 ? (catViews[loft.ix - 1] || null) : null;
+  // The waterfall counter. It advances when the face turns AWAY from the
+  // leaders rather than towards them, so the FIRST time the panel shows them the
+  // list is in its natural order and the shuffle only starts on the second turn.
+  // A ref for "where we just were" rather than a second piece of state: this
+  // must fire once per transition, and re-rendering to record it would fire it
+  // again.
+  const [spin, setSpin] = useState(0);
+  const wasLeaders = useRef(false);
+  useEffect(() => {
+    if (wasLeaders.current && !showLeaders) setSpin((v) => v + 1);
+    wasLeaders.current = showLeaders;
+  }, [showLeaders]);
+
+  const leadRows = useMemo(() => {
+    const n = catLeaders.length;
+    if (!n) return [];
+    const k = ((spin % n) + n) % n;
+    return catLeaders.slice(k).concat(catLeaders.slice(0, k));
+  }, [catLeaders, spin]);
 
   const playsToday = (totals && totals.today) || 0;
   // Distinct PLAYERS today, guests included, straight off /api/quiz/totals
@@ -541,14 +546,14 @@ export default function HomeRails({
          The body slips GROW: the panel is pinned to the console's height, and
          two fixed 85px bars under the lead one left a band of white above the
          footer. */
-      .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-      .hr-clbody > .hr-lslab{flex:1 1 auto;padding-top:9px;padding-bottom:9px;border-top:1px solid rgba(255,255,255,.16);}
-      /* The body slips are a STACK, so they take a size down from the lead slab
-         sitting above them: the lead is the panel's one 20px figure, exactly as
-         on the live face, and four more at that weight would be four headlines.
-         The lead keeps .hr-lslab's measured cap-bar type untouched. */
-      .hr-clbody > .hr-lslab .hr-lsnm{font-size:16px;line-height:21px;}
-      .hr-clbody > .hr-lslab .hr-lsval b{font-size:16px;}
+      /* EVERY SLIP THE SAME HEIGHT, AND THE STACK SCROLLS (owner, 2026-08-12).
+         flex:none, not flex:1: growing them to fill the panel is what produced
+         190px slabs when a view held two of them. At their natural .hr-lslab
+         height all nine are the same shape and the ones past the panel's fold
+         are one scroll away, which is the point of putting them on one face. */
+      .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow-y:auto;}
+      .hr-clbody > .hr-lslab{flex:none;}
+      .hr-clbody > .hr-lslab + .hr-lslab{border-top:1px solid rgba(255,255,255,.16);}
       .hr-cls::before{background:var(--clr,var(--blue-400));}
       .hr-cls.c0{background:var(--accent);}
       .hr-cls.c1{background:var(--blue);}
@@ -643,7 +648,7 @@ export default function HomeRails({
          slips are two fixed bars and need no cap, but they DO need a height to
          grow into once .hr-flex stops stretching them. */
       @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:360px;overflow-y:auto;}
-        .hr-clbody{min-height:170px;}}
+        .hr-scroll.hr-clbody{max-height:360px;overflow-y:auto;}}
       /* The rail pins every panel to the center console's measured height, so a
          slab plus two names left a band of white sitting above the footer
          (owner, 2026-08-08). The TABLE takes that slack rather than the scroll
@@ -836,8 +841,8 @@ export default function HomeRails({
               pill label here gets checked against the rendered header, not
               against how it reads on its own. */}
           <FlipPill
-            labels={['Live feed', ...catViews.map(() => 'Leaders')]}
-            names={['Live feed', ...catViews.map((v, i) => `Daily category leaders, view ${i + 1} of ${catViews.length}`)]}
+            labels={['Live feed', 'Leaders']}
+            names={['Live feed', 'Daily category leaders']}
             ix={loft.ix}
             setIx={loft.setIx}
             holdRef={loft.holdRef}
@@ -856,7 +861,7 @@ export default function HomeRails({
             player's name or score: the rows below already carry results without
             attribution, and promoting one person's run into a headline is a
             different thing from a live feed. */}
-        {!leadView ? (
+        {!showLeaders ? (
           <div className="hr-lslab lite">
             <div className="hr-lstxt">
               <div className="hr-lseye">Live &middot; today</div>
@@ -877,14 +882,17 @@ export default function HomeRails({
             </div>
           </div>
         ) : (
-          /* The LEAD slip of a leader view sits in the slab slot, so it keeps
-             the measured cap-bar height and the Loft's first band still starts
-             on the same line as the console's Up next bar beside it. The other
-             two slips grow to fill the body below. */
-          <CatSlip row={leadView[0]} tone={0} />
+          /* No slab on this face: its FIRST SLIP is the panel's first band, and
+             a slip IS .hr-lslab, so it carries the same measured cap-bar height
+             the slab does and the Loft still starts on the same line as the
+             console's Up next bar beside it. */
+          null
         )}
-        <div className={`hr-scroll hr-flex${leadView ? ' hr-clbody' : ' hr-actbody'}`}>
-          {!leadView ? (
+        {/* Keyed on the spin so a new turn REMOUNTS the scroller: without it the
+            list quietly keeps the scroll position from the last turn, which puts
+            the freshly promoted category off the top of its own view. */}
+        <div key={showLeaders ? `lead-${spin}` : 'live'} className={`hr-scroll hr-flex${showLeaders ? ' hr-clbody' : ' hr-actbody'}`}>
+          {!showLeaders ? (
             (lastPlayed || []).slice(0, 14).map((f, i) => {
               const frac = f.total ? f.score / f.total : 0;
               const pct = Math.round(frac * 100);
@@ -914,16 +922,16 @@ export default function HomeRails({
               );
             })
           ) : (
-            leadView.slice(1).map((row, i) => <CatSlip key={row.name} row={row} tone={i + 1} />)
+            leadRows.map((row) => <CatSlip key={row.name} row={row} tone={catList.indexOf(row.name)} />)
           )}
-          {!leadView && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
+          {!showLeaders && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
         </div>
         <div className="hr-foot">
           <button type="button" className="hr-exp" onClick={onAllLive}>All activity</button>
           {/* The footer link follows the visible face, so it points at whichever
               board the reader is actually looking at. */}
-          <Link href={leadView ? '/quizzes/hub?tab=daily' : '/quizzes/hub?tab=player'} className="hr-link">
-            {leadView ? 'Daily boards' : 'Stat hub'} &rarr;
+          <Link href={showLeaders ? '/quizzes/hub?tab=daily' : '/quizzes/hub?tab=player'} className="hr-link">
+            {showLeaders ? 'Daily boards' : 'Stat hub'} &rarr;
           </Link>
         </div>
       </section>
@@ -974,9 +982,14 @@ export default function HomeRails({
   );
 }
 
-/* One category leader, as a hero slip. `tone` 0 is the lead slip, which the
-   Loft renders into its slab slot (so it keeps the cap-bar height); 1 and 2
-   are the pair below it, which grow to fill the body.
+/* One category leader, as a hero slip. Every slip is the same object and the
+   same height, .hr-lslab, so the first one in the list can stand in for the
+   panel's slab and the rest stack under it in the scroller.
+
+   `tone` is the CATEGORY's own index, not its position in the list, so a
+   category keeps its ground colour when the list rotates. Position-based tones
+   were the first cut and made every slip change colour every eight seconds,
+   which reads as the panel redrawing itself rather than reordering.
 
    A category with no board yet renders the same slip reading "Nobody yet", so
    the rotation never lands on a hole. */
@@ -986,7 +999,7 @@ function CatSlip({ row, tone }) {
   const games = `${row.games} game${row.games === 1 ? '' : 's'}`;
   return (
     <div
-      className={`hr-lslab hr-cls c${Math.min(tone, 2)}${led ? '' : ' open'}`}
+      className={`hr-lslab hr-cls c${((tone % 3) + 3) % 3}${led ? '' : ' open'}`}
       style={{ '--clr': catBlue(row.name) }}
     >
       <div className="hr-lstxt">
