@@ -944,10 +944,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // makes the DOM position and the grid position disagree.
   const capCol1 = (i) => ((capOpen ? i : capFixed + i) % 2 === 0);
   const capShownN = capStateShown.length;
-  // What the expander has left to offer, counted per kind off the same two
-  // lists the cards are drawn from, so the bar can never disagree with them.
-  const capHidden = capState.slice(CAP_STATE_MAX).reduce(
-    (a, c) => { a[c.kind] += 1; return a; }, { prog: 0, fail: 0 });
   // Desktop runs the cap two cards to a row, so an ODD total would leave a
   // half-width hole beside the last card: it takes the full width instead. With
   // four cards this never fires; it is the backstop for the states that cannot
@@ -1469,10 +1465,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     const peekOf = (grp) => {
       if (grp === 'dn') return 0;
       if (filter !== 'all') return Infinity;
-      // Shut on a phone, open on desktop. Infinity rather than a count, so on
-      // desktop no row carries sl-hid and the band renders as a plain label
-      // instead of a chevron that would toggle nothing.
-      if (grp === 'prog' || grp === 'fail') return phone ? 0 : Infinity;
+      // SHUT AT EVERY WIDTH (owner, 2026-08-12), where desktop used to return
+      // Infinity and list these rows inline under a band that was a plain
+      // label. That was the other half of the cap's expander: with two ways to
+      // reach a paused game the cap grew a bar for it, and now that the bar is
+      // gone the band has to be able to open the group itself. Every populated
+      // group is its own expander, and the row you want sits directly under the
+      // band that names it. A filter is still the exception above: it shows
+      // every row with no lid anywhere.
+      if (grp === 'prog' || grp === 'fail') return 0;
       return todoPeek;
     };
     const toggle = (grp) => setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }));
@@ -2008,6 +2009,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-play:hover{background:var(--cta-hover);}
         /* The cap's expand bar. Same object as the board's group bars, spanning
            the cap's columns at the foot of the paused cards. */
+        /* DEAD SINCE 2026-08-12: nothing renders .dh-cmore any more (the cap's
+           expander moved to the bands at the foot of the board). Kept only
+           because the fit effect still looks the bar up by class and treats
+           its absence as "the block can never open"; delete both together. */
         .dh-cmore{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
           padding:7px 13px;border:0;border-top:2px solid #c2ccdc;border-bottom:2px solid #c2ccdc;border-radius:0;
           background:#e8edf5;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.08em;
@@ -2777,7 +2782,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              six-row budget, and desktop deliberately lists every one of those.
              Three classes, because the base sl-row display:grid rule sits later
              in this stylesheet and would otherwise win. */
-          .dh-board.slate .sl-row.done.sl-hid,.dh-board.slate .sl-drawer.done.sl-hid{display:none;}
+          /* In progress and Incomplete today joined it 2026-08-12, when their
+             bands became expanders too. Still NOT a bare .sl-hid: the same
+             class marks the Ready-to-play rows outside the PHONE's six-row
+             budget, and desktop deliberately lists every one of those. */
+          .dh-board.slate .sl-row.done.sl-hid,.dh-board.slate .sl-drawer.done.sl-hid,
+          .dh-board.slate .sl-row.inprog.sl-hid,.dh-board.slate .sl-drawer.inprog.sl-hid,
+          .dh-board.slate .sl-row.fail.sl-hid,.dh-board.slate .sl-drawer.fail.sl-hid{display:none;}
           /* Each width prints its own count on the CAP's expand bar (the board's
              own bar is phone-only now, so this pair serves the cap alone). */
           .sl-mtxt.p{display:none;}
@@ -3330,39 +3341,19 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             {capLeadIn.map((c) => capLeadCard(c, false))}
           </div>
         ) : null}
-        {/* One bar for the whole cap, spanning both columns at the foot of the
-            cards. One count now, not one per width: the cut is the same two at
-            every width, so there is nothing left for the two labels to say
-            differently. */}
-        {capState.length > CAP_STATE_MAX ? (
-          <button
-            type="button"
-            className="dh-cmore"
-            onClick={() => setCapOpen((v) => !v)}
-            aria-expanded={capOpen}
-          >
-            {capOpen
-              ? <>Show fewer <ChevronUp size={12} strokeWidth={2.8} /></>
-              : <>
-                  {/* The bar NAMES what is still hidden rather than counting it
-                      (owner, 2026-08-09): "1 more" told you nothing about what
-                      kind of thing was under the lid. Each figure carries its
-                      own card's colour, gold for paused and red for incomplete,
-                      so the count and the word it belongs to read as one piece
-                      and the word "Show" stays out of the way in ink. A kind
-                      with nothing hidden is not named at all. */}
-                  Show{' '}
-                  {capHidden.prog ? (
-                    <b className="dh-cmp">{capHidden.prog} in progress</b>
-                  ) : null}
-                  {capHidden.prog && capHidden.fail ? <span className="dh-cmd"> &middot; </span> : null}
-                  {capHidden.fail ? (
-                    <b className="dh-cmf">{capHidden.fail} incomplete</b>
-                  ) : null}
-                  <ChevronDown size={12} strokeWidth={2.8} />
-                </>}
-          </button>
-        ) : null}
+        {/* NO EXPANDER ON THE CAP (owner, 2026-08-12). The cap used to grow a
+            "Show N in progress / N incomplete" bar the moment a third state
+            card existed, so the console carried TWO ways to reach the same
+            games: that bar, and the bands at the foot of the board. The bands
+            win, because they sit with the rows they open and every group has
+            one. The cap keeps its two cards and says nothing about the rest;
+            In progress and Incomplete today below list every one of them.
+
+            capOpen and the .dh-cprog scroller it drives are deliberately left
+            in place rather than torn out: nothing sets capOpen now, so the
+            block simply stays shut, and the fit effect already handles a
+            missing bar (it removes --cap-pmax and stops bounding a block that
+            can never open). */}
       </div>
 
       {/* overall daily leaderboard (toggled) */}
