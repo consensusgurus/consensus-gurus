@@ -2031,8 +2031,17 @@ pair keeps its two navy tones; the paused cards take the slate's gold (`var(--go
 - **A paused card is ONE link**, the whole card, with the Resume button as a `<span>` inside it
   (never a nested `<a>`). Up next and Easiest are excluded from the paused list, since they are
   frequently paused games themselves and already have a card.
-- **An odd number of showing cards makes the last one full width** (`.capw`), or the desktop grid
-  leaves a hole beside it.
+- **NO CARD IS EVER WIDENED: the cap pays for parity with a card, not with width** (owner,
+  2026-08-11). An odd count used to leave the last card spanning both columns, and a lone banner
+  where a card should be reads as a bug rather than a layout. SHUT, the lead cards already held the
+  grid at four. OPEN they had stepped aside entirely, so three paused games gave five cards and the
+  third one stretched. Now `want` in `capLead` is parity-driven when open: an odd block brings ONE
+  lead card back, and it renders INSIDE the block as its last tile (`capLeadIn`), not above it,
+  because the open block is its own grid and a card above would be the odd one on the fixed row
+  instead. Three paused games therefore read three blue over three gold, every card the same size;
+  shut is unchanged at four. `.capw` stays as the backstop for a state that cannot reach an even
+  number (no lead game left to draw on), and `capOddD` counts the in-block card so it never
+  misfires.
 - **Every card's button is `flex:0 0 <width>`, not a bare `width`**: as a flexible item a long name
   or sub line squeezed its own control and the cards came out visibly unequal.
 - **`.dhome.slate .dh-sbar` carries `border:none` above 900px.** Its 1.5px grey SIDE borders were an
