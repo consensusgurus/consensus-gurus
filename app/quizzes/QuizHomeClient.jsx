@@ -1803,7 +1803,7 @@ export default function QuizHomeClient() {
        they never needed one against white. They get the same white sheet
        every other block on this page already has. */
     .qzh .qz-empty{padding:18px 2px;font-size:14px;color:${C.soft};}
-    .qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:15px 18px;box-shadow:0 10px 30px rgba(6,12,30,0.34);}
+    .qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{background:var(--white);border:0;border-radius:14px;padding:15px 18px;box-shadow:0 10px 30px rgba(6,12,30,0.34);}
     /* CategoryFull is a <section> whose own head bar must stay flush to the top
        of the sheet, so the sheet carries no padding and the list inside does. */
     .qzh > section{padding:0;overflow:hidden;}
@@ -1814,16 +1814,25 @@ export default function QuizHomeClient() {
        stat bar goes transparent, and a shadow on nothing is a floating rectangle. */
     .qzh .catcard,.qzh .qz-toolrow,.qzh .hr-panel{box-shadow:0 10px 30px rgba(6,12,30,0.34);}
     /* ...and they carry NO outline, because a 1px hairline meant to separate a
-       white card from a white page reads as a white RING against the ground
-       (owner, 2026-08-12: the rails had one and the console in the middle never
-       did, so the three columns did not match). Only the border COLOUR goes
-       transparent, not the border itself, so nothing reflows by the 1px the box
-       occupies and the card's own white fills it (background-clip is border-box
-       by default). Outer edges only: every inner divider is untouched, which is
-       why this lists the card roots by name rather than sweeping descendants.
-       .hr-panel belongs to HomeRails and is scoped under .qzh on purpose, so
-       the rails keep their outline anywhere else they are used. */
-    .qzh .hr-panel,.qzh .qz-toolrow,.qzh .catcard,.qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{border-color:transparent;}
+       white card from a white page reads as a ring against the ground (owner,
+       2026-08-12: the rails had one and the console in the middle never did, so
+       the three columns did not match).
+
+       IT HAS TO BE `border:0`, NOT `border-color:transparent`. The transparent
+       version was tried first, to avoid reflowing by the 1px the border box
+       occupies, and it made the ring WORSE: background-clip defaults to
+       border-box, so the card's own white background paints straight through a
+       transparent border and a grey ring became a WHITE one. Removing the
+       border outright is the fix, and the 1px it gives back is free here since
+       every one of these is sized by its grid track or by the page width, not
+       by its own content.
+
+       Outer card roots only, listed by name rather than swept: every inner
+       divider (.hr-foot, the row hairlines, the section rules inside the
+       leaderboard stack) still needs its line. .hr-panel belongs to HomeRails
+       and is scoped under .qzh on purpose, so the rails keep their outline
+       anywhere else they render. */
+    .qzh .hr-panel,.qzh .qz-toolrow,.qzh .catcard{border:0;}
     /* The footer component is shared with every LIGHT page on the site, so it is
        re-inked HERE rather than in Footer.jsx. Its colours are inline styles,
        which is why these need !important. */
