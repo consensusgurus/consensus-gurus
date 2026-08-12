@@ -12,8 +12,13 @@
 //
 // Fetched fresh: the cached daily-me answer can predate the finish that just
 // happened on this page, which is the case dailyMeClient's own comment warns of.
+//
+// Use DAILY_GAMES, the EXPORTED registry, which also drops retired games. The
+// first cut imported ALL_DAILY_GAMES, which is module-private, so the import was
+// undefined, .find threw inside the .then, and the catch swallowed it: the row
+// simply never appeared. Hence the catch now logs instead of going quiet.
 import { useEffect, useState } from 'react';
-import { ALL_DAILY_GAMES } from './DailyEndCard';
+import { DAILY_GAMES } from './DailyEndCard';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
 export default function useNextUnplayed({ self = null, active = false }) {
@@ -26,12 +31,12 @@ export default function useNextUnplayed({ self = null, active = false }) {
         if (!alive) return;
         const per = (d && d.perGame) || {};
         const played = (k) => !!(per[k] && !per[k].abandoned);
-        const mine = ALL_DAILY_GAMES.find((g) => g.key === self) || null;
-        const open = ALL_DAILY_GAMES.filter((g) => g.key !== self && !played(g.key));
+        const mine = DAILY_GAMES.find((g) => g.key === self) || null;
+        const open = DAILY_GAMES.filter((g) => g.key !== self && !played(g.key));
         const sameCat = mine ? open.filter((g) => g.cat === mine.cat) : [];
         setNext(sameCat[0] || open[0] || null);
       })
-      .catch(() => {});
+      .catch((e) => { if (typeof console !== 'undefined') console.warn('useNextUnplayed', e); });
     return () => { alive = false; };
   }, [self, active]);
   return next;
