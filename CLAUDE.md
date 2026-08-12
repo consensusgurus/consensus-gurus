@@ -2149,6 +2149,42 @@ the component. The quiz-home header CTA itself is gold (`.qchm-bt.qchm-gold`) an
 `lib/home-blues.js`), and keep every rule inside the media query. A mock-up of the three
 directions considered lives at `mobile-home-mockups.html` in the repo root.
 
+## Desktop slate: the open panel owns the console, and no band ever hides (owner, 2026-08-12)
+
+Three rules for `app/DailyStrip.jsx` above 901px. All three live in the `@media(min-width:901px)`
+slate block; the phone slate (`<=900px`) is untouched by every one of them.
+
+**The open panel fills `.dhome`, not the board window.** `.dtp` (`app/DailyTilePanel.jsx`) is
+`position:absolute;inset:0;overflow:hidden`, so it fills its nearest POSITIONED ancestor and clips
+the rest. On the slate that ancestor was `.dh-vp`, whose height is the MEASURED `--dh-fit`, and the
+panel is taller than that at every desktop size, so the foot of the record chart was simply cut off
+with no way to reach it. `.dhome.slate .dh-boardwrap,.dh-vpwrap,.dh-vp{position:static}` hands the
+panel `.dhome` instead, which is the same box the TILE board's panel has always filled (one expanded
+console, one Play button, 2026-07-29), and adds the title band, the cap and the filter strip to its
+height: 723px against the board's 472px. All three wrappers are positioned only for tile-board
+furniture (`.dh-vp.on`'s translateY window and the `.dh-more` pager), and BOTH are gated on `!slate`
+in the JSX, so nothing at this width loses a containing block. `overflow:auto` on the slate panel is
+the backstop for a short viewport, and `.dtp-grid{flex:1 1 auto}` (slate only) spends the extra
+height on the record chart and the standings rather than leaving ~150px of white under the calendar.
+
+**The panel is FLUSH at the top.** `border-radius:0 0 13px 13px`. It starts on the console's own top
+edge now, and a 13px radius there read as a card floating inside the console rather than as the
+console. The bottom keeps the radius, because that IS the console's bottom edge.
+
+**Every group band stays visible, at whichever edge it belongs to.** `top:0` alone only pinned a band
+once you had scrolled PAST it, so Complete today, last in the flow, sat ~1,370px down a 472px port:
+the group you most often want was the one you had to go looking for. Each band now carries a sticky
+TOP offset of the bands above it and a sticky BOTTOM offset of the bands below it, so passed groups
+stack at the top and coming groups stack at the bottom, all legible and all clickable (the band is
+its group's toggle). The offsets are
+`top:calc(var(--bi) * var(--bh));bottom:calc((var(--bn) - 1 - var(--bi)) * var(--bh))`, where `--bh`
+is the band height (30px, keep it in step with the band's padding and type size) and `--bi` / `--bn`
+are the band's index and the RENDERED band count, set as inline custom properties by `renderSlate`.
+They are passed rather than hardcoded per class because an absent group must not hold room: with only
+Ready to play and Complete today on the board, the green band pins flush to the bottom edge. Add a
+band by adding it to the `bandSpec` array, which is filtered to non-empty groups and then indexed, so
+the offsets stay correct on their own.
+
 ## Direction B finished: the stats drawer, the Loft and Featured (owner-approved 2026-08-10)
 
 The three elements that were still on the pre-direction-B look. Mock-ups of the options considered
