@@ -21,7 +21,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function LoftCap({
   name,
-  outcome = null,     // null while playing, then 'won' or 'lost': the cap states the result
+  outcome = null,     // null while playing, then 'won' | 'part' | 'lost'
   cat = '',
   num = null,
   dateLabel = '',
@@ -47,6 +47,11 @@ export default function LoftCap({
 .lcap-won .lcap-eb,.lcap-won .lcap-k{color:#b9f0d0}
 .lcap-lost{background:var(--danger)}
 .lcap-lost .lcap-eb,.lcap-lost .lcap-k{color:#f6cfc9}
+/* An intermediate result is neither: amber. It uses the DEEP gold rather than
+   the flat one, because the cap's text is white and white on var(--gold) is
+   unreadable. */
+.lcap-part{background:var(--gold-ink)}
+.lcap-part .lcap-eb,.lcap-part .lcap-k{color:#ffe9a8}
 .lcap-id{flex:1;min-width:0;padding:8px 12px}
 .lcap-eb{display:block;font-weight:800;font-size:11.5px;line-height:1;letter-spacing:.13em;
   text-transform:uppercase;color:var(--blue-200);margin-bottom:4px}

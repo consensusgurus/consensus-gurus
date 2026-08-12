@@ -1082,9 +1082,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         <LoftCap
           name="Crux"
           cat="Word"
-          outcome={playing ? null : (won ? 'won' : 'lost')}
+          outcome={playing ? null : (won ? 'won' : (endScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved'))}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [
