@@ -6,6 +6,7 @@ import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
+import { isEndGameQuizId, endGamePlan } from '@/lib/daily-games';
 import { GAME_PUZZLES, etTodayServer, suffixOfDate, gamesForSuffix } from '@/lib/daily-slate';
 
 // The day's slate (which puzzle each game published on a date) lives in
@@ -178,17 +179,29 @@ async function scoreFeudLive(puzzle, cutoffMs) {
 
 // The guest's single chosen row for a game (their anon rows only), mirroring
 // scoreGame's selection: a completed attempt beats an abandoned one, then the
-// first attempt (lowest id) wins. Returns null when the guest has no row.
-function chooseGuestRow(rows, anonId) {
+// first attempt (lowest id) wins. Returns { row, eg } so guestProvisional can
+// place an End Game guest on the same tier/attempts order the board uses, or
+// null when the guest has no row. `eg` is null on every other game.
+function chooseGuestRow(rows, anonId, quizId) {
+  const mine = (rows || []).filter((r) => r && !r.user_id && r.anon_id === anonId);
+  if (!mine.length) return null;
+  // END GAME: the run the win landed on represents them, and its attempt number
+  // is what the board ranks, so the same plan the scoring uses picks it here
+  // rather than a second copy of the rule. Attempt numbers are per player, so
+  // running the plan over the guest's own rows is the whole computation.
+  if (isEndGameQuizId(quizId)) {
+    const plan = endGamePlan(mine);
+    for (const r of mine) if (plan.chosen.has(r)) return { row: r, eg: plan.info.get(r) || null };
+    return null;
+  }
   let chosen = null;
-  for (const r of (rows || [])) {
-    if (!r || r.user_id || r.anon_id !== anonId) continue;
+  for (const r of mine) {
     if (!chosen) { chosen = r; continue; }
     const rDone = !r.abandoned, cDone = !chosen.abandoned;
     if (rDone !== cDone) { if (rDone) chosen = r; continue; }
     if ((r.id || 0) < (chosen.id || 0)) chosen = r;
   }
-  return chosen;
+  return chosen ? { row: chosen, eg: null } : null;
 }
 
 export async function GET(request) {
@@ -330,7 +343,7 @@ export async function GET(request) {
     if (!me && anonId) {
       const guestByGame = new Map();
       for (const g of games) {
-        const gr = chooseGuestRow(rowsByQuiz.get(g.quizId) || [], anonId);
+        const gr = chooseGuestRow(rowsByQuiz.get(g.quizId) || [], anonId, g.quizId);
         if (gr) guestByGame.set(g.key, gr);
       }
       if (guestByGame.size) meProvisional = guestProvisional(guestByGame, gameResults, overallFull, dayBestN);
@@ -372,6 +385,11 @@ export async function GET(request) {
           score: p.score,
           total: p.total,
           guessesUsed: p.guessesUsed,
+          // Attempts to solve, and the tier that attempt reached. End Game only
+          // (null elsewhere); the board panel prints it in place of the per-run
+          // error count, which is no longer what the ranking turns on.
+          tries: p.tries ?? null,
+          egTier: p.egTier ?? null,
           timeElapsed: p.timeElapsed,
           points: Math.round(p.points * 10) / 10,
           completion: Math.round(p.completion * 10) / 10,

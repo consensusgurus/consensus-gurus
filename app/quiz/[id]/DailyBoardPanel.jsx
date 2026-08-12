@@ -425,7 +425,16 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
                             <span className="nm">{r.username || '—'}{mine ? <span className="you"> (you)</span> : null}</span>
                             <span className="num">{scoreUnit ? r.score : <>{r.score}/{r.total}</>}</span>
                             <span className="num">{fmtTime(r.timeElapsed)}</span>
-                            {missLabel ? <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span> : null}
+                            {/* END GAME prints TRIES here (owner, 2026-08-12).
+                                Its registry label is 'Tries' and its rows carry
+                                the attempt the solve landed on, which is what
+                                the board now ranks on; the per-run error count
+                                it used to show no longer decides anything. A
+                                run that never solved has no attempt number to
+                                report, so it reads as a dash. Every other game
+                                has no `tries` and falls through to guessesUsed
+                                exactly as before. */}
+                            {missLabel ? <span className="num">{r.tries != null ? r.tries : (r.egTier != null ? '—' : (r.guessesUsed == null ? '—' : r.guessesUsed))}</span> : null}
                             <span className="pts">{fmtNum(r.points)}</span>
                           </div>
                         );

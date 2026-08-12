@@ -29,7 +29,13 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
   // wrong label for misses (a 0 next to a finished game read as broken), so
   // the same data comes back under an honest name. Rank score -> misses -> time.
   if (wordsCol) lb = lb.slice().sort((a, b) => b.score - a.score || ((a.guessesUsed ?? 1e9) - (b.guessesUsed ?? 1e9)) || ((a.timeElapsed ?? 0) - (b.timeElapsed ?? 0)));
-  const hasGuesses = !wordsCol && lb.some((r) => r.guessesUsed != null);
+  // An End Game board prints the attempt the solve landed on in this column
+  // instead of the per-run error count, and its caller passes guessLabel
+  // 'Tries'. A run that never solved has no attempt number to report and reads
+  // as a dash; `egTier` is what tells those two cases apart.
+  const endgame = lb.some((r) => r.egTier != null);
+  const missOf = (r) => (endgame ? (r.tries != null ? r.tries : '\u2014') : (r.guessesUsed != null ? r.guessesUsed : '\u2014'));
+  const hasGuesses = !wordsCol && (endgame || lb.some((r) => r.guessesUsed != null));
   const gridClass = hasGuesses ? 'qlb-grid' : wordsCol ? 'qlb-grid6' : undefined;
   const gridCols = '40px 1fr 76px 64px';
   // Words untangled: new rows post it as `correct`; older rows fall back to
@@ -40,7 +46,11 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
   // titles, so a deeper loss and a shallower one at the same score and clock
   // are genuinely different runs and must not share a rank number. It is null
   // everywhere else, so every other board reads exactly as before.
-  const samePerf = (x, y) => x.score === y.score && (x.progress ?? null) === (y.progress ?? null) && x.timeElapsed === y.timeElapsed;
+  // `tries` joins it for the same reason (owner, 2026-08-12): on an End Game
+  // board the attempt the solve landed on is what the ranking turns on, so two
+  // players who both solved at the same score and clock but on different runs
+  // are not tied. Null everywhere else, so every other board is unchanged.
+  const samePerf = (x, y) => x.score === y.score && (x.tries ?? null) === (y.tries ?? null) && (x.progress ?? null) === (y.progress ?? null) && x.timeElapsed === y.timeElapsed;
   const lbRanks = [], lbTied = [];
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && samePerf(lb[i], lb[i - 1]); lbRanks[i] = p ? lbRanks[i - 1] : i + 1; }
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && samePerf(lb[i], lb[i - 1]); const n = i < lb.length - 1 && samePerf(lb[i], lb[i + 1]); lbTied[i] = p || n; }
@@ -69,7 +79,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
       ) : (
         <div>
           <div className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
-            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>{wordsCol ? 'Score' : 'Correct'}</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>{guessLabel}</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Words</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Misses</span> : null}<span className={gridClass ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
+            <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>{wordsCol ? 'Score' : 'Correct'}</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>{endgame ? 'Tries' : guessLabel}</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Words</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Misses</span> : null}<span className={gridClass ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
           </div>
           {lb.map((row, i) => { const mine = identity && row.username === identity.username; return (
             <div key={i} className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : T.white, borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
@@ -79,7 +89,7 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
                 {row.playedAt ? <span style={{ fontFamily: FONT, fontSize: 10.5, color: C.faded }}>{fmtWhen(row.playedAt)}</span> : null}
               </span>
               <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
-              {hasGuesses ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{row.guessesUsed != null ? row.guessesUsed : '\u2014'}</span> : null}
+              {hasGuesses ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{missOf(row)}</span> : null}
               {wordsCol ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{wordsOf(row)}/{wordsCol.total}</span> : null}
               {wordsCol ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{row.guessesUsed != null ? row.guessesUsed : '\u2014'}</span> : null}
               <span className={gridClass ? 'qlb-time' : undefined} style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{fmtTime(row.timeElapsed)}</span>

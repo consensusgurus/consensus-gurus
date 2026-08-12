@@ -268,7 +268,7 @@ const ALL_DAILY_GAMES = [
   { key: 'deep',   cat: 'trivia',    name: 'Deep',   tag: 'One topic, fifteen questions', blurb: 'One subject a day, fifteen questions on it, easy to expert. One wrong answer ends the dive.', href: '/deep' },
   { key: 'anon',  cat: 'word',       name: 'Anon',   tag: 'A clueless acrostic',    blurb: "An unsigned passage and a bank of answers built from its letters. Solve them, and their first letters spell out who wrote it.", href: '/anon' },
   { key: 'feud',   cat: 'crowd',     name: 'Feud',   tag: 'Match the crowd',            blurb: 'Name the answers real players gave most often. The most popular answers pay the most.', href: '/feud' },
-  { key: 'babel',  cat: 'endgame',   name: 'Babel',  tag: 'The bag is empty',           blurb: 'A word tile game picked up at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
+  { key: 'babel',  cat: 'word',      name: 'Babel',  tag: 'The bag is empty',           blurb: 'A word tile game picked up at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
   { key: 'hands',  cat: 'cards',     name: 'Hands',  tag: 'The daily poker solitaire', blurb: 'Cards come one at a time into a grid where every row and column scores as a poker hand. Same deal for everybody, so it is decisions and not luck.', href: '/hands' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       blurb: 'Test examples against a secret rule and name the rule before your guesses run out.', href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", blurb: 'Work out the answer purely from what each player admits they cannot yet tell.', href: '/hearsay' },
@@ -948,6 +948,9 @@ export default function DailyEndCard({
       return rows.map((r) => ({
         rank: r.rank, name: r.username, val: fmtPts(r.points), me: !!(myKey && r.userKey === myKey),
         score: r.score, total: r.total, timeElapsed: r.timeElapsed, guessesUsed: r.guessesUsed, points: r.points,
+        // End Game only: the attempt the solve landed on, and its tier. Null
+        // elsewhere, so the misses column below is unchanged on every other game.
+        tries: r.tries ?? null, egTier: r.egTier ?? null,
       }));
     }
     if (which === 'alltime') {
@@ -2224,7 +2227,13 @@ export default function DailyEndCard({
                         <span className="nm">{r.name || '—'}</span>
                         <span className="num">{r.score == null ? '—' : (scoreUnit ? r.score : <>{r.score}/{r.total}</>)}</span>
                         <span className="num">{fmtTime(r.timeElapsed)}</span>
-                        {missLabel ? <span className="num">{r.guessesUsed == null ? '—' : r.guessesUsed}</span> : null}
+                        {/* END GAME prints TRIES here (owner, 2026-08-12): its
+                            registry label is 'Tries' and its board ranks on the
+                            attempt the solve landed on, not on the per-run error
+                            count. A run that never solved has no attempt number
+                            to report and reads as a dash. Mirrors the same cell
+                            in DailyBoardPanel. */}
+                        {missLabel ? <span className="num">{r.tries != null ? r.tries : (r.egTier != null ? '—' : (r.guessesUsed == null ? '—' : r.guessesUsed))}</span> : null}
                         <span className="pts">{fmtNum(r.points)}</span>
                       </div>
                     ))}

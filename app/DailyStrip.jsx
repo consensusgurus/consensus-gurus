@@ -96,7 +96,7 @@ const GAMES = [
   { key: 'fib', href: '/fib', name: 'Fib', img: '/games/btn-fib.png', store: 'sot_fib_day', tag: "One clue is lying" , cat: 'Logic' },
   { key: 'streak', href: '/streak', name: 'Streak', img: '/games/btn-streak.png', store: 'sot_streak_day', tag: "Forty questions, one life" , cat: 'Trivia' },
   { key: 'feud', href: '/feud', name: 'Feud', img: '/games/btn-feud.png', store: 'sot_feud_day', tag: "Match the crowd" , cat: 'Crowd Psychology' },
-  { key: 'babel', href: '/babel', name: 'Babel', img: '/games/btn-babel.png', store: 'sot_babel_day', tag: "The bag is empty" , cat: 'End Game' },
+  { key: 'babel', href: '/babel', name: 'Babel', img: '/games/btn-babel.png', store: 'sot_babel_day', tag: "The bag is empty" , cat: 'Word' },
   { key: 'hands', href: '/hands', name: 'Hands', img: '/games/btn-hands.png', store: 'sot_hands_day', tag: "The daily poker solitaire" , cat: 'Cards' },
   { key: 'chain', href: '/chain', name: 'Chain', img: '/games/btn-chain.png', store: 'sot_chain_day', tag: "Take them, or leave them" , cat: 'End Game' },
   { key: 'turn', href: '/turn', name: 'Turn', img: '/games/btn-turn.png', store: 'sot_turn_day', tag: "Ten squares left" , cat: 'End Game' },
@@ -2626,12 +2626,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-pl{order:3;display:block;text-align:right;line-height:1;min-width:38px;}
           .sl-pl b{display:block;font-size:13px;font-weight:800;color:var(--ink);}
           .sl-pl i{display:block;font-style:normal;font-size:8px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:3px;}
-          /* A finished row has a score to report, so its chip is permanent and
-             takes the figure's place rather than waiting for a hover. */
-          /* An invisible button still takes clicks, so Play is inert until it
+          /* EVERY STATE ROW CARRIES THE CROWD SIZE, AND EVERY CHIP WAITS FOR A
+             HOVER (owner, 2026-08-12). The count used to belong to Ready to play
+             alone: a finished row hid it behind a permanent score chip, an
+             incomplete one behind Retry, and a paused one behind Resume. So the
+             one column the slate reads down, "how many people are on this
+             today", had holes in it wherever you had actually played, which is
+             exactly where you are most likely to be looking. The figure is the
+             resting state on all four groups now and the chip is what the hover
+             swaps in, which is the model Ready to play already used. The score
+             is not lost: it is the chip, one hover away, and it is also the
+             first thing in the row's drawer. */
+          /* An invisible button still takes clicks, so a chip is inert until it
              is actually showing. */
           .sl-status{position:absolute;right:13px;top:50%;transform:translateY(-50%);z-index:2;opacity:0;pointer-events:none;}
-          .sl-row.done .sl-status{opacity:1;pointer-events:auto;}
           /* DONE TODAY IS SHUT AT THIS WIDTH TOO (owner, 2026-08-08). Its band
              is the toggle, so the rows it hides have to actually hide here as
              well; until now sl-hid only meant anything below 900px and the
@@ -2650,11 +2658,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              the board: the same card twice on one screen, and a row that shouted
              where the group it sits in is a quiet list. It keeps the ordinary
              row's shape and columns now, and says what it is with the base
-             amber ground and the gold left rule instead. Its Resume chip is the
-             one control that does NOT wait for a hover, since resuming is the
-             reason you scrolled to it. */
-          .sl-row.inprog .sl-status,.sl-row.fail .sl-status,.sl-row.sun .sl-status{opacity:1;pointer-events:auto;}
-          .sl-row.inprog .sl-pl,.sl-row.done .sl-pl,.sl-row.fail .sl-pl{visibility:hidden;}
+             amber ground and the gold left rule instead. Its Resume chip WAITED
+             on no hover until 2026-08-12, when the owner put the crowd size back
+             on every state row: the chip is now the hover state here too, like
+             Play, Retry and the score chip. The gold rule and ground are what
+             say the game is paused, and they need no hover to be read. */
+          /* The Sunday Editions tab is a plain list of links rather than the
+             state slate, so its rows keep a permanent chip: there is no count to
+             give way to and nothing about them to hover for. */
+          .sl-row.sun .sl-status{opacity:1;pointer-events:auto;}
           /* The chip reads RESUME here rather than a bare triangle, so it sits
              in the same 64px shape as the Play chip on every row above it. */
           .sl-row.inprog .sl-rz{display:inline;}
@@ -2662,8 +2674,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .sl-btn{width:64px;}
         }
         @media(min-width:901px) and (hover:hover){
-          .sl-row:not(.done):hover .sl-status{opacity:1;pointer-events:auto;}
-          .sl-row:not(.done):hover .sl-pl{opacity:0;pointer-events:none;}
+          /* No :not(.done) any more: a finished row trades its count for its
+             score chip on hover exactly like every other row trades it for
+             Play, Retry or Resume. */
+          .sl-row:hover .sl-status{opacity:1;pointer-events:auto;}
+          .sl-row:hover .sl-pl{opacity:0;pointer-events:none;}
         }
         /* ── phone slate: direction B (owner-approved 2026-08-07) ──────────
            Replaces the 2026-08-03 phone row (icon plate, category beside the

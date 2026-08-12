@@ -79,7 +79,12 @@ function mmss(sec) {
 function gameStats(r) {
   if (!r || r.score == null || !r.total) return null;
   const bits = [r.score + '/' + r.total];
-  if (r.guessesUsed > 0) bits.push(r.guessesUsed + (r.guessesUsed === 1 ? ' guess' : ' guesses'));
+  // END GAME rows report the attempt the solve landed on (owner, 2026-08-12),
+  // which is what their board ranks on; the per-run error count no longer
+  // decides anything there. `tries` is null on every other game, which falls
+  // through to the guess count exactly as before.
+  if (r.tries != null) bits.push(r.tries + (r.tries === 1 ? ' try' : ' tries'));
+  else if (r.guessesUsed > 0) bits.push(r.guessesUsed + (r.guessesUsed === 1 ? ' guess' : ' guesses'));
   const clock = mmss(r.timeElapsed);
   if (clock) bits.push(clock);
   return bits.join(' \u00b7 ');

@@ -222,6 +222,11 @@ export async function GET(request) {
           score: p.score,
           total: p.total,
           guessesUsed: p.guessesUsed,
+          // Attempts to solve, and the tier that attempt reached. End Game only
+          // (null elsewhere); the board panel prints it in place of the per-run
+          // error count, which is no longer what the ranking turns on.
+          tries: p.tries ?? null,
+          egTier: p.egTier ?? null,
           timeElapsed: p.timeElapsed,
           points: Math.round(p.points * 10) / 10,
         })),

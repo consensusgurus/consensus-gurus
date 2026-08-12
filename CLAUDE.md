@@ -2012,9 +2012,23 @@ pair keeps its two navy tones; the paused cards take the slate's gold (`var(--go
   three-way partition: untouched, paused, finished) and they render as ORDINARY rows with faint
   shading, the base `#fffaeb` ground plus the gold left rule, never the cap's gold card: that shape
   is already on screen directly above the board, and repeating it made the same card twice on one
-  page. Their Resume chip is the one desktop control that does not wait for a hover. Appearing in
-  both the cap and the slate is deliberate, the cap promotes the first two and the slate is the
-  copy you can always scroll to.
+  page. Their Resume chip WAITED on no hover until 2026-08-12, when the owner put the crowd size
+  back on every state row (see the next bullet); it is a hover state now like every other chip.
+  Appearing in both the cap and the slate is deliberate, the cap promotes the first two and the
+  slate is the copy you can always scroll to.
+- **EVERY STATE ROW CARRIES THE `# PLAYING` FIGURE, AND EVERY CHIP WAITS FOR A HOVER** (owner,
+  2026-08-12). The crowd size used to belong to Ready to play alone: a finished row hid it behind a
+  permanent score chip, an incomplete one behind Retry, and a paused one behind Resume. So the one
+  column the slate is read DOWN, "how many people are on this today", had holes in it exactly where
+  you had already played, which is where you are most likely to be looking. The figure is the
+  resting state on all four groups now and the chip is what the hover swaps in, which is the model
+  Ready to play already used. Nothing is lost: the score is the chip, one hover away, and it is also
+  in the row's drawer. Three rules in the `min-width:901px` block carry it, and they are the ones to
+  look at if this ever regresses: `.sl-status` is `opacity:0` for every row (only `.sl-row.sun`, the
+  Sunday Editions link list, keeps a permanent chip, since it has no count to give way to), the
+  `visibility:hidden` that used to hide `.sl-pl` on `.inprog` / `.done` / `.fail` is gone, and the
+  `hover:hover` block lost its `:not(.done)`. The phone (<=900px) is untouched: it shows no chips at
+  all and already showed the figure on every row.
 - **Collapsed to TWO cards at BOTH widths** (`CAP_PROG_D` / `CAP_PROG_M`), which is exactly one row
   of the desktop grid, with the rest behind one `.dh-cmore` bar spanning the cap's columns. It ran
   four and three for one deploy and the console outgrew the fold; two is the owner's number
@@ -3778,8 +3792,9 @@ which forces mate anyway now WINS on its merits, because the player gets to play
 being stopped on the spot. Duals were previously only credited when the alternative mate landed
 immediately.
 
-Babel is the one End Game title untouched by this: it has no loss state at all, scoring a spread
-against a benchmark instead.
+Babel was the one End Game title untouched by this: it has no loss state at all, scoring a spread
+against a benchmark instead. That is also why it LEFT the category on 2026-08-12 (see the Babel move
+below), so the six titles this section covers are Mate, Defend, Four, Check, Chain and Turn.
 
 ## A LOSS RANKS ON HOW FAR YOU GOT, not on how fast you lost (owner rule, 2026-08-09)
 
@@ -3829,7 +3844,7 @@ same; quitting is not separately penalised beyond the depth it stopped at.
    | Chain | boxes taken, `stateAfter(moves).score.mine` | a capture keeps the turn, so the move list has no parity to read your own moves off |
    | Turn | discs held, `stateAfter(moves).score.mine` | same as Chain, and it is the number the game already reports to you |
    | Defend | saves made, `doomedAt` once the position has gone | the move list keeps growing after the save is lost, but those moves are the mate being collected rather than saves, so the depth is frozen at the save you were on when it went |
-   | Babel | **none** | its score is already a graded spread against a benchmark, so it needs no tiebreak |
+   | Babel | **none** | its score is already a graded spread against a benchmark, so it needs no tiebreak. Moved to Word 2026-08-12; the row stays because its archived days still score |
 
 4. **Post it from the abandon flush too**, not just the finish path, or a bailed run ranks as depth 0
    when it was not.
@@ -3857,6 +3872,105 @@ already there and keys off the field being present.
 zeroed Four, Chain, Check and Mate and carried `SCORE = { won: 10, lost: 1 }`, so a losing Turn player
 collected completion and IQ Points nobody else got. It is `lost: 0` now, and how far they got is
 carried by `progress` instead, which ranks without paying.
+
+## END GAME BOARDS RANK ON ATTEMPTS TO SOLVE (owner rule, 2026-08-12)
+
+Every other daily keeps a player's **first attempt**, because a replay there is playing a puzzle
+whose answer you already know and letting it score would make the board a test of who replayed. The
+six End Game titles are the one family where that reasoning does not hold: they never hand over the
+answer (`KEEPS_ANSWER` in `lib/daily-games.js`), a loss scores 0, and the whole design invites
+another run at the same position. So their boards answer a different question. Not "did you get it
+first time" but **"how many runs did it take you"**, and the player who solved Four in 24 tries ranks
+above the one who needed 25.
+
+**The order, per puzzle.** Three tiers, then attempts, then the clock:
+
+| Tier | | Ordered by |
+|---|---|---|
+| 0 | **Solved** (`score === total`) | the attempt number the win landed on, then the time of THAT run |
+| 1 | **Drawn** (`0 < score < total`) | the attempt number the draw landed on, then that run's time |
+| 2 | **Never finished** (0 on every run) | `depth` (progress, then guesses), then time. Attempts are IGNORED |
+
+- **Any solver beats any drawer beats anyone who never finished**, however many runs it took.
+- **The clock is the SOLVING run's**, never the sum of the failed ones (owner, 2026-08-12). A slow
+  loser is already ranked down by the extra attempt; charging them the time twice is double counting.
+- **The unsolved are NOT ranked on attempts**, in either direction. Fewest would put the player who
+  gave up once above the one who fought through five; most would pay for grinding. How far they got
+  is the only honest separator, which is the `progress` term migration 51 already added.
+- **Four is the only End Game game with a middle tier.** A draw posts 4 of 10; the other five are
+  binary 10 or 0. A draw is its own tier by owner ruling: the position was already won, so holding a
+  draw is not solving it, but it is not the same as losing either.
+- **A player who drew and then went on to win is a solver**, at the attempt the win landed on. The
+  draw only represents them if they never won.
+
+**Attempts come from the rows, with nothing new stored.** Every End Game run already posts exactly
+one `quiz_results` row (a win, a loss, a give-up, a Restart, or the `useAbandonFlush` pagehide row),
+so attempt N is simply the Nth row that player posted for that puzzle, in id order. Nothing was
+migrated and no client changed.
+
+**THIS IS ORDER ONLY (owner, 2026-08-12).** A solve is worth full completion whatever try it landed
+on, so **IQ Points and the combined-daily completion term are untouched** and no already-played day
+is worth anything different. Attempts move `placement`, which already carries 10 of the 15.
+
+**One implementation, not two mirrors.** The rule lives in **`endGamePlan` in `lib/daily-games.js`**,
+the registry both scoring files already import, and is read by `scoreGame` (`lib/daily-combined.js`)
+and `buildLeaderboard` (`lib/quiz-anon.js`). The standing rule that those two comparators must stay
+byte-identical was kept until now by maintaining two hand-written copies; a shared function cannot
+drift, and any future ordering term should go the same way. `endGamePlan` returns `{ chosen, info }`:
+`chosen` is the ONE row representing each player (the winning run, not the first), and `info` covers
+**every** row so the all-attempts views (`filter: 'all'`, `playerPlacement`) still sort.
+
+**The places that had to move with it**, all in the same push, and the list to re-check if the rule
+changes again:
+
+- `scoreGame`: the per-player row selection, `ranks`, and **`perfKey`** (tie groups must include
+  `tries`, or two runs the comparator separates get handed the same averaged placement points).
+- `buildLeaderboard`: the same two, plus `tries` / `egTier` on the row payload.
+- `guestGameResult` / `guestProvisional` and `chooseGuestRow` in `app/api/quiz/daily-combined/route.js`
+  (the hand-rolled "who beats me" test), which now take the guest's `{ tier, tries }` verdict.
+- The board payloads in the `daily-combined` and `daily-me` routes carry `tries` / `egTier`.
+- **The registry `miss` label for the six is `'Tries'`**, and four render surfaces print the attempt
+  in that column instead of the per-run error count: `DailyBoardPanel`, `DailyEndCard`,
+  `QuizLeaderboard` (which also had to add `tries` to its tied-rank test, exactly as `progress` was
+  added), and `gameStats` in `DailyTilePanel`. A run that never solved has no attempt number to
+  report and reads as a dash.
+
+**Verifier: `node scripts/verify-endgame-board.mjs`.** It IMPORTS the real modules rather than
+restating their logic, so it cannot drift from what it certifies, and it proves all six claims
+including that **400 random non-End-Game fields sort byte-identically to the pre-change engine**.
+Confirmed to FAIL on a reversed attempts term, on ranking the unsolved by attempts, and on Babel
+being left in the category. It needs `scripts/alias-loader.mjs` (below) to run under plain node.
+
+### `scripts/alias-loader.mjs` — importing app modules from a plain-node script
+
+The scoring modules are ordinary ESM, but two things Next resolves and node does not kept a checker
+from importing them: the **`@/` path alias** (`lib/quiz-xp` reaches for `@/lib/theme`) and
+**extensionless relative imports** (`lib/daily-combined` imports `./daily-games`). One alias and one
+missing `.js` put the entire comparator out of reach, which is a large part of why the scoring code
+had no checker. Register the loader, then dynamic-import (the hook must be installed before the
+import resolves):
+
+```js
+import { register } from 'node:module';
+register('./alias-loader.mjs', import.meta.url);
+const { scoreGame } = await import('../lib/daily-combined.js');
+```
+
+Prefer this to lifting logic out of the app into a checker. A verifier that restates the rule can
+agree with itself while the app is wrong.
+
+### Babel moved from End Game to Word (owner, 2026-08-12)
+
+Babel is a word-tile endgame, and its scoring has nothing in common with the other six: it is
+`solvesOnScore`, it grades a **spread against a solver benchmark** rather than solving a position,
+and it has no loss state at all, so "attempts to solve" is not a question it can answer. It sits in
+**Word** now and is excluded from everything in this section. The category lists in `DailyStrip`,
+`DailyGamesGrid`, `DailyArchiveClient` and `DailyEndCard` moved with it; the registry `cat` is the
+source of truth and `isEndGame` reads it, so nothing keys off a hardcoded list of six.
+
+One knock-on worth knowing: `dailyDept` maps `Word -> 'word'`, so Babel's plays now file under the
+**word** department in the IQ category breakdown instead of `entertainment`. That is the category
+move doing what it says, not a bug, but it does move historical rows between category buckets.
 
 ## Quiz home layout: search + tool row moved out of the header (owner rule, 2026-07-29)
 
