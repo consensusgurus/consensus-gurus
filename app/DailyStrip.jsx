@@ -1476,6 +1476,39 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       return todoPeek;
     };
     const toggle = (grp) => setGrpOpen((cur) => ({ ...cur, [grp]: !cur[grp] }));
+    // OPENING A GROUP BRINGS IT INTO THE PORT (owner, 2026-08-12). The board is a
+    // fixed-height scroller (--dh-fit) and a band is sticky at the BOTTOM edge
+    // until its own rows are reached, so pressing Complete today revealed five
+    // rows BELOW the pinned band, outside the visible port, and the band itself
+    // did not move: the click looked like it had done nothing. The group's foot
+    // now comes up to the port's bottom edge, so the group becomes the new end
+    // of the scroll, which for Complete today (the last group) is the foot of
+    // the board.
+    //
+    // Clamped so a group TALLER than the port lands on its head instead of
+    // skipping past it: the furthest we may scroll is whatever puts its first
+    // row just under the bands stacked above it, which is bi of them at --bh
+    // (30px) each. Keep BH in step with --bh on .sl-band.
+    //
+    // Two frames, the same wait the "show fewer" bar uses, so the re-render and
+    // its layout have both landed before anything is measured. The groups are
+    // laid out by CSS `order`, so this reads geometry and never DOM position.
+    const GRP_ROWS = { todo: '.sl-row:not(.done):not(.fail):not(.inprog)', prog: '.sl-row.inprog', fail: '.sl-row.fail', dn: '.sl-row.done' };
+    const revealGroup = (port, grp, bi) => {
+      const BH = 30;
+      if (!port || !GRP_ROWS[grp]) return;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        try {
+          const rows = [...port.querySelectorAll(GRP_ROWS[grp])].filter((r) => !r.classList.contains('sl-hid'));
+          if (!rows.length) return;
+          const box = port.getBoundingClientRect();
+          let foot = -Infinity, head = Infinity;
+          rows.forEach((r) => { const b = r.getBoundingClientRect(); if (b.bottom > foot) foot = b.bottom; if (b.top < head) head = b.top; });
+          const delta = Math.min(foot - box.bottom, head - box.top - (bi * BH));
+          if (delta > 1) port.scrollTo({ top: port.scrollTop + delta, behavior: 'smooth' });
+        } catch (x) { /* older Safari: leaving the scroll alone beats throwing */ }
+      }));
+    };
     // A band normally prints its own size on the right. Ready to play prints the
     // DAY instead (owner, 2026-08-08): how many of the whole slate are finished.
     // That figure used to be the third box in the phone header, where it competed
@@ -1509,7 +1542,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           className={`sl-band ${grp} tog`}
           key={`band-${grp}`}
           style={{ '--bi': String(bi), '--bn': String(bn) }}
-          onClick={() => toggle(grp)}
+          onClick={(e) => {
+            // The PORT is captured here, synchronously, rather than walked up
+            // from the button inside the callback: the button is what React
+            // re-renders, the scroller is not.
+            const port = e.currentTarget.closest('.dh-board');
+            const wasOpen = grpOpen[grp];
+            toggle(grp);
+            if (!wasOpen) revealGroup(port, grp, bi);
+          }}
           aria-expanded={grpOpen[grp]}
         >{inner}</button>
       ) : (
@@ -2185,7 +2226,20 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* --dh-fit is measured (see the fit effect); the calc is only the value
            before the first measurement lands. min-height stays BELOW the
            measured floor so the measurement, not this rule, is what governs. */
-        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;height:var(--dh-fit,calc(100vh - 300px));min-height:240px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
+        /* THE PORT ROUNDS ITS OWN BOTTOM CORNERS (owner, 2026-08-12). The card
+           edge is .dh-boardwrap's 13px radius, but the SCROLLER is three
+           elements deep inside it (.dh-vpwrap > .dh-vp > .dh-board) and its
+           overflow clips to a SQUARE box, so whatever sat at the foot of the
+           scroll painted square corners over that radius: the pinned Complete
+           today band, or the last row once the group is open. Rounding the
+           scroller itself is what clips them, since overflow-y:auto already
+           makes this the clipping box. Putting overflow:hidden on the wrapper
+           instead would ALSO clip the expanded .dtp panel, which fills .dhome.
+           12px and not 13: the wrapper carries a 1px bottom border, so its
+           inner radius is one less and a 13 here pokes into the border at the
+           corners. Squared again below 900px, where the wrapper goes full
+           bleed and square itself. */
+        .dh-board.slate{display:block;grid-template-columns:none;grid-auto-rows:auto;height:var(--dh-fit,calc(100vh - 300px));min-height:240px;overflow-y:auto;border-radius:0 0 12px 12px;scrollbar-width:thin;scrollbar-color:#d3d9e2 transparent;}
         .dh-board.slate::-webkit-scrollbar{width:6px;}
         .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
         .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
@@ -2323,6 +2377,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);width:auto;max-width:none;border-radius:0;box-shadow:none;}
           .dhome.slate .sl-bar{border-left:none;border-right:none;border-radius:0;border-top:none;margin-top:0;}
           .dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
+          .dhome.slate .dh-board.slate{border-radius:0;}
           /* THE PHONE ORDER MATCHES THE DESKTOP ONE (owner, 2026-08-09): the
              slate's title band leads, the hero cards sit under the band that
              names them, then the category strip, then the board. The cap used to
