@@ -80,6 +80,11 @@ function hasMore(rows) { return (rows || []).length > ROWS_COLLAPSED; }
 // (kept local rather than imported: DailyStrip does not export them, and this is
 function num(n) { return (n || 0).toLocaleString(); }
 
+// How many category leaders one turn of the Loft's leaders face shows, counting
+// the lead slip in the slab slot. See catViews for why it is a target rather
+// than a hard size.
+const SLIPS_PER_VIEW = 5;
+
 // Two faint states only (owner, 2026-08-03): a solid green/gold/red chip column
 // read as a traffic light and pulled the eye off the feed itself.
 function scoreTone(pct) {
@@ -340,14 +345,20 @@ export default function HomeRails({
     });
   }, [dailyBoard, catList]);
 
-  // ALWAYS THREE SUB-VIEWS (owner, 2026-08-12), whatever the category count: a
-  // hero slip is a third of the panel, so nine categories cannot share one face
-  // and a per-view cap would silently drop the tail. Chunking to
-  // ceil(n / 3) per view shows every category in three turns and keeps the last
-  // view from being a lone slip on a tall panel.
+  // FIVE SLIPS A VIEW, so nine categories are two turns rather than three
+  // (owner, 2026-08-12). Three per view shipped first and the slips came out
+  // enormous: the body slips grow to fill the panel, so a view of three meant
+  // two of them splitting ~380px between them, ~190px each for a name and two
+  // short lines. Five (the lead slip plus four in the body) puts every body slip
+  // at roughly the lead's own 85px, which is the height the shape was drawn for.
+  //
+  // The chunk is computed from a VIEW COUNT rather than a fixed size, so the
+  // views stay as even as the category count allows: nine goes 5 + 4, never
+  // 5 + 5 + ... + 1. A lone slip on a tall panel is the thing to avoid.
   const catViews = useMemo(() => {
     if (!catLeaders.length) return [];
-    const per = Math.ceil(catLeaders.length / 3);
+    const views = Math.max(1, Math.ceil(catLeaders.length / SLIPS_PER_VIEW));
+    const per = Math.ceil(catLeaders.length / views);
     const out = [];
     for (let i = 0; i < catLeaders.length; i += per) out.push(catLeaders.slice(i, i + per));
     return out;
@@ -531,7 +542,13 @@ export default function HomeRails({
          two fixed 85px bars under the lead one left a band of white above the
          footer. */
       .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
-      .hr-clbody > .hr-lslab{flex:1 1 auto;border-top:1px solid rgba(255,255,255,.16);}
+      .hr-clbody > .hr-lslab{flex:1 1 auto;padding-top:9px;padding-bottom:9px;border-top:1px solid rgba(255,255,255,.16);}
+      /* The body slips are a STACK, so they take a size down from the lead slab
+         sitting above them: the lead is the panel's one 20px figure, exactly as
+         on the live face, and four more at that weight would be four headlines.
+         The lead keeps .hr-lslab's measured cap-bar type untouched. */
+      .hr-clbody > .hr-lslab .hr-lsnm{font-size:16px;line-height:21px;}
+      .hr-clbody > .hr-lslab .hr-lsval b{font-size:16px;}
       .hr-cls::before{background:var(--clr,var(--blue-400));}
       .hr-cls.c0{background:var(--accent);}
       .hr-cls.c1{background:var(--blue);}
