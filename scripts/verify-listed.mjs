@@ -2,10 +2,15 @@
 // bank. Listed's own header comment (app/listed/puzzles.js) and its client's
 // rules copy (ListedClient.jsx) promise, per puzzle:
 //   - `items` stored in TRUE ORDER (index 0 = rank 1, the item `hi` names);
-//   - `cat` is either "History" or "Geography", and "the two rotate through
-//     the week" (owner ruling 2026-07-27: the running order ALTERNATES so
-//     the domain rotates, not "runs mostly History with occasional
-//     Geography");
+//   - `cat` is one of "History", "Geography" or "Trivia", and the domain
+//     ROTATES through the week rather than running mostly one with the
+//     occasional other. Owner ruling 2026-08-04 added Trivia as a real third
+//     domain and supersedes the 2026-07-27 two-domain rule: History is for a
+//     dated event (chronologies, founding years, "oldest still running"),
+//     Geography for genuinely spatial boards, and Trivia for records,
+//     best-sellers, career totals, revenue, capacities and award counts. This
+//     checker enforced the superseded two-domain rule until 2026-08-12, which
+//     is why it failed all 15 legitimate Trivia boards;
 //   - the answer key is a published NUMBER, never an opinion, so there is
 //     always exactly one right order and no two items may tie;
 //   - Sunday Editions carry a ninth item.
@@ -24,9 +29,12 @@
 //      exists to catch. This checks internal self-consistency of the shipped
 //      data (order vs. displayed figure), not the real-world fact itself,
 //      which needs a live source and is out of scope for an offline script.
-//   3. Domain alternation (the pool-variety rule the bank is documented to
-//      violate): no run of 3+ same-`cat` boards, and the History/Geography
-//      split stays roughly even, for every board live on or after
+//   3. Domain rotation (pool variety): no run of 3+ same-`cat` boards, and no
+//      single domain takes less than DOMAIN_MIN or more than DOMAIN_MAX of the
+//      editable window -- an even three-way split is 33% each, and the band is
+//      wide enough that ordinary variation over a 35-board window cannot trip
+//      it while a bank that collapses onto one domain still does. Applies to
+//      every board live on or after
 //      LISTED_FLOOR_FROM. Boards before that date are frozen history
 //      (already played) and are grandfathered as a note, mirroring
 //      CRUX_FLOOR_FROM in verify-daily-banks.mjs.
@@ -46,6 +54,9 @@ const note = (id, msg) => console.log(`… ${id}  ${msg}`);
 // Boards before this date are frozen history: already published and played,
 // never rewritten. The alternation/balance rule is enforced hard from here.
 const LISTED_FLOOR_FROM = '2026-08-03';
+// The three domains, per the owner ruling in app/listed/puzzles.js (2026-08-04).
+const DOMAINS = ['History', 'Geography', 'Trivia'];
+const DOMAIN_MIN = 0.20, DOMAIN_MAX = 0.45;   // even is 0.33 each
 
 // ─── value parser (handles every format actually shipped in the bank) ─────
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -119,7 +130,7 @@ PUZZLES.forEach((p, i) => {
   }
   if (seenIds.has(p.quizId)) errs.push('duplicate quizId'); seenIds.add(p.quizId);
 
-  if (p.cat !== 'History' && p.cat !== 'Geography') errs.push(`cat "${p.cat}" is not History or Geography`);
+  if (!DOMAINS.includes(p.cat)) errs.push(`cat "${p.cat}" is not one of ${DOMAINS.join(', ')}`);
   if (!p.title) errs.push('missing title'); else scanBritish(p.quizId, 'title', p.title);
   if (!p.metric) errs.push('missing metric'); else scanBritish(p.quizId, 'metric', p.metric);
   if (!p.hi) errs.push('missing hi'); else scanBritish(p.quizId, 'hi', p.hi);
@@ -152,7 +163,7 @@ PUZZLES.forEach((p, i) => {
   }
 
   if (p.title) { seenTitles.set(p.title, (seenTitles.get(p.title) || []).concat(p.quizId)); }
-  catSeq.push({ id: p.quizId, live: p.live, cat: p.cat });
+  catSeq.push({ id: p.quizId, live: p.live, cat: p.cat, title: p.title });
 
   errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${p.cat}, ${p.items.length} items in true ${p.hi.toLowerCase()}-to-${p.lo.toLowerCase()} order`);
 });
@@ -182,16 +193,31 @@ for (const x of catSeq) {
 flushRun();
 
 const fresh = catSeq.filter((x) => x.live >= LISTED_FLOOR_FROM);
-const freshHistory = fresh.filter((x) => x.cat === 'History').length;
-const freshTotal = fresh.length;
-if (freshTotal) {
-  const frac = freshHistory / freshTotal;
-  const msg = `${freshHistory}/${freshTotal} (${(frac * 100).toFixed(0)}%) editable boards are History, want roughly even (40-60%)`;
-  if (frac < 0.4 || frac > 0.6) fail('listed pool', msg);
+if (fresh.length) {
+  const share = (c) => fresh.filter((x) => x.cat === c).length;
+  const parts = DOMAINS.map((c) => `${c} ${share(c)} (${((share(c) / fresh.length) * 100).toFixed(0)}%)`);
+  const off = DOMAINS.filter((c) => {
+    const f = share(c) / fresh.length;
+    return f < DOMAIN_MIN || f > DOMAIN_MAX;
+  });
+  const msg = `${fresh.length} editable boards: ${parts.join(', ')}`;
+  if (off.length) fail('listed pool', `${msg} — ${off.join(' and ')} outside the ${DOMAIN_MIN * 100}-${DOMAIN_MAX * 100}% band`);
   else ok('listed pool', msg);
 }
-const allHistory = catSeq.filter((x) => x.cat === 'History').length;
-note('listed pool', `whole bank: ${allHistory}/${catSeq.length} History (${((allHistory / catSeq.length) * 100).toFixed(0)}%)`);
+note('listed pool', `whole bank: ${DOMAINS.map((c) => `${c} ${catSeq.filter((x) => x.cat === c).length}`).join(', ')}`);
+
+// Trivia is the widest domain, so it is the one that can quietly become a
+// sports bank. A heuristic read of the titles, reported as a NOTE and never a
+// gate: the classifier is a keyword list and would be the wrong thing to fail
+// a board on, but a two-thirds sports share is worth seeing before it ships.
+const SPORTY = /\b(NBA|NHL|NFL|MLB|golf|Formula One|stadium|home runs?|goals?|passing yards|championships?|Olympi|tennis|soccer|cricket|marathon|Grand Slam|World Cup|Super Bowl)\b/i;
+const trivia = catSeq.filter((x) => x.cat === 'Trivia');
+if (trivia.length) {
+  const sporty = trivia.filter((x) => SPORTY.test(x.title || '')).length;
+  const line = `Trivia mix: ${sporty}/${trivia.length} boards read as sport`;
+  if (sporty / trivia.length > 0.5) note('listed pool', `${line} — spread the next few across screen, music, books and business`);
+  else note('listed pool', line);
+}
 
 console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nAll Listed boards verified.');
 process.exit(BAD ? 1 : 0);

@@ -18,6 +18,14 @@
 // A board in none of the three (planet diameters, melting points, fast food
 // calories) does not belong in the bank.
 //
+// ROTATION, stated as numbers so it can be checked (scripts/verify-listed.mjs,
+// which enforced the superseded two-domain rule until 2026-08-12 and so failed
+// every legitimate Trivia board): never 3 boards in a row sharing a `cat`, and
+// across the editable window no domain below 20% or above 45%, an even split
+// being 33% each. Trivia is the widest of the three and the one that can
+// quietly turn into a sports bank, so keep it spread across sport, screen,
+// music, books and business; the checker reports the sport share as a note.
+//
 // Authoring rules:
 //   - the answer key must be a NUMBER from a citable source, never an opinion,
 //     a critics' consensus, or an editorial "best of" ranking;

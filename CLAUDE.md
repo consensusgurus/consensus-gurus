@@ -3601,7 +3601,7 @@ Twelve games shipped banks with no checker at all, and every defect the 2026-08-
 turned up lived in one of them: Crunch storing a solution count above its own documented
 cap of 400 on 26 of 62 boards, two Glyph boards that admit two valid letter mappings, a
 Glyph board that is 15x14 on a 15x15 day, Rung opening with the same two words on 39% of
-its days, Listed running History 2:1 against its own promised alternation, Four spelling
+its days, Listed running History 2:1 against its own promised two-domain alternation, Four spelling
 "defence" on 13 boards. None of it was exotic. All of it was mechanically checkable and
 nobody had written the check. These twelve rules are how that stops.
 
@@ -3716,9 +3716,15 @@ verifier passed the whole time. Rules for every bulk extension:
    Sundays, which run bigger and harder by design.
 3. **Check pool variety, not just per-board legality.** Count how often each answer,
    trap, start word, theme or category repeats across the whole bank and put a ceiling on
-   it. Rung opens with `suite` or `shock` on 39% of its banked days and Listed runs
-   History over Geography 2:1 despite promising an alternating rotation; both pass every
-   per-puzzle check they have.
+   it. Rung opens with `suite` or `shock` on 39% of its banked days, and Listed ran
+   History over Geography 2:1 despite promising an alternating rotation; both passed
+   every per-puzzle check they had. Listed is now three domains (History, Geography,
+   Trivia, owner ruling 2026-08-04) with the rotation stated as numbers and checked.
+   THE CHECK MUST FOLLOW THE RULING: verify-listed.mjs kept enforcing the superseded
+   two-domain rule and hard-failed all 15 legitimate Trivia boards from 2026-07-27 to
+   2026-08-26, which left `verify-all` red for over a week and so stopped being a
+   signal at all. When an owner ruling changes a game's rules, update its checker in
+   the SAME pass.
 4. **US spellings.** A generator drawing on an off-the-shelf word list imports British
    forms. Crux shipped a `Colours` category on 25 boards and a `PARLOUR`.
 5. **A rule retrofit sweeps the WHOLE bank, to its last day.** The Crux collision rule
