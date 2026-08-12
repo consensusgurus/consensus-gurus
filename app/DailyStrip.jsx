@@ -2706,11 +2706,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
              a short viewport, where even the whole console may not be enough:
              the panel scrolls itself rather than losing its bottom. */
           .dhome.slate .dh-boardwrap,.dhome.slate .dh-vpwrap,.dhome.slate .dh-vp{position:static;}
-          /* Flush at the top. The panel starts on the console's own top edge
-             now, and a 13px radius there read as a card floating inside the
-             console rather than as the console itself. The bottom keeps the
-             radius, because that IS the console's bottom edge. */
-          .dhome.slate .sl-drawer .dtp{border-radius:0 0 13px 13px;overflow:auto;}
+          /* ROUNDED ON ALL FOUR CORNERS (owner, 2026-08-12), reversing the
+             square top this rule shipped with earlier the same day. The
+             reasoning behind the square top was that a radius made the panel
+             read as a card floating INSIDE the console; that held while the
+             console's own top band was still visible above it. It is not: the
+             panel fills .dhome outright, so those two corners are the console's
+             own top edge sitting against the ground, and square is what reads
+             as a break in the card there. 13px matches .dh-sbar's top radius
+             and .dh-boardwrap's bottom one, which are the edges it replaces.
+             Desktop only: this whole block is min-width:901px, and below that
+             the console is full bleed and square anyway. */
+          .dhome.slate .sl-drawer .dtp{border-radius:13px;overflow:auto;}
           /* ...and the three columns take the height that came with it. The
              grid is flex:none by default, sized to the board window it used to
              live in, so against the taller console it left ~150px of white
