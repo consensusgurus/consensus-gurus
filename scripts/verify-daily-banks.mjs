@@ -292,23 +292,114 @@ if (RUN('garble')) {
 }
 
 // ─── EMCEE ──────────────────────────────────────────────────────────────────
+//   Rebuilt 2026-08-12. The old check only proved the slot lists tiled the
+//   grid's runs, which is why it passed a 50-board batch whose clues were
+//   dictionary glosses of the WRONG WORD (CUE clued as CLUE, ACRES as
+//   DEMESNE, PAR as PARITY). It now also enforces, for every board live on or
+//   after the rebuild date (earlier boards are frozen history and only earn a
+//   note):
+//     • every answer is in the curated clue bank AND carries that bank's own
+//       clue — a clue written anywhere else cannot reach a grid;
+//     • the grid is fully checked: every white square is in both an across and
+//       a down word, so no 1-letter runs;
+//     • numbering follows standard crossword rules;
+//     • bank-wide variety: an answer appears at most 3 times, two boards share
+//       at most 2 answers (3 between two Sundays), no grid shape more than 4x.
 if (RUN('emcee')) {
   const { PUZZLES } = await import('../app/emcee/puzzles.js');
+  const REBUILT_FROM = '2026-08-12';
+  const BANK = new Map();
+  for (const line of readFileSync(join(here, 'emcee-wordbank.txt'), 'utf8').trim().split('\n')) {
+    if (!line.trim() || line.startsWith('#')) continue;
+    const i = line.indexOf('|');
+    BANK.set(line.slice(0, i).trim(), line.slice(i + 1).trim());
+  }
+  const answerOf = (p, w, dir) => {
+    let s = '';
+    for (let i = 0; i < w.len; i++) {
+      const r = dir === 'A' ? w.r : w.r + i, c = dir === 'A' ? w.c + i : w.c;
+      s += (p.grid[r] || '')[c] ?? '?';
+    }
+    return s;
+  };
+  const useCount = new Map(), shapeCount = new Map(), boardWords = [];
   for (const p of PUZZLES) {
-    const errs = [], review = [];
+    const errs = [], review = [], live = p.live >= REBUILT_FROM;
     const N = p.size, G = p.grid;
+    if (G.length !== N) errs.push(`grid has ${G.length} rows, size ${N}`);
+    G.forEach((row, i) => { if (row.length !== N) errs.push(`row ${i} is ${row.length} wide, size ${N}`); });
+    if (errs.length) { fail(p.quizId, errs.join('; ')); continue; }
+
     const runs = [];
     for (let r = 0; r < N; r++) { let c = 0; while (c < N) { if (G[r][c] !== '#') { const s = c; while (c < N && G[r][c] !== '#') c++; if (c - s > 1) runs.push({ r, c: s, len: c - s, dir: 'A', word: G[r].slice(s, c) }); } else c++; } }
     for (let c = 0; c < N; c++) { let r = 0; while (r < N) { if (G[r][c] !== '#') { const s = r; while (r < N && G[r][c] !== '#') r++; if (r - s > 1) { let w = ''; for (let i = s; i < r; i++) w += G[i][c]; runs.push({ r: s, c, len: r - s, dir: 'D', word: w }); } } else r++; } }
     const declared = [...(p.across || []).map((s) => ({ ...s, dir: 'A' })), ...(p.down || []).map((s) => ({ ...s, dir: 'D' }))];
     if (declared.length !== runs.length) errs.push(`declared ${declared.length} slots, grid has ${runs.length} runs`);
     for (const d of declared) {
-      const m = runs.find((x) => x.r === d.r && x.c === d.c && x.dir === d.dir && x.len === d.len);
-      if (!m) errs.push(`slot ${d.n}${d.dir} doesn't match a grid run`);
+      if (!runs.find((x) => x.r === d.r && x.c === d.c && x.dir === d.dir && x.len === d.len)) errs.push(`slot ${d.n}${d.dir} doesn't match a grid run`);
     }
-    for (const x of runs) { if (!dict.has(x.word.toLowerCase())) review.push(x.word); }
-    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${runs.length} slots consistent${review.length ? ` — REVIEW non-dict: ${review.join(',')}` : ''}`);
+
+    // fully checked: every white square in BOTH directions (no 1-letter runs)
+    const cover = new Map();
+    for (const x of runs) for (let i = 0; i < x.len; i++) {
+      const k = x.dir === 'A' ? `${x.r},${x.c + i}` : `${x.r + i},${x.c}`;
+      cover.set(k, (cover.get(k) || 0) + 1);
+    }
+    const unchecked = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (G[r][c] === '#') continue;
+      if ((cover.get(`${r},${c}`) || 0) < 2) unchecked.push(`${r},${c}`);
+    }
+    if (unchecked.length) (live ? errs : review).push(`unchecked square(s) ${unchecked.join(' ')}`);
+
+    // numbering
+    let n = 1; const nums = {};
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (G[r][c] === '#') continue;
+      const a = (c === 0 || G[r][c - 1] === '#') && c + 1 < N && G[r][c + 1] !== '#';
+      const d = (r === 0 || G[r - 1][c] === '#') && r + 1 < N && G[r + 1][c] !== '#';
+      if (a || d) nums[`${r},${c}`] = n++;
+    }
+    for (const d of declared) {
+      const want = nums[`${d.r},${d.c}`];
+      if (want == null) errs.push(`${d.n}${d.dir} starts at a square that begins no word`);
+      else if (want !== d.n) errs.push(`${d.n}${d.dir} should be numbered ${want}`);
+    }
+
+    // clue integrity — the whole point of this checker
+    const words = [];
+    for (const d of declared) {
+      const a = answerOf(p, d, d.dir);
+      words.push(a);
+      if (a.includes('#') || a.includes('?')) { errs.push(`${d.n}${d.dir} reads "${a}"`); continue; }
+      if (!BANK.has(a)) (live ? errs : review).push(`${a} is not in the clue bank`);
+      else if (BANK.get(a) !== d.clue) (live ? errs : review).push(`${d.n}${d.dir} ${a}: clue is not the bank's ("${d.clue}")`);
+      if (!dict.has(a.toLowerCase()) && !BANK.has(a)) review.push(`non-dict ${a}`);
+    }
+    if (new Set(words).size !== words.length) errs.push('an answer appears twice on the same board');
+    if (live) for (const w of words) useCount.set(w, (useCount.get(w) || 0) + 1);
+    const shape = G.map((row) => row.split('').map((ch) => (ch === '#' ? '#' : '.')).join('')).join('|');
+    if (live && !p.sunday) shapeCount.set(shape, (shapeCount.get(shape) || 0) + 1);
+    boardWords.push({ p, words: new Set(words), live });
+
+    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${runs.length} slots, fully checked, clues verified${review.length ? ` — REVIEW: ${review.join(' | ')}` : ''}`);
   }
+
+  // ── bank-wide variety ────────────────────────────────────────────────────
+  const CAP = 3;
+  // frozen boards (#1–#27) are history and are not counted toward the caps
+  const over = [...useCount].filter(([, c]) => c > CAP).map(([w, c]) => `${w} (${c}x)`);
+  if (over.length) fail('emcee-bank', `answers over the ${CAP}-use cap: ${over.join(', ')}`);
+  for (let i = 0; i < boardWords.length; i++) for (let j = i + 1; j < boardWords.length; j++) {
+    const a = boardWords[i], b = boardWords[j];
+    if (!a.live || !b.live) continue;
+    const shared = [...a.words].filter((w) => b.words.has(w));
+    const lim = a.p.sunday && b.p.sunday ? 3 : 2;
+    if (shared.length > lim) fail('emcee-bank', `${a.p.quizId} and ${b.p.quizId} share ${shared.length} answers: ${shared.join(', ')}`);
+  }
+  const hotShapes = [...shapeCount].filter(([, c]) => c > 4);
+  if (hotShapes.length) fail('emcee-bank', `grid shape reused ${hotShapes[0][1]}x (cap 4)`);
+  if (!over.length && !hotShapes.length) ok('emcee-bank', `${useCount.size} distinct answers, ${shapeCount.size} weekday shapes, variety caps met`);
 }
 
 // ─── LINKS ──────────────────────────────────────────────────────────────────
