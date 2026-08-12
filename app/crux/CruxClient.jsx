@@ -37,6 +37,7 @@ import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { isLoft } from '@/lib/loft';
 import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
 import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
@@ -951,6 +952,10 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
   const lost = g.status === 'lost';
   const won = g.status === 'won';
+  // The finished score, and the IQ the run earned. The hook only fetches once
+  // the game is over, so a live game costs nothing.
+  const endScore = won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
+  const iq = useIqStanding({ game: 'crux', quizId: PUZZLE.quizId, active: LOFT && !playing });
 
   // Play space matches the daily-games grid width (640): the header + puzzle
   // card fill the same column as the navy grid below. The board keeps its own
@@ -1075,13 +1080,19 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         <LoftCap
           name="Crux"
           cat="Word"
+          won={!playing}
           num={PUZZLE.num}
-          dateLabel={PUZZLE.dateLabel}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Finished')}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
-          figures={[
+          figures={playing ? [
             { v: `${g.order.length}/${PUZZLE.slots.length}`, k: 'words' },
             { v: g.left, k: 'guesses left' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: `${endScore}/${PUZZLE.slots.length * 2}`, k: 'score' },
+            { v: `${g.order.length}/${PUZZLE.slots.length}`, k: 'words' },
+            { v: guessesUsed, k: 'guesses' },
             { v: elapsed, k: 'time' },
           ]}
         />
@@ -1337,6 +1348,24 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           )}
           </div>
           )}
+          {LOFT && !playing && (
+            <>
+              <div className="loft-iq">
+                <span className="l">IQ points earned</span>
+                <span className="v">
+                  {iq && iq.gained != null ? `+${iq.gained}` : '\u2014'}
+                  <small>
+                    {iq && iq.xp != null ? `${Number(iq.xp).toLocaleString()} total` : 'counting your run'}
+                    {iq && iq.rank != null ? ` \u00b7 IQ rank #${iq.rank}${iq.total != null ? ` of ${Number(iq.total).toLocaleString()}` : ''}` : ''}
+                  </small>
+                </span>
+              </div>
+              <div className="loft-acts">
+                <button className="gold" onClick={copyShare}>{copied ? 'Copied' : 'Share'}</button>
+                <button onClick={resetGame}>Replay</button>
+              </div>
+            </>
+          )}
         </div>
 
           {/* result */}
@@ -1433,7 +1462,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       </div>
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="crux"

@@ -21,6 +21,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export default function LoftCap({
   name,
+  won = false,        // the game is over: the cap turns green and states the result
   cat = '',
   num = null,
   dateLabel = '',
@@ -33,10 +34,14 @@ export default function LoftCap({
   const eyebrow = [cat, num != null ? `No. ${num}` : null, dateLabel]
     .filter(Boolean).join(' · ');
   return (
-    <div className="lcap">
+    <div className={won ? 'lcap lcap-won' : 'lcap'}>
       <style>{`
 .lcap{background:var(--blue);border-left:4px solid var(--gold);display:flex;
   flex-wrap:wrap;align-items:center;position:relative;font-family:${SANS};z-index:4}
+/* Finished. The cap is already the object tracking your game, so it resolves
+   into the verdict rather than a card appearing over the top of everything. */
+.lcap-won{background:var(--success-deep)}
+.lcap-won .lcap-eb,.lcap-won .lcap-k{color:#b9f0d0}
 .lcap-id{flex:1;min-width:0;padding:8px 12px}
 .lcap-eb{display:block;font-weight:800;font-size:11.5px;line-height:1;letter-spacing:.13em;
   text-transform:uppercase;color:var(--blue-200);margin-bottom:4px}
@@ -90,6 +95,20 @@ export default function LoftCap({
    ground showed as a white band above the stage. Zero it; the stage and the
    sheet below supply their own spacing. */
 .loft-page .cx-wrap{padding-top:0!important;padding-bottom:0!important}
+/* The end state lives INSIDE the stage, under the solved board, so the finish
+   is one dark block and the light tail below is unchanged from playing. */
+.loft-iq{margin-top:12px;padding:11px 12px;background:rgba(255,255,255,0.09);
+  border-left:4px solid var(--gold);border-radius:0 9px 9px 0;color:var(--white)}
+.loft-iq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
+  text-transform:uppercase;color:#ffd45e;margin-bottom:7px}
+.loft-iq .v{font-weight:800;font-size:24px;line-height:1}
+.loft-iq .v small{font-weight:700;font-size:12px;color:#9dc0f5;margin-left:8px;letter-spacing:0}
+.loft-acts{display:flex;gap:8px;margin-top:10px}
+.loft-acts button{flex:1;border-radius:10px;padding:13px 8px;text-align:center;font-weight:800;
+  font-size:13.5px;font-family:inherit;cursor:pointer;border:1px solid rgba(255,255,255,0.22);
+  background:rgba(255,255,255,0.12);color:var(--white)}
+.loft-acts button.gold{background:var(--gold);border-color:var(--gold);color:#3a2a05}
+
 /* The navy is the PLAY STAGE only, not the page. A navy page ground looked
    right on a long page and broke on a short one: in focus mode the content
    ends just under the board, so the light region below became a stripe with
