@@ -511,6 +511,13 @@ export default function HomeRails({
       .hr-lsval{margin-left:auto;flex:none;text-align:right;}
       .hr-lsval b{display:block;font-size:20px;font-weight:800;letter-spacing:-.5px;line-height:1.1;font-variant-numeric:tabular-nums;}
       .hr-lsval span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-200);margin-top:2px;}
+      /* The live face's supporting pair: players and time played, stacked, at a
+         size that reads as support rather than as two more headlines. Label
+         beside the figure rather than under it, so two stats fit the slab's
+         fixed height with room between them. */
+      .hr-lspair{margin-left:auto;flex:none;display:flex;flex-direction:column;gap:6px;text-align:right;}
+      .hr-lspair span{display:block;font-size:13px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;}
+      .hr-lspair span i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue-200);margin-left:4px;}
       /* CATEGORY LEADER SLIPS (owner, 2026-08-12). Each one is .hr-lslab, the
          same object the live face's totals bar is, so nothing new was invented
          for this face and the LEAD slip inherits the cap-bar height the panel's
@@ -837,14 +844,20 @@ export default function HomeRails({
             <div className="hr-lstxt">
               <div className="hr-lseye">Live &middot; today</div>
               <div className="hr-lsnm">{num(playsToday)} {playsToday === 1 ? 'play' : 'plays'}</div>
-              <div className="hr-lssub">across every puzzle and quiz</div>
+              <div className="hr-lssub">every puzzle and quiz</div>
             </div>
-            {/* Two figures, players then time. Players leads because it is the
-                one that tells you whether the day is busy; the play count above
-                is already the headline, so the pair reads people, plays,
-                minutes without repeating itself. */}
-            <div className="hr-lsval"><b>{num(playersToday)}</b><span>{playersToday === 1 ? 'player' : 'players'}</span></div>
-            <div className="hr-lsval"><b>{timeToday}</b><span>played</span></div>
+            {/* TWO SMALL FIGURES IN ONE STACKED CELL, not two 20px .hr-lsval
+                cells (owner, 2026-08-12). The play count is already this slab's
+                hero number, so a second and third at the same weight both
+                competed with it and ate the rail: at 282px the pair of big cells
+                left the text block 104px, which clipped the scope line to
+                "across every puzz...". Stacked at 13px they cost ~90px, the sub
+                gets its width back, and the slab still carries exactly one big
+                number. The scope line lost its "across" for the same reason. */}
+            <div className="hr-lspair">
+              <span>{num(playersToday)}<i>{playersToday === 1 ? 'player' : 'players'}</i></span>
+              <span>{timeToday}<i>played</i></span>
+            </div>
           </div>
         ) : (
           /* The LEAD slip of a leader view sits in the slab slot, so it keeps

@@ -4008,6 +4008,50 @@ One knock-on worth knowing: `dailyDept` maps `Word -> 'word'`, so Babel's plays 
 **word** department in the IQ category breakdown instead of `entertainment`. That is the category
 move doing what it says, not a bug, but it does move historical rows between category buckets.
 
+## The Loft: live feed + daily category leaders, and where mastery went (owner, 2026-08-12)
+
+The right rail's Loft (`app/HomeRails.jsx`) has TWO faces, and the second one sub-rotates.
+
+- **Face 1, Live feed.** Its slab is still deliberately ANONYMOUS (day totals, never the newest
+  player) and now carries THREE figures: plays as the hero number, then **players** and time played
+  as a small stacked pair (`.hr-lspair`). `todayPlayers` is distinct players today across every
+  puzzle and quiz, GUESTS INCLUDED, keyed `u:<user_id>` or `a:<anon_id>`, computed in the loop
+  `/api/quiz/totals` already runs, so it costs nothing. ⚠️ `setTotals` in `QuizHomeClient.jsx` is a
+  FIELD WHITELIST, not a spread: a new field on that endpoint must be added there AND to the
+  `useState` default or it silently arrives undefined (todayPlayers rendered "0 players" for one
+  deploy for exactly this reason).
+- **Face 2, Daily category leaders.** The leader of a daily-game category is the player with the
+  MOST COMBINED POINTS across every game in it today, the same currency the combined daily board
+  runs on, so sweeping a category beats one big run. Derived client-side from `dailyBoard.games`
+  (the per-game boards the page already fetches), so no new route. Known limit, accepted: each
+  per-game board carries its top 10 NAMED players, so a player outside every game's top 10 is
+  invisible, which cannot cost anyone a category lead in practice.
+- **Nine categories do not fit one panel, so face 2 SUB-ROTATES three views of three**, on the same
+  8s beat. The flip therefore has FOUR steps (live, leaders 1, 2, 3); `catViews` chunks the category
+  list at `ceil(n / 3)` so it is always exactly three views however many categories exist. The
+  category list is built from the STATIC roster (`liveDailyKeys()` first-appearance order, the same
+  order the slate's filter strip uses), never from today's board: `useFlip` resets its interval when
+  its count changes, so a count that waited on a fetch would restart the rotation mid-cycle.
+- **Each leader is a hero slip**, and a slip IS `.hr-lslab`, the same object the live slab is. The
+  LEAD slip renders into the slab slot so it keeps the measured cap-bar height (the Loft's first
+  band has to start on the same line as the console's Up next bar); the other two go in the body and
+  GROW to fill it. Grounds step navy / blue / pale (`.hr-cls.c0/.c1/.c2`) and the left rule takes the
+  category's own colour from `lib/home-blues`. A category with no plays yet renders "Nobody yet"
+  rather than dropping out, so the rotation can never land on a hole.
+- **Pill labels are checked against the RENDERED header, not read on their own.** The header is one
+  row of a 282px rail and its title must never wrap, so "Category leaders" cut the panel title down
+  to "THE L...". It reads "Leaders".
+
+**DAILY MASTERY LEFT THE LOFT** for the Category Mastery tile on the browse row
+(`CategoryMasteryTile` in `app/quizzes/QuizHomeClient.jsx`), which now flips between two faces on the
+same 8s beat: **Quiz Mastery** (the old "Category Mastery", share of each category's quizzes played)
+and **Daily Mastery** (share of each daily game's archive played, from `fetchDayStatus().archive`).
+A daily row is a LINK to its game; a quiz row is a button that filters the feed, as before. Either
+face can be empty on its own and simply is not one of the flip's stops; the tile only disappears when
+both are. Daily rows are ordered **under way, then done, then untouched** rather than by percentage,
+the same rule the Loft's banded version followed, and it matters more here because the tile shows
+eight rows out of fifty-odd: sorted by percentage it would open on the games already finished.
+
 ## Quiz home layout: search + tool row moved out of the header (owner rule, 2026-07-29)
 
 The blue command header on `/quizzes` (`app/quizzes/QuizCommandHeader.jsx`) no longer carries the
