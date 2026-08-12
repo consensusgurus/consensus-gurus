@@ -1902,9 +1902,32 @@ closed the eight games that had no gate at all).
   (2-point nudges) keep their hints for everyone, because the point cost already prices them
   in and gating them would change the scoring design rather than remove an assist. Only the
   free hint is first-play-only.
+- **Crux carries BOTH, and it is the reference for pricing an assist (owner rule, 2026-08-12).**
+  The free first-play hint is unchanged. On top of it Crux sells ONE letter reveal per puzzle to
+  everyone, priced at **1 guess plus 1 point** off the final score, so a first-timer can use two
+  reveals on that one board and everybody else has the paid one only. Three things make it work,
+  and any future priced hint needs all three:
+  (a) **The win test reads the RAW solve, never the penalized score.** Crux scores
+  `solved + placements`, so a player who cracks the whole grid having bought a hint scores
+  total - 1; testing `score === total` for the win would hand them a defeat screen on a solved
+  board. `scoreOf()` is the score, `raw === total` is the verdict, and the local stats record's
+  `won` follows the verdict rather than the score.
+  (b) **The guess cost belongs to no slot,** so `guessesUsed` is derived from the remaining
+  budget (`puzzle.guesses - left`) rather than by summing `slotGuesses`. That is the only way
+  the leaderboard's guess tiebreak sees the spend, and the two are identical on any save written
+  before the paid hint existed.
+  (c) **Buying needs TWO guesses in the budget, not one.** Spending the last guess trips the
+  out-of-guesses rule and ends the puzzle on the spot, which is not what a player buying a letter
+  is asking for.
+  The paid flag is its OWN state field (`hintPaid`, separate from the free `hintUsed`), so
+  in-flight saves keep playing and only `hintUsed` burns the site-wide gate. A reveal can
+  auto-solve its word, which is exactly why the price includes a point: solving by reveal nets
+  zero, so there is no way to farm score out of hints.
 - **Copy must match the behavior.** Rules prose reads "One free <b>hint</b>, on your first
   ever play, ..." and button titles read "(one hint, first play only)". A new game that ships
-  a free hint carries the same wording.
+  a free hint carries the same wording. A PRICED hint states its price in four places: the
+  button face, the rules footer, the toast when it fires, and the end card, because a full
+  solve that reads 15/16 has to explain itself.
 - **A brand-new daily game grants its own first-play hint** to everyone, since eligibility is
   per game, not per site.
 

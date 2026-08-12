@@ -169,6 +169,33 @@ function fmtCountdown(ms) {
 function puzzleStoreKey(p) {
   return `sot_crux_${p.num}${p.rev ? `_r${p.rev}` : ''}`;
 }
+// -- Score and guess accounting ---------------------------------------------
+// Score = a point per solved word + a point per correct placement, MINUS one
+// point when the player bought the paid hint (owner rule, 2026-08-12: the paid
+// reveal costs 1 guess AND 1 point). Floored at 0.
+//
+// The WIN test reads the RAW solve and never this penalized number. A player
+// who cracks the whole grid having bought a hint has still cracked it, and
+// scores total - 1; testing `score === total` for the win would call that a
+// loss and hand them a defeat screen on a solved board.
+function hintCost(sv) {
+  return sv && sv.hintPaid ? 1 : 0;
+}
+function rawScore(sv, total) {
+  return sv && sv.status === 'won' ? total : ((sv.order || []).length + (sv.filedRight || 0));
+}
+function scoreOf(sv, total) {
+  return Math.max(0, rawScore(sv, total) - hintCost(sv));
+}
+// Guesses spent, derived from the REMAINING budget rather than by summing
+// slotGuesses: the paid hint spends a guess that belongs to no slot, so the
+// budget is the only place that sees every spend. Equal to the old sum on any
+// save written before the paid hint existed.
+function guessesOf(sv, puzzle) {
+  const left = sv && typeof sv.left === 'number' ? sv.left : puzzle.guesses;
+  return Math.max(0, puzzle.guesses - left);
+}
+
 function backfillStats(puzzles) {
   const rec = {};
   for (const p of puzzles) {
@@ -178,9 +205,7 @@ function backfillStats(puzzles) {
       const sv = JSON.parse(raw);
       if (!sv || sv.status === 'playing') continue;
       const total = p.slots.length * 2;
-      const score = sv.status === 'won' ? total : (sv.order || []).length + (sv.filedRight || 0);
-      const guesses = Object.values(sv.slotGuesses || {}).reduce((a, b) => a + b, 0);
-      rec[p.num] = { s: score, t: total, g: guesses, won: sv.status === 'won' };
+      rec[p.num] = { s: scoreOf(sv, total), t: total, g: guessesOf(sv, p), won: sv.status === 'won' };
     } catch (e) {}
   }
   return { v: 1, rec };
@@ -292,7 +317,8 @@ function freshState(puzzle) {
     assigned: {},        // WORD -> category index (correct filings only)
     order: [],           // slotIds in solve order
     filedRight: null,    // set by the single Lock-it-in: words correctly categorized
-    hintUsed: false,     // the one free letter reveal
+    hintUsed: false,     // the free first-play letter reveal (lib/hint-gate.js)
+    hintPaid: false,     // the paid letter reveal: 1 guess + 1 point, open to all
     left: puzzle.guesses,
     status: 'playing',   // playing | won | lost
     t0: null,
@@ -341,9 +367,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
   const [stats, setStats] = useState(null);
-  // One free hint, first play only (see lib/hint-gate.js). Eligibility is
-  // re-read whenever stats change, so the server-history merge can revoke it
-  // for a returning player on a new device.
+  // Two letter reveals exist and they are separate things. The FREE one is the
+  // site-wide first-play hint (lib/hint-gate.js): one per player, on their very
+  // first ever Crux, no cost. Eligibility is re-read whenever stats change, so
+  // the server-history merge can revoke it for a returning player on a new
+  // device. The PAID one (g.hintPaid) is open to everyone, once per puzzle, and
+  // costs 1 guess plus 1 point. A first-timer can use both on that one board.
   const [hintOk, setHintOk] = useState(false);
   useEffect(() => { if (stats) setHintOk(hintAllowed('crux', stats)); }, [stats]);
   useEffect(() => { if (g.hintUsed) spendHint('crux'); }, [g.hintUsed]);
@@ -660,7 +689,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     // A play counts only once the player actually acts: a guess spent, a hint
     // used, or a word solved. Opening the puzzle and dismissing the start tile
     // does not log a 0-score attempt.
-    const acted = Object.values(g.slotGuesses).some((n) => n > 0) || g.hintUsed || g.order.length > 0;
+    const acted = Object.values(g.slotGuesses).some((n) => n > 0) || g.hintUsed || g.hintPaid || g.order.length > 0;
     if (!acted || g.status !== 'playing') return null;
     try { if (localStorage.getItem(REC_KEY)) return null; } catch (e) {}
     const el = Math.min(36000, Math.max(1, Math.round((Date.now() - (g.t0 || Date.now())) / 1000)));
@@ -672,10 +701,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     abandon.markFlushed();
     const sc = scoreOverride != null ? scoreOverride : g2.order.length;
     const el = g2.t0 ? Math.max(1, Math.round(((g2.tEnd || Date.now()) - g2.t0) / 1000)) : 1;
-    const gu = Object.values(g2.slotGuesses || {}).reduce((a, b) => a + b, 0);
+    const gu = guessesOf(g2, PUZZLE);
     const total = PUZZLE.slots.length * 2;
-    // personal stats: first completion of this puzzle number only
-    try { setStats(recordStat(puzzles, PUZZLE.num, { s: sc, t: total, g: gu, won: sc === total })); } catch (e) {}
+    // personal stats: first completion of this puzzle number only. `won` reads
+    // the board's own verdict rather than the score, since a hinted full solve
+    // is a crack that happens to score total - 1.
+    try { setStats(recordStat(puzzles, PUZZLE.num, { s: sc, t: total, g: gu, won: g2.status === 'won' })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST',
@@ -722,7 +753,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       && PUZZLE.categories[gIn.assigned[s.word]].words.includes(s.word)).length;
     const g2 = { ...gIn, filedRight: right, status: 'lost', tEnd: Date.now() };
     setEndAnim(true);
-    postResult(g2, solvedSlots.length + right);
+    postResult(g2, scoreOf(g2, PUZZLE.slots.length * 2));
     return g2;
   }
 
@@ -738,12 +769,14 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     if (!placedAll || solvedSlots.length === 0) return;
     if (!allSolved && g.left > 0) return;
     const right = solvedSlots.filter((s) => PUZZLE.categories[g.assigned[s.word]].words.includes(s.word)).length;
-    const score = solvedSlots.length + right;
-    const g2 = { ...g, filedRight: right, status: score === PUZZLE.slots.length * 2 ? 'won' : 'lost', tEnd: Date.now() };
+    const total = PUZZLE.slots.length * 2;
+    // The verdict is the RAW solve; the paid hint comes off the score only.
+    const raw = solvedSlots.length + right;
+    const g2 = { ...g, filedRight: right, status: raw === total ? 'won' : 'lost', tEnd: Date.now() };
     setEndAnim(true);
-    postResult(g2, score);
+    postResult(g2, scoreOf(g2, total));
     setG(g2);
-    if (score === PUZZLE.slots.length * 2) setJustWon(true);
+    if (raw === total) setJustWon(true);
   }
 
   // Safety net: any state that arrives at zero guesses still 'playing' ends on
@@ -756,15 +789,26 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     setG(concludeOutOfGuesses(g));
   }, [g.status, g.left, g.t0]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The one free hint: reveal the next empty letter of the selected slot.
-  // No guess cost, no score penalty — the share text carries a 💡 instead.
-  function revealHint() {
-    if (!hintOk) return;
-    if (!playing || g.hintUsed || !slot || g.solved[sel]) return;
+  // A hint reveals the next empty letter of the selected slot. Two of them
+  // exist and they cost different things:
+  //   free: the site-wide first-play hint, once per player ever, no cost.
+  //   paid: once per puzzle, open to everyone, costs 1 guess AND 1 point off
+  //          the final score (owner rule, 2026-08-12).
+  // The paid one needs TWO guesses in the budget, not one: spending the last
+  // guess would trip the out-of-guesses rule and end the puzzle on the spot,
+  // which is not what a player buying a letter is asking for.
+  const freeHintOk = playing && hintOk && !g.hintUsed;
+  const paidHintOk = playing && !g.hintPaid;
+  const canAffordPaid = g.left >= 2;
+  function revealHint(paid) {
+    if (!playing || !slot || g.solved[sel]) return;
+    if (paid ? !(paidHintOk && canAffordPaid) : !freeHintOk) return;
     const target = cells.find((cl) => !g.greens[`${cl.r},${cl.c}`]);
     if (!target) return;
     const k = `${target.r},${target.c}`;
-    const g2 = { ...g, hintUsed: true, greens: { ...g.greens, [k]: true } };
+    const g2 = { ...g, greens: { ...g.greens, [k]: true } };
+    if (paid) { g2.hintPaid = true; g2.left = g.left - 1; }
+    else g2.hintUsed = true;
     if (!g2.t0) g2.t0 = Date.now();
     sweepAutoSolve(g2);
     animSeq.current += 1;
@@ -773,11 +817,15 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     animTimer.current = setTimeout(() => setAnim(null), 1400);
     setTyped('');
     if (g2.solved[sel]) {
-      say(`${slot.word} — solved. File it under a category.`);
+      // The cost rides along in the message: a reveal that finishes the word
+      // skips the plain hint toast, and the player still needs to hear it.
+      say(paid
+        ? `${slot.word} — solved, for 1 guess and 1 point. File it under a category.`
+        : `${slot.word} — solved. File it under a category.`);
       setSel(nextUnsolved(g2, sel));
       setPick(slot.word);
     } else {
-      say('Hint used — that was the one.');
+      say(paid ? 'Letter revealed — 1 guess and 1 point.' : 'Free hint used — that was the one.');
     }
     setG(g2);
   }
@@ -838,7 +886,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     setG(freshState(PUZZLE)); setSel(PUZZLE.slots[0].id); setTyped(''); setPick(null); setEndClosed(false);
   }
 
-  const guessesUsed = Object.values(g.slotGuesses).reduce((a, b) => a + b, 0);
+  const guessesUsed = guessesOf(g, PUZZLE);
+  const hintsUsed = (g.hintUsed ? 1 : 0) + (g.hintPaid ? 1 : 0);
+  // Named on the end card so a full solve that reads total - 1 explains itself.
+  const hintNote = hintsUsed ? (
+    <> &middot; {hintsUsed} hint{hintsUsed === 1 ? '' : 's'}{g.hintPaid ? ' (−1 pt)' : ''}</>
+  ) : null;
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
@@ -850,7 +903,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     if (g.status === 'playing') return null;
     const dist = board.scoreDist;
     if (!dist) return null;
-    const my = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
+    const my = scoreOf(g, PUZZLE.slots.length * 2);
     let below = 0, all = 0;
     for (const [k, v] of Object.entries(dist)) {
       const n = Number(v) || 0;
@@ -868,10 +921,10 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   function shareText() {
     const rows = PUZZLE.categories.map((cat, ci) =>
       cat.words.map((w) => (g.assigned[w] === ci ? CAT_COLORS[ci].sq : '⬛')).join(''));
-    const score = g.status === 'won' ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
-    // Hint use is flagged, streak rides along.
+    const score = scoreOf(g, PUZZLE.slots.length * 2);
+    // Hint use is flagged, one bulb each, streak rides along.
     const guessBit = `${guessesUsed} guess${guessesUsed === 1 ? '' : 'es'}`;
-    const hintBit = g.hintUsed ? ' · 💡' : '';
+    const hintBit = hintsUsed ? ` · ${'💡'.repeat(hintsUsed)}` : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head = `Crux #${PUZZLE.num} · ${score}/${PUZZLE.slots.length * 2} · ${guessBit} · ${elapsed}${hintBit}${streakBit}`;
     return `${head}\n${rows.join('\n')}\n${shareUrl()}`;
@@ -955,7 +1008,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const won = g.status === 'won';
   // The finished score, and the IQ the run earned. The hook only fetches once
   // the game is over, so a live game costs nothing.
-  const endScore = won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
+  const endScore = scoreOf(g, PUZZLE.slots.length * 2);
   const iq = useIqStanding({ game: 'crux', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'crux', active: LOFT && !playing });
 
@@ -1064,7 +1117,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       ]}
       knack="Crossings are free letters. Solve the words that touch the most slots first and the rest of the grid opens up on its own."
       note={<>No lock-in, no score: nothing counts until you <b>submit</b>.</>}
-      footer={<>Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. One hint per puzzle, free on your first ever play, reveals a letter.</>}
+      footer={<>Score is out of {PUZZLE.slots.length * 2}: a point per solved word, a point per correct placement. A <b>hint</b> reveals a letter and costs 1 guess plus 1 point, one per puzzle. Your first ever Crux gets one free on top.</>}
     />
   );
 
@@ -1258,16 +1311,24 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
           {/* selected slot bar — only while there are still words to guess */}
           {started && slot && !allWordsSolved && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
               <button className="cl-key" onClick={() => cycleSlot(-1)} aria-label="Previous word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={17} /></button>
               <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.ink }}>
                 {slotLabel(sel)} <span style={{ color: COLORS.faded, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
               </div>
               <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
-              {hintOk && !g.hintUsed && (
-                <button className="cl-key" onClick={revealHint} title="Reveal one letter in this word (one hint, first play only)"
+              {freeHintOk && (
+                <button className="cl-key" onClick={() => revealHint(false)} title="Reveal one letter in this word. Free, and only on your first ever Crux."
                   style={{ marginLeft: 'auto', background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#8a6d1a' }}>
+                  <Lightbulb size={14} /> Free hint
+                </button>
+              )}
+              {paidHintOk && (
+                <button className="cl-key" onClick={() => revealHint(true)} disabled={!canAffordPaid}
+                  title={canAffordPaid ? 'Reveal one letter in this word. Costs 1 guess and 1 point off your score.' : 'Not enough guesses left to buy a hint.'}
+                  style={{ marginLeft: freeHintOk ? 0 : 'auto', background: canAffordPaid ? '#fdf6e3' : 'rgba(28,30,36,0.05)', border: `1.5px solid ${canAffordPaid ? 'rgba(230,185,63,0.7)' : 'rgba(28,30,36,0.16)'}`, height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: canAffordPaid ? '#8a6d1a' : COLORS.faded, cursor: canAffordPaid ? 'pointer' : 'not-allowed' }}>
                   <Lightbulb size={14} /> Hint
+                  <span style={{ fontSize: 10, fontWeight: 800, opacity: 0.85 }}>&minus;1 guess &minus;1 pt</span>
                 </button>
               )}
             </div>
@@ -1478,12 +1539,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           modal
           self="crux"
           won={won}
-          headline={won ? <>Crux cracked!</> : <>You scored {Math.round(((won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0)) / (PUZZLE.slots.length * 2)) * 100)}%</>}
+          headline={won ? <>Crux cracked!</> : <>You scored {Math.round((endScore / (PUZZLE.slots.length * 2)) * 100)}%</>}
           subline={<>{won
-            ? <>{guessesUsed} guesses &middot; {elapsed}{g.hintUsed ? <> &middot; 1 hint</> : null}</>
+            ? <>{endScore}/{PUZZLE.slots.length * 2} &middot; {guessesUsed} guesses &middot; {elapsed}{hintNote}</>
             : g.filedRight != null
-              ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements &middot; the reveal is on the board</>
-              : <>{g.order.length} of {PUZZLE.slots.length} words &middot; the reveal is on the board</>}</>}
+              ? <>{g.order.length}/{PUZZLE.slots.length} words &middot; {g.filedRight}/{PUZZLE.slots.length} placements{hintNote} &middot; the reveal is on the board</>
+              : <>{g.order.length} of {PUZZLE.slots.length} words{hintNote} &middot; the reveal is on the board</>}</>}
           onShare={copyShare}
           shareLabel={copied ? 'Copied' : 'Share Result'}
           onReplay={resetGame}
