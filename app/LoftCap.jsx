@@ -108,6 +108,16 @@ export default function LoftCap({
   font-size:13.5px;font-family:inherit;cursor:pointer;border:1px solid rgba(255,255,255,0.22);
   background:rgba(255,255,255,0.12);color:var(--white)}
 .loft-acts button.gold{background:var(--gold);border-color:var(--gold);color:#3a2a05}
+/* Up next sits ABOVE the leaderboard: after a finish the strongest next move is
+   the next puzzle, not the standings. */
+.loft-next{display:flex;align-items:center;gap:11px;margin-top:10px;padding:11px 12px;
+  background:rgba(232,180,58,0.16);border-left:4px solid var(--gold);border-radius:0 9px 9px 0;
+  text-decoration:none}
+.loft-next .t{flex:1;min-width:0}
+.loft-next .n1{display:block;font-weight:800;font-size:15px;line-height:1;color:var(--white)}
+.loft-next .n2{display:block;font-weight:600;font-size:11px;line-height:1.3;color:#e8c884;margin-top:4px}
+.loft-next .go{flex:none;background:var(--gold);color:#3a2a05;border-radius:8px;padding:9px 14px;
+  font-weight:800;font-size:12.5px;line-height:1}
 
 /* The navy is the PLAY STAGE only, not the page. A navy page ground looked
    right on a long page and broke on a short one: in focus mode the content

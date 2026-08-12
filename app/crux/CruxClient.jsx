@@ -38,6 +38,7 @@ import { T } from '@/lib/theme';
 import { isLoft } from '@/lib/loft';
 import LoftCap from '../LoftCap';
 import useIqStanding from '../useIqStanding';
+import useNextUnplayed from '../useNextUnplayed';
 import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
@@ -956,6 +957,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // the game is over, so a live game costs nothing.
   const endScore = won ? PUZZLE.slots.length * 2 : g.order.length + (g.filedRight || 0);
   const iq = useIqStanding({ game: 'crux', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'crux', active: LOFT && !playing });
 
   // Play space matches the daily-games grid width (640): the header + puzzle
   // card fill the same column as the navy grid below. The board keeps its own
@@ -1364,6 +1366,15 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 <button className="gold" onClick={copyShare}>{copied ? 'Copied' : 'Share'}</button>
                 <button onClick={resetGame}>Replay</button>
               </div>
+              {nextUp && (
+                <a className="loft-next" href={nextUp.href}>
+                  <span className="t">
+                    <span className="n1">{nextUp.name}</span>
+                    <span className="n2">Up next &middot; {nextUp.tag}</span>
+                  </span>
+                  <span className="go">Play</span>
+                </a>
+              )}
             </>
           )}
         </div>
