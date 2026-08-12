@@ -1062,7 +1062,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: LOFT ? T.accent : T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome: home's #1e3a8a masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs
@@ -1374,7 +1374,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         </div>
         </div>
 
-        <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div>
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
@@ -1476,7 +1476,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       )}
 
       {/* About Crux — crawlable prose for search, server-rendered into the initial HTML */}
-      <div style={{ background: LOFT ? T.surface : undefined }}>
+      <div>
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
@@ -1491,7 +1491,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       </section>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block', background: LOFT ? T.surface : undefined }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

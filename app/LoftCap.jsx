@@ -67,17 +67,25 @@ export default function LoftCap({
    object on it. Sits inside the centered page column, so the negative margin
    pulls it out to the viewport and the padding puts its content back. */
 .loft-stage{background:var(--accent);margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
-  padding:14px calc(50vw - 50%) 22px}
+  padding:14px calc(50vw - 50%) 22px;
+  /* Fill the first screen. Without this the navy stops at the card and the
+     page shows a band of light under it, which reads as an unfinished edge
+     rather than as the start of the next region. The offset is the brand bar
+     plus the cap; overshooting only pushes the tail below the fold, which is
+     where it belongs, so it is deliberately generous. */
+  min-height:calc(100vh - 100px);min-height:calc(100dvh - 100px);
+  display:flex;flex-direction:column;justify-content:flex-start}
 .loft-card{background:var(--white)!important;border:0!important;border-radius:14px!important;
   box-shadow:0 10px 30px rgba(0,0,0,0.34)!important}
 /* The page column carries its own top and bottom padding, which on the navy
    ground showed as a white band above the stage. Zero it; the stage and the
    sheet below supply their own spacing. */
 .loft-page .cx-wrap{padding-top:0!important;padding-bottom:0!important}
-/* Everything below the play stage is reading material, not board, so it sits
-   on the light surface. Full bleed so the navy ends on one clean edge. */
-.loft-sheet{background:var(--surface);margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
-  padding:2px calc(50vw - 50%) 26px}
+/* The navy is the PLAY STAGE only, not the page. A navy page ground looked
+   right on a long page and broke on a short one: in focus mode the content
+   ends just under the board, so the light region below became a stripe with
+   navy under it. The stage carries its own navy and the page stays light, so
+   whatever is left at the bottom is simply page. */
       `}</style>
       <div className="lcap-id">
         <span className="lcap-eb">{eyebrow}</span>
