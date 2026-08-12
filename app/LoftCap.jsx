@@ -56,6 +56,15 @@ export default function LoftCap({
 .lcap-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,0.18)}
 .lcap-bar i{display:block;height:100%;background:var(--gold);transition:width .2s}
 @media(min-width:900px){
+  /* ALIGN TO THE HOME PAGE. The site header and the home rails both sit in a
+     1560px column with 34px padding, so their content begins 207px in at a
+     1905px viewport. The cap is a full-bleed band like the header, but its
+     CONTENT is inset to that same column so the wordmark and the game name
+     share one left edge. The subtractions are the pieces that already inset
+     the first and last child: 4px gold border + 12px .lcap-id padding on the
+     left, and .lcap-help's 12px margin on the right. */
+  .lcap{padding-left:max(8px, calc((100% - 1560px) / 2 + 18px));
+        padding-right:max(8px, calc((100% - 1560px) / 2 + 22px))}
   .lcap-id{flex:0 1 auto}
   .lcap-figs{flex:0 0 auto;order:3;border-top:0;margin-left:auto;
     border-left:1px solid rgba(255,255,255,0.22)}
