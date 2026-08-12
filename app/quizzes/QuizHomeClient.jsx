@@ -1818,7 +1818,7 @@ export default function QuizHomeClient() {
        2026-08-12: the rails had one and the console in the middle never did, so
        the three columns did not match).
 
-       IT HAS TO BE `border:0`, NOT `border-color:transparent`. The transparent
+       IT HAS TO BE 'border:0', NOT 'border-color:transparent'. The transparent
        version was tried first, to avoid reflowing by the 1px the border box
        occupies, and it made the ring WORSE: background-clip defaults to
        border-box, so the card's own white background paints straight through a
