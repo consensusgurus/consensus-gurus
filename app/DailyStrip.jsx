@@ -1486,16 +1486,22 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // of the scroll, which for Complete today (the last group) is the foot of
     // the board.
     //
-    // Clamped so a group TALLER than the port lands on its head instead of
-    // skipping past it: the furthest we may scroll is whatever puts its first
-    // row just under the bands stacked above it, which is bi of them at --bh
-    // (30px) each. Keep BH in step with --bh on .sl-band.
+    // BOTH STICKY STACKS COUNT, and forgetting the bottom one is what put the
+    // last In progress row UNDER the pinned Complete today band on the first
+    // pass. A band is sticky at the top by the bands above it and at the bottom
+    // by the bands below it, so the port's usable window is inset at both ends:
+    // bi bands above at --bh (30px) each, and bn - 1 - bi below. Scrolling to
+    // the raw box.bottom hides the last row behind whatever is pinned there.
+    // For the last group the bottom stack is zero, so it still lands flush.
+    //
+    // The top inset is the clamp, so a group TALLER than the port lands on its
+    // head rather than skipping past it. Keep BH in step with --bh on .sl-band.
     //
     // Two frames, the same wait the "show fewer" bar uses, so the re-render and
     // its layout have both landed before anything is measured. The groups are
     // laid out by CSS `order`, so this reads geometry and never DOM position.
     const GRP_ROWS = { todo: '.sl-row:not(.done):not(.fail):not(.inprog)', prog: '.sl-row.inprog', fail: '.sl-row.fail', dn: '.sl-row.done' };
-    const revealGroup = (port, grp, bi) => {
+    const revealGroup = (port, grp, bi, bn) => {
       const BH = 30;
       if (!port || !GRP_ROWS[grp]) return;
       requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -1505,7 +1511,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           const box = port.getBoundingClientRect();
           let foot = -Infinity, head = Infinity;
           rows.forEach((r) => { const b = r.getBoundingClientRect(); if (b.bottom > foot) foot = b.bottom; if (b.top < head) head = b.top; });
-          const delta = Math.min(foot - box.bottom, head - box.top - (bi * BH));
+          const delta = Math.min(foot - (box.bottom - (Math.max(0, (bn || 1) - 1 - bi) * BH)), head - box.top - (bi * BH));
           // Assigned, NOT scrollTo({behavior:'smooth'}). Measured on the live
           // board: a smooth scrollTo on this port is silently a NO-OP in some
           // Chromes (a plain scrollTo(500) moved it, the same call with
@@ -1556,7 +1562,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             const port = e.currentTarget.closest('.dh-board');
             const wasOpen = grpOpen[grp];
             toggle(grp);
-            if (!wasOpen) revealGroup(port, grp, bi);
+            if (!wasOpen) revealGroup(port, grp, bi, bn);
           }}
           aria-expanded={grpOpen[grp]}
         >{inner}</button>
