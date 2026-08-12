@@ -902,8 +902,17 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     return next;
   });
   const capLead = (() => {
-    // Whatever the state cards leave of the two lower slots.
-    const want = Math.max(0, 2 - capStateShown.length);
+    // SHUT: whatever the state cards leave of the two lower slots.
+    // OPEN: parity, and nothing else (owner, 2026-08-11). The open block shows
+    // every state card, so an ODD number of them left the last one spanning the
+    // whole width, which is the lone banner the four-card grid was built to
+    // retire in the first place. The fix is the same one: not a wider card, but
+    // an even count. ONE lead card comes back as the block's last tile, filling
+    // the hole beside the odd card rather than stretching it, so the open cap
+    // runs three blue over three gold with every card the same size.
+    const want = capOpen
+      ? (capStateShown.length % 2 === 1 ? 1 : 0)
+      : Math.max(0, 2 - capStateShown.length);
     const taken = new Set([nextGame && nextGame.key, easiest && easiest.game.key].filter(Boolean));
     const out = [];
     const pick = (pool) => pool.find((g) => !taken.has(g.key)) || null;
@@ -916,13 +925,17 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     if (out.length < want) take(pick(freshPool), 'fresh') || take(pick(crowdPool), 'crowd');
     return out.slice(0, want);
   })();
-  // Expanding the paused list is a request to see paused games, so the cap hands
-  // that block the room: the lead cards step aside, which also keeps the fixed
-  // count even (two) while the block runs as its own full-width grid.
-  // Open, `want` is already 0 (capStateShown is the whole list), so the lead
-  // cards step aside on their own and the block gets the room.
+  // WHERE a lead card renders depends on the lid, because the two states are
+  // two different grids. SHUT, the block is display:contents and every card is
+  // an item of the cap's own grid, so the lead cards sit above the block and
+  // their count is part of the cap's parity. OPEN (above 901px) the block is a
+  // grid of its OWN, scrolling inside a measured ceiling, so a lead card left
+  // above it would be the odd one out on the fixed row instead: the parity card
+  // rides INSIDE the block as its last tile, where the hole actually is.
   const capLeadShown = capLead;
-  const capFixed = 2 + capLeadShown.length;
+  const capLeadTop = capOpen ? [] : capLeadShown;
+  const capLeadIn = capOpen ? capLeadShown : [];
+  const capFixed = 2 + capLeadTop.length;
   // Which column a paused card lands in. SHUT the block is display:contents, so
   // its cards continue the cap's own grid and the fixed cards above them set the
   // parity; OPEN it is its own two-column grid and starts at column one. Only
@@ -939,7 +952,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // half-width hole beside the last card: it takes the full width instead. With
   // four cards this never fires; it is the backstop for the states that cannot
   // fill all four (a brand new viewer, or the open paused block).
-  const capOddD = ((capOpen ? capShownN : capFixed + capShownN) % 2 === 1);
+  // The parity card makes the open count even too, so as of 2026-08-11 this
+  // fires in neither state and no card is ever widened. It stays as the
+  // backstop it always was, now counting the in-block card as well: a future
+  // state that cannot reach an even number still degrades to a full-width card
+  // rather than a half-width hole.
+  const capOddD = ((capOpen ? capShownN + capLeadIn.length : capFixed + capShownN) % 2 === 1);
   const capWideAt = capOddD && capShownN > 0 ? capShownN - 1 : -1;
   const capLeadWideAt = capOddD && capShownN === 0 ? capLeadShown.length - 1 : -1;
   // The sub line each lower card carries. Familiar favorite prints the habit it
@@ -954,6 +972,26 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const habitNote = (g) => (habitDays(g) > 0
     ? ` \u00b7 played ${habitDays(g)} of the last ${RECENT_DAYS} days`
     : (habitAllTime(g) > 0 ? ` \u00b7 ${habitAllTime(g)} days played all time` : ''));
+  // ONE renderer for the lead card, called from both places it can land (above
+  // the block when shut, inside it when open). Two copies of this JSX would be
+  // two cards to keep identical, and they would not stay that way.
+  const capLeadCard = (c, wide) => (
+    <a
+      key={c.game.key}
+      href={c.game.href}
+      aria-label={`Play ${c.game.name}`}
+      className={'dh-cell ' + c.kind + (wide ? ' capw' : '')}
+    >
+      <div className="dh-bupt">
+        <div className="dh-bue">{CAP_LEAD_LABEL[c.kind]}</div>
+        <div className="dh-bun">{c.game.name}</div>
+        <div className="dh-busub">{c.game.tag}{leadNote(c)}</div>
+      </div>
+      <span className="dh-play">
+        <Play size={11} fill="currentColor" strokeWidth={0} />Play
+      </span>
+    </a>
+  );
 
   // The player's row on a game's per-game board (their score/rank today).
   const myRow = (key) => {
@@ -3082,24 +3120,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             what retired the full-width lone paused card: with an even grid no
             card is ever left standing on its own row. Two more tones of the same
             blue ramp, and the WHOLE card is the link (the button is a span
-            inside it, never a second anchor), exactly as the paused cards are. */}
-        {capLeadShown.map((c, i) => (
-          <a
-            key={c.game.key}
-            href={c.game.href}
-            aria-label={`Play ${c.game.name}`}
-            className={'dh-cell ' + c.kind + (i === capLeadWideAt ? ' capw' : '')}
-          >
-            <div className="dh-bupt">
-              <div className="dh-bue">{CAP_LEAD_LABEL[c.kind]}</div>
-              <div className="dh-bun">{c.game.name}</div>
-              <div className="dh-busub">{c.game.tag}{leadNote(c)}</div>
-            </div>
-            <span className="dh-play">
-              <Play size={11} fill="currentColor" strokeWidth={0} />Play
-            </span>
-          </a>
-        ))}
+            inside it, never a second anchor), exactly as the paused cards are.
+            SHUT only: open, the one card that survives rides inside the block
+            below, since that is the grid whose parity needs it. */}
+        {capLeadTop.map((c, i) => capLeadCard(c, i === capLeadWideAt))}
         {/* The state cards: paused in gold, incomplete in red, in one block so
             one budget and one expander cover both. Each is a single link with
             the button as a span inside it, never a second anchor, because the
@@ -3154,6 +3178,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 </a>
               );
             })}
+            {/* The parity card. Open with an odd number of state cards, the
+                last one had nothing beside it, so one lead card takes that
+                square instead of the odd card stretching across both. It sits
+                inside the block because the open block is its own grid: put
+                above, it would be the odd card on the fixed row instead. */}
+            {capLeadIn.map((c) => capLeadCard(c, false))}
           </div>
         ) : null}
         {/* One bar for the whole cap, spanning both columns at the foot of the
