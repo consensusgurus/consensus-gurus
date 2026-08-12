@@ -1812,7 +1812,18 @@ export default function QuizHomeClient() {
     /* Cards lift off the ground rather than leaning on a hairline that is now
        invisible against it. DailyStrip is deliberately excluded: on a phone its
        stat bar goes transparent, and a shadow on nothing is a floating rectangle. */
-    .qzh .catcard,.qzh .qz-toolrow,.qzh .dhx-lone,.qzh .dhx-rone{box-shadow:0 10px 30px rgba(6,12,30,0.34);}
+    .qzh .catcard,.qzh .qz-toolrow,.qzh .hr-panel{box-shadow:0 10px 30px rgba(6,12,30,0.34);}
+    /* ...and they carry NO outline, because a 1px hairline meant to separate a
+       white card from a white page reads as a white RING against the ground
+       (owner, 2026-08-12: the rails had one and the console in the middle never
+       did, so the three columns did not match). Only the border COLOUR goes
+       transparent, not the border itself, so nothing reflows by the 1px the box
+       occupies and the card's own white fills it (background-clip is border-box
+       by default). Outer edges only: every inner divider is untouched, which is
+       why this lists the card roots by name rather than sweeping descendants.
+       .hr-panel belongs to HomeRails and is scoped under .qzh on purpose, so
+       the rails keep their outline anywhere else they are used. */
+    .qzh .hr-panel,.qzh .qz-toolrow,.qzh .catcard,.qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{border-color:transparent;}
     /* The footer component is shared with every LIGHT page on the site, so it is
        re-inked HERE rather than in Footer.jsx. Its colours are inline styles,
        which is why these need !important. */
