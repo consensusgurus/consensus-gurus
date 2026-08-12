@@ -1062,7 +1062,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: LOFT ? T.accent : T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome: home's #1e3a8a masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs
@@ -1079,7 +1079,6 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
-          progress={(g.left / PUZZLE.guesses) * 100}
           figures={[
             { v: `${g.order.length}/${PUZZLE.slots.length}`, k: 'words' },
             { v: g.left, k: 'guesses left' },
@@ -1375,6 +1374,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         </div>
         </div>
 
+        <div className={LOFT ? 'loft-sheet' : undefined}>
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show leaderboard &amp; more</button>
@@ -1429,6 +1429,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
 
         {!focusMode && (<p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>)}
+        </div>
       </div>
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
@@ -1475,6 +1476,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       )}
 
       {/* About Crux — crawlable prose for search, server-rendered into the initial HTML */}
+      <div style={{ background: LOFT ? T.surface : undefined }}>
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
@@ -1487,8 +1489,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           A new Crux puzzle arrives every day, with a bigger Sunday Edition each week. No app, no signup &mdash; play free in your browser and compare score, guesses, and time on the daily leaderboard. Prefer scrambles? Try <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our daily word scramble.
         </p>
       </section>
+      </div>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block', background: LOFT ? T.surface : undefined }}><Footer /></div>
     </div>
   );
 }

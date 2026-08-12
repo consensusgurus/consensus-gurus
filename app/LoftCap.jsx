@@ -70,6 +70,14 @@ export default function LoftCap({
   padding:14px calc(50vw - 50%) 22px}
 .loft-card{background:var(--white)!important;border:0!important;border-radius:14px!important;
   box-shadow:0 10px 30px rgba(0,0,0,0.34)!important}
+/* The page column carries its own top and bottom padding, which on the navy
+   ground showed as a white band above the stage. Zero it; the stage and the
+   sheet below supply their own spacing. */
+.loft-page .cx-wrap{padding-top:0!important;padding-bottom:0!important}
+/* Everything below the play stage is reading material, not board, so it sits
+   on the light surface. Full bleed so the navy ends on one clean edge. */
+.loft-sheet{background:var(--surface);margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+  padding:2px calc(50vw - 50%) 26px}
       `}</style>
       <div className="lcap-id">
         <span className="lcap-eb">{eyebrow}</span>
