@@ -681,6 +681,10 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     if (!playing) return;
     if (which !== g.hintsUsed + 1) return; // enforce order
     if (which === 1) {
+      // Nothing on the board is nothing to check, so refuse BEFORE the hint is
+      // spent. The button is disabled at zero placements; this is the guard behind
+      // it, not a message the player normally sees.
+      if (placedCount === 0) { say('Place a shard first. This hint checks the work already on the board.'); return; }
       // Judge a placement by the LETTERS it lays down, not by whether the piece
       // sits on its own solved anchor. Cuts now deliberately repeat shard shapes,
       // and two pieces that share a shape AND its letters are interchangeable: a
@@ -1017,7 +1021,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                       )}
                     </div>
                     <div className="sh-hintbar">
-                      <button type="button" className="sh-hint" disabled={g.hintsUsed >= 1} onClick={() => useHint(1)}><Lightbulb size={13} /> Check placed (-{HINTS[0]})</button>
+                      <button type="button" className="sh-hint" disabled={g.hintsUsed >= 1 || placedCount === 0} title={placedCount === 0 ? 'Place a shard first' : undefined} onClick={() => useHint(1)}><Lightbulb size={13} /> Check placed (-{HINTS[0]})</button>
                       <button type="button" className="sh-hint" disabled={g.hintsUsed !== 1} onClick={() => useHint(2)}><Lightbulb size={13} /> Lock a piece (-{HINTS[1]})</button>
                       <button type="button" className="sh-hint" disabled={g.hintsUsed !== 2} onClick={() => useHint(3)}><Lightbulb size={13} /> Show home (-{HINTS[2]})</button>
                     </div>
