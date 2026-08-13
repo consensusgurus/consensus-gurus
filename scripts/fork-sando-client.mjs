@@ -118,6 +118,15 @@ sub(`  const selB = sel >= 0 ? boxOf(selR, selC) : -1;`,
     return { rows, cols };
   }, [cells, givenFlat]);`);
 
+// ── 3b. the selection tints follow the accent ───────────────────────────────
+// Easy to miss on a fork: these two hexes are Suds's ORANGE, they are written as
+// literals rather than derived from COLORS.accent, and a teal game wearing them
+// looks broken. It shipped that way for one deploy.
+sub(`    if (sameVal) bg = '#ffe9d8';
+    if (isSel) bg = '#ffd9bd';`,
+`    if (sameVal) bg = '#dcedef';
+    if (isSel) bg = '#bde0e4';`);
+
 // ── 4. the board becomes a 10x10 with the sums in the gutter ────────────────
 // The heavy outer rule moves off the container and onto the edge cells, because
 // the container now wraps the gutters too and a border there would box in the

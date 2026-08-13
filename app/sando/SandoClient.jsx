@@ -720,8 +720,8 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
     const sameVal = hlVal && val === hlVal && !isSel;
     let bg = T.white;
     if (peer) bg = '#f3f5f8';
-    if (sameVal) bg = '#ffe9d8';
-    if (isSel) bg = '#ffd9bd';
+    if (sameVal) bg = '#dcedef';
+    if (isSel) bg = '#bde0e4';
     return {
       background: bg,
       boxShadow: isSel ? `inset 0 0 0 2.5px ${COLORS.accent}` : undefined,
