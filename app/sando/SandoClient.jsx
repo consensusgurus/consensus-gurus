@@ -18,6 +18,11 @@
 // and the grid is accepted only once every square is correct. A solve scores a
 // perfect 10, and the daily leaderboard ranks solvers by fastest time.
 // Notes let you pencil candidates; one free hint fills a correct cell.
+// The MARGIN, though, does keep score: once a line has both its 1 and its 9
+// down, the filling between them is fixed, so the clue carries a tick when
+// those squares total it and a signed figure when they do not. That is
+// arithmetic the player can already do by hand, and it never points at a
+// single wrong digit, so the digit-level rule above still stands.
 //
 // Same daily plumbing as Sando, Quilt and Cages: banked boards gated by Eastern
 // date on the server (app/sando/page.js), per-puzzle localStorage saves,
@@ -183,6 +188,29 @@ const boxOf = (r, c) => Math.floor(r / 3) * 3 + Math.floor(c / 3);
 // Light haptics on supported devices (no-op on desktop / unsupported browsers).
 const HAPT = { ok: [8], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60], note: [6] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+// The margin readout. A line with both crusts placed has a determined filling,
+// so its running total is printed beside the clue: a tick when the sandwich
+// totals the number, otherwise how far off it currently runs. Empty squares
+// inside the sandwich count as nothing, so an unfinished line reads negative
+// until it is filled, which doubles as how much is still to place. A line
+// missing either crust shows nothing at all, because there is no sandwich yet.
+function SandwichMark({ s }) {
+  if (!s) return null;
+  return (
+    <span className={`sn-mark${s.ok ? ' ok' : ' off'}`} aria-hidden="true">
+      {s.ok ? '\u2713' : (s.diff > 0 ? `+${s.diff}` : String(s.diff))}
+    </span>
+  );
+}
+
+// Spoken form of the same readout, appended to the gutter's tooltip.
+function markTitle(s) {
+  if (!s) return '';
+  if (s.ok) return '. Its sandwich totals the clue.';
+  if (s.diff === 0) return '. Its sandwich already totals the clue with squares still to fill, so something in it is wrong.';
+  return s.diff > 0 ? `. Its sandwich runs ${s.diff} over.` : `. Its sandwich is ${-s.diff} short so far.`;
+}
 
 export default function SandoClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
@@ -696,9 +724,10 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
   const selB = sel >= 0 ? boxOf(selR, selC) : -1;
 
   // A line whose nine squares are all filled retires its sum, the way a finished
-  // digit greys out its key on the pad. It counts EVERY entry, right or wrong:
-  // greying only when the sandwich actually totals the clue would quietly mark
-  // the answer, which classic sudoku never does.
+  // digit greys out its key on the pad. It counts EVERY entry, right or wrong,
+  // so the greying says "nothing left to place here" and nothing more. Whether
+  // the line is CORRECT is the separate job of the sandwich readout below, which
+  // prints its own tick or shortfall over the greyed clue.
   const lineFull = useMemo(() => {
     const rows = [], cols = [];
     for (let k = 0; k < 9; k++) {
@@ -711,6 +740,39 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
     }
     return { rows, cols };
   }, [cells, givenFlat]);
+
+  // Per-line sandwich arithmetic for the margin readout above. Reads the 1 and
+  // the 9 out of the line as it currently stands (given or entered); with
+  // either missing there is no sandwich to total and the entry is null. A
+  // duplicated crust is a player error the grid does not flag, so the later
+  // one is simply the one taken. `ok` requires the sandwich to be COMPLETE as
+  // well as exact, or a half-filled line that happens to reach the clue early
+  // would collect a tick it has not earned.
+  const sandwich = useMemo(() => {
+    const valAt = (i) => givenFlat[i] || cells[i];
+    const read = (idxOf, clue) => {
+      let p1 = -1, p9 = -1;
+      for (let j = 0; j < 9; j++) {
+        const v = valAt(idxOf(j));
+        if (v === 1) p1 = j;
+        else if (v === 9) p9 = j;
+      }
+      if (p1 < 0 || p9 < 0) return null;
+      const a = Math.min(p1, p9), b = Math.max(p1, p9);
+      let sum = 0, full = true;
+      for (let j = a + 1; j < b; j++) {
+        const v = valAt(idxOf(j));
+        if (v) sum += v; else full = false;
+      }
+      return { diff: sum - clue, ok: full && sum === clue };
+    };
+    const rows = [], cols = [];
+    for (let k = 0; k < 9; k++) {
+      rows.push(read((j) => k * 9 + j, ROW_SUMS[k]));
+      cols.push(read((j) => j * 9 + k, COL_SUMS[k]));
+    }
+    return { rows, cols };
+  }, [cells, givenFlat, ROW_SUMS, COL_SUMS]);
 
   function cellStyle(idx) {
     const r = Math.floor(idx / 9), c = idx % 9, b = boxOf(r, c);
@@ -752,6 +814,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
         <>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it.</>,
         <>Every row and column holds exactly one 1 and one 9, so it has exactly one <b>sandwich</b>: the squares between them. The number in the margin is what those digits add up to, and it does not matter which of the two comes first.</>,
         <>Put the 1 and the 9 <b>side by side</b> and there is nothing between them: the sandwich is <b>empty</b>, and an empty sandwich totals <b>0</b>. Put them at the <b>two ends</b> and everything else is inside, which totals <b>35</b>. Those two are the most useful clues on the board.</>,
+        <>Once a line has <b>both</b> its 1 and its 9 down, its clue starts keeping score: a green <b>tick</b> when the squares between them total the number, or a red <b>+2</b> or <b>-11</b> for how far off the running total is. Empty squares inside the sandwich count as nothing, so the figure runs negative until the line is filled.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last move. <b>Clear</b> wipes every number you have entered and leaves the printed clues.</>,
       ]}
       knack="Work on the extremes first. An empty sandwich (a 0) pins the 1 and the 9 side by side, a 35 throws them to the two ends, and a 1, 2 or 3 leaves so few ways to make the filling that the pair has almost nowhere to sit. Everything in the middle of the range is the hard part, so leave it."
@@ -777,9 +840,12 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.sn-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.sn-ttl h1{font-size:21px;letter-spacing:0.02em;}.sn-ttl .sn-ttl-dt{font-size:15px;}.sn-ttl-dot{display:none;}}
           .sn-corner{}
           /* the gutter: mono, tight, and leaning toward the grid it labels */
-          .sn-sum{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;font-size:clamp(9px,2.7vw,14px);color:${COLORS.ink};box-sizing:border-box;user-select:none;line-height:1;}
-          .sn-sum.sn-row{justify-content:flex-end;padding-right:5px;}
-          .sn-sum.sn-col{align-items:flex-end;padding-bottom:4px;}
+          .sn-sum{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:${MONO};font-weight:500;font-size:clamp(9px,2.7vw,14px);color:${COLORS.ink};box-sizing:border-box;user-select:none;line-height:1;}
+          .sn-sum.sn-row{align-items:flex-end;justify-content:center;padding-right:5px;}
+          .sn-sum.sn-col{align-items:center;justify-content:flex-end;padding-bottom:4px;}
+          .sn-mark{font-family:${MONO};font-weight:700;font-size:clamp(7px,1.9vw,10px);line-height:1;letter-spacing:0;white-space:nowrap;}
+          .sn-mark.ok{color:${COLORS.green};}
+          .sn-mark.off{color:${COLORS.rust};}
           .sn-sum.on{color:${COLORS.accent};font-weight:700;background:${COLORS.accentSoft};border-radius:4px;}
           .sn-sum.done{color:#c3c8cf;}
           .sn-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
@@ -824,7 +890,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Sando is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Sandwich sudoku. Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9. The number beside each row and column is the total of the digits between that line&apos;s 1 and its 9, so an <b>empty</b> sandwich, with the two side by side, is 0.</p>
+                <p style={{ margin: '0 0 6px' }}>Sandwich sudoku. Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9. The number beside each row and column is the total of the digits between that line&apos;s 1 and its 9, so an <b>empty</b> sandwich, with the two side by side, is 0. Once a line has both its 1 and its 9 down, the margin keeps the running total for you: a tick when the sandwich adds up, or how far off it is.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -855,12 +921,19 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
               <div className="sn-corner" aria-hidden="true" />
               {Array.from({ length: 9 }).map((_, c) => (
                 <div key={`cs${c}`} className={`sn-sum sn-col${selC === c ? ' on' : ''}${lineFull.cols[c] ? ' done' : ''}`}
-                  title={`Column ${c + 1}: the digits between its 1 and its 9 total ${COL_SUMS[c]}${COL_SUMS[c] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}`}>{COL_SUMS[c]}</div>
+                  title={`Column ${c + 1}: the digits between its 1 and its 9 total ${COL_SUMS[c]}${COL_SUMS[c] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}${markTitle(sandwich.cols[c])}`}>
+                  <span>{COL_SUMS[c]}</span>
+                  <SandwichMark s={sandwich.cols[c]} />
+                </div>
               ))}
               {Array.from({ length: 81 }).map((_, idx) => {
+                const gr = idx / 9;
                 const gutter = idx % 9 === 0 ? (
-                  <div key={`rs${idx / 9}`} className={`sn-sum sn-row${selR === idx / 9 ? ' on' : ''}${lineFull.rows[idx / 9] ? ' done' : ''}`}
-                    title={`Row ${idx / 9 + 1}: the digits between its 1 and its 9 total ${ROW_SUMS[idx / 9]}${ROW_SUMS[idx / 9] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}`}>{ROW_SUMS[idx / 9]}</div>
+                  <div key={`rs${gr}`} className={`sn-sum sn-row${selR === gr ? ' on' : ''}${lineFull.rows[gr] ? ' done' : ''}`}
+                    title={`Row ${gr + 1}: the digits between its 1 and its 9 total ${ROW_SUMS[gr]}${ROW_SUMS[gr] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}${markTitle(sandwich.rows[gr])}`}>
+                    <span>{ROW_SUMS[gr]}</span>
+                    <SandwichMark s={sandwich.rows[gr]} />
+                  </div>
                 ) : null;
                 const given = givenFlat[idx];
                 const val = given || cells[idx];
