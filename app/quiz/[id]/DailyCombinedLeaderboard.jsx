@@ -246,6 +246,11 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     </button>
   );
 
+  // Points explainer. An archived day pays the rule it was PLAYED under, so
+  // the copy follows the day's own flag rather than today's rule.
+  const scaleLine = (data && data.ladder === false)
+    ? "Each game was worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field."
+    : 'Each game is worth 15, by where you finish: 15 for 1st, 12 for 2nd, 10 for 3rd, then 8, 7, 6, 5, 4, 3 and 2 down to 10th. Finish outside the top 10 and you still earn 1.';
   const gc = gameCount || 0;
   const gameWord = gc === 1 ? 'game' : 'games';
   const totalLine = gc > 1
@@ -291,7 +296,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
       {scopeToggle}
       {gameView}
       <p style={{ fontSize: 11, color: th.note, marginTop: 12, lineHeight: 1.5 }}>
-        Each game is worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field. {totalLine} Points reflect results from unregistered users.
+        {scaleLine} {totalLine} Points reflect results from unregistered users.
       </p>
       {compact ? linkBtn('Show less', () => { setExpanded(false); setTab(todayKey || 'overall'); }) : null}
     </div>

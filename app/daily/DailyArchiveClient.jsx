@@ -1056,7 +1056,7 @@ function GameBoard({ g, navy, board, myKey, gameMax, full, setFull }) {
       {!full && meRow && !meInTop && <div className="lb-sep">{rowEl(meRow)}</div>}
       {!full && rows.length > 3 && <button type="button" className="lb-more" onClick={() => setFull(true)}>Show full standings ({rows.length})</button>}
       {full && rows.length > 3 && <button type="button" className="lb-more" onClick={() => setFull(false)}>Show less</button>}
-      <p className="lb-note">15 per game: up to 5 for accuracy, up to 10 for where you placed against today&rsquo;s field.</p>
+      <p className="lb-note">15 per game by where you finish: 15 for 1st, 12 for 2nd, 10 for 3rd, then 8, 7, 6, 5, 4, 3 and 2 down to 10th, and 1 for finishing outside the top 10.</p>
     </div>
   );
 }
