@@ -59,6 +59,20 @@ export async function GET() {
   try { todayISO = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { todayISO = new Date().toISOString().slice(0, 10); }
   try {
+    // WHEN each account was created. A day's crown is decided ONCE and never
+    // re-decided (owner, 2026-08-13), but registering retroactively stamps a
+    // player's name onto every play they ever made, which would otherwise let a
+    // stranger signing up today rewrite a champion crowned three weeks ago:
+    // either by winning it outright, or by joining the registered field and
+    // shifting the points of everyone who was in it. Their points DO still
+    // recompute on the combined board and their IQ total is unaffected; only the
+    // crown is held. Cheap query (one row per player) and no migration.
+    let acctMs = new Map();
+    try {
+      const { data: us } = await supabaseAdmin.from('quiz_users').select('id, created_at');
+      for (const u of (us || [])) { const t = Date.parse(u.created_at); if (!Number.isNaN(t)) acctMs.set(u.id, t); }
+    } catch (e) { /* unknown creation dates -> fail open, crowns compute as before */ }
+
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
       console.error('daily-history error', error);
@@ -108,8 +122,20 @@ export async function GET() {
     const history = [];
     for (const [suffix, dm] of byDay.entries()) {
       const gameResults = [];
+      const { iso: dayISO, label: dayLabel } = parseSuffix(suffix);
+      const dayEnd = dayEndFor(dayISO);
+      // A player who registered AFTER this day ended was a guest that night, and
+      // is scored as one here, so the registered field this crown was decided
+      // against is exactly the one that existed at Eastern midnight. Only rows
+      // that still carry an anon_id are demoted (a row posted while logged in
+      // cannot predate its own account, so this never strips a genuine one).
+      const asPlayed = (rows) => rows.map((r) => {
+        if (!r.user_id || !r.anon_id) return r;
+        const born = acctMs.get(r.user_id);
+        return (born && born >= dayEnd) ? { ...r, user_id: null, username: null } : r;
+      });
       for (const [key, rows] of dm.entries()) {
-        const gr = scoreGame(rows);
+        const gr = scoreGame(asPlayed(rows));
         if (gr.field <= 0) continue; // no registered field that day for this game
         gameResults.push({ key, quizId: `${key}-${suffix}`, field: gr.field, players: gr.players });
       }
@@ -127,11 +153,10 @@ export async function GET() {
       const maxTotal = Math.min(dayBestN, gameCount) * GAME_MAX;
       const w = registered[0];
       const ru = registered[1] || null;
-      const { iso, label } = parseSuffix(suffix);
       history.push({
         date: suffix,
-        dateISO: iso,
-        label,
+        dateISO: dayISO,
+        label: dayLabel,
         gameCount,
         maxTotal,
         field: overall.length,

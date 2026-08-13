@@ -251,6 +251,11 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
   const scaleLine = (data && data.ladder === false)
     ? "Each game was worth 15: up to 5 for how much you got right, up to 10 for where you placed against that day's field."
     : 'Each game is worth 15, by where you finish: 15 for 1st, 12 for 2nd, 10 for 3rd, then 8, 7, 6, 5, 4, 3 and 2 down to 10th. Finish outside the top 10 and you still earn 1.';
+  // Who you are ranked against. Guests are counted in the "of N" denominator but
+  // not in the points, so say so rather than leaving the two to disagree.
+  const poolLine = (data && data.ladder === false)
+    ? 'Points reflect results from unregistered users.'
+    : 'Guests play alongside you and count toward the field, but points are scored among registered players only.';
   const gc = gameCount || 0;
   const gameWord = gc === 1 ? 'game' : 'games';
   const totalLine = gc > 1
@@ -303,7 +308,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
       {scopeToggle}
       {gameView}
       <p style={{ fontSize: 11, color: th.note, marginTop: 12, lineHeight: 1.5 }}>
-        {scaleLine} {totalLine} Points reflect results from unregistered users. {attemptLine}
+        {scaleLine} {totalLine} {poolLine} {attemptLine}
       </p>
       {compact ? linkBtn('Show less', () => { setExpanded(false); setTab(todayKey || 'overall'); }) : null}
     </div>
