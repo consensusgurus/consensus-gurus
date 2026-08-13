@@ -224,11 +224,16 @@ sub(`          .cg-note{display:flex;align-items:center;justify-content:center;f
              muddled one. It is a sibling rather than a border on the cell
              itself, which the 3x3 rules already own. */
           .cg-wall{position:absolute;inset:3px;pointer-events:none;box-sizing:border-box;}
-          .cg-sum{position:absolute;top:1px;left:3px;font-family:\${SANS};font-size:10px;line-height:1;font-weight:800;color:\${COLORS.accent};pointer-events:none;letter-spacing:-0.02em;}
+          /* the total sits INSIDE its cage's corner, clear of the wall. The
+             wall is inset 3px and its border is 1.5px thick, so anything above
+             5px has the dashed line drawn straight through the numerals: that
+             shipped once and every printed total came out looking sliced in
+             half. Keep these two rules in step if the inset ever changes. */
+          .cg-sum{position:absolute;top:5px;left:5.5px;font-family:\${SANS};font-size:9.5px;line-height:1;font-weight:800;color:\${COLORS.accent};pointer-events:none;letter-spacing:-0.02em;}
           .cg-sum.done{color:#b9b3c6;}
-          .cg-notes.hassum{padding-top:10px;}
+          .cg-notes.hassum{padding-top:11px;}
           .cg-notes.hassum .cg-note{font-size:8px;}
-          @media(max-width:420px){.cg-sum{font-size:8.5px;top:0;left:2px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:8px;}}`);
+          @media(max-width:420px){.cg-sum{font-size:8px;top:3.5px;left:4px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:9px;}}`);
 
 // ── 6. copy: this is a killer sudoku, and the clues are totals ───────────────
 sub(`      lead="Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats."`,

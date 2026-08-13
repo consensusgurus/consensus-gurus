@@ -783,11 +783,16 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
              muddled one. It is a sibling rather than a border on the cell
              itself, which the 3x3 rules already own. */
           .cg-wall{position:absolute;inset:3px;pointer-events:none;box-sizing:border-box;}
-          .cg-sum{position:absolute;top:1px;left:3px;font-family:${SANS};font-size:10px;line-height:1;font-weight:800;color:${COLORS.accent};pointer-events:none;letter-spacing:-0.02em;}
+          /* the total sits INSIDE its cage's corner, clear of the wall. The
+             wall is inset 3px and its border is 1.5px thick, so anything above
+             5px has the dashed line drawn straight through the numerals: that
+             shipped once and every printed total came out looking sliced in
+             half. Keep these two rules in step if the inset ever changes. */
+          .cg-sum{position:absolute;top:5px;left:5.5px;font-family:${SANS};font-size:9.5px;line-height:1;font-weight:800;color:${COLORS.accent};pointer-events:none;letter-spacing:-0.02em;}
           .cg-sum.done{color:#b9b3c6;}
-          .cg-notes.hassum{padding-top:10px;}
+          .cg-notes.hassum{padding-top:11px;}
           .cg-notes.hassum .cg-note{font-size:8px;}
-          @media(max-width:420px){.cg-sum{font-size:8.5px;top:0;left:2px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:8px;}}
+          @media(max-width:420px){.cg-sum{font-size:8px;top:3.5px;left:4px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:9px;}}
           .cg-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:var(--white);font-family:${MONO};font-weight:500;color:${COLORS.ink};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .cg-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .cg-pad.done{color:#c3c8cf;box-shadow:none;background:#f4f5f7;cursor:default;}
