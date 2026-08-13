@@ -4035,6 +4035,60 @@ whole job of a leaderboard.
   where you finish; paying for it twice is what let a weak finish in an empty field
   out-earn a strong one in a stacked field.
 
+### The position is counted over REGISTERED players only (owner, 2026-08-13)
+
+The public board has renumbered registered players 1, 2, 3... since 2026-07-26 so guests
+leave no gaps in it. The POINTS never got that memo: they were paid on the player's
+position in the FULL field. Under the ladder that surfaced immediately as a Four board
+reading **#1 next to 6 points**, because the top registered player was genuinely 6th of
+12 and collected the 6th rung.
+
+A guest cannot win, hold a crown, or take the prize, so paying a registered player by a
+position that counts guests pays them for a race they were not in. **Removing guests
+never REORDERS the registered players, it only closes the gaps between them**, which is
+exactly what the board's own renumbering already does. Replaying the 2026-08-13 board
+confirmed it: identical order top to bottom, totals up 10 to 20%, top-10 spread slightly
+wider.
+
+- **A GUEST is paid the position they WOULD hold if they registered**, which is the same
+  number `guestProvisional` previews to them on the end card. The preview and the payout
+  now agree; before, they were two different formulas.
+- **`field` / `plays` / `uniquePlayers` still count EVERYONE.** The owner chose to leave
+  the "of 15 players" denominator on the full pool, so a card can read "#1 of 15" while
+  the 15 includes guests who were not ranked. The leaderboard footnote says so.
+- **The three crowd scorers already did this** (`players.filter((p) => p.name)`), so
+  outwit, outrank and feud have always been registered-only. This aligned everything else
+  with them rather than the other way round.
+- Each scored player carries **`rankedPos`**, the position the ladder actually paid.
+  `points === ladderAt(rankedPos)` is the invariant any board render must satisfy, and
+  the cheapest thing to assert when something looks wrong.
+
+### A CROWN IS DECIDED ONCE AND NEVER RE-DECIDED (owner, 2026-08-13)
+
+`attributeAnonGames` stamps a registering player's name onto **every play they have ever
+made**, with no date limit. Under registered-only scoring that means a stranger signing up
+today can rewrite a champion crowned three weeks ago, two ways: by winning that day
+outright, or just by joining its registered field and shifting the points of everyone who
+was already in it.
+
+`app/api/quiz/daily-history/route.js` therefore scores a COMPLETED day against the
+registered field **that existed at Eastern midnight**. A row whose owning account's
+`quiz_users.created_at` is later than that day's end is demoted to a guest (`user_id` and
+`username` blanked) for the crown computation only. It pairs with the row-level
+`created_at >= dayEnd` cutoff already there: rows that arrived late do not count, and
+neither do names that arrived late.
+
+- **No migration.** `quiz_users.created_at` has existed since migration 20.
+- **Only rows that still carry an `anon_id` are demoted**, since a row posted while
+  logged in cannot predate its own account. So a genuine registered play is never stripped.
+- **Accepted cost (owner):** a past day's displayed POINTS still recompute when someone
+  registers, so a day's points and its crown can disagree about who was best. The owner
+  chose this over freezing the points, so the new player's history is still credited.
+- **IQ Points are untouched either way**, per the section above.
+- **An admin fraud removal still corrects history**, which is the specific reason the
+  2026-08-08 freeze note refused to store a snapshot row. Deleting rows re-derives the
+  crown; only the passage of time cannot change it.
+
 ### `gamePoints()` is the ONLY place points are computed
 
 `gamePoints(quizIdOrSuffix, { lo, hi = lo, field, ratio })` in `lib/daily-combined.js`.
@@ -4076,10 +4130,19 @@ can read, and it is not a new hole: the old rule already paid the full placement
 whoever topped a two-player field. If farming tiny fields ever becomes real, the guard
 to reach for is a minimum-field cap on the top rungs, not a return to field scaling.
 
-**Before changing the ladder, rebuild the verification harness** (it was scratch, not
-committed). The load-bearing checks are: pre-cutover parity against the old formula
-across a full sweep of (lo, hi, field, ratio); every tie paying inside the span it
-covers; and the points order never disagreeing with the per-game rank order.
+**Before changing any of this, rebuild the verification harness** (it was scratch, not
+committed). The load-bearing checks are: pre-cutover parity against the old formula across
+a full sweep of (lo, hi, field, ratio); every tie paying inside the span it covers; the
+points order never disagreeing with the per-game rank order; `points === ladderAt(rankedPos)`
+on random mixed registered/guest fields; and the guest preview equaling what registering
+would actually pay.
+
+**Fixture warning, this cost a debugging round:** build any score-ordered test fixture on a
+PLAIN game id such as `crux-8-14-26`. The End Game titles (`four`, `mate`, `check`,
+`defend`, `chain`, `turn`) rank on tier then attempts then depth, NOT on raw score, so a
+synthetic score fixture on one of those silently orders by something else and the test
+proves nothing about what you meant to test. Keep one End Game case in the suite
+deliberately, with realistic solved/lost rows.
 
 ## A LOSS RANKS ON HOW FAR YOU GOT, not on how fast you lost (owner rule, 2026-08-09)
 
