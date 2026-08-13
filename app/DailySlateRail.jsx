@@ -40,7 +40,7 @@ import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const SLATE_KEYS = [
-  'crux', 'emcee', 'shards', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'quilt', 'cages', 'carve',
+  'crux', 'emcee', 'shards', 'garble', 'links', 'span', 'dating', 'tally', 'suds', 'quilt', 'cages', 'sando', 'carve',
   'extra', 'stet', 'outwit', 'outrank', 'tuck', 'alibi', 'cipher', 'ping', 'warmer', 'jester',
   'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'glyph', 'hedge',
   'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib', 'streak',

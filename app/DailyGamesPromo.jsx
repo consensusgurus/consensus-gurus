@@ -24,6 +24,7 @@ export const DAILY_GAMES = [
   { key: 'suds', href: '/suds', name: 'Suds', tag: 'the daily 9×9 sudoku', store: 'sot_suds_day', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)' },
   { key: 'quilt', href: '/quilt', name: 'Quilt', tag: 'the daily jigsaw sudoku', store: 'sot_quilt_day', accent: '#a21caf', bg: '#fdf4ff', border: 'rgba(162,28,175,0.4)' },
   { key: 'cages', href: '/cages', name: 'Cages', tag: 'the daily killer sudoku', store: 'sot_cages_day', accent: '#6b21a8', bg: '#f6f2fd', border: 'rgba(107,33,168,0.4)' },
+  { key: 'sando', href: '/sando', name: 'Sando', tag: 'the daily sandwich sudoku', store: 'sot_sando_day', accent: '#15616b', bg: '#eaf6f7', border: 'rgba(21,97,107,0.4)' },
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'carve the grid into equal sums', store: 'sot_carve_day', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)' },
   { key: 'outrank', href: '/outrank', name: 'Outrank', tag: "call the crowd's order", store: 'sot_outrank_day', accent: '#4338ca', bg: '#eef0fb', border: 'rgba(67,56,202,0.4)' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'unredact the front page', store: 'sot_extra_day', accent: '#b91c1c', bg: '#fdeeee', border: 'rgba(185,28,28,0.4)' },

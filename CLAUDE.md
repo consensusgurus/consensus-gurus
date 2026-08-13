@@ -3430,6 +3430,7 @@ archive and hub chips use the short form `Sun`.
 | Suds | harder grid, fewer givens |
 | Quilt | 26 printed clues instead of the weekday 30 to 34 (from 2026-08-11) |
 | Cages | 27 cages instead of the weekday 29 to 34, and the only day that prints a five-cell cage (from 2026-08-12) |
+| Sando | six printed digits instead of the weekday 10 to 20 (from 2026-08-13) |
 | Circa | a trickier moment to place |
 | Extra | a trickier story to name |
 | Carve | 7×7 board in nine blocks |
@@ -3575,6 +3576,45 @@ across all 20 games on 2026-07-20.
    table in this section.
 5. Update the game's own how-to-play copy and its `page.js` metadata description, which
    both describe the weekly cadence to players and to search engines.
+
+## Sando is the SANDWICH SUDOKU, and the sums are the whole point (launched 2026-08-13)
+
+The fourth sudoku on the slate, after Suds (classic), Quilt (jigsaw) and Cages (killer).
+Ordinary grid, ordinary boxes, ordinary printed digits, plus one rule: the number
+printed outside each row and column is the total of the digits lying strictly BETWEEN
+that line's 1 and its 9. The 1 and the 9 are the crusts, everything between is the
+filling. A clue of 0 says the crusts are adjacent; 35 says they sit at the two ends.
+
+- **Every board carries all EIGHTEEN border sums.** The sums are the game, and a board
+  with only a handful of them is a sudoku wearing a costume. So the ramp is the printed
+  digits and nothing else: Mon 20, Tue 18, Wed 16, Thu 14, Fri 12, Sat 10, and the
+  **Sunday Edition at 6**, so nearly the whole grid has to come out of the clues.
+- **There is NO difficulty-level field, and that is a measured finding rather than an
+  omission.** The sandwich deduction is a full line-level propagation, and across
+  thousands of trial boards it never once needed locked candidates or naked and hidden
+  subsets to finish: a board either falls to the sandwich rule plus singles, or it does
+  not fall at all. The bank therefore claims the simpler thing, and the verifier asserts
+  exactly that. Do not add a `level` field to Sando by analogy with Cages.
+- **The deduction, in one sentence:** for a clued line, enumerate every way the sandwich
+  could sit (both crust positions, both orientations, every filling that totals the
+  clue), keep only the layouts whose digits can actually be dealt to the cells given
+  their candidates, and let each cell keep only the digits some surviving layout gives
+  it. That is what a person does with a sandwich clue and nothing beyond it.
+- **Generator and verifier use SEPARATE solvers**, as with Cages. The generator's
+  counter propagates candidates and branches on the tightest cell; the verifier's walks
+  cell by cell with a partial-line bound (where could the crusts sit, what is already
+  down, can the remaining holes still reach the clue). **Without that bound a six-given
+  Sunday board does not finish in three minutes**, so do not "simplify" the verifier's
+  counter to test lines only when they close.
+- **`Array.prototype.every` passes the VALUE first.** The generator's first logic solver
+  ended on `cand.every(solved)` where `solved` takes a CELL INDEX, so `cand[512]` was
+  undefined, every wide-open cell reported itself solved, and it certified a board with
+  three solutions. Any `solved`/`done` helper that indexes an array must never be handed
+  to `every`/`some`/`filter` directly.
+- **The board is a 10x10 grid**: the eighteen sums live in the first row and column and
+  the 9x9 sits in the corner, with the gutter tracks at `0.66fr` so the grid still reads
+  as the subject. The heavy outer rule moved off the container and onto the edge cells,
+  because the container now wraps the gutters too.
 
 ## Cages is the KILLER SUDOKU, and its clue set is arithmetic only (launched 2026-08-12)
 

@@ -19,6 +19,7 @@ import { PUZZLES as P_tally } from '@/app/tally/puzzles';
 import { PUZZLES as P_suds } from '@/app/suds/puzzles';
 import { PUZZLES as P_quilt } from '@/app/quilt/puzzles';
 import { PUZZLES as P_cages } from '@/app/cages/puzzles';
+import { PUZZLES as P_sando } from '@/app/sando/puzzles';
 import { PUZZLES as P_circa } from '@/app/circa/puzzles';
 import { PUZZLES as P_extra } from '@/app/extra/puzzles';
 import { PUZZLES as P_carve } from '@/app/carve/puzzles';
@@ -80,7 +81,7 @@ const CACHE_HEADERS = { 'Cache-Control': 'private, no-store' };
 
 const GAME_PUZZLES = {
   crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating,
-  tally: P_tally, suds: P_suds, quilt: P_quilt, cages: P_cages, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
+  tally: P_tally, suds: P_suds, quilt: P_quilt, cages: P_cages, sando: P_sando, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit,
   tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer,
   jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak, feud: P_feud, babel: P_babel, hands: P_hands, glyph: P_glyph, chain: P_chain, turn: P_turn, suffice: P_suffice, strata: P_strata, redact: P_redact, paths: P_paths, deep: P_deep, anon: P_anon, blocks: P_blocks, chomp: P_chomp, sweep: P_sweep, docket: P_docket, blitz: P_blitz, defend: P_defend,
 };
