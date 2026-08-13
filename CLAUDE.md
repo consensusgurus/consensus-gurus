@@ -3896,6 +3896,74 @@ Babel was the one End Game title untouched by this: it has no loss state at all,
 against a benchmark instead. That is also why it LEFT the category on 2026-08-12 (see the Babel move
 below), so the six titles this section covers are Mate, Defend, Four, Check, Chain and Turn.
 
+## DAILY POINTS ARE A FIXED LADDER BY FINISH, not a field-scaled split (owner rule, 2026-08-12)
+
+Every daily game pays the SAME table, whatever the field:
+
+| Finish | 1st | 2nd | 3rd | 4th | 5th | 6th | 7th | 8th | 9th | 10th | 11th+ | did not play |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Points | 15 | 12 | 10 | 8 | 7 | 6 | 5 | 4 | 3 | 2 | **1** | 0 |
+
+This replaced `completion (5 x score/total) + placement (10 x field-scaled)`, which was
+fair but unreadable. On the 2026-08-12 board a 94-player Crux field paid its top four
+15 / 14.9 / 14.6 / 14.5, while 5th of an 8-player field paid 4.3 for the same "5th
+place". Nobody could look at a board and say what a finish was worth, which is the
+whole job of a leaderboard.
+
+- **`GAME_MAX` stays 15 and the best-25 / 375 daily ceiling stays**, so nothing
+  downstream rescales and every board still prints `x / 15`.
+- **The 11th+ floor is deliberately non-zero.** Finishing a game has to beat skipping
+  it, or best-N quietly rewards ducking anything hard.
+- **Completion is not paid separately any more.** How much you solved already decides
+  where you finish; paying for it twice is what let a weak finish in an empty field
+  out-earn a strong one in a stacked field.
+
+### `gamePoints()` is the ONLY place points are computed
+
+`gamePoints(quizIdOrSuffix, { lo, hi = lo, field, ratio })` in `lib/daily-combined.js`.
+It replaced FIVE hand-kept copies of the formula: `scoreGame`, `guestGameResult`, and
+the three crowd scorers (`lib/outwit-score.js`, `lib/outrank-score.js`,
+`lib/feud-score.js`). Five copies of a scoring rule is exactly how a per-game board and
+the combined board drift apart, which this file warns about repeatedly elsewhere. Never
+re-inline the math into a scorer; add the call.
+
+- **`lo`/`hi` are the 1-based span of the TIE GROUP** (`lo === hi` when nothing ties).
+  A tie pays the **mean of the rungs it spans**, never the rung at the mean position:
+  two tied for 1st share (15+12)/2 = 13.5, three tied for 1st share 12.33. The crowd
+  scorers break ties on submission time, so they always pass a single position.
+- A new scorer passes the day's `quizId` (or bare suffix); `suffixOfQuizId` accepts
+  either.
+
+### Date-gated, never retroactive
+
+`LADDER_CUTOVER = { y: 2026, m: 8, d: 13 }`. `usesLadder(id)` compares the quizId's
+`M-D-YY` suffix against it; anything earlier runs the old split **byte for byte**, so no
+already-crowned day recomputes and the day-freeze rule above still holds. An unparseable
+id reads as the CURRENT rule, matching how `bestNForSuffix` already treats one. Same
+cutover pattern as `BESTN_CUTOVER`; when the ladder next changes, add another dated
+constant rather than editing this one.
+
+**IQ Points are NOT affected and must stay that way.** `lib/quiz-xp` scores a daily from
+its own `score/total` fraction and never reads these points, so no player's IQ total,
+rank or trophy moved. If a future change makes IQ read placement points, it becomes
+retroactive across all history and needs its own gate.
+
+**Reader-facing copy branches on a `ladder` boolean** returned by
+`/api/quiz/daily-combined`, so an archived day prints the explainer for the rule it was
+PLAYED under (`DailyCombinedLeaderboard.jsx`). Any new surface that explains scoring
+reads that flag rather than hardcoding today's table.
+
+**Accepted trade-off (owner, 2026-08-12):** 5th of 94 and 5th of 8 both pay 7, so beating
+89 people is no longer worth more than beating 3. That is the price of a table a player
+can read, and it is not a new hole: the old rule already paid the full placement max to
+whoever topped a two-player field. If farming tiny fields ever becomes real, the guard
+to reach for is a minimum-field cap on the top rungs, not a return to field scaling.
+
+**Before changing the ladder, rebuild the verification harness** (it was scratch, not
+committed). The load-bearing checks are: pre-cutover parity against the old formula
+across a full sweep of (lo, hi, field, ratio); every tie paying inside the span it
+covers; and the points order never disagreeing with the per-game rank order.
+
 ## A LOSS RANKS ON HOW FAR YOU GOT, not on how fast you lost (owner rule, 2026-08-09)
 
 The End Game titles are binary: you either solve the position or you do not, and a loss posts
