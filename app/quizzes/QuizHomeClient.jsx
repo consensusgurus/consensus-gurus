@@ -1701,9 +1701,9 @@ export default function QuizHomeClient() {
     .qzh .qcols{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px;}
     /* Last Played fills better on phones with fewer, taller rows: show only the 3 most recent (owner 2026-07-24). */
     @media(max-width:560px){.qzh .lp-mobhide{display:none !important;}.qzh .lp-row{flex:0 0 auto !important;min-height:56px !important;}}
-    .qzh .qfull{column-count:2;column-gap:26px;}
+    .qzh .qfull{column-count:2;column-gap:18px;}
     .qzh .qfull > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
-    .qzh .qflow{column-width:310px;column-gap:26px;}
+    .qzh .qflow{column-width:310px;column-gap:18px;}
     .qzh .qflow > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     @media(max-width:680px){.qzh .qfull{column-count:1;}}
     .qzh .colhead{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:2px solid ${C.ink};border-radius:8px 8px 0 0;margin-bottom:3px;}
@@ -1848,7 +1848,7 @@ export default function QuizHomeClient() {
        they never needed one against white. They get the same white sheet
        every other block on this page already has. */
     .qzh .qz-empty{padding:18px 2px;font-size:14px;color:${C.soft};}
-    .qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{background:var(--white);border:0;border-radius:14px;padding:15px 18px;box-shadow:0 10px 30px rgba(6,12,30,0.34);}
+    .qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{background:var(--white);border:0;border-radius:14px;padding:15px 18px;box-shadow:0 10px 30px rgba(4,9,24,0.46);}
     /* CategoryFull is a <section> whose own head bar must stay flush to the top
        of the sheet, so the sheet carries no padding and the list inside does. */
     .qzh > section{padding:0;overflow:hidden;}
@@ -1857,7 +1857,7 @@ export default function QuizHomeClient() {
     /* Cards lift off the ground rather than leaning on a hairline that is now
        invisible against it. DailyStrip is deliberately excluded: on a phone its
        stat bar goes transparent, and a shadow on nothing is a floating rectangle. */
-    .qzh .catcard,.qzh .qz-toolrow,.qzh .hr-panel{box-shadow:0 10px 30px rgba(6,12,30,0.34);}
+    .qzh .catcard,.qzh .qz-toolrow,.qzh .hr-panel{box-shadow:0 10px 30px rgba(4,9,24,0.46);}
     /* ...and they carry NO outline, because a 1px hairline meant to separate a
        white card from a white page reads as a ring against the ground (owner,
        2026-08-12: the rails had one and the console in the middle never did, so
@@ -1951,7 +1951,7 @@ export default function QuizHomeClient() {
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
       <QuizCommandHeader me={me} onSignup={() => setSignupOpen(true)} ticker={[]} variant="home" onCredit={() => { setCreditQr(false); setCreditOpen(true); }} />
-      <div className="qzh qzf-w" style={{ maxWidth: 1560, margin: '0 auto', padding: '14px clamp(16px, 2.5vw, 34px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
+      <div className="qzh qzf-w" style={{ maxWidth: 1560, margin: '0 auto', padding: '14px clamp(16px, 1.7vw, 24px) 70px', position: 'relative' }}><style>{`@media(max-width:560px){.qzf-w{padding-left:14px !important;padding-right:14px !important;}}
         /* Phone: the daily console butts straight up against the command bar,
            so the page's own top padding goes and the section carries no gap
            above it (owner, 2026-08-03). */
@@ -2078,7 +2078,7 @@ export default function QuizHomeClient() {
             (board first) below 1200px. */}
         <div className="dhx">
           <style>{`
-            .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:14px;align-items:start;margin-bottom:16px;}
+            .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:10px;align-items:start;margin-bottom:12px;}
             /* start, not stretch: the CENTRE column has to report its own content
                height, because railH below measures it and pins both rails to it. With
                stretch the centre reported the row height instead, which was itself the
