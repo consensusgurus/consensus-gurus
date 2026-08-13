@@ -1689,7 +1689,7 @@ export default function QuizHomeClient() {
        <=820px that browse-row field comes back as the mobile search, so the
        tool-row one hides and only the three buttons remain here. Mobile layout
        is therefore exactly what it was, plus the buttons. */
-    @media(max-width:820px){.qzh .qz-toolsearch{display:none !important;}.qzh .qz-toolrow{margin-top:0;}}
+    @media(max-width:820px){.qzh .qz-toolsearch{display:none !important;}.qzh .qz-toolrow{margin-top:14px;}}
     @media(max-width:560px){.qzh .qz-toolrow{gap:7px;padding:7px;margin-bottom:13px;}.qzh .qz-toolbtns{flex-wrap:wrap;gap:7px;}.qzh .qz-toolbtn{flex:1 1 calc(50% - 4px);height:40px;padding:0 10px;font-size:12px;}}
     .qzh .boards{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-bottom:12px;}
     .qzh .qz-mobtoggle{display:none;}
@@ -2323,8 +2323,16 @@ export default function QuizHomeClient() {
               /* The tool row is the "next section break" the same complaint
                  named: it carried its own 2px top margin on top of the grid's
                  bottom margin. This block is later in source than the tool
-                 row's own rule at equal specificity, so it wins. */
-              .qzh .qz-toolrow{margin-top:0;}
+                 row's own rule at equal specificity, so it wins.
+                 It is NOT zero, though (owner, 2026-08-13). The seam rule above
+                 is about two FULL-BLEED bands meeting, where a strip of page
+                 background between them reads as the stack coming apart. The
+                 tool row is the opposite shape: an inset rounded card in the
+                 14px gutter. Butting that straight into the bleeding Featured
+                 panel above it put the search block hard against the last tile
+                 with no edge at all. So it takes a real gap, matched to the
+                 page gutter and to its own 13px bottom margin. */
+              .qzh .qz-toolrow{margin-top:14px;}
             }
             /* TABLET AND LANDSCAPE PHONE: the two rails SIDE BY SIDE (owner,
                2026-08-08). Stacked, the five panels ran 1,575px tall on a 744px
