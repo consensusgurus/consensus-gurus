@@ -3429,6 +3429,7 @@ archive and hub chips use the short form `Sun`.
 | Tally | 6×6 board instead of 5×5 |
 | Suds | harder grid, fewer givens |
 | Quilt | 26 printed clues instead of the weekday 30 to 34 (from 2026-08-11) |
+| Cages | 27 cages instead of the weekday 29 to 34, and the only day that prints a five-cell cage (from 2026-08-12) |
 | Circa | a trickier moment to place |
 | Extra | a trickier story to name |
 | Carve | 7×7 board in nine blocks |
@@ -3449,7 +3450,7 @@ archive and hub chips use the short form `Sun`.
 | Docket | seven entities over seven slots plus the second dimension, so fourteen open cells against a weekday's twelve, and one extra condition (from 2026-08-10) |
 | Defend | a hold for four instead of a hold for three, so a fourth white move to survive before the attack is spent (from 2026-08-12) |
 
-**All twenty dailies now run a Sunday Edition.** A new daily game should decide at launch
+**Every daily on the roster runs a Sunday Edition.** A new daily game should decide at launch
 whether it has one (see "Adding a BRAND NEW daily game" below).
 
 ### Links collisions and the pinning proof (owner rule, 2026-07-20)
@@ -3574,6 +3575,45 @@ across all 20 games on 2026-07-20.
    table in this section.
 5. Update the game's own how-to-play copy and its `page.js` metadata description, which
    both describe the weekly cadence to players and to search engines.
+
+## Cages is the KILLER SUDOKU, and its clue set is arithmetic only (launched 2026-08-12)
+
+The third sudoku on the slate, after Suds (classic) and Quilt (jigsaw). It keeps the
+ordinary 9x9 grid and the ordinary 3x3 boxes, and takes away every printed digit: the
+81 cells are partitioned into connected cages of 2 to 5 cells, each printed with the
+total of the digits inside it, no digit repeating within a cage, and those totals are
+the ENTIRE clue set. A board therefore opens completely empty.
+
+- **The difficulty ramp is the partition, because there is nothing else to turn.**
+  Many small cages is generous (a 2-cell cage totalling 4 is 1+3 and nothing else);
+  few large ones give the arithmetic room to hide in. Mon 34 cages capped at 3 cells,
+  Tue 33/3, Wed 32/4, Thu 31/4, Fri 30/4, Sat 29/4, **Sun 27/5**. Sunday is the only
+  day under 29 cages and the only day that prints a five-cell cage.
+- **`level` is pinned per day, not merely capped.** 1 = cage combinations, singles and
+  the 45 rule; 2 = also locked candidates, naked and hidden subsets, and the 45 rule
+  over two leftover cells. Mon/Tue are always 1, Thu-Sun always 2, Wed is the
+  crossover. Left as a ceiling, about a tenth of the Saturday boards came out
+  solvable with the beginner toolkit, which is a Monday wearing Saturday's cage count.
+- **A one-cell cage is banned**: it prints its own digit, which is a given by another
+  name, and the whole point of the game is that there are none.
+- **The generator and the verifier do NOT share solvers, on purpose.**
+  `scripts/cages-core.mjs` is the generator's engine; `scripts/verify-cages.mjs`
+  writes its own, with a different counting algorithm (propagate and branch on the
+  tightest cell, against the generator's cage-by-cage walk). This is the Quilt rule,
+  not the End Game one, and it earned its keep immediately: the verifier's first
+  hidden-pair rule was unsound and its first 45 rule was too weak, and a shared solver
+  would have agreed with itself about both.
+- **The verifier POLICES the logical solver against the known solution.** Every
+  elimination is checked: removing the true digit from a cell, or writing a false one,
+  is reported as an unsound rule rather than quietly trusted. That is what makes a
+  single logical solver enough to certify "no guessing" without a second one.
+- **A CAGE IS NOT A HOUSE.** A house holds all nine digits, so a digit missing from it
+  is a contradiction and a digit with one spot left is a hidden single. A cage holds a
+  SUBSET, so neither inference is available and the only guarantee is that no digit
+  repeats. Cages therefore join the naked-subset groups (which need only uniqueness)
+  and stay out of every hidden or locked deduction, except for the digits their own
+  arithmetic forces them to contain. Conflating the two makes a solver that calls
+  every legal board contradictory, which is exactly what the first draft did.
 
 ## Cipher is ADDITION ONLY, and the addend count carries the week (owner rule, 2026-08-08)
 

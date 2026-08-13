@@ -41,7 +41,7 @@ const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const FAMILIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon', 'babel'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'quilt', 'carve', 'cipher', 'crunch', 'blitz'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'quilt', 'cages', 'carve', 'cipher', 'crunch', 'blitz'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket'] },
@@ -71,7 +71,7 @@ const CATEGORIES = (() => {
 const NAVY_ACCENT = {
   defend: '#8fbdbd', blitz: '#c3d94a', docket: '#c9a3ae', chomp: '#f0a071', blocks: '#93b4f0', sweep: '#5eead4', babel: '#6ee7b7', glyph: '#94a3b8', hands: '#fca5a5', chain: '#f0abfc', turn: '#8cda81', suffice: '#a5b4fc', strata: '#f4a06a', redact: '#b9bdc7', paths: '#34d399', deep: '#7dd3fc', anon: '#e8969f',
   crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0',
-  quilt: '#eda5e6', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
+  cages: '#cba6f7', quilt: '#eda5e6', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',
   jester: '#a78bfa', sworn: '#f472b6', outrank: '#8b8af5', shards: '#2dd4bf',
   axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', stands: '#93c5fd', bracket: '#fb923c', pricer: '#4ade80',
