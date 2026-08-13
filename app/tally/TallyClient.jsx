@@ -53,9 +53,6 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const PAPER = '#fbf9f4';
 const HELP_KEY = 'sot_tally_help_seen';
 const STATS_KEY = 'sot_tally_stats';
-// remembered marking tool across days: 'place' (tap to place/lift) | 'sure'
-// (tap a placed tile to flag it certain). Long-press marks certain in either.
-const TOOL_KEY = 'sot_tally_tool';
 
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
@@ -161,23 +158,29 @@ function mergeServerStats(s, recent, puzzles) {
 // actually arrives: the rack supply often proves a digit belongs in a given ROW
 // long before you can say which square of it, and the same for columns. So a
 // mark is a 2-bit value per cell — row half, column half — and holding both is
-// what "certain" means. Only a both-bit tile locks, since a row-only tile still
-// needs to slide along its row.
+// what "certain" means. A tap walks a placed tile through them in order — right
+// row, right column, both — and the tap after that lifts it back to the rack, so
+// a single gesture covers placing, noting and removing with no tool to switch
+// between. Only a row- or column-only tile slides, since a certain one is
+// already in its square.
 const M_ROW = 1;   // this digit belongs somewhere in this row
 const M_COL = 2;   // ...somewhere in this column
-const M_BOTH = 3;  // both halves proven — the exact square, so it locks
+const M_BOTH = 3;  // both halves proven — the exact square, and the last note
 const MARK_CLASS = { 1: 'mk-row', 2: 'mk-col', 3: 'mk-both' };
 const MARK_TITLE = {
-  0: 'Hold or right-click to mark this square certain',
-  1: 'Right row — drag it along the row to move it, note and all. Hold to lock the square outright.',
-  2: 'Right column — drag it up or down the column to move it, note and all. Hold to lock the square outright.',
-  3: 'Certain — right row and column, so it is locked. Tap once to unlock.',
+  0: 'Tap to note the right row. Hold or right-click to lift it back to the rack.',
+  1: 'Right row — drag it along the row to move it, note and all. Tap to note the column instead.',
+  2: 'Right column — drag it up or down the column to move it, note and all. Tap to mark it certain.',
+  3: 'Certain — right row and column. One more tap lifts it back to the rack.',
 };
 // grid gap between cells, in px — the slide maths needs the pitch
 const GAP = 6;
 // a drag must travel this far along its axis before it counts as a slide
 // rather than a tap or a hold
 const SLIDE_MIN = 6;
+// ...and travelling this far in any direction disarms the hold, since a hold
+// lifts the tile and a finger that is moving is not asking for that
+const HOLD_SLOP = 4;
 
 // A saved game from before the marks shipped has no `mark` array (and an
 // archive replay can switch board size), so normalise on every read.
@@ -228,7 +231,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   // solve by placing, checking the line, and undoing.
   const [hist, setHist] = useState([]);
   const [sel, setSel] = useState(-1);        // selected rack tile index (into BANK), -1 = none
-  const [mode, setMode] = useState('place'); // 'place' | 'sure' — remembered across days
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false); // start tile: full rules (first-timer) vs compact card
   const [toast, setToast] = useState(null);
@@ -258,7 +260,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
   // long-press bookkeeping: `fired` swallows the click that follows the press
-  const longRef = useRef({ t: null, fired: false });
+  const longRef = useRef({ t: null, fired: false, x: 0, y: 0 });
   // live slide session (geometry is frozen at pointerdown); dragView is the
   // render-side mirror that offsets the tiles as the finger moves
   const dragRef = useRef(null);
@@ -300,8 +302,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         const saved = JSON.parse(raw);
         if (saved && saved.v === 1 && Array.isArray(saved.cells) && saved.cells.length === N * N) setG({ ...freshState(N), ...saved, mark: normMark(saved.mark, N) });
       }
-      const t = localStorage.getItem(TOOL_KEY);
-      if (t === 'place' || t === 'sure') setMode(t);
       // The start tile shows in place of the board until the player begins (t0
       // set on Start). First-timers see the full rules on the tile; a returning
       // player gets the compact start card with a "Show instructions" toggle.
@@ -322,11 +322,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       }
     } catch (e) {}
   }, [g, hydrated, STORE_KEY, PUZZLE, puzzles, N]);
-  // remember the player's tool across days
-  useEffect(() => {
-    if (!hydrated) return;
-    try { localStorage.setItem(TOOL_KEY, mode); } catch (e) {}
-  }, [mode, hydrated]);
   // a long-press timer must never outlive the board
   useEffect(() => () => { if (longRef.current.t) clearTimeout(longRef.current.t); }, []);
 
@@ -553,22 +548,23 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(8); } catch (e) {}
   }
 
-  // Certain-tool tap: walk a tile through the two halves — right row, then
-  // right column, then both (locked), then clear.
+  // Advance a placed tile one step through the halves — right row, then right
+  // column, then both. The step after both is the lift, which cellClick takes.
   function cycleMark(i) {
-    if (!playing || !cells[i]) return;
+    if (!playing || !cells[i] || mark[i] === M_BOTH) return;
     const next = mark.slice();
-    next[i] = (next[i] + 1) & M_BOTH;
+    next[i] = next[i] + 1;
     writeMark(next);
   }
 
-  // Hold or right-click: jump straight to fully certain, or clear it. The
-  // shortcut for when you've simply solved the square outright.
-  function toggleFull(i) {
+  // Lift a placed tile back to the rack. Free — no move is charged — and its
+  // notes go with it, so an empty square never carries a stale one. This is the
+  // last step of the tap cycle, and hold or right-click jumps straight to it.
+  function liftTile(i) {
     if (!playing || !cells[i]) return;
-    const next = mark.slice();
-    next[i] = next[i] === M_BOTH ? 0 : M_BOTH;
-    writeMark(next);
+    const next = cells.slice(); next[i] = 0;
+    const nm = mark.slice(); nm[i] = 0;
+    commit(next, false, nm);
   }
 
   // Tapping a row/column target sets that HALF on every placed tile in the
@@ -674,7 +670,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     }
   }
 
-  // long-press (and right-click) always marks certain, whatever the tool
+  // Long-press (and right-click) lifts the tile straight back to the rack: the
+  // way out of the tap cycle when a tile is simply in the wrong square and you
+  // do not want to walk it through three notes to get rid of it.
   function pressStart(e, r, c) {
     // right-click has its own handler — don't also arm the hold timer, or the
     // two would fire and cancel each other out
@@ -682,12 +680,14 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     if (!playing || BLOCK[r][c] || GIVEN[r][c] || !cells[r * N + c]) return;
     const i = r * N + c;
     longRef.current.fired = false;
+    longRef.current.x = e ? e.clientX : 0;
+    longRef.current.y = e ? e.clientY : 0;
     if (longRef.current.t) clearTimeout(longRef.current.t);
     longRef.current.t = setTimeout(() => {
       longRef.current.t = null;
       longRef.current.fired = true;
       dragRef.current = null;      // a hold is not a slide
-      toggleFull(i);
+      liftTile(i);
     }, 420);
     // arm a possible slide alongside the hold; whichever the gesture turns out
     // to be cancels the other
@@ -702,6 +702,17 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   }
 
   function pressMove(e) {
+    // A hold LIFTS the tile now, so any real travel has to disarm it, whether
+    // or not this tile can slide: a drag that starts slowly, or a swipe across
+    // a tile that has no note to slide on, must never cost the player a tile
+    // they meant to keep. Below the threshold the gesture is still a tap, and
+    // the click that follows walks the cycle on as usual.
+    if (longRef.current.t) {
+      const mx = e.clientX - longRef.current.x, my = e.clientY - longRef.current.y;
+      if (Math.abs(mx) > HOLD_SLOP || Math.abs(my) > HOLD_SLOP) {
+        clearTimeout(longRef.current.t); longRef.current.t = null;
+      }
+    }
     const d = dragRef.current;
     if (!d) return;
     const dx = e.clientX - d.x0, dy = e.clientY - d.y0;
@@ -754,26 +765,13 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     if (longRef.current.fired) { longRef.current.fired = false; return; }
     if (!playing || BLOCK[r][c] || GIVEN[r][c]) return;
     const i = r * N + c;
-    if (mode === 'sure') {
-      if (!cells[i]) { say('Place a tile first — an empty square can’t be marked'); return; }
-      cycleMark(i);
-      return;
-    }
+    // One gesture covers a square's whole life. An empty square takes the tile
+    // in hand; every tap after that walks the same tile on a step — right row,
+    // right column, certain — and the tap after those lifts it back to the
+    // rack. Only the placement is ever scored: the notes and the lift are free.
     if (cells[i]) {
-      // only a fully certain tile locks: a row- or column-only mark still has to
-      // be free to slide along the line it is sure of
-      if (mark[i] === M_BOTH) {
-        const nm = mark.slice(); nm[i] = 0;
-        pushHist(cells, mark);
-        setG((cur) => ({ ...cur, mark: nm }));
-        say('Unlocked — tap again to lift it');
-        return;
-      }
-      // lift the placed tile back to the rack (free — no move charged); its
-      // marks go with it, so an empty square never carries a stale note
-      const next = cells.slice(); next[i] = 0;
-      const nm = mark.slice(); nm[i] = 0;
-      commit(next, false, nm);
+      if (mark[i] === M_BOTH) { liftTile(i); return; }
+      cycleMark(i);
       return;
     }
     if (sel < 0 || used[sel]) { say('Pick a tile first, then tap a square'); return; }
@@ -796,10 +794,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     if (!playing || used[j]) return;
     const next = sel === j ? -1 : j;
     setSel(next);
-    // Reaching for the rack IS placing. Leaving the player in Mark mode with a
-    // tile in hand means their next tap cycles a note instead of placing it, so
-    // picking a tile up drops the tool back to Place on its own.
-    if (next >= 0 && mode !== 'place') setMode('place');
   }
 
   // one free hint: place a correct tile in an empty cell whose value is still
@@ -929,13 +923,13 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       chips={[
         { label: 'Right row = rails top and bottom' },
         { label: 'Right column = rails at the sides' },
-        { label: 'Both = certain, and it locks' },
+        { label: 'Both = certain' },
       ]}
       steps={[
         <>Tap a tile on your rack, then a square. You must use <b>every rack tile</b> and nothing else: digits repeat, and the rack tells you how many of each you have. Dotted squares are yours, a corner dot is a printed given, dark squares are out of play.</>,
-        <>Tap a placed tile to <b>lift it back</b>, which is free. <b>Undo</b> steps back one change, <b>Clear board</b> lifts every tile at once. Both are free, and neither refunds a move: they restore the grid, not the score.</>,
-        <>Certainty arrives in halves, so the notes do too: often the rack proves a digit belongs somewhere in a <b>row</b> before you can say which square, and a half-marked tile is still free to slide. Two proven lines meet at one square, so a tile carrying <b>both</b> halves is certain and locks. Tap it once to unlock.</>,
-        <><b>Hold</b> a tile (or right-click) to mark it certain outright, or use the <b>&#10003; Mark</b> tool and tap to cycle. Tapping a <b>row or column target</b> notes that half on every tile in the line. Notes are free: they never cost a move and never count against your score. The full key sits under the board.</>,
+        <>Tapping a placed tile again <b>cycles it</b>: right row, right column, certain, then back to the rack. Lifting is free. <b>Undo</b> steps back one change, <b>Clear board</b> lifts every tile at once. Both are free, and neither refunds a move: they restore the grid, not the score.</>,
+        <>Certainty arrives in halves, so the notes do too: often the rack proves a digit belongs somewhere in a <b>row</b> before you can say which square, and a half-marked tile is still free to slide. Two proven lines meet at one square, so a tile carrying <b>both</b> halves is certain.</>,
+        <><b>Hold</b> a tile (or right-click) to lift it straight back to the rack instead of walking the rest of the cycle. Tapping a <b>row or column target</b> notes that half on every tile in the line. Notes are free: they never cost a move and never count against your score. The full key sits under the board.</>,
         <><b>Drag a half-marked tile</b> along its proven line to move it without lifting, so the note survives. Tiles in the way shuffle one square toward the one it left, however many there are, and any tile that has proven the crossing line holds its square while you slide over it. It costs one move, the same as lifting and re-placing.</>,
       ]}
       knack="The rack supply is the lever. When the sums leave two ways to fill a line, the tiles you have left leave one."
@@ -995,8 +989,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-legend{border-top:1px solid rgba(28,30,36,0.14);margin-top:14px;padding-top:11px;}
           .tl-legend li{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
           @media(max-width:560px){.tl-legend li{align-items:flex-start;}}
-          .tl-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.faded};border-radius:7px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
-          .tl-tool.on{border:1.5px solid ${COLORS.ember};background:#eef1f8;color:${COLORS.ember};}
           .tl-act{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:7px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
           .tl-act:hover:not(:disabled){border-color:${COLORS.ember};color:${COLORS.ember};}
           .tl-act:disabled{opacity:0.38;cursor:default;}
@@ -1084,12 +1076,12 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                           onPointerUp={pressEnd}
                           onPointerLeave={pressLeave}
                           onPointerCancel={pressCancel}
-                          onContextMenu={(e) => { e.preventDefault(); pressCancel(); toggleFull(i); }}
+                          onContextMenu={(e) => { e.preventDefault(); pressCancel(); liftTile(i); }}
                           title={playing ? MARK_TITLE[mark[i]] : undefined}
                         >{cells[i]}</div>
                       );
                     }
-                    return <div key={i} className={`tl-cell tl-empty${sel >= 0 && !used[sel] && mode === 'place' ? ' hot' : ''}`} onClick={() => cellClick(r, c)} />;
+                    return <div key={i} className={`tl-cell tl-empty${sel >= 0 && !used[sel] ? ' hot' : ''}`} onClick={() => cellClick(r, c)} />;
                   })}
                   {targetChip(r, true, `rt${r}`)}
                 </React.Fragment>
@@ -1109,19 +1101,13 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                 ))}
               </div>
 
-              {/* tool toggle sits with the tiles it governs, directly under the
-                  rack and above the notes key that explains the marks */}
+              {/* what the next tap does, directly under the tiles it governs.
+                  There is no tool to pick any more: the tap itself cycles. */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 15 }}>
-                <button className={`tl-tool${mode === 'place' ? ' on' : ''}`} onClick={() => setMode('place')} aria-pressed={mode === 'place'} title="Place and lift tiles">
-                  Place
-                </button>
-                <button className={`tl-tool${mode === 'sure' ? ' on' : ''}`} onClick={() => setMode('sure')} aria-pressed={mode === 'sure'} title="Tap a placed tile to cycle its certainty note — free, never scored">
-                  &#10003; Mark
-                </button>
                 <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, flex: '1 1 210px' }}>
-                  {mode === 'sure'
-                    ? 'Tap a placed tile to cycle: right row, right column, certain, clear.'
-                    : sel >= 0 && !used[sel] ? `Placing ${BANK[sel]} — tap a square` : 'Tap a tile, then a square. Hold a placed tile to mark it certain, or drag a half-marked one along its line.'}
+                  {sel >= 0 && !used[sel]
+                    ? `Placing ${BANK[sel]} — tap a square`
+                    : 'Tap a tile, then a square. Tap a placed tile to cycle it: right row, right column, certain, back to the rack. Hold it to lift it at once.'}
                 </span>
               </div>
             </>
@@ -1136,8 +1122,8 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, fontFamily: SANS, fontSize: 12.5, lineHeight: 1.45, color: COLORS.ink, fontWeight: 600 }}>
                 <li><span className="tl-key mk-row" aria-hidden="true" /><span><b>Right row.</b> This digit belongs somewhere in this row, though not yet a known square. <b>Drag it along the row</b> to move it without lifting it: the note travels with the tile and anything in the way shuffles over. One move, same as re-placing it.</span></li>
                 <li><span className="tl-key mk-col" aria-hidden="true" /><span><b>Right column.</b> The same for a column, dragged up and down.</span></li>
-                <li><span className="tl-key mk-both" aria-hidden="true" /><span><b>Certain.</b> Right row and right column, so this is the square. The tile locks: tap once to unlock, again to lift.</span></li>
-                <li style={{ marginBottom: 0, alignItems: 'flex-start' }}><span className="tl-key" aria-hidden="true" style={{ border: 'none', background: 'none', boxShadow: 'none' }} /><span style={{ color: COLORS.faded, fontWeight: 600 }}><b style={{ color: COLORS.ink }}>How:</b> hold a tile (or right-click) to mark it certain outright. Or hit <b style={{ color: COLORS.ink }}>&#10003; Mark</b> and tap a tile to cycle row, column, certain, clear. Tapping a <b style={{ color: COLORS.ink }}>row target</b> marks every tile in that row as in the right row, and a column target does the same down its column, so a tile you prove from both sides ends up certain on its own.</span></li>
+                <li><span className="tl-key mk-both" aria-hidden="true" /><span><b>Certain.</b> Right row and right column, so this is the square. One more tap lifts it back to the rack.</span></li>
+                <li style={{ marginBottom: 0, alignItems: 'flex-start' }}><span className="tl-key" aria-hidden="true" style={{ border: 'none', background: 'none', boxShadow: 'none' }} /><span style={{ color: COLORS.faded, fontWeight: 600 }}><b style={{ color: COLORS.ink }}>How:</b> tap a placed tile to walk it through the notes, right row then right column then certain, and the tap after those lifts it back to the rack. Hold a tile (or right-click) to lift it at once. Tapping a <b style={{ color: COLORS.ink }}>row target</b> marks every tile in that row as in the right row, and a column target does the same down its column, so a tile you prove from both sides ends up certain on its own.</span></li>
               </ul>
             </div>
           )}
