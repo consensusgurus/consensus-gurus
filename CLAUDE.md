@@ -3577,6 +3577,37 @@ across all 20 games on 2026-07-20.
 5. Update the game's own how-to-play copy and its `page.js` metadata description, which
    both describe the weekly cadence to players and to search engines.
 
+## Game copy DEFINES its jargon before it leans on it (owner rule, 2026-08-13)
+
+A daily game's rules panel is read once, by someone who does not yet know the game. So
+the FIRST sentence has to define any word the game invented, and the definition cannot
+live three steps down the list where only a reader who is already sold will reach it.
+
+Sando shipped breaking this and the owner caught it by simply reading the panel: the lead
+read "every line's sandwich adds up to the number printed beside it", where "line" and
+"sandwich" were both undefined, and the actual explanation sat at step 3. Two questions
+came straight back, "what does every line's sandwich mean" and "how could a sandwich add
+to 0", and both answers were already written, just in the wrong place.
+
+The checks, for every new game and every copy edit:
+
+1. **Read the lead sentence as someone who has never played.** Every noun in it must be
+   either ordinary English or defined in that same sentence. "Line", "cage", "crust",
+   "filling", "region", "sandwich" are all invented for the reader's purposes and none of
+   them is free.
+2. **Name the degenerate case for what it is, not for its number.** A clue of 0 in Sando
+   is an EMPTY sandwich; a two-cell cage in Cages is a PAIR. A reader who meets a bare 0
+   with no name for it assumes they have misunderstood the rule, because "a sandwich that
+   adds to nothing" is a contradiction until you tell them the sandwich can be empty.
+3. **The extremes are the teaching examples.** 0 and 35 in Sando, 3-in-two and 24-in-three
+   in Cages: the cases with one possible arrangement are both the clearest explanation of
+   the mechanic AND the best opening move, so put them in the rules rather than saving
+   them for the knack line.
+4. **The same wording goes everywhere the game speaks**: the rules panel, the start-gate
+   blurb, the knack line, the SEO prose at the foot of the page, the `page.js` metadata
+   and OpenGraph descriptions, the share card, and any per-item tooltips. A definition
+   that is right in one of those and stale in the other five is worse than none.
+
 ## Sando is the SANDWICH SUDOKU, and the sums are the whole point (launched 2026-08-13)
 
 The fourth sudoku on the slate, after Suds (classic), Quilt (jigsaw) and Cages (killer).
@@ -3615,6 +3646,12 @@ filling. A clue of 0 says the crusts are adjacent; 35 says they sit at the two e
   the 9x9 sits in the corner, with the gutter tracks at `0.66fr` so the grid still reads
   as the subject. The heavy outer rule moved off the container and onto the edge cells,
   because the container now wraps the gutters too.
+- **A 0 is an EMPTY SANDWICH, and the copy has to say so.** Zero is not an edge case or a
+  quirk, it is the single most useful clue on the board: it says the 1 and the 9 are side
+  by side, which cuts that line's possibilities from thirty-six pairs to eight. Every
+  reader-facing string that mentions 0 says "the sandwich is empty" rather than leaving
+  the reader to work out how a total can be nothing. 35 gets the same treatment from the
+  other end: the two at opposite ends with everything else inside.
 
 ## Cages is the KILLER SUDOKU, and its clue set is arithmetic only (launched 2026-08-12)
 

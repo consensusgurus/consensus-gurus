@@ -16,12 +16,12 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Sando — Free Daily Sandwich Sudoku | Mind Loft',
   description:
-    'A free daily sandwich sudoku — the number beside each row and column is the total of the digits between its 1 and its 9. Fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
+    'A free daily sandwich sudoku — the number beside each row and column is the total of the digits sitting between that line\u2019s 1 and its 9, so a 0 means the sandwich is empty and the two are side by side. Fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/sando' },
   openGraph: {
     title: 'Sando — A Daily Sandwich Sudoku',
     description:
-      'Sandwich sudoku: each border clue is the total of the digits between that line\u2019s 1 and its 9. One logical solution, never a guess. A new board from Mind Loft, daily.',
+      'Sandwich sudoku: each border clue totals the digits between that line\u2019s 1 and its 9, and a 0 means the sandwich is empty. One logical solution, never a guess. A new board from Mind Loft, daily.',
     url: '/sando',
     type: 'website',
     siteName: 'Mind Loft',
@@ -30,7 +30,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Sando — A Daily Sandwich Sudoku',
     description:
-      'Find where the 1 and the 9 sit in every line, then fill the grid. A daily sandwich sudoku.',
+      'Each margin clue totals the digits between that line\u2019s 1 and its 9, and a 0 means an empty sandwich. A daily sandwich sudoku.',
   },
 };
 
@@ -41,7 +41,7 @@ const gameJsonLd = {
   alternateName: 'Sando — Daily Sandwich Sudoku',
   url: `${SITE_URL}/sando`,
   description:
-    'A free daily sandwich sudoku: the number printed outside each row and column is the total of the digits lying between that line\u2019s 1 and its 9. Fill the 9×9 grid so that every row, every column, and every 3×3 box contains the digits 1–9 exactly once and every sandwich adds up. Each board has one solution and can always be reached by logic alone — solve it with no errors for a perfect score, and ties break on fastest time.',
+    'A free daily sandwich sudoku: every row and column holds one 1 and one 9, and the number printed outside it is the total of the digits sitting between those two. Side by side, the sandwich is empty and the clue is 0; at the two ends, everything else is inside and the clue is 35. Fill the 9×9 grid so that every row, every column, and every 3×3 box contains the digits 1–9 exactly once and every sandwich adds up. Each board has one solution and can always be reached by logic alone — solve it with no errors for a perfect score, and ties break on fastest time.',
   genre: ['Logic puzzle', 'Sandwich sudoku', 'Sudoku', 'Number puzzle', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,
@@ -84,7 +84,7 @@ function ComingSoon({ first }) {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: T.ink, margin: '0 0 8px' }}>Sando launches {first ? first.dateLabel : 'soon'}.</h1>
         <p style={{ fontSize: 15, color: T.muted, fontWeight: 600, lineHeight: 1.5, margin: '0 0 18px' }}>
-          The daily sandwich sudoku — the same 9×9 grid, with a number beside every row and column giving the total of the digits between its 1 and its 9. Come back when the first board drops.
+          The daily sandwich sudoku — the same 9×9 grid, with a number beside every row and column giving the total of the digits between that line&apos;s 1 and its 9. Side by side and the sandwich is empty, which is a 0. Come back when the first board drops.
         </p>
         <a href="/daily" style={{ color: '#15616b', fontWeight: 800, textDecoration: 'underline' }}>See the other daily puzzles &rarr;</a>
       </div>

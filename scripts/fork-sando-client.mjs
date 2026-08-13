@@ -22,8 +22,13 @@
 //   3. Nothing about the RULES changes in code. A sandwich clue constrains
 //      which digits go where, but it never makes a digit repeat, so the note
 //      scrubber, the peer highlight and the win check are all untouched.
-//   4. Copy: the game says plainly that it is a sandwich sudoku, and explains
-//      the crusts and the filling, in the rules, the SEO prose and the metadata.
+//   4. Copy: the game says plainly that it is a sandwich sudoku, and DEFINES a
+//      sandwich before leaning on the word. The first version opened with "every
+//      line's sandwich adds up to the number printed beside it" and buried the
+//      definition three steps down, and a reader came back asking what a line's
+//      sandwich was and how one could total zero. Both answers are now in the
+//      lead, and the zero case is named for what it is: an EMPTY sandwich, the
+//      1 and the 9 side by side with nothing in between.
 import fs from 'node:fs';
 
 const [, , SRC = 'app/suds/SudsClient.jsx', OUT = 'app/sando/SandoClient.jsx'] = process.argv;
@@ -153,12 +158,12 @@ sub(`          {/* 9×9 grid with heavy 3×3 rules */}
               <div className="sn-corner" aria-hidden="true" />
               {Array.from({ length: 9 }).map((_, c) => (
                 <div key={\`cs\${c}\`} className={\`sn-sum sn-col\${selC === c ? ' on' : ''}\${lineFull.cols[c] ? ' done' : ''}\`}
-                  title={\`Column \${c + 1}: the digits between the 1 and the 9 total \${COL_SUMS[c]}\`}>{COL_SUMS[c]}</div>
+                  title={\`Column \${c + 1}: the digits between its 1 and its 9 total \${COL_SUMS[c]}\${COL_SUMS[c] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}\`}>{COL_SUMS[c]}</div>
               ))}
               {Array.from({ length: 81 }).map((_, idx) => {
                 const gutter = idx % 9 === 0 ? (
                   <div key={\`rs\${idx / 9}\`} className={\`sn-sum sn-row\${selR === idx / 9 ? ' on' : ''}\${lineFull.rows[idx / 9] ? ' done' : ''}\`}
-                    title={\`Row \${idx / 9 + 1}: the digits between the 1 and the 9 total \${ROW_SUMS[idx / 9]}\`}>{ROW_SUMS[idx / 9]}</div>
+                    title={\`Row \${idx / 9 + 1}: the digits between its 1 and its 9 total \${ROW_SUMS[idx / 9]}\${ROW_SUMS[idx / 9] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}\`}>{ROW_SUMS[idx / 9]}</div>
                 ) : null;`);
 sub(`                return (
                   <div key={idx} className={cls} style={base}
@@ -199,17 +204,18 @@ sub(`              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9
 
 // ── 6. copy ─────────────────────────────────────────────────────────────────
 sub(`      lead="Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats."`,
-`      lead="Sandwich sudoku. Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats, and so every line's sandwich adds up to the number printed beside it."`);
+`      lead="Sandwich sudoku. Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats. The number beside each row and column is the total of the digits sitting BETWEEN that line's 1 and its 9."`);
 sub(`        <><b>Undo</b> (or Ctrl+Z) takes back your last move. <b>Clear</b> wipes every number you have entered and leaves the printed clues.</>,`,
-`        <>The numbers down the left and across the top are <b>sandwich sums</b>: the total of the digits lying <b>between the 1 and the 9</b> in that line. A <b>0</b> means the 1 and the 9 are next to each other. A <b>35</b> means they are at the two ends with everything else between them.</>,
+`        <>Every row and column holds exactly one 1 and one 9, so it has exactly one <b>sandwich</b>: the squares between them. The number in the margin is what those digits add up to, and it does not matter which of the two comes first.</>,
+        <>Put the 1 and the 9 <b>side by side</b> and there is nothing between them: the sandwich is <b>empty</b>, and an empty sandwich totals <b>0</b>. Put them at the <b>two ends</b> and everything else is inside, which totals <b>35</b>. Those two are the most useful clues on the board.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last move. <b>Clear</b> wipes every number you have entered and leaves the printed clues.</>,`);
 sub(`      knack="Wrong entries are not flagged, just like paper sudoku, so it is on you to spot them before one bad digit poisons half the grid."`,
-`      knack="Work on the extremes first. A 0 pins the 1 and the 9 together, a 35 throws them to the two ends, and a 1, 2 or 3 leaves so few ways to make the filling that the crusts have almost nowhere to sit. Everything in the middle of the range is the hard part, so leave it."`);
+`      knack="Work on the extremes first. An empty sandwich (a 0) pins the 1 and the 9 side by side, a 35 throws them to the two ends, and a 1, 2 or 3 leaves so few ways to make the filling that the pair has almost nowhere to sit. Everything in the middle of the range is the hard part, so leave it."`);
 sub(`      footer="Every board has exactly one solution. Solve the whole grid and you score a perfect 10, and the faster you finish, the higher you place on the daily leaderboard. One free hint, on your first ever play, fills a correct number. Sundays are a harder Edition with fewer clues."`,
 `      footer="Every board has exactly one solution and can always be reached by logic alone, never by guessing. Solve the whole grid and you score a perfect 10, and the faster you finish, the higher you place on the daily leaderboard. One free hint, on your first ever play, fills a correct number. Sundays are a harder Edition printing just six digits."`);
 sub(`Sunday Edition &middot; Hard</span>}`, `Sunday Edition &middot; Six clues</span>}`);
 sub(`                <p style={{ margin: '0 0 6px' }}>Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9.</p>`,
-`                <p style={{ margin: '0 0 6px' }}>Sandwich sudoku. Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9, and so the digits between each line&apos;s 1 and 9 add up to the number printed beside it.</p>`);
+`                <p style={{ margin: '0 0 6px' }}>Sandwich sudoku. Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9. The number beside each row and column is the total of the digits between that line&apos;s 1 and its 9, so an <b>empty</b> sandwich, with the two side by side, is 0.</p>`);
 sub(`>The Sunday Edition — a harder grid with fewer clues.</div>`,
 `>The Sunday Edition — six printed digits, against ten on the hardest weekday.</div>`);
 sub(`? \`Suds #\${PUZZLE.num}\${PUZZLE.sunday ? ' · Sunday' : ''} · solved in \${elapsed}\${hintBit}\${streakBit}\``,
@@ -222,7 +228,7 @@ sub(`<li>Tap <b>Add</b> &mdash; the tile opens today&apos;s sudoku, every day.</
 `<li>Tap <b>Add</b> &mdash; the tile opens today&apos;s sandwich sudoku, every day.</li>`);
 sub(`The tile opens today&apos;s sudoku, every day.`, `The tile opens today&apos;s sandwich sudoku, every day.`);
 sub(`          Suds is a free daily sudoku from Mind Loft. Each day gives you a fresh 9×9 grid with a handful of printed clues. Fill in the rest so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once. There is always a single, logical solution &mdash; no guessing required.`,
-`          Sando is a free daily sandwich sudoku from Mind Loft. Sandwich sudoku adds one rule to the ordinary game: the number printed outside each row and column is the total of the digits lying between that line&apos;s 1 and its 9. Fill the grid so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once, and every sandwich adds up. There is always a single, logical solution &mdash; no guessing required.`);
+`          Sando is a free daily sandwich sudoku from Mind Loft. Sandwich sudoku adds one rule to the ordinary game: every row and column holds one 1 and one 9, and the number printed outside it is the total of the digits sitting between those two. Put them side by side and the sandwich is empty, which is a 0; put them at the two ends and everything else is inside, which is 35. Fill the grid so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once, and every sandwich adds up. There is always a single, logical solution &mdash; no guessing required.`);
 sub(`          A new puzzle drops every day at midnight Eastern, and Sundays step up to a harder Edition with fewer clues. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number ledger, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography puzzle.`,
 `          A new puzzle drops every day at midnight Eastern, and Sundays step up to a harder Edition printing just six digits. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. The other three sudokus: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, the classic 9×9, <a href="/quilt" style={{ color: COLORS.ink, fontWeight: 800 }}>Quilt</a>, the jigsaw one, and <a href="/cages" style={{ color: COLORS.ink, fontWeight: 800 }}>Cages</a>, the killer.`);
 

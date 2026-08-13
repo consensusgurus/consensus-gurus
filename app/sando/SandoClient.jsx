@@ -746,14 +746,15 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <DailyRules
       accent={COLORS.accent} accentSoft={COLORS.accentSoft}
-      lead="Sandwich sudoku. Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats, and so every line's sandwich adds up to the number printed beside it."
+      lead="Sandwich sudoku. Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats. The number beside each row and column is the total of the digits sitting BETWEEN that line's 1 and its 9."
       steps={[
         <><b>Tap a square then tap a number</b>, or pick a number first and tap every square it goes in. On desktop the <b>arrow keys and number keys</b> work too.</>,
         <>Turn on <b>Notes</b> (or press N) to pencil candidates, or with a number picked just <b>long-press</b> a square to pencil it.</>,
-        <>The numbers down the left and across the top are <b>sandwich sums</b>: the total of the digits lying <b>between the 1 and the 9</b> in that line. A <b>0</b> means the 1 and the 9 are next to each other. A <b>35</b> means they are at the two ends with everything else between them.</>,
+        <>Every row and column holds exactly one 1 and one 9, so it has exactly one <b>sandwich</b>: the squares between them. The number in the margin is what those digits add up to, and it does not matter which of the two comes first.</>,
+        <>Put the 1 and the 9 <b>side by side</b> and there is nothing between them: the sandwich is <b>empty</b>, and an empty sandwich totals <b>0</b>. Put them at the <b>two ends</b> and everything else is inside, which totals <b>35</b>. Those two are the most useful clues on the board.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last move. <b>Clear</b> wipes every number you have entered and leaves the printed clues.</>,
       ]}
-      knack="Work on the extremes first. A 0 pins the 1 and the 9 together, a 35 throws them to the two ends, and a 1, 2 or 3 leaves so few ways to make the filling that the crusts have almost nowhere to sit. Everything in the middle of the range is the hard part, so leave it."
+      knack="Work on the extremes first. An empty sandwich (a 0) pins the 1 and the 9 side by side, a 35 throws them to the two ends, and a 1, 2 or 3 leaves so few ways to make the filling that the pair has almost nowhere to sit. Everything in the middle of the range is the hard part, so leave it."
       footer="Every board has exactly one solution and can always be reached by logic alone, never by guessing. Solve the whole grid and you score a perfect 10, and the faster you finish, the higher you place on the daily leaderboard. One free hint, on your first ever play, fills a correct number. Sundays are a harder Edition printing just six digits."
     />
   );
@@ -823,7 +824,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Sando is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Sandwich sudoku. Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9, and so the digits between each line&apos;s 1 and 9 add up to the number printed beside it.</p>
+                <p style={{ margin: '0 0 6px' }}>Sandwich sudoku. Fill the grid so every row, column, and 3×3 box holds the digits 1 to 9. The number beside each row and column is the total of the digits between that line&apos;s 1 and its 9, so an <b>empty</b> sandwich, with the two side by side, is 0.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -854,12 +855,12 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
               <div className="sn-corner" aria-hidden="true" />
               {Array.from({ length: 9 }).map((_, c) => (
                 <div key={`cs${c}`} className={`sn-sum sn-col${selC === c ? ' on' : ''}${lineFull.cols[c] ? ' done' : ''}`}
-                  title={`Column ${c + 1}: the digits between the 1 and the 9 total ${COL_SUMS[c]}`}>{COL_SUMS[c]}</div>
+                  title={`Column ${c + 1}: the digits between its 1 and its 9 total ${COL_SUMS[c]}${COL_SUMS[c] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}`}>{COL_SUMS[c]}</div>
               ))}
               {Array.from({ length: 81 }).map((_, idx) => {
                 const gutter = idx % 9 === 0 ? (
                   <div key={`rs${idx / 9}`} className={`sn-sum sn-row${selR === idx / 9 ? ' on' : ''}${lineFull.rows[idx / 9] ? ' done' : ''}`}
-                    title={`Row ${idx / 9 + 1}: the digits between the 1 and the 9 total ${ROW_SUMS[idx / 9]}`}>{ROW_SUMS[idx / 9]}</div>
+                    title={`Row ${idx / 9 + 1}: the digits between its 1 and its 9 total ${ROW_SUMS[idx / 9]}${ROW_SUMS[idx / 9] === 0 ? ', so the sandwich is empty and they sit side by side' : ''}`}>{ROW_SUMS[idx / 9]}</div>
                 ) : null;
                 const given = givenFlat[idx];
                 const val = given || cells[idx];
@@ -1091,7 +1092,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Sando</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Sando is a free daily sandwich sudoku from Mind Loft. Sandwich sudoku adds one rule to the ordinary game: the number printed outside each row and column is the total of the digits lying between that line&apos;s 1 and its 9. Fill the grid so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once, and every sandwich adds up. There is always a single, logical solution &mdash; no guessing required.
+          Sando is a free daily sandwich sudoku from Mind Loft. Sandwich sudoku adds one rule to the ordinary game: every row and column holds one 1 and one 9, and the number printed outside it is the total of the digits sitting between those two. Put them side by side and the sandwich is empty, which is a 0; put them at the two ends and everything else is inside, which is 35. Fill the grid so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once, and every sandwich adds up. There is always a single, logical solution &mdash; no guessing required.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Play it your way: tap a square and a number, pencil in candidates with Notes when a square could go two ways, and lean on the arrow keys and number row on a desktop keyboard. Wrong entries are never flagged, so spotting your own slips is part of the puzzle, and a clean solve earns a perfect score.
