@@ -86,7 +86,16 @@ sub(`  accent: '#ea580c',       // Suds identity — orange
 sub(`const HELP_KEY = 'sot_suds_help_seen';
 const STATS_KEY = 'sot_suds_stats';`,
 `const HELP_KEY = 'sot_cages_help_seen';
-const STATS_KEY = 'sot_cages_stats';`);
+const STATS_KEY = 'sot_cages_stats';
+
+// Seven tints, one per cage, light enough that a black digit still reads at full
+// contrast on any of them. Deliberately a spread of hues rather than seven steps
+// of violet: neighbouring cages have to be told apart at a glance, and seven
+// shades of the same colour cannot do that.
+const CAGE_TINTS = ['#ece5fa', '#dfeafc', '#d9f0ee', '#e4f5e2', '#fbeed3', '#fbe3ec', '#e6e9f0'];
+// the cage outline, a neutral dark rather than the accent so it stays visible
+// over every tint including the violet one
+const WALL_INK = 'rgba(40,20,70,0.55)';`);
 sub('export default function SudsClient(', 'export default function CagesClient(');
 sub('const STORE_KEY = `sot_suds_${PUZZLE.num}`;', 'const STORE_KEY = `sot_cages_${PUZZLE.num}`;');
 sub('sd-', 'cg-', { all: true });
@@ -107,6 +116,37 @@ sub(`  const GIVEN = PUZZLE.given;
     const out = SUMS.map(() => []);
     CAGE.forEach((k, i) => out[k].push(i));
     return out;
+  }, [CAGE, SUMS]);
+  // Which TINT each cage wears. This is the change that made the board legible:
+  // a dashed outline alone cannot carry thirty cage shapes, and the launch
+  // version proved it (the owner could not make out a cage without clicking one).
+  // Cages are coloured so that no two that touch, edge OR corner, ever share a
+  // tint, by a greedy colouring of the adjacency graph taking the busiest cage
+  // first. Measured across the whole banked bank that needs at most six colours,
+  // and CAGE_TINTS carries seven, so the guarantee holds with a colour to spare;
+  // a board that somehow needed more would wrap rather than crash.
+  const CAGE_TINT = useMemo(() => {
+    const n = SUMS.length;
+    const adj = Array.from({ length: n }, () => new Set());
+    for (let i = 0; i < 81; i++) {
+      const r = Math.floor(i / 9), c = i % 9, k = CAGE[i];
+      for (const [dr, dc] of [[0, 1], [1, 0], [1, 1], [1, -1]]) {
+        const nr = r + dr, nc = c + dc;
+        if (nr > 8 || nc < 0 || nc > 8) continue;
+        const k2 = CAGE[nr * 9 + nc];
+        if (k2 !== k) { adj[k].add(k2); adj[k2].add(k); }
+      }
+    }
+    const order = Array.from({ length: n }, (_, k) => k)
+      .sort((a, b) => adj[b].size - adj[a].size || a - b);
+    const col = new Array(n).fill(-1);
+    for (const k of order) {
+      const taken = new Set([...adj[k]].map((x) => col[x]).filter((x) => x >= 0));
+      let c = 0;
+      while (taken.has(c)) c++;
+      col[k] = c;
+    }
+    return col.map((c) => CAGE_TINTS[c % CAGE_TINTS.length]);
   }, [CAGE, SUMS]);
   // the cell each cage prints its total in: topmost, then leftmost
   const SUM_AT = useMemo(() => {
@@ -170,11 +210,25 @@ sub(`    let bg = T.white;
     if (peer) bg = '#f3f5f8';
     if (sameVal) bg = '#ffe9d8';
     if (isSel) bg = '#ffd9bd';`,
-`    let bg = T.white;
-    if (sel >= 0 && CAGE[idx] === selK && !isSel) bg = '#f0ecfd';  // the rest of your cage, a shade stronger than a peer
-    else if (peer) bg = '#f3f5f8';
-    if (sameVal) bg = '#e7dffb';
-    if (isSel) bg = '#d6c9f7';`);
+`    // The cage tint is the RESTING state and never goes away, because it is the
+    // only thing that says which squares belong together. So selection, peers
+    // and matching digits paint as a translucent WASH OVER the tint instead of
+    // replacing it: replacing it meant that the moment you selected a square,
+    // every cage in its row, column and box lost its identity, which is most of
+    // the board and exactly when you need to read it.
+    const bg = CAGE_TINT[CAGE[idx]];
+    let wash = null;
+    if (peer) wash = 'rgba(22,26,42,0.055)';
+    if (sel >= 0 && CAGE[idx] === selK && !isSel) wash = 'rgba(107,33,168,0.13)';
+    if (sameVal) wash = 'rgba(107,33,168,0.2)';
+    if (isSel) wash = 'rgba(107,33,168,0.3)';
+    const shadow = [];
+    if (isSel) shadow.push(\`inset 0 0 0 2.5px \${COLORS.accent}\`);   // listed first, so it paints above the wash
+    if (wash) shadow.push(\`inset 0 0 0 999px \${wash}\`);`);
+sub(`      background: bg,
+      boxShadow: isSel ? \`inset 0 0 0 2.5px \${COLORS.accent}\` : undefined,`,
+`      background: bg,
+      boxShadow: shadow.length ? shadow.join(', ') : undefined,`);
 
 sub(`          {/* 9×9 grid with heavy 3×3 rules */}`,
 `          {/* 9×9 grid: solid rules for the sudoku, a dashed outline for each
@@ -190,10 +244,10 @@ sub(`                const given = givenFlat[idx];
                 // A cage wall goes wherever the neighbour belongs to a different
                 // cage, or where the grid runs out, so every cage closes.
                 const wall = {
-                  borderTop: r === 0 || CAGE[idx - 9] !== k ? \`1.5px dashed \${COLORS.accent}\` : 'none',
-                  borderLeft: c === 0 || CAGE[idx - 1] !== k ? \`1.5px dashed \${COLORS.accent}\` : 'none',
-                  borderBottom: r === 8 || CAGE[idx + 9] !== k ? \`1.5px dashed \${COLORS.accent}\` : 'none',
-                  borderRight: c === 8 || CAGE[idx + 1] !== k ? \`1.5px dashed \${COLORS.accent}\` : 'none',
+                  borderTop: r === 0 || CAGE[idx - 9] !== k ? \`1.5px dashed \${WALL_INK}\` : 'none',
+                  borderLeft: c === 0 || CAGE[idx - 1] !== k ? \`1.5px dashed \${WALL_INK}\` : 'none',
+                  borderBottom: r === 8 || CAGE[idx + 9] !== k ? \`1.5px dashed \${WALL_INK}\` : 'none',
+                  borderRight: c === 8 || CAGE[idx + 1] !== k ? \`1.5px dashed \${WALL_INK}\` : 'none',
                 };
                 const sum = SUM_AT[idx];
                 const cageDone = cageFilled[k] === CAGE_CELLS[k].length;`);
@@ -229,8 +283,8 @@ sub(`          .cg-note{display:flex;align-items:center;justify-content:center;f
              5px has the dashed line drawn straight through the numerals: that
              shipped once and every printed total came out looking sliced in
              half. Keep these two rules in step if the inset ever changes. */
-          .cg-sum{position:absolute;top:5px;left:5.5px;font-family:\${SANS};font-size:9.5px;line-height:1;font-weight:800;color:\${COLORS.accent};pointer-events:none;letter-spacing:-0.02em;}
-          .cg-sum.done{color:#b9b3c6;}
+          .cg-sum{position:absolute;top:5px;left:5.5px;font-family:\${SANS};font-size:10px;line-height:1;font-weight:800;color:#2f1259;pointer-events:none;letter-spacing:-0.02em;}
+          .cg-sum.done{color:rgba(47,18,89,0.32);}
           .cg-notes.hassum{padding-top:11px;}
           .cg-notes.hassum .cg-note{font-size:8px;}
           @media(max-width:420px){.cg-sum{font-size:8px;top:3.5px;left:4px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:9px;}}`);
@@ -239,7 +293,7 @@ sub(`          .cg-note{display:flex;align-items:center;justify-content:center;f
 sub(`      lead="Fill every empty square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats."`,
 `      lead="Killer sudoku. Fill every square so each row, each column and each 3×3 box holds the digits 1–9 with no repeats, and no digit is printed to start you off."`);
 sub(`        <><b>Undo</b> (or Ctrl+Z) takes back your last move. <b>Clear</b> wipes every number you have entered and leaves the printed clues.</>,`,
-`        <>The <b>dashed outlines</b> are cages. The small number in a cage's corner is the <b>total of the digits inside it</b>, and <b>no digit repeats within a cage</b>. A two-square cage totalling 4 can only be 1 and 3.</>,
+`        <>Each <b>shaded block</b> inside a dashed outline is a cage. The small number in its corner is the <b>total of the digits inside it</b>, and <b>no digit repeats within a cage</b>. A two-square cage totalling 4 can only be 1 and 3.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last move. <b>Clear</b> wipes the whole grid, which on a killer board means all of it.</>,`);
 sub(`      knack="Wrong entries are not flagged, just like paper sudoku, so it is on you to spot them before one bad digit poisons half the grid."`,
 `      knack="Start with the cages that can only be made one way: 3 in two squares is 1 and 2, 24 in three is 7, 8 and 9. Then lean on the rule that every row, column and box totals 45, so a row whose cages account for 38 leaves a 7 sitting on its own."`);
