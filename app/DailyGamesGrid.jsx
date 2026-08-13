@@ -49,7 +49,7 @@ import ReportIssue from './ReportIssue';
 import { fetchDailyMe, dailyMeQuery } from './dailyMeClient';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
-import { isRetiredDaily } from '@/lib/daily-games';
+import { isRetiredDaily, dailyAttemptRule } from '@/lib/daily-games';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', tag: 'A clueless crossword', img: '/games/btn-crux.png' },
@@ -316,7 +316,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
             <RotateCcw size={20} strokeWidth={2.5} />
             <span className="dgg-act-l">
               Play Today&apos;s Puzzle Again
-              <span className="dgg-act-s">Practice run. Your recorded result and streak stand.</span>
+              <span className="dgg-act-s">{dailyAttemptRule(self).replay}</span>
             </span>
           </button>
         </div>

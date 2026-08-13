@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight, UserPlus } from 'lucide-react';
-import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { DAILY_GAME_MAP, dailyAttemptRule } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from '../../dailyMeClient';
 import { T } from '@/lib/theme';
 
@@ -486,7 +486,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
           ) : null}
 
           {((sel === 'today' && todayRows.length) || (sel === 'alltime' && allTimeRows.length)) ? (
-            <p className="dbp-note">Points reflect results from unregistered users.</p>
+            <p className="dbp-note">Points reflect results from unregistered users. {dailyAttemptRule(self).board}</p>
           ) : null}
         </div>
       ) : null}

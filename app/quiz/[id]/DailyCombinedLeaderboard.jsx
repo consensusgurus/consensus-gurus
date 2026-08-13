@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
-import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { DAILY_GAME_MAP, dailyAttemptRule } from '@/lib/daily-games';
 import { T } from '@/lib/theme';
 
 // Unified daily leaderboard (2026-07-16). Replaces the single-game
@@ -283,6 +283,13 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
     </div>
   ) : null;
   const activeGame = (data.games || []).find((g) => g.key === active);
+  // How a replay counts, which is not the same on all three kinds of daily
+  // (dailyAttemptRule in lib/daily-games). A per-game tab can state its own
+  // rule outright; the Overall board mixes every game of the day, so it states
+  // the general shape instead of picking one.
+  const attemptLine = active === 'overall'
+    ? 'Most games count only your first attempt. End Game titles rank on how many runs the solve took, and Arcade games take your best run of the day.'
+    : dailyAttemptRule(active).board;
   const gameView = active === 'overall'
     ? <OverallBoard data={data} myKey={myKey} maxTotal={maxTotal} gameCount={gc} th={th} />
     : (showScope && gameScope === 'alltime')
@@ -296,7 +303,7 @@ export default function DailyCombinedLeaderboard({ todayKey = null, identity = n
       {scopeToggle}
       {gameView}
       <p style={{ fontSize: 11, color: th.note, marginTop: 12, lineHeight: 1.5 }}>
-        {scaleLine} {totalLine} Points reflect results from unregistered users.
+        {scaleLine} {totalLine} Points reflect results from unregistered users. {attemptLine}
       </p>
       {compact ? linkBtn('Show less', () => { setExpanded(false); setTab(todayKey || 'overall'); }) : null}
     </div>

@@ -90,7 +90,7 @@ import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
-import { isRetiredDaily, DAILY_GAME_MAP } from '@/lib/daily-games';
+import { isRetiredDaily, DAILY_GAME_MAP, dailyAttemptRule } from '@/lib/daily-games';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
 
@@ -2249,7 +2249,7 @@ export default function DailyEndCard({
               </div>
             ))}
             {rows.length > 0 && openTile !== 'iq' ? (
-              <p className="dec-note">Points reflect results from unregistered users.</p>
+              <p className="dec-note">Points reflect results from unregistered users. {dailyAttemptRule(self).board}</p>
             ) : null}
           </div>
         );
@@ -2352,7 +2352,7 @@ export default function DailyEndCard({
           <button type="button" className="dec-replay" onClick={goReplay}>
             <RefreshCw size={15} strokeWidth={2.2} />
             <span>Replay today’s {selfGame ? selfGame.name : 'puzzle'}</span>
-            <span className="rs">Practice run</span>
+            <span className="rs">{dailyAttemptRule(self).chip}</span>
           </button>
         ) : null}
       </div>

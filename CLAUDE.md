@@ -2268,6 +2268,41 @@ The prop shape is `{ eyebrow, name, sub, leader, href, cta }`, with fallbacks on
 `{ title, sub }` so an un-updated caller still renders. `icon` / `color` / `tint` are gone with the
 row that used them.
 
+## How a replay counts is THREE rules, and every surface must say which (owner rule, 2026-08-12)
+
+A daily's leaderboard treats a second run one of three ways, and until this date not one
+reader-facing surface said which:
+
+| Kind | Predicate | The board keeps |
+|---|---|---|
+| Ordinary daily (51 of them, Babel included) | neither | your FIRST attempt |
+| End Game (mate, four, check, chain, turn, defend) | `isEndGame` | the solving run, ranked on how many runs it took |
+| Arcade (sweep, blocks) | `isArcade` | your BEST run of the day |
+
+Worse than silence, the two replay controls ASSERTED the wrong one: both said "Practice run"
+on every game, which stopped being true for End Game the day its board moved to attempts
+(2026-08-12, commit c4b08b8).
+
+**The copy lives in ONE place, `dailyAttemptRule(key)` in `lib/daily-games.js`**, beside the two
+predicates that decide it, for the same reason `endGamePlan` does: a sentence maintained in four
+components is four mirrors that drift, and a leaderboard caption that disagrees with
+`buildLeaderboard` is worse than no caption. It returns `{ board, replay, chip }`. An unknown or
+null key falls to the first-attempt rule.
+
+Rendered in five places, all of which take the game key already:
+
+- `app/DailyGamesGrid.jsx` and `app/DailyEndCard.jsx` (`.rs` chip) - the two "play again" controls,
+  which is the moment a player decides, so this is the one that matters most.
+- `app/quiz/[id]/DailyBoardPanel.jsx` (`.dbp-note`) and `app/DailyEndCard.jsx` (`.dec-note`) - the
+  existing "Points reflect results from unregistered users." footnote, one edit each covering all
+  55 dailies.
+- `app/quiz/[id]/DailyCombinedLeaderboard.jsx` - the scoring caption. The Overall tab mixes all
+  three kinds, so it states the general shape rather than picking one; a per-game tab states its own.
+
+**A new daily game inherits this for free**, since the branch reads `cat` off the registry. A new
+CATEGORY that counts attempts differently needs a branch added to `dailyAttemptRule` and nowhere
+else. Never restate the rule inline in a component.
+
 ## Chrome tab hygiene (universal rule, owner-requested 2026-06-05)
 
 Close every Chrome MCP tab as soon as it is no longer needed: reuse ONE tab per session (navigate in
