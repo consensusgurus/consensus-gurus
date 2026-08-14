@@ -4407,6 +4407,58 @@ section and ABOVE the browse row. Rules for anyone touching this area:
 
 ---
 
+## Quiz home search + browse: direction B, same as the console above it (owner, 2026-08-14)
+
+The search row and the browse columns were the last part of the quiz home still on
+the pre-direction-B look while everything above them (the cap cards, the slate, the
+rails) had moved. They now use the same vocabulary, and the two things direction B
+banned outright are gone from this surface as well: **pastel tinted icon squares and
+chevrons**.
+
+Per card, in `BrowseColumn` (and `CategoryMastery`, which borrows the same
+`catcard` + `cc-head` shell so it gets the same treatment):
+
+- **The category colour is a 4px left rule**, `--cc`, set inline on the section and
+  drawn by `.catcard::before`. The 24px `colicon` square that used to carry that
+  colour is NOT rendered at all in a card header.
+- **The header is a tinted strip** (`--cct`, the colour's palest tint) carrying an
+  uppercase eyebrow over the 800-weight name. The category COUNT lives in the
+  eyebrow (`Category / 467`), not in the CTA.
+- **One control on the right edge**: `.cc-head .viewall` is a chip filled with
+  `--cc`, white ink. No `>` in any cta string.
+- **Hero photos are untouched** — photo, plays/leader caption, title, Play arrow.
+
+The tool row takes the same left rule (in the CTA blue) so the search reads as the
+same kind of object as the cards under it, and **Request a quiz** is its one accent
+(`.qz-toolcta`); Report an issue stays outline.
+
+Four things worth knowing before touching this:
+
+- **The rule is a `::before`, NOT `border-left`.** A border reflows every grid track
+  by 4px and curves into the 12px corner radius instead of reading as a straight bar.
+  The pseudo-element is clipped to the radius for free by the card's own
+  `overflow:hidden`, and sits at **z-index 3** so it reads PAST the hero photo
+  (`.cc-ov` is 1, `.cc-stat`/`.cc-btm` are 2). It survives the phone edge-to-edge
+  treatment (`border-radius:0` under 900px) unchanged.
+- **Do not hide the icon square with CSS.** `.colicon` carries an INLINE
+  `display:flex`, which outranks the stylesheet, so `.cc-head .colicon{display:none}`
+  silently does nothing — that shipped once and every square was still rendering
+  beside its new rule. The node is not rendered when the header is a card header.
+  The CSS rule stays only as a guard for a future `cc-head` that renders one.
+- **The `<=560` colhead overrides are scoped `:not(.cc-head)`.** They were written for
+  the boards' accent-filled header (`background:var(--white) !important`,
+  `.viewall{color:var(--muted) !important}`) and unscoped they flatten the tinted
+  browse header and grey out its filled chip.
+- **A new BrowseColumn call site passes `eyebrow` and a chevron-free `cta`**, plus
+  `color`/`tint` as before (those two now feed `--cc`/`--cct`). A column with neither
+  simply renders no rule and falls back to `--surface` / the accent chip.
+
+VERIFY ON THE LIVE SITE, not from the rule: read `getComputedStyle` for the
+`::before` width/colour, the header background, the chip fill, and confirm
+`document.querySelectorAll('.cc-head .colicon').length === 0` and zero `>` in the
+body text. The inline-display bug above passed every read of the CSS and was only
+caught by measuring the rendered element.
+
 ## Quiz data reads: the three caching layers (built 2026-08-01)
 
 Every hot quiz route answers a question about ONE player or ONE day, but the
