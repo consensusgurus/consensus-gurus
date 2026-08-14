@@ -693,13 +693,15 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       else todo += 1;
     }
     return [
-      // `short` is the phone's wording. Only READY needs one: it is the pip
-      // that rides up onto the first line beside the title and the date, so
-      // it has to be the narrowest thing it can be without losing meaning.
-      { k: 'todo', n: todo, word: 'ready to play', short: 'ready' },
-      { k: 'prog', n: prog, word: 'in progress' },
-      { k: 'fail', n: fail, word: 'incomplete' },
-      { k: 'dn', n: dn, word: 'complete' },
+      // The four state words, the same ones the bands and the cap's state
+      // cards use. `short` is the phone's wording and none of them needs one
+      // any more: they were shortened to a single word each in 2026-08, so the
+      // narrowest form and the full one are the same string. The mechanism
+      // stays for the next word that outgrows the first line.
+      { k: 'todo', n: todo, word: 'ready' },
+      { k: 'prog', n: prog, word: 'paused' },
+      { k: 'fail', n: fail, word: 'failed' },
+      { k: 'dn', n: dn, word: 'done' },
     ].filter((t) => t.n > 0);
   })();
   // role="img" + the label, because the word can be display:none (the short
@@ -1680,11 +1682,21 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // The two started groups sit between the untouched games and the finished
     // ones, in the order a game passes through them: still going, then over and
     // unsolved, then done.
+    // ONE WORD EACH (owner, 2026-08-14). The bands used to read Ready to play /
+    // In progress / Incomplete today / Complete today, four phrases stacked
+    // down the right of the board saying what a single word says: the group's
+    // colour, its count and the rows under it carry the rest. "Paused" is also
+    // the word the cap has always used for a game with a live board waiting,
+    // so the two surfaces finally say the same thing. Keep this vocabulary in
+    // step with the day tally's pips and the cap's state cards, which are the
+    // same four states named in two other places. The group KEYS are unchanged
+    // (todo / prog / fail / dn), so the older comments through this file that
+    // still call a band by its old phrase are describing these same four.
     const bandSpec = [
-      ['todo', 'Ready to play', nReady, `${n}/${GAMES.length} played`],
-      ['prog', 'In progress', nProg, null],
-      ['fail', 'Incomplete today', nFail, null],
-      ['dn', 'Complete today', nDone, null],
+      ['todo', 'Ready', nReady, `${n}/${GAMES.length} played`],
+      ['prog', 'Paused', nProg, null],
+      ['fail', 'Failed', nFail, null],
+      ['dn', 'Done', nDone, null],
     ].filter((b) => b[2]);
     bandSpec.forEach(([grp, label, count, fig], i) => out.push(band(grp, label, count, fig, i, bandSpec.length)));
     // The bar names how many rows are HIDDEN, not how many the group holds
@@ -3419,7 +3431,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                     + (i === capWideAt ? ' capw' : '')}
                 >
                   <div className="dh-bupt">
-                    <div className="dh-bue">{paused ? 'In progress' : 'Incomplete'}</div>
+                    <div className="dh-bue">{paused ? 'Paused' : 'Failed'}</div>
                     <div className="dh-bun">{c.game.name}</div>
                     <div className="dh-busub">
                       {c.game.tag}
@@ -3443,7 +3455,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                       type="button"
                       className="dh-cx"
                       aria-label={`Dismiss ${c.game.name} for today`}
-                      title="Dismiss for today. It stays in Incomplete today below."
+                      title="Dismiss for today. It stays in Failed below."
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); dismissFail(c.game.key); }}
                     >
                       <X size={12} strokeWidth={3} />
