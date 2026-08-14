@@ -107,6 +107,7 @@ const GAMES = [
   { key: 'chomp', href: '/chomp', name: 'Chomp', img: '/games/btn-chomp.png', store: 'sot_chomp_day', tag: "Eat them in order" , cat: 'Logic' },
   { key: 'blocks', href: '/blocks', name: 'Blocks', img: '/games/btn-blocks.png', store: 'sot_blocks_day', tag: "Same shapes, same order" , cat: 'Arcade' },
   { key: 'docket', href: '/docket', name: 'Docket', img: '/games/btn-docket.png', store: 'sot_docket_day', tag: "One setup, five deductions" , cat: 'Logic' },
+  { key: 'barter', href: '/barter', name: 'Barter', img: '/games/btn-barter.png', store: 'sot_barter_day', tag: "Trade the letters home" , cat: 'Word' },
   { key: 'defend', href: '/defend', name: 'Defend', img: '/games/btn-defend.png', store: 'sot_defend_day', tag: "Black to play and survive" , cat: 'End Game' },
   { key: 'blitz', href: '/blitz', name: 'Blitz', img: '/games/btn-blitz.png', store: 'sot_blitz_day', tag: "Twenty problems, one life" , cat: 'Numbers' },
   { key: 'sweep', href: '/sweep', name: 'Sweep', img: '/games/btn-sweep.png', store: 'sot_sweep_day', tag: "No bottom edge" , cat: 'Arcade' },

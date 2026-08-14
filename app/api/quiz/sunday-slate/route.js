@@ -5,6 +5,11 @@ import { findQuizIdentity } from '@/lib/quiz-identity';
 import { SUNDAY_EDITION_GAMES } from '@/lib/sunday-editions';
 
 import { PUZZLES as P_crux } from '@/app/crux/puzzles';
+import { PUZZLES as P_barter } from '@/app/barter/puzzles';
+import { PUZZLES as P_cages } from '@/app/cages/puzzles';
+import { PUZZLES as P_sando } from '@/app/sando/puzzles';
+import { PUZZLES as P_docket } from '@/app/docket/puzzles';
+import { PUZZLES as P_defend } from '@/app/defend/puzzles';
 import { PUZZLES as P_emcee } from '@/app/emcee/puzzles';
 import { PUZZLES as P_garble } from '@/app/garble/puzzles';
 import { PUZZLES as P_links } from '@/app/links/puzzles';
@@ -71,7 +76,7 @@ const CACHE_HEADERS = { 'Cache-Control': 'private, no-store' };
 // Sunday roster: SUNDAY_EDITION_GAMES is 51 games and counting, so a hand-kept
 // subset here would be one more list to remember when a game gains an edition.
 // The registry does the filtering at request time instead.
-const GAME_PUZZLES = { crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating, tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit, tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer, jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak, feud: P_feud, babel: P_babel, hands: P_hands, glyph: P_glyph, chain: P_chain, turn: P_turn, suffice: P_suffice, strata: P_strata, redact: P_redact, paths: P_paths, deep: P_deep, anon: P_anon, blocks: P_blocks, chomp: P_chomp, sweep: P_sweep };
+const GAME_PUZZLES = { crux: P_crux, emcee: P_emcee, garble: P_garble, links: P_links, span: P_span, dating: P_dating, tally: P_tally, suds: P_suds, circa: P_circa, extra: P_extra, carve: P_carve, stet: P_stet, outwit: P_outwit, tuck: P_tuck, alibi: P_alibi, cipher: P_cipher, ping: P_ping, warmer: P_warmer, jester: P_jester, sworn: P_sworn, outrank: P_outrank, shards: P_shards, axiom: P_axiom, hearsay: P_hearsay, venn: P_venn, stands: P_stands, bracket: P_bracket, lode: P_lode, etch: P_etch, hedge: P_hedge, listed: P_listed, mate: P_mate, four: P_four, park: P_park, check: P_check, rung: P_rung, crunch: P_crunch, taire: P_taire, fib: P_fib, streak: P_streak, feud: P_feud, babel: P_babel, hands: P_hands, glyph: P_glyph, chain: P_chain, turn: P_turn, suffice: P_suffice, strata: P_strata, redact: P_redact, paths: P_paths, deep: P_deep, anon: P_anon, blocks: P_blocks, chomp: P_chomp, sweep: P_sweep, cages: P_cages, sando: P_sando, docket: P_docket, defend: P_defend, barter: P_barter };
 
 function etTodayServer() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }

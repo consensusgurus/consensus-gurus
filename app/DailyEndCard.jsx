@@ -85,6 +85,7 @@ import {
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel, Shield,
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2, Zap, Sigma, Sandwich,
+  ArrowLeftRight,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
@@ -110,7 +111,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
+const LAUNCH_PIN = { keys: ['barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-09-20' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -180,6 +181,7 @@ export const GAME_META = {
   turn: { accent: '#226218', badgeBg: '#226218', badgeInk: T.white, Fin: Contrast },
   suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
   docket: { accent: '#5b2333', badgeBg: '#5b2333', badgeInk: T.white, Fin: Gavel },
+  barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
   blitz: { accent: '#657512', badgeBg: '#657512', badgeInk: T.white, Fin: Zap },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
@@ -227,6 +229,7 @@ const ALL_DAILY_GAMES = [
   { key: 'emcee',  cat: 'word',      name: 'Emcee',  tag: 'The daily mini crossword',  blurb: 'A quick mini crossword with sharp clues, built to be finished in a couple of minutes.', href: '/emcee' },
   { key: 'shards', cat: 'word',      name: 'Shards', tag: 'Reassemble the crossword',   blurb: 'A finished crossword cut into pieces. Slot every shard back where it belongs.', href: '/shards' },
   { key: 'links',  cat: 'word',      name: 'Links',  tag: 'Four hidden threads',       blurb: 'Sixteen words hide four secret connections. Find all four groups before your mistakes run out.', href: '/links' },
+  { key: 'barter', cat: 'word',      name: 'Barter', tag: 'Trade the letters home',    blurb: 'Six interlocking words, every letter already on the board. Trade two tiles at a time and land the lattice at par.', href: '/barter' },
   { key: 'garble', cat: 'word',      name: 'Garble', tag: 'Untangle five words',       blurb: 'Five scrambled words against the clock. Unscramble each one before time runs out.', href: '/garble' },
   { key: 'stet',   cat: 'word',      name: 'Stet',   tag: 'Spot the error, fix the copy',        blurb: 'A short passage hides one slip of fact, spelling or grammar. Catch it, then correct it.', href: '/stet' },
   { key: 'tuck',   cat: 'word',      name: 'Tuck',   tag: 'Same letters, highest score wins',  blurb: 'Everyone gets the identical letters. Tuck them into the grid for the biggest score of the day.', href: '/tuck' },
