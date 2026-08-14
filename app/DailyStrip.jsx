@@ -124,6 +124,10 @@ const NAME_BY_KEY = GAMES.reduce((m, g) => { m[g.key] = g.name; return m; }, {})
 // Recent Champions list length (yesterday plus the prior days), sized to fill
 // the overall-leaderboard column beside the per-game minis.
 const CHAMPION_DAYS = 8;
+// The breathing room left above an opened panel once the sticky page header has
+// been cleared. Same 8px focusListSearch in QuizCommandHeader already leaves.
+// See revealOpen.
+const HEAD_GAP = 8;
 // How many tiles the board WINDOW shows before the rest have to be scrolled to.
 // The grid is six columns wide on a full-width desktop, so thirty is exactly the
 // five rows the board has always been, and the console keeps one height no matter
@@ -1424,7 +1428,78 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     };
   }, [list.length]);
 
-  const pick = (key) => { setLbOpen(false); setSel((cur) => (cur === key ? null : key)); };
+  // AN OPENED PANEL LANDS ON ITS HEAD (owner, 2026-08-14). Expanding a row near
+  // the FOOT of the console left the reader looking at the MIDDLE of what had
+  // just opened. TWO different causes, one per layout, which is why the fix is
+  // a landing rather than a patch to either.
+  //
+  // Above 900px the panel is position:absolute;inset:0 over the whole .dhome
+  // (one expanded console), so its top is the CONSOLE'S top: scrolled far
+  // enough down to reach the last rows, that top is already above the viewport
+  // and the panel opens showing its middle. Measured on the live board at
+  // 1096x856 with every group open, clicking the last row put the panel at top
+  // -1117 of its own 1912, so the foot of the archive calendar was what came up.
+  //
+  // Below 900px the panel is an inline drawer and the browser moves the page
+  // ITSELF: inserting the drawer triggers SCROLL ANCHORING, which holds
+  // whatever it picked as the anchor still and so scrolls the page down by the
+  // height of what was just inserted. Measured at 876x860: scrollY 1527 -> 1800
+  // on the click, with the row sitting at the same document offset throughout,
+  // and NO scroll event, scrollTo, scrollIntoView or focus call anywhere in the
+  // trace, which is the signature of an anchoring adjustment rather than
+  // anything this code did. That is also why the landing is UNCONDITIONAL: a
+  // "only move it when the top is hidden" guard reads the geometry AFTER the
+  // adjustment, by which point the row is still on screen and the guard sees
+  // nothing wrong. Assigning the position outright is what defeats it.
+  //
+  // The anchor is whichever comes FIRST of the panel's own box and the row's,
+  // which resolves both layouts without reading a style: over the console the
+  // panel's top is above the row's, inline it is below it.
+  //
+  // Two frames, the same wait revealGroup uses, so the panel has mounted and
+  // laid out before anything is measured, then once more a beat later, since
+  // the panel's data lands async and growing it can trip anchoring a second
+  // time. Instant, not smooth: html carries scroll-behavior:smooth site-wide,
+  // and gliding 1,100px through a console that has just been replaced reads
+  // worse than arriving.
+  const revealOpen = (anchor) => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const land = () => {
+      try {
+        const con = document.querySelector('.dhome');
+        const panel = con ? con.querySelector('.dtp') : null;
+        if (!panel) return;
+        let top = panel.getBoundingClientRect().top;
+        if (anchor && anchor.isConnected) top = Math.min(top, anchor.getBoundingClientRect().top);
+        // The one thing that overlaps the top of the page. MEASURED rather than
+        // modelled: the header's height changes with width, and a landing that
+        // models it puts the head of the panel underneath it. --ml-headh is the
+        // LOCKED height the header itself publishes, which is the right number
+        // in the landscape-touch layout too (there .qchm is display:contents and
+        // its own rect measures 0); the rect is the fallback for any page that
+        // does not run the home variant.
+        const lock = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ml-headh'));
+        const head = document.querySelector('.qchm');
+        const off = ((lock > 0 ? lock : 0) || (head ? head.getBoundingClientRect().height : 0)) + HEAD_GAP;
+        const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        const y = Math.min(max, Math.max(0, Math.round(window.scrollY + top - off)));
+        if (Math.abs(y - window.scrollY) < 2) return;
+        try { window.scrollTo({ top: y, behavior: 'instant' }); }
+        catch (x) { window.scrollTo(0, y); }
+      } catch (x) { /* older Safari: leaving the scroll alone beats throwing */ }
+    };
+    requestAnimationFrame(() => requestAnimationFrame(() => { land(); setTimeout(land, 180); }));
+  };
+
+  // `anchor` is the row (or tile) that was clicked, captured synchronously by
+  // the caller: React re-renders the button, so reading it back out of the
+  // event inside the callback is too late.
+  const pick = (key, anchor) => {
+    setLbOpen(false);
+    const opening = sel !== key;
+    setSel((cur) => (cur === key ? null : key));
+    if (opening) revealOpen(anchor || null);
+  };
 
   // ── the per-game expand panel (overlays the board; see DailyTilePanel) ──
   const renderPanel = (g) => {
@@ -1822,7 +1897,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             if (go) { e.preventDefault(); window.location.assign(go.getAttribute('href')); return; }
             if (e.target.closest && e.target.closest('.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb')) return;
             e.preventDefault(); // swallow the name link's navigation
-            pick(g.key);
+            pick(g.key, e.currentTarget);
           }}
         >
           {/* Pin. Restored to the row on 2026-08-07: the star used to live in a
@@ -1911,7 +1986,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             <button
               type="button"
               className={`sl-ab${open ? ' on' : ''}`}
-              onClick={() => pick(g.key)}
+              onClick={(e) => pick(g.key, e.currentTarget.closest('.sl-row'))}
               aria-expanded={open}
               aria-label={`${g.name} archive and stats`}
             >
@@ -2009,7 +2084,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           type="button"
           key={g.key}
           className={cls}
-          onClick={() => pick(g.key)}
+          onClick={(e) => pick(g.key, e.currentTarget)}
           aria-expanded={sel === g.key}
           aria-label={`${g.name} — done today${sl ? `, ${sl}` : ''}${fav ? ' — one of your games' : ''} — open stats and archive`}
         >
@@ -2028,7 +2103,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         <button
           type="button"
           className="dh-tstats"
-          onClick={() => pick(g.key)}
+          onClick={(e) => pick(g.key, e.currentTarget.closest('.dh-tile'))}
           aria-expanded={sel === g.key}
           aria-label={`${g.name} stats and archive`}
           title="Stats & archive"
