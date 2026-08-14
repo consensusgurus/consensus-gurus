@@ -498,9 +498,13 @@ export default function HomeRails({
          2026-08-08), which is what let all THREE boards stack in this rail at
          once. They became one three-face panel on 2026-08-14, so the reason is
          gone and the cap with it: one board can afford the five rows
-         boardSlice already hands it. `Rows` still accepts `cap` and the phone
-         override below still lifts it, so restoring the behaviour is a prop
-         away if a second board ever comes back to this rail. */
+         boardSlice already hands it. The Rows component still accepts a cap
+         prop and the phone override below still lifts it, so restoring the
+         old behaviour is one prop away if a second board ever comes back to
+         this rail.
+         NO BACKTICKS IN THIS BLOCK, EVER: it lives inside the CSS template
+         literal, so a backtick here closes the string and breaks the build.
+         That shipped once, on 2026-08-14. */
       .hr-tbl tr.lead1{display:none;}
       .hr-tbl.cap3 tr:nth-child(n+4){display:none;}
       .hr-nm{color:var(--ink);text-decoration:none;}
