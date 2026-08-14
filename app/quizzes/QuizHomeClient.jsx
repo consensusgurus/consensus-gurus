@@ -1667,7 +1667,8 @@ export default function QuizHomeClient() {
     /* Full-width tool row under the three-column daily section, styled as ONE
        integrated element (owner 2026-07-29): a navy casing wraps the white search
        field and the three white action buttons, all one uniform treatment. */
-    .qzh .qz-toolrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:var(--white);border:1.5px solid var(--border);border-radius:13px;padding:8px;}
+    .qzh .qz-toolrow{position:relative;overflow:hidden;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:var(--white);border:1.5px solid var(--border);border-radius:13px;padding:8px 8px 8px 12px;}
+    .qzh .qz-toolrow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:${C.cta};pointer-events:none;}
     .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
     .qzh .qz-toolsearch:hover{border-color:var(--muted);}
     .qzh .qz-toolsearch:focus-within{border-color:var(--muted);background:var(--surface);}
@@ -1706,13 +1707,25 @@ export default function QuizHomeClient() {
     .qzh .qflow{column-width:310px;column-gap:18px;}
     .qzh .qflow > a{display:flex;break-inside:avoid;-webkit-column-break-inside:avoid;}
     @media(max-width:680px){.qzh .qfull{column-count:1;}}
-    .qzh .colhead{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:2px solid ${C.ink};border-radius:8px 8px 0 0;margin-bottom:3px;}
+    .qzh .colhead{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--white);border-bottom:2px solid ${C.ink};border-radius:8px 8px 0 0;margin-bottom:3px;}
     .qzh .viewall{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;}
     .qzh .qrow{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid rgba(20,22,28,0.07);text-decoration:none;color:${C.ink};min-width:0;overflow:hidden;}
     .qzh .qrow:hover .qtitle{color:${C.accent};}
     .qzh .qrow .qtitle{font-size:13px;font-weight:500;}
     .qzh .qmeta{flex:none;display:flex;align-items:center;gap:10px;font-size:10.5px;}
-    .qzh .catcard{border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:var(--white);display:flex;flex-direction:column;padding-bottom:4px;}
+    .qzh .catcard{position:relative;border:1px solid ${C.line};border-radius:12px;overflow:hidden;background:var(--white);display:flex;flex-direction:column;padding-bottom:4px;}
+    /* Direction B (owner, 2026-08-14): the 24px pastel icon square that used to
+       open every browse header is gone, and the category colour it carried now
+       runs as a 4px left rule down the WHOLE card, the same rule the cap bars
+       and the phone slate rows use. It is a ::before rather than a border-left
+       for two reasons: a border would reflow every grid track by 4px, and it
+       would curve into the 12px corner radius instead of reading as a straight
+       bar. The card's own overflow:hidden clips it to the radius for free, and
+       z-index 3 puts it OVER the hero photo (cc-ov is 1, cc-stat/cc-btm are 2)
+       so the rule reads past the picture instead of stopping at the header.
+       --cc is the category colour, --cct its pale tint; both are set inline by
+       BrowseColumn, so a card with neither simply renders no rule. */
+    .qzh .catcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc,transparent);z-index:3;pointer-events:none;}
     /* Phone: the browse columns run edge to edge and stop being cards, matching
        the slate and the rails above them (owner, 2026-08-03). */
     @media(max-width:900px){
@@ -1747,7 +1760,14 @@ export default function QuizHomeClient() {
     .qzh .cc-btm{position:absolute;left:12px;right:12px;bottom:11px;z-index:2;display:flex;flex-direction:column;gap:5px;}
     .qzh .cc-htitle{color:var(--white);font-size:17px;font-weight:800;letter-spacing:-.2px;line-height:1.14;text-shadow:0 1px 8px rgba(0,0,0,.5);}
     .qzh .cc-play{font-size:13px;font-weight:800;color:var(--white);display:inline-flex;align-items:center;gap:4px;}
-    .qzh .catcard .colhead.cc-head{border-radius:0;border:none;margin:0;order:-1;}
+    .qzh .catcard .colhead.cc-head{border-radius:0;border:none;margin:0;order:-1;padding:9px 12px;background:var(--cct,var(--surface));}
+    .qzh .cc-head .colicon{display:none;}
+    .qzh .cc-hgroup{display:flex;flex-direction:column;gap:1px;min-width:0;}
+    .qzh .cc-eyebrow{font-size:9.5px;letter-spacing:.13em;font-weight:800;text-transform:uppercase;color:var(--muted);line-height:1.35;}
+    .qzh .cc-head h3{line-height:1.15;}
+    /* One control on the right edge, filled in the card's own colour. The old
+       'View all >' text link and its chevron are both retired here. */
+    .qzh .cc-head .viewall{margin-left:auto;flex:none;background:var(--cc,${C.accent});border-radius:7px;padding:5px 10px;line-height:1.2;}
     .qzh .catcard .qrow{padding-left:11px;padding-right:11px;}
     .qzh .catcard .qrow:last-child{border-bottom:none;}
     .qzh .colhead.cc-filled{border-bottom:none;}
@@ -1812,10 +1832,10 @@ export default function QuizHomeClient() {
       .qzh section.mc-closed > .qrow{display:none !important;}
       .qzh .dailyicon{color:#374151 !important;}
       .qzh .livedot{background:#9aa1ab !important;animation:none !important;}
-      .qzh .colhead{background:var(--white) !important;}
+      .qzh .colhead:not(.cc-head){background:var(--white) !important;}
       .qzh .colhead .colicon{background:#f1f3f6 !important;}
       .qzh .colhead h3{color:var(--ink) !important;}
-      .qzh .colhead .viewall{color:var(--muted) !important;}
+      .qzh .colhead:not(.cc-head) .viewall{color:var(--muted) !important;}
       .qzh .dot{background:#9aa1ab !important;}
       .qzh .mc-closed .vall{display:none !important;}
       .qzh .vall{text-transform:uppercase !important;font-size:10px !important;font-weight:700 !important;letter-spacing:.05em !important;}
@@ -2779,21 +2799,21 @@ export default function QuizHomeClient() {
             {(() => {
               const mpHero = mpTop ? heroFor(mpTop.id, mpTop.dept) : null;
               return (
-                <BrowseColumn label="Most Played" Icon={Flame} color="#c2691c" tint="#f4e2cd" filled fill baseCount={5}
+                <BrowseColumn label="Most Played" eyebrow="Trending" Icon={Flame} color="#c2691c" tint="#f8eee2" filled fill baseCount={5}
                   heroUrl={mpHero ? mpHero.src : undefined} heroPos={mpHero ? mpHero.pos : undefined}
                   heroId={mpTop ? mpTop.id : undefined} heroTitle={mpTop ? mpTop.title : ''}
                   heroPlays={mpTop ? plays(mpTop.id) : 0} heroLeader={mpTop ? leader(mpTop.id) : ''}
-                  rows={mostPlayed.filter((q) => !mpTop || q.id !== mpTop.id).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all ›" onCta={() => setListMode('mostplayed')} />
+                  rows={mostPlayed.filter((q) => !mpTop || q.id !== mpTop.id).map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#c2691c" hidePlays /> }))} cta="View all" onCta={() => setListMode('mostplayed')} />
               );
             })()}
             {(() => {
               const nwHero = nwTop ? heroFor(nwTop.id, nwTop.dept) : null;
               return (
-                <BrowseColumn label="Newest" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}
+                <BrowseColumn label="Newest" eyebrow="Just added" Icon={Sparkles} color={C.accent} tint={C.accsoft} filled fill baseCount={5}
                   heroUrl={nwHero ? nwHero.src : undefined} heroPos={nwHero ? nwHero.pos : undefined}
                   heroId={nwTop ? nwTop.id : undefined} heroTitle={nwTop ? nwTop.title : ''}
                   heroPlays={nwTop ? plays(nwTop.id) : 0} heroLeader={nwTop ? leader(nwTop.id) : ''}
-                  rows={newestAll.slice(0, 16).filter((q) => !nwTop || q.id !== nwTop.id).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all ›" onCta={() => setListMode('newest')} />
+                  rows={newestAll.slice(0, 16).filter((q) => !nwTop || q.id !== nwTop.id).map((q) => ({ q, right: <NewRight q={q} /> }))} cta="View all" onCta={() => setListMode('newest')} />
               );
             })()}
             {cats.filter((c) => c.key !== 'school').map((c) => {
@@ -2815,26 +2835,26 @@ export default function QuizHomeClient() {
               const exSet = heroId ? new Set([...shownIds, heroId]) : shownIds;
               const rowq = colRows(c, 7, exSet).filter((q) => q.id !== heroId).slice(0, 6);
               return (
-                <BrowseColumn key={c.key} label={c.label} Icon={c.Icon} color={c.c} tint={c.t}
+                <BrowseColumn key={c.key} label={c.label} eyebrow={`Category \u00b7 ${c.count}`} Icon={c.Icon} color={c.c} tint={c.t}
                   heroUrl={heroUrl} heroPos={heroPos} heroId={heroId} heroTitle={heroTitle}
                   heroPlays={heroId ? plays(heroId) : 0} heroLeader={heroId ? leader(heroId) : ''}
                   rows={rowq.map((q) => ({ q, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color={c.c} hidePlays /> }))}
-                  cta={`View all ${c.count} ›`} onCta={() => setScope(c.key)} />
+                  cta="View all" onCta={() => setScope(c.key)} />
               );
             })}
             {/* Promo tiles — always the last three (Kids Corner last). */}
-            <BrowseColumn label="Business News" Icon={Newspaper} color="#4d6b8a" tint="#dbe4ee"
+            <BrowseColumn label="Business News" eyebrow="Markets" Icon={Newspaper} color="#4d6b8a" tint="#e8eef4"
               heroUrl={PROMO_HERO.business} heroHref="/quizzes/business-news" heroCta="Open" heroTitle="Market-moving business quizzes"
               rows={businessNewsRows.map((q) => ({ q, href: `/quiz/${q.id}`, right: <PlaysRight id={q.id} plays={plays} leader={leader} leaderKey={leaderKey} color="#4d6b8a" hidePlays /> }))}
-              cta="View all ›" ctaHref="/quizzes/business-news" />
-            <BrowseColumn label="Standardized Tests" Icon={GraduationCap} color="#2f6f9f" tint="#d9e6f0"
+              cta="View all" ctaHref="/quizzes/business-news" />
+            <BrowseColumn label="Standardized Tests" eyebrow="Admissions" Icon={GraduationCap} color="#2f6f9f" tint="#e4eef6"
               heroUrl={PROMO_HERO.tests} heroHref="/exams" heroCta="Start" heroTitle="Where will you get in?"
               rows={EXAM_TILE_ROWS.map((e) => ({ q: { id: e.id, title: e.title, rawTitle: e.title }, href: e.href }))}
-              cta="View all ›" ctaHref="/exams" />
-            <BrowseColumn label="Kids Corner" Icon={Blocks} color="#3ea0e0" tint="#d7ecfb"
+              cta="View all" ctaHref="/exams" />
+            <BrowseColumn label="Kids Corner" eyebrow="For kids" Icon={Blocks} color="#3ea0e0" tint="#e4f2fc"
               heroUrl={PROMO_HERO.kids} heroHref="/kids" heroCta="Play" heroTitle="Tap-and-play games for kids"
               rows={KIDS_GAMES.slice(0, 6).map((g) => ({ q: { id: g.id, title: g.title, rawTitle: g.title }, href: g.href }))}
-              cta="View all ›" ctaHref="/kids" />
+              cta="View all" ctaHref="/kids" />
           </div>
         )}
       </div>
@@ -3078,7 +3098,7 @@ function CategoryMasteryTile({ rows, dailyRows, onPick, colorFor, dailyColorFor 
   return (
     <section
       className="mc-open catcard cmt"
-      style={{ minWidth: 0 }}
+      style={{ minWidth: 0, '--cc': T.blue, '--cct': '#eef3ff' }}
       onMouseEnter={() => { hold.current = true; }}
       onMouseLeave={() => { hold.current = false; }}
     >
@@ -3098,11 +3118,14 @@ function CategoryMasteryTile({ rows, dailyRows, onPick, colorFor, dailyColorFor 
         .qzh .cmt-dots i{width:6px;height:6px;border-radius:50%;background:#c8d1de;cursor:pointer;display:block;}
         .qzh .cmt-dots i.on{background:${T.blue};}
       `}</style>
-      <div className="colhead cc-head cc-filled" style={{ borderColor: T.ink, background: T.white }}>
+      <div className="colhead cc-head cc-filled" style={{ borderColor: T.ink }}>
         <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: '#dbe6fb', color: T.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Gauge size={14} />
         </span>
-        <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: T.ink }}>{face.title}</h3>
+        <div className="cc-hgroup">
+          <span className="cc-eyebrow">Your progress</span>
+          <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: T.ink }}>{face.title}</h3>
+        </div>
         {faces.length > 1 ? (
           <span className="cmt-dots">
             {faces.map((f, i) => (
@@ -3118,7 +3141,7 @@ function CategoryMasteryTile({ rows, dailyRows, onPick, colorFor, dailyColorFor 
             ))}
           </span>
         ) : null}
-        <Link href={face.href} className="viewall vall" style={{ color: T.ink, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>Stat hub &rsaquo;</Link>
+        <Link href={face.href} className="viewall vall" style={{ color: T.white, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>Stat hub</Link>
       </div>
       <div className="cmt-body">
         {face.rows.slice(0, 8).map((r) => {
@@ -3143,10 +3166,13 @@ function CategoryMasteryTile({ rows, dailyRows, onPick, colorFor, dailyColorFor 
   );
 }
 
-function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled, fill, baseCount }) {
+function BrowseColumn({ label, eyebrow, Icon, color, tint, rows, cta, onCta, ctaHref, heroUrl, heroPos, heroId, heroHref, heroCta, heroTitle, heroPlays, heroLeader, filled, fill, baseCount }) {
   const hasHero = !!heroUrl;
   const blueHead = hasHero || filled;
   const headFg = T.ink;
+  // The right-edge control is a filled chip inside a card header (direction B),
+  // so its ink is white there and the header ink everywhere else.
+  const ctaFg = blueHead ? T.white : T.ink;
   const heroLink = heroHref || (heroId ? `/quiz/${heroId}` : '#');
   const base = baseCount || rows.length;
   // A column with its own hero is already the full row height, so the gap-fill
@@ -3201,7 +3227,7 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
   // gap-fill they no longer do, would render every one of them.)
   const shownRows = fillGap ? rows.slice(0, shown) : (hasHero ? rows.slice(0, 6) : rows);
   return (
-    <section ref={secRef} className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0 }}>
+    <section ref={secRef} className={`mc-open${(hasHero || filled) ? ' catcard' : ''}`} style={{ minWidth: 0, '--cc': color, '--cct': tint }}>
       {hasHero ? (
         <Link href={heroLink} className="cc-hero" style={{ backgroundImage: `url("${heroUrl}")`, backgroundPosition: heroPos || 'center' }} title={heroTitle}>
           <span className="cc-ov" ref={pillRef} />
@@ -3212,16 +3238,19 @@ function BrowseColumn({ label, Icon, color, tint, rows, cta, onCta, ctaHref, her
           </div>
         </Link>
       ) : null}
-      <div ref={headRef} className={`colhead${(hasHero || filled) ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: T.ink, background: T.white }}>
+      <div ref={headRef} className={`colhead${blueHead ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: T.ink }}>
         <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: tint, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <Icon size={14} />
         </span>
-        <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: headFg }}>{label}</h3>
+        <div className="cc-hgroup">
+          {eyebrow ? <span className="cc-eyebrow">{eyebrow}</span> : null}
+          <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: headFg }}>{label}</h3>
+        </div>
         {ctaHref
-          ? <Link href={ctaHref} className="viewall vall" style={{ color: headFg, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>{cta}</Link>
+          ? <Link href={ctaHref} className="viewall vall" style={{ color: ctaFg, textDecoration: 'none', fontSize: 10, fontWeight: 700 }}>{cta}</Link>
           : onCta
-          ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall vall" style={{ color: headFg, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
-          : <span className="viewall vall" style={{ color: headFg }}>{cta}</span>}
+          ? <button type="button" onClick={(e) => { e.stopPropagation(); onCta(); }} className="viewall vall" style={{ color: ctaFg, background: blueHead ? undefined : 'none', border: 'none', padding: blueHead ? undefined : 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 10, fontWeight: 700 }}>{cta}</button>
+          : <span className="viewall vall" style={{ color: ctaFg }}>{cta}</span>}
       </div>
       {shownRows.map(({ q, right, href }) => (
         <Link href={href || `/quiz/${q.id}`} className="qrow" key={q.id} title={q.rawTitle || q.title}>
