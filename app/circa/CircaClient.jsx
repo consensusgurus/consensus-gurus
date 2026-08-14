@@ -32,6 +32,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -221,6 +223,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   // end-of-puzzle branches below (which all key off !playing) are unaffected.
   const idle = playing && !g.started;
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('circa');
   const won = g.status === 'won';
   const guesses = g.guesses;
   const lastGuess = guesses.length ? guesses[guesses.length - 1] : null;
@@ -498,12 +501,32 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="circa" name="Circa" collapsed={playing && !!g.t0} />
+      <DailyChrome slug="circa" name="Circa" collapsed={playing && !!g.t0} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. "What year was this?" is a QUESTION, not a figure, so it stays in the card
+          above the board; only the guess counter comes up here. */}
+      {LOFT && (
+        <LoftCap
+          name="Circa"
+          cat="Trivia"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition · Tricky' : null}
+          figures={playing ? [
+            { v: `${Math.min(guesses.length + (playing ? 1 : 0), MAX_GUESSES)}/${MAX_GUESSES}`, k: 'guess' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: `${Math.min(guesses.length, MAX_GUESSES)}/${MAX_GUESSES}`, k: 'guesses' },
+          ]}
+        />
+      )}
       <div className="cc-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cc-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -526,6 +549,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip: quiet nav + player chip (hidden in focus mode while playing) */}
 
         {/* masthead: pressed CIRCA tiles with No./date inline */}
+        {!LOFT && (
         <DailyMasthead
           slug="circa"
           num={PUZZLE.num}
@@ -540,6 +564,11 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {gameRetired && (
           <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.5 }}>
@@ -549,11 +578,23 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         )}
 
         {/* the moment */}
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>what year was this?</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>guess <b style={{ color: COLORS.ink, fontWeight: 500 }}>{Math.min(guesses.length + (playing ? 1 : 0), MAX_GUESSES)}</b>/{MAX_GUESSES}</span>
           </div>
+          )}
+          {/* The PROMPT stays here. It is a question (and for Ping a
+              control), not a figure, so it belongs with the board rather
+              than in the cap. Restyled off the retired mono texture. */}
+          {LOFT && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span>What year was this?</span>
+          </div>
+          )}
 
           {idle ? (
             <div style={{ margin: '2px 0 4px' }}>
@@ -642,6 +683,9 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
               )}
             </div>
           )}
+        </div>
+
+        {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
         {/* result */}

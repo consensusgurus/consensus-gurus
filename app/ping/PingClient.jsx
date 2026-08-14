@@ -35,6 +35,8 @@ import { CITIES, findCity, suggestCities, haversineMiles, continentOf, normCity 
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -249,6 +251,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('ping');
   const won = g.status === 'won';
   const guesses = g.guesses;
 
@@ -606,12 +609,33 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="ping" name="Ping" collapsed={started} />
+      <DailyChrome slug="ping" name="Ping" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. The prompt and the miles/kilometres toggle both stay in the card: one is a
+          question and the other is a CONTROL, and neither is a figure. Ping pays
+          proximity credit on a give-up, so the cap can go amber. */}
+      {LOFT && (
+        <LoftCap
+          name="Ping"
+          cat="Geography"
+          outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition · Tricky' : null}
+          figures={playing ? [
+            { v: guesses.length, k: 'guesses so far' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: guesses.length, k: 'guesses' },
+          ]}
+        />
+      )}
       <div className="pg-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.pg-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -636,6 +660,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip: quiet nav + player chip (hidden in focus mode while playing) */}
 
         {/* masthead: pressed PING tiles with No./date inline */}
+        {!LOFT && (
         <DailyMasthead
           slug="ping"
           num={PUZZLE.num}
@@ -650,6 +675,11 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {/* start gate — the hunt stays sealed until Start begins the clock */}
         {preStart && (
@@ -672,12 +702,25 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         )}
         {/* the hunt */}
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>name the secret city</span>
             <span style={{ marginLeft: 'auto', display: 'inline-flex' }}><UnitToggle /></span>
             <span style={{ whiteSpace: 'nowrap' }}>guess <b style={{ color: COLORS.ink, fontWeight: 500 }}>{guesses.length}</b>{playing ? ' so far' : ''}</span>
           </div>
+          )}
+          {/* The PROMPT stays here. It is a question (and for Ping a
+              control), not a figure, so it belongs with the board rather
+              than in the cap. Restyled off the retired mono texture. */}
+          {LOFT && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span>Name the secret city</span>
+            <span style={{ marginLeft: 'auto', display: 'inline-flex' }}><UnitToggle /></span>
+          </div>
+          )}
 
           <div style={{ fontFamily: SANS, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, margin: '2px 0 4px' }}>
             One city, no clues. Guess any world city and I&rsquo;ll tell you exactly how far away it is. Close in from there.
@@ -765,6 +808,9 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
         )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {/* result */}
         {!playing && (

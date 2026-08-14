@@ -34,6 +34,8 @@ import { resolveHidden } from './resolve-hidden';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -215,6 +217,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('extra');
   const won = g.status === 'won';
   const tears = g.tears;
 
@@ -517,12 +520,32 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="extra" name="Extra" collapsed={started} />
+      <DailyChrome slug="extra" name="Extra" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. "Name the story" is a QUESTION, not a figure, so it stays in the card above
+          the board; only the tear counter comes up here. */}
+      {LOFT && (
+        <LoftCap
+          name="Extra"
+          cat="Trivia"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition · Tricky' : null}
+          figures={playing ? [
+            { v: `${tears}/${MAX_TEARS}`, k: 'tears' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: `${tears}/${MAX_TEARS}`, k: 'tears' },
+          ]}
+        />
+      )}
       <div className="ex-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ex-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -545,6 +568,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip: quiet nav + player chip (hidden in focus mode while playing) */}
 
         {/* masthead: pressed EXTRA tiles with No./date inline */}
+        {!LOFT && (
         <DailyMasthead
           slug="extra"
           num={PUZZLE.num}
@@ -559,6 +583,11 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 1 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {gameRetired && (
           <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.5 }}>
@@ -590,11 +619,23 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
         {/* the front page */}
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>name the story</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>tears <b style={{ color: tears > 0 ? COLORS.accent : COLORS.ink, fontWeight: 500 }}>{tears}</b>/{MAX_TEARS}</span>
           </div>
+          )}
+          {/* The PROMPT stays here. It is a question (and for Ping a
+              control), not a figure, so it belongs with the board rather
+              than in the cap. Restyled off the retired mono texture. */}
+          {LOFT && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span>Name the story</span>
+          </div>
+          )}
 
           {/* the paper itself */}
           <div style={{ background: NEWSPRINT, border: '1px solid rgba(28,30,36,0.22)', borderRadius: 4, padding: '14px 16px 16px', boxShadow: 'inset 0 0 24px rgba(28,30,36,0.05)' }}>
@@ -663,6 +704,9 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
         )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {/* result */}
         {!playing && (

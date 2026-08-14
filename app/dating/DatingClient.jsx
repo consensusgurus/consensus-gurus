@@ -40,6 +40,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -262,6 +264,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('dating');
   const won = g.status === 'won';
   const checksUsed = g.rows.length;
   const checksLeft = MAX_CHECKS - checksUsed;
@@ -671,12 +674,34 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="dating" name="Dating" collapsed={started} />
+      <DailyChrome slug="dating" name="Dating" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. The day's theme is free text, not a figure, so it stays in the card as a
+          prompt line. Dating scores a partly-right order, so the cap can go amber. */}
+      {LOFT && (
+        <LoftCap
+          name="Dating"
+          cat="Trivia"
+          outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition · Six events' : null}
+          figures={playing ? [
+            { v: `${checksUsed}/${MAX_CHECKS}`, k: 'checks' },
+            { v: lockedCount, k: 'placed' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: `${checksUsed}/${MAX_CHECKS}`, k: 'checks' },
+            { v: lockedCount, k: 'placed' },
+          ]}
+        />
+      )}
       <div className="dt-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.dt-wrap{padding-left:14px !important;padding-right:14px !important;}}
@@ -700,6 +725,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
 
         {/* masthead: pressed DATING tiles with No./date inline, one rule beneath */}
+        {!LOFT && (
         <DailyMasthead
           slug="dating"
           num={PUZZLE.num}
@@ -714,6 +740,11 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 1 ? COLORS.plum : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The shuffled events stay sealed until then. */}
@@ -738,11 +769,23 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>{PUZZLE.theme ? <>today: <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.theme}</b></> : <b style={{ color: COLORS.ink, fontWeight: 500 }}>five moments</b>}</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>checks <b style={{ color: checksUsed > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checksUsed}/{MAX_CHECKS}</b> &middot; placed <b style={{ color: lockedCount > 0 ? COLORS.lock : COLORS.ink, fontWeight: 500 }}>{lockedCount}/{N}</b></span>
           </div>
+          )}
+          {/* The PROMPT stays here. It is a question (and for Ping a
+              control), not a figure, so it belongs with the board rather
+              than in the cap. Restyled off the retired mono texture. */}
+          {LOFT && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span>{PUZZLE.theme ? <>Today: <b style={{ color: COLORS.ink, fontWeight: 800 }}>{PUZZLE.theme}</b></> : 'Five moments, earliest first'}</span>
+          </div>
+          )}
 
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>&uarr; Earliest{!mobileUi && playing ? <span style={{ color: '#a8adb8' }}> &middot; drag cards or use the arrows</span> : null}</div>
           <div className={shake ? 'dt-shake' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 7, userSelect: drag ? 'none' : undefined }}>
@@ -773,12 +816,13 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           </div>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 7 }}>&darr; Latest</div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.lock, fontWeight: 500, marginTop: 8 }}>Dated in {checksUsed} check{checksUsed === 1 ? '' : 's'}.</div>}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a bare
+            row of faded text has nothing to sit on, and the card is meant to
+            hold the whole game. */}
         {/* controls */}
         {started && (
-          <div style={{ marginBottom: 12 }}>
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)' }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <button className="dt-btn" onClick={checkOrder} style={{ background: COLORS.plum, color: T.white, borderColor: COLORS.plum }}>
                 <Check size={15} strokeWidth={3} /> Check my order ({checksLeft} left)
@@ -798,6 +842,11 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             </div>
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {/* result */}
         {!playing && (

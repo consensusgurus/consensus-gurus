@@ -39,6 +39,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -271,6 +273,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('listed');
   const won = g.status === 'won';
   const checksUsed = g.rows.length;
   const checksLeft = MAX_CHECKS - checksUsed;
@@ -683,12 +686,35 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="listed" name="Listed" collapsed={started} />
+      <DailyChrome slug="listed" name="Listed" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. The metric is a short token (population, height), so it reads as a figure.
+          A partly-right ranking still scores, so the cap can go amber. */}
+      {LOFT && (
+        <LoftCap
+          name="Listed"
+          cat="Trivia"
+          outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition · Nine items' : null}
+          figures={playing ? [
+            { v: PUZZLE.metric.toLowerCase(), k: 'ranked by' },
+            { v: `${checksUsed}/${MAX_CHECKS}`, k: 'submits' },
+            { v: lockedCount, k: 'locked' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: `${checksUsed}/${MAX_CHECKS}`, k: 'submits' },
+            { v: lockedCount, k: 'locked' },
+          ]}
+        />
+      )}
       <div className="ls-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ls-wrap{padding-left:14px !important;padding-right:14px !important;}}
@@ -709,6 +735,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
 
         {/* masthead: pressed LISTED tiles with No./date inline, one rule beneath */}
+        {!LOFT && (
         <DailyMasthead
           slug="listed"
           num={PUZZLE.num}
@@ -723,6 +750,11 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               <div key={i} className="ls-mh-tile" style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 2 ? COLORS.brand : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The shuffled list stays sealed until then. */}
@@ -747,17 +779,21 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
             {PUZZLE.cat ? (
               <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 5, padding: '2px 7px' }}>{PUZZLE.cat}</span>
             ) : null}
           </div>
           <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 15.5, lineHeight: 1.35, color: COLORS.ink, marginBottom: 9 }}>{PUZZLE.title}</div>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>by <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.metric.toLowerCase()}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>submits <b style={{ color: checksUsed > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checksUsed}/{MAX_CHECKS}</b> &middot; locked <b style={{ color: lockedCount > 0 ? COLORS.lock : COLORS.ink, fontWeight: 500 }}>{lockedCount}/{N}</b></span>
           </div>
+          )}
 
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>&uarr; {PUZZLE.hi}{!mobileUi && playing ? <span style={{ color: '#a8adb8' }}> &middot; drag rows or use the arrows</span> : null}</div>
           <div className={shake ? 'ls-shake' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 7, userSelect: drag ? 'none' : undefined }}>
@@ -794,12 +830,13 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           </div>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 7 }}>&darr; {PUZZLE.lo}</div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.lock, fontWeight: 500, marginTop: 8 }}>Ranked in {checksUsed} submit{checksUsed === 1 ? '' : 's'}.</div>}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a bare
+            row of faded text has nothing to sit on, and the card is meant to
+            hold the whole game. */}
         {/* the submit grid, so far */}
         {started && g.rows.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)' }}>
             {g.rows.map((row, ri) => (
               <div key={ri} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{ri + 1}</span>
@@ -810,6 +847,11 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {/* controls */}
         {started && (
