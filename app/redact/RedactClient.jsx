@@ -18,6 +18,14 @@
 // an obfuscation against casual view-source, not a security boundary — the
 // same client-side stance Extra takes with resolveHidden.
 //
+// A HIDDEN WORD IS NEVER IN THE DOM. Body slabs AND title slabs render a bare
+// non-breaking space sized to the word, never the word itself. The title slab
+// used to hold the real text under color:transparent, so selecting the headline
+// and copying it handed over the answer outright (fixed Aug 2026). Never hide a
+// word with color, opacity, clip or a zero font size: put no text there at all.
+// The space must be U+00A0, not " " -- a plain space collapses inside the title
+// slab and the block loses its height entirely.
+//
 // Same daily plumbing as Suffice/Sworn/Suds: banked days gated by Eastern date
 // on the server, per-day localStorage saves, /redact?p=N archive pinning,
 // streaks and stats, and the shared /api/quiz/* board flow.
@@ -414,7 +422,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
           .rd-article{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:12px;padding:20px 22px;font-size:15.5px;line-height:2.05;color:${COLORS.ink};}
           .rd-article p{margin:0 0 14px;}
           .rd-article p:last-child{margin-bottom:0;}
-          .rd-title-slab{display:inline-block;background:${COLORS.accentDeep};border-radius:4px;color:transparent;}
+          .rd-title-slab{display:inline-block;background:${COLORS.accentDeep};border-radius:4px;color:transparent;user-select:none;-webkit-user-select:none;}
           .rd-chip{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;border-radius:5px;padding:3px 8px;}
           .rd-guess{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:12px;border-radius:6px;padding:2px 8px;border:1px solid rgba(28,30,36,0.14);background:var(--white);}
           .rd-guess.hit{border-color:${COLORS.hit};background:${COLORS.hitSoft};color:#7c2d12;font-weight:700;}
@@ -520,7 +528,9 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
                   if (over || FREEBIES.has(tk.n) || tk.n.length < 3 || revealedNorms.has(tk.n)) {
                     return <span key={i} style={over && solved ? { color: COLORS.hit } : undefined}>{tk.t}</span>;
                   }
-                  return <span key={i} className="rd-title-slab">{tk.t}</span>;
+                  // Width only, never the letters: 0.85ch per character tracks the
+                  // real word's width in this face without putting it in the DOM.
+                  return <span key={i} className="rd-title-slab" style={{ width: `${Math.max(1.2, tk.t.length * 0.85)}ch` }}>{'\u00a0'}</span>;
                 })}
                 {over && (
                   <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: COLORS.faded, marginLeft: 10 }}>
