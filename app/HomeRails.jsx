@@ -182,7 +182,6 @@ function useFlip(count, ms) {
 // placeholder div and measuring THAT would set a nonsense base.
 function useFitRows(total, cap, dataLen) {
   const boxRef = useRef(null);
-  const padRef = useRef(0);
   const [fit, setFit] = useState({ n: total, pad: 0 });
   useEffect(() => {
     const box = boxRef.current;
@@ -194,21 +193,27 @@ function useFitRows(total, cap, dataLen) {
       // sets overflow:visible) has no slack to divide and no reason to cap:
       // measuring it would also loop, since its height follows the padding.
       if (getComputedStyle(box).overflow === 'visible') {
-        padRef.current = 0;
         setFit((p) => (p.n === total && p.pad === 0 ? p : { n: total, pad: 0 }));
         return;
       }
       const rows = box.querySelectorAll('[data-fitrow]');
       if (!rows.length) return;
-      // THE BASE IS DERIVED EVERY PASS, NEVER CACHED. Caching it is what left
-      // the category list pinned at the padding floor with 79px of dead space
-      // (owner-reported, 2026-08-14): the pass that set the cache caught the
-      // box mid-layout while it was still short, computed a pad well past the
-      // floor, and every pass after that divided by a base that no longer
-      // described the rows on screen, so nothing could correct it. Subtracting
-      // the pad currently applied yields the same number whatever state the
-      // rows are in, which makes a bad pass worthless and the next one right.
-      const base = rows[0].getBoundingClientRect().height - 2 * padRef.current;
+      // THE BASE IS DERIVED EVERY PASS, NEVER CACHED, and the pad it subtracts
+      // is READ BACK OFF THE ELEMENT rather than remembered.
+      //
+      // Two bugs live here, both shipped on 2026-08-14. Caching the base left
+      // the category list pinned at the padding floor with 79px of dead space:
+      // the pass that set the cache caught the box mid-layout while it was
+      // still short, and every pass after divided by a base that no longer
+      // described the rows on screen. Replacing the cache with a ref of the
+      // pad we last DECIDED was no better and clipped 142px, because React
+      // applies that decision on the next render: a re-measure a frame later
+      // read a row still carrying the old padding while the ref already held
+      // the new one, so the base moved every pass and never converged.
+      // getComputedStyle reports what is actually rendered, so the subtraction
+      // always matches the height it is subtracted from.
+      const applied = parseFloat(getComputedStyle(box).getPropertyValue('--rowpad')) || 0;
+      const base = rows[0].getBoundingClientRect().height - 2 * applied;
       const h = box.clientHeight;
       if (!h || base <= 0) return;
       const room = Math.max(1, Math.floor(h / base));
@@ -218,7 +223,6 @@ function useFitRows(total, cap, dataLen) {
       // ninth. The floor keeps ~1px of real padding at the tightest.
       const raw = n > 0 ? (h - n * base) / n / 2 : 0;
       const pad = Math.max(-5, Math.round(raw * 100) / 100);
-      padRef.current = pad;
       setFit((p) => (p.n === n && Math.abs(p.pad - pad) < 0.05 ? p : { n, pad }));
     };
     measure();
