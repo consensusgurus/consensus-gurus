@@ -361,6 +361,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const a2hsClick = () => { const e = installEvt; if (e) { setInstallEvt(null); e.prompt(); } else { setShowA2hsHelp(true); } };
 
   const [armLock, setArmLock] = useState(false);
+  // The finished board starts turned OVER, showing what to do next. Revealing
+  // turns it back to the board, which on a miss is the thing worth studying.
+  const [revealed, setRevealed] = useState(false);
   const [justWon, setJustWon] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -1238,6 +1241,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
           {/* the puzzle, one card: guesses + category clues + the grid */}
           {!preStart && (
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
           <div className={LOFT ? 'cl-panel loft-card' : 'cl-panel'} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
             {!LOFT && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
@@ -1409,6 +1415,39 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          </div>
+          {LOFT && !playing && (
+            <div className="loft-back">
+              <div className="loft-res">
+                <b>{won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}</b>
+                <s>{endScore}/{PUZZLE.slots.length * 2} &middot; {guessesUsed} guesses &middot; {elapsed}</s>
+              </div>
+              <button className="loft-opt pri" onClick={() => setRevealed(true)}>
+                Reveal<span className="sub">Turn back to the finished board</span>
+              </button>
+              {prevPuzzle && (
+                <a className="loft-opt" href={`/crux?p=${prevPuzzle.num}`}>
+                  Play another Crux<span className="sub">No. {prevPuzzle.num}, yesterday&rsquo;s puzzle</span>
+                </a>
+              )}
+              {nextUp && (
+                <a className="loft-opt" href={nextUp.href}>
+                  Play similar<span className="sub">{nextUp.name} &middot; {nextUp.tag}</span>
+                </a>
+              )}
+              <button className="loft-opt gold" onClick={copyShare}>
+                {copied ? 'Copied' : 'Share'}<span className="sub">Your result, no spoilers</span>
+              </button>
+              <a className="loft-opt" href="/daily">
+                Archive<span className="sub">Every daily puzzle, by date</span>
+              </a>
+            </div>
+          )}
+          </div>
           </div>
           )}
           {LOFT && !playing && (
@@ -1424,18 +1463,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 </span>
               </div>
               <div className="loft-acts">
-                <button className="gold" onClick={copyShare}>{copied ? 'Copied' : 'Share'}</button>
-                <button onClick={resetGame}>Replay</button>
+                <button onClick={resetGame}>Replay this puzzle</button>
               </div>
-              {nextUp && (
-                <a className="loft-next" href={nextUp.href}>
-                  <span className="t">
-                    <span className="n1">{nextUp.name}</span>
-                    <span className="n2">Up next &middot; {nextUp.tag}</span>
-                  </span>
-                  <span className="go">Play</span>
-                </a>
-              )}
             </>
           )}
         </div>

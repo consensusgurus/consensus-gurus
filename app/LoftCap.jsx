@@ -122,6 +122,33 @@ export default function LoftCap({
   font-size:13.5px;font-family:inherit;cursor:pointer;border:1px solid rgba(255,255,255,0.22);
   background:rgba(255,255,255,0.12);color:var(--white)}
 .loft-acts button.gold{background:var(--gold);border-color:var(--gold);color:#3a2a05}
+/* THE FINISH IS THE BOARD TURNING OVER.
+   The front face is the board you just played. The back is what to do next.
+   The container takes its height from the FRONT, and the back is absolutely
+   positioned inside it, so a short options list can never make the card jump
+   and a long one scrolls instead. */
+.loft-flip{perspective:1400px}
+.loft-flip-in{position:relative;transition:transform .5s cubic-bezier(.4,.1,.2,1);
+  transform-style:preserve-3d}
+.loft-flip.on .loft-flip-in{transform:rotateY(180deg)}
+.loft-face{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.loft-back{position:absolute;inset:0 0 12px 0;transform:rotateY(180deg);background:var(--white);
+  border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.34);padding:12px;overflow:auto;
+  display:flex;flex-direction:column;color:var(--ink)}
+.loft-res{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;
+  padding-bottom:9px;border-bottom:1px solid var(--border)}
+.loft-res b{font-weight:800;font-size:17px;line-height:1}
+.loft-res s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
+.loft-opt{display:block;width:100%;text-align:left;margin-bottom:7px;padding:11px 12px;
+  border-radius:10px;border:2px solid var(--border);background:var(--white);color:var(--ink);
+  font-family:inherit;font-weight:800;font-size:14px;line-height:1;cursor:pointer;text-decoration:none}
+.loft-opt .sub{display:block;font-weight:600;font-size:11px;line-height:1.3;margin-top:4px;opacity:.72}
+.loft-opt.pri{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.loft-opt.gold{background:var(--gold);border-color:var(--gold);color:#3a2a05}
+.loft-opt:last-child{margin-bottom:0}
+.loft-showopts{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:2px solid var(--border);
+  background:var(--surface-alt);color:var(--muted);font-family:inherit;font-weight:800;font-size:13px;cursor:pointer}
+
 /* Up next sits ABOVE the leaderboard: after a finish the strongest next move is
    the next puzzle, not the standings. */
 .loft-next{display:flex;align-items:center;gap:11px;margin-top:10px;padding:11px 12px;
