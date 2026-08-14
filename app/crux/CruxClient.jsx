@@ -1166,11 +1166,27 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           .cx-a{margin:0 auto;}
-          .cl-cats{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-          .cl-cat{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:0;}
+          /* FOUR ACROSS, not two by two. The card is 640 wide and the board
+             only ever needs about 510 of it, so the categories had spare width
+             and were spending height instead: two rows of chips cost 98px above
+             a board that was already running past the fold. One row of four,
+             each chip stacking its name over its two slots, costs 64. That is
+             34px of the fix bought without shrinking a single cell. */
+          .cl-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+          .cl-cat{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:5px;min-height:0;padding:9px 10px;}
           .cl-cat-nm{margin-bottom:0 !important;}
-          .cl-grid{--cs:${CS_FILL}px;}
-          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}));}}
+          @media (max-width:700px){.cl-cats{grid-template-columns:1fr 1fr;}}
+          /* CELL SIZE IS CLAMPED ON BOTH AXES. It used to be width only, via
+             CS_FILL, which is derived from the COLUMN count alone: the bank runs
+             from 6 to 13 rows, so a 12-row puzzle rendered 645px of grid and ran
+             250px past the bottom of an 813px window. The height term divides
+             what is left after the chrome, the cap, the categories and the row
+             under the board, so a tall board shrinks and a short one is
+             untouched. The floor stops a very tall board on a short window from
+             shrinking to something unreadable; past that point the page scrolls,
+             which is the better trade. At 1080 tall nothing changes at all. */
+          .cl-grid{--cs:min(${CS_FILL}px, max(42px, calc((100vh - 430px)/${ROWS})));}
+          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(42px, calc((100vh - 430px)/${ROWS})));}}
           @media (max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:min(46px, calc((100vw - ${52 + (COLS - 1) * 3}px)/${COLS}));}.cl-panel{padding:11px 11px 13px !important;}.cl-cat{flex-direction:column;align-items:flex-start;gap:5px;padding:9px 11px !important;}}
           @media (max-width:430px){.cl-cats{grid-template-columns:1fr;}}
           .cx-htp-s{display:none;}
