@@ -77,7 +77,8 @@ export default function LoftCap({
   display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--white);
   border:0;cursor:pointer;margin-right:12px;flex:none;font-family:inherit}
 .lcap-figs{display:flex;border-top:1px solid rgba(255,255,255,0.22);flex:0 0 100%}
-.lcap-figs>div{flex:1;padding:6px 6px 8px;text-align:center;border-right:1px solid rgba(255,255,255,0.22)}
+.lcap-figs>div{flex:1;padding:6px 6px 8px;text-align:center;white-space:nowrap;
+  border-right:1px solid rgba(255,255,255,0.22)}
 .lcap-figs>div:last-child{border-right:0}
 .lcap-v{display:block;font-weight:800;font-size:15px;line-height:1;color:var(--white)}
 .lcap-k{display:block;font-weight:700;font-size:8.5px;line-height:1;letter-spacing:.1em;
@@ -85,13 +86,13 @@ export default function LoftCap({
 .lcap-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,0.18)}
 .lcap-bar i{display:block;height:100%;background:var(--gold);transition:width .2s}
 @media(min-width:900px){
-  /* ALIGN TO THE HOME PAGE. The site header and the home rails both sit in a
-     1560px column with 34px padding, so their content begins 207px in at a
-     1905px viewport. The cap is a full-bleed band like the header, but its
-     CONTENT is inset to that same column so the wordmark and the game name
-     share one left edge. The subtractions are the pieces that already inset
-     the first and last child: 4px gold border + 12px .lcap-id padding on the
-     left, and .lcap-help's 12px margin on the right. */
+  /* THE HELP BUTTON NEVER WRAPS. The column is the board's width, but the cap
+     must fit a name, up to four figures and the control on one line, and on a
+     narrow board that needs more room than the board has. min-width:fit-content
+     lets the HEADER, and only the header, take exactly the extra it needs: at or
+     under the board's width nothing changes, above it the column grows to the
+     one-line width and no further, capped at the band. */
+  .lcap-col{width:var(--loft-col,640px);min-width:fit-content;max-width:100%}
   .lcap-id{flex:0 1 auto}
   .lcap-figs{flex:0 0 auto;order:3;border-top:0;margin-left:auto;
     border-left:1px solid rgba(255,255,255,0.22)}
