@@ -4,6 +4,7 @@ import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
 import { KEEPS_ANSWER, dailySolvedRow } from '@/lib/daily-games';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { scoreGame, guestGameResult, DAILY_KEYS } from '@/lib/daily-combined';
+import { arcadeRanksForQuizId } from '@/lib/daily-games';
 import { creditedFor } from '@/lib/daily-credits';
 
 // Each game's puzzle list is server-only (answers never ship to the client). We
@@ -102,15 +103,26 @@ function isoOfSuffix(suffix) {
 
 // The guest's single chosen row for one drop (their anon rows only), mirroring
 // scoreGame's selection: a completed attempt beats an abandoned one, then the
-// first attempt (lowest id) wins. Returns null when the guest has no row.
-function chooseGuestRow(rows, anonId) {
+// first attempt (lowest id) wins, EXCEPT on an arcade game, where their best run
+// wins (owner, 2026-08-14; scoreGame has done this for registered players since
+// 2026-08-08). This route SUMS the result across every drop, so a guest's whole
+// all-time arcade standing was built out of opening runs. Returns null when the
+// guest has no row.
+function chooseGuestRow(rows, anonId, quizId) {
+  // Bound once per drop: every row here belongs to the same puzzle.
+  const arcadeRank = arcadeRanksForQuizId(quizId);
   let chosen = null;
   for (const r of (rows || [])) {
     if (!r || r.user_id || r.anon_id !== anonId) continue;
     if (!chosen) { chosen = r; continue; }
     const rDone = !r.abandoned, cDone = !chosen.abandoned;
     if (rDone !== cDone) { if (rDone) chosen = r; continue; }
-    if ((r.id || 0) < (chosen.id || 0)) chosen = r;
+    // A dead heat falls back to the lower id on BOTH paths, so the answer never
+    // depends on the order the rows arrived in.
+    const wins = arcadeRank
+      ? (arcadeRank(r, chosen) || ((r.id || 0) - (chosen.id || 0))) < 0
+      : (r.id || 0) < (chosen.id || 0);
+    if (wins) chosen = r;
   }
   return chosen;
 }
@@ -238,7 +250,7 @@ export async function GET(request) {
         u.drops += 1;
       }
       if (isGuestViewer) {
-        const grow = chooseGuestRow(rows, anonId);
+        const grow = chooseGuestRow(rows, anonId, qid);
         if (grow) { const res = guestGameResult(grow, { field: gr.field, players: gr.players }); guestPts += res.points; guestDrops += 1; minePts.set(qid, res.points); }
       } else if (myKey) {
         const mineRow = gr.players.get(myKey);

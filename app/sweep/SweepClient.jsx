@@ -35,6 +35,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { notifyShareCredit } from '../ShareCreditPop';
 import { T } from '@/lib/theme';
+import { arcadeRanksForKey } from '@/lib/daily-games';
 import { COLS, ROWS, decodeField, idx, neighbors, numberAt } from '@/lib/sweep-field';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -89,9 +90,27 @@ function getStats() {
   try { const s = JSON.parse(localStorage.getItem(STATS_KEY)); if (s && s.v === 1 && s.rec) return s; } catch (e) {}
   return { v: 1, rec: {} };
 }
+// THE RECORD IS THE BEST RUN, NOT THE FIRST (owner, 2026-08-14). Sweep is an
+// arcade game, so the board has taken a player's best run of the day since
+// 2026-08-08 (see isArcade in lib/daily-games) while this kept whichever run
+// happened to be first, which put the record, the day's tile and the streak on
+// a different run from the one the board beside them was ranking.
+//
+// Ranked by the shared arcade comparator, so the run this keeps is the run the
+// board ranks. Sweep is a tally game, so a run that opened NO cells ranks on
+// digs survived rather than fewest spent, which is why the entry carries the dig
+// count. A local entry carries no clock, so the comparator's time term is
+// unreachable here and a dead heat keeps the earlier run, exactly as a tie does
+// on both board scorers.
+const RUN_RANK = arcadeRanksForKey('sweep');
+const asRun = (e) => ({ score: e.s, guesses_used: e.g ?? null, time_elapsed: null });
+function betterRun(next, prev) {
+  if (!prev) return true;
+  return RUN_RANK ? RUN_RANK(asRun(next), asRun(prev)) < 0 : false;
+}
 function recordStat(num, entry) {
   const s = getStats();
-  if (s.rec[num]) return s;      // never overwrite: the first run of the day is the record
+  if (!betterRun(entry, s.rec[num])) return s;
   const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
   try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
   return s2;
@@ -238,7 +257,10 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const postResult = useCallback((g2) => {
     abandon.markFlushed();
     const el = Math.max(1, Math.round(g2.ms / 1000));
-    try { setStats(recordStat(PUZZLE.num, { s: g2.score, t: PAR, won: g2.score >= PAR })); } catch (e) {}
+    // `g` is the dig count, and it is stored so betterRun can break a tie the
+    // way the board does. A pre-2026-08-14 entry has none and reads as null,
+    // which only ever costs it a tiebreak against an equal score.
+    try { setStats(recordStat(PUZZLE.num, { s: g2.score, t: PAR, g: g2.digs, won: g2.score >= PAR })); } catch (e) {}
     try {
       fetch('/api/quiz/result', {
         method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },

@@ -36,6 +36,7 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { notifyShareCredit } from '../ShareCreditPop';
 import { T } from '@/lib/theme';
+import { arcadeRanksForKey } from '@/lib/daily-games';
 import {
   PIECES, ROT, shapeAt, buildSequence, GRAVITY_MS,
   LINE_POINTS, QUAD_BONUS, COMBO_STEP, scoreRows, PIECE_LABEL,
@@ -86,9 +87,26 @@ function getStats() {
   try { const s = JSON.parse(localStorage.getItem(STATS_KEY)); if (s && s.v === 1 && s.rec) return s; } catch (e) {}
   return { v: 1, rec: {} };
 }
+// THE RECORD IS THE BEST RUN, NOT THE FIRST (owner, 2026-08-14). Blocks is an
+// arcade game, so the board has taken a player's best run of the day since
+// 2026-08-08 (see isArcade in lib/daily-games) while this refused to overwrite
+// an existing entry, which left the record, the day's tile and the streak on
+// run one. A player who topped out in 3 rows and then cleared 40 read their own
+// board position as a stranger's. The two now answer the same way.
+//
+// Ranked by the shared arcade comparator, so the run this keeps is the run the
+// board ranks. A local entry carries no clock, so the comparator's time term is
+// unreachable here and a dead heat on rows AND shapes keeps the earlier run,
+// which is what both board scorers do with a tie as well.
+const RUN_RANK = arcadeRanksForKey('blocks');
+const asRun = (e) => ({ score: e.s, guesses_used: e.g ?? null, time_elapsed: null });
+function betterRun(next, prev) {
+  if (!prev) return true;
+  return RUN_RANK ? RUN_RANK(asRun(next), asRun(prev)) < 0 : false;
+}
 function recordStat(num, entry) {
   const s = getStats();
-  if (s.rec[num]) return s;
+  if (!betterRun(entry, s.rec[num])) return s;
   const s2 = { ...s, rec: { ...s.rec, [num]: entry } };
   try { localStorage.setItem(STATS_KEY, JSON.stringify(s2)); } catch (e) {}
   return s2;
@@ -109,20 +127,31 @@ function mergeServerStats(s, recent, puzzles) {
   let rec = s.rec, changed = false;
   for (const m of recent) {
     const p = m && byQuiz[m.quizId];
-    if (!p || m.attempt !== 1 || rec[p.num]) continue;
+    // ANY attempt, and the BEST one wins (2026-08-14). This took attempt 1 only
+    // and skipped a day that already had an entry, which is the same first-run
+    // rule recordStat used to carry: a player who came back on a second device
+    // was seeded with their opening run whatever they went on to score. The
+    // arcade rule is the best run, on every device.
+    if (!p) continue;
     // A row from BEFORE that puzzle's reset stamp is a ghost: it was deleted
     // server-side, so it must never seed the local record. It still arrives
     // here for a while because /api/quiz/me reads the shared results cache,
     // which serves the pre-delete row set until it refreshes, and re-seeding
-    // from it would put the old 0-10 result back on every page load and block
-    // recordStat from writing the re-run (it never overwrites an entry).
+    // from it would put the old 0-10 result back on every page load and outrank
+    // the re-run whenever the stale score was the higher of the two.
     if (p.resetAt && Date.parse(m.createdAt || 0) < Date.parse(p.resetAt)) continue;
     // scorePct is the server's score/total, so that day's par brings the row
     // count back. It caps at 100, so a run ABOVE par reads as exactly par here;
     // only `won` and the streak read this record, so that costs nothing.
     const sc = Math.max(0, Math.round(((m.scorePct || 0) / 100) * (p.par || 1)));
+    // A server row carries no shape count, so it can only beat a local entry on
+    // rows outright. That is the right way round: a local entry was recorded by
+    // this device from the real run and is the more complete record, so a server
+    // row ties into it rather than over it.
+    const next = { s: sc, t: p.par, g: null, won: !!m.perfect };
+    if (!betterRun(next, rec[p.num])) continue;
     if (!changed) { rec = { ...rec }; changed = true; }
-    rec[p.num] = { s: sc, t: p.par, g: null, won: !!m.perfect };
+    rec[p.num] = next;
   }
   if (!changed) return s;
   const s2 = { ...s, rec };
@@ -687,10 +716,11 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   // quizId, so a replay is the same 6,000 shapes, not a new deal).
   //
   // It deliberately clears NOTHING that records the day: not REC_KEY, not the
-  // stats entry, not the posted row. recordStat never overwrites an existing
-  // entry and the server keeps the first attempt, so the run that counts stays
-  // the run that counted. A replay is practice, and it cannot buy a better
-  // place on the board.
+  // stats entry, not the posted row. Every finished run posts, and both the
+  // board and the local record keep your BEST one (arcade rule, see isArcade in
+  // lib/daily-games), so a replay is a real attempt at a better place rather
+  // than practice. This comment used to say the exact opposite, which was true
+  // of the board until 2026-08-08 and of the local record until 2026-08-14.
   const replayRun = useCallback(() => {
     const st = { ...freshState(COLS, ROWS), t0: Date.now() };
     nextPiece(st);

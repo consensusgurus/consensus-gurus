@@ -6,7 +6,7 @@ import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
-import { isEndGameQuizId, endGamePlan } from '@/lib/daily-games';
+import { isEndGameQuizId, endGamePlan, arcadeRanksForQuizId } from '@/lib/daily-games';
 import { GAME_PUZZLES, etTodayServer, suffixOfDate, gamesForSuffix } from '@/lib/daily-slate';
 
 // The day's slate (which puzzle each game published on a date) lives in
@@ -179,9 +179,10 @@ async function scoreFeudLive(puzzle, cutoffMs) {
 
 // The guest's single chosen row for a game (their anon rows only), mirroring
 // scoreGame's selection: a completed attempt beats an abandoned one, then the
-// first attempt (lowest id) wins. Returns { row, eg } so guestProvisional can
-// place an End Game guest on the same tier/attempts order the board uses, or
-// null when the guest has no row. `eg` is null on every other game.
+// first attempt (lowest id) wins, EXCEPT on an arcade game, where their best run
+// wins. Returns { row, eg } so guestProvisional can place an End Game guest on
+// the same tier/attempts order the board uses, or null when the guest has no
+// row. `eg` is null on every other game.
 function chooseGuestRow(rows, anonId, quizId) {
   const mine = (rows || []).filter((r) => r && !r.user_id && r.anon_id === anonId);
   if (!mine.length) return null;
@@ -194,12 +195,24 @@ function chooseGuestRow(rows, anonId, quizId) {
     for (const r of mine) if (plan.chosen.has(r)) return { row: r, eg: plan.info.get(r) || null };
     return null;
   }
+  // ARCADE: the best run represents them, not the first (owner, 2026-08-14).
+  // scoreGame has picked the registered player's best run since 2026-08-08, and
+  // this kept a guest's opening run, so the provisional standing the end card
+  // quotes a guest disagreed with what registering would actually pay them. The
+  // comparator is the shared one in lib/daily-games, bound ONCE here because
+  // every row of this game is the same puzzle.
+  const arcadeRank = arcadeRanksForQuizId(quizId);
   let chosen = null;
   for (const r of mine) {
     if (!chosen) { chosen = r; continue; }
     const rDone = !r.abandoned, cDone = !chosen.abandoned;
     if (rDone !== cDone) { if (rDone) chosen = r; continue; }
-    if ((r.id || 0) < (chosen.id || 0)) chosen = r;
+    // A dead heat falls back to the lower id on BOTH paths, so the answer never
+    // depends on the order the rows arrived in.
+    const wins = arcadeRank
+      ? (arcadeRank(r, chosen) || ((r.id || 0) - (chosen.id || 0))) < 0
+      : (r.id || 0) < (chosen.id || 0);
+    if (wins) chosen = r;
   }
   return chosen ? { row: chosen, eg: null } : null;
 }
