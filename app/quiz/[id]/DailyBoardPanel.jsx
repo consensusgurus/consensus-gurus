@@ -486,7 +486,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
           ) : null}
 
           {((sel === 'today' && todayRows.length) || (sel === 'alltime' && allTimeRows.length)) ? (
-            <p className="dbp-note">Points reflect results from unregistered users. {dailyAttemptRule(self).board}</p>
+            <p className="dbp-note">Guests play alongside you and count toward the field, but points are scored among registered players only. {dailyAttemptRule(self).board}</p>
           ) : null}
         </div>
       ) : null}
