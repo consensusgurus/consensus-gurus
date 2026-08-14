@@ -48,6 +48,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   parseFen, applyMove, legalMoves, legalTargetsFrom, parseUci, uci,
@@ -287,8 +289,12 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('defend');
   const won = g.status === 'won';
   const errors = g.errors;
+  // What the round posted. Read ONLY by the cap, and only once the round is
+  // over: End Game never shows a running verdict.
+  const endScore = won ? 10 : 0;
   // White's reply is appended a beat after your move, so an odd move count means
   // it is still in flight and the board is not yours to touch.
   const awaitingReply = moves.length % 2 === 1;
@@ -749,9 +755,35 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
   const fileLabels = 'abcdefgh'.split('');
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
-      <DailyChrome slug="defend" name="Defend" collapsed={started} />
+      <DailyChrome slug="defend" name="Defend" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. END GAME: the cap shows exactly what the strip showed at that moment and
+          no more. The tally is kept and posted throughout but only APPEARS once
+          the round is over, because a counter ticking up is itself a notice that
+          the move was wrong. What is left while you play is the clock and the
+          puzzle's own brief, both of which announce nothing. */}
+      {LOFT && (
+        <LoftCap
+          name="Defend"
+          cat="End Game"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: elapsed, k: 'time' },
+            { v: Math.max(1, holdLeft), k: 'hold for' },
+          ] : [
+            { v: endScore, k: 'score' },
+            { v: errors, k: 'misses' },
+            { v: HOLD, k: 'hold for' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="df-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.df-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -769,6 +801,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
+        {!LOFT && (
         <DailyMasthead
           slug="defend"
           num={PUZZLE.num}
@@ -783,6 +816,11 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -804,7 +842,10 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing them
+              twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             {/* Kept and posted throughout, shown only once the round is over:
                 a counter ticking up is itself a notice that the move was wrong. */}
@@ -814,6 +855,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
               {playing ? <>hold for <b style={{ color: COLORS.accent, fontWeight: 500 }}>{Math.max(1, holdLeft)}</b></> : <>hold for <b style={{ color: COLORS.ink, fontWeight: 500 }}>{HOLD}</b></>}
             </span>
           </div>
+          )}
 
           <div style={{ maxWidth: 430, margin: '0 auto' }}>
             {/* Drawn from Black's side: display index d maps to square 63 - d, so
@@ -892,11 +934,11 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
               )}
             </div>
           )}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a bare
+            row has nothing to sit on, and the card is meant to hold the game. */}
         {started && (
-          <div style={{ marginBottom: 12 }}>
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
                 Tap a black piece, then tap where it goes. There is no take-back.
@@ -921,6 +963,11 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+        </div>
+      )}
+
+      {/* end of the navy play stage; everything below is the light tail */}
+      </div>
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>

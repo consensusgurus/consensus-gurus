@@ -30,6 +30,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { makeGame, engineMove, idOrder } from './boxes';
 import { T } from '@/lib/theme';
@@ -202,8 +204,12 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('chain');
   const won = g.status === 'won';
   const errors = g.errors;
+  // What the round posted. Read ONLY by the cap, and only once the round is
+  // over: End Game never shows a running verdict.
+  const endScore = won ? 10 : 0;
 
   // ── the board, replayed from the move list ───────────────────────────────
   // Replaying is what makes a reload safe: nothing about the live position is
@@ -679,9 +685,35 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
-      <DailyChrome slug="chain" name="Chain" collapsed={started} />
+      <DailyChrome slug="chain" name="Chain" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. END GAME: the cap shows exactly what the strip showed at that moment and
+          no more. The tally is kept and posted throughout but only APPEARS once
+          the round is over, because a counter ticking up is itself a notice that
+          the move was wrong. What is left while you play is the clock and the
+          puzzle's own brief, both of which announce nothing. */}
+      {LOFT && (
+        <LoftCap
+          name="Chain"
+          cat="End Game"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: elapsed, k: 'time' },
+            { v: `${view.score.mine}\u2013${view.score.theirs}`, k: 'boxes' },
+          ] : [
+            { v: endScore, k: 'score' },
+            { v: errors, k: 'errors' },
+            { v: `${view.score.mine}\u2013${view.score.theirs}`, k: 'boxes' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="ch-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ch-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -700,6 +732,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
+          {!LOFT && (
           <DailyMasthead
             slug="chain"
             num={PUZZLE.num}
@@ -714,6 +747,11 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           />
+          )}
+
+          {/* LOFT: the play area sits on the navy stage, which runs full bleed
+              and fills the first screen. */}
+          <div className={LOFT ? 'loft-stage' : undefined}>
 
           {preStart && (
             <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -735,7 +773,10 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           )}
 
           {!preStart && (
-            <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+              {/* These figures move UP into the cap on a loft page; printing them
+                  twice is the one thing to avoid. */}
+              {!LOFT && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 {/* Kept and posted throughout, shown only once the boxes are
                     counted: a counter ticking up is itself a notice. */}
@@ -747,6 +788,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
                   <b style={{ color: COLORS.ink, fontWeight: 500 }}>{view.score.theirs}</b>
                 </span>
               </div>
+              )}
 
               <div style={{ maxWidth: 430, margin: '0 auto' }}>
                 <div
@@ -772,11 +814,11 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
                   </button>
                 </div>
               )}
-            </div>
-          )}
 
+            {/* Controls. These sit INSIDE the board card: on the navy stage a bare
+                row has nothing to sit on, and the card is meant to hold the game. */}
           {started && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, paddingTop: 11, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.faded }}>No take-back. Every edge you draw is played.</div>
               <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <button className="ch-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
@@ -788,6 +830,11 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
               </span>
             </div>
           )}
+            </div>
+          )}
+
+          {/* end of the navy play stage; everything below is the light tail */}
+          </div>
 
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>

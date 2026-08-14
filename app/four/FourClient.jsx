@@ -40,6 +40,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import {
   deserialize, play, legalMoves, winsAt, winningCells, scoreMoves, engineMove,
@@ -245,9 +247,13 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
+  const LOFT = isLoft('four');
   const won = g.status === 'won';
   const drawn = g.status === 'drawn';
   const errors = g.errors;
+  // What the round posted. Read ONLY by the cap, and only once the round is
+  // over: End Game never shows a running verdict.
+  const endScore = finalScore;
   const finalScore = won ? 10 : drawn ? 4 : 0;
   // An odd move count means the engine's reply is still in flight.
   const awaitingReply = moves.length % 2 === 1;
@@ -636,12 +642,38 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="four" name="Four" collapsed={started} />
+      <DailyChrome slug="four" name="Four" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. END GAME: the cap shows exactly what the strip showed at that moment and
+          no more. The tally is kept and posted throughout but only APPEARS once
+          the round is over, because a counter ticking up is itself a notice that
+          the move was wrong. What is left while you play is the clock and the
+          puzzle's own brief, both of which announce nothing. */}
+      {LOFT && (
+        <LoftCap
+          name="Four"
+          cat="End Game"
+          outcome={playing ? null : (won ? 'won' : (drawn ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: elapsed, k: 'time' },
+            { v: PUZZLE.winIn, k: 'win in' },
+          ] : [
+            { v: endScore, k: 'score' },
+            { v: errors, k: 'wrong drops' },
+            { v: PUZZLE.winIn, k: 'win in' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="fr-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.fr-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -667,6 +699,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
 
+        {!LOFT && (
         <DailyMasthead
           slug="four"
           num={PUZZLE.num}
@@ -681,6 +714,11 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -702,7 +740,10 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing them
+              twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             {/* The tally is kept and posted throughout, but only SHOWN once the
                 game is over: a counter ticking up is itself a notice that the
@@ -714,6 +755,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
               <>win in <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.winIn}</b></>
             </span>
           </div>
+          )}
 
           <div style={{ maxWidth: 430, margin: '0 auto' }}>
             {/* the lip above the board, so a hovered column reads before you commit */}
@@ -786,9 +828,9 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
               </button>
             </div>
           )}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a bare
+            row has nothing to sit on, and the card is meant to hold the game. */}
         {started && (
           /* Both controls arm on the first tap and fire on the second. The armed
              label is deliberately SHORT and each button reserves a fixed width,
@@ -797,7 +839,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
              first tap and the button slid out from under the reader's finger, so
              the confirming tap landed on nothing. The consequence now prints on
              its own line BELOW the row, where it cannot move either button. */
-          <div style={{ marginBottom: 12 }}>
+          <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
                 Tap a column to drop. There is no take-back.
@@ -822,6 +864,11 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+        </div>
+      )}
+
+      {/* end of the navy play stage; everything below is the light tail */}
+      </div>
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
