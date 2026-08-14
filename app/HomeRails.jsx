@@ -182,39 +182,61 @@ function useFlip(count, ms) {
 // placeholder div and measuring THAT would set a nonsense base.
 function useFitRows(total, cap, dataLen) {
   const boxRef = useRef(null);
-  const baseRef = useRef(0);
+  const padRef = useRef(0);
   const [fit, setFit] = useState({ n: total, pad: 0 });
   useEffect(() => {
     const box = boxRef.current;
     if (!box) return undefined;
+    let raf = 0;
+    let timer = 0;
     const measure = () => {
       // A box that is not height-constrained (the stacked layout below 1200px
       // sets overflow:visible) has no slack to divide and no reason to cap:
       // measuring it would also loop, since its height follows the padding.
       if (getComputedStyle(box).overflow === 'visible') {
+        padRef.current = 0;
         setFit((p) => (p.n === total && p.pad === 0 ? p : { n: total, pad: 0 }));
         return;
       }
       const rows = box.querySelectorAll('[data-fitrow]');
       if (!rows.length) return;
-      if (!baseRef.current) baseRef.current = rows[0].getBoundingClientRect().height;
-      const base = baseRef.current;
+      // THE BASE IS DERIVED EVERY PASS, NEVER CACHED. Caching it is what left
+      // the category list pinned at the padding floor with 79px of dead space
+      // (owner-reported, 2026-08-14): the pass that set the cache caught the
+      // box mid-layout while it was still short, computed a pad well past the
+      // floor, and every pass after that divided by a base that no longer
+      // described the rows on screen, so nothing could correct it. Subtracting
+      // the pad currently applied yields the same number whatever state the
+      // rows are in, which makes a bad pass worthless and the next one right.
+      const base = rows[0].getBoundingClientRect().height - 2 * padRef.current;
       const h = box.clientHeight;
-      if (!h || !base) return;
+      if (!h || base <= 0) return;
       const room = Math.max(1, Math.floor(h / base));
       const n = cap ? Math.min(total, room) : total;
-      // SIGNED, and fractional. Nine category rows at 44px want 396px in a
-      // 381px panel, so the fix is nine rows 1.7px shorter, not a clipped
+      // SIGNED, and fractional. Nine category rows at 43.5px want 391px in a
+      // 381px panel, so the fix is nine rows 0.6px shorter, not a clipped
       // ninth. The floor keeps ~1px of real padding at the tightest.
       const raw = n > 0 ? (h - n * base) / n / 2 : 0;
       const pad = Math.max(-5, Math.round(raw * 100) / 100);
+      padRef.current = pad;
       setFit((p) => (p.n === n && Math.abs(p.pad - pad) < 0.05 ? p : { n, pad }));
     };
     measure();
+    // First paint is exactly when the box is least likely to be its final
+    // height (the rail's height is set from a measurement of the centre
+    // console, an effect away), so guarantee two more passes rather than
+    // trusting the observer to notice.
+    if (typeof requestAnimationFrame !== 'undefined') raf = requestAnimationFrame(measure);
+    timer = setTimeout(measure, 300);
     let ro = null;
     if (typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(measure); ro.observe(box); }
     window.addEventListener('resize', measure);
-    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
+    return () => {
+      if (raf && typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(raf);
+      clearTimeout(timer);
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
     // dataLen is the RAW item count, and it is the dep that matters: `total`
     // for the feed is min(14, len || 14), which reads 14 before the fetch and
     // 14 after, so keying on it alone meant the one run this effect ever got
