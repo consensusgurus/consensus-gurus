@@ -208,7 +208,7 @@ function FlipPanel({ icon, title, faces, open, onToggle }) {
   const face = faces[Math.min(ix, faces.length - 1)] || faces[0];
   if (!face) return null;
   return (
-    <section className="hr-panel hr-flex">
+    <section className="hr-panel hr-flex hr-lb">
       {/* A third face means a wider pill in a 282px header, and the TITLE is
           the thing that must never be squeezed into an ellipsis here (it has
           happened before). The header tightens its own type instead. */}
@@ -221,7 +221,6 @@ function FlipPanel({ icon, title, faces, open, onToggle }) {
       <div className="hr-scroll hr-flex">
         <Rows
           rows={boardSlice(face.rows, open)}
-          cap={!open}
           fmt={face.fmt}
           hrefFor={face.hrefFor}
           hero={{ eyebrow: face.eyebrow || face.label, sub: face.heroSub || face.sub, unit: face.unit, tone: face.tone }}
@@ -409,8 +408,6 @@ export default function HomeRails({
   // /api/quiz/daily-combined, which is the only place that can see who sits
   // immediately either side of a reader outside the top 10.
   const streak = (day && typeof day.streak === 'number') ? day.streak : 0;
-  const streakGame = (day && day.streakGame) || null;
-  const streakGameDays = (day && day.streakGameDays) || 0;
   const playedToday = !!(day && day.playedToday);
   const rival = (dailyBoard && dailyBoard.rival) || null;
   const duelHref = (rival && rival.anon)
@@ -468,6 +465,18 @@ export default function HomeRails({
       /* The two right-rail tiles are fixed-height cards under a feed that
          takes the slack, so they must not stretch with it. */
       .hr-tile{flex:none;}
+      /* THE BOARD TAKES ITS CONTENT, THE CATEGORIES TAKE THE REST (2026-08-14).
+         Both panels are .hr-flex, i.e. flex:1 1 auto, so they divide the rail
+         by content size, and nine category slabs (~770px) against a five-row
+         table (~140px) is not a fight the board can win: it shipped at 159px
+         with rows 4 and 5 behind a scrollbar. The board is a fixed, knowable
+         height, so it claims that and stops scrolling; the category list was
+         always the scroller here and now genuinely is one. Both rules sit
+         above the <=1200px block, which sets .hr-flex to flex:none and takes
+         over from them when the rails stack. */
+      .hr-lb{flex:0 0 auto;}
+      .hr-lb .hr-scroll{overflow:visible;}
+      .hr-cats{flex:1 1 0;min-height:240px;}
       .hr-lbl{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);padding:3px 9px;border-radius:999px;white-space:nowrap;}
       .hr-dots{display:flex;gap:4px;}
       .hr-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.38);cursor:pointer;display:block;}
@@ -483,12 +492,15 @@ export default function HomeRails({
       .hr-tbl tr:hover{background:var(--surface);}
       .hr-tbl td.r{text-align:right;}
       .hr-tbl td.rk{font-size:11px;font-weight:800;width:24px;color:#9aa2b1;font-variant-numeric:tabular-nums;}
-      /* The #1 is the SLAB at both widths now, so its table row is always
-         hidden and the list starts at 2, and cap3 holds the desktop panel to a
-         slab plus a top THREE (owner, 2026-08-08). That is what keeps all three
-         boards stacked in the rail: hero and two names each, rather than a
-         five-row table and no hero. The phone lifts the cap again below,
-         because it stacks and has the height to spare. */
+      /* The #1 is the SLAB at both widths, so its table row is always hidden
+         and the list starts at 2.
+         cap3 held the collapsed panel to a slab plus a top THREE (owner,
+         2026-08-08), which is what let all THREE boards stack in this rail at
+         once. They became one three-face panel on 2026-08-14, so the reason is
+         gone and the cap with it: one board can afford the five rows
+         boardSlice already hands it. `Rows` still accepts `cap` and the phone
+         override below still lifts it, so restoring the behaviour is a prop
+         away if a second board ever comes back to this rail. */
       .hr-tbl tr.lead1{display:none;}
       .hr-tbl.cap3 tr:nth-child(n+4){display:none;}
       .hr-nm{color:var(--ink);text-decoration:none;}
@@ -942,9 +954,12 @@ export default function HomeRails({
                 : (playedToday ? 'Today is in. Back tomorrow to extend it.' : 'Finish any daily today to keep it')}
             </div>
           </div>
-          {streakGame ? (
-            <div className="hr-lsval"><b>{streakGameDays}</b><span>{streakGame}</span></div>
-          ) : null}
+          {/* NO SECOND FIGURE HERE. The longest single-game run was in this
+              slot and read "14 STREAK", because the game holding the longest
+              run is the one CALLED Streak, and at 8.5px in a 60px cell there
+              is no label that disambiguates a game name from the word for what
+              the tile measures. daily-status still returns streakGame and
+              streakGameDays; they want a surface with room for a caption. */}
         </div>
       </section>
 
