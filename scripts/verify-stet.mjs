@@ -6,6 +6,12 @@ import { PUZZLES } from '../app/stet/puzzles.js';
 const strip = (w) => w.toLowerCase().replace(/^[^a-z0-9'’-]+|[^a-z0-9'’-]+$/g, '');
 let fail = 0;
 const GRAMMAR_FROM = '2026-08-11'; // every day on/after this must carry a kind:'grammar' error
+// Self-contained-error rule (owner ruling 2026-08-14). Boards live before this
+// date are frozen history and are skipped; see the header of app/stet/puzzles.js.
+const SELF_CONTAINED_FROM = '2026-08-14';
+// A note that argues from house preference rather than from the sentence is the
+// tell that the flagged word was not actually wrong.
+const PREFERENCE_NOTE = /\b(british|american)\b|\busual(ly)? (term|word)\b|\bplain (term|word)\b|\bmore usual\b|\bin this trade\b|\b(written as |is )?(a )?(one|single) word\b|\bmodern usage\b|\bthe general term\b|\bdialect variant\b/i;
 let grammarErrors = 0;
 const err = (m) => { console.error('FAIL:', m); fail++; };
 
@@ -52,6 +58,20 @@ for (const p of PUZZLES) {
       if (seenPairs.has(pair)) err(`#${p.num}.${i + 1}.${j + 1}: duplicate pair ${pair}`);
       seenPairs.add(pair);
       if (toks.includes(strip(e.fix))) err(`#${p.num}.${i + 1}.${j + 1}: fix "${e.fix}" already appears in text`);
+      if (p.live >= SELF_CONTAINED_FROM) {
+        // (a) the fix must not swallow a neighbouring word. A closed-compound
+        // "fix" renders as "fire ~~proof~~ fireproof safe" in the reveal, and is
+        // a style call rather than an error. Real inflections (hid→hidden,
+        // slow→slowly) only add a short grammatical tail, so 4+ added
+        // characters at either end means a compound was joined.
+        const f = strip(e.fix).replace(/-/g, '');
+        if (f !== w && f.length - w.length >= 4 && (f.startsWith(w) || f.endsWith(w))) {
+          err(`#${p.num}.${i + 1}.${j + 1}: fix "${e.fix}" joins a compound onto "${e.wrong}" — renders broken, and is a style call, not an error`);
+        }
+        // (b) preference language in the note means the flagged word was fine.
+        const m = (e.note || '').match(PREFERENCE_NOTE);
+        if (m) err(`#${p.num}.${i + 1}.${j + 1}: note argues house preference ("${m[0]}") — an error must be wrong in THIS sentence, not merely less usual`);
+      }
     }
   });
   if (dayClean) cleanDays++;

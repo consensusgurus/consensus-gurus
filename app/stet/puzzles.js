@@ -35,6 +35,29 @@
 //  - `kind` is optional and defaults to word-choice/spelling; set `kind:
 //    'grammar'` on the syntax errors. verify-stet.mjs enforces the daily quota
 //    for every day on/after GRAMMAR_FROM.
+//  - THE ERROR MUST BE SELF-CONTAINED (owner ruling 2026-08-14, after a reader
+//    caught stet-8-14-26 #5: "The cyclist was fined for riding on the pavement",
+//    marked fined→cautioned). The sentence itself must make the fix the only
+//    reasonable reading. If the flagged word is correct standard English and
+//    nothing in the sentence rules it out, there is NO error and the item is
+//    unanswerable — the player is guessing which synonym the author had in mind.
+//    Concretely, NEVER flag:
+//      · a US/British variant, in either direction (meter/metre, grade/gradient,
+//        leash/lead, nought/naught). The copy may keep its British voice, but no
+//        error may turn on the dialect axis, and both forms are accepted.
+//      · a synonym or a house-style preference (vellum→parchment, slate→tab,
+//        creels→pots, juncture→time). "The other word is more usual" is not an error.
+//      · a one-word-vs-two-word compound call (fire proof→fireproof, quay
+//        side→quayside). These also RENDER BROKEN: the reveal strikes the tapped
+//        word and inserts the fix after it, so "fire proof safe" reads back as
+//        "fire fireproof safe". verify-stet.mjs now fails these outright.
+//      · a collective noun that is already correct. A pod of dolphins and a raft
+//        of eider are the right terms; the bank once flagged both AND taught the
+//        opposite on another day (#45.7 pod→school vs #74.3 school→pod).
+//    The test before banking an item: read the sentence cold, with no answer key.
+//    Could a careful copy editor land anywhere else? Then re-cut it.
+//  - `alts` carries every other correct fix (only `fix` + `alts` score the second
+//    point, so a player who writes an equally right word must not be marked down).
 //  - never reuse a wrong→fix pair already banked here.
 export const PUZZLES = [
   {
@@ -951,7 +974,8 @@ export const PUZZLES = [
       },
       {
         text: "The cyclist was fined for riding on the pavement.",
-        errors: [{ wrong: "fined", fix: "cautioned", kind: 'wordchoice', note: "A caution is a warning; a fine is a money penalty." }],
+        errors: [],
+        cleanNote: "Clean copy: fined is the right word, and the rest of the sentence stands as written.",
       },
     ],
   },
@@ -1012,7 +1036,7 @@ export const PUZZLES = [
       },
       {
         text: "The developer promised to reign back the costs.",
-        errors: [{ wrong: "reign", fix: "curb", kind: 'wordchoice', note: "To curb is to restrain; a reign is a monarch's rule." }],
+        errors: [{ wrong: "reign", fix: "curb", alts: ["rein", "check"], kind: 'wordchoice', note: "To rein back or curb is to restrain; a reign is a monarch's rule." }],
       },
       {
         text: "The bridge was closed after engineers found a hairline fracture.",
@@ -1197,8 +1221,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: home in is correct; hone in is the common error.",
       },
       {
-        text: "The lens floated on mercury, reducing friction to almost nought.",
-        errors: [{ wrong: "nought", fix: "naught", kind: 'wordchoice', note: "Naught means nothing; nought is a British zero digit." }],
+        text: "The lense floated on mercury, reducing friction to almost nothing.",
+        errors: [{ wrong: "lense", fix: "lens", kind: 'spelling', note: "Lens is the correct spelling; lense is a common misspelling of it." }],
       },
       {
         text: "The trust appealed for volunteers to man the phone lines.",
@@ -1391,8 +1415,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: shore up is the correct idiom for propping something.",
       },
       {
-        text: "The archivist wore cotton gloves to handle the vellum manuscripts.",
-        errors: [{ wrong: "vellum", fix: "parchment", kind: 'wordchoice', note: "Vellum is calfskin; parchment is the general term used here." }],
+        text: "The archivist wore cotton gloves to handle the vellum manuscripts, which were kept in a seller beneath the library.",
+        errors: [{ wrong: "seller", fix: "cellar", kind: 'wordchoice', note: "A cellar is an underground room; a seller is someone who sells." }],
       },
       {
         text: "The tenant complained of a persistent draft under the door.",
@@ -1422,8 +1446,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: acquired is exact and correctly spelled.",
       },
       {
-        text: "The engineer measured the fall of the drain in millimetres per meter.",
-        errors: [{ wrong: "meter", fix: "metre", kind: 'spelling', note: "Metre is the British spelling of the unit; a meter measures." }],
+        text: "The engineer measured the fall of the drain and said the gradient was to shallow for the flow.",
+        errors: [{ wrong: "to", fix: "too", kind: 'wordchoice', note: "Too means excessively; to is the preposition." }],
       },
       {
         text: "The magistrate imposed a suspended sentence.",
@@ -1457,12 +1481,12 @@ export const PUZZLES = [
         cleanNote: "Clean copy: bar is the correct word for a sandbank at a harbour mouth.",
       },
       {
-        text: "The trust replaced the rotten barge boards on the gable end.",
-        errors: [{ wrong: "barge", fix: "bargeboards", kind: 'wordchoice', note: "Bargeboards is one word in building usage." }],
+        text: "The trust replaced the rotten bargeboards on the gable end and renewed the led flashing beneath.",
+        errors: [{ wrong: "led", fix: "lead", kind: 'wordchoice', note: "Lead is the metal on the roof; led is the past tense of lead." }],
       },
       {
-        text: "The parish paid a mason to repair the lych gate roof.",
-        errors: [{ wrong: "lych", fix: "lychgate", kind: 'wordchoice', note: "Lychgate is written as one word in modern usage." }],
+        text: "The parish paid a mason to repair the lychgate roof, witch had been open to the weather for years.",
+        errors: [{ wrong: "witch", fix: "which", kind: 'wordchoice', note: "Which is the relative pronoun; a witch is a person." }],
       },
       {
         text: "The station master rang the bell twice before departure.",
@@ -1470,8 +1494,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: station master and departure are correct.",
       },
       {
-        text: "The keeper logged a pod of dolphins passing the head at dusk.",
-        errors: [{ wrong: "pod", fix: "school", kind: 'wordchoice', note: "A school is the usual term for the fish shoal meant here." }],
+        text: "The keeper locked a pod of dolphins passing the head at dusk.",
+        errors: [{ wrong: "locked", fix: "logged", kind: 'wordchoice', note: "To log is to record; to lock is to fasten." }],
       },
     ],
   },
@@ -1594,8 +1618,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: withdrew is the correct past tense of withdraw.",
       },
       {
-        text: "The wall plate had rotted where the gutter had over flowed for years.",
-        errors: [{ wrong: "over", fix: "overflowed", kind: 'wordchoice', note: "Overflowed is a single word." }],
+        text: "The wall plate had rotted where the gutter had overflowed, and the damage had past unnoticed for years.",
+        errors: [{ wrong: "past", fix: "passed", kind: 'wordchoice', note: "Passed is the verb; past means an earlier time or beyond." }],
       },
     ],
   },
@@ -1625,8 +1649,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: forge and ford are the right words here.",
       },
       {
-        text: "The farmer drained the low meadow with a herringbone of clay tiles laid on a gentle grade.",
-        errors: [{ wrong: "grade", fix: "gradient", kind: 'wordchoice', note: "Gradient is the usual British term for a slope in drainage." }],
+        text: "The farmer drained the low meadow with a herringbone of clay tiles, and the field was dry within a weak.",
+        errors: [{ wrong: "weak", fix: "week", kind: 'wordchoice', note: "A week is seven days; weak means lacking strength." }],
       },
     ],
   },
@@ -1656,8 +1680,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: denied and in advance are used correctly.",
       },
       {
-        text: "The society keeps the founder's papers in a fire proof safe.",
-        errors: [{ wrong: "proof", fix: "fireproof", kind: 'wordchoice', note: "Fireproof is a single word in modern usage." }],
+        text: "The society keeps the founder's papers in a fireproof safe, and only the archivist has excess to it.",
+        errors: [{ wrong: "excess", fix: "access", kind: 'wordchoice', note: "Access is the right of entry; excess means too much of something." }],
       },
     ],
   },
@@ -1682,8 +1706,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: ruins and charitable are correct as written.",
       },
       {
-        text: "The chandler sold rope, tar and canvas to the whole quay side.",
-        errors: [{ wrong: "side", fix: "quayside", kind: 'wordchoice', note: "Quayside is written as one word." }],
+        text: "The chandler sold rope, tar and canvas to the whole quayside, and kept his ledger in a hand no clerk could reed.",
+        errors: [{ wrong: "reed", fix: "read", kind: 'wordchoice', note: "To read is to make out writing; a reed is a marsh plant." }],
       },
       {
         text: "The bell ringers practised a method called Grandsire Triples every Tuesday, and the tower captain kept a peel book.",
@@ -1717,8 +1741,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: retraction is the right word for a printed correction.",
       },
       {
-        text: "The trust asked walkers to keep dogs on a leash near the ewes.",
-        errors: [{ wrong: "leash", fix: "lead", kind: 'wordchoice', note: "Lead is the British term for a dog's leash." }],
+        text: "The trust asked walkers to keep dogs on a leash near the ewes and to shut every gait behind them.",
+        errors: [{ wrong: "gait", fix: "gate", kind: 'wordchoice', note: "A gate is a barrier; a gait is a manner of walking." }],
       },
       {
         text: "The estate has kept the same tenant farmers for decades.",
@@ -1748,8 +1772,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: restored and pipe by pipe are used correctly.",
       },
       {
-        text: "The keeper set a line of lobster creels along the reef.",
-        errors: [{ wrong: "creels", fix: "pots", kind: 'wordchoice', note: "Pots is the usual term for lobster traps in this trade." }],
+        text: "The keeper set a line of lobster creels along the reef and hauled them at first light on a rising tied.",
+        errors: [{ wrong: "tied", fix: "tide", kind: 'wordchoice', note: "The tide is the sea rising and falling; tied means fastened." }],
       },
       {
         text: "He gave a candid account of the night's events.",
@@ -1810,8 +1834,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: consecrated is exact and correctly spelled.",
       },
       {
-        text: "The mason cut a drip mould to throw water clear of the wall face.",
-        errors: [{ wrong: "mould", fix: "moulding", kind: 'wordchoice', note: "A moulding is the shaped band of stone meant here." }],
+        text: "The mason cut a drip mould to through water clear of the wall face.",
+        errors: [{ wrong: "through", fix: "throw", kind: 'wordchoice', note: "To throw water clear is the sense here; through means passing inside." }],
       },
       {
         text: "The tenant claimed the landlord had reneged on the deal.",
@@ -1841,8 +1865,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: quarry and flooded are used correctly.",
       },
       {
-        text: "The society photographed every grave stone before the clearance.",
-        errors: [{ wrong: "stone", fix: "headstone", kind: 'wordchoice', note: "Headstone is the usual single word for a grave marker." }],
+        text: "The society photographed every headstone before the clearance, though the lettering on many was pail and worn.",
+        errors: [{ wrong: "pail", fix: "pale", kind: 'wordchoice', note: "Pale means faint in colour; a pail is a bucket." }],
       },
       {
         text: "The tribunal ordered the firm to reinstate the worker.",
@@ -1898,8 +1922,8 @@ export const PUZZLES = [
         errors: [{ wrong: "arose", fix: "arisen", kind: 'grammar', note: "After had the verb takes arisen, not arose." }],
       },
       {
-        text: "The publican kept a slate for the regulars and rubbed it clean each quarter.",
-        errors: [{ wrong: "slate", fix: "tab", kind: 'wordchoice', note: "Tab is the standard word for a running bar account." }],
+        text: "The publican kept a slate for the regulars, a custom that finally seized in 1974.",
+        errors: [{ wrong: "seized", fix: "ceased", kind: 'wordchoice', note: "To cease is to stop; to seize is to grab or to jam." }],
       },
       {
         text: "The society published a facsimile of the 1745 map.",
@@ -1907,8 +1931,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: facsimile is the right word and correctly spelled.",
       },
       {
-        text: "The keeper counted forty grey seal pups on the skear at low water.",
-        errors: [{ wrong: "skear", fix: "skerry", kind: 'wordchoice', note: "A skerry is a rocky islet; skear is a dialect variant." }],
+        text: "The keeper counted forty grey seal pups on the skerry at low water, though he had to pier through the haze to be sure.",
+        errors: [{ wrong: "pier", fix: "peer", kind: 'wordchoice', note: "To peer is to look closely; a pier is a jetty." }],
       },
       {
         text: "The trust rebuilt the sea wall with rock armour brought by barge, and graded the aprin behind it.",
@@ -1942,8 +1966,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: leans is the right verb and correctly spelled.",
       },
       {
-        text: "The gardener staked the espalier against the south facing wall.",
-        errors: [{ wrong: "facing", fix: "south-facing", kind: 'wordchoice', note: "South-facing takes a hyphen before the noun." }],
+        text: "The gardener staked the espalier against the south wall, where a vain of chalk ran close under the border.",
+        errors: [{ wrong: "vain", fix: "vein", kind: 'wordchoice', note: "A vein is a seam running through the ground; vain means conceited." }],
       },
       {
         text: "The tunnel was bored through solid chalk.",
@@ -1951,8 +1975,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: bored is correct here, meaning drilled.",
       },
       {
-        text: "The society recorded the ring of six bells, the tenor weighing eleven hundred weight.",
-        errors: [{ wrong: "hundred", fix: "hundredweight", kind: 'wordchoice', note: "Hundredweight is one word as a unit of mass." }],
+        text: "The society recorded the ring of six bells, the tenor recast in 1898 buy a Whitechapel founder.",
+        errors: [{ wrong: "buy", fix: "by", kind: 'wordchoice', note: "By names the agent who did the work; buy means to purchase." }],
       },
     ],
   },
@@ -2132,8 +2156,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: weir is spelled correctly and used properly.",
       },
       {
-        text: "The keeper reported a raft of eider off the point, riding the swell.",
-        errors: [{ wrong: "raft", fix: "flock", kind: 'wordchoice', note: "Flock is the plain term for the group of birds meant." }],
+        text: "The keeper reported a raft of eider off the point, feeding over the muscle beds at slack water.",
+        errors: [{ wrong: "muscle", fix: "mussel", kind: 'wordchoice', note: "A mussel is the shellfish eider feed on; a muscle moves the body." }],
       },
       {
         text: "The farmer said the ewes were due to lamb within the fortnite.",
@@ -2238,8 +2262,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: deferred is exact and correctly spelled.",
       },
       {
-        text: "The engineer said the beam would need to be jacked and the pad stone renewed.",
-        errors: [{ wrong: "pad", fix: "padstone", kind: 'wordchoice', note: "Padstone is a single word in building usage." }],
+        text: "The engineer said the beam would need to be jacked and the padstone renewed before the wall began to sheer.",
+        errors: [{ wrong: "sheer", fix: "shear", kind: 'wordchoice', note: "Shear is the engineering term for a sliding failure; sheer means utter or steep." }],
       },
     ],
   },
@@ -2260,8 +2284,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: impassable is the right adjective, correctly spelled.",
       },
       {
-        text: "The trust rebuilt the dry stone wall using the original throughs.",
-        errors: [{ wrong: "throughs", fix: "throughstones", kind: 'wordchoice', note: "Throughstones is the term for the tie stones in a wall." }],
+        text: "The trust rebuilt the dry stone wall using the original throughstones, a job that took to men a fortnight.",
+        errors: [{ wrong: "to", fix: "two", kind: 'wordchoice', note: "Two is the number; to is the preposition." }],
       },
       {
         text: "The dairy bottles its milk on the farm.",
@@ -2269,8 +2293,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: dairy and bottles are used correctly.",
       },
       {
-        text: "The society noted the font cover was suspended from a counter weight.",
-        errors: [{ wrong: "counter", fix: "counterweight", kind: 'wordchoice', note: "Counterweight is a single word." }],
+        text: "The society noted the font cover was suspended from a counterweight and raised by a single chord.",
+        errors: [{ wrong: "chord", fix: "cord", kind: 'wordchoice', note: "A cord is a length of rope; a chord is a group of musical notes." }],
       },
     ],
   },
@@ -2348,8 +2372,8 @@ export const PUZZLES = [
         errors: [{ wrong: "sudden", fix: "suddenly", kind: 'grammar', note: "The verb needs an adverb, so it reads came in suddenly." }],
       },
       {
-        text: "The keeper counted nine curlew probing the tide line at first light.",
-        errors: [{ wrong: "line", fix: "tideline", kind: 'wordchoice', note: "Tideline is written as one word." }],
+        text: "The keeper counted nine curlew probing the tideline at first light, a site he never tired of.",
+        errors: [{ wrong: "site", fix: "sight", kind: 'wordchoice', note: "A sight is something seen; a site is a place or location." }],
       },
       {
         text: "The lease runs for a further eleven years.",
@@ -2432,8 +2456,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: peel is the correct name for a baker's shovel.",
       },
       {
-        text: "The society noted the pews were installed in 1843 and the box pews removed at the same juncture.",
-        errors: [{ wrong: "juncture", fix: "time", kind: 'wordchoice', note: "Juncture means a critical moment, which is not what is meant." }],
+        text: "The society noted the pews were installed in 1843, a change the vicar recorded at grate length.",
+        errors: [{ wrong: "grate", fix: "great", kind: 'wordchoice', note: "Great means large; a grate is a fireplace fitting." }],
       },
     ],
   },
