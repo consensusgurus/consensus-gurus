@@ -28,6 +28,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -194,6 +196,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
+  const LOFT = isLoft('deep');
   const depth = won ? TOTAL_Q : g.i;
   const question = playing && started && g.i < TOTAL_Q ? QUESTIONS[g.i] : null;
   const deadQuestion = g.status === 'lost' && g.i < TOTAL_Q ? QUESTIONS[g.i] : null;
@@ -480,12 +483,33 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="deep" name="Deep" collapsed={started} />
+      <DailyChrome slug="deep" name="Deep" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. An arcade run ends the moment you are wrong, so how far you got IS the score.
+          A run that banked anything is a partial and the cap goes amber. */}
+      {LOFT && (
+        <LoftCap
+          name="Deep"
+          cat="Trivia"
+          outcome={playing ? null : (won ? 'won' : (depth > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          figures={playing ? [
+            { v: `${depth}/${TOTAL_Q}`, k: 'deep' },
+            { v: elapsed, k: 'time' },
+            { v: `${tierNum + 1}/5`, k: `round · ${TIER_NAMES[tierNum]}` },
+          ] : [
+            { v: `${depth}/${TOTAL_Q}`, k: 'deep' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="dp-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.dp-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -502,6 +526,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
+        {!LOFT && (
         <DailyMasthead
           slug="deep" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
@@ -509,6 +534,11 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
             <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
+        )}
+
+        {/* LOFT: the start tile and the board sit on the navy stage, which
+            runs full bleed and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -531,7 +561,10 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
         )}
 
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Anchor size={13} style={{ color: COLORS.accent }} />
@@ -541,6 +574,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
             {scoreRow('time', elapsed)}
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>round <b style={{ color: COLORS.accent, fontWeight: 500 }}>{tierNum + 1}/5</b> · {TIER_NAMES[tierNum]}</span>
           </div>
+          )}
 
           {playing && question && (
             <div>
@@ -571,14 +605,20 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
               <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.faded }}>You hit the bottom of {TOPIC} in {elapsed}. Nobody knows it better today.</div>
             </div>
           )}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a
+            bare row of faded text has nothing to sit on, and the card is
+            meant to hold the whole game. */}
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>One wrong answer ends the dive. Everything you clear is banked.</span>
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>

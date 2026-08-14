@@ -31,6 +31,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -245,6 +247,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
+  const LOFT = isLoft('barter');
   const swapsLeft = Math.max(0, BUDGET - g.swaps);
   const extra = Math.max(0, g.swaps - PAR);
   const finalScore = won ? Math.max(1, Math.min(10, 10 - 2 * extra)) : 0;
@@ -557,9 +560,34 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
-      <DailyChrome slug="barter" name="Barter" collapsed={started} />
+      <DailyChrome slug="barter" name="Barter" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. Barter scores a solve 10 down two per trade over par, so any solve is a win and
+          a give-up is not. */}
+      {LOFT && (
+        <LoftCap
+          name="Barter"
+          cat="Word"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? `Sunday Edition · 7\u00d77` : null}
+          figures={playing ? [
+            { v: swapsLeft, k: 'trades left' },
+            { v: PAR, k: 'par' },
+            { v: elapsed, k: 'time' },
+            { v: `${homeCount}/${N}`, k: 'home' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: PAR, k: 'par' },
+            { v: `${homeCount}/${N}`, k: 'home' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="bt-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.bt-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -573,6 +601,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
+        {!LOFT && (
         <DailyMasthead
           slug="barter"
           num={PUZZLE.num}
@@ -587,6 +616,11 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the start tile and the board sit on the navy stage, which
+            runs full bleed and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -608,13 +642,17 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>trades left <b style={{ color: playing && swapsLeft <= 2 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{swapsLeft}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PAR}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>home <b style={{ color: homeCount === N ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{homeCount}</b>/{N}</span>
           </div>
+          )}
 
           <div style={{ maxWidth: boardMax, margin: '0 auto' }}>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${S}, minmax(0, 1fr))`, gap: 6, aspectRatio: '1 / 1' }}>
@@ -656,11 +694,12 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
               )}
             </div>
           )}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a
+            bare row of faded text has nothing to sit on, and the card is
+            meant to hold the whole game. */}
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: sel !== null ? COLORS.accent : COLORS.faded }}>
               {sel !== null
                 ? 'Now tap the tile to trade it with. Tap it again to put it back.'
@@ -674,6 +713,11 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>

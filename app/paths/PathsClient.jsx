@@ -40,6 +40,8 @@ import DailyEndCard from '../DailyEndCard';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import DailyChrome from '../DailyChrome';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import DailyRules from '../DailyRules';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -262,6 +264,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
+  const LOFT = isLoft('paths');
 
   useEffect(() => { gRef.current = g; }, [g]);
   useEffect(() => {
@@ -654,9 +657,34 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
-      <DailyChrome slug="paths" name="Paths" collapsed={started} />
+      <DailyChrome slug="paths" name="Paths" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. Paths only scores a completed network, so a give-up is simply not solved and
+          there is no partial state for the amber cap. */}
+      {LOFT && (
+        <LoftCap
+          name="Paths"
+          cat="Logic"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? `Sunday Edition · ${n}\u00d7${n}` : null}
+          figures={playing ? [
+            { v: cost, k: 'cost' },
+            { v: parTarget, k: 'par' },
+            { v: `${linked}/${TOWNS.length}`, k: 'linked' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: cost, k: 'cost' },
+            { v: parTarget, k: 'par' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="pt-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.pt-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -670,6 +698,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
+        {!LOFT && (
         <DailyMasthead
           slug="paths"
           num={PUZZLE.num}
@@ -684,6 +713,11 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
+        )}
+
+        {/* LOFT: the start tile and the board sit on the navy stage, which
+            runs full bleed and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -705,13 +739,17 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 10, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>cost <b style={{ color: allLinked && cost === perfect ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{cost}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.ink, fontWeight: 500 }}>{parTarget}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>linked <b style={{ color: allLinked ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{linked}</b>/{TOWNS.length}</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
           </div>
+          )}
 
           <div style={{ maxWidth: 520, margin: '0 auto' }}>
             <svg ref={svgRef} className="pt-svg" viewBox={`0 -6 ${SIZE} ${SIZE + 12}`} role="img"
@@ -832,11 +870,12 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               )}
             </div>
           )}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a
+            bare row of faded text has nothing to sit on, and the card is
+            meant to hold the whole game. */}
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: allLinked ? COLORS.accent : COLORS.faded }}>
               {allLinked
                 ? `Every town is linked for ${cost}. ${over === 0 ? 'That is perfect.' : `Perfect is ${perfect}, so there are ${over} to trim if you can find them.`}`
@@ -850,6 +889,11 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
