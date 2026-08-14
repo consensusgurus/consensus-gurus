@@ -40,6 +40,7 @@ import LoftCap from '../LoftCap';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
+import useDayStats from '../useDayStats';
 import LoftFinish from '../LoftFinish';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -1022,6 +1023,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const iq = useIqStanding({ game: 'crux', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'crux', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const dayStats = useDayStats();
 
   // Play space matches the daily-games grid width (640): the header + puzzle
   // card fill the same column as the navy grid below. The board keeps its own
@@ -1286,7 +1288,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 ? <>The categories &mdash; tap to file completed words</>
                 : <>The categories &mdash; each hides {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the {PUZZLE.slots.length === 12 ? 'twelve' : 'eight'} words</>}
             </div>
-            <div className="cl-cats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+            {/* No inline grid-template-columns: it beat the .cl-cats rules,
+                which is why the 430px one never fired. Columns live in CSS. */}
+            <div className="cl-cats" style={{ marginBottom: 16 }}>
               {PUZZLE.categories.map((cat, ci) => {
                 const cc = CAT_COLORS[ci];
                 const filed = Object.keys(g.assigned).filter((w) => g.assigned[w] === ci);
@@ -1450,6 +1454,20 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               detail={`${endScore}/${PUZZLE.slots.length * 2} · ${guessesUsed} guesses · ${elapsed}`}
               iq={iq}
               board={dailyBoard}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Guesses"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((a, b) => b.num - a.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  href: `/crux?p=${p.num}`,
+                  done: !!(myStats.rec && myStats.rec[p.num]),
+                  score: myStats.rec && myStats.rec[p.num] ? myStats.rec[p.num].s : null,
+                }))}
               options={[
                 // Crux hides its words, so it HAS a reveal. A game that never
                 // hid its board simply omits this one.
@@ -1459,7 +1477,6 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 prevPuzzle && { label: 'Play another Crux', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/crux?p=${prevPuzzle.num}` },
                 nextUp && { label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
                 { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { label: 'Archive', sub: 'Every daily puzzle, by date', href: '/daily' },
                 { label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
               ]}
             />

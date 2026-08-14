@@ -257,6 +257,51 @@ export default function LoftCap({
 .loft-lbr.first .r{color:#8a6d1a}
 .loft-lbr.me{background:var(--accent-soft)}
 .loft-lbr.me .r{color:var(--blue)}
+/* EXPANDED: the score keeps its own column and the game's own miss column and
+   the clock join it. The miss column is labelled per game from the registry's
+   "miss" field, because Guesses, Errors, Moves and Tries are not the same thing
+   and one shared header would be wrong on most of them. */
+.loft-lbr .c{flex:none;width:52px;text-align:right;font-weight:700;font-size:12px;
+  color:var(--slate);font-variant-numeric:tabular-nums}
+.loft-lbr.cols .s{width:44px;text-align:right}
+.loft-lbr.head{font-weight:800;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);padding-bottom:2px}
+.loft-lbr.head .s,.loft-lbr.head .c{font-size:9.5px;color:var(--muted)}
+.loft-more{width:100%;margin-top:6px;padding:8px;border-radius:8px;border:2px solid var(--border);
+  background:var(--surface-alt);color:var(--slate);font-family:inherit;font-weight:800;
+  font-size:12px;cursor:pointer}
+.loft-empty{display:block;padding:8px 2px;font-weight:700;font-size:12.5px;color:var(--slate)}
+
+/* The day, under the IQ tile: what the game paid, then where that leaves you. */
+.loft-day{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.loft-day span{flex:1 1 22%;min-width:96px}
+.loft-day span{flex:1;padding:9px 10px;border-radius:10px;background:var(--surface-alt);
+  font-weight:700;font-size:10.5px;line-height:1.2;color:var(--slate);text-align:center}
+.loft-day b{display:block;font-weight:800;font-size:17px;line-height:1;color:var(--ink);margin-bottom:4px}
+
+/* CALCULATING, never a blank or a zero. Every figure on this card comes from a
+   read that races the player's own result write and retries for several
+   seconds, so while it waits the honest thing to say is that it is being worked
+   out. The dots animate so it reads as pending rather than stuck. */
+.loft-calc{display:inline-flex;align-items:baseline;font-weight:800;font-size:13px;color:var(--muted)}
+.loft-calc.wide{display:flex;padding:10px 2px}
+.loft-calc i{font-style:normal;animation:loftdot 1.4s infinite}
+.loft-calc i:nth-child(2){animation-delay:.2s}
+.loft-calc i:nth-child(3){animation-delay:.4s}
+@keyframes loftdot{0%,60%,100%{opacity:.25}30%{opacity:1}}
+
+/* The archive, opened IN the card. */
+.loft-arch{margin-top:9px;border-top:1px solid var(--border);padding-top:9px;
+  max-height:210px;overflow:auto}
+.loft-archr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;
+  text-decoration:none;color:var(--ink);font-weight:700;font-size:13px}
+.loft-archr+.loft-archr{margin-top:3px}
+.loft-archr:hover{background:var(--surface-alt)}
+.loft-archr .d{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loft-archr .no{flex:none;font-weight:700;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.loft-archr .v{flex:none;min-width:44px;text-align:right;font-weight:800;font-size:12px;color:var(--blue)}
+.loft-archr.done .v{color:var(--success-deep)}
+.loft-opt.on{background:var(--surface-alt)}
 .loft-showopts{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:2px solid var(--border);
   background:var(--surface-alt);color:var(--muted);font-family:inherit;font-weight:800;font-size:13px;cursor:pointer}
 
