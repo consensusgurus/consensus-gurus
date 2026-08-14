@@ -68,6 +68,33 @@ export default function DailyMasthead({
 }) {
   const title = dailyGameName(slug);
   const loft = useLoft(slug);
+  const capRef = useRef(null);
+  // Two things can only be known from the page the cap lands in, so they are
+  // measured rather than guessed:
+  //   --loft-col  the width of the column the cap is mounted in, which is the
+  //               game's board column, so the cap's content centres over it
+  //   margin-top  the page wrapper's own top padding, which otherwise shows as
+  //               a strip of page ground between the chrome and the cap
+  // The margin is reset before measuring, or the second pass reads the gap it
+  // has already closed and reports zero.
+  useEffect(() => {
+    if (!loft) return undefined;
+    const el = capRef.current;
+    if (!el) return undefined;
+    const apply = () => {
+      el.style.marginTop = '0px';
+      const parent = el.parentElement;
+      if (parent && parent.clientWidth) el.style.setProperty('--loft-col', `${parent.clientWidth}px`);
+      const chrome = document.querySelector('.dch-wrap');
+      if (chrome) {
+        const gap = Math.round(el.getBoundingClientRect().top - chrome.getBoundingClientRect().bottom);
+        if (gap > 0) el.style.marginTop = `-${gap}px`;
+      }
+    };
+    apply();
+    window.addEventListener('resize', apply);
+    return () => window.removeEventListener('resize', apply);
+  }, [loft]);
   const wrapRef = useRef(null);
   const blocksRef = useRef(null);
   const noRef = useRef(null);
@@ -133,7 +160,7 @@ export default function DailyMasthead({
     // Look the game up by its KEY: two clients pass their route here.
     const meta = DAILY_GAME_MAP[loftKey(slug)] || null;
     return (
-      <div className="lcap-bleed">
+      <div className="lcap-bleed" ref={capRef}>
         <LoftCap
           name={title}
           cat={meta ? meta.cat : ''}

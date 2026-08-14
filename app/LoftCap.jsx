@@ -35,9 +35,19 @@ export default function LoftCap({
     .filter(Boolean).join(' · ');
   return (
     <div className={outcome ? `lcap lcap-${outcome}` : 'lcap'}>
+      <div className="lcap-col">
       <style>{`
-.lcap{background:var(--blue);border-left:4px solid var(--gold);display:flex;
-  flex-wrap:wrap;align-items:center;position:relative;font-family:${SANS};z-index:4}
+.lcap{background:var(--blue);position:relative;font-family:${SANS};z-index:4}
+/* THE CAP IS A FULL-WIDTH BAND WHOSE CONTENT SITS OVER THE BOARD.
+   The band runs edge to edge like the chrome above it, but everything in it is
+   centred on the game's own column, so the name and the figures line up with
+   the board rather than with the site header. --loft-col is measured from the
+   column the cap is mounted in (see DailyMasthead); 640 is the fallback and is
+   what Crux uses, since its cap is mounted outside that column.
+   The gold rule moves onto the column with the content: at 1920 a rule pinned
+   to the screen edge sits 640px away from the thing it is marking. */
+.lcap-col{display:flex;flex-wrap:wrap;align-items:center;max-width:var(--loft-col,640px);
+  margin:0 auto;border-left:4px solid var(--gold)}
 /* Finished. The cap is already the object tracking your game, so it resolves
    into the verdict rather than a card appearing over the top of everything, and
    the colour carries the outcome: green solved, red not. Anything else would
@@ -82,8 +92,6 @@ export default function LoftCap({
      share one left edge. The subtractions are the pieces that already inset
      the first and last child: 4px gold border + 12px .lcap-id padding on the
      left, and .lcap-help's 12px margin on the right. */
-  .lcap{padding-left:max(8px, calc((100% - 1560px) / 2 + 18px));
-        padding-right:max(8px, calc((100% - 1560px) / 2 + 22px))}
   .lcap-id{flex:0 1 auto}
   .lcap-figs{flex:0 0 auto;order:3;border-top:0;margin-left:auto;
     border-left:1px solid rgba(255,255,255,0.22)}
@@ -188,6 +196,7 @@ export default function LoftCap({
         </div>
       ) : null}
       {extra}
+      </div>
       {progress != null ? (
         <div className="lcap-bar"><i style={{ width: `${Math.max(0, Math.min(100, progress))}%` }} /></div>
       ) : null}
