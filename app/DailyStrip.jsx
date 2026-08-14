@@ -1228,6 +1228,16 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // rather than state, so a scroll paints without a re-render, and zero size
   // rather than display:none is what hides it, so the CSS keeps the last word
   // on when it may show at all.
+  //
+  // ONE SEGMENT PER PINNED BAND, not one colour for the stack (owner,
+  // 2026-08-14). The first version painted the whole run in the FLUSH band's
+  // colour, so with In progress pinned above Complete today the green ran up
+  // the gutter across the gold band, and the red Incomplete today band would
+  // have done the same. The fill is a hard-stop gradient instead, a band of
+  // colour per pinned band at its own measured height. The colours are READ
+  // OFF each band's computed background rather than restated here, so a band
+  // that gets a new colour cannot leave a stale twin in the gutter, and no
+  // palette literal lives in this file's JS.
   useEffect(() => {
     const port = boardRef.current;
     const fill = capFillRef.current;
@@ -1239,17 +1249,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       const pr = port.getBoundingClientRect();
       const bands = port.querySelectorAll('.sl-band');
       let stack = 0;
-      let grp = '';
+      const stops = [];
       for (let k = bands.length - 1; k >= 0; k -= 1) {
         const r = bands[k].getBoundingClientRect();
         if (Math.abs(r.bottom - (pr.bottom - stack)) > 1) break;
-        if (!grp) grp = (bands[k].className.match(/\b(todo|prog|fail|dn)\b/) || [])[1] || '';
+        const col = window.getComputedStyle(bands[k]).backgroundColor;
+        stops.push(`${col} ${Math.round(stack)}px`, `${col} ${Math.round(stack + r.height)}px`);
         stack += r.height;
       }
-      const on = gutter > 0 && stack > 0 && grp;
+      const on = gutter > 0 && stops.length > 0;
       fill.style.setProperty('--cf-w', on ? `${gutter}px` : '0px');
       fill.style.setProperty('--cf-h', on ? `${Math.round(stack)}px` : '0px');
-      if (on) fill.dataset.grp = grp;
+      if (on) fill.style.setProperty('--cf-bg', `linear-gradient(to top,${stops.join(',')})`);
     };
     const q = () => { if (!raf) raf = requestAnimationFrame(paint); };
     paint();
@@ -2356,15 +2367,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         /* The scrollbar gutter beside the pinned band stack, filled in that
            band's own colour so the cap runs the full width of the card and
            rounds into the corner (owner, 2026-08-14; the reasoning and the
-           measurement are on the paint effect). Sized entirely by --cf-w /
-           --cf-h, which the effect writes and zeroes, so this rule governs
-           whether it may show at all. The four colours are the four .sl-band
-           backgrounds; keep them in step. */
-        .dh-capfill{position:absolute;right:0;bottom:0;width:var(--cf-w,0px);height:var(--cf-h,0px);border-bottom-right-radius:13px;pointer-events:none;}
-        .dh-capfill[data-grp="todo"]{background:#2c4fa8;}
-        .dh-capfill[data-grp="prog"]{background:var(--gold);}
-        .dh-capfill[data-grp="fail"]{background:#dc2626;}
-        .dh-capfill[data-grp="dn"]{background:var(--success-deep);}
+           measurement are on the paint effect). Sized and painted entirely by
+           --cf-w / --cf-h / --cf-bg, which the effect writes and zeroes, so
+           this rule governs whether it may show at all. No colour is named
+           here on purpose: --cf-bg is a hard-stop gradient built from the
+           pinned bands' own computed backgrounds, one segment each, so a band
+           colour has exactly one home. */
+        .dh-capfill{position:absolute;right:0;bottom:0;width:var(--cf-w,0px);height:var(--cf-h,0px);background:var(--cf-bg,transparent);border-bottom-right-radius:13px;pointer-events:none;}
         /* Up next and Easiest leaderboard are a matched pair on the slate: two
            equal cells, same eyebrow, same button (owner, 2026-08-03). On a phone
            they stop being cells and become two full-width bars, one under the
