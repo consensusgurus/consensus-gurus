@@ -8,6 +8,15 @@
 // board" or nothing at all, and a game with no archive offers no archive. The
 // component states none of that itself; it just renders what it is given.
 //
+// THE REVEAL RULE (owner, 2026-08-14). A finish that was not a win must not
+// give its answer away on its own: the board holds what the player left until
+// they press Reveal here. A WIN has nothing hidden, so its option reads 'See
+// the board' instead. Games that never hid anything need neither.
+//
+// Some games have no answer to reveal but do have a final position worth
+// showing, and they offer that instead: Babel, for one, should show the
+// computer's final move where it has one.
+//
 // An option is { label, sub, kind, href } plus either href or onClick:
 //   kind 'pri'  the one thing most players want next (filled blue)
 //   kind 'gold' share, because gold already means share-and-win on this site

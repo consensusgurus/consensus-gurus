@@ -1009,6 +1009,11 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     && (g.order.length === PUZZLE.slots.length || g.left <= 0);
 
   const lost = g.status === 'lost';
+  // A finish that was not a win does NOT give the answers away on its own: the
+  // board stays as the player left it until they press Reveal on the back of
+  // the card. `shown` is that gate, and it is only a gate on a loft page, so
+  // every other surface keeps the old behaviour of revealing immediately.
+  const shown = lost && (!LOFT || revealed);
   const won = g.status === 'won';
   // The finished score, and the IQ the run earned. The hook only fetches once
   // the game is over, so a live game costs nothing.
@@ -1086,7 +1091,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   function cellLetter(r, c, info) {
     const k = `${r},${c}`;
     if (g.greens[k]) return info.ch;
-    if (lost) return info.ch;
+    if (shown) return info.ch;
     if (typedAt[k]) return typedAt[k];
     return '';
   }
@@ -1274,9 +1279,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                     <div className="cl-cat-nm" style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, textShadow: '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {cat.words.map((_, i) => {
-                        const w = lost ? cat.words[i] : filed[i];
+                        const w = shown ? cat.words[i] : filed[i];
                         if (!w) return <span key={i} style={{ background: 'rgba(255,255,255,0.28)', color: cc.tc, borderRadius: 6, padding: '3px 14px', fontWeight: 800, fontSize: 12.5 }}>?</span>;
-                        if (lost) return <span key={i} style={{ background: 'rgba(255,255,255,0.28)', color: cc.tc, borderRadius: 6, padding: '3px 8px', fontWeight: 700, fontSize: 12.5, opacity: 0.85 }}>{w}</span>;
+                        if (shown) return <span key={i} style={{ background: 'rgba(255,255,255,0.28)', color: cc.tc, borderRadius: 6, padding: '3px 8px', fontWeight: 700, fontSize: 12.5, opacity: 0.85 }}>{w}</span>;
                         return (
                           <button key={i} onClick={playing ? (e) => { e.stopPropagation(); unfile(w); } : undefined} title={playing ? 'Tap to take back' : undefined}
                             style={{ background: 'rgba(255,255,255,0.6)', color: cc.tc, border: 'none', borderRadius: 6, padding: '3px 8px', fontWeight: 800, fontSize: 12.5, fontFamily: SANS, cursor: playing ? 'pointer' : 'default' }}>
@@ -1428,7 +1433,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               options={[
                 // Crux hides its words, so it HAS a reveal. A game that never
                 // hid its board simply omits this one.
-                { label: 'Reveal', sub: 'Turn back to the finished board', kind: 'pri', onClick: () => setRevealed(true) },
+                won
+                  ? { label: 'See the board', sub: 'Your finished grid', kind: 'pri', onClick: () => setRevealed(true) }
+                  : { label: 'Reveal', sub: 'Show the words you missed', kind: 'pri', onClick: () => setRevealed(true) },
                 prevPuzzle && { label: 'Play another Crux', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/crux?p=${prevPuzzle.num}` },
                 nextUp && { label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
                 { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
