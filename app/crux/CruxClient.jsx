@@ -1323,7 +1323,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
           {/* selected slot bar — only while there are still words to guess */}
           {started && slot && !allWordsSolved && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, marginBottom: 10, flexWrap: 'wrap' }}>
               <button className="cl-key" onClick={() => cycleSlot(-1)} aria-label="Previous word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={17} /></button>
               <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.ink }}>
                 {slotLabel(sel)} <span style={{ color: COLORS.faded, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
