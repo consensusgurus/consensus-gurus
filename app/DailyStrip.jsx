@@ -581,6 +581,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   const [capOpen, setCapOpen] = useState(false);
   const vpRef = useRef(null);
   const boardRef = useRef(null);
+  const capFillRef = useRef(null);
 
   // cross-device: the signed-in player's finished-today set from the server.
   // Goes through the shared fetchDayStatus (app/useDayStats.js) rather than its
@@ -1201,6 +1202,69 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     // thing above the board that moves it. This is the deterministic path; the
     // observer and the timers above are the backstop for a late data arrival.
   }, [slate, capOpen, phone, capProg.length, nextGame && nextGame.key, easiest && easiest.game.key]);
+
+  // THE SCROLLER STOPS AT THE CAP (owner, 2026-08-14). The port reserves a
+  // ~10px gutter for its scrollbar and that gutter is taken OUT of the content
+  // box, so every row and every band ends short of the card's right edge. On a
+  // row that is invisible. On the band pinned to the BOTTOM edge it is not,
+  // because that band IS the card's bottom edge: the green stopped short of
+  // the corner and the port's 13px bottom-right radius was drawn in scrollbar
+  // track instead, so the cap read as cut off and the scroller looked like it
+  // ran on past it. Content cannot paint over the gutter (overflow clips it at
+  // the padding box, and a width past 100% is clipped with it), so the fill is
+  // a SIBLING of the scroller, absolutely positioned in .dhome, whose
+  // bottom-right corner is the port's own. It takes the pinned band's colour
+  // and the port's radius, so the cap runs the full width and rounds on both
+  // corners and the gutter ends where the pinned stack begins.
+  //
+  // It follows the stack rather than assuming green: any of the four bands can
+  // be the one flush at the bottom and up to all four can be stacked there. A
+  // band is pinned iff its bottom sits exactly the following bands' heights
+  // above the port's, so the run is counted from the last band up and stops at
+  // the first that is not (heights measured, never the 30px constant --bh, so
+  // the two cannot drift). Scrolled to the very end of an OPEN group the last
+  // thing in the port is a row, no band is flush, and the fill goes away: that
+  // is "not unless it is expanded". Size travels as inline custom properties
+  // rather than state, so a scroll paints without a re-render, and zero size
+  // rather than display:none is what hides it, so the CSS keeps the last word
+  // on when it may show at all.
+  useEffect(() => {
+    const port = boardRef.current;
+    const fill = capFillRef.current;
+    if (!slate || !port || !fill || typeof window === 'undefined') return undefined;
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const gutter = port.offsetWidth - port.clientWidth;
+      const pr = port.getBoundingClientRect();
+      const bands = port.querySelectorAll('.sl-band');
+      let stack = 0;
+      let grp = '';
+      for (let k = bands.length - 1; k >= 0; k -= 1) {
+        const r = bands[k].getBoundingClientRect();
+        if (Math.abs(r.bottom - (pr.bottom - stack)) > 1) break;
+        if (!grp) grp = (bands[k].className.match(/\b(todo|prog|fail|dn)\b/) || [])[1] || '';
+        stack += r.height;
+      }
+      const on = gutter > 0 && stack > 0 && grp;
+      fill.style.setProperty('--cf-w', on ? `${gutter}px` : '0px');
+      fill.style.setProperty('--cf-h', on ? `${Math.round(stack)}px` : '0px');
+      if (on) fill.dataset.grp = grp;
+    };
+    const q = () => { if (!raf) raf = requestAnimationFrame(paint); };
+    paint();
+    port.addEventListener('scroll', q, { passive: true });
+    window.addEventListener('resize', q);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      port.removeEventListener('scroll', q);
+      window.removeEventListener('resize', q);
+    };
+    // No dep array on purpose: opening a group, filtering, sorting and the
+    // day's data all change which bands render and where they sit, and a
+    // measure this cheap after every render beats enumerating them and missing
+    // one. The scroll listener is what carries the frames in between.
+  });
 
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
@@ -2289,6 +2353,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dh-board.slate::-webkit-scrollbar-track{background:transparent;}
         .dh-board.slate::-webkit-scrollbar-thumb{background:#dfe4ec;border-radius:3px;}
         .dh-board.slate:hover::-webkit-scrollbar-thumb{background:#c9d1dd;}
+        /* The scrollbar gutter beside the pinned band stack, filled in that
+           band's own colour so the cap runs the full width of the card and
+           rounds into the corner (owner, 2026-08-14; the reasoning and the
+           measurement are on the paint effect). Sized entirely by --cf-w /
+           --cf-h, which the effect writes and zeroes, so this rule governs
+           whether it may show at all. The four colours are the four .sl-band
+           backgrounds; keep them in step. */
+        .dh-capfill{position:absolute;right:0;bottom:0;width:var(--cf-w,0px);height:var(--cf-h,0px);border-bottom-right-radius:13px;pointer-events:none;}
+        .dh-capfill[data-grp="todo"]{background:#2c4fa8;}
+        .dh-capfill[data-grp="prog"]{background:var(--gold);}
+        .dh-capfill[data-grp="fail"]{background:#dc2626;}
+        .dh-capfill[data-grp="dn"]{background:var(--success-deep);}
         /* Up next and Easiest leaderboard are a matched pair on the slate: two
            equal cells, same eyebrow, same button (owner, 2026-08-03). On a phone
            they stop being cells and become two full-width bars, one under the
@@ -2423,6 +2499,12 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .sl-bar{border-left:none;border-right:none;border-radius:0;border-top:none;margin-top:0;}
           .dhome.slate .dh-boardwrap{border-left:none;border-right:none;border-radius:0;}
           .dhome.slate .dh-board.slate{border-radius:0;}
+          /* Full bleed and square here, so the gutter fill squares with it. It
+             normally has nothing to do at this width (a phone scrollbar is an
+             overlay and reserves no gutter, which measures as zero and hides
+             it); it earns its keep on a narrow DESKTOP window, where the
+             scrollbar is classic and the gutter is real. */
+          .dhome.slate .dh-capfill{border-radius:0;}
           /* THE PHONE ORDER MATCHES THE DESKTOP ONE (owner, 2026-08-09): the
              slate's title band leads, the hero cards sit under the band that
              names them, then the category strip, then the board. The cap used to
@@ -3597,6 +3679,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           stats bar as well as the grid: one expanded console, one Play button
           (owner, 2026-07-29). */}
       {selGame && !slate ? renderPanel(selGame) : null}
+      {/* The scrollbar-gutter fill under the pinned band stack (see the paint
+          effect). Last child of .dhome, so it covers the gutter the scroller
+          reserves; NOT rendered while a panel is open, since that panel fills
+          .dhome too and this would paint over its bottom-right corner. */}
+      {slate && !selGame ? <i className="dh-capfill" ref={capFillRef} aria-hidden="true" /> : null}
     </div>
   );
 }
