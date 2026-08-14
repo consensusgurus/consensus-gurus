@@ -164,6 +164,50 @@ function useFlip(count, ms) {
   return { ix: Math.min(ix, Math.max(0, count - 1)), setIx, holdRef };
 }
 
+// FIT THE LIST TO THE PANEL, DO NOT SCROLL IT (owner, 2026-08-14). Both rail
+// lists used to render a fixed number of rows into a fixed-height box and let
+// the overflow scroll, so the panel always ended mid-row and read as
+// unfinished whatever was in it.
+//
+// This measures the box and answers two questions: how many rows fit (`n`),
+// and how much height is left over once they do (`pad`, split evenly onto the
+// top and bottom of every row, so the last one ends where the panel ends).
+// `cap: false` keeps every row and only distributes the slack, which is what
+// the category list wants: nine categories with one missing is worse than
+// nine slightly taller rows.
+//
+// The base row height is measured ONCE, on a pass where pad is still zero, so
+// the padding this adds can never feed back into the number it divides by.
+// Rows mark themselves with data-fitrow, because an empty list renders a
+// placeholder div and measuring THAT would set a nonsense base.
+function useFitRows(total, cap) {
+  const boxRef = useRef(null);
+  const baseRef = useRef(0);
+  const [fit, setFit] = useState({ n: total, pad: 0 });
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return undefined;
+    const measure = () => {
+      const rows = box.querySelectorAll('[data-fitrow]');
+      if (!rows.length) return;
+      if (!baseRef.current) baseRef.current = rows[0].getBoundingClientRect().height;
+      const base = baseRef.current;
+      const h = box.clientHeight;
+      if (!h || !base) return;
+      const room = Math.max(1, Math.floor(h / base));
+      const n = cap ? Math.min(total, room) : total;
+      const pad = n > 0 ? Math.max(0, Math.floor((h - n * base) / n / 2)) : 0;
+      setFit((p) => (p.n === n && p.pad === pad ? p : { n, pad }));
+    };
+    measure();
+    let ro = null;
+    if (typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(measure); ro.observe(box); }
+    window.addEventListener('resize', measure);
+    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [total, cap]);
+  return { boxRef, n: fit.n, pad: fit.pad };
+}
+
 // The pill naming the visible face, plus its clickable dots. Rendered into the
 // panel's navy header band, where the flip control has always lived.
 // `names` is optional and only for assistive tech: the Loft's three leader
@@ -407,6 +451,13 @@ export default function HomeRails({
   // `day` is the shared day-status promise, `dailyBoard.rival` is computed by
   // /api/quiz/daily-combined, which is the only place that can see who sits
   // immediately either side of a reader outside the top 10.
+  // Both hooks run on every render, whichever side this instance is: hooks
+  // cannot sit behind the side branch below, and the one whose ref never
+  // attaches simply measures nothing.
+  const FEED_MAX = 14;
+  const feedFit = useFitRows(Math.min(FEED_MAX, (lastPlayed || []).length || FEED_MAX), true);
+  const catFit = useFitRows(catLeaders.length, false);
+
   const streak = (day && typeof day.streak === 'number') ? day.streak : 0;
   const playedToday = !!(day && day.playedToday);
   const rival = (dailyBoard && dailyBoard.rival) || null;
@@ -600,7 +651,14 @@ export default function HomeRails({
          its own colour, but only in the 3px rule, the same value its chip
          wears on the slate. Category above, leader below, points on the right
          edge, and the plays-and-games line is gone. */
-      .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow-y:auto;}
+      /* NEITHER LIST SCROLLS (owner, 2026-08-14). useFitRows sizes them to the
+         panel and hands back the leftover height as --rowpad, which each row
+         adds to its own top and bottom. So the rows grow to fill the space
+         evenly rather than the last one being sliced by an overflow edge. */
+      .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+      .hr-scroll.hr-actbody{overflow:hidden;}
+      .hr-actbody .hr-res{padding-top:calc(7px + var(--rowpad,0px));padding-bottom:calc(7px + var(--rowpad,0px));}
+      .hr-clbody .hr-cl{padding-top:calc(6px + var(--rowpad,0px));padding-bottom:calc(6px + var(--rowpad,0px));}
       .hr-cl{position:relative;display:flex;align-items:center;gap:9px;flex:none;
              padding:6px 13px 6px 20px;border-bottom:1px solid #f0f2f6;}
       .hr-cl:last-child{border-bottom:none;}
@@ -702,8 +760,8 @@ export default function HomeRails({
          unbounded, so it alone keeps a cap and scrolls inside it. The leader
          slips are two fixed bars and need no cap, but they DO need a height to
          grow into once .hr-flex stops stretching them. */
-      @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:360px;overflow-y:auto;}
-        .hr-scroll.hr-clbody{max-height:360px;overflow-y:auto;}}
+      @media(max-width:1200px){.hr-flex{flex:none;}.hr-scroll{overflow:visible;}.hr-actbody{max-height:none;overflow:visible;}
+        .hr-scroll.hr-clbody{max-height:none;overflow:visible;}}
       /* The rail pins every panel to the center console's measured height, so a
          slab plus two names left a band of white sitting above the footer
          (owner, 2026-08-08). The TABLE takes that slack rather than the scroll
@@ -850,8 +908,12 @@ export default function HomeRails({
             <h2>Category leaders</h2>
             <span className="hr-chip">TODAY</span>
           </div>
-          <div className="hr-scroll hr-flex hr-clbody">
-            {catLeaders.map((row) => <CatSlip key={row.name} row={row} />)}
+          <div
+            className="hr-scroll hr-flex hr-clbody"
+            ref={catFit.boxRef}
+            style={{ '--rowpad': `${catFit.pad}px` }}
+          >
+            {catLeaders.slice(0, catFit.n).map((row) => <CatSlip key={row.name} row={row} />)}
             {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
           </div>
           <div className="hr-foot">
@@ -898,8 +960,12 @@ export default function HomeRails({
             <span>{timeToday}<i>played</i></span>
           </div>
         </div>
-        <div className="hr-scroll hr-flex hr-actbody">
-          {(lastPlayed || []).slice(0, 14).map((f, i) => {
+        <div
+          className="hr-scroll hr-flex hr-actbody"
+          ref={feedFit.boxRef}
+          style={{ '--rowpad': `${feedFit.pad}px` }}
+        >
+          {(lastPlayed || []).slice(0, feedFit.n).map((f, i) => {
             const frac = f.total ? f.score / f.total : 0;
             const pct = Math.round(frac * 100);
             const cat = catFor ? catFor(f.quizId) : null;
@@ -910,7 +976,7 @@ export default function HomeRails({
                  always the real readout. The rule keeps the depth cue (ramp
                  deep for a strong run, pale for a weak one) and the number
                  moves out to the right edge as plain text. */
-              <Link key={`${f.quizId}-${i}`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
+              <Link key={`${f.quizId}-${i}`} data-fitrow="" href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
                 <i className="hr-rl" style={{ background: ringTone(pct) }} aria-hidden="true" />
                 <span className="hr-mid">
                   <span className="hr-t">
@@ -1038,7 +1104,7 @@ function CatSlip({ row }) {
   if (!row) return null;
   const led = row.leader;
   return (
-    <div className={`hr-cl${led ? '' : ' open'}`} style={{ '--clr': catBlue(row.name) }}>
+    <div className={`hr-cl${led ? '' : ' open'}`} data-fitrow="" style={{ '--clr': catBlue(row.name) }}>
       <span className="hr-cltxt">
         <span className="hr-clcat">{row.name}</span>
         <span className="hr-clnm">{led ? led.name : 'Nobody yet'}</span>
