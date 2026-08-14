@@ -34,6 +34,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T as THEME } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -242,6 +244,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
+  const LOFT = isLoft('emcee');
 
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -625,6 +628,10 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const cellPx = N === 7 ? 'clamp(17px, 4.9vw, 25px)' : 'clamp(20px, 6vw, 30px)';
   const numPx = N === 7 ? 8.5 : 9.5;
   const checks = g.checks;
+  // What the player finished with, in the same unit the game posts: words
+  // correct. A win is every word by definition; a reveal stores the count it
+  // was standing on. Only the cap reads this, and only once the game is over.
+  const endScore = won ? TOTAL : (g.revealScore || 0);
   const filledCount = solFlat.reduce((k, ch, i) => k + (ch !== '#' && letters[i] !== '' ? 1 : 0), 0);
   const whiteCount = solFlat.reduce((k, ch) => k + (ch !== '#' ? 1 : 0), 0);
 
@@ -645,12 +652,38 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: THEME.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: THEME.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="emcee" name="Emcee" collapsed={started} />
+      <DailyChrome slug="emcee" name="Emcee" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat strip.
+          Mounted here, outside mc-wrap, so the band runs full bleed like the
+          chrome above it. The figures are the same three the strip carried, and
+          on a finish the set changes to the ones worth keeping: the score leads,
+          and the date line becomes the verdict while the cap itself takes the
+          outcome colour. */}
+      {LOFT && (
+        <LoftCap
+          name="Emcee"
+          cat="Word"
+          outcome={playing ? null : (won ? 'won' : (endScore > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved'))}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition · 7×7' : null}
+          figures={playing ? [
+            { v: elapsed, k: 'time' },
+            { v: checks, k: 'checks' },
+            { v: `${filledCount}/${whiteCount}`, k: 'squares' },
+          ] : [
+            { v: `${endScore}/${TOTAL}`, k: 'words' },
+            { v: checks, k: 'checks' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="mc-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.mc-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -680,6 +713,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip: quiet nav + player chip */}
 
         {/* masthead: pressed EMCEE tiles with No./date inline — M and C lit (M.C.) */}
+        {!LOFT && (
         <DailyMasthead
           slug="emcee"
           num={PUZZLE.num}
@@ -694,6 +728,12 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 || i === 2 ? COLORS.accent : COLORS.ink, color: THEME.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the start tile and the board sit on the navy stage, which runs
+            full bleed and fills the first screen, so the board is the one lit
+            object on the page while the clock is running. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {/* start tile — the grid and clues stay sealed until Start begins the clock */}
         {preStart && (
@@ -717,12 +757,17 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div style={{ background: THEME.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: THEME.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These three figures move UP into the cap on a loft page. Printing
+              them in both places is the one thing to avoid: the cap exists to
+              give the board this row back. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>squares <b style={{ color: filledCount === whiteCount ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filledCount}</b>/{whiteCount}</span>
           </div>
+          )}
 
           {/* the grid */}
           <div style={{ maxWidth: N === 7 ? 476 : 420, margin: '0 auto' }}>
@@ -796,7 +841,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
         {/* clue lists */}
         {!preStart && (
-        <div style={{ background: THEME.white, border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: THEME.white, border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
           <div className="mc-cols">
             <div>
               <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '0 0 6px 6px' }}>Across</div>
@@ -807,12 +852,13 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
               {WORDS.map((w, i) => (w.dir === 'D' ? clueRow(w, i) : null))}
             </div>
           </div>
-        </div>
-        )}
 
-        {/* controls */}
-        {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          {/* Controls. These live INSIDE the clue card rather than under it:
+              on the navy stage a bare row of faded text has nothing to sit on
+              and is close to unreadable, and "the card is the game" means the
+              things you act on belong on the lit surface with the board. */}
+          {started && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(20,22,28,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
               Fill the grid from the clues. It checks itself when the last square lands — wrong squares flash red, and every failed check counts on the board.
             </span>
@@ -823,7 +869,14 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
               </button>
             )}
           </div>
+          )}
+        </div>
         )}
+
+        {/* end of the navy play stage. Everything below is the light tail:
+            the result line, the games grid and the leaderboard panel, all
+            unchanged from a non-loft page. */}
+        </div>
 
         {/* result */}
         {!playing && (

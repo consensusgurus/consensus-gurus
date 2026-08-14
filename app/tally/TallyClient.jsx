@@ -32,6 +32,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import DailyRules from '../DailyRules';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
@@ -275,6 +277,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
+  const LOFT = isLoft('tally');
 
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -939,12 +942,36 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="tally" name="Tally" collapsed={started} />
+      <DailyChrome slug="tally" name="Tally" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat strip.
+          Tally grades a win from 10 down, so any solve is a win and a reveal is
+          not: there is no partial state, and the finished figures lead with the
+          score the game actually posted. */}
+      {LOFT && (
+        <LoftCap
+          name="Tally"
+          cat="Numbers"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition \u00b7 6\u00d76' : null}
+          figures={playing ? [
+            { v: g.moves, k: `moves \u00b7 fewest ${FEWEST}` },
+            { v: `${linesOk}/${2 * N}`, k: 'lines' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: won ? Math.max(1, Math.min(10, 10 - Math.ceil(errors / 2))) : 0, k: 'score' },
+            { v: g.moves, k: `moves \u00b7 fewest ${FEWEST}` },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="tl-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.tl-wrap{padding-left:14px !important;padding-right:14px !important;}}
@@ -1006,6 +1033,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip (Crux/Span pattern): quiet nav + player chip */}
 
         {/* masthead: pressed TALLY tiles with No./date inline, one rule beneath */}
+        {!LOFT && (
         <DailyMasthead
           slug="tally"
           num={PUZZLE.num}
@@ -1020,6 +1048,11 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.green : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the start tile and the board sit on the navy stage, which
+            runs full bleed and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The ledger stays sealed until then. */}
@@ -1044,11 +1077,15 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
 
         {/* the ledger */}
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing them
+              twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.moves}</b> &middot; fewest <b style={{ color: COLORS.ink, fontWeight: 500 }}>{FEWEST}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>lines <b style={{ color: linesOk === 2 * N ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{linesOk}</b>/{2 * N}</span>
           </div>
+          )}
 
           {/* board: N cells + a row-target column, then a col-target row beneath */}
           <div style={{ maxWidth: BOARD_MAX, margin: '0 auto' }}>
@@ -1127,15 +1164,12 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
               </ul>
             </div>
           )}
-        </div>
-        )}
 
-        {/* controls — the tool toggle moved up into the ledger with the rack, so
-            this row is Undo / Clear board plus the situational Hint and Reveal.
-            Undo and Clear are always there once the clock runs, so the row can
-            no longer render empty. */}
+        {/* Controls. Undo / Clear board plus the situational Hint and Reveal.
+            They sit INSIDE the board card: on the navy stage a bare row has
+            nothing to sit on, and the card is meant to hold the whole game. */}
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <button className="tl-act" onClick={undo} disabled={!hist.length}
               title="Step the board back one change (Ctrl+Z). Your move count stands: undo restores the grid, not the score.">
               <Undo2 size={14} /> Undo
@@ -1158,6 +1192,11 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {/* result */}
         {!playing && (

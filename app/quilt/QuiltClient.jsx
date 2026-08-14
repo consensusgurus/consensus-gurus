@@ -35,6 +35,8 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -253,6 +255,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
+  const LOFT = isLoft('quilt');
 
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -745,12 +748,30 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="quilt" name="Quilt" collapsed={started} />
+      <DailyChrome slug="quilt" name="Quilt" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat strip.
+          Quilt is scored all or nothing, so the outcome is only ever won or
+          lost; there is no partial state for the amber cap to carry. */}
+      {LOFT && (
+        <LoftCap
+          name="Quilt"
+          cat="Numbers"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition · Fewer clues' : null}
+          figures={[
+            { v: elapsed, k: 'time' },
+            { v: `${filledCount}/${FREE.length}`, k: 'filled' },
+          ]}
+        />
+      )}
       <div className="ql-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ql-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -780,6 +801,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip: quiet nav + player chip */}
 
         {/* masthead: pressed QUILT tiles with No./date inline */}
+        {!LOFT && (
         <DailyMasthead
           slug="quilt"
           num={PUZZLE.num}
@@ -794,6 +816,11 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the start tile and the board sit on the navy stage, which runs
+            full bleed and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The grid stays sealed until then. */}
@@ -818,11 +845,15 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* Both figures move UP into the cap on a loft page; printing them
+              twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filled <b style={{ color: filledCount === FREE.length ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filledCount}</b>/{FREE.length}</span>
           </div>
+          )}
 
           {/* 9×9 grid with heavy rules along the region borders */}
           <div style={{ maxWidth: 468, margin: '0 auto' }}>
@@ -896,12 +927,12 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
               </div>
             </>
           )}
-        </div>
-        )}
 
-        {/* controls */}
+        {/* Controls. These sit INSIDE the board card on purpose: on the navy
+            stage a bare row of faded text has nothing to sit on and is close to
+            unreadable, and the card is meant to hold the whole game. */}
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? COLORS.accent : COLORS.faded }}>
               {armed
                 ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`
@@ -917,6 +948,11 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {/* result */}
         {!playing && (

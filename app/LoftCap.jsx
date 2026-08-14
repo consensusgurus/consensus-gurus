@@ -116,8 +116,35 @@ export default function LoftCap({
   box-shadow:0 10px 30px rgba(0,0,0,0.34)!important}
 /* The page column carries its own top and bottom padding, which on the navy
    ground showed as a white band above the stage. Zero it; the stage and the
-   sheet below supply their own spacing. */
-.loft-page .cx-wrap{padding-top:0!important;padding-bottom:0!important}
+   sheet below supply their own spacing.
+
+   MATCHED BY SHAPE, NOT BY NAME. This was ".loft-page .cx-wrap", which is
+   Crux's own wrapper class, so every game converted after it would have had to
+   add its own selector here: there are 57 distinct wrapper classes across the
+   dailies (cx-wrap, mc-wrap, tl-wrap, sd-wrap ...) and two of them are shared
+   by a pair of games. Keying off the "-wrap" SUFFIX covers all of them at once
+   and means a newly converted client needs no edit in this file at all.
+
+   THE CHILD COMBINATOR IS LOAD-BEARING; measured on the live page, not
+   assumed. A descendant selector matches .ri-wrap too, the Report-an-issue
+   block sitting deep in the tail, and zeroing its padding is not wanted.
+   Restricting to direct children leaves exactly the page column.
+
+   The :not(.dch-wrap) is belt and braces rather than strictly required: on a
+   loft page DailyChrome's wrapper renders as "dch-wrap dch-loft", and an
+   attribute selector tests the WHOLE class string, which then ends in
+   "dch-loft" and does not match. It is kept because that is a coincidence of
+   the second class, not a guarantee.
+
+   TWO WAYS A GAME FALLS OUTSIDE THIS, both silent. Because [class$=] tests the
+   whole attribute, a wrapper carrying a SECOND class stops matching: keep the
+   page column's className a single class, or add that game explicitly. And a
+   game with no wrapper class at all (babel, blocks, chomp, glyph and sweep have
+   none) needs one added when it is converted.
+
+   NO BACKTICKS IN THIS COMMENT. It lives inside a template literal, so a
+   backtick here closes the style block and breaks the build. */
+.loft-page > [class$="-wrap"]:not(.dch-wrap){padding-top:0!important;padding-bottom:0!important}
 /* The end state lives INSIDE the stage, under the solved board, so the finish
    is one dark block and the light tail below is unchanged from playing. */
 .loft-iq{margin-top:12px;padding:11px 12px;background:rgba(255,255,255,0.09);
