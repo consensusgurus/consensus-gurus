@@ -180,7 +180,7 @@ function useFlip(count, ms) {
 // the padding this adds can never feed back into the number it divides by.
 // Rows mark themselves with data-fitrow, because an empty list renders a
 // placeholder div and measuring THAT would set a nonsense base.
-function useFitRows(total, cap) {
+function useFitRows(total, cap, dataLen) {
   const boxRef = useRef(null);
   const baseRef = useRef(0);
   const [fit, setFit] = useState({ n: total, pad: 0 });
@@ -188,6 +188,13 @@ function useFitRows(total, cap) {
     const box = boxRef.current;
     if (!box) return undefined;
     const measure = () => {
+      // A box that is not height-constrained (the stacked layout below 1200px
+      // sets overflow:visible) has no slack to divide and no reason to cap:
+      // measuring it would also loop, since its height follows the padding.
+      if (getComputedStyle(box).overflow === 'visible') {
+        setFit((p) => (p.n === total && p.pad === 0 ? p : { n: total, pad: 0 }));
+        return;
+      }
       const rows = box.querySelectorAll('[data-fitrow]');
       if (!rows.length) return;
       if (!baseRef.current) baseRef.current = rows[0].getBoundingClientRect().height;
@@ -196,15 +203,23 @@ function useFitRows(total, cap) {
       if (!h || !base) return;
       const room = Math.max(1, Math.floor(h / base));
       const n = cap ? Math.min(total, room) : total;
-      const pad = n > 0 ? Math.max(0, Math.floor((h - n * base) / n / 2)) : 0;
-      setFit((p) => (p.n === n && p.pad === pad ? p : { n, pad }));
+      // SIGNED, and fractional. Nine category rows at 44px want 396px in a
+      // 381px panel, so the fix is nine rows 1.7px shorter, not a clipped
+      // ninth. The floor keeps ~1px of real padding at the tightest.
+      const raw = n > 0 ? (h - n * base) / n / 2 : 0;
+      const pad = Math.max(-5, Math.round(raw * 100) / 100);
+      setFit((p) => (p.n === n && Math.abs(p.pad - pad) < 0.05 ? p : { n, pad }));
     };
     measure();
     let ro = null;
     if (typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(measure); ro.observe(box); }
     window.addEventListener('resize', measure);
     return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', measure); };
-  }, [total, cap]);
+    // dataLen is the RAW item count, and it is the dep that matters: `total`
+    // for the feed is min(14, len || 14), which reads 14 before the fetch and
+    // 14 after, so keying on it alone meant the one run this effect ever got
+    // was against an empty box (owner-reported, 2026-08-14).
+  }, [total, cap, dataLen]);
   return { boxRef, n: fit.n, pad: fit.pad };
 }
 
@@ -455,8 +470,9 @@ export default function HomeRails({
   // cannot sit behind the side branch below, and the one whose ref never
   // attaches simply measures nothing.
   const FEED_MAX = 14;
-  const feedFit = useFitRows(Math.min(FEED_MAX, (lastPlayed || []).length || FEED_MAX), true);
-  const catFit = useFitRows(catLeaders.length, false);
+  const feedLen = (lastPlayed || []).length;
+  const feedFit = useFitRows(Math.min(FEED_MAX, feedLen || FEED_MAX), true, feedLen);
+  const catFit = useFitRows(catLeaders.length, false, catLeaders.length);
 
   const streak = (day && typeof day.streak === 'number') ? day.streak : 0;
   const playedToday = !!(day && day.playedToday);
@@ -665,11 +681,24 @@ export default function HomeRails({
       .hr-cl::before{content:'';position:absolute;left:9px;top:7px;bottom:7px;width:3px;
                      border-radius:2px;background:var(--clr,var(--blue-400));}
       .hr-cltxt{flex:1;min-width:0;}
+      /* The label takes the CATEGORY's own colour (owner, 2026-08-14: "maybe
+         slightly more colour"). It is the same value from lib/home-blues that
+         the 3px rule uses and that the category's chip wears on the slate, so
+         the row gains colour without gaining a second palette, and nine rows
+         still read as one object rather than nine coloured cards. */
       .hr-clcat{display:block;font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
-                color:#8b90a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+                color:var(--clr,#8b90a0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .hr-clnm{display:block;font-size:13px;font-weight:800;color:var(--ink);line-height:1.35;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-      .hr-clv{flex:none;font-size:13px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+      /* The right column mirrors the left: a small line on top, the figure
+         under it, both right-aligned, so every row is the same four cells. */
+      .hr-clr{flex:none;text-align:right;}
+      .hr-clg{display:block;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+              color:#8b90a0;white-space:nowrap;font-variant-numeric:tabular-nums;}
+      .hr-clv{display:block;font-size:13px;font-weight:800;color:var(--ink);line-height:1.35;
+              font-variant-numeric:tabular-nums;white-space:nowrap;}
+      .hr-clv i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.09em;
+                text-transform:uppercase;color:#8b90a0;margin-left:3px;}
       /* A category nobody has played today still gets its row, greyed back: a
          gap in the list reads as a bug, and "nobody yet" is a real and useful
          thing for the panel to say. */
@@ -1093,10 +1122,11 @@ export default function HomeRails({
    grey. `tone` is gone with the alternating grounds, so nothing here depends
    on the row's position in the list.
 
-   THE PLAYS AND GAMES LINE WAS DROPPED. "8 of 15 games, 324 plays today" is
-   real information, but it was the third line on every row and the thing that
-   made the panel read as noisy; the board it links to carries it. If it comes
-   back it belongs behind a hover, not in the row.
+   THE GAMES COUNT CAME BACK, in the right column rather than as the third
+   line it used to be (owner, 2026-08-14). "8 of 15" is how much of the
+   category the leader actually played, and stacked over the points it costs no
+   height. The plays-today count did NOT come back: it was the rest of that
+   line and the least useful part of it, and the board this links to has it.
 
    A category with no board yet renders the same row reading "Nobody yet"
    rather than being skipped. */
@@ -1109,7 +1139,13 @@ function CatSlip({ row }) {
         <span className="hr-clcat">{row.name}</span>
         <span className="hr-clnm">{led ? led.name : 'Nobody yet'}</span>
       </span>
-      {led ? <span className="hr-clv">{led.pts}</span> : null}
+      <span className="hr-clr">
+        {/* How much of the category the leader actually played: "8 of 15".
+            This was a whole third line on the old slab and read as clutter
+            there; on the row's own right column it costs no height at all. */}
+        <span className="hr-clg">{led ? `${led.n} of ${row.games}` : `${row.games} game${row.games === 1 ? '' : 's'}`}</span>
+        {led ? <span className="hr-clv">{led.pts}<i>pts</i></span> : null}
+      </span>
     </div>
   );
 }
