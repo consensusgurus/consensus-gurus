@@ -585,34 +585,37 @@ export default function HomeRails({
       .hr-lspair{margin-left:auto;flex:none;display:flex;flex-direction:column;gap:6px;text-align:right;}
       .hr-lspair span{display:block;font-size:13px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;}
       .hr-lspair span i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue-200);margin-left:4px;}
-      /* CATEGORY LEADER SLIPS (owner, 2026-08-12). Each one is .hr-lslab, the
-         same object the live feed's totals bar is, so nothing new was invented
-         for them and the LEAD slip inherits the cap-bar height the panel's
-         first band has to match. What varies is the ground (stepping navy /
-         blue / pale down the ramp, the Featured cards' own progression, so
-         three stacked slabs still read as three) and the left rule, which takes
-         that CATEGORY's colour from lib/home-blues, the same value its chip
-         wears on the slate. So the rule is the one thing on the slip that is
-         not a shade of the panel, and it names the category twice over.
-         The body slips GROW: the panel is pinned to the console's height, and
-         two fixed 85px bars under the lead one left a band of white above the
-         footer. */
-      /* EVERY SLIP THE SAME HEIGHT, AND THE STACK SCROLLS (owner, 2026-08-12).
-         flex:none, not flex:1: growing them to fill the panel is what produced
-         190px slabs when a view held two of them. At their natural .hr-lslab
-         height all nine are the same shape and the ones past the panel's fold
-         are one scroll away, which is the point of listing all nine. */
+      /* CATEGORY LEADERS: UNIFORM ROWS (owner, 2026-08-14). Each one used to be
+         a full .hr-lslab, ~85px of eyebrow, 20px name, sub line and a value
+         cell, on a ground that stepped navy / blue / pale down the ramp. That
+         was built for a ROTATING FACE showing a few at a time, where a slab
+         sized object with its own ground made sense. All nine are listed at
+         once now, and at that length the three-tone alternation reads as the
+         panel changing colour nine times rather than as structure, and the
+         third line of every slip is noise. Nine slabs came to ~770px, which
+         also lost the flex fight with the board above it.
+
+         So: one shape, ~34px, on the same white ground the live feed rows use,
+         which is what makes the two rails read as one page. The category keeps
+         its own colour, but only in the 3px rule, the same value its chip
+         wears on the slate. Category above, leader below, points on the right
+         edge, and the plays-and-games line is gone. */
       .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow-y:auto;}
-      .hr-clbody > .hr-lslab{flex:none;}
-      .hr-clbody > .hr-lslab + .hr-lslab{border-top:1px solid rgba(255,255,255,.16);}
-      .hr-cls::before{background:var(--clr,var(--blue-400));}
-      .hr-cls.c0{background:var(--accent);}
-      .hr-cls.c1{background:var(--blue);}
-      .hr-cls.c2{background:#4d84f3;}
-      /* A category nobody has played today still gets its slip, greyed back:
-         an empty slot in a rotation reads as a bug, and "nobody yet" is a real
-         and useful thing for the panel to say. */
-      .hr-cls.open .hr-lsnm{color:var(--blue-200);font-weight:700;}
+      .hr-cl{position:relative;display:flex;align-items:center;gap:9px;flex:none;
+             padding:6px 13px 6px 20px;border-bottom:1px solid #f0f2f6;}
+      .hr-cl:last-child{border-bottom:none;}
+      .hr-cl::before{content:'';position:absolute;left:9px;top:7px;bottom:7px;width:3px;
+                     border-radius:2px;background:var(--clr,var(--blue-400));}
+      .hr-cltxt{flex:1;min-width:0;}
+      .hr-clcat{display:block;font-size:9px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+                color:#8b90a0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-clnm{display:block;font-size:13px;font-weight:800;color:var(--ink);line-height:1.35;
+               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-clv{flex:none;font-size:13px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
+      /* A category nobody has played today still gets its row, greyed back: a
+         gap in the list reads as a bug, and "nobody yet" is a real and useful
+         thing for the panel to say. */
+      .hr-cl.open .hr-clnm{color:var(--muted);font-weight:700;}
       .hr-res{display:flex;align-items:center;gap:10px;padding:7px 13px;border-bottom:1px solid #f0f2f6;text-decoration:none;color:var(--ink);}
       .hr-res:last-child{border-bottom:none;}
       .hr-res:hover{background:var(--surface);}
@@ -848,7 +851,7 @@ export default function HomeRails({
             <span className="hr-chip">TODAY</span>
           </div>
           <div className="hr-scroll hr-flex hr-clbody">
-            {catLeaders.map((row) => <CatSlip key={row.name} row={row} tone={catList.indexOf(row.name)} />)}
+            {catLeaders.map((row) => <CatSlip key={row.name} row={row} />)}
             {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
           </div>
           <div className="hr-foot">
@@ -1015,43 +1018,32 @@ export default function HomeRails({
   );
 }
 
-/* One category leader, as a hero slip. Every slip is the same object and the
-   same height, .hr-lslab, so the first one in the list can stand in for the
-   panel's slab and the rest stack under it in the scroller.
+/* One category leader, as a uniform row: category, leader, points. It was a
+   full hero slab until 2026-08-14, which was the right object for the rotating
+   face it used to live on and the wrong one for a list of nine (see the CSS).
 
-   `tone` is the CATEGORY's own index, not its position in the list, so a
-   category keeps its ground colour whatever order the list arrives in. That
-   mattered more when this lived on a rotating face (position-based tones made
-   every slip change colour every eight seconds, which reads as the panel
-   redrawing itself rather than reordering); it still holds now that the slips
-   are a plain list on the left rail, since the board they are built from can
-   reorder under them as the day fills in.
+   The category takes its colour from lib/home-blues, the same value its chip
+   wears on the slate, and it is the only thing on the row that is not ink or
+   grey. `tone` is gone with the alternating grounds, so nothing here depends
+   on the row's position in the list.
 
-   A category with no board yet renders the same slip reading "Nobody yet",
-   rather than being skipped: a gap in the list reads as a bug, and "nobody
-   yet" is a real and useful thing for the panel to say. */
-function CatSlip({ row, tone }) {
+   THE PLAYS AND GAMES LINE WAS DROPPED. "8 of 15 games, 324 plays today" is
+   real information, but it was the third line on every row and the thing that
+   made the panel read as noisy; the board it links to carries it. If it comes
+   back it belongs behind a hover, not in the row.
+
+   A category with no board yet renders the same row reading "Nobody yet"
+   rather than being skipped. */
+function CatSlip({ row }) {
   if (!row) return null;
   const led = row.leader;
-  const games = `${row.games} game${row.games === 1 ? '' : 's'}`;
   return (
-    <div
-      className={`hr-lslab hr-cls c${((tone % 3) + 3) % 3}${led ? '' : ' open'}`}
-      style={{ '--clr': catBlue(row.name) }}
-    >
-      <div className="hr-lstxt">
-        <div className="hr-lseye">{row.name}</div>
-        <div className="hr-lsnm">{led ? led.name : 'Nobody yet'}</div>
-        <div className="hr-lssub">
-          {led
-            // No "Top across" prefix: the big line is already the leader, so
-            // the words are implied, and at 282px they pushed the play count
-            // into an ellipsis on the wider categories.
-            ? `${led.n} of ${games} · ${num(row.plays)} play${row.plays === 1 ? '' : 's'} today`
-            : `${games} · first one on the board leads it`}
-        </div>
-      </div>
-      {led ? <div className="hr-lsval"><b>{led.pts}</b><span>pts</span></div> : null}
+    <div className={`hr-cl${led ? '' : ' open'}`} style={{ '--clr': catBlue(row.name) }}>
+      <span className="hr-cltxt">
+        <span className="hr-clcat">{row.name}</span>
+        <span className="hr-clnm">{led ? led.name : 'Nobody yet'}</span>
+      </span>
+      {led ? <span className="hr-clv">{led.pts}</span> : null}
     </div>
   );
 }
