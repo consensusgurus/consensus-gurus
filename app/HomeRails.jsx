@@ -15,15 +15,15 @@
 // and the day's player count is a field on the totals payload the header
 // already reads.
 //
-// Left rail, top to bottom:
-//   1. Top community member  (refData)          - fixed
+// Left rail, top to bottom (rebuilt 2026-08-14):
+//   1. Leaderboard: Contest (or Community) | Today | All time, ONE panel,
+//      auto-flips every 7s, five rows deep
 //   1b. Share strip           - PHONE ONLY, sits directly under the board above
-//   2. Today's leaders       (dailyBoard/xpToday) - auto-flips every 7s
-//   3. Top player            (xpAll/xp30)         - auto-flips every 7s
+//   2. Category leaders      (dailyBoard.games)  - all nine, listed, no flip
 // Right rail:
-//   1. The Loft: Live feed | Daily category leaders, auto-flips every 8s, each
-//      face leading with its own cap slab
-//   2. Featured: daily challenge, quiz of the day, duel, as three cap cards
+//   1. Live feed             (lastPlayed/totals) - one face, no flip
+//   2. Your streak           (daily-status)      - days in a row, any game
+//   3. Challenge             (dailyBoard.rival)  - duel whoever is next to you
 //
 // The flip replaces the old dot-only affordance with a named pill plus dots, so
 // a reader can always tell WHICH board they are looking at; hovering the pill
@@ -52,6 +52,25 @@
 // three cap cards on the ramp with a real control each, replacing three equal
 // pastel rows. The remaining pastel-free rule: no tinted icon squares and no
 // chevrons anywhere in these rails.
+//
+// 2026-08-14 (owner): BOTH RAILS REBALANCED. The left rail's three leaderboard
+// panels became ONE three-face panel: three panels each leading with a hero
+// slab and then two runners-up put nine names on a 282px rail and made none of
+// them land, so it now shows one board at a time, five rows deep. The daily
+// category leaders came off the Loft's second face to sit under it, where the
+// other boards are, and lost the waterfall rotation with the flip (nothing is
+// hidden behind a turn any more, so there is nothing to rotate into view).
+//
+// The right rail lost the NAME "The Loft" and the flip with it, so the panel is
+// the live feed and says so. Featured was deleted outright, and the Daily
+// Challenge and Quiz of the Day were dropped from the home page rather than
+// rehoused (both are still on the quiz hub). In its place: a STREAK tile, on a
+// site-wide consecutive-day run that daily-status did not compute until this
+// shipped, and a CHALLENGE tile prefilled with the player immediately ahead of
+// the reader on today's combined board (or immediately behind, when they are
+// already first). The rival cannot be read off the board in this file: it is a
+// top 10, and most readers sit outside it, so /api/quiz/daily-combined resolves
+// the neighbour and the anon the duel composer needs.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -60,6 +79,10 @@ import { DAILY_GAME_MAP, liveDailyKeys } from '@/lib/daily-games';
 import { notifyShareCredit } from './ShareCreditPop';
 import { ringBlue, catBlue } from '@/lib/home-blues';
 import { CONTEST, COPY, contestIsLive, formatScore } from '@/lib/contest';
+// The streak tile's figures ride along with the day-status payload the page
+// header and the slate are already asking for: fetchDayStatus memoizes the
+// promise for the page load, so a third reader costs no third request.
+import { fetchDayStatus } from './useDayStats';
 
 const MEDAL = [T.gold, T.silver, T.bronze];
 
@@ -175,13 +198,21 @@ function FlipPill({ labels, names, ix, setIx, holdRef }) {
 
 // A panel whose body flips between two faces on a timer. `faces` is an array of
 // { label, sub, rows, href }, and the pill names the face that is showing.
-function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
+// Three optional per-face fields were added 2026-08-14, when the left rail's
+// three panels became one: `heroSub` (the phone slab's sub line is ONE nowrap
+// line, so a face whose band carries an extra clause keeps the short version
+// for the slab), `footLabel`, and `emptyAction` (what the expander slot offers
+// on a board too short to expand, rather than an invisible spacer).
+function FlipPanel({ icon, title, faces, open, onToggle }) {
   const { ix, setIx, holdRef } = useFlip(faces.length, 7000);
   const face = faces[Math.min(ix, faces.length - 1)] || faces[0];
   if (!face) return null;
   return (
     <section className="hr-panel hr-flex">
-      <div className="hr-ph">
+      {/* A third face means a wider pill in a 282px header, and the TITLE is
+          the thing that must never be squeezed into an ellipsis here (it has
+          happened before). The header tightens its own type instead. */}
+      <div className={`hr-ph${faces.length > 2 ? ' hr-ph3' : ''}`}>
         <span className="hr-pi">{icon}</span>
         <h2>{title}</h2>
         <FlipPill labels={faces.map((f) => f.label)} ix={ix} setIx={setIx} holdRef={holdRef} />
@@ -193,7 +224,7 @@ function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
           cap={!open}
           fmt={face.fmt}
           hrefFor={face.hrefFor}
-          hero={{ eyebrow: face.eyebrow || face.label, sub: face.sub, unit: face.unit, tone: face.tone }}
+          hero={{ eyebrow: face.eyebrow || face.label, sub: face.heroSub || face.sub, unit: face.unit, tone: face.tone }}
         />
       </div>
       <div className="hr-foot">
@@ -201,8 +232,10 @@ function FlipPanel({ icon, title, faces, expandKey, open, onToggle }) {
           <button type="button" className="hr-exp" onClick={onToggle}>
             {open ? 'Show fewer' : `Show top ${ROWS_OPEN}`}
           </button>
-        ) : <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">·</span>}
-        <Link href={face.href} className="hr-link">Full leaderboard &rarr;</Link>
+        ) : (face.emptyAction
+          ? <button type="button" className="hr-exp" onClick={face.emptyAction.onClick}>{face.emptyAction.label}</button>
+          : <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">·</span>)}
+        <Link href={face.href} className="hr-link">{face.footLabel || 'Full leaderboard'} &rarr;</Link>
       </div>
     </section>
   );
@@ -222,9 +255,9 @@ export default function HomeRails({
   hrefFor,
   onCredit,
   onAllLive,
-  featured = [],
 }) {
-  const [open, setOpen] = useState({ com: false, tl: false, tp: false });
+  // ONE expand key, not three: the left rail's three boards are one panel now.
+  const [open, setOpen] = useState({ lb: false });
   const toggle = (k) => setOpen((p) => ({ ...p, [k]: !p[k] }));
 
   // ── LEFT ──────────────────────────────────────────────────────────────────
@@ -340,40 +373,10 @@ export default function HomeRails({
     });
   }, [dailyBoard, catList]);
 
-  // TWO FACES, AND THE LEADERS FACE WATERFALLS (owner, 2026-08-12). It went
-  // three slips a view, then five, and both were the same mistake in different
-  // sizes: splitting nine categories across two or three turns meant a reader
-  // had to wait out a whole rotation to see a category that simply was not on
-  // this turn. All nine are on the one face now, every slip the same height, and
-  // the face scrolls.
-  //
-  // What changes between turns is the ORDER. Each time the face comes back the
-  // list rotates by one, so the category that was second is now on top and the
-  // one that was on top has moved to the bottom. The panel is never showing the
-  // same thing twice, every category takes its turn at the top of the scroller
-  // without anyone scrolling, and the flip is back to a plain two steps.
-  const loft = useFlip(2, 8000);
-  const showLeaders = loft.ix === 1;
-
-  // The waterfall counter. It advances when the face turns AWAY from the
-  // leaders rather than towards them, so the FIRST time the panel shows them the
-  // list is in its natural order and the shuffle only starts on the second turn.
-  // A ref for "where we just were" rather than a second piece of state: this
-  // must fire once per transition, and re-rendering to record it would fire it
-  // again.
-  const [spin, setSpin] = useState(0);
-  const wasLeaders = useRef(false);
-  useEffect(() => {
-    if (wasLeaders.current && !showLeaders) setSpin((v) => v + 1);
-    wasLeaders.current = showLeaders;
-  }, [showLeaders]);
-
-  const leadRows = useMemo(() => {
-    const n = catLeaders.length;
-    if (!n) return [];
-    const k = ((spin % n) + n) % n;
-    return catLeaders.slice(k).concat(catLeaders.slice(0, k));
-  }, [catLeaders, spin]);
+  // The Loft's two-face flip and its waterfall rotation were removed
+  // 2026-08-14: the category leaders moved to the left rail beside the other
+  // boards, so the right panel has one face and nothing to rotate. catLeaders
+  // above is now read by the LEFT branch.
 
   const playsToday = (totals && totals.today) || 0;
   // Distinct PLAYERS today, guests included, straight off /api/quiz/totals
@@ -387,29 +390,39 @@ export default function HomeRails({
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   })();
 
-  // Time left on today's slate, for the Featured header chip. Every puzzle on
-  // the panel rolls at Eastern midnight, and a panel of today-only things
-  // should say how much of today is left. Resolved in an effect and re-ticked
-  // once a minute, never during render: it reads the clock, so evaluating it on
-  // the server would hydrate against a different value (the same reason
-  // contestIsLive above is deferred, and the reason isSundayET is called from
-  // an effect in the daily surfaces). An empty string renders no chip, which is
-  // what the server emits.
-  const [resetIn, setResetIn] = useState('');
+  // YOUR STREAK, for the right rail's tile. The route computes a site-wide
+  // consecutive-day run alongside the per-game ones it already had; see
+  // /api/quiz/daily-status. Signed out, fetchDayStatus resolves null and the
+  // tile renders its "not started" state, which is the honest answer for a
+  // reader the server cannot identify.
+  const [day, setDay] = useState(null);
   useEffect(() => {
     if (side !== 'right') return undefined;
-    const calc = () => {
-      let et;
-      try { et = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })); }
-      catch (e) { et = new Date(); }
-      const left = 86400 - (et.getHours() * 3600 + et.getMinutes() * 60 + et.getSeconds());
-      const h = Math.floor(left / 3600); const m = Math.floor((left % 3600) / 60);
-      setResetIn(h > 0 ? `${h}h ${m}m` : `${Math.max(1, m)}m`);
-    };
-    calc();
-    const id = setInterval(calc, 60000);
-    return () => clearInterval(id);
+    let alive = true;
+    fetchDayStatus().then((d) => { if (alive && d) setDay(d); }).catch(() => {});
+    return () => { alive = false; };
   }, [side]);
+
+  // Streak figures, and the rival the challenge tile offers. Both are read
+  // straight off payloads the rail already has, so neither costs a request:
+  // `day` is the shared day-status promise, `dailyBoard.rival` is computed by
+  // /api/quiz/daily-combined, which is the only place that can see who sits
+  // immediately either side of a reader outside the top 10.
+  const streak = (day && typeof day.streak === 'number') ? day.streak : 0;
+  const streakGame = (day && day.streakGame) || null;
+  const streakGameDays = (day && day.streakGameDays) || 0;
+  const playedToday = !!(day && day.playedToday);
+  const rival = (dailyBoard && dailyBoard.rival) || null;
+  const duelHref = (rival && rival.anon)
+    ? `/duel/new?opponent=${encodeURIComponent(rival.anon)}&oppName=${encodeURIComponent(rival.username || 'Player')}`
+    : '/duel/new';
+  // The distance, never the direction: `behind` already carries that, and a
+  // dead heat reads as one rather than as "0 points ahead".
+  const gapLine = rival
+    ? (rival.gap > 0
+      ? `${rival.gap} ${rival.gap === 1 ? 'point' : 'points'} ${rival.behind ? 'back' : 'ahead'}`
+      : 'level with you')
+    : '';
 
   const CSS = (
     <style>{`
@@ -444,6 +457,17 @@ export default function HomeRails({
          pill sits on the rotating panels, so the header keeps one shape. */
       .hr-chip{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.06em;color:#bfdbfe;background:rgba(255,255,255,.14);border-radius:999px;padding:3px 8px;}
       .hr-flip{margin-left:auto;display:flex;align-items:center;gap:7px;}
+      /* Both the chip and the pill claim the auto margin, so a header carrying
+         BOTH would split the free space between them and leave the chip
+         stranded mid-header. The pill gives its margin up in that case and the
+         pair sits together on the right edge. */
+      .hr-chip + .hr-flip{margin-left:0;}
+      /* Three-face header: 11px/.1em buys back ~10px against the wider pill,
+         which is the difference between the full title and "LEADERBOA...". */
+      .hr-ph3 h2{font-size:11px;letter-spacing:.1em;}
+      /* The two right-rail tiles are fixed-height cards under a feed that
+         takes the slack, so they must not stretch with it. */
+      .hr-tile{flex:none;}
       .hr-lbl{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.26);padding:3px 9px;border-radius:999px;white-space:nowrap;}
       .hr-dots{display:flex;gap:4px;}
       .hr-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.38);cursor:pointer;display:block;}
@@ -502,11 +526,12 @@ export default function HomeRails({
       .hr-exp:hover{color:var(--blue-deep);}
       .hr-link{margin-left:auto;font-size:11px;font-weight:800;color:var(--blue-deep);text-decoration:none;white-space:nowrap;flex:none;}
       .hr-link:hover{text-decoration:underline;}
-      /* The Loft's own slab, one per face. Same object as .hr-hero above (the
-         leaderboard #1 on a phone) but it shows at EVERY width, because the two
-         Loft faces are lists rather than boards and neither had an anchor of
-         any kind. The live face takes the lighter blue and the leader slips the
-         navy ramp below, so a flip is visible even before the pill is read. */
+      /* The right rail's slab. Same object as .hr-hero above (the leaderboard
+         #1 on a phone) but it shows at EVERY width, because a feed and a tile
+         are lists rather than boards and had no anchor of any kind. The live
+         feed and the streak take the lighter blue; the category leader slips,
+         which are the same object over on the LEFT rail now, run the navy ramp
+         below so a stack of them still reads as a stack. */
       /* IT IS EXACTLY AS TALL AS A CAP BAR, and that is measured, not eyeballed
          (owner, 2026-08-10: the first cut came out 80.5px against the cap's
          84.8px and read as a near miss, which is worse than an obvious
@@ -545,8 +570,8 @@ export default function HomeRails({
       .hr-lspair span{display:block;font-size:13px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap;}
       .hr-lspair span i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue-200);margin-left:4px;}
       /* CATEGORY LEADER SLIPS (owner, 2026-08-12). Each one is .hr-lslab, the
-         same object the live face's totals bar is, so nothing new was invented
-         for this face and the LEAD slip inherits the cap-bar height the panel's
+         same object the live feed's totals bar is, so nothing new was invented
+         for them and the LEAD slip inherits the cap-bar height the panel's
          first band has to match. What varies is the ground (stepping navy /
          blue / pale down the ramp, the Featured cards' own progression, so
          three stacked slabs still read as three) and the left rule, which takes
@@ -560,7 +585,7 @@ export default function HomeRails({
          flex:none, not flex:1: growing them to fill the panel is what produced
          190px slabs when a view held two of them. At their natural .hr-lslab
          height all nine are the same shape and the ones past the panel's fold
-         are one scroll away, which is the point of putting them on one face. */
+         are one scroll away, which is the point of listing all nine. */
       .hr-scroll.hr-clbody{display:flex;flex-direction:column;min-height:0;overflow-y:auto;}
       .hr-clbody > .hr-lslab{flex:none;}
       .hr-clbody > .hr-lslab + .hr-lslab{border-top:1px solid rgba(255,255,255,.16);}
@@ -592,10 +617,11 @@ export default function HomeRails({
       .hr-pc{flex:none;font-size:13px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
       .hr-res-sc{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;}
       .hr-sc{font-family:var(--font-mono,ui-monospace,monospace);font-size:12.5px;font-weight:700;padding:4px 8px;border-radius:6px;flex:none;min-width:54px;text-align:center;font-variant-numeric:tabular-nums;}
-      .hr-feat{flex:none;}
-      /* Featured cap cards. Each one is .hr-lslab's shape at a slightly tighter
-         padding, on its own step of the ramp, with a real control on the right
-         edge instead of a chevron. */
+      /* CAP CARDS. Built for Featured, which was deleted 2026-08-14; the
+         challenge tile is the one card left using them, and it takes t0 (the
+         deepest ground and the gold rule) because it is the only thing in that
+         panel. Each is .hr-lslab's shape at a slightly tighter padding, with a
+         real control on the right edge instead of a chevron. */
       .hr-fcard{position:relative;display:flex;align-items:center;gap:11px;padding:12px 13px 12px 22px;
                 text-decoration:none;color:var(--white);border-bottom:1px solid rgba(255,255,255,.16);}
       .hr-fcard:last-child{border-bottom:none;}
@@ -705,57 +731,80 @@ export default function HomeRails({
     return (
       <>
         {CSS}
-        {/* Top-left panel. While the referral contest is live this slot shows
-            the CONTEST board instead of the rolling 90-day community board, and
-            reverts on its own the moment the contest ends (owner, 2026-08-05).
-            A swap rather than a second panel: both answer "who is bringing
-            people in", and side by side they would show two different rankings
-            of the same thing (rolling credits vs fixed-window weighted score)
-            with no way for a reader to tell which one counted. */}
-        <section className="hr-panel hr-flex">
-          <div className="hr-ph">
-            <span className="hr-pi"><CrownIcon /></span>
-            {/* Flattened to "Leaderboard" (owner, 2026-08-08): the full
-                "Community Leaderboard ($)" wrapped to two lines in the rail and
-                made this one header taller than every other panel's. The ($)
-                stays, marking that there is prize money on it while the contest
-                runs (owner, 2026-08-05), and the hero slab's eyebrow below still
-                names the board in full, so nothing is lost by the short title.
-                The /quizzes/community PAGE is unaffected and keeps its rolling
-                90-day board. */}
-            <h2>{showContest ? 'Leaderboard ($)' : 'Leaderboard'}</h2>
-            {showContest && contestDays ? <span className="hr-chip">{contestDays}d left</span> : null}
-          </div>
-          <div className="hr-sub">
-            {showContest
-              ? `${COPY.prizeLine} · ${COPY.formulaLine}`
-              : 'New players brought in, last 90 days'}
-          </div>
-          <div className="hr-scroll hr-flex">
-            <Rows
-              rows={boardSlice(communityRows, open.com)}
-              cap={!open.com}
-              fmt={showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`}
-              hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
-              hero={{
-                eyebrow: showContest ? 'Contest leader' : 'Top community member',
-                // Prize line only, no formula: the slab's sub is one nowrap
-                // line and the pair clipped mid-word on a 390px frame. The
-                // countdown already rides in the panel header beside the title.
-                sub: showContest ? COPY.prizeLine : 'New players brought in, last 90 days',
-                unit: showContest ? 'score' : 'brought in',
-              }}
-            />
-          </div>
-          <div className="hr-foot">
-            {hasMore(communityRows)
-              ? <button type="button" className="hr-exp" onClick={() => toggle('com')}>{open.com ? 'Show fewer' : `Show top ${ROWS_OPEN}`}</button>
-              : <button type="button" className="hr-exp" onClick={onCredit}>Get credit</button>}
-            <Link href={showContest ? '/quizzes/contest' : '/quizzes/community'} className="hr-link">
-              {showContest ? 'Board and rules' : 'Full leaderboard'} &rarr;
-            </Link>
-          </div>
-        </section>
+        {/* ONE BOARD, THREE FACES (owner, 2026-08-14). The rail used to carry
+            three separate leaderboard panels, each leading with a hero slab and
+            then two runners-up, so nine names competed for the eye and none of
+            them won. It is one panel now with a face switcher, showing one
+            board at a time five rows deep instead of three boards three rows
+            deep. Same content, a third of the noise.
+
+            The contest countdown moved OUT of the header and into the face's
+            own band. The header already carries a title and the switcher pill,
+            and a third element at 282px is what has previously eaten this
+            rail's titles down to an ellipsis.
+
+            The first face still SWAPS between the contest board and the rolling
+            90-day community board on its own the moment the contest ends
+            (owner, 2026-08-05), and for the same reason as before: both answer
+            "who is bringing people in", and side by side they would show two
+            different rankings of the same thing with no way to tell which one
+            counted. */}
+        <FlipPanel
+          icon={<CrownIcon />}
+          title="Leaderboard"
+          open={open.lb}
+          onToggle={() => toggle('lb')}
+          faces={[
+            {
+              label: showContest ? 'Contest' : 'Community',
+              // The countdown rides in the EYEBROW as well as the band,
+              // because the band is the thing a phone hides once the hero slab
+              // is showing (.hr-panel:has(.hr-hero) .hr-sub), and a contest
+              // deadline that only exists on desktop is worse than no chip.
+              // Short form here, long form in the band.
+              eyebrow: showContest
+                ? `Contest leader${contestDays ? ` · ${contestDays}d left` : ''}`
+                : 'Top community member',
+              unit: showContest ? 'score' : 'brought in',
+              sub: showContest
+                ? `${COPY.prizeLine}${contestDays ? ` · ${contestDays} days left` : ''}`
+                : 'New players brought in, last 90 days',
+              heroSub: showContest ? COPY.prizeLine : 'New players brought in, last 90 days',
+              rows: communityRows,
+              fmt: showContest ? (v) => formatScore(v) : (v) => `+${num(v)}`,
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: showContest ? '/quizzes/contest' : '/quizzes/community',
+              footLabel: showContest ? 'Board and rules' : 'Full leaderboard',
+              // A board too short to expand offers the thing this board is
+              // actually about instead of an invisible spacer.
+              emptyAction: onCredit ? { label: 'Get credit', onClick: onCredit } : null,
+            },
+            {
+              label: 'Today',
+              eyebrow: "Today's leader",
+              unit: 'points',
+              tone: 'lite',
+              // The combined daily-games score (best-N total), NOT games
+              // played: "29/42" read as a fraction of the slate and told you
+              // nothing about how well anyone did (owner, 2026-08-03).
+              sub: 'Combined daily games score',
+              rows: dailyRows,
+              fmt: (v) => (Math.round((v || 0) * 10) / 10).toLocaleString(),
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: '/quizzes/hub?tab=daily',
+            },
+            {
+              label: 'All time',
+              eyebrow: 'Top player, all time',
+              unit: 'IQ pts',
+              sub: 'Lifetime IQ points',
+              rows: xpAll.length ? xpAll : xp30,
+              fmt: num,
+              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
+              href: '/quizzes/hub?tab=player',
+            },
+          ]}
+        />
 
         {/* Phone-only share bar, directly under the board it explains. The
             headline names the prize only while the contest is actually running,
@@ -769,69 +818,28 @@ export default function HomeRails({
           <span className="hr-sharr" aria-hidden="true">&rsaquo;</span>
         </button>
 
-        {/* "Today", not "Today's leaders": the longer name wrapped beside the
-            face-switcher pill and broke the header-height match (owner,
-            2026-08-08). The pill and the hero eyebrow both still say which
-            board is showing. */}
-        <FlipPanel
-          icon={<FlameIcon />}
-          title="Today"
-          open={open.tl}
-          onToggle={() => toggle('tl')}
-          faces={[
-            {
-              label: 'Daily games',
-              eyebrow: "Today's leader",
-              unit: 'points',
-              tone: 'lite',
-              sub: 'Combined daily games score',
-              rows: dailyRows,
-              fmt: (v) => (Math.round((v || 0) * 10) / 10).toLocaleString(),
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=daily',
-            },
-            ...(xpToday.length ? [{
-              label: 'IQ gainers',
-              eyebrow: "Today's top gainer",
-              unit: 'IQ pts',
-              tone: 'lite',
-              sub: 'IQ points earned today',
-              rows: xpToday,
-              fmt: num,
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=player',
-            }] : []),
-          ]}
-        />
-
-        <FlipPanel
-          icon={<StarIcon />}
-          title="Top player"
-          open={open.tp}
-          onToggle={() => toggle('tp')}
-          faces={[
-            {
-              label: 'All time',
-              eyebrow: 'Top player, all time',
-              unit: 'IQ pts',
-              sub: 'Lifetime IQ points',
-              rows: xpAll.length ? xpAll : xp30,
-              fmt: num,
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=player',
-            },
-            {
-              label: '30 days',
-              eyebrow: 'Top player, 30 days',
-              unit: 'IQ pts',
-              sub: 'IQ points, last 30 days',
-              rows: xp30.length ? xp30 : xpAll,
-              fmt: num,
-              hrefFor: (n) => `/player/${encodeURIComponent(n)}`,
-              href: '/quizzes/hub?tab=player',
-            },
-          ]}
-        />
+        {/* CATEGORY LEADERS, moved here off the Loft's second face (owner,
+            2026-08-14). They are a leaderboard, so they belong in the rail that
+            holds the leaderboards. Off a flip face they no longer wait their
+            turn either: all nine are simply listed and the panel scrolls. The
+            rotation the old face ran (the list shifting by one each turn so
+            every category got a spell at the top) went with the flip, since
+            nothing here is hidden behind a turn any more. */}
+        <section className="hr-panel hr-flex hr-cats">
+          <div className="hr-ph">
+            <span className="hr-pi"><StarIcon /></span>
+            <h2>Category leaders</h2>
+            <span className="hr-chip">TODAY</span>
+          </div>
+          <div className="hr-scroll hr-flex hr-clbody">
+            {catLeaders.map((row) => <CatSlip key={row.name} row={row} tone={catList.indexOf(row.name)} />)}
+            {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
+          </div>
+          <div className="hr-foot">
+            <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">·</span>
+            <Link href="/quizzes/hub?tab=daily" className="hr-link">Daily boards &rarr;</Link>
+          </div>
+        </section>
       </>
     );
   }
@@ -839,157 +847,150 @@ export default function HomeRails({
   return (
     <>
       {CSS}
+      {/* THE NAME "THE LOFT" IS GONE (owner, 2026-08-14), and so is the second
+          face: this panel is the live feed and now says so. Its category
+          leaders moved to the left rail with the other boards. The header keeps
+          its shape, icon and title, with the day's player count taking the slot
+          the face switcher used to hold, so the row still reads as a header
+          rather than a bare label. */}
       <section className="hr-panel hr-flex">
         <div className="hr-ph">
           <span className="hr-pi"><PulseIcon /></span>
-          <h2>The Loft</h2>
-          {/* Every leader view shows the SAME pill label: the three of them are
-              one face that happens not to fit on one panel, so naming them
-              "Leaders 1/3" would advertise the mechanism rather than the
-              content. The dots still address each view individually, and
-              `names` gives assistive tech the distinct description.
-              "Leaders", not "Category leaders": the panel header is one row of
-              a 282px rail and its TITLE is the thing that must never wrap, so a
-              long pill ate it down to "THE L..." (owner, 2026-08-12). Any new
-              pill label here gets checked against the rendered header, not
-              against how it reads on its own. */}
-          <FlipPill
-            labels={['Live feed', 'Leaders']}
-            names={['Live feed', 'Daily category leaders']}
-            ix={loft.ix}
-            setIx={loft.setIx}
-            holdRef={loft.holdRef}
-          />
+          <h2>Live feed</h2>
+          {playersToday ? <span className="hr-chip">{num(playersToday)} PLAYING</span> : null}
         </div>
-        {/* THE SLAB, one per face (owner-approved direction B1/B2, 2026-08-10).
-            The panel used to open on a bordered stat strip and then fifty rows
-            of 12.5px type with nothing to anchor the eye, and the two faces were
-            structurally different but rendered identically. Each face now leads
-            with the same cap-bar shape the slate's Up next bar uses, which is
-            also what carries each face's headline figures, so the old .hr-stats
-            strip is gone from this panel.
-
-            THE LIVE FACE'S SLAB IS DELIBERATELY ANONYMOUS (owner, 2026-08-10).
-            It reads the day's TOTALS, plays and time played, never the newest
-            player's name or score: the rows below already carry results without
-            attribution, and promoting one person's run into a headline is a
-            different thing from a live feed. */}
-        {!showLeaders ? (
-          <div className="hr-lslab lite">
-            <div className="hr-lstxt">
-              <div className="hr-lseye">Live &middot; today</div>
-              <div className="hr-lsnm">{num(playsToday)} {playsToday === 1 ? 'play' : 'plays'}</div>
-              <div className="hr-lssub">every puzzle and quiz</div>
-            </div>
-            {/* TWO SMALL FIGURES IN ONE STACKED CELL, not two 20px .hr-lsval
-                cells (owner, 2026-08-12). The play count is already this slab's
-                hero number, so a second and third at the same weight both
-                competed with it and ate the rail: at 282px the pair of big cells
-                left the text block 104px, which clipped the scope line to
-                "across every puzz...". Stacked at 13px they cost ~90px, the sub
-                gets its width back, and the slab still carries exactly one big
-                number. The scope line lost its "across" for the same reason. */}
-            <div className="hr-lspair">
-              <span>{num(playersToday)}<i>{playersToday === 1 ? 'player' : 'players'}</i></span>
-              <span>{timeToday}<i>played</i></span>
-            </div>
+        {/* THE SLAB IS DELIBERATELY ANONYMOUS (owner, 2026-08-10). It reads the
+            day's TOTALS, plays and time played, never the newest player's name
+            or score: the rows below already carry results without attribution,
+            and promoting one person's run into a headline is a different thing
+            from a live feed. */}
+        <div className="hr-lslab lite">
+          <div className="hr-lstxt">
+            <div className="hr-lseye">Live &middot; today</div>
+            <div className="hr-lsnm">{num(playsToday)} {playsToday === 1 ? 'play' : 'plays'}</div>
+            <div className="hr-lssub">every puzzle and quiz</div>
           </div>
-        ) : (
-          /* No slab on this face: its FIRST SLIP is the panel's first band, and
-             a slip IS .hr-lslab, so it carries the same measured cap-bar height
-             the slab does and the Loft still starts on the same line as the
-             console's Up next bar beside it. */
-          null
-        )}
-        {/* Keyed on the spin so a new turn REMOUNTS the scroller: without it the
-            list quietly keeps the scroll position from the last turn, which puts
-            the freshly promoted category off the top of its own view. */}
-        <div key={showLeaders ? `lead-${spin}` : 'live'} className={`hr-scroll hr-flex${showLeaders ? ' hr-clbody' : ' hr-actbody'}`}>
-          {!showLeaders ? (
-            (lastPlayed || []).slice(0, 14).map((f, i) => {
-              const frac = f.total ? f.score / f.total : 0;
-              const pct = Math.round(frac * 100);
-              const cat = catFor ? catFor(f.quizId) : null;
-              return (
-                /* The 32px conic ring became the 4px left rule the rest of the
-                   page uses: fourteen of them stacked down a 300px rail were
-                   the busiest object on the homepage, and the percentage was
-                   always the real readout. The rule keeps the depth cue (ramp
-                   deep for a strong run, pale for a weak one) and the number
-                   moves out to the right edge as plain text. */
-                <Link key={`${f.quizId}-${i}`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
-                  <i className="hr-rl" style={{ background: ringTone(pct) }} aria-hidden="true" />
-                  <span className="hr-mid">
-                    <span className="hr-t">
-                      <span className="hr-ttl">{titleFor ? titleFor(f.quizId) : f.quizId}</span>
-                      {f.dayCount > 0 ? <span className="hr-x" title={`${f.dayCount} play${f.dayCount === 1 ? '' : 's'} today`}>(x{f.dayCount})</span> : null}
-                      {cat ? <span className="hr-cat" style={{ background: cat.tint, color: cat.color }}>{cat.label}</span> : null}
-                    </span>
-                    <span className="hr-s">
-                      <b className="hr-res-sc">{f.score}/{f.total}</b>
-                      {typeof f.pct === 'number' ? ` · beat ${f.pct}%` : ''}{f.when ? ` · ${f.when}` : ''}
-                    </span>
+          {/* TWO SMALL FIGURES IN ONE STACKED CELL, not two 20px .hr-lsval
+              cells (owner, 2026-08-12). The play count is already this slab's
+              hero number, so a second and third at the same weight both
+              competed with it and ate the rail. */}
+          <div className="hr-lspair">
+            <span>{num(playersToday)}<i>{playersToday === 1 ? 'player' : 'players'}</i></span>
+            <span>{timeToday}<i>played</i></span>
+          </div>
+        </div>
+        <div className="hr-scroll hr-flex hr-actbody">
+          {(lastPlayed || []).slice(0, 14).map((f, i) => {
+            const frac = f.total ? f.score / f.total : 0;
+            const pct = Math.round(frac * 100);
+            const cat = catFor ? catFor(f.quizId) : null;
+            return (
+              /* The 32px conic ring became the 4px left rule the rest of the
+                 page uses: fourteen of them stacked down a 300px rail were
+                 the busiest object on the homepage, and the percentage was
+                 always the real readout. The rule keeps the depth cue (ramp
+                 deep for a strong run, pale for a weak one) and the number
+                 moves out to the right edge as plain text. */
+              <Link key={`${f.quizId}-${i}`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
+                <i className="hr-rl" style={{ background: ringTone(pct) }} aria-hidden="true" />
+                <span className="hr-mid">
+                  <span className="hr-t">
+                    <span className="hr-ttl">{titleFor ? titleFor(f.quizId) : f.quizId}</span>
+                    {f.dayCount > 0 ? <span className="hr-x" title={`${f.dayCount} play${f.dayCount === 1 ? '' : 's'} today`}>(x{f.dayCount})</span> : null}
+                    {cat ? <span className="hr-cat" style={{ background: cat.tint, color: cat.color }}>{cat.label}</span> : null}
                   </span>
-                  <span className="hr-pc">{pct}%</span>
-                </Link>
-              );
-            })
-          ) : (
-            leadRows.map((row) => <CatSlip key={row.name} row={row} tone={catList.indexOf(row.name)} />)
-          )}
-          {!showLeaders && !(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
+                  <span className="hr-s">
+                    <b className="hr-res-sc">{f.score}/{f.total}</b>
+                    {typeof f.pct === 'number' ? ` · beat ${f.pct}%` : ''}{f.when ? ` · ${f.when}` : ''}
+                  </span>
+                </span>
+                <span className="hr-pc">{pct}%</span>
+              </Link>
+            );
+          })}
+          {!(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
         </div>
         <div className="hr-foot">
           <button type="button" className="hr-exp" onClick={onAllLive}>All activity</button>
-          {/* The footer link follows the visible face, so it points at whichever
-              board the reader is actually looking at. */}
-          <Link href={showLeaders ? '/quizzes/hub?tab=daily' : '/quizzes/hub?tab=player'} className="hr-link">
-            {showLeaders ? 'Daily boards' : 'Stat hub'} &rarr;
-          </Link>
+          <Link href="/quizzes/hub?tab=player" className="hr-link">Stat hub &rarr;</Link>
         </div>
       </section>
 
-      {/* FEATURED: every slot is a cap card (owner-approved direction B2,
-          2026-08-10). It was three identical rows, each with a pastel tinted
-          icon square (the only pastels left on the page, in three near
-          identical blues) and a chevron (the only chevrons on the page), and
-          nothing on any of them was a control. The Daily Challenge has a board
-          and a deadline; Start a duel is an evergreen link. Rendering them at
-          the same weight said they were the same kind of thing.
+      {/* STREAK (owner, 2026-08-14). The site had no streak of its own until
+          this shipped: daily-status computed a consecutive-day run PER GAME,
+          which is a narrower question, so a player who plays five different
+          games across five days read as having none. The route now unions those
+          day sets and this tile carries the result, with the single game most
+          worth protecting on the right edge.
 
-          Each card is the slate's cap-bar shape, stepping navy / blue / pale
-          down the ramp so three solid blocks still read as three, with the
-          leading card carrying the gold rule that marks the day's event. The
-          header chip says how long today's slate has left, which is the fact
-          that makes the panel worth a second look.
-
-          Fields: `eyebrow` / `name` / `sub` / `cta`, with fallbacks onto the
-          older { title, sub } shape so a caller that has not been updated still
-          renders something sensible rather than a blank card. */}
-      <section className="hr-panel hr-feat">
+          `playedToday` is what decides the sub line, not the streak itself: an
+          unbroken run says nothing about whether today is already banked, and
+          "keep it going" under a day you have finished is just wrong. */}
+      <section className="hr-panel hr-tile">
         <div className="hr-ph">
-          <span className="hr-pi"><SparkIcon /></span><h2>Featured</h2>
-          {resetIn ? <span className="hr-chip">RESETS IN {resetIn}</span> : null}
+          <span className="hr-pi"><FlameIcon /></span>
+          <h2>Your streak</h2>
+          {streak > 0 ? <span className="hr-chip">{playedToday ? 'TODAY BANKED' : 'AT RISK'}</span> : null}
         </div>
-        {featured.map((f, i) => {
-          const eyebrow = f.eyebrow || f.title;
-          const name = f.name || f.sub;
-          const sub = f.name ? f.sub : '';
-          return (
-            <Link key={f.title || eyebrow} href={f.href} className={`hr-fcard t${Math.min(i, 2)}`}>
-              <span className="hr-fctxt">
-                <span className="hr-fceye">{eyebrow}</span>
-                <span className="hr-fcnm">{name}</span>
-                <span className="hr-fcsub">
-                  {f.leader ? <span className="hr-fl"><CrownIcon />{f.leader}</span> : null}
-                  {f.leader && sub ? <span className="hr-fcdot">&middot;</span> : null}
-                  {sub || null}
-                </span>
+        <div className={`hr-lslab${streak > 0 ? ' lite' : ''}`}>
+          <div className="hr-lstxt">
+            <div className="hr-lseye">Days in a row</div>
+            <div className="hr-lsnm">{streak > 0 ? `${streak} ${streak === 1 ? 'day' : 'days'}` : 'Not started'}</div>
+            <div className="hr-lssub">
+              {streak <= 0
+                ? 'Finish any daily today and it begins'
+                : (playedToday ? 'Today is in. Back tomorrow to extend it.' : 'Finish any daily today to keep it')}
+            </div>
+          </div>
+          {streakGame ? (
+            <div className="hr-lsval"><b>{streakGameDays}</b><span>{streakGame}</span></div>
+          ) : null}
+        </div>
+      </section>
+
+      {/* CHALLENGE (owner, 2026-08-14). Prefilled with the player immediately
+          AHEAD of you on today's combined daily board, or immediately behind
+          when you are already first, because a duel is only worth offering
+          against someone you are actually racing.
+
+          The rival comes off /api/quiz/daily-combined rather than being picked
+          out of `dailyRows` here: that board is the top 10, so a reader sitting
+          outside it has no neighbour anywhere in the payload the rail holds.
+          The link hands the composer an opponent already chosen, keyed on their
+          browser anon, which is the only handle /duel/new accepts.
+
+          With no rival (signed out, or nobody else on the board yet) the card
+          becomes the open composer. That fallback is load-bearing now that
+          Featured is gone: this is the only duel entry left on the home page. */}
+      <section className="hr-panel hr-tile">
+        <div className="hr-ph">
+          <span className="hr-pi"><SwordsIcon /></span>
+          <h2>Challenge</h2>
+          <span className="hr-chip">HEAD TO HEAD</span>
+        </div>
+        {rival ? (
+          <Link href={duelHref} className="hr-fcard t0">
+            <span className="hr-fctxt">
+              <span className="hr-fceye">{rival.behind ? 'Right behind you' : 'Next one ahead'}</span>
+              <span className="hr-fcnm">{rival.username}</span>
+              <span className="hr-fcsub">
+                {rival.rank ? `#${rival.rank} today` : 'On the board today'}
+                {gapLine ? <span className="hr-fcdot">&middot;</span> : null}
+                {gapLine || null}
               </span>
-              <span className="hr-fcgo">{f.cta || 'Play'}</span>
-            </Link>
-          );
-        })}
+            </span>
+            <span className="hr-fcgo">Duel</span>
+          </Link>
+        ) : (
+          <Link href="/duel/new" className="hr-fcard t0">
+            <span className="hr-fctxt">
+              <span className="hr-fceye">Head to head</span>
+              <span className="hr-fcnm">Start a duel</span>
+              <span className="hr-fcsub">Pick anyone and a quiz, one round each</span>
+            </span>
+            <span className="hr-fcgo">Open</span>
+          </Link>
+        )}
       </section>
     </>
   );
@@ -1000,12 +1001,16 @@ export default function HomeRails({
    panel's slab and the rest stack under it in the scroller.
 
    `tone` is the CATEGORY's own index, not its position in the list, so a
-   category keeps its ground colour when the list rotates. Position-based tones
-   were the first cut and made every slip change colour every eight seconds,
-   which reads as the panel redrawing itself rather than reordering.
+   category keeps its ground colour whatever order the list arrives in. That
+   mattered more when this lived on a rotating face (position-based tones made
+   every slip change colour every eight seconds, which reads as the panel
+   redrawing itself rather than reordering); it still holds now that the slips
+   are a plain list on the left rail, since the board they are built from can
+   reorder under them as the day fills in.
 
-   A category with no board yet renders the same slip reading "Nobody yet", so
-   the rotation never lands on a hole. */
+   A category with no board yet renders the same slip reading "Nobody yet",
+   rather than being skipped: a gap in the list reads as a bug, and "nobody
+   yet" is a real and useful thing for the panel to say. */
 function CatSlip({ row, tone }) {
   if (!row) return null;
   const led = row.leader;
@@ -1038,5 +1043,5 @@ function CatSlip({ row, tone }) {
 function CrownIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10" /></svg>; }
 function FlameIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M12 2c1 4-2 5.2-2 8a2 2 0 0 0 4 0c2 2 3 4 3 6a5 5 0 0 1-10 0C7 12 11 10 12 2z" /></svg>; }
 function StarIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.7 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.3 6.5 19.2l1.2-6.1L3.2 8.9l6.1-.8z" /></svg>; }
-function SparkIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18" /></svg>; }
+function SwordsIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14.5 14.5 21 21M18 3h3v3l-9 9-3-3zM6 3H3v3l9 9 3-3M9.5 14.5 3 21" /></svg>; }
 function PulseIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4" /></svg>; }

@@ -2440,39 +2440,6 @@ export default function QuizHomeClient() {
                 return { label, color, tint: (typeof color === 'string' && color.length === 7) ? `${color}18` : 'rgba(0,0,0,0.05)' };
               }}
               onAllLive={() => setListMode('live')}
-              /* Cap cards since 2026-08-10, so each slot names itself in the
-                 eyebrow and puts the thing you are actually picking on the big
-                 line: `eyebrow` labels the slot, `name` is the pick, `sub` and
-                 `leader` share the third line, `cta` is the button. The icon
-                 and pastel tint each row used to carry are gone with the row. */
-              featured={[
-                ...((daily && DAILY_CHALLENGE_ON) ? [{
-                  title: 'Daily Challenge',
-                  eyebrow: 'Daily challenge',
-                  name: dailyCat || 'Today',
-                  sub: dailyAllDone ? 'All done, see how you placed' : '',
-                  leader: (dailyRows[0] && !dailyRows[0].isAnon) ? (dailyRows[0].username || '') : '',
-                  href: dailyAllDone ? `/challenge/${dailyId}?done=1` : dailyEntryUrl,
-                  cta: dailyAllDone ? 'Results' : 'Play',
-                }] : []),
-                ...(qotd ? [{
-                  title: 'Quiz of the Day',
-                  eyebrow: 'Quiz of the day',
-                  name: stripVerb(qotd.title),
-                  sub: '',
-                  leader: qotdLeader,
-                  href: `/quiz/${qotd.id}`,
-                  cta: 'Play',
-                }] : []),
-                {
-                  title: 'Start a duel',
-                  eyebrow: 'Head to head',
-                  name: 'Start a duel',
-                  sub: 'Challenge someone 1 v 1',
-                  href: '/quizzes/hub?tab=duels',
-                  cta: 'Open',
-                },
-              ]}
             />
           </div>
         </div>

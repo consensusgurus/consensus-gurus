@@ -429,6 +429,52 @@ export async function GET(request) {
     }
     const overallBoardOut = overallNamed.slice(0, DISPLAY).map((r) => ({ ...r, rank: overallRankByKey.get(r.userKey) }));
 
+    // THE RIVAL (owner, 2026-08-14). The named player immediately AHEAD of the
+    // viewer on this board, or immediately BEHIND when the viewer is already
+    // first. The home rail's challenge tile offers a duel against them, and it
+    // cannot read this off `overall`: that is the top 10, so a viewer sitting
+    // at #16 has no neighbour anywhere in the payload. Computed here because
+    // the full named board and the viewer's own row are both already in hand.
+    let rival = null;
+    if (me && me.userKey) {
+      const ix = overallNamed.findIndex((r) => r.userKey === me.userKey);
+      if (ix >= 0) {
+        const pick = ix > 0 ? overallNamed[ix - 1] : (overallNamed[1] || null);
+        if (pick && pick.userKey !== me.userKey) {
+          const behind = ix === 0;
+          const diff = behind
+            ? (me.total || 0) - (pick.total || 0)
+            : (pick.total || 0) - (me.total || 0);
+          rival = {
+            username: pick.username,
+            userKey: pick.userKey,
+            rank: overallRankByKey.get(pick.userKey) || null,
+            total: pick.total,
+            // Always the distance BETWEEN the two, never signed: `behind` says
+            // which side of the viewer it is on.
+            gap: Math.round(Math.abs(diff) * 10) / 10,
+            behind,
+            anon: null,
+          };
+        }
+      }
+    }
+    // The duel composer keys an opponent on their browser anon, so resolve it
+    // here (one row) rather than making the client guess the rival by a name
+    // search that can match the wrong player. A failure just leaves anon null
+    // and the tile falls back to the open composer.
+    if (rival) {
+      if (rival.userKey.startsWith('a:')) rival.anon = rival.userKey.slice(2);
+      else if (rival.userKey.startsWith('u:')) {
+        try {
+          const { data: ru } = await supabaseAdmin
+            .from('quiz_users').select('anon_id').eq('id', rival.userKey.slice(2)).limit(1);
+          if (ru && ru[0] && ru[0].anon_id) rival.anon = ru[0].anon_id;
+        } catch (e) { /* best effort */ }
+      }
+      delete rival.userKey;
+    }
+
     // Personal rank tiles use the SAME registered board rank as the player's own
     // row, while the denominator (field/plays/uniquePlayers) stays the full pool,
     // so a registered player reads e.g. "#9 of 28" instead of a gappy "#23 of 28".
@@ -461,6 +507,7 @@ export async function GET(request) {
       overall: overallBoardOut,
       me,
       meProvisional,
+      rival,
     }, { headers: fresh ? NO_STORE_HEADERS : CACHE_HEADERS });
   } catch (e) {
     console.error('daily-combined exception', e);

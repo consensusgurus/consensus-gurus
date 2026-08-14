@@ -151,6 +151,16 @@ export async function GET(request) {
     // games count (abandoned rows never reach `played`). Streaks under 2 are
     // omitted; lookback capped so the loop stays trivial.
     const streaks = {};
+    // SITE-WIDE STREAK (owner, 2026-08-14). The per-game map below answers a
+    // narrower question than a reader means by "streak": someone who plays five
+    // DIFFERENT games across five days has no per-game run at all and would
+    // read as having none. So the same backward walk also runs over the UNION
+    // of every game's day set. It costs one more pass over data already in
+    // hand and no extra query.
+    let streak = 0;
+    let streakGame = null;
+    let streakGameDays = 0;
+    let playedToday = false;
     try {
       const et = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
       const byGame = new Map();
@@ -171,6 +181,26 @@ export async function GET(request) {
           else break;
         }
         if (s >= 2) streaks[g] = s;
+      }
+      const allDays = new Set();
+      for (const days of byGame.values()) for (const d of days) allDays.add(d);
+      const keyOf = (d) => `${d.getMonth() + 1}-${d.getDate()}-${d.getFullYear() % 100}`;
+      let ss = 0;
+      for (let i = 0; i < MAX_BACK; i++) {
+        const d = new Date(et); d.setDate(et.getDate() - i);
+        if (allDays.has(keyOf(d))) ss++;
+        else if (i === 0) continue; // today is optional, exactly as above
+        else break;
+      }
+      streak = ss;
+      playedToday = allDays.has(keyOf(et));
+      // The single game most worth protecting. Ties go to the alphabetically
+      // first so the pick is stable between requests rather than following
+      // whatever order the day sets happened to iterate in.
+      for (const [g, n] of Object.entries(streaks)) {
+        if (n > streakGameDays || (n === streakGameDays && streakGame && g < streakGame)) {
+          streakGameDays = n; streakGame = g;
+        }
       }
     } catch (e) {}
     // Today's IQ Points (ET), for the "Your day" strip. Computed HERE rather than
@@ -242,7 +272,7 @@ export async function GET(request) {
     for (const [k, all] of archiveAll) {
       archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
     }
-    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, inProgress, streaks, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, inProgress, streaks, streak, streakGame, streakGameDays, playedToday, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [], inProgress: [] });
