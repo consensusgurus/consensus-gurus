@@ -44,6 +44,8 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
+import LoftCap from '../LoftCap';
+import { isLoft } from '@/lib/loft';
 import { N, EXIT_ROW, fromData, grid, moves as legalSlides, apply, solved, solve } from './solver';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
@@ -216,6 +218,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
+  const LOFT = isLoft('park');
   const used = g.moves.length;
   // PUZZLE.par is the banked exact minimum. It is the PERFECT line now; par is
   // the cushioned target derived from it (lib/par.js). The banked field keeps
@@ -525,12 +528,36 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   const cellPct = 100 / N;
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="park" name="Parker" collapsed={started} />
+      <DailyChrome slug="park" name="Parker" collapsed={started} loft={LOFT} />
+      {/* LOFT: the cap replaces the title block AND the board's own stat
+          strip. Parker grades a win from 10 down, so any solve is a win and
+          a give-up is not: there is no partial state for the amber cap. */}
+      {LOFT && (
+        <LoftCap
+          name="Parker"
+          cat="Logic"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? `Sunday Edition · Par ${par}` : null}
+          figures={playing ? [
+            { v: used, k: 'moves' },
+            { v: elapsed, k: 'time' },
+            { v: `${par} · ${perfect}`, k: 'par · perfect' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: used, k: 'moves' },
+            { v: `${par} · ${perfect}`, k: 'par · perfect' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="pk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.pk-wrap{padding-left:10px !important;padding-right:10px !important;}}
@@ -547,6 +574,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
+        {!LOFT && (
         <DailyMasthead
           slug="parker" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
@@ -555,6 +583,11 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
             <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
+        )}
+
+        {/* LOFT: the start tile and the board sit on the navy stage, which
+            runs full bleed and fills the first screen. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -576,12 +609,16 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          {/* These figures move UP into the cap on a loft page; printing
+              them twice is the one thing to avoid. */}
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: used > par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b> &middot; perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{perfect}</b></span>
           </div>
+          )}
 
           <div style={{ maxWidth: 430, margin: '0 auto', position: 'relative' }}>
             <div key={shake} className={`pk-lot${shake ? ' shake' : ''}`}>
@@ -653,11 +690,12 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
               )}
             </div>
           )}
-        </div>
-        )}
 
+        {/* Controls. These sit INSIDE the board card: on the navy stage a
+            bare row of faded text has nothing to sit on, and the card is
+            meant to hold the whole game. */}
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
               Tap a block, then tap where you want it. No undo.
             </span>
@@ -667,6 +705,11 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
             </button>
           </div>
         )}
+        </div>
+        )}
+
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
