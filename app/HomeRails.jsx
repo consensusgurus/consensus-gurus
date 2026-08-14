@@ -187,7 +187,7 @@ function useFitRows(total, cap, dataLen) {
     const box = boxRef.current;
     if (!box) return undefined;
     let raf = 0;
-    let timer = 0;
+    const timers = [];
     const measure = () => {
       // A box that is not height-constrained (the stacked layout below 1200px
       // sets overflow:visible) has no slack to divide and no reason to cap:
@@ -226,18 +226,26 @@ function useFitRows(total, cap, dataLen) {
       setFit((p) => (p.n === n && Math.abs(p.pad - pad) < 0.05 ? p : { n, pad }));
     };
     measure();
-    // First paint is exactly when the box is least likely to be its final
-    // height (the rail's height is set from a measurement of the centre
-    // console, an effect away), so guarantee two more passes rather than
-    // trusting the observer to notice.
+    // SETTLE PASSES, and there are several on purpose. First paint is exactly
+    // when the box is least likely to be its final height: the rail's height
+    // comes from a measurement of the centre console an effect away, the panel
+    // above it resolves its own content, and web fonts reflow the rows under
+    // it. The observer alone did NOT catch the last of those changes on the
+    // live page (owner-reported, 2026-08-14: the category list sat at a pad
+    // computed against a 523px box while the box was 381px, and one synthetic
+    // resize event fixed it instantly), so the settle is scheduled rather than
+    // waited for. Six passes over two seconds cost nothing; each is a couple
+    // of reads and a setState that usually changes nothing.
     if (typeof requestAnimationFrame !== 'undefined') raf = requestAnimationFrame(measure);
-    timer = setTimeout(measure, 300);
+    for (const ms of [150, 400, 900, 1800]) timers.push(setTimeout(measure, ms));
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure).catch(() => {}); }
+    catch (e) { /* no font loading API */ }
     let ro = null;
     if (typeof ResizeObserver !== 'undefined') { ro = new ResizeObserver(measure); ro.observe(box); }
     window.addEventListener('resize', measure);
     return () => {
       if (raf && typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(raf);
-      clearTimeout(timer);
+      for (const t of timers) clearTimeout(t);
       if (ro) ro.disconnect();
       window.removeEventListener('resize', measure);
     };
