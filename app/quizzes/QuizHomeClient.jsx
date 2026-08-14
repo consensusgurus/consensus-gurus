@@ -1682,6 +1682,10 @@ export default function QuizHomeClient() {
     .qzh .qz-toolbtn svg{flex:none;color:var(--muted);transition:color .14s ease;}
     .qzh .qz-toolbtn:hover{background:var(--surface);border-color:var(--muted);color:var(--ink);}
     .qzh .qz-toolbtn:hover svg{color:var(--ink);}
+    .qzh .qz-toolbtn.qz-toolcta{background:${C.cta};border-color:${C.cta};color:${C.ctaInk};}
+    .qzh .qz-toolbtn.qz-toolcta svg{color:${C.ctaInk};}
+    .qzh .qz-toolbtn.qz-toolcta:hover{background:${C.ctaHover};border-color:${C.ctaHover};color:${C.ctaInk};}
+    .qzh .qz-toolbtn.qz-toolcta:hover svg{color:${C.ctaInk};}
     /* One accent in the row: Share my day, the button we most want pressed
        (owner 2026-07-30). It leads the row, left of the search field. */
     @media(max-width:1024px){.qzh .qz-toolsearch{flex:1 1 100%;}.qzh .qz-toolbtns{flex:1 1 100%;}.qzh .qz-toolbtn{flex:1 1 0;justify-content:center;}}
@@ -2509,7 +2513,7 @@ export default function QuizHomeClient() {
             <button type="button" className="qz-toolbtn" onClick={() => setFeedbackMode('issue')}>
               <Flag size={15} aria-hidden="true" />Report an issue
             </button>
-            <Link href="/request" className="qz-toolbtn">
+            <Link href="/request" className="qz-toolbtn qz-toolcta">
               <Sparkles size={15} aria-hidden="true" />Request a quiz
             </Link>
           </div>
