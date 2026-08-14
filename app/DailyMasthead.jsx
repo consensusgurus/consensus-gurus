@@ -33,6 +33,7 @@ import { HelpCircle } from 'lucide-react';
 import { T } from '@/lib/theme';
 import { dailyGameName, DAILY_GAME_MAP } from '@/lib/daily-games';
 import useLoft from './useLoft';
+import { loftKey } from '@/lib/loft';
 import LoftCap from './LoftCap';
 
 // TYPE (owner, 2026-08-04): this meta line is Manrope, NOT DM Mono. The navy
@@ -129,7 +130,8 @@ export default function DailyMasthead({
     <span ref={noRef} style={{ fontFamily: SANS, fontSize: 14, letterSpacing: '-0.005em', fontWeight: 800, color: INK, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>No. {num}</span>
   );
   if (loft) {
-    const meta = DAILY_GAME_MAP[slug] || null;
+    // Look the game up by its KEY: two clients pass their route here.
+    const meta = DAILY_GAME_MAP[loftKey(slug)] || null;
     return (
       <div className="lcap-bleed">
         <LoftCap
