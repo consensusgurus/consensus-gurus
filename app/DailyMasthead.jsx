@@ -31,7 +31,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { T } from '@/lib/theme';
-import { dailyGameName } from '@/lib/daily-games';
+import { dailyGameName, DAILY_GAME_MAP } from '@/lib/daily-games';
+import useLoft from './useLoft';
+import LoftCap from './LoftCap';
 
 // TYPE (owner, 2026-08-04): this meta line is Manrope, NOT DM Mono. The navy
 // header it sits under carries no mono at all, so the typewriter texture read
@@ -42,6 +44,14 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const INK = T.ink;
 const FADED = T.muted;
 
+// A loft game replaces this whole title block with the cap. Everything the cap
+// needs is already here: the number, the date, the help handler and the Sunday
+// badge, plus the name and category from the daily registry. That is what makes
+// the format reachable on all 56 games without editing a single game client.
+//
+// Figures are deliberately NOT passed. Every client still renders its own live
+// stat strip inside its board card, so putting the same numbers in the cap would
+// print them twice. They move up per game, as each client's strip comes out.
 export default function DailyMasthead({
   blocks,      // accepted and ignored, see the note above
   blockGap = 5, // accepted and ignored
@@ -56,6 +66,7 @@ export default function DailyMasthead({
   helpTop = 10,
 }) {
   const title = dailyGameName(slug);
+  const loft = useLoft(slug);
   const wrapRef = useRef(null);
   const blocksRef = useRef(null);
   const noRef = useRef(null);
@@ -117,6 +128,22 @@ export default function DailyMasthead({
   const noEl = (
     <span ref={noRef} style={{ fontFamily: SANS, fontSize: 14, letterSpacing: '-0.005em', fontWeight: 800, color: INK, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>No. {num}</span>
   );
+  if (loft) {
+    const meta = DAILY_GAME_MAP[slug] || null;
+    return (
+      <div className="lcap-bleed">
+        <LoftCap
+          name={title}
+          cat={meta ? meta.cat : ''}
+          num={num}
+          dateLabel={dateLabel}
+          onHelp={onHelp}
+          sunday={sunday}
+        />
+      </div>
+    );
+  }
+
   const dateEl = (
     <span ref={dateRef} style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, color: FADED, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{dateLabel}</span>
   );

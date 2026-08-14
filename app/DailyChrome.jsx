@@ -43,7 +43,7 @@
 import React from 'react';
 import QuizNavHeader from './quizzes/QuizNavHeader';
 import DailySlateRail from './DailySlateRail';
-import { isLoft } from '@/lib/loft';
+import useLoft from './useLoft';
 
 export default function DailyChrome({ slug, loft: loftProp = false }) {
   // LOFT FORMAT: drops the selector ribbon (choosing another daily belongs
@@ -51,7 +51,7 @@ export default function DailyChrome({ slug, loft: loftProp = false }) {
   // played figures already live on the home page and the end card. Opt in by
   // route (the preview passes `loft`) or by slug once a game ships on it.
   // Every other page takes the untouched branch.
-  const loft = loftProp || isLoft(slug);
+  const loft = useLoft(slug, loftProp);
   return (
     <div className={loft ? 'dch-wrap dch-loft' : 'dch-wrap'}>
       {/* STACKING: the wrapper caps the whole header group at z-index 5. The

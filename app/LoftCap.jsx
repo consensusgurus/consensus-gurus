@@ -59,6 +59,10 @@ export default function LoftCap({
 .lcap-sun{display:inline-block;margin-left:8px;font-weight:800;font-size:9px;line-height:1;
   letter-spacing:.11em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold);
   border-radius:4px;padding:3px 6px;vertical-align:middle}
+.lcap-sunnode{display:inline-flex;align-items:center;margin-left:8px;vertical-align:middle}
+/* The shared masthead sits inside the page column, so the cap has to break out
+   of it to run edge to edge the way the bands above it do. */
+.lcap-bleed{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-bottom:14px}
 .lcap-help{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.18);
   display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--white);
   border:0;cursor:pointer;margin-right:12px;flex:none;font-family:inherit}
@@ -137,7 +141,11 @@ export default function LoftCap({
       `}</style>
       <div className="lcap-id">
         <span className="lcap-eb">{eyebrow}</span>
-        <span className="lcap-nm">{name}{sunday ? <span className="lcap-sun">{sunday}</span> : null}</span>
+        <span className="lcap-nm">{name}{sunday
+          ? (typeof sunday === 'string'
+              ? <span className="lcap-sun">{sunday}</span>
+              : <span className="lcap-sunnode">{sunday}</span>)
+          : null}</span>
       </div>
       {onHelp ? (
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
