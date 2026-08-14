@@ -39,6 +39,7 @@ import { isLoft } from '@/lib/loft';
 import LoftCap from '../LoftCap';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed from '../useNextUnplayed';
+import LoftFinish from '../LoftFinish';
 import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
@@ -1421,31 +1422,19 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           </div>
           </div>
           {LOFT && !playing && (
-            <div className="loft-back">
-              <div className="loft-res">
-                <b>{won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}</b>
-                <s>{endScore}/{PUZZLE.slots.length * 2} &middot; {guessesUsed} guesses &middot; {elapsed}</s>
-              </div>
-              <button className="loft-opt pri" onClick={() => setRevealed(true)}>
-                Reveal<span className="sub">Turn back to the finished board</span>
-              </button>
-              {prevPuzzle && (
-                <a className="loft-opt" href={`/crux?p=${prevPuzzle.num}`}>
-                  Play another Crux<span className="sub">No. {prevPuzzle.num}, yesterday&rsquo;s puzzle</span>
-                </a>
-              )}
-              {nextUp && (
-                <a className="loft-opt" href={nextUp.href}>
-                  Play similar<span className="sub">{nextUp.name} &middot; {nextUp.tag}</span>
-                </a>
-              )}
-              <button className="loft-opt gold" onClick={copyShare}>
-                {copied ? 'Copied' : 'Share'}<span className="sub">Your result, no spoilers</span>
-              </button>
-              <a className="loft-opt" href="/daily">
-                Archive<span className="sub">Every daily puzzle, by date</span>
-              </a>
-            </div>
+            <LoftFinish
+              title={won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}
+              detail={`${endScore}/${PUZZLE.slots.length * 2} · ${guessesUsed} guesses · ${elapsed}`}
+              options={[
+                // Crux hides its words, so it HAS a reveal. A game that never
+                // hid its board simply omits this one.
+                { label: 'Reveal', sub: 'Turn back to the finished board', kind: 'pri', onClick: () => setRevealed(true) },
+                prevPuzzle && { label: 'Play another Crux', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/crux?p=${prevPuzzle.num}` },
+                nextUp && { label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
+                { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { label: 'Archive', sub: 'Every daily puzzle, by date', href: '/daily' },
+              ]}
+            />
           )}
           </div>
           </div>
