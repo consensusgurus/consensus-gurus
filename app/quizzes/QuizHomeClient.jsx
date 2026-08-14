@@ -14,7 +14,7 @@ import {
   BadgeCheck, Clapperboard, Music, Gamepad2, Plane, Globe, Utensils,
   Briefcase, Leaf, Tv, BookOpen, Landmark, Trophy, UserPlus, Play, X,
   Check, Star, Swords, Newspaper, Blocks, GraduationCap,
-  Flag, Gauge, QrCode,
+  Flag, QrCode,
 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
@@ -3119,9 +3119,6 @@ function CategoryMasteryTile({ rows, dailyRows, onPick, colorFor, dailyColorFor 
         .qzh .cmt-dots i.on{background:${T.blue};}
       `}</style>
       <div className="colhead cc-head cc-filled" style={{ borderColor: T.ink }}>
-        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: '#dbe6fb', color: T.blue, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-          <Gauge size={14} />
-        </span>
         <div className="cc-hgroup">
           <span className="cc-eyebrow">Your progress</span>
           <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: T.ink }}>{face.title}</h3>
@@ -3239,9 +3236,11 @@ function BrowseColumn({ label, eyebrow, Icon, color, tint, rows, cta, onCta, cta
         </Link>
       ) : null}
       <div ref={headRef} className={`colhead${blueHead ? ' cc-head' : ''}${filled ? ' cc-filled' : ''}`} style={{ borderColor: T.ink }}>
-        <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: tint, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
-          <Icon size={14} />
-        </span>
+        {blueHead ? null : (
+          <span className="colicon" style={{ width: 24, height: 24, borderRadius: 7, background: tint, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+            <Icon size={14} />
+          </span>
+        )}
         <div className="cc-hgroup">
           {eyebrow ? <span className="cc-eyebrow">{eyebrow}</span> : null}
           <h3 style={{ fontSize: 17, fontWeight: 800, margin: 0, color: headFg }}>{label}</h3>
