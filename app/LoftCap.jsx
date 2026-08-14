@@ -57,11 +57,25 @@ export default function LoftCap({
 .lcap-won .lcap-eb,.lcap-won .lcap-k{color:#b9f0d0}
 .lcap-lost{background:var(--danger)}
 .lcap-lost .lcap-eb,.lcap-lost .lcap-k{color:#f6cfc9}
-/* An intermediate result is neither: amber. It uses the DEEP gold rather than
-   the flat one, because the cap's text is white and white on var(--gold) is
-   unreadable. */
-.lcap-part{background:var(--gold-ink)}
-.lcap-part .lcap-eb,.lcap-part .lcap-k{color:#ffe9a8}
+/* An intermediate result is neither: amber. FLAT GOLD WITH DARK INK, which is
+   the pairing the home slate already uses on its paused cards (var(--gold)
+   ground, #2a1f04 ink), so a partial result reads the same here as it does
+   there (owner, 2026-08-14).
+   This was the DEEP gold with white text, on the reasoning that the cap's text
+   is white and white on flat gold is unreadable. That reasoning was right about
+   the contrast and wrong about the fix: the answer is to re-ink the cap, not to
+   darken the ground, because the ground is what carries the meaning. So every
+   white-on-blue token inside the cap gets a dark counterpart here, including
+   the hairline borders and the help button, which are white-alpha and vanish
+   on gold. */
+.lcap-part{background:var(--gold)}
+.lcap-part .lcap-nm,.lcap-part .lcap-v{color:#2a1f04}
+.lcap-part .lcap-eb,.lcap-part .lcap-k{color:#6b5306}
+.lcap-part .lcap-figs{border-top-color:rgba(0,0,0,0.22);border-left-color:rgba(0,0,0,0.22)}
+.lcap-part .lcap-figs>div{border-right-color:rgba(0,0,0,0.22)}
+.lcap-part .lcap-help{background:rgba(0,0,0,0.16);color:#2a1f04}
+.lcap-part .lcap-bar{background:rgba(0,0,0,0.16)}
+.lcap-part .lcap-bar i{background:#2a1f04}
 .lcap-id{flex:1;min-width:0;padding:8px 12px}
 .lcap-eb{display:block;font-weight:800;font-size:11.5px;line-height:1;letter-spacing:.13em;
   text-transform:uppercase;color:var(--blue-200);margin-bottom:4px}
@@ -145,8 +159,10 @@ export default function LoftCap({
    NO BACKTICKS IN THIS COMMENT. It lives inside a template literal, so a
    backtick here closes the style block and breaks the build. */
 .loft-page > [class$="-wrap"]:not(.dch-wrap){padding-top:0!important;padding-bottom:0!important}
-/* The end state lives INSIDE the stage, under the solved board, so the finish
-   is one dark block and the light tail below is unchanged from playing. */
+/* UNUSED as of 2026-08-14, kept for a game that wants a figure on the navy
+   under its board. Crux was the only caller and its IQ figure moved ONTO the
+   end card (.loft-fiq below), because that is where a player looks for it.
+   Delete both blocks if nothing has claimed them by the time the format ships. */
 .loft-iq{margin-top:12px;padding:11px 12px;background:rgba(255,255,255,0.09);
   border-left:4px solid var(--gold);border-radius:0 9px 9px 0;color:var(--white)}
 .loft-iq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
@@ -167,21 +183,80 @@ export default function LoftCap({
 .loft-flip-in{position:relative;transition:transform .5s cubic-bezier(.4,.1,.2,1);
   transform-style:preserve-3d}
 .loft-flip.on .loft-flip-in{transform:rotateY(180deg)}
+/* BOTH FACES MUST HIDE THEIR BACK, and the back one was missing it. The front
+   had backface-visibility:hidden and the back did not, so pressing Reveal (which
+   drops the .on class to turn the card back to the board) left the options panel
+   painted on top of the board, MIRRORED, because it was now facing away. It also
+   still swallowed the taps: a hit test at the middle of the card landed on
+   .loft-opt. That is the whole of the "reveal is broken" bug, measured on the
+   live page 2026-08-14, and it is why the panel in the report looked mirrored.
+   pointer-events is belt and braces: whichever face is turned away cannot be
+   clicked even if an engine mispaints the backface. */
 .loft-face{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .loft-back{position:absolute;inset:0 0 12px 0;transform:rotateY(180deg);background:var(--white);
   border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.34);padding:12px;overflow:auto;
-  display:flex;flex-direction:column;color:var(--ink)}
+  display:flex;flex-direction:column;color:var(--ink);
+  backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.loft-flip .loft-back{pointer-events:none}
+.loft-flip.on .loft-back{pointer-events:auto}
+.loft-flip.on .loft-face{pointer-events:none}
 .loft-res{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;
   padding-bottom:9px;border-bottom:1px solid var(--border)}
 .loft-res b{font-weight:800;font-size:17px;line-height:1}
 .loft-res s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
-.loft-opt{display:block;width:100%;text-align:left;margin-bottom:7px;padding:11px 12px;
-  border-radius:10px;border:2px solid var(--border);background:var(--white);color:var(--ink);
-  font-family:inherit;font-weight:800;font-size:14px;line-height:1;cursor:pointer;text-decoration:none}
-.loft-opt .sub{display:block;font-weight:600;font-size:11px;line-height:1.3;margin-top:4px;opacity:.72}
+/* THE OPTIONS ARE A TWO-ACROSS GRID THAT GROWS (owner, 2026-08-14: "these
+   buttons all need to be larger, and can split width if needed").
+   They were a single stacked column of 11px-padded rows, which on a card sized
+   to the BOARD left most of the card empty below them: the back takes its
+   height from the front, so on a tall board the options used the top third and
+   nothing used the rest. Two across halves the run of them and doubles the
+   width each one gets, and flex:1 on the grid lets the rows stretch into the
+   space that was empty, so the buttons get larger for free rather than by
+   picking a bigger fixed height that would overflow a short card.
+   The "wide" class spans both columns; LoftFinish sets it on the primary and
+   on a trailing odd one, so the grid never ends on a half-width orphan.
+   NO BACKTICKS IN THIS COMMENT: it is inside a template literal, so one closes
+   the style block and breaks the build. */
+.loft-opts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px;
+  flex:1;min-height:0;align-content:stretch}
+.loft-opt{display:flex;flex-direction:column;justify-content:center;text-align:left;
+  min-height:64px;padding:13px 15px;
+  border-radius:11px;border:2px solid var(--border);background:var(--white);color:var(--ink);
+  font-family:inherit;font-weight:800;font-size:15.5px;line-height:1.15;cursor:pointer;text-decoration:none}
+.loft-opt .sub{display:block;font-weight:600;font-size:11.5px;line-height:1.3;margin-top:5px;opacity:.72}
+.loft-opt.wide{grid-column:1 / -1}
 .loft-opt.pri{background:var(--blue);border-color:var(--blue);color:var(--white)}
 .loft-opt.gold{background:var(--gold);border-color:var(--gold);color:#3a2a05}
-.loft-opt:last-child{margin-bottom:0}
+@media(max-width:400px){.loft-opts{grid-template-columns:1fr}.loft-opt{min-height:0}}
+
+/* IQ earned, ON the card. It used to sit below the stage in .loft-iq, styled
+   white-on-navy; the end card is the place a player looks for it, so it moves
+   inside and takes light-card ink. Same gold rule, same figure. */
+.loft-fiq{display:flex;align-items:center;gap:13px;margin-top:11px;padding:11px 14px;
+  background:var(--surface-alt);border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
+.loft-fiq .n{font-weight:800;font-size:29px;line-height:1;color:var(--ink);letter-spacing:-.02em}
+.loft-fiq .t{min-width:0}
+.loft-fiq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--slate)}
+
+/* Today's board, top three plus you when you are outside it. */
+.loft-lb{margin-top:11px}
+.loft-lb .h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.loft-lb .h b{font-weight:800;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.loft-lb .h s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
+.loft-lbr{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;
+  font-weight:700;font-size:13px;color:var(--ink)}
+.loft-lbr+.loft-lbr{margin-top:3px}
+.loft-lbr .r{flex:none;width:18px;font-weight:800;font-size:12px;color:var(--muted);
+  font-variant-numeric:tabular-nums}
+.loft-lbr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loft-lbr .s{flex:none;font-weight:800;font-variant-numeric:tabular-nums}
+.loft-lbr .s i{font-style:normal;font-weight:700;color:var(--slate);margin-left:7px}
+.loft-lbr.first{background:rgba(232,180,58,0.18)}
+.loft-lbr.first .r{color:#8a6d1a}
+.loft-lbr.me{background:var(--accent-soft)}
+.loft-lbr.me .r{color:var(--blue)}
 .loft-showopts{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:2px solid var(--border);
   background:var(--surface-alt);color:var(--muted);font-family:inherit;font-weight:800;font-size:13px;cursor:pointer}
 

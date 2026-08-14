@@ -39,6 +39,7 @@ import { isLoft } from '@/lib/loft';
 import LoftCap from '../LoftCap';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
 import LoftFinish from '../LoftFinish';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -1020,6 +1021,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const endScore = scoreOf(g, PUZZLE.slots.length * 2);
   const iq = useIqStanding({ game: 'crux', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'crux', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
 
   // Play space matches the daily-games grid width (640): the header + puzzle
   // card fill the same column as the navy grid below. The board keeps its own
@@ -1430,6 +1432,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             <LoftFinish
               title={won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}
               detail={`${endScore}/${PUZZLE.slots.length * 2} · ${guessesUsed} guesses · ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
               options={[
                 // Crux hides its words, so it HAS a reveal. A game that never
                 // hid its board simply omits this one.
@@ -1440,29 +1444,15 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 nextUp && { label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
                 { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { label: 'Archive', sub: 'Every daily puzzle, by date', href: '/daily' },
+                { label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
               ]}
             />
           )}
           </div>
           </div>
           )}
-          {LOFT && !playing && (
-            <>
-              <div className="loft-iq">
-                <span className="l">IQ points earned</span>
-                <span className="v">
-                  {iq && iq.gained != null ? `+${iq.gained}` : '\u2014'}
-                  <small>
-                    {iq && iq.xp != null ? `${Number(iq.xp).toLocaleString()} total` : 'counting your run'}
-                    {iq && iq.rank != null ? ` \u00b7 IQ rank #${iq.rank}${iq.total != null ? ` of ${Number(iq.total).toLocaleString()}` : ''}` : ''}
-                  </small>
-                </span>
-              </div>
-              <div className="loft-acts">
-                <button onClick={resetGame}>Replay this puzzle</button>
-              </div>
-            </>
-          )}
+          {/* The IQ figure and Replay moved ONTO the end card, which is where
+              a player looks for them. See LoftFinish. */}
         </div>
 
           {/* result */}
