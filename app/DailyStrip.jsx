@@ -1202,36 +1202,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     return () => { alive = false; };
   }, [sel]);
 
-  // The fill panel's catch-up strip wants each game's real drop list: the true
-  // dates, and whether the VIEWER played that day. That is exactly what the
-  // drawer fetch above returns, so this reuses its endpoint, its gameData cache
-  // and its fetchedRef rather than adding a second source of truth: a game
-  // loaded here costs nothing when its drawer opens later, and the other way
-  // round. Only the handful of games on a thin, open group are fetched, and
-  // only once the panel is actually on screen. Until it lands the strip renders
-  // from num arithmetic (see renderFill), so the panel never waits on a fetch.
-  useEffect(() => {
-    if (!cats || !boardOpen || slateList.length > FILL_MAX) return undefined;
-    let alive = true;
-    let anonId = null, email = null;
-    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
-    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
-    for (const g of slateList.slice(0, FILL_GAMES)) {
-      if (fetchedRef.current.has(g.key)) continue;
-      fetchedRef.current.add(g.key);
-      const key = g.key;
-      const qs = new URLSearchParams({ game: key });
-      if (anonId) qs.set('anonId', anonId);
-      if (email) qs.set('email', email);
-      fetch('/api/quiz/daily-game?' + qs.toString())
-        .then((r) => r.json())
-        .then((d) => { if (alive && d && !d.error) setGameData((cur) => ({ ...cur, [key]: d })); })
-        .catch(() => { fetchedRef.current.delete(key); });
-    }
-    return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cats, boardOpen, slateList.length]);
-
   // FIT THE CONSOLE TO THE FOLD (owner, 2026-08-08). The board used to take a
   // hardcoded calc(100vh - 300px), where 300 was the sum of everything above it
   // back when the cap was a single row of two cards. The cap carries the paused
@@ -1808,6 +1778,40 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     );
   };
 
+
+  // The fill panel's catch-up strip wants each game's real drop list: the true
+  // dates, and whether the VIEWER played that day. That is exactly what the
+  // drawer fetch above returns, so this reuses its endpoint, its gameData cache
+  // and its fetchedRef rather than adding a second source of truth: a game
+  // loaded here costs nothing when its drawer opens later, and the other way
+  // round. Only the handful of games on a thin, open group are fetched, and
+  // only once the panel is actually on screen. Until it lands the strip renders
+  // from num arithmetic (see renderFill), so the panel never waits on a fetch.
+  // PLACEMENT IS LOAD-BEARING (2026-08-15). A dependency array is evaluated
+  // during render, at the line the hook is called on, so an effect naming
+  // slateList or boardOpen must sit BELOW them. Declared 500 lines earlier it
+  // threw Cannot access before initialization and took the whole homepage down.
+  useEffect(() => {
+    if (!cats || !boardOpen || slateList.length > FILL_MAX) return undefined;
+    let alive = true;
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    for (const g of slateList.slice(0, FILL_GAMES)) {
+      if (fetchedRef.current.has(g.key)) continue;
+      fetchedRef.current.add(g.key);
+      const key = g.key;
+      const qs = new URLSearchParams({ game: key });
+      if (anonId) qs.set('anonId', anonId);
+      if (email) qs.set('email', email);
+      fetch('/api/quiz/daily-game?' + qs.toString())
+        .then((r) => r.json())
+        .then((d) => { if (alive && d && !d.error) setGameData((cur) => ({ ...cur, [key]: d })); })
+        .catch(() => { fetchedRef.current.delete(key); });
+    }
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cats, boardOpen, slateList.length]);
 
   const renderFill = () => {
     if (!boardOpen || slateList.length > FILL_MAX) return null;
