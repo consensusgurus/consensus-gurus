@@ -55,6 +55,7 @@ import { PUZZLES as HANDS_FULL } from '../hands/puzzles';
 import { PUZZLES as TURN_FULL } from '../turn/puzzles';
 import { PUZZLES as SUFFICE_FULL } from '../suffice/puzzles';
 import { PUZZLES as DOCKET_FULL } from '../docket/puzzles';
+import { PUZZLES as PLOT_FULL } from '../plot/puzzles';
 import { PUZZLES as BARTER_FULL } from '../barter/puzzles';
 import { PUZZLES as DEFEND_FULL } from '../defend/puzzles';
 import { PUZZLES as BLITZ_FULL } from '../blitz/puzzles';
@@ -110,6 +111,7 @@ const CHAIN = CHAIN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const TURN = TURN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SUFFICE = SUFFICE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DOCKET = DOCKET_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const PLOT = PLOT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BARTER = BARTER_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DEFEND = DEFEND_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLITZ = BLITZ_FULL.map(({ num, quizId, live, dateLabel }) => ({ num, quizId, live, dateLabel }));
@@ -220,6 +222,7 @@ const GAMES = [
   { key: 'turn', name: 'Turn', path: '/turn', tag: 'Ten squares left', accent: '#226218', bg: '#e9f3e6', border: 'rgba(34,98,24,0.4)', src: TURN },
   { key: 'suffice', name: 'Suffice', path: '/suffice', tag: 'Decide what is enough', accent: '#4338ca', bg: '#eef0ff', border: 'rgba(67,56,202,0.4)', src: SUFFICE },
   { key: 'docket', name: 'Docket', path: '/docket', tag: 'One setup, five deductions', accent: '#5b2333', bg: '#f7e8ec', border: 'rgba(91,35,51,0.4)', src: DOCKET },
+  { key: 'plot', name: 'Plot', path: '/plot', tag: 'Divide the whole board', accent: '#78350f', bg: '#fbf1e5', border: 'rgba(120,53,15,0.4)', src: PLOT },
   { key: 'barter', name: 'Barter', path: '/barter', tag: 'Trade the letters home', accent: '#be123c', bg: '#fdeef2', border: 'rgba(190,18,60,0.4)', src: BARTER },
   { key: 'defend', name: 'Defend', path: '/defend', tag: 'Black to play and survive', accent: '#2f4f4f', bg: '#e9f0ef', border: 'rgba(47,79,79,0.4)', src: DEFEND },
   { key: 'blitz', name: 'Blitz', path: '/blitz', tag: 'Twenty problems, one life', accent: '#657512', bg: '#f3f7de', border: 'rgba(101,117,18,0.4)', src: BLITZ },
