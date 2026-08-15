@@ -34,7 +34,15 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T as THEME } from '@/lib/theme';
@@ -215,6 +223,12 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const [armReveal, setArmReveal] = useState(false);
   const [justWon, setJustWon] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -365,6 +379,12 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
+  const iq = useIqStanding({ game: 'emcee', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'emcee', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'emcee', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'emcee', active: LOFT && !playing });
+  const dayStats = useDayStats();
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
   const isBlock = useCallback((i) => solFlat[i] === '#', [solFlat]);
@@ -670,6 +690,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           cat="Word"
           outcome={playing ? null : (won ? 'won' : (endScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
+          tiles={playing ? null : upNext}
           dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved'))}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · 7×7' : null}
@@ -755,6 +776,9 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
         {/* the board */}
         {!preStart && (
         <div className={LOFT ? 'loft-card' : undefined} style={{ background: THEME.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
@@ -870,8 +894,50 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
           )}
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
         </div>
         )}
+        </div>
+        {LOFT && !playing && (
+          <LoftFinish
+            outcome={won ? 'won' : (endScore > 0 ? 'part' : 'lost')}
+            title={won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}
+            detail={`${endScore}/${TOTAL} \u00b7 ${checks} checks \u00b7 ${elapsed}`}
+            iq={iq}
+            board={dailyBoard}
+            gameRank={allTime && allTime.ready
+              ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                  label: allTime.field != null ? `emcee of ${allTime.field}` : 'emcee all time' }
+              : null}
+            day={dayStats}
+            streak={isTodays ? myStats.cur : null}
+            missLabel="Checks"
+            archive={puzzles
+              .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+              .sort((x, y) => y.num - x.num)
+              .slice(0, 14)
+              .map((p) => ({
+                num: p.num,
+                dateLabel: p.dateLabel,
+                sunday: !!p.sunday,
+                href: `/emcee?p=${p.num}`,
+                done: !!(myStats.rec && myStats.rec[p.num]),
+                score: myStats.rec && myStats.rec[p.num] ? myStats.rec[p.num].s : null,
+              }))}
+            options={[
+              { label: 'See the board', sub: 'Your finished grid', kind: 'pri', onClick: () => setRevealed(true) },
+              prevPuzzle && { tone: 'another', label: 'Play another Emcee', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/emcee?p=${prevPuzzle.num}` },
+              nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+              { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+              { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+              { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+            ]}
+          />
+        )}
+        </div>
+        </div>
 
         {/* end of the navy play stage. Everything below is the light tail:
             the result line, the games grid and the leaderboard panel, all
@@ -914,6 +980,12 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          {LOFT && (
+            <div className="loft-report">
+              <ReportIssue self="emcee" name="Emcee" accent="#ffffff" align="center" />
+            </div>
+          )}
+          {!LOFT && (
           <DailyGamesGrid replay={!playing ? resetGame : null}
             self="emcee"
             maxWidth={620}
@@ -923,6 +995,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
             boardSlot={<DailyBoardPanel self="emcee" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
+          )}
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: THEME.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -962,7 +1035,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="emcee"
