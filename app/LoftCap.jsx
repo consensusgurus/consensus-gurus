@@ -26,6 +26,7 @@ export default function LoftCap({
   num = null,
   dateLabel = '',
   figures = [],
+  tiles = null,      // once finished, what to play next, in place of the figures
   onHelp = null,
   sunday = null,
   progress = null,   // 0-100, draws the hairline at the foot of the cap
@@ -34,7 +35,7 @@ export default function LoftCap({
   const eyebrow = [cat, num != null ? `No. ${num}` : null, dateLabel]
     .filter(Boolean).join(' · ');
   return (
-    <div className={outcome ? `lcap lcap-${outcome}` : 'lcap'}>
+    <div className={outcome ? `lcap lcap-done lcap-${outcome}` : 'lcap'}>
       <div className="lcap-col">
       <style>{`
 .lcap{background:var(--blue);position:relative;font-family:${SANS};z-index:4}
@@ -53,16 +54,17 @@ export default function LoftCap({
    the colour carries the outcome: green solved, red not. Anything else would
    make a miss look like a win at a glance, which is the one thing the cap is
    there to say. */
-/* THE GOLD RULE GOES WHEN THE CAP RESOLVES (owner, 2026-08-14). While you are
-   playing the rule marks the game's column; once the band carries a verdict the
-   colour is the whole statement, and a yellow bar down the left of a solid green
-   or red just chops it up. Each outcome re-inks the rule to its own ground. */
+/* THE CAP NO LONGER CARRIES THE VERDICT (owner, 2026-08-14). It used to turn
+   green, amber or red on a finish. The verdict moved to the END CARD's own
+   header, which is where the result is: colouring the page furniture as well
+   said it twice, and the band is the game's identity rather than its outcome.
+   The colour classes are kept as hooks but paint nothing. */
 .lcap-won .lcap-col{border-left-color:var(--success-deep)}
 .lcap-lost .lcap-col{border-left-color:var(--danger)}
 .lcap-part .lcap-col{border-left-color:var(--gold)}
-.lcap-won{background:var(--success-deep)}
+
 .lcap-won .lcap-eb,.lcap-won .lcap-k{color:#b9f0d0}
-.lcap-lost{background:var(--danger)}
+
 .lcap-lost .lcap-eb,.lcap-lost .lcap-k{color:#f6cfc9}
 /* An intermediate result is neither: amber. FLAT GOLD WITH DARK INK, which is
    the pairing the home slate already uses on its paused cards (var(--gold)
@@ -75,7 +77,7 @@ export default function LoftCap({
    white-on-blue token inside the cap gets a dark counterpart here, including
    the hairline borders and the help button, which are white-alpha and vanish
    on gold. */
-.lcap-part{background:var(--gold)}
+
 .lcap-part .lcap-nm,.lcap-part .lcap-v{color:#2a1f04}
 .lcap-part .lcap-eb,.lcap-part .lcap-k{color:#6b5306}
 .lcap-part .lcap-figs{border-top-color:rgba(0,0,0,0.22);border-left-color:rgba(0,0,0,0.22)}
@@ -84,6 +86,20 @@ export default function LoftCap({
 .lcap-part .lcap-bar{background:rgba(0,0,0,0.16)}
 .lcap-part .lcap-bar i{background:#2a1f04}
 .lcap-id{flex:1;min-width:0;padding:8px 12px}
+/* Finished: the eyebrow goes and the block shrinks to the game's title, so the
+   width it was using goes to the next-up tiles beside it. */
+.lcap-done .lcap-eb{display:none}
+.lcap-done .lcap-id{flex:0 0 auto}
+.lcap-tiles{display:flex;gap:6px;flex:1;min-width:0;padding:6px 12px 8px;overflow-x:auto}
+.lcap-tiles a{flex:1 1 0;min-width:88px;text-decoration:none;background:rgba(255,255,255,0.14);
+  border-radius:9px;padding:7px 9px;color:var(--white)}
+.lcap-tiles a:hover{background:rgba(255,255,255,0.22)}
+.lcap-tiles b{display:block;font-weight:800;font-size:12.5px;line-height:1;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.lcap-tiles i{display:block;font-style:normal;font-weight:600;font-size:9.5px;line-height:1.25;
+  margin-top:3px;color:var(--blue-200);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(min-width:900px){.lcap-tiles{flex:0 0 auto;order:3;margin-left:auto}
+  .lcap-tiles a{flex:0 0 122px}}
 .lcap-eb{display:block;font-weight:800;font-size:11.5px;line-height:1;letter-spacing:.13em;
   text-transform:uppercase;color:var(--blue-200);margin-bottom:4px}
 .lcap-nm{display:block;font-weight:800;font-size:22px;line-height:1;letter-spacing:-.022em;color:var(--white)}
@@ -222,6 +238,16 @@ export default function LoftCap({
 .loft-res{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;
   padding-bottom:9px;border-bottom:1px solid var(--border)}
 .loft-res b{font-weight:800;font-size:17px;line-height:1}
+/* The verdict, moved off the cap. A full-bleed tinted header with a solid left
+   rule in the same colour, so the result is the first thing on the card. */
+.loft-res-won,.loft-res-part,.loft-res-lost{margin:-12px -12px 10px;padding:12px;
+  border-bottom:0;border-radius:14px 14px 0 0}
+.loft-res-won{background:rgba(21,128,61,0.12);border-left:6px solid var(--success-deep)}
+.loft-res-won b{color:var(--success-deep)}
+.loft-res-part{background:rgba(232,180,58,0.20);border-left:6px solid var(--gold)}
+.loft-res-part b{color:#8a6d1a}
+.loft-res-lost{background:rgba(190,42,42,0.10);border-left:6px solid var(--danger)}
+.loft-res-lost b{color:var(--danger)}
 .loft-res s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
 /* THE OPTIONS ARE A TWO-ACROSS GRID THAT GROWS (owner, 2026-08-14: "these
    buttons all need to be larger, and can split width if needed").
@@ -349,12 +375,20 @@ export default function LoftCap({
    goes back into it, and the card is then as tall as whatever is on it. The
    turn animation is no loss here: on a phone the card fills the screen, so
    almost none of it was ever visible. */
+/* NO SCROLLER, AT ANY WIDTH (owner, 2026-08-14, twice: "no scroller! make the
+   box longer"). This was gated to phones, and desktop kept its inner scrollbar
+   because the back is absolutely positioned inside the flip and so inherits the
+   FRONT's height, which is the board's. Its own content can never fit by
+   construction, whatever the screen. So the swap is universal now: the front
+   leaves the flow, the back rejoins it, and the card is exactly as tall as the
+   finish needs. The cost is the 3D turn, which is the right trade for never
+   hiding half the card behind a scrollbar. */
+.loft-flip{perspective:none}
+.loft-flip.on .loft-flip-in{transform:none}
+.loft-flip.on .loft-face{display:none}
+.loft-back{position:relative;inset:auto;transform:none;overflow:visible}
+.loft-backin{overflow:visible}
 @media(max-width:760px){
-  .loft-flip{perspective:none}
-  .loft-flip.on .loft-flip-in{transform:none}
-  .loft-flip.on .loft-face{display:none}
-  .loft-back{position:relative;inset:auto;transform:none;overflow:visible}
-  .loft-backin{overflow:visible}
   .loft-day span{padding:7px 8px;font-size:9.5px}
   .loft-day b{font-size:15px;margin-bottom:3px}
   .loft-opt{min-height:52px;height:auto;padding:10px 11px;font-size:13.5px;line-height:1.2}
@@ -417,7 +451,17 @@ export default function LoftCap({
       {onHelp ? (
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
       ) : null}
-      {figures.length ? (
+      {tiles && tiles.length ? (
+        <div className="lcap-tiles">
+          {tiles.map((t) => (
+            <a key={t.key} href={t.href || `/${t.key}`}>
+              <b>{t.name}</b>
+              <i>{t.tag}</i>
+            </a>
+          ))}
+        </div>
+      ) : null}
+      {!(tiles && tiles.length) && figures.length ? (
         <div className="lcap-figs">
           {figures.map((f, i) => (
             <div key={i}>

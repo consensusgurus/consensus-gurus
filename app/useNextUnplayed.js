@@ -41,3 +41,30 @@ export default function useNextUnplayed({ self = null, active = false }) {
   }, [self, active]);
   return next;
 }
+
+// The same pick, as a LIST, for the cap's finish tiles (owner, 2026-08-14). Once
+// a game is over its SCORE / WORDS / GUESSES / TIME are already stated on the
+// end card's own header line, so the cap's figure row is saying it twice; it
+// carries what to play next instead. Same-category first, then anything else
+// unplayed, so a word player is offered words before it reaches for filler.
+export function useUnplayedSimilar({ self = null, active = false, count = 4 }) {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    if (!active || !self) return undefined;
+    let alive = true;
+    fetchDailyMe(dailyMeQuery(dailyMeIdentity()), { fresh: true })
+      .then((d) => {
+        if (!alive) return;
+        const per = (d && d.perGame) || {};
+        const played = (k) => !!(per[k] && !per[k].abandoned);
+        const mine = DAILY_GAMES.find((g) => g.key === self) || null;
+        const open = DAILY_GAMES.filter((g) => g.key !== self && !played(g.key));
+        const sameCat = mine ? open.filter((g) => g.cat === mine.cat) : [];
+        const rest = open.filter((g) => !sameCat.includes(g));
+        setList([...sameCat, ...rest].slice(0, count));
+      })
+      .catch((e) => { if (typeof console !== 'undefined') console.warn('useUnplayedSimilar', e); });
+    return () => { alive = false; };
+  }, [self, active, count]);
+  return list;
+}

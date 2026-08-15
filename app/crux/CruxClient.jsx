@@ -38,7 +38,7 @@ import { T } from '@/lib/theme';
 import { isLoft } from '@/lib/loft';
 import LoftCap from '../LoftCap';
 import useIqStanding from '../useIqStanding';
-import useNextUnplayed from '../useNextUnplayed';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useDayStats from '../useDayStats';
 import LoftFinish from '../LoftFinish';
@@ -1027,6 +1027,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const endScore = scoreOf(g, PUZZLE.slots.length * 2);
   const iq = useIqStanding({ game: 'crux', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'crux', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'crux', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const dayStats = useDayStats();
 
@@ -1155,6 +1156,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           cat="Word"
           outcome={playing ? null : (won ? 'won' : (endScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
+          tiles={playing ? null : upNext}
           dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved'))}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
@@ -1455,6 +1457,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           </div>
           {LOFT && !playing && (
             <LoftFinish
+            outcome={won ? 'won' : (typeof endScore !== 'undefined' && endScore > 0 ? 'part' : 'lost')}
               title={won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}
               detail={`${endScore}/${PUZZLE.slots.length * 2} · ${guessesUsed} guesses · ${elapsed}`}
               iq={iq}

@@ -39,7 +39,7 @@ import LoftCap from '../LoftCap';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import useIqStanding from '../useIqStanding';
-import useNextUnplayed from '../useNextUnplayed';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useDayStats from '../useDayStats';
 import { isLoft } from '@/lib/loft';
@@ -269,6 +269,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
   }, []);
   const iq = useIqStanding({ game: 'quilt', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'quilt', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'quilt', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const dayStats = useDayStats();
 
@@ -778,6 +779,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
           cat="Numbers"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
+          tiles={playing ? null : upNext}
           dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · Fewer clues' : null}
@@ -973,6 +975,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
         </div>
         {LOFT && !playing && (
           <LoftFinish
+            outcome={won ? 'won' : (typeof endScore !== 'undefined' && endScore > 0 ? 'part' : 'lost')}
             title={won ? 'Solved' : 'Not solved'}
             detail={`${filledCount}/${FREE.length} filled · ${elapsed}`}
             iq={iq}

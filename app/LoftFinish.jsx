@@ -72,7 +72,7 @@ function Calculating({ wide = false }) {
 
 export default function LoftFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
-  missLabel = null, archive = null, gameRank = null, options = [],
+  missLabel = null, archive = null, gameRank = null, outcome = null, options = [],
 }) {
   const [showAll, setShowAll] = useState(false);
   const [openArchive, setOpenArchive] = useState(false);
@@ -141,7 +141,9 @@ export default function LoftFinish({
   return (
     <div className="loft-back">
       <div className="loft-backin">
-      <div className="loft-res"><b>{title}</b><s>{detail}</s></div>
+      {/* THE VERDICT LIVES HERE NOW, not on the page cap (owner, 2026-08-14).
+          Colouring both said it twice, and this is where the result is. */}
+      <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{title}</b><s>{detail}</s></div>
 
       <div className="loft-fiq">
         <Brain className="bi" size={26} strokeWidth={2.2} aria-hidden="true" />
