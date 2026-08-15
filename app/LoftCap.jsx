@@ -211,6 +211,7 @@ export default function LoftCap({
    display:none simply won. The override belongs after the thing it overrides. */
 @media(min-width:900px){
   .lcap-azwrap .lcap-azbtn{display:flex}
+  .lcap-azwrap > .lcap-tiles.az{flex:1 1 auto;min-width:0;margin-left:0}
 }
 .lcap-tiles.az::-webkit-scrollbar{display:none}
 /* Finished today: still there, still reachable, just not competing with the
