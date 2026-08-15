@@ -1543,109 +1543,129 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
   // The slate: one row per game, with the per-game panel opening as a drawer
   // directly under its own row rather than as an overlay over the board.
-  /* ── HOME v3: the category board ────────────────────
-     Two things replace the slate at layout="catboard": a cap of THREE cards
-     instead of four, and nine category tiles instead of 63 rows. Clicking a
-     tile sets the SAME `filter` state the slate's chip strip drives, so the
-     games list below is the existing filter machinery rather than a second
-     source of truth. Everything reads values the component already computes;
-     no new state, no new data. */
-  const catOf = (c) => games.filter((g) => g.cat === c);
-  /* One glyph per category, so a tile is recognisable before it is read
-     (owner, 2026-08-15). Deliberately NOT nine hues: the colour still comes
-     from catBlue, which is one blue family with a distinct value per category,
-     and the glyph carries the identity. A full spectrum was the thing the
-     homepage palette was unified to get rid of. */
-  const CAT_GLYPH = {
-    Word: Type, Numbers: Hash, Logic: Puzzle, Trivia: HelpCircle,
-    Geography: Globe2, 'Crowd Psychology': Users, 'End Game': Swords,
-    Cards: Spade, Arcade: Gamepad2,
-  };
-  const renderCatCap = () => {
-    /* THREE SLOTS: play, resume, retry, which is the order the old cap already
-       ranked them (owner, 2026-08-15). Up next always leads. Slot two is a
-       PAUSED board if there is one, because a paused board is still live where
-       a spent one is not, and slot three is an UNFINISHED one to retry. Retry,
-       not Play, is the established wording for a spent board: the run is over
-       and the score is banked, so it is another go at a puzzle rather than a
-       resumption.
+  /* ── HOME v3: the category board ──────────────────────────────────────
+     Two things replace the slate at layout="catboard": a cap of picks, and
+     nine category tiles instead of 63 rows. Everything reads values the
+     component already computes; no new state, no new data. The one piece of
+     state is `filter`, the SAME one the slate's chip strip drives, so the
+     open category is not a second source of truth.
 
-       Each slot falls back rather than leaving a hole, so the row is always
-       three wide: the easiest leaderboard for slot two, the lead pick
-       (familiar favorite / new to you / crowd favorite) for slot three.
-       Whichever picks lose their card drop to the "Also today" line, so nothing
-       is dropped, it just stops competing for the eye. */
-    const prog = capState.find((c) => c.kind === 'prog') || null;
-    const fail = capState.find((c) => c.kind === 'fail') || null;
-    const leadPick = (capLead && capLead.length) ? capLead[0] : null;
-    const slots = [
-      nextGame ? { kind: 'up', eb: 'Up next', g: nextGame, btn: 'Play', note: playsNote(nextPlays) } : null,
-      prog ? { kind: 'prog', eb: 'Paused', g: prog.game, btn: 'Resume', note: playsNote(playsOf(prog.game.key)) }
-        : (easiest ? { kind: 'easy', eb: 'Easiest leaderboard', g: easiest.game, btn: 'Play', note: fieldNote(easiest.players) } : null),
-      fail ? { kind: 'fail', eb: 'Unfinished', g: fail.game, btn: 'Retry', note: '' }
-        : (leadPick ? { kind: 'lead', eb: CAP_LEAD_LABEL[leadPick.kind], g: leadPick.game, btn: 'Play', note: '' } : null),
-    ].filter(Boolean);
-    const shown = new Set(slots.map((x) => x.g.key));
-    const also = [
-      easiest && !shown.has(easiest.game.key) ? { lbl: 'Easiest board', g: easiest.game } : null,
-      leadPick && !shown.has(leadPick.game.key) ? { lbl: CAP_LEAD_LABEL[leadPick.kind], g: leadPick.game } : null,
-    ].filter(Boolean);
-    return (
-      <>
-        <div className="cb-cap" style={{ gridTemplateColumns: 'repeat(' + Math.max(1, slots.length) + ', minmax(0,1fr))' }}>
-          {slots.map((sl) => (
-            <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
-              <span className="cb-ct">
-                <span className="cb-ce">{sl.eb}</span>
-                <span className="cb-cn">{sl.g.name}</span>
-                <span className="cb-cs">{sl.g.tag}{sl.note}</span>
-              </span>
-              <span className="cb-cb"><Play size={11} fill="currentColor" strokeWidth={0} />{sl.btn}</span>
-            </a>
-          ))}
-          {!slots.length ? (
-            <span className="cb-card up">
-              <span className="cb-ct">
-                <span className="cb-ce">Clean sweep</span>
-                <span className="cb-cn">All {GAMES.length} done</span>
-                <span className="cb-cs">A fresh slate lands at midnight</span>
-              </span>
+     THE BOARD HAS TWO MODES (owner, 2026-08-15):
+       shut  cap of SIX picks, and the nine tiles own the rest of the screen.
+       open  cap shrinks to THREE, the tiles step aside, and the chosen
+             category takes the whole board.
+     So the cap is the "what should I play" zone and it yields space the
+     moment you have answered that question yourself by picking a category. */
+  const catOf = (c) => games.filter((g) => g.cat === c);
+  const catOpen = slateCats.includes(filter) ? filter : null;
+
+  /* The cap's candidates, best first, deduped. The first three are the old
+     cap's own ranking and keep its wording: play, resume, retry. After those
+     come the easiest leaderboard and the lead picks (familiar favorite, new to
+     you, crowd favorite), and if the day is quiet enough that even those run
+     out it fills from unplayed games in board order, so six slots are always
+     six real suggestions rather than four and two holes. */
+  const capPool = (() => {
+    const out = []; const seen = new Set();
+    const add = (kind, eb, g, btn, note) => {
+      if (!g || seen.has(g.key)) return;
+      seen.add(g.key); out.push({ kind, eb, g, btn, note });
+    };
+    if (nextGame) add('up', 'Up next', nextGame, 'Play', playsNote(nextPlays));
+    for (const c of capState) {
+      const paused = c.kind === 'prog';
+      add(paused ? 'prog' : 'fail', paused ? 'Paused' : 'Unfinished', c.game,
+        paused ? 'Resume' : 'Retry', paused ? playsNote(playsOf(c.game.key)) : '');
+    }
+    if (easiest) add('easy', 'Easiest leaderboard', easiest.game, 'Play', fieldNote(easiest.players));
+    for (const c of (capLead || [])) add('lead', CAP_LEAD_LABEL[c.kind], c.game, 'Play', '');
+    for (const g of games) {
+      if (out.length >= 6) break;
+      if (done.has(g.key) || inprog.has(g.key)) continue;
+      add('lead', CAT_SHORT[g.cat] || g.cat, g, 'Play', playsNote(playsOf(g.key)));
+    }
+    return out;
+  })();
+
+  const renderCatCap = () => {
+    const slots = capPool.slice(0, catOpen ? 3 : 6);
+    if (!slots.length) {
+      return (
+        <div className="cb-cap" style={{ gridTemplateColumns: '1fr' }}>
+          <span className="cb-card up">
+            <span className="cb-ct">
+              <span className="cb-ce">Clean sweep</span>
+              <span className="cb-cn">All {GAMES.length} done</span>
+              <span className="cb-cs">A fresh slate lands at midnight</span>
             </span>
-          ) : null}
+          </span>
         </div>
-        {also.length ? (
-          <div className="cb-also">
-            <span className="cb-al">Also today</span>
-            {also.map((a, i) => (
-              <a key={a.g.key} href={a.g.href} className="cb-ali">
-                {i ? <i className="cb-adot" aria-hidden="true">&middot;</i> : null}
-                <b>{a.g.name}</b><span>{a.lbl}</span>
-              </a>
-            ))}
-          </div>
-        ) : null}
-      </>
+      );
+    }
+    return (
+      <div className={'cb-cap' + (slots.length > 3 ? ' six' : '')}>
+        {slots.map((sl) => (
+          <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
+            <img className="cb-cim" src={blueTile(sl.g.img)} alt="" aria-hidden="true" onError={tileFallback} />
+            <span className="cb-ct">
+              <span className="cb-ce">{sl.eb}</span>
+              <span className="cb-cn">{sl.g.name}</span>
+              <span className="cb-cs">{sl.g.tag}{sl.note}</span>
+            </span>
+            <span className="cb-cb"><Play size={11} fill="currentColor" strokeWidth={0} />{sl.btn}</span>
+          </a>
+        ))}
+      </div>
     );
   };
 
   const renderCatBoard = () => {
-    const openCat = slateCats.includes(filter) ? filter : null;
-    const out = [];
-    out.push(
+    if (catOpen) {
+      const list = catOf(catOpen);
+      const label = CAT_SHORT[catOpen] || catOpen;
+      return (
+        <div className="cb-open-wrap" key="cb-open">
+          <button type="button" className="cb-hd" onClick={() => setFilter('all')}>
+            <span className="cb-hsq" style={{ '--cc': catCol(catOpen) }}>
+              {(() => { const G = CAT_GLYPH[catOpen] || Star; return <G size={15} strokeWidth={2.4} />; })()}
+            </span>
+            {label} &middot; {list.length} game{list.length === 1 ? '' : 's'}
+            <span>All categories &#9650;</span>
+          </button>
+          <div className="cb-rows">
+            {list.map((g) => {
+              const isDone = done.has(g.key);
+              const fl = isFail(g.key);
+              const ip = inprog.has(g.key) && !isDone;
+              return (
+                <a href={g.href} className="cb-row" key={'cb-' + g.key}>
+                  <img className="cb-rsq" src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
+                  <span className="cb-rt"><b>{g.name}</b><span>{g.tag}</span></span>
+                  {fl ? <span className="cb-rs fail">Retry</span>
+                    : isDone ? <span className="cb-rs done">Done</span>
+                      : ip ? <span className="cb-rs prog">Resume</span>
+                        : <span className="cb-rs go">Play &rarr;</span>}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+    return (
       <div className="cb-tiles" key="cb-tiles">
         {slateCats.map((c) => {
           const list = catOf(c);
           const nD = list.filter((g) => done.has(g.key)).length;
           const nP = list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length;
-          const on = openCat === c;
           const label = CAT_SHORT[c] || c;
           return (
-            <div key={c} className={'cb-tile' + (on ? ' on' : '')} style={{ '--cc': catCol(c) }}>
+            <div key={c} className="cb-tile" style={{ '--cc': catCol(c) }}>
               {/* The header is the control, the games below are their own
                   links. A DIV, not a button, because an anchor inside a button
                   is invalid HTML and the games have to be anchors. */}
-              <button type="button" className="cb-thead" aria-expanded={on}
-                onClick={() => setFilter(on ? 'all' : c)}>
+              <button type="button" className="cb-thead" aria-expanded={false}
+                onClick={() => setFilter(c)}>
                 <span className="cb-sq">
                   {(() => { const G = CAT_GLYPH[c] || Star; return <G size={20} strokeWidth={2.2} />; })()}
                 </span>
@@ -1653,12 +1673,10 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 <span className="cb-tct">{list.length}</span>
               </button>
               <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
-              {/* EVERY GAME IN THE CATEGORY, as its own art (owner,
-                  2026-08-15: fill the dead space with game detail). Names ride
-                  along only when the category is small enough to carry them,
-                  which is exactly where the empty space was worst: a two game
-                  tile is the same size as a sixteen game one. Above that the
-                  art alone carries it and the name is the tooltip. */}
+              {/* EVERY GAME IN THE CATEGORY, as its own art. Names ride along
+                  only when the category is small enough to carry them, which is
+                  exactly where the empty space was worst: a two game tile is
+                  the same size as a sixteen game one. */}
               <div className={'cb-games' + (list.length <= 6 ? ' named' : '')}>
                 {list.map((g) => {
                   const gd = done.has(g.key);
@@ -1681,32 +1699,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         })}
       </div>
     );
-    if (openCat) {
-      const list = catOf(openCat);
-      const label = CAT_SHORT[openCat] || openCat;
-      out.push(
-        <button type="button" className="cb-hd" key="cb-hd" onClick={() => setFilter('all')}>
-          {label} &middot; {list.length} game{list.length === 1 ? '' : 's'}
-          <span>Collapse &#9650;</span>
-        </button>
-      );
-      list.forEach((g) => {
-        const isDone = done.has(g.key);
-        const fl = isFail(g.key);
-        const ip = inprog.has(g.key) && !isDone;
-        out.push(
-          <a href={g.href} className="cb-row" key={'cb-' + g.key} style={{ '--cc': catCol(g.cat) }}>
-            <img className="cb-rsq" src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
-            <span className="cb-rt"><b>{g.name}</b><span>{g.tag}</span></span>
-            {fl ? <span className="cb-rs fail">Retry</span>
-              : isDone ? <span className="cb-rs done">Done</span>
-                : ip ? <span className="cb-rs prog">Resume</span>
-                  : <span className="cb-rs go">Play &rarr;</span>}
-          </a>
-        );
-      });
-    }
-    return out;
   };
 
   const renderSlate = (rows0, dim) => {
@@ -3592,6 +3584,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
 
 
+
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
          board are untouched. Below 901px this block does not apply and the
@@ -3621,8 +3614,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dhome.cats .sl-row,.dhome.cats .sl-drawer,.dhome.cats .sl-band,.dhome.cats .sl-head,.dhome.cats .sl-filtw,.dhome.cats .sl-more{display:none !important;}
         .dhome.cats .dh-sbar > .dh-cell,.dhome.cats .dh-sbar > .dh-cprog{display:none !important;}
 
-        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:10px;background:var(--surface-alt);}
-        .cb-card{display:flex;align-items:center;gap:10px;padding:15px 14px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
+        /* THE CAP IS THE "WHAT SHOULD I PLAY" ZONE, six picks wide open and three
+           once you have answered that yourself by choosing a category. Always
+           three across, so six is two rows and the shrink is a row leaving
+           rather than the cards resizing. */
+        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:10px;background:var(--surface-alt);}
+        .cb-cim{width:30px;height:30px;border-radius:7px;flex:none;object-fit:contain;background:rgba(255,255,255,.16);}
+        .cb-card.prog .cb-cim{background:rgba(0,0,0,.10);}
+        .cb-card{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
+        .cb-cap.six .cb-card{padding:10px 12px;}
+        .cb-cap.six .cb-cn{font-size:17px;}
+        .cb-cap.six .cb-cs{display:none;}
+        .cb-cap.six .cb-cb{padding:8px 12px;font-size:10.5px;}
         .cb-card.up{background:var(--blue);color:var(--white);}
         .cb-card.easy,.cb-card.lead{background:var(--blue-dark);color:var(--white);}
         .cb-card.prog{background:var(--gold);color:#3a2a05;border-left-color:#f7d98a;}
@@ -3683,13 +3686,18 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            property is auto, so it was ignored and the tiles sat in a short block
            with a void of ground underneath (owner, 2026-08-15: far too much dead
            space). As a flex child with a definite parent height it just works. */
-        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{flex:1 1 auto;grid-auto-rows:1fr;}
-        .dhome.cats .dh-board.cb-open .cb-tiles{flex:none;}
+        .dhome.cats .cb-tiles{flex:1 1 auto;grid-auto-rows:1fr;}
+        /* Open: the category owns the whole board. The tiles are not shrunk,
+           they are not rendered at all, which is what "takes over the full
+           space" has to mean if the list is going to be worth opening. */
+        .dhome.cats .cb-open-wrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
+        .dhome.cats .cb-rows{flex:1 1 auto;min-height:0;overflow-y:auto;}
         .dhome.cats .cb-hd,.dhome.cats .cb-row{flex:none;}
+        .cb-hsq{width:22px;height:22px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);margin-right:9px;}
 
-        .cb-hd{display:flex;align-items:center;width:100%;border:none;border-top:1px solid var(--border);background:var(--surface-alt);color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
+        .cb-hd{display:flex;align-items:center;width:100%;flex:none;border:none;border-top:1px solid var(--border);background:var(--surface-alt);color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
         .cb-hd span{margin-left:auto;letter-spacing:.04em;color:var(--slate);}
-        .cb-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--ink);background:var(--white);}
+        .cb-row{display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--ink);background:var(--white);}
         .cb-row:hover{background:var(--surface);}
         /* Rows carry the game's OWN art, already remapped onto the blue ramp by
            blueTile, so a row is identifiable at a glance without adding a
@@ -3715,7 +3723,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .cb-tiles{grid-template-columns:repeat(2,minmax(0,1fr));}
         .dhome.cats{height:auto;}
         .dhome.cats .dh-board{overflow:visible;}
-        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{flex:none;grid-auto-rows:auto;}
+        .dhome.cats .cb-tiles{flex:none;grid-auto-rows:auto;}
       }
       /* Below 901px the catboard does not exist: every rule above is desktop
          only, so without this its elements would render unstyled underneath a
