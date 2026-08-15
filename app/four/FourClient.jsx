@@ -268,8 +268,8 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
   const errors = g.errors;
   // What the round posted. Read ONLY by the cap, and only once the round is
   // over: End Game never shows a running verdict.
-  const endScore = finalScore;
   const finalScore = won ? 10 : drawn ? 4 : 0;
+  const endScore = finalScore;
   // An odd move count means the engine's reply is still in flight.
   const awaitingReply = moves.length % 2 === 1;
 
@@ -688,11 +688,11 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [
             { v: elapsed, k: 'time' },
-            { v: PUZZLE.winIn, k: 'win in' },
+            { v: PUZZLE.winIn, k: 'moves to win' },
           ] : [
             { v: endScore, k: 'score' },
-            { v: errors, k: 'wrong drops' },
-            { v: PUZZLE.winIn, k: 'win in' },
+            { v: errors, k: errors === 1 ? 'wrong drop' : 'wrong drops' },
+            { v: PUZZLE.winIn, k: 'moves to win' },
             { v: elapsed, k: 'time' },
           ]}
         />
@@ -955,7 +955,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
               catRank={catRank}
               outcome={won ? 'won' : (drawn ? 'part' : 'lost')}
               title={won ? 'Solved' : 'Not solved'}
-              detail={`${endScore} \u00b7 ${errors} wrong drops \u00b7 ${PUZZLE.winIn} win in \u00b7 ${elapsed}`}
+              detail={`${endScore} of 10 \u00b7 ${errors} wrong drop${errors === 1 ? '' : 's'} \u00b7 win in ${PUZZLE.winIn} \u00b7 ${elapsed}`}
               iq={iq}
               board={dailyBoard}
               gameRank={allTime && allTime.ready

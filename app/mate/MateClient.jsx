@@ -388,8 +388,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const errors = g.errors;
   // What the round posted. Read ONLY by the cap, and only once the round is
   // over: End Game never shows a running verdict.
-  const endScore = finalScore;
   const finalScore = won ? 10 : 0;
+  const endScore = finalScore;
   // Black's reply is appended a beat after White's move, so an odd move count
   // means the reply is still in flight and the board is not yours to touch.
   const awaitingReply = moves.length % 2 === 1;
