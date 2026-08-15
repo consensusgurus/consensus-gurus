@@ -422,6 +422,12 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   const finalScore = won
     ? getScore(guesses.length)
     : (g.status === 'revealed' ? proximityScore(closest ? closest.mi : null) : 0);
+  // GUESSES ONLY on the end card's detail line (owner, 2026-08-15). It read
+  // `${finalScore} · ${guesses.length} guesses`, and with only two figures
+  // the middot list read as a RANGE: "6 · 9 guesses" looks like "6-9 guesses"
+  // rather than a score of 6 in 9 guesses. The score is on the player's own
+  // leaderboard row directly below it on the same card.
+  const detailLine = `${guesses.length} guess${guesses.length === 1 ? '' : 'es'}`;
 
   const REC_KEY = `sot_ping_rec_${PUZZLE.num}`;
   const abandon = useAbandonFlush(() => {
@@ -846,7 +852,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
               catRank={catRank}
               outcome={won ? 'won' : (finalScore > 0 ? 'part' : 'lost')}
               title={won ? 'Solved' : 'Not solved'}
-              detail={`${finalScore} \u00b7 ${guesses.length} guesses`}
+              detail={detailLine}
               iq={iq}
               board={dailyBoard}
               gameRank={allTime && allTime.ready

@@ -31,7 +31,8 @@
 //
 // Props beyond title/detail/options:
 //   iq         from useIqStanding  — gained, xp, rank, total, todayGained
-//   board      from useDailyBoard  — { plays, rows, mine }
+//   board      from useDailyBoard  — { plays, rows, mine, settled }. Drives the
+//              leaderboard AND the first rank tile, so the two read one order.
 //   day        from useDayStats    — the SHARED hook: { todayXp, dayRank,
 //              dayField, done, total, ready }. Its `total` already excludes
 //              retired games, and its fetch is memoized for the page load, so
@@ -122,6 +123,16 @@ export default function LoftFinish({
   const shown = showAll ? rows : rows.slice(0, 3);
   const myIdx = rows.findIndex(isMe);
   const myRow = !showAll && myIdx >= 3 ? rows[myIdx] : null;
+  // THE FIRST TILE RANKS YOU ON THE BOARD PRINTED BELOW IT, not on the day's
+  // combined board (owner, 2026-08-15). It used to show `day.dayRank`: your
+  // place among everyone who banked ANY IQ today across all the dailies, which
+  // is a real figure but reads as nonsense two inches above a header that says
+  // "Today's board" and lists eight players. An owner report asked how a field
+  // of 8 could put them 21st; it could not, and the tile was answering a
+  // different question. The day-wide standing is still on the card as
+  // "+N IQ today". Taken off the RENDERED rows so the tile and the row numbers
+  // below can never disagree.
+  const myRank = myIdx >= 0 ? myIdx + 1 : null;
 
   const lbRow = (r, i) => (
     <div key={i} className={`loft-lbr${i === 0 ? ' first' : ''}${isMe(r) ? ' me' : ''} cols`}>
@@ -195,9 +206,9 @@ export default function LoftFinish({
       {/* Each figure gets its OWN colour (owner, 2026-08-14): four identical grey
           tiles read as one block and nothing stands out. */}
       <div className="loft-day">
-        <span className="d1"><b>{day && day.ready
-          ? (day.dayRank != null ? `#${Number(day.dayRank).toLocaleString()}` : '\u2014')
-          : <Calculating />}</b>rank today</span>
+        <span className="d1"><b>{board && (myRank != null || board.settled)
+          ? (myRank != null ? `#${myRank.toLocaleString()}` : '\u2014')
+          : <Calculating />}</b>on today&rsquo;s board</span>
         <span className="d2"><b>{gameRank && gameRank.value != null
           ? gameRank.value
           : <Calculating />}</b>{gameRank ? gameRank.label : 'this game'}</span>

@@ -41,9 +41,16 @@ export default function useDailyBoard({ quizId = null, active = false }) {
         .then((d) => {
           if (!alive || !d) return;
           const rows = Array.isArray(d.leaderboard) ? d.leaderboard : [];
-          setBoard({ plays: d.plays || 0, rows, mine });
           // Keep asking only while the player is not on the board yet.
           const onIt = mine && rows.some((r) => String(r.username || '').toLowerCase() === mine);
+          // `settled` says the player's own position on this board is FINAL:
+          // their row is here, or the ladder is spent, or there is no identity to
+          // find them by. The end card's rank tile needs it to tell "still
+          // landing" (show Calculating) from "you are genuinely not on it" (show
+          // a dash); without it an identified player whose row never arrives
+          // would read Calculating forever.
+          const last = i >= GAPS.length - 1;
+          setBoard({ plays: d.plays || 0, rows, mine, settled: !!onIt || last || !mine });
           if (!onIt) schedule();
         })
         .catch(() => schedule());
