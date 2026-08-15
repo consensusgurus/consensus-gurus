@@ -239,7 +239,7 @@ const CIRCUITS = [
   ['Ranking', ['Listed', 'Bracket', 'Outrank']],
   ['Survival', ['Streak', 'Deep', 'Blitz']],
   ['Chess', ['Mate', 'Defend']],
-  ['Classic Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
+  ['Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
 ];
 const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
 // The PHONE peek: six UNPLAYED games, and only unplayed ones (owner,
@@ -3642,7 +3642,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            and a third column fits without squeezing the row. height:auto and
            the flex sizing because the console above hands this its height now,
            rather than --dh-fit measuring it independently. */
-        .dhome.cats .dh-board.slate{grid-template-columns:1fr 1fr 1fr;flex:1 1 auto;min-height:0;height:auto;max-height:none;}
+        .dhome.cats .dh-board.slate{grid-template-columns:1fr 1fr 1fr;flex:1 1 auto;min-height:0;height:auto;max-height:none;
+          background:linear-gradient(to right,
+            transparent calc(33.333% - .5px),#eef0f4 calc(33.333% - .5px),#eef0f4 calc(33.333% + .5px),
+            transparent calc(33.333% + .5px),transparent calc(66.667% - .5px),
+            #eef0f4 calc(66.667% - .5px),#eef0f4 calc(66.667% + .5px),transparent calc(66.667% + .5px));}
         /* THE FILTER STRIP WRAPS rather than scrolling sideways: with the
            circuits in it there are 26 chips, and a one-line strip hides most of
            them behind an arrow. The circuits are the half a reader has not seen
@@ -3650,8 +3654,25 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         /* TWO ROWS, and it has to be smaller to manage it: with the four
            state chips, nine categories, fifteen circuits and Sundays there are
            about thirty, which at the strip's normal size is three rows. */
-        .dhome.cats .sl-filt{flex-wrap:wrap;overflow:visible;gap:4px;padding:7px 12px;}
-        .dhome.cats .sl-filt button{font-size:9.5px;letter-spacing:.04em;padding:5px 9px;}
+        /* TWO ROWS, each one line and each scrolling on its own. Wrapping was
+           the previous attempt and it made a block of chips of indeterminate
+           height that pushed the board around; a scroller is a fixed height
+           whatever is in it. */
+        .dhome.cats .sl-filt{flex-wrap:nowrap;overflow-x:auto;}
+        .dhome.cats .sl-filt button{font-size:10px;letter-spacing:.06em;padding:7px 11px;}
+        /* The circuits row: a shade lighter than the navy above it, which is
+           the whole point, and its own bottom rule so the pair reads as a unit
+           rather than as one strip that happens to have wrapped. */
+        .dhome.cats .sl-filt2{background:#2c4fa8;border-top:1px solid #16306e;}
+        .dhome.cats .sl-filt2 button{color:#c6d6f4;}
+        .dhome.cats .sl-filt2 button:hover{color:var(--white);}
+        .dhome.cats .sl-filt2 button.on{color:var(--white);border-bottom-color:var(--white);}
+        /* ALL MEANS ALL (owner, 2026-08-15), and it is the default. The slate
+           hides done rows behind a peek budget, which is right when the board
+           is a to-do list and wrong when the strip has a Done chip of its own:
+           the state chips are how you narrow now, so the unfiltered view stops
+           narrowing anything. */
+        .dhome.cats .dh-board .sl-row.sl-hid{display:grid !important;}
         .dhome.cats .sl-filtw::before,.dhome.cats .sl-filtw::after{display:none !important;}
         /* Shut, the grid fits by construction and must not scroll. Open, the
            game list is as long as the category is and scrolling is the point. */
@@ -3998,7 +4019,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
       {slate ? (
         <div className={`sl-filtw${filtMore.l ? ' ml' : ''}${filtMore.r ? ' mr' : ''}`}>
         <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
-          {[['all', 'All'], ['todo', 'Unplayed']]
+          {[['all', 'All']]
             // Paused and Done, which used to be the gold and green bands at the
             // foot of the board. They carry their counts because that is the
             // one thing a band said that a chip otherwise would not.
@@ -4026,6 +4047,24 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             >{label}</button>
           ))}
         </div>
+        {/* ROW TWO: the circuits. Its own strip, a shade lighter than the
+            row above so the two read as different questions rather than one
+            long overflowing line, and it scrolls horizontally on its own with
+            the same chevron affordance when it does not fit. */}
+        {cats ? (
+          <div className="sl-filt sl-filt2" role="tablist" aria-label="Filter by circuit">
+            {CIRCUITS.map(([n]) => (
+              <button
+                key={'circuit:' + n}
+                type="button"
+                role="tab"
+                aria-selected={filter === 'circuit:' + n}
+                className={filter === 'circuit:' + n ? 'on' : undefined}
+                onClick={() => setFilter('circuit:' + n)}
+              >{n}</button>
+            ))}
+          </div>
+        ) : null}
         {filtMore.l ? (
           <button type="button" className="sl-fnav l" onClick={() => nudgeFilt(-1)} aria-label="Scroll the categories left">
             <ChevronLeft size={14} strokeWidth={3} />
