@@ -714,7 +714,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
 
           </div>
           {LOFT && !playing && loftRevealed && (
-            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Show options</button>
+            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (

@@ -706,7 +706,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
