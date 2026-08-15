@@ -47,7 +47,7 @@ import useMyGames, { sortByMyGames } from './useMyGames';
 import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
 import { fetchDayStatus } from './useDayStats';
-import { catBlue } from '@/lib/home-blues';
+import { catBlue, deptBlue } from '@/lib/home-blues';
 import { isSundayET } from '@/lib/sunday-editions';
 import { isRetiredDaily, dailyScoreText, KEEPS_ANSWER } from '@/lib/daily-games';
 
@@ -379,7 +379,7 @@ function todayScoreLine(row, key) {
   return null;
 }
 
-export default function DailyStrip({ board = null, layout = 'tiles' }) {
+export default function DailyStrip({ board = null, layout = 'tiles', quizCats = [] }) {
   // 'slate' reflows the SAME tiles into a table of rows (owner-approved
   // scoreboard redesign, 2026-08-03). It is a layout switch only: the data,
   // the per-tile panel, the reset timer and every state flag are untouched,
@@ -574,6 +574,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // Board filter: 'all' | 'todo' | a category name. Defaults to 'all' on
   // every viewport; the phone-only Unplayed default was removed (owner rule).
   const [filter, setFilter] = useState('all');
+  const [catKind, setCatKind] = useState('daily');
   // Slate sort: null keeps the board's own order (unplayed first, then done).
   // Text columns default to A-Z, number columns to biggest first, because that
   // is what someone clicking "Players" or "Streak" is looking for.
@@ -1668,34 +1669,89 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       );
     }
     return (
-      <div className="cb-tiles" key="cb-tiles">
-        {slateCats.map((c) => {
-          const list = catOf(c);
-          const nD = list.filter((g) => done.has(g.key)).length;
-          const nP = list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length;
-          const label = CAT_SHORT[c] || c;
-          return (
-            <div key={c} className="cb-tile" style={{ '--cc': catCol(c) }}>
-              {/* The header is the control, the games below are their own
-                  links. A DIV, not a button, because an anchor inside a button
-                  is invalid HTML and the games have to be anchors. */}
-              <button type="button" className="cb-thead" aria-expanded={false}
-                onClick={() => setFilter(c)}>
-                <span className="cb-sq">
-                  {(() => { const G = CAT_GLYPH[c] || Star; return <G size={20} strokeWidth={2.2} />; })()}
+      <>
+        {/* DAILY PUZZLES AND QUIZZES ARE BOTH ON THE BOARD (owner, 2026-08-15).
+            They are two different things, so they are two sets of tiles behind
+            one switch rather than 23 categories in one grid: the dailies reset
+            every night and are the reason to come back, the quizzes are a
+            thousand-deep library you browse. Daily leads for that reason. */}
+        <div className="cb-kind" key="cb-kind">
+          <button type="button" className={catKind === 'daily' ? 'on' : undefined}
+            onClick={() => setCatKind('daily')}>Daily Puzzles <i>{games.length}</i></button>
+          <button type="button" className={catKind === 'quiz' ? 'on' : undefined}
+            onClick={() => setCatKind('quiz')}>Quizzes <i>{quizCats.reduce((n, c) => n + c.count, 0)}</i></button>
+        </div>
+        {catKind === 'quiz' ? (
+          <div className="cb-tiles" key="cb-qtiles">
+            {quizCats.slice(0, 9).map((c) => (
+              <div key={c.key} className="cb-tile" style={{ '--cc': deptBlue(c.key) }}>
+                <span className="cb-thead as-row">
+                  <span className="cb-tnm">{c.label}</span>
+                  <span className="cb-tct">{c.count}</span>
                 </span>
-                <span className="cb-tnm">{label}</span>
-                <span className="cb-tct">{list.length}</span>
-              </button>
-              <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
-              <span className="cb-tmt">
-                <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
-                <span className="cb-pk">{list.slice(0, 2).map((g) => g.name).join(', ')}{list.length > 2 ? '…' : ''}</span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
+                <span className="cb-bar"><i style={{ width: (c.count ? Math.round((c.played / c.count) * 100) : 0) + '%' }} /></span>
+                <div className="cb-list">
+                  {c.top.slice(0, 4).map((q) => (
+                    <a key={q.id} className={'cb-li' + (q.done ? ' done' : '')} href={'/quiz/' + q.id} title={q.title}>
+                      <i aria-hidden="true" />{q.title}
+                    </a>
+                  ))}
+                </div>
+                <span className="cb-tmt">
+                  <span>{c.played ? c.played + ' of ' + c.count + ' played' : 'None played'}</span>
+                  <a className="cb-more" href="/quizzes">All {c.count} &rarr;</a>
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="cb-tiles" key="cb-tiles">
+            {slateCats.map((c) => {
+              const list = catOf(c);
+              const nD = list.filter((g) => done.has(g.key)).length;
+              const nP = list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length;
+              const label = CAT_SHORT[c] || c;
+              /* The tile's own space, filled with the thing the tile is ABOUT.
+                 Unplayed games lead, because a tile listing four games you have
+                 already finished is a worse answer to "what is in here" than one
+                 listing four you have not. */
+              const peek = list.filter((g) => !done.has(g.key)).concat(list.filter((g) => done.has(g.key))).slice(0, 4);
+              return (
+                <div key={c} className="cb-tile" style={{ '--cc': catCol(c) }}>
+                  <button type="button" className="cb-thead" aria-expanded={false}
+                    onClick={() => setFilter(c)}>
+                    <span className="cb-sq">
+                      {(() => { const G = CAT_GLYPH[c] || Star; return <G size={20} strokeWidth={2.2} />; })()}
+                    </span>
+                    <span className="cb-tnm">{label}</span>
+                    <span className="cb-tct">{list.length}</span>
+                  </button>
+                  <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
+                  <div className="cb-list">
+                    {peek.map((g) => {
+                      const gd = done.has(g.key);
+                      const gf = isFail(g.key);
+                      const gp = inprog.has(g.key) && !gd;
+                      return (
+                        <a key={g.key} href={g.href} title={g.tag}
+                          className={'cb-li' + (gd && !gf ? ' done' : '') + (gp ? ' prog' : '') + (gf ? ' fail' : '')}>
+                          <i aria-hidden="true" />{g.name}
+                        </a>
+                      );
+                    })}
+                  </div>
+                  <span className="cb-tmt">
+                    <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
+                    {list.length > peek.length
+                      ? <button type="button" className="cb-more" onClick={() => setFilter(c)}>All {list.length} &rarr;</button>
+                      : null}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </>
     );
   };
 
@@ -3586,6 +3642,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
 
 
+
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
          board are untouched. Below 901px this block does not apply and the
@@ -3650,8 +3707,31 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            breathing room rather than reading as a dense index. They also GROW
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
+        /* The Daily / Quizzes switch. Rectangles, like every other control on
+           this page, and it stays put while the tiles under it scroll. */
+        .cb-kind{display:flex;flex:none;background:var(--surface-alt);border-top:1px solid var(--border);position:sticky;top:0;z-index:3;}
+        .cb-kind button{flex:1;border:none;border-radius:0;background:transparent;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#5b6478;padding:10px 6px;cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;justify-content:center;gap:7px;}
+        .cb-kind button:hover{color:var(--ink);}
+        .cb-kind button.on{background:var(--white);color:var(--blue-dark);border-bottom-color:var(--blue);}
+        .cb-kind i{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--slate);}
+        .cb-kind button.on i{color:var(--blue);}
         .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);}
-        .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:10px;align-items:stretch;text-align:left;background:var(--white);padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:104px;}
+        /* WHAT FILLS THE TILE IS WHAT THE TILE IS ABOUT: the names themselves,
+           each one a link. This is the third answer to the same empty box. The
+           first (a two-name text peek) left it mostly bare, the second (all 63
+           games as art) read as noise, and this one is the middle: four names,
+           unplayed first, as plain rows. */
+        .cb-list{display:flex;flex-direction:column;min-width:0;}
+        .cb-li{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12.5px;font-weight:700;color:var(--muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-li i{width:5px;height:5px;border-radius:50%;background:var(--cc,var(--blue-dark));flex:none;}
+        .cb-li:hover{color:var(--blue);}
+        .cb-li.done{color:#a8aeba;}
+        .cb-li.done i{background:#cbd2dd;}
+        .cb-li.prog i{background:var(--gold);}
+        .cb-li.fail i{background:var(--danger);}
+        .cb-more{border:none;background:none;padding:0;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.05em;color:var(--blue);cursor:pointer;text-decoration:none;white-space:nowrap;}
+        .cb-thead.as-row{display:flex;align-items:center;gap:12px;min-width:0;width:100%;}
+        .cb-tile{display:flex;flex-direction:column;justify-content:flex-start;gap:9px;align-items:stretch;text-align:left;background:var(--white);padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:104px;}
         .cb-thead{display:flex;align-items:center;gap:12px;min-width:0;width:100%;border:none;border-radius:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;}
         .cb-tile:hover{background:var(--surface);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
@@ -3665,7 +3745,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            rows and a tall box, and an auto top margin pinned this one to the
            floor and opened a 92px hole above it. Centred as a group instead,
            which is what justify-content on the tile was already asking for. */
-        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;}
+        .cb-tmt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
         .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
         .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
         /* With no category open the nine tiles ARE the board, so they take the

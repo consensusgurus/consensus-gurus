@@ -771,6 +771,16 @@ export default function QuizHomeClient({ variant = 'current' }) {
     }).sort((a, b) => b.count - a.count);
   }, [catalog]);
   const byKey = useMemo(() => Object.fromEntries(cats.map((c) => [c.key, c])), [cats]);
+  const quizCats = useMemo(() => {
+    const seen = new Set((me && me.found && me.playedIds) || []);
+    return cats.map((c) => ({
+      key: c.key,
+      label: c.label,
+      count: c.count,
+      played: c.quizzes.reduce((n, q) => n + (seen.has(q.id) ? 1 : 0), 0),
+      top: c.quizzes.slice(0, 6).map((q) => ({ id: q.id, title: q.title || q.id, done: seen.has(q.id) })),
+    }));
+  }, [cats, me]);
 
   const totalCount = catalog.length;
   const scopeCount = scope === 'all' ? totalCount : (byKey[scope]?.count || 0);
