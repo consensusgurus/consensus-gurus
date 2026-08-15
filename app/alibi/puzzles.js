@@ -648,7 +648,7 @@ export const PUZZLES = [
   },
   {
     num: 30, quizId: "alibi-8-16-26", live: "2026-08-16", dateLabel: "August 16, 2026", sunday: true,
-    suspects: ["Odile","Winston","Bertram","Delphinia","Marguerite"],
+    suspects: ["Dave","Alfred","Cavin","Bracken","Davis"],
     rooms: ["Nursery","Gate Lodge","Dovecote","Butler's Pantry","Portrait Hall"],
     objects: ["jet mourning brooch","silver snuff tin","kid gloves","enamel compact","gilt pocket mirror"],
     times: ["5 pm","6 pm","7 pm","8 pm","9 pm"],
