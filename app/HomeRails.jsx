@@ -339,6 +339,7 @@ export default function HomeRails({
   dailyBoard,
   me,
   myCats = [],
+  dailyMastery = [],
   qotd = null,
   xpToday = [],
   xp30 = [],
@@ -358,6 +359,11 @@ export default function HomeRails({
   // open inside the Leaderboard tab. Declared here with the other hooks.
   const [bTab, setBTab] = useState('lb');
   const [bSec, setBSec] = useState('comm');
+  // You tab: DAILIES LEAD (owner, 2026-08-15). Quiz mastery already has its
+  // own tile on the browse row below, so the Loft's personal board opens on
+  // the thing that is only here: how much of each daily archive you have
+  // played. The quiz-category ranking stays one tap away.
+  const [bYou, setBYou] = useState('daily');
 
   // ── LEFT ──────────────────────────────────────────────────────────────────
   const community = useMemo(() => {
@@ -914,6 +920,14 @@ export default function HomeRails({
     const SUBS = [['comm', showContest ? 'Contest' : 'Community'], ['today', 'Today'],
       ['cats', 'Category'], ['m30', '30 days'], ['all', 'All time']];
     const sec = SUBS.some((x) => x[0] === bSec) ? bSec : 'comm';
+    // Only offer a sub-tab the player has data for: a brand new account has
+    // neither, in which case the strip does not render and the pane is the
+    // streak slab plus the duel, exactly as before.
+    const youSubs = [];
+    if (dailyMastery.length) youSubs.push(['daily', 'Dailies']);
+    if (myCats.length) youSubs.push(['quiz', 'Quizzes']);
+    const youSec = youSubs.some((x) => x[0] === bYou) ? bYou : (youSubs.length ? youSubs[0][0] : 'daily');
+    const youHasList = youSec === 'daily' ? dailyMastery.length > 0 : myCats.length > 0;
     return (
       <>
         {CSS}
@@ -972,6 +986,20 @@ export default function HomeRails({
           .hrb-stats b{font-size:16px;font-weight:800;letter-spacing:-.01em;}
           .hrb-stats em{font-style:normal;font-size:9.5px;font-weight:700;color:var(--slate);}
           .hrb-clab{padding:8px 13px 6px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);background:#f5f7fa;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;}
+          /* DAILY MASTERY ROWS. A meter behind the label, the same shape the
+             Category Mastery tile on the browse row uses, so the two mastery
+             surfaces read as one idea. The fill is a child rather than a
+             background gradient so a row can carry its category colour on the
+             dot without the meter having to know about it. */
+          .hrb-mrow{position:relative;display:flex;align-items:center;gap:8px;padding:8px 13px;
+            border-bottom:1px solid var(--border);text-decoration:none;overflow:hidden;}
+          .hrb-mrow:last-child{border-bottom:none;}
+          .hrb-mrow:hover{background:var(--surface);}
+          .hrb-mfill{position:absolute;left:0;top:0;bottom:0;background:#e3ecfc;pointer-events:none;}
+          .hrb-mdot{position:relative;width:7px;height:7px;border-radius:2px;flex:none;}
+          .hrb-mnm{position:relative;flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+          .hrb-mp{position:relative;flex:none;font-size:11.5px;font-weight:800;color:#4a4f5c;font-variant-numeric:tabular-nums;}
           .hrb-duel{flex:none;}
           @media(min-width:1201px){
             .hrb-you .hrb-body{flex:1 1 auto;}
@@ -1099,7 +1127,28 @@ export default function HomeRails({
                   <span><i>Completed</i><b>{num((me.activity && me.activity.completed) || 0)}</b></span>
                 </div>
               ) : null}
-              {myCats.length ? (
+              {youSubs.length > 1 ? (
+                <div className="hrb-subs" role="tablist">
+                  {youSubs.map(([k, label]) => (
+                    <button key={k} type="button" role="tab" aria-selected={youSec === k}
+                      className={youSec === k ? 'on' : undefined} onClick={() => setBYou(k)}>{label}</button>
+                  ))}
+                </div>
+              ) : null}
+              {youSec === 'daily' && dailyMastery.length ? (
+                <div className="hr-scroll hrb-body">
+                  <div className="hrb-clab">Your share of each daily archive</div>
+                  {dailyMastery.map((r) => (
+                    <Link key={r.key} href={r.href || `/${r.key}`} className="hrb-mrow">
+                      <span className="hrb-mfill" style={{ width: `${Math.max(0, Math.min(100, r.acc || 0))}%` }} aria-hidden="true" />
+                      <span className="hrb-mdot" style={{ background: catBlue(r.cat) }} aria-hidden="true" />
+                      <span className="hrb-mnm">{r.label}</span>
+                      <span className="hrb-mp">{r.acc || 0}%</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+              {youSec === 'quiz' && myCats.length ? (
                 <div className="hr-scroll hrb-body">
                   <div className="hrb-clab">Your rank by category</div>
                   {myCats.map((c) => (
@@ -1116,7 +1165,7 @@ export default function HomeRails({
                   ))}
                 </div>
               ) : null}
-              <div className={myCats.length ? 'hrb-duel' : 'hrb-body'}>
+              <div className={youHasList ? 'hrb-duel' : 'hrb-body'}>
                 {rival ? (
                   <Link href={duelHref} className="hr-fcard t0">
                     <span className="hr-fctxt">

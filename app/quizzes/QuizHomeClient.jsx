@@ -2429,6 +2429,13 @@ export default function QuizHomeClient({ variant = 'current' }) {
               .qzh .dhx-lone,.qzh .dhx-rone{height:auto !important;}
               .qzh .dhx-lone > *{flex:1 1 auto !important;}
               .qzh .dhx-rone .dhx-lp{flex:1 1 auto !important;}
+              /* HOME v3 HAS NO LEFT RAIL, so pinning the Loft to column 2 left
+                 column 1 as an empty strip of page ground beside it (owner,
+                 2026-08-15: "the loft gets locked to one side instead of
+                 filling"). It spans the row here, the same as the console above
+                 it. The two-column rule stays for the legacy two-rail layout,
+                 which still has something to put in column 1. */
+              .qzh .dhx-v3 .dhx-right{grid-column:1 / -1;}
             }
             /* PHONE: no seams between sections (owner, 2026-08-08). Below 900px
                every rail panel already goes full-bleed edge to edge, so the
@@ -2505,6 +2512,11 @@ export default function QuizHomeClient({ variant = 'current' }) {
               .qzh .dhx-rail{align-self:stretch;}
               .qzh .dhx-right > .hr-panel.hr-flex{flex:1 1 0;min-height:0;}
               .qzh .dhx-right .hr-actbody{max-height:none;flex:1 1 0;min-height:0;overflow-y:auto;}
+              /* Same as the tier above: v3's Loft spans the row rather than
+                 sitting in column 2 with nothing beside it. The seam border
+                 comes off with it, since there is no left column to divide it
+                 from. */
+              .qzh .dhx-v3 .dhx-right{grid-column:1 / -1;border-left:none;}
             }
             @media(max-width:760px){
               /* rails stack full width on phones: the leaderboards stay a top 5 */
@@ -2534,6 +2546,7 @@ export default function QuizHomeClient({ variant = 'current' }) {
               refData={refData}
               me={me}
               myCats={myCats}
+              dailyMastery={dailyMastery}
               qotd={qotd}
               xp30={xp30}
               xpAll={xpAll}
