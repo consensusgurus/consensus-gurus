@@ -34,7 +34,16 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isLoft } from '@/lib/loft';
 import DailyRules from '../DailyRules';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
@@ -183,6 +192,12 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
   const [armReveal, setArmReveal] = useState(false);
   const [armRestart, setArmRestart] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const endHold = useEndHold(1100);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
@@ -361,6 +376,13 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
 
   const myStats = useMemo(() => deriveStats(stats, PUZZLE.num), [stats, PUZZLE.num]);
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const iq = useIqStanding({ game: 'turn', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'turn', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'turn', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'turn', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'turn', active: LOFT && !playing });
 
   function say(msg) {
     setToast(msg);
@@ -707,6 +729,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           cat="End Game"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
+          tiles={playing ? null : upNext}
           dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
@@ -761,6 +784,9 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           {/* LOFT: the play area sits on the navy stage, which runs full bleed
               and fills the first screen. */}
           <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
           {preStart && (
             <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -846,6 +872,50 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
 
+
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Turn"
+              catRank={catRank}
+              outcome={won ? 'won' : 'lost'}
+              title={won ? 'Solved' : 'Not solved'}
+              detail={`${endScore} \u00b7 ${errors} errors \u00b7 ${`${view.score.mine}\u2013${view.score.theirs}`} discs \u00b7 ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `turn of ${allTime.field}` : 'turn all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Tries"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/turn?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: 'Return to board', sub: 'Your finished board', onClick: () => setRevealed(true) },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
           {/* end of the navy play stage; everything below is the light tail */}
           </div>
 
@@ -889,6 +959,12 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           )}
 
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+            {LOFT && (
+              <div className="loft-report">
+                <ReportIssue self="turn" name="Turn" accent="#ffffff" align="center" />
+              </div>
+            )}
+            {!LOFT && (
             <DailyGamesGrid
               replay={!playing ? resetGame : null}
               self="turn"
@@ -899,6 +975,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
               boardSlot={<DailyBoardPanel self="turn" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
               divider
             />
+            )}
             {mobileUi && !standalone && (
               <div style={{ textAlign: 'center', marginTop: 16 }}>
                 <button className="tn-tool" onClick={a2hsClick}><Smartphone size={14} /> Add to Home Screen</button>

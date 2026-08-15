@@ -44,7 +44,16 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import { parFor, stepFor, scoreFor } from '@/lib/par';
 import DailyMasthead from '../DailyMasthead';
+import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isLoft } from '@/lib/loft';
 import { N, EXIT_ROW, fromData, grid, moves as legalSlides, apply, solved, solve } from './solver';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
@@ -191,6 +200,12 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   const [copied, setCopied] = useState(false);
   const [armReveal, setArmReveal] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -364,6 +379,13 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const iq = useIqStanding({ game: 'parker', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'parker', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'parker', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'parker', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'parker', active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
@@ -543,6 +565,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
           cat="Logic"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
+          tiles={playing ? null : upNext}
           dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? `Sunday Edition · Par ${par}` : null}
@@ -588,6 +611,9 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
         {/* LOFT: the start tile and the board sit on the navy stage, which
             runs full bleed and fills the first screen. */}
         <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -708,6 +734,51 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
         </div>
         )}
 
+
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Parker"
+              catRank={catRank}
+              outcome={won ? 'won' : 'lost'}
+              title={won ? 'Solved' : 'Not solved'}
+              detail={`${finalScore} \u00b7 ${used} moves \u00b7 ${`${par} · ${perfect}`} par · perfect \u00b7 ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `parker of ${allTime.field}` : 'parker all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Moves"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/parker?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: 'Return to board', sub: 'Your finished board', onClick: () => setRevealed(true) },
+              prevPuzzle && { tone: 'another', label: 'Play another Parker', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/parker?p=${prevPuzzle.num}` },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
@@ -756,11 +827,18 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          {LOFT && (
+            <div className="loft-report">
+              <ReportIssue self="parker" name="Parker" accent="#ffffff" align="center" />
+            </div>
+          )}
+          {!LOFT && (
           <DailyGamesGrid replay={!playing ? resetGame : null} self="park" maxWidth={620}
             challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
             share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light
             boardSlot={<DailyBoardPanel self="park" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider />
+          )}
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -792,7 +870,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard modal self="park" won={won}
           headline={won ? (used === perfect ? <>Perfect. Nothing wasted.</> : used < par ? <>Under par.</> : <>You&rsquo;re out.</>) : <>You scored 0%</>}
           subline={won
