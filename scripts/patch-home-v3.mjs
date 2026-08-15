@@ -33,6 +33,24 @@ mkdirSync(OUT, { recursive: true });
 
 let CHANGES = 0;
 let SKIPPED = 0;
+let REGIONS = 0;
+
+/* Replace everything from startMark up to endMark with body. When startMark is
+ * absent the block has never been applied, so body is INSERTED before endMark
+ * instead. endMark is never consumed. This is what lets the three big blocks
+ * (the rail, the category board, the stylesheet) be redesigned by editing this
+ * file and re-running it against an origin that already carries an older
+ * version of them. */
+function region(src, startMark, endMark, body, label) {
+  const j0 = src.indexOf(endMark);
+  if (j0 === -1) throw new Error(`REGION ${label}: end marker missing`);
+  const i = src.indexOf(startMark);
+  REGIONS += 1;
+  if (i === -1) return src.slice(0, j0) + body + src.slice(j0);
+  const j = src.indexOf(endMark, i);
+  if (j === -1) throw new Error(`REGION ${label}: end marker missing after start`);
+  return src.slice(0, i) + body + src.slice(j);
+}
 /* Exact-once replacement, and IDEMPOTENT: once this patch is on origin the
  * script has to be re-runnable to ship a follow-up fix, so an anchor whose
  * replacement is ALREADY present is skipped rather than treated as missing.
@@ -68,7 +86,13 @@ function sub(src, find, repl, label, count = 1) {
   // open inside the Leaderboard tab. Declared here with the other hooks.
   const [bTab, setBTab] = useState('lb');
   const [bSec, setBSec] = useState('today');`,
-    'HR:state');
+    'HR:state', 1, `  const [bTab, setBTab] = useState(`);
+
+  // Community leads the sub-sorts, so it is also the one that opens.
+  s = sub(s,
+    `  const [bSec, setBSec] = useState('today');`,
+    `  const [bSec, setBSec] = useState('comm');`,
+    'HR:sec-default');
 
   // (b) The two side-gated effects have to fire for the board too, or the
   //     Contest face and the You tab come up empty.
@@ -84,17 +108,25 @@ function sub(src, find, repl, label, count = 1) {
   // (c) The branch itself, inserted after CSS is defined and before the two
   //     existing returns.
   const BOARD = `  if (side === 'board') {
-    /* ONE PINNED PANEL (home v3). The left rail is gone and its two elements,
-       the three-face leaderboard and Category leaders, moved in here as
-       accordion sections alongside two IQ boards. Only one section is open at
-       a time and the open one is the flex child that grows, which is what
-       keeps the whole panel inside the viewport no matter how many rows a
-       board holds. Closed bands still carry their leader, so shutting three of
-       them loses nothing you came for.
+    /* THE LOFT (home v3). One pinned panel replacing both rails: the left
+       rail's three-face leaderboard and its Category leaders, plus the right
+       rail's live feed and streak, all in one place.
 
-       Nothing here is new data: dailyRows, catLeaders, xp30 and xpAll are all
-       already computed above for the left rail, and the Live and You tabs
-       reuse the right rail's own feed, streak and rival. */
+       TWO LEVELS OF TABS, not an accordion. The accordion this replaced put the
+       other boards as bands at the FOOT of the open one, so the thing you
+       wanted was always below the thing you did not (owner, 2026-08-15). The
+       sub-sorts now sit directly under Leaderboard / Live / You, where they
+       read as what they are: another way to slice the same board. Exactly one
+       pane is mounted, so the panel's height is the height of ONE board and
+       nothing stacks, which is what keeps it inside a single screen.
+
+       COMMUNITY LEADS, because it is the board with something at stake on it:
+       it carries the contest while one is running and falls back to referrals
+       otherwise (owner, 2026-08-15).
+
+       No new data. communityRows, dailyRows, catLeaders, xp30 and xpAll are all
+       already computed above for the left rail, and Live and You reuse the
+       right rail's own feed, streak and rival. */
     const bRows = (rows, fmt, unit, eyebrow, sub_, href, footLabel) => (
       <>
         <div className="hr-scroll hrb-body">
@@ -111,46 +143,10 @@ function sub(src, find, repl, label, count = 1) {
         </div>
       </>
     );
-    const lead = (rows) => ((rows && rows.length) ? rows[0].name : null);
-    const catLed = catLeaders.filter((c) => c.leader).length;
-    const SECS = [
-      {
-        k: 'today',
-        label: 'Today \\u00b7 Combined',
-        cap: lead(dailyRows),
-        body: () => bRows(dailyRows, (v) => v, 'points', "Today's leader", 'Combined daily games score', '/quizzes/hub?tab=daily', 'Full daily board'),
-      },
-      {
-        k: 'cats',
-        label: 'By category',
-        cap: catLeaders.length ? \`\${catLed} of \${catLeaders.length} led\` : null,
-        body: () => (
-          <>
-            <div className="hr-scroll hrb-body">
-              {catLeaders.map((row) => <CatSlip key={row.name} row={row} />)}
-              {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
-            </div>
-            <div className="hr-foot">
-              <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
-              <Link href="/quizzes/hub?tab=daily" className="hr-link">Daily boards &rarr;</Link>
-            </div>
-          </>
-        ),
-      },
-      {
-        k: 'm30',
-        label: 'Last 30 days',
-        cap: lead(xp30),
-        body: () => bRows(xp30, num, 'IQ pts', 'Top of the month', 'IQ points earned in 30 days', '/quizzes/hub?tab=player', 'Monthly board'),
-      },
-      {
-        k: 'all',
-        label: 'All time \\u00b7 IQ Points',
-        cap: lead(xpAll.length ? xpAll : xp30),
-        body: () => bRows(xpAll.length ? xpAll : xp30, num, 'IQ pts', 'Top player, all time', 'Lifetime IQ points', '/quizzes/hub?tab=player', 'All time board'),
-      },
-    ];
     const TABS = [['lb', 'Leaderboard'], ['live', 'Live'], ['you', 'You']];
+    const SUBS = [['comm', showContest ? 'Contest' : 'Community'], ['today', 'Today'],
+      ['cats', 'Category'], ['m30', '30 days'], ['all', 'All time']];
+    const sec = SUBS.some((x) => x[0] === bSec) ? bSec : 'comm';
     return (
       <>
         {CSS}
@@ -158,27 +154,27 @@ function sub(src, find, repl, label, count = 1) {
           /* Scoped to .hr-board and placed AFTER the shared sheet on purpose:
              the max-width:1200px block in CSS flattens .hr-flex to flex:none,
              so anything that has to stretch must be declared later. Pinning is
-             min-width:1201px only, which is the same threshold the parent uses
-             to pin a rail at all, so 901-1200 and mobile keep their natural
-             stacked flow untouched. */
+             min-width:1201px only, the same threshold the parent uses to pin a
+             rail at all, so 901-1200 and mobile keep their stacked flow.
+
+             EVERY CONTROL IN HERE IS A RECTANGLE. globals.css rounds every
+             button on the site to 8px, so a tab strip built out of buttons
+             arrives with rounded corners unless it says otherwise, which is
+             what it looked like and what the owner objected to. */
           .hr-board{display:flex;flex-direction:column;min-height:0;}
           .hrb-tabs{display:flex;flex:none;background:#0e2a63;}
-          .hrb-tabs button{flex:1;border:none;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:10px 4px;cursor:pointer;border-bottom:3px solid transparent;}
+          .hrb-tabs button{flex:1;border:none;border-radius:0;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent;}
           .hrb-tabs button.on{color:var(--white);border-bottom-color:var(--white);background:var(--accent);}
-          .hrb-acc{display:flex;flex-direction:column;min-height:0;}
-          .hrb-sec{display:flex;flex-direction:column;min-height:0;flex:none;}
-          .hrb-band{display:flex;align-items:center;gap:8px;width:100%;flex:none;border:none;border-top:1px solid var(--border);background:#eef2f8;color:#41506b;font:inherit;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;padding:9px 13px;cursor:pointer;text-align:left;border-radius:0;}
-          .hrb-band .ch{flex:none;width:10px;text-align:center;font-size:10px;color:#7b8496;}
-          .hrb-band .cv{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.02em;text-transform:none;color:var(--blue-dark);max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-          .hrb-band.on{background:var(--accent);color:var(--white);border-top-color:var(--accent);}
-          .hrb-band.on .ch,.hrb-band.on .cv{color:#bcd3ff;}
-          .hrb-body{min-height:0;overflow-y:auto;}
+          /* Five sub-sorts do not fit one 340px line, so they wrap 3 and 2 at
+             a third each. Deliberate, not a reflow accident. */
+          .hrb-subs{display:flex;flex-wrap:wrap;flex:none;background:#eef2f8;border-bottom:1px solid var(--border);}
+          .hrb-subs button{flex:1 1 30%;border:none;border-radius:0;background:transparent;color:#5b6478;font:inherit;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+          .hrb-subs button:hover{color:var(--ink);}
+          .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
+          .hrb-body{min-height:0;overflow-y:auto;}
           @media(min-width:1201px){
             .hr-board{flex:1 1 auto;}
-            .hrb-acc{flex:1 1 auto;}
-            .hrb-sec.on{flex:1 1 auto;min-height:0;}
-            .hrb-sec.on .hrb-body{flex:1 1 auto;}
             .hrb-pane{flex:1 1 auto;}
             .hrb-pane .hrb-body{flex:1 1 auto;}
           }
@@ -186,38 +182,50 @@ function sub(src, find, repl, label, count = 1) {
         <section className="hr-panel hr-board">
           <div className="hr-ph">
             <span className="hr-pi"><CrownIcon /></span>
-            <h2>Leaderboards</h2>
+            <h2>The Loft</h2>
             <span className="hr-chip">TODAY</span>
           </div>
           <div className="hrb-tabs" role="tablist">
             {TABS.map(([k, label]) => (
-              <button
-                key={k}
-                type="button"
-                role="tab"
-                aria-selected={bTab === k}
-                className={bTab === k ? 'on' : undefined}
-                onClick={() => setBTab(k)}
-              >{label}</button>
+              <button key={k} type="button" role="tab" aria-selected={bTab === k}
+                className={bTab === k ? 'on' : undefined} onClick={() => setBTab(k)}>{label}</button>
             ))}
           </div>
 
           {bTab === 'lb' ? (
-            <div className="hrb-acc">
-              {SECS.map((sc) => {
-                const on = bSec === sc.k;
-                return (
-                  <div key={sc.k} className={\`hrb-sec\${on ? ' on' : ''}\`}>
-                    <button type="button" className={\`hrb-band\${on ? ' on' : ''}\`} aria-expanded={on} onClick={() => setBSec(sc.k)}>
-                      <span className="ch" aria-hidden="true">{on ? '\\u25be' : '\\u25b8'}</span>
-                      <span>{sc.label}</span>
-                      {sc.cap ? <span className="cv">{sc.cap}</span> : null}
-                    </button>
-                    {on ? sc.body() : null}
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              <div className="hrb-subs" role="tablist">
+                {SUBS.map(([k, label]) => (
+                  <button key={k} type="button" role="tab" aria-selected={sec === k}
+                    className={sec === k ? 'on' : undefined} onClick={() => setBSec(k)}>{label}</button>
+                ))}
+              </div>
+              <div className="hrb-pane">
+                {sec === 'comm' ? bRows(
+                  communityRows,
+                  showContest ? ((v) => formatScore(v)) : ((v) => '+' + num(v)),
+                  showContest ? 'score' : 'brought in',
+                  showContest ? 'Contest leader' : 'Top community member',
+                  showContest ? COPY.prizeLine : 'New players brought in, last 90 days',
+                  showContest ? '/quizzes/contest' : '/quizzes/community',
+                  showContest ? 'Board and rules' : 'Full leaderboard') : null}
+                {sec === 'today' ? bRows(dailyRows, (v) => v, 'points', "Today's leader", 'Combined daily games score', '/quizzes/hub?tab=daily', 'Full daily board') : null}
+                {sec === 'm30' ? bRows(xp30, num, 'IQ pts', 'Top of the month', 'IQ points earned in 30 days', '/quizzes/hub?tab=player', 'Monthly board') : null}
+                {sec === 'all' ? bRows(xpAll.length ? xpAll : xp30, num, 'IQ pts', 'Top player, all time', 'Lifetime IQ points', '/quizzes/hub?tab=player', 'All time board') : null}
+                {sec === 'cats' ? (
+                  <>
+                    <div className="hr-scroll hrb-body">
+                      {catLeaders.map((row) => <CatSlip key={row.name} row={row} />)}
+                      {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
+                    </div>
+                    <div className="hr-foot">
+                      <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
+                      <Link href="/quizzes/hub?tab=daily" className="hr-link">Daily boards &rarr;</Link>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </>
           ) : null}
 
           {bTab === 'live' ? (
@@ -235,8 +243,7 @@ function sub(src, find, repl, label, count = 1) {
               </div>
               <div className="hr-scroll hrb-body">
                 {(lastPlayed || []).map((f, i) => {
-                  const frac = f.total ? f.score / f.total : 0;
-                  const pct = Math.round(frac * 100);
+                  const pct = Math.round((f.total ? f.score / f.total : 0) * 100);
                   const cat = catFor ? catFor(f.quizId) : null;
                   return (
                     <Link key={\`\${f.quizId}-\${i}\`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
@@ -249,7 +256,7 @@ function sub(src, find, repl, label, count = 1) {
                         </span>
                         <span className="hr-s">
                           <b className="hr-res-sc">{f.score}/{f.total}</b>
-                          {typeof f.pct === 'number' ? \` \\u00b7 beat \${f.pct}%\` : ''}{f.when ? \` \\u00b7 \${f.when}\` : ''}
+                          {typeof f.pct === 'number' ? ' \\u00b7 beat ' + f.pct + '%' : ''}{f.when ? ' \\u00b7 ' + f.when : ''}
                         </span>
                       </span>
                       <span className="hr-pc">{pct}%</span>
@@ -285,7 +292,7 @@ function sub(src, find, repl, label, count = 1) {
                       <span className="hr-fceye">{rival.behind ? 'Right behind you' : 'Next one ahead'}</span>
                       <span className="hr-fcnm">{rival.username}</span>
                       <span className="hr-fcsub">
-                        {rival.rank ? \`#\${rival.rank} today\` : 'On the board today'}
+                        {rival.rank ? '#' + rival.rank + ' today' : 'On the board today'}
                         {gapLine ? <span className="hr-fcdot">&middot;</span> : null}
                         {gapLine || null}
                       </span>
@@ -315,7 +322,7 @@ function sub(src, find, repl, label, count = 1) {
   }
 
 `;
-  s = sub(s, `  if (side === 'left') {`, BOARD + `  if (side === 'left') {`, 'HR:branch');
+  s = region(s, `  if (side === 'board') {`, `  if (side === 'left') {`, BOARD, 'HR:branch');
   writeFileSync(join(OUT, 'HomeRails.jsx'), s);
 }
 
@@ -373,6 +380,13 @@ function sub(src, find, repl, label, count = 1) {
             {slate ? renderSlate(slateList, false) : renderTiles(list, false)}`,
     'DS:board-fork');
 
+  // Marks the board while a category is open, so the tiles only stretch to fill
+  // the screen when they ARE the board and not when a games list is under them.
+  s = sub(s,
+    `            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '')}`,
+    `            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '') + (cats && slateCats.includes(filter) ? ' cb-open' : '')}`,
+    'DS:board-open');
+
   // (f) The cap fork. The existing four-card cap is untouched; the catboard
   //     renders its own two-across cap instead.
   s = sub(s,
@@ -385,42 +399,57 @@ function sub(src, find, repl, label, count = 1) {
 
   // (g) renderCatCap + renderCatBoard, inserted just before the render fork's
   //     owning return by hanging them off renderSlate's definition site.
-  const RENDERERS = `  /* ── HOME v3: the category board ──────────────────────────────────────
-     Two things replace the slate at layout="catboard": a cap of TWO cards
-     across instead of four, and nine category tiles instead of 63 rows.
-     Clicking a tile sets the SAME \`filter\` state the slate's chip strip
-     drives, so the games list below is the existing filter machinery rather
-     than a second source of truth. Everything here reads values the component
-     already computes (nextGame, easiest, capState, capLead, games, slateCats,
-     done, inprog, isFail, playsOf); no new state, no new data. */
+  const RENDERERS = `  /* ── HOME v3: the category board ────────────────────
+     Two things replace the slate at layout="catboard": a cap of THREE cards
+     instead of four, and nine category tiles instead of 63 rows. Clicking a
+     tile sets the SAME \`filter\` state the slate's chip strip drives, so the
+     games list below is the existing filter machinery rather than a second
+     source of truth. Everything reads values the component already computes;
+     no new state, no new data. */
   const catOf = (c) => games.filter((g) => g.cat === c);
   const renderCatCap = () => {
-    // Up next always leads. The second card is whatever is most worth acting
-    // on: a paused board if there is one, else the easiest leaderboard. The
-    // two picks that lose their card move to the "Also today" line, so nothing
-    // is dropped, it just stops competing for the eye.
-    const second = capState.length
-      ? { kind: capState[0].kind, game: capState[0].game }
-      : (easiest ? { kind: 'easy', game: easiest.game } : null);
-    const alsoRaw = [
-      (capState.length && easiest) ? { lbl: 'Easiest board', g: easiest.game } : null,
-      (capLead && capLead.length) ? { lbl: CAP_LEAD_LABEL[capLead[0].kind], g: capLead[0].game } : null,
+    /* THREE SLOTS: play, resume, retry, which is the order the old cap already
+       ranked them (owner, 2026-08-15). Up next always leads. Slot two is a
+       PAUSED board if there is one, because a paused board is still live where
+       a spent one is not, and slot three is an UNFINISHED one to retry. Retry,
+       not Play, is the established wording for a spent board: the run is over
+       and the score is banked, so it is another go at a puzzle rather than a
+       resumption.
+
+       Each slot falls back rather than leaving a hole, so the row is always
+       three wide: the easiest leaderboard for slot two, the lead pick
+       (familiar favorite / new to you / crowd favorite) for slot three.
+       Whichever picks lose their card drop to the "Also today" line, so nothing
+       is dropped, it just stops competing for the eye. */
+    const prog = capState.find((c) => c.kind === 'prog') || null;
+    const fail = capState.find((c) => c.kind === 'fail') || null;
+    const leadPick = (capLead && capLead.length) ? capLead[0] : null;
+    const slots = [
+      nextGame ? { kind: 'up', eb: 'Up next', g: nextGame, btn: 'Play', note: playsNote(nextPlays) } : null,
+      prog ? { kind: 'prog', eb: 'Paused', g: prog.game, btn: 'Resume', note: playsNote(playsOf(prog.game.key)) }
+        : (easiest ? { kind: 'easy', eb: 'Easiest leaderboard', g: easiest.game, btn: 'Play', note: fieldNote(easiest.players) } : null),
+      fail ? { kind: 'fail', eb: 'Unfinished', g: fail.game, btn: 'Retry', note: '' }
+        : (leadPick ? { kind: 'lead', eb: CAP_LEAD_LABEL[leadPick.kind], g: leadPick.game, btn: 'Play', note: '' } : null),
     ].filter(Boolean);
-    const paused = second && second.kind === 'prog';
-    const failed = second && second.kind === 'fail';
+    const shown = new Set(slots.map((x) => x.g.key));
+    const also = [
+      easiest && !shown.has(easiest.game.key) ? { lbl: 'Easiest board', g: easiest.game } : null,
+      leadPick && !shown.has(leadPick.game.key) ? { lbl: CAP_LEAD_LABEL[leadPick.kind], g: leadPick.game } : null,
+    ].filter(Boolean);
     return (
       <>
         <div className="cb-cap">
-          {nextGame ? (
-            <a href={nextGame.href} className="cb-card up">
+          {slots.map((sl) => (
+            <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
               <span className="cb-ct">
-                <span className="cb-ce">Up next</span>
-                <span className="cb-cn">{nextGame.name}</span>
-                <span className="cb-cs">{nextGame.tag}{playsNote(nextPlays)}</span>
+                <span className="cb-ce">{sl.eb}</span>
+                <span className="cb-cn">{sl.g.name}</span>
+                <span className="cb-cs">{sl.g.tag}{sl.note}</span>
               </span>
-              <span className="cb-cb"><Play size={11} fill="currentColor" strokeWidth={0} />Play</span>
+              <span className="cb-cb"><Play size={11} fill="currentColor" strokeWidth={0} />{sl.btn}</span>
             </a>
-          ) : (
+          ))}
+          {!slots.length ? (
             <span className="cb-card up">
               <span className="cb-ct">
                 <span className="cb-ce">Clean sweep</span>
@@ -428,22 +457,12 @@ function sub(src, find, repl, label, count = 1) {
                 <span className="cb-cs">A fresh slate lands at midnight</span>
               </span>
             </span>
-          )}
-          {second ? (
-            <a href={second.game.href} className={'cb-card ' + (paused ? 'prog' : failed ? 'fail' : 'easy')}>
-              <span className="cb-ct">
-                <span className="cb-ce">{paused ? 'Paused' : failed ? 'Unfinished' : 'Easiest leaderboard'}</span>
-                <span className="cb-cn">{second.game.name}</span>
-                <span className="cb-cs">{second.game.tag}</span>
-              </span>
-              <span className="cb-cb"><Play size={11} fill="currentColor" strokeWidth={0} />{paused ? 'Resume' : 'Play'}</span>
-            </a>
           ) : null}
         </div>
-        {alsoRaw.length ? (
+        {also.length ? (
           <div className="cb-also">
             <span className="cb-al">Also today</span>
-            {alsoRaw.map((a, i) => (
+            {also.map((a, i) => (
               <a key={a.g.key} href={a.g.href} className="cb-ali">
                 {i ? <i className="cb-adot" aria-hidden="true">&middot;</i> : null}
                 <b>{a.g.name}</b><span>{a.lbl}</span>
@@ -467,14 +486,9 @@ function sub(src, find, repl, label, count = 1) {
           const on = openCat === c;
           const label = CAT_SHORT[c] || c;
           return (
-            <button
-              type="button"
-              key={c}
-              className={'cb-tile' + (on ? ' on' : '')}
-              style={{ '--cc': catCol(c) }}
-              aria-expanded={on}
-              onClick={() => setFilter(on ? 'all' : c)}
-            >
+            <button type="button" key={c} className={'cb-tile' + (on ? ' on' : '')}
+              style={{ '--cc': catCol(c) }} aria-expanded={on}
+              onClick={() => setFilter(on ? 'all' : c)}>
               <span className="cb-trow">
                 <span className="cb-sq">{label.slice(0, 1)}</span>
                 <span className="cb-tnm">{label}</span>
@@ -501,16 +515,13 @@ function sub(src, find, repl, label, count = 1) {
       );
       list.forEach((g) => {
         const isDone = done.has(g.key);
-        const fail = isFail(g.key);
+        const fl = isFail(g.key);
         const ip = inprog.has(g.key) && !isDone;
         out.push(
           <a href={g.href} className="cb-row" key={'cb-' + g.key} style={{ '--cc': catCol(g.cat) }}>
             <span className="cb-rsq">{(CAT_SHORT[g.cat] || g.cat).slice(0, 1)}</span>
-            <span className="cb-rt">
-              <b>{g.name}</b>
-              <span>{g.tag}</span>
-            </span>
-            {fail ? <span className="cb-rs fail">Unfinished</span>
+            <span className="cb-rt"><b>{g.name}</b><span>{g.tag}</span></span>
+            {fl ? <span className="cb-rs fail">Retry</span>
               : isDone ? <span className="cb-rs done">Done</span>
                 : ip ? <span className="cb-rs prog">Resume</span>
                   : <span className="cb-rs go">Play &rarr;</span>}
@@ -522,7 +533,7 @@ function sub(src, find, repl, label, count = 1) {
   };
 
 `;
-  s = sub(s, `  const renderSlate = (rows0, dim) => {`, RENDERERS + `  const renderSlate = (rows0, dim) => {`, 'DS:renderers');
+  s = region(s, `  /* ── HOME v3: the category board`, `  const renderSlate = (rows0, dim) => {`, RENDERERS, 'DS:renderers');
 
   // (h) The stylesheet. Appended at the very end of the template literal so it
   //     wins on source order, and wrapped in min-width:901px so the phone is
@@ -531,55 +542,75 @@ function sub(src, find, repl, label, count = 1) {
   const CSS = `
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
-         board are untouched. Below 901px this block does not apply at all and
-         the phone keeps the layout it ships with. */
+         board are untouched. Below 901px this block does not apply and the
+         phone keeps the layout it ships with. NO BACKTICKS anywhere in here,
+         comments included: the whole sheet is one template literal. */
       @media(min-width:901px){
-        /* The override layer. The slate's own rows, bands, column header and
-           chip strip are still in the DOM and still correct on a phone; up
-           here they step aside for the tiles, and the four-card cap steps
-           aside for the two-card one. */
+        /* THE CONSOLE FILLS THE SCREEN (owner, 2026-08-15). It is a flex column
+           pinned to the height its column hands it, the cap is fixed, and the
+           board takes the rest and scrolls INSIDE itself, so opening a sixteen
+           game category never grows the page. Same shape as the rail beside it,
+           which is what makes the two columns end on one line. */
+        .dhome.cats{display:flex;flex-direction:column;height:100%;min-height:0;}
+        .dhome.cats .sl-bar{flex:none;}
+        .dhome.cats .dh-sbar{flex:none;display:block;padding:0;gap:0;background:transparent;border:none;}
+        .dhome.cats .dh-boardwrap{flex:1 1 auto;min-height:0;height:auto;overflow:hidden;display:flex;flex-direction:column;}
+        .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:block;height:auto;max-height:none;overflow-y:auto;gap:0;background:transparent;}
+        /* The override layer: the slate's own rows, bands, column header and
+           chip strip are still in the DOM and still correct on a phone; up here
+           they step aside for the tiles, and the four-card cap for the three. */
         .dhome.cats .sl-row,.dhome.cats .sl-drawer,.dhome.cats .sl-band,.dhome.cats .sl-head,.dhome.cats .sl-filtw,.dhome.cats .sl-more{display:none !important;}
         .dhome.cats .dh-sbar > .dh-cell,.dhome.cats .dh-sbar > .dh-cprog{display:none !important;}
-        .dhome.cats .dh-board{display:block;height:auto;max-height:none;overflow:visible;gap:0;background:transparent;}
-        .dhome.cats .dh-boardwrap{height:auto;overflow:visible;}
-        .dhome.cats .dh-sbar{display:block;padding:0;gap:0;background:transparent;border:none;}
-        .cb-cap{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;background:var(--surface-alt);}
-        .cb-card{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
+
+        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:10px;background:var(--surface-alt);}
+        .cb-card{display:flex;align-items:center;gap:10px;padding:15px 14px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
         .cb-card.up{background:var(--blue);color:var(--white);}
-        .cb-card.easy{background:var(--blue-dark);color:var(--white);}
+        .cb-card.easy,.cb-card.lead{background:var(--blue-dark);color:var(--white);}
         .cb-card.prog{background:var(--gold);color:#3a2a05;border-left-color:#f7d98a;}
         .cb-card.fail{background:#b91c1c;color:var(--white);border-left-color:#f3a5a5;}
         .cb-ct{display:flex;flex-direction:column;min-width:0;}
-        .cb-ce{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.8;margin-bottom:5px;}
-        .cb-cn{font-size:23px;font-weight:800;letter-spacing:-.015em;line-height:1.1;}
-        .cb-cs{font-size:12.5px;font-weight:500;opacity:.85;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-cb{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--white);color:var(--accent);border-radius:7px;padding:12px 22px;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;}
+        .cb-ce{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.82;margin-bottom:4px;}
+        .cb-cn{font-size:20px;font-weight:800;letter-spacing:-.015em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-cs{font-size:11.5px;font-weight:500;opacity:.85;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-cb{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;background:var(--white);color:var(--accent);border-radius:7px;padding:10px 14px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
         .cb-card.prog .cb-cb{color:#3a2a05;}
-        .cb-also{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:11px 16px;background:var(--white);border-top:1px solid var(--border);font-size:13.5px;}
+        .cb-card.fail .cb-cb{color:#b91c1c;}
+        .cb-also{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 16px;background:var(--white);border-top:1px solid var(--border);font-size:13px;}
         .cb-al{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);}
         .cb-ali{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--muted);font-weight:600;}
         .cb-ali b{color:var(--ink);font-weight:800;}
         .cb-ali:hover b{color:var(--blue);}
         .cb-adot{font-style:normal;color:#c3c9d4;margin-right:2px;}
-        .cb-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
-        .cb-tile{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;background:var(--white);border:none;border-radius:0;padding:14px 15px 12px;font:inherit;cursor:pointer;color:var(--ink);min-width:0;}
+
+        /* BIGGER TILES (owner, 2026-08-15). They are the primary navigation on
+           this page now, so they carry a 38px emblem, a 17px name and real
+           breathing room rather than reading as a dense index. They also GROW
+           into whatever height the board has spare, which is what fills the
+           screen when no category is open. */
+        .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);}
+        .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:11px;align-items:stretch;text-align:left;background:var(--white);border:none;border-radius:0;padding:20px 18px;font:inherit;cursor:pointer;color:var(--ink);min-width:0;min-height:112px;}
         .cb-tile:hover{background:var(--surface);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
-        .cb-trow{display:flex;align-items:center;gap:10px;min-width:0;}
-        .cb-sq{width:30px;height:30px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:13px;font-weight:800;}
-        .cb-tnm{font-size:15px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-tct{margin-left:auto;flex:none;font-size:11px;font-weight:700;color:var(--slate);}
-        .cb-bar{display:block;height:4px;border-radius:4px;background:var(--surface-alt);overflow:hidden;}
-        .cb-bar i{display:block;height:100%;border-radius:4px;background:var(--cc,var(--blue-dark));}
-        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;}
+        .cb-trow{display:flex;align-items:center;gap:12px;min-width:0;}
+        .cb-sq{width:38px;height:38px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:16px;font-weight:800;}
+        .cb-tnm{font-size:17px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
+        .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
+        .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
+        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600;color:var(--muted);min-width:0;}
         .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
-        .cb-hd{display:flex;align-items:center;width:100%;border:none;border-top:1px solid var(--border);background:var(--surface-alt);color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;cursor:pointer;border-radius:0;text-align:left;}
+        /* With no category open the nine tiles ARE the board, so they take the
+           whole of it: three equal rows rather than a short block with a void
+           of ground under it. */
+        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{min-height:100%;grid-auto-rows:1fr;}
+
+        .cb-hd{display:flex;align-items:center;width:100%;border:none;border-top:1px solid var(--border);background:var(--surface-alt);color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
         .cb-hd span{margin-left:auto;letter-spacing:.04em;color:var(--slate);}
-        .cb-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--ink);background:var(--white);}
+        .cb-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--ink);background:var(--white);}
         .cb-row:hover{background:var(--surface);}
-        .cb-rsq{width:26px;height:26px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:11px;font-weight:800;}
+        .cb-rsq{width:28px;height:28px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:12px;font-weight:800;}
         .cb-rt{display:flex;flex-direction:column;min-width:0;}
-        .cb-rt b{font-size:14.5px;font-weight:800;}
+        .cb-rt b{font-size:15px;font-weight:800;}
         .cb-rt span{font-size:12px;color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-rs{margin-left:auto;flex:none;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
         .cb-rs.go{color:var(--blue);}
@@ -587,8 +618,18 @@ function sub(src, find, repl, label, count = 1) {
         .cb-rs.done{color:var(--success-deep);}
         .cb-rs.fail{color:var(--danger);}
       }
+      /* 901-1200px: the columns are NOT pinned at this width (railH is not set
+         either), so the console goes back to natural height and scrolls with
+         the page. Two tiles across, and a tighter cap. */
       @media(min-width:901px) and (max-width:1200px){
-        .cb-tiles{grid-template-columns:repeat(2,1fr);}
+        .cb-cap{gap:8px;padding:8px;}
+        .cb-card{padding:12px;}
+        .cb-cn{font-size:17px;}
+        .cb-cb{padding:9px 11px;}
+        .cb-tiles{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .dhome.cats{height:auto;}
+        .dhome.cats .dh-board{overflow:visible;}
+        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{min-height:0;grid-auto-rows:auto;}
       }
       /* Below 901px the catboard does not exist: every rule above is desktop
          only, so without this its elements would render unstyled underneath a
@@ -598,16 +639,7 @@ function sub(src, find, repl, label, count = 1) {
         .dhome.cats .cb-cap,.dhome.cats .cb-also,.dhome.cats .cb-tiles,.dhome.cats .cb-hd,.dhome.cats .cb-row{display:none !important;}
       }
 `;
-  // The sheet's closing marker. Appending before it keeps the block last.
-  if (s.includes('.dhome.cats .dh-board{')) {
-    SKIPPED += 1; // stylesheet already appended by an earlier run
-  } else {
-    const CLOSE = '\n      ` }} />';
-    if (s.split(CLOSE).length - 1 < 1) throw new Error('ANCHOR DS:css-close not found');
-    const at = s.lastIndexOf(CLOSE);
-    s = s.slice(0, at) + '\n' + CSS + s.slice(at);
-    CHANGES += 1;
-  }
+  s = region(s, '      /* ── HOME v3 category board', '\n      ` }} />', CSS, 'DS:css');
   writeFileSync(join(OUT, 'DailyStrip.jsx'), s);
 }
 
@@ -677,26 +709,24 @@ function sub(src, find, repl, label, count = 1) {
     `        <div className={v3 ? 'dhx dhx-v3' : 'dhx'}>`,
     'QH:dhx-class');
 
-  s = sub(s,
-    `            .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:10px;align-items:start;margin-bottom:12px;}`,
-    `            .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:10px;align-items:start;margin-bottom:12px;}
-            /* HOME v3: the left rail is gone, so two columns. Declared here,
-               BEFORE the stacked and phone blocks further down, so those keep
-               overriding it and mobile is untouched. The rail is pinned only
-               above 1200px, which is the same threshold railH uses. */
+  const V3CSS = `            /* HOME v3: the left rail is gone, so two columns, and BOTH are pinned
+               to the viewport so the page is exactly one screen (owner,
+               2026-08-15: the slate must fill the whole screen). Each column is
+               a flex box that hands its height to the one scrollable region
+               inside it: the games list on the left, the open board on the
+               right. Declared here, BEFORE the stacked and phone blocks further
+               down, so those keep overriding it and mobile is untouched. Pinned
+               above 1200px only, the same threshold railH uses. */
             .qzh .dhx-v3{grid-template-columns:minmax(0,1fr) 340px;}
             @media(min-width:1201px){
-              .qzh .dhx-v3 .dhx-right{position:sticky;top:var(--v3top,86px);height:calc(100vh - var(--v3top,86px) - 16px);align-self:start;overflow:hidden;}
+              .qzh .dhx-v3 .dhx-center,.qzh .dhx-v3 .dhx-right{height:calc(100vh - var(--v3nat,140px) - 16px);min-height:0;}
+              .qzh .dhx-v3 .dhx-center{display:flex;flex-direction:column;}
+              .qzh .dhx-v3 .dhx-center > *{flex:1 1 auto;min-height:0;}
+              .qzh .dhx-v3 .dhx-right{position:sticky;top:var(--v3top,86px);align-self:start;overflow:hidden;}
               .qzh .dhx-v3 .dhx-right > .hr-panel{flex:1 1 auto;min-height:0;}
-            }`,
-    'QH:dhx-css');
-
-  // Same reasoning as QH:v3nat: a follow-up to an insert has to be its own
-  // edit, or it is skipped along with the insert once that is on origin.
-  s = sub(s,
-    `height:calc(100vh - var(--v3top,86px) - 16px);align-self:start;`,
-    `height:calc(100vh - var(--v3nat,140px) - 16px);align-self:start;`,
-    'QH:railheight');
+            }
+`;
+  s = region(s, `            /* HOME v3: the left rail is gone`, `            /* start, not stretch:`, V3CSS, 'QH:v3css');
 
   s = sub(s,
     `          <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>`,
@@ -757,4 +787,4 @@ export default function HomePreviewPage() {
 `);
 CHANGES += 1;
 
-console.log('patch-home-v3: ' + CHANGES + ' anchored edits applied, ' + SKIPPED + ' already present');
+console.log(`patch-home-v3: ${CHANGES} anchored edits, ${SKIPPED} already present, ${REGIONS} regions rebuilt`);

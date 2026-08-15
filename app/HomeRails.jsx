@@ -354,7 +354,7 @@ export default function HomeRails({
   // side="board" only: which tab is showing, and which accordion section is
   // open inside the Leaderboard tab. Declared here with the other hooks.
   const [bTab, setBTab] = useState('lb');
-  const [bSec, setBSec] = useState('today');
+  const [bSec, setBSec] = useState('comm');
 
   // ── LEFT ──────────────────────────────────────────────────────────────────
   const community = useMemo(() => {
@@ -872,17 +872,25 @@ export default function HomeRails({
   );
 
   if (side === 'board') {
-    /* ONE PINNED PANEL (home v3). The left rail is gone and its two elements,
-       the three-face leaderboard and Category leaders, moved in here as
-       accordion sections alongside two IQ boards. Only one section is open at
-       a time and the open one is the flex child that grows, which is what
-       keeps the whole panel inside the viewport no matter how many rows a
-       board holds. Closed bands still carry their leader, so shutting three of
-       them loses nothing you came for.
+    /* THE LOFT (home v3). One pinned panel replacing both rails: the left
+       rail's three-face leaderboard and its Category leaders, plus the right
+       rail's live feed and streak, all in one place.
 
-       Nothing here is new data: dailyRows, catLeaders, xp30 and xpAll are all
-       already computed above for the left rail, and the Live and You tabs
-       reuse the right rail's own feed, streak and rival. */
+       TWO LEVELS OF TABS, not an accordion. The accordion this replaced put the
+       other boards as bands at the FOOT of the open one, so the thing you
+       wanted was always below the thing you did not (owner, 2026-08-15). The
+       sub-sorts now sit directly under Leaderboard / Live / You, where they
+       read as what they are: another way to slice the same board. Exactly one
+       pane is mounted, so the panel's height is the height of ONE board and
+       nothing stacks, which is what keeps it inside a single screen.
+
+       COMMUNITY LEADS, because it is the board with something at stake on it:
+       it carries the contest while one is running and falls back to referrals
+       otherwise (owner, 2026-08-15).
+
+       No new data. communityRows, dailyRows, catLeaders, xp30 and xpAll are all
+       already computed above for the left rail, and Live and You reuse the
+       right rail's own feed, streak and rival. */
     const bRows = (rows, fmt, unit, eyebrow, sub_, href, footLabel) => (
       <>
         <div className="hr-scroll hrb-body">
@@ -899,46 +907,10 @@ export default function HomeRails({
         </div>
       </>
     );
-    const lead = (rows) => ((rows && rows.length) ? rows[0].name : null);
-    const catLed = catLeaders.filter((c) => c.leader).length;
-    const SECS = [
-      {
-        k: 'today',
-        label: 'Today \u00b7 Combined',
-        cap: lead(dailyRows),
-        body: () => bRows(dailyRows, (v) => v, 'points', "Today's leader", 'Combined daily games score', '/quizzes/hub?tab=daily', 'Full daily board'),
-      },
-      {
-        k: 'cats',
-        label: 'By category',
-        cap: catLeaders.length ? `${catLed} of ${catLeaders.length} led` : null,
-        body: () => (
-          <>
-            <div className="hr-scroll hrb-body">
-              {catLeaders.map((row) => <CatSlip key={row.name} row={row} />)}
-              {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
-            </div>
-            <div className="hr-foot">
-              <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
-              <Link href="/quizzes/hub?tab=daily" className="hr-link">Daily boards &rarr;</Link>
-            </div>
-          </>
-        ),
-      },
-      {
-        k: 'm30',
-        label: 'Last 30 days',
-        cap: lead(xp30),
-        body: () => bRows(xp30, num, 'IQ pts', 'Top of the month', 'IQ points earned in 30 days', '/quizzes/hub?tab=player', 'Monthly board'),
-      },
-      {
-        k: 'all',
-        label: 'All time \u00b7 IQ Points',
-        cap: lead(xpAll.length ? xpAll : xp30),
-        body: () => bRows(xpAll.length ? xpAll : xp30, num, 'IQ pts', 'Top player, all time', 'Lifetime IQ points', '/quizzes/hub?tab=player', 'All time board'),
-      },
-    ];
     const TABS = [['lb', 'Leaderboard'], ['live', 'Live'], ['you', 'You']];
+    const SUBS = [['comm', showContest ? 'Contest' : 'Community'], ['today', 'Today'],
+      ['cats', 'Category'], ['m30', '30 days'], ['all', 'All time']];
+    const sec = SUBS.some((x) => x[0] === bSec) ? bSec : 'comm';
     return (
       <>
         {CSS}
@@ -946,27 +918,27 @@ export default function HomeRails({
           /* Scoped to .hr-board and placed AFTER the shared sheet on purpose:
              the max-width:1200px block in CSS flattens .hr-flex to flex:none,
              so anything that has to stretch must be declared later. Pinning is
-             min-width:1201px only, which is the same threshold the parent uses
-             to pin a rail at all, so 901-1200 and mobile keep their natural
-             stacked flow untouched. */
+             min-width:1201px only, the same threshold the parent uses to pin a
+             rail at all, so 901-1200 and mobile keep their stacked flow.
+
+             EVERY CONTROL IN HERE IS A RECTANGLE. globals.css rounds every
+             button on the site to 8px, so a tab strip built out of buttons
+             arrives with rounded corners unless it says otherwise, which is
+             what it looked like and what the owner objected to. */
           .hr-board{display:flex;flex-direction:column;min-height:0;}
           .hrb-tabs{display:flex;flex:none;background:#0e2a63;}
-          .hrb-tabs button{flex:1;border:none;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:10px 4px;cursor:pointer;border-bottom:3px solid transparent;}
+          .hrb-tabs button{flex:1;border:none;border-radius:0;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent;}
           .hrb-tabs button.on{color:var(--white);border-bottom-color:var(--white);background:var(--accent);}
-          .hrb-acc{display:flex;flex-direction:column;min-height:0;}
-          .hrb-sec{display:flex;flex-direction:column;min-height:0;flex:none;}
-          .hrb-band{display:flex;align-items:center;gap:8px;width:100%;flex:none;border:none;border-top:1px solid var(--border);background:#eef2f8;color:#41506b;font:inherit;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;padding:9px 13px;cursor:pointer;text-align:left;border-radius:0;}
-          .hrb-band .ch{flex:none;width:10px;text-align:center;font-size:10px;color:#7b8496;}
-          .hrb-band .cv{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.02em;text-transform:none;color:var(--blue-dark);max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-          .hrb-band.on{background:var(--accent);color:var(--white);border-top-color:var(--accent);}
-          .hrb-band.on .ch,.hrb-band.on .cv{color:#bcd3ff;}
-          .hrb-body{min-height:0;overflow-y:auto;}
+          /* Five sub-sorts do not fit one 340px line, so they wrap 3 and 2 at
+             a third each. Deliberate, not a reflow accident. */
+          .hrb-subs{display:flex;flex-wrap:wrap;flex:none;background:#eef2f8;border-bottom:1px solid var(--border);}
+          .hrb-subs button{flex:1 1 30%;border:none;border-radius:0;background:transparent;color:#5b6478;font:inherit;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+          .hrb-subs button:hover{color:var(--ink);}
+          .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
+          .hrb-body{min-height:0;overflow-y:auto;}
           @media(min-width:1201px){
             .hr-board{flex:1 1 auto;}
-            .hrb-acc{flex:1 1 auto;}
-            .hrb-sec.on{flex:1 1 auto;min-height:0;}
-            .hrb-sec.on .hrb-body{flex:1 1 auto;}
             .hrb-pane{flex:1 1 auto;}
             .hrb-pane .hrb-body{flex:1 1 auto;}
           }
@@ -974,38 +946,50 @@ export default function HomeRails({
         <section className="hr-panel hr-board">
           <div className="hr-ph">
             <span className="hr-pi"><CrownIcon /></span>
-            <h2>Leaderboards</h2>
+            <h2>The Loft</h2>
             <span className="hr-chip">TODAY</span>
           </div>
           <div className="hrb-tabs" role="tablist">
             {TABS.map(([k, label]) => (
-              <button
-                key={k}
-                type="button"
-                role="tab"
-                aria-selected={bTab === k}
-                className={bTab === k ? 'on' : undefined}
-                onClick={() => setBTab(k)}
-              >{label}</button>
+              <button key={k} type="button" role="tab" aria-selected={bTab === k}
+                className={bTab === k ? 'on' : undefined} onClick={() => setBTab(k)}>{label}</button>
             ))}
           </div>
 
           {bTab === 'lb' ? (
-            <div className="hrb-acc">
-              {SECS.map((sc) => {
-                const on = bSec === sc.k;
-                return (
-                  <div key={sc.k} className={`hrb-sec${on ? ' on' : ''}`}>
-                    <button type="button" className={`hrb-band${on ? ' on' : ''}`} aria-expanded={on} onClick={() => setBSec(sc.k)}>
-                      <span className="ch" aria-hidden="true">{on ? '\u25be' : '\u25b8'}</span>
-                      <span>{sc.label}</span>
-                      {sc.cap ? <span className="cv">{sc.cap}</span> : null}
-                    </button>
-                    {on ? sc.body() : null}
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              <div className="hrb-subs" role="tablist">
+                {SUBS.map(([k, label]) => (
+                  <button key={k} type="button" role="tab" aria-selected={sec === k}
+                    className={sec === k ? 'on' : undefined} onClick={() => setBSec(k)}>{label}</button>
+                ))}
+              </div>
+              <div className="hrb-pane">
+                {sec === 'comm' ? bRows(
+                  communityRows,
+                  showContest ? ((v) => formatScore(v)) : ((v) => '+' + num(v)),
+                  showContest ? 'score' : 'brought in',
+                  showContest ? 'Contest leader' : 'Top community member',
+                  showContest ? COPY.prizeLine : 'New players brought in, last 90 days',
+                  showContest ? '/quizzes/contest' : '/quizzes/community',
+                  showContest ? 'Board and rules' : 'Full leaderboard') : null}
+                {sec === 'today' ? bRows(dailyRows, (v) => v, 'points', "Today's leader", 'Combined daily games score', '/quizzes/hub?tab=daily', 'Full daily board') : null}
+                {sec === 'm30' ? bRows(xp30, num, 'IQ pts', 'Top of the month', 'IQ points earned in 30 days', '/quizzes/hub?tab=player', 'Monthly board') : null}
+                {sec === 'all' ? bRows(xpAll.length ? xpAll : xp30, num, 'IQ pts', 'Top player, all time', 'Lifetime IQ points', '/quizzes/hub?tab=player', 'All time board') : null}
+                {sec === 'cats' ? (
+                  <>
+                    <div className="hr-scroll hrb-body">
+                      {catLeaders.map((row) => <CatSlip key={row.name} row={row} />)}
+                      {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
+                    </div>
+                    <div className="hr-foot">
+                      <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
+                      <Link href="/quizzes/hub?tab=daily" className="hr-link">Daily boards &rarr;</Link>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </>
           ) : null}
 
           {bTab === 'live' ? (
@@ -1023,8 +1007,7 @@ export default function HomeRails({
               </div>
               <div className="hr-scroll hrb-body">
                 {(lastPlayed || []).map((f, i) => {
-                  const frac = f.total ? f.score / f.total : 0;
-                  const pct = Math.round(frac * 100);
+                  const pct = Math.round((f.total ? f.score / f.total : 0) * 100);
                   const cat = catFor ? catFor(f.quizId) : null;
                   return (
                     <Link key={`${f.quizId}-${i}`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
@@ -1037,7 +1020,7 @@ export default function HomeRails({
                         </span>
                         <span className="hr-s">
                           <b className="hr-res-sc">{f.score}/{f.total}</b>
-                          {typeof f.pct === 'number' ? ` \u00b7 beat ${f.pct}%` : ''}{f.when ? ` \u00b7 ${f.when}` : ''}
+                          {typeof f.pct === 'number' ? ' \u00b7 beat ' + f.pct + '%' : ''}{f.when ? ' \u00b7 ' + f.when : ''}
                         </span>
                       </span>
                       <span className="hr-pc">{pct}%</span>
@@ -1073,7 +1056,7 @@ export default function HomeRails({
                       <span className="hr-fceye">{rival.behind ? 'Right behind you' : 'Next one ahead'}</span>
                       <span className="hr-fcnm">{rival.username}</span>
                       <span className="hr-fcsub">
-                        {rival.rank ? `#${rival.rank} today` : 'On the board today'}
+                        {rival.rank ? '#' + rival.rank + ' today' : 'On the board today'}
                         {gapLine ? <span className="hr-fcdot">&middot;</span> : null}
                         {gapLine || null}
                       </span>

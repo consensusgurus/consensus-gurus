@@ -507,6 +507,23 @@ export default function QuizHomeClient({ variant = 'current' }) {
         const el = document.querySelector('.qchm-r1') || document.querySelector('.qchm');
         const h = el ? Math.round(el.getBoundingClientRect().height) : 56;
         document.documentElement.style.setProperty('--v3top', (h + 12) + 'px');
+      } catch (e) {}
+    };
+    set();
+    const t = setTimeout(set, 500);
+    window.addEventListener('resize', set);
+    return () => { window.removeEventListener('resize', set); clearTimeout(t); };
+  }, [v3]);
+  // v3 only: publish the sticky masthead's height so the pinned rail can sit
+  // directly under it and size itself to the rest of the viewport. Measured
+  // rather than hardcoded, the same reasoning as --dh-fit on the slate board.
+  useEffect(() => {
+    if (!v3 || typeof window === 'undefined') return undefined;
+    const set = () => {
+      try {
+        const el = document.querySelector('.qchm-r1') || document.querySelector('.qchm');
+        const h = el ? Math.round(el.getBoundingClientRect().height) : 56;
+        document.documentElement.style.setProperty('--v3top', (h + 12) + 'px');
         // The rail STICKS at --v3top, but until the page is scrolled it SITS
         // lower than that, because the stat bar above it is not sticky. Sizing
         // it off the sticky offset therefore hangs it below the fold at scroll
@@ -2134,13 +2151,20 @@ export default function QuizHomeClient({ variant = 'current' }) {
         <div className={v3 ? 'dhx dhx-v3' : 'dhx'}>
           <style>{`
             .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:10px;align-items:start;margin-bottom:12px;}
-            /* HOME v3: the left rail is gone, so two columns. Declared here,
-               BEFORE the stacked and phone blocks further down, so those keep
-               overriding it and mobile is untouched. The rail is pinned only
-               above 1200px, which is the same threshold railH uses. */
+            /* HOME v3: the left rail is gone, so two columns, and BOTH are pinned
+               to the viewport so the page is exactly one screen (owner,
+               2026-08-15: the slate must fill the whole screen). Each column is
+               a flex box that hands its height to the one scrollable region
+               inside it: the games list on the left, the open board on the
+               right. Declared here, BEFORE the stacked and phone blocks further
+               down, so those keep overriding it and mobile is untouched. Pinned
+               above 1200px only, the same threshold railH uses. */
             .qzh .dhx-v3{grid-template-columns:minmax(0,1fr) 340px;}
             @media(min-width:1201px){
-              .qzh .dhx-v3 .dhx-right{position:sticky;top:var(--v3top,86px);height:calc(100vh - var(--v3nat,140px) - 16px);align-self:start;overflow:hidden;}
+              .qzh .dhx-v3 .dhx-center,.qzh .dhx-v3 .dhx-right{height:calc(100vh - var(--v3nat,140px) - 16px);min-height:0;}
+              .qzh .dhx-v3 .dhx-center{display:flex;flex-direction:column;}
+              .qzh .dhx-v3 .dhx-center > *{flex:1 1 auto;min-height:0;}
+              .qzh .dhx-v3 .dhx-right{position:sticky;top:var(--v3top,86px);align-self:start;overflow:hidden;}
               .qzh .dhx-v3 .dhx-right > .hr-panel{flex:1 1 auto;min-height:0;}
             }
             /* start, not stretch: the CENTRE column has to report its own content
