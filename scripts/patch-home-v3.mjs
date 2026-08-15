@@ -515,8 +515,47 @@ function sub(src, find, repl, label, count = 1, mark = null) {
              category takes the whole board.
      So the cap is the "what should I play" zone and it yields space the
      moment you have answered that question yourself by picking a category. */
+  /* CIRCUITS (owner list, 2026-08-15). The cross-cut: a category says what a
+     game IS, a circuit says what SKILL it exercises, so the two are different
+     axes and a game can sit in one, both or neither. Six of the owner's
+     twenty-one were dropped before this shipped because they only restated a
+     top-level category and would have rendered as "Trivia: Trivia 7" (Trivia,
+     End Games, Solitaire, Arcade, Crowd, Geography).
+
+     CIRCUITS CROSS CATEGORIES ON PURPOSE. Babel is Word Building and a Classic
+     Board Game, Blitz is Mental Math and Survival, Span is Spatial and the
+     whole of Geography, Outrank is Ranking and Crowd. A tile therefore counts
+     only ITS OWN members of a circuit, and opening one shows the circuit whole,
+     across every category it reaches. Keyed by display name because that is how
+     the list was given and how the roster reads. */
+  const CIRCUITS = [
+    ['Crosswords', ['Emcee', 'Crux', 'Shards', 'Glyph', 'Anon']],
+    ['Word Building', ['Tuck', 'Lode', 'Babel']],
+    ['Anagrams', ['Garble', 'Barter', 'Strata']],
+    ['Word Ladders', ['Rung', 'Warmer']],
+    ['Sorting', ['Links', 'Venn']],
+    ['Sudoku', ['Suds', 'Quilt', 'Cages', 'Sando']],
+    ['Mental Math', ['Blitz', 'Crunch', 'Cipher', 'Tally']],
+    ['Spatial Puzzles', ['Carve', 'Plot', 'Parker', 'Paths', 'Chomp', 'Span']],
+    ['Deduction', ['Alibi', 'Sworn', 'Hearsay', 'Stands', 'Docket', 'Suffice', 'Axiom']],
+    ['Pencil Puzzles', ['Etch', 'Hedge', 'Jesters', 'Fib']],
+    ['History', ['Dating', 'Extra', 'Redact']],
+    ['Ranking', ['Listed', 'Bracket', 'Outrank']],
+    ['Survival', ['Streak', 'Deep', 'Blitz']],
+    ['Chess', ['Mate', 'Defend']],
+    ['Classic Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
+  ];
+  const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
+  const circuitGames = (name) => {
+    const row = CIRCUITS.find(([n]) => n === name);
+    if (!row) return [];
+    return games.filter((g) => row[1].includes(g.name));
+  };
+  const openCircuit = String(filter || '').startsWith('circuit:') ? filter.slice(8) : null;
+
   const catOf = (c) => games.filter((g) => g.cat === c);
   const catOpen = slateCats.includes(filter) ? filter : null;
+  const boardOpen = catOpen || openCircuit;
 
   /* The cap's candidates, best first, deduped. The first three are the old
      cap's own ranking and keep its wording: play, resume, retry. After those
@@ -551,7 +590,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
   })();
 
   const renderCatCap = () => {
-    const slots = capPool.slice(0, catOpen ? 3 : 6);
+    const slots = capPool.slice(0, boardOpen ? 3 : 6);
     if (!slots.length) {
       return (
         <div className="cb-cap" style={{ gridTemplateColumns: '1fr' }}>
@@ -582,14 +621,14 @@ function sub(src, find, repl, label, count = 1, mark = null) {
   };
 
   const renderCatBoard = () => {
-    if (catOpen) {
-      const list = catOf(catOpen);
-      const label = CAT_SHORT[catOpen] || catOpen;
+    if (boardOpen) {
+      const list = openCircuit ? circuitGames(openCircuit) : catOf(catOpen);
+      const label = openCircuit || CAT_SHORT[catOpen] || catOpen;
       return (
         <div className="cb-open-wrap" key="cb-open">
           <button type="button" className="cb-hd" onClick={() => setFilter('all')}>
-            <span className="cb-hsq" style={{ '--cc': catCol(catOpen) }}>
-              {(() => { const G = CAT_GLYPH[catOpen] || Star; return <G size={15} strokeWidth={2.4} />; })()}
+            <span className="cb-hsq" style={{ '--cc': openCircuit ? T.blue : catCol(catOpen) }}>
+              {(() => { const G = openCircuit ? Puzzle : (CAT_GLYPH[catOpen] || Star); return <G size={15} strokeWidth={2.4} />; })()}
             </span>
             {label} &middot; {list.length} game{list.length === 1 ? '' : 's'}
             <span>All categories &#9650;</span>
@@ -602,7 +641,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
               return (
                 <a href={g.href} className="cb-row" key={'cb-' + g.key}>
                   <img className="cb-rsq" src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
-                  <span className="cb-rt"><b>{g.name}</b><span>{g.tag}</span></span>
+                  <span className="cb-rt"><b>{g.name}</b><span>{openCircuit ? (CAT_SHORT[g.cat] || g.cat) + ' \u00b7 ' + g.tag : g.tag}</span></span>
                   {fl ? <span className="cb-rs fail">Retry</span>
                     : isDone ? <span className="cb-rs done">Done</span>
                       : ip ? <span className="cb-rs prog">Resume</span>
@@ -630,7 +669,16 @@ function sub(src, find, repl, label, count = 1, mark = null) {
                  Unplayed games lead, because a tile listing four games you have
                  already finished is a worse answer to "what is in here" than one
                  listing four you have not. */
-              const peek = list.filter((g) => !done.has(g.key)).concat(list.filter((g) => done.has(g.key))).slice(0, 4);
+              /* Circuits present among THIS category's games, biggest first,
+                 with the count of its own members. The circuit's FULL size
+                 across the slate rides in the tooltip instead. NO BACKTICKS in
+                 here: this whole block is one template literal, the same hazard
+                 the stylesheet is documented for. */
+              const seenC = new Map();
+              for (const g of list) for (const cn of circuitsOf(g)) seenC.set(cn, (seenC.get(cn) || 0) + 1);
+              const circs = [...seenC.entries()].map(([name, n]) => ({ name, n, all: circuitGames(name).length }))
+                .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+              const loose = list.filter((g) => !circuitsOf(g).length);
               return (
                 <div key={c} className="cb-tile" style={{ '--cc': catCol(c) }}>
                   <button type="button" className="cb-thead" aria-expanded={false}
@@ -642,8 +690,21 @@ function sub(src, find, repl, label, count = 1, mark = null) {
                     <span className="cb-tct">{list.length}</span>
                   </button>
                   <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
+                  {/* THE CIRCUITS IN THIS CATEGORY, which is the tile's real
+                      content: what the category is made OF. Counted against
+                      this tile's own members, since a circuit can reach into
+                      other categories. Games belonging to no circuit are listed
+                      by name underneath rather than swept into an "Other" row
+                      that would say nothing. */}
                   <div className="cb-list">
-                    {peek.map((g) => {
+                    {circs.slice(0, 4).map((c) => (
+                      <button type="button" key={c.name} className="cb-li cir"
+                        onClick={() => setFilter('circuit:' + c.name)}
+                        title={c.name + ' · ' + c.all + ' across the slate'}>
+                        <i aria-hidden="true" />{c.name}<em>{c.n}</em>
+                      </button>
+                    ))}
+                    {circs.length < 4 ? loose.slice(0, 4 - circs.length).map((g) => {
                       const gd = done.has(g.key);
                       const gf = isFail(g.key);
                       const gp = inprog.has(g.key) && !gd;
@@ -653,7 +714,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
                           <i aria-hidden="true" />{g.name}
                         </a>
                       );
-                    })}
+                    }) : null}
                   </div>
                   <span className="cb-tmt">
                     <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
@@ -756,6 +817,10 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .cb-list{display:flex;flex-direction:column;min-width:0;}
         .cb-li{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12.5px;font-weight:700;color:var(--muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-li i{width:5px;height:5px;border-radius:50%;background:var(--cc,var(--blue-dark));flex:none;}
+        .cb-li.cir{border:none;background:none;padding:3px 0;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;width:100%;text-align:left;border-radius:0;}
+        .cb-li.cir:hover{color:var(--blue);}
+        .cb-li.cir em{margin-left:auto;font-style:normal;font-size:11px;font-weight:800;color:var(--slate);}
+        .cb-li.cir:hover em{color:var(--blue);}
         .cb-li:hover{color:var(--blue);}
         .cb-li.done{color:#a8aeba;}
         .cb-li.done i{background:#cbd2dd;}
