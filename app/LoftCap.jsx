@@ -228,6 +228,16 @@ export default function LoftCap({
   backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .loft-backin{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;
   border-radius:14px}
+/* REPORT AN ISSUE, at the foot of every loft daily (owner, 2026-08-14). It used
+   to live inside the games grid in the tail, which is gone, and it is the one
+   thing down there worth keeping. Navy pill, white letters, on the stage under
+   the board. */
+.loft-report{margin-top:14px;display:flex;justify-content:center}
+.loft-report .ri-wrap{width:auto}
+.loft-report .ri-link{background:var(--accent);color:var(--white);border:1px solid rgba(255,255,255,0.28);
+  border-radius:10px;padding:10px 18px;font-weight:800;font-size:12.5px;text-decoration:none;opacity:1}
+.loft-report .ri-link:hover{background:var(--blue-deep)}
+.loft-report .ri-form,.loft-report .ri-sent{background:var(--white);border-radius:12px;padding:12px;margin-top:10px;text-align:left}
 .loft-fiq .bi{flex:none;color:var(--blue);margin-right:2px}
 .loft-back-btn{margin-left:auto;border:2px solid var(--border);background:var(--surface-alt);
   color:var(--slate);border-radius:9px;padding:7px 12px;font-family:inherit;font-weight:800;

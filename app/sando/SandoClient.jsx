@@ -41,6 +41,7 @@ import DailyGamesPromo from '../DailyGamesPromo';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
+import ReportIssue from '../ReportIssue';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
@@ -55,6 +56,7 @@ import { CONTEST, contestIsLive } from '@/lib/contest';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
 import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
@@ -301,6 +303,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
   const nextUp = useNextUnplayed({ self: 'sando', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'sando', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'sando', active: LOFT && !playing });
   const dayStats = useDayStats();
 
   useEffect(() => {
@@ -1090,14 +1093,10 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
             detail={`${filledCount}/${FREE.length} filled · ${elapsed}`}
             iq={iq}
             board={dailyBoard}
-            gameRank={(() => {
-              const rs = dailyBoard && dailyBoard.rows ? dailyBoard.rows : null;
-              if (!rs) return null;
-              const i = dailyBoard.mine
-                ? rs.findIndex((r) => String(r.username || '').toLowerCase() === dailyBoard.mine)
-                : -1;
-              return { value: i >= 0 ? `#${i + 1}` : '\u2014', label: 'sando today' };
-            })()}
+            gameRank={allTime && allTime.ready
+              ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                  label: allTime.field != null ? `sando of ${allTime.field}` : 'sando all time' }
+              : null}
             day={dayStats}
             streak={isTodays ? myStats.cur : null}
             archive={puzzles
@@ -1178,6 +1177,17 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          {LOFT && (
+            <div className="loft-report">
+              <ReportIssue self="sando" name="Sando" accent="#ffffff" align="center" />
+            </div>
+          )}
+
+          {/* THE TAIL IS GONE ON A LOFT PAGE (owner, 2026-08-14). The end card
+              now carries the board, the day, what to play next and the archive,
+              so the games grid and leaderboard panel below were saying all of
+              it a second time. Only Report an issue survives, promoted below. */}
+          {!LOFT && (
           <DailyGamesGrid replay={!playing ? resetGame : null}
             self="sando"
             maxWidth={620}
@@ -1187,6 +1197,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
             boardSlot={<DailyBoardPanel self="sando" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
+          )}
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
