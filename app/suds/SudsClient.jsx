@@ -986,7 +986,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
                 score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
               }))}
             options={[
-              { label: 'Reveal or return to game board', sub: won ? 'Your finished board' : 'Show the answer', onClick: () => setRevealed(true) },
+              { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Suds', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/suds?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
               { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers',

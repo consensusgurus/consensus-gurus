@@ -110,9 +110,12 @@ export default function LoftCap({
    about two and a half. The scrollbar is hidden because the partial tile at
    the edge is the affordance. */
 @media(max-width:899px) and (orientation:portrait){
-  .lcap-tiles i{display:none}
-  .lcap-tiles a{flex:1 1 0!important;min-width:0;gap:6px;padding-left:7px;padding-right:7px}
-  .lcap-tiles b{font-size:12px}
+  .lcap-done .lcap-nm{font-size:17px;line-height:1.08;white-space:normal;max-width:5.2em}
+  .lcap-tiles{scroll-snap-type:x mandatory}
+  .lcap-tiles i{display:block}
+  .lcap-tiles a{flex:0 0 78%!important;scroll-snap-align:start;min-width:0;
+    gap:8px;padding-left:9px;padding-right:9px}
+  .lcap-tiles b{font-size:12.5px}
 }
 @media(max-width:899px){
   .lcap-tiles{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -481,6 +484,8 @@ export default function LoftCap({
   border-left:5px solid var(--slate)}
 .loft-opt.t-main{background:var(--surface-alt);border-color:var(--border);
   border-left:5px solid var(--blue-deep)}
+.loft-opt.t-reveal{background:rgba(109,40,217,0.08);border-color:rgba(109,40,217,0.26);
+  border-left:5px solid #6d28d9}
 .loft-opt.t-archive{background:rgba(217,119,6,0.09);border-color:rgba(217,119,6,0.26);
   border-left:5px solid #b45309}
 
