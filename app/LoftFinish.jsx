@@ -93,12 +93,40 @@ export default function LoftFinish({
     </div>
   );
 
+  // THE ARCHIVE TAKES OVER THE WHOLE CARD (owner, 2026-08-14). It used to render
+  // as a panel BELOW the options, which broke the layout outright: .loft-opts is
+  // a flex child with flex:1, so it stretches to fill the card and the archive
+  // was laid over the top of it, date rows sitting on the option buttons. A list
+  // of fourteen dates also wants the whole face rather than a squeezed strip
+  // under six buttons. So it replaces the content instead of joining it, and
+  // Back returns.
+  if (openArchive && archive && archive.length) {
+    return (
+      <div className="loft-back">
+        <div className="loft-backin">
+          <div className="loft-res">
+            <b>Archive</b>
+            <button type="button" className="loft-back-btn" onClick={() => setOpenArchive(false)}>&#8592; Back</button>
+          </div>
+          <div className="loft-arch">
+            {archive.map((a) => (
+              <a key={a.num} className={`loft-archr${a.done ? ' done' : ''}`} href={a.href}>
+                <span className="d">{a.dateLabel}</span>
+                <span className="no">No. {a.num}</span>
+                <span className="v">{a.done ? (a.score != null ? a.score : '\u2713') : 'Play'}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="loft-back">
+      <div className="loft-backin">
       <div className="loft-res"><b>{title}</b><s>{detail}</s></div>
 
-      {/* IQ and the day. One tile: what this game paid, and where that leaves
-          you today. */}
       <div className="loft-fiq">
         <span className="n">{iq && iq.gained != null ? `+${iq.gained}` : <Calculating />}</span>
         <span className="t">
@@ -106,22 +134,24 @@ export default function LoftFinish({
           <span className="m">
             {iq && iq.xp != null ? `${Number(iq.xp).toLocaleString()} total` : 'counting your run'}
             {iq && iq.rank != null
-              ? ` · rank #${Number(iq.rank).toLocaleString()}${iq.total != null ? ` of ${Number(iq.total).toLocaleString()}` : ''}`
+              ? ` \u00b7 rank #${Number(iq.rank).toLocaleString()}${iq.total != null ? ` of ${Number(iq.total).toLocaleString()}` : ''}`
               : ''}
           </span>
         </span>
       </div>
+      {/* Each figure gets its OWN colour (owner, 2026-08-14): four identical grey
+          tiles read as one block and nothing stands out. */}
       <div className="loft-day">
-        <span><b>{day && day.ready
-          ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '—')
+        <span className="d1"><b>{day && day.ready
+          ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>IQ today</span>
-        <span><b>{day && (day.ready || day.done)
+        <span className="d2"><b>{day && (day.ready || day.done)
           ? `${day.done}/${day.total}`
           : <Calculating />}</b>puzzles today</span>
-        <span><b>{day && day.ready
-          ? (day.dayRank != null ? `#${Number(day.dayRank).toLocaleString()}` : '—')
+        <span className="d3"><b>{day && day.ready
+          ? (day.dayRank != null ? `#${Number(day.dayRank).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>rank today</span>
-        <span><b>{streak != null && streak >= 1 ? streak : '—'}</b>day streak</span>
+        <span className="d4"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
       </div>
 
       <div className="loft-lb">
@@ -158,31 +188,13 @@ export default function LoftFinish({
             : <button key={i} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
         })}
         {archive && archive.length ? (
-          <button
-            type="button"
-            className={`loft-opt wide${openArchive ? ' on' : ''}`}
-            onClick={() => setOpenArchive((v) => !v)}
-          >
+          <button type="button" className="loft-opt wide" onClick={() => setOpenArchive(true)}>
             Archive
-            <span className="sub">{openArchive ? 'Hide' : 'Every daily puzzle, by date'}</span>
+            <span className="sub">Every daily puzzle, by date</span>
           </button>
         ) : null}
       </div>
-
-      {/* The archive opens HERE, in the card, rather than sending the player to
-          /daily. Following one of these does navigate, because playing an
-          archive puzzle is a different page by definition. */}
-      {openArchive && archive && archive.length ? (
-        <div className="loft-arch">
-          {archive.map((a) => (
-            <a key={a.num} className={`loft-archr${a.done ? ' done' : ''}`} href={a.href}>
-              <span className="d">{a.dateLabel}</span>
-              <span className="no">No. {a.num}</span>
-              <span className="v">{a.done ? (a.score != null ? a.score : '✓') : 'Play'}</span>
-            </a>
-          ))}
-        </div>
-      ) : null}
+      </div>
     </div>
   );
 }

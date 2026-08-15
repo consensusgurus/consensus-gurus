@@ -194,9 +194,20 @@ export default function LoftCap({
    clicked even if an engine mispaints the backface. */
 .loft-face{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .loft-back{position:absolute;inset:0 0 12px 0;transform:rotateY(180deg);background:var(--white);
-  border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.34);padding:12px;overflow:auto;
+  border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.34);
   display:flex;flex-direction:column;color:var(--ink);
+  /* THE SCROLL MOVED INSIDE (owner, 2026-08-14: "right corners need to be
+     rounded"). With overflow:auto on this element the scrollbar is painted in
+     the element's own padding box, which squares off both right-hand corners
+     however large the radius is. Clipping here and scrolling on a child keeps
+     the corner. */
+  overflow:hidden;
   backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.loft-backin{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;
+  border-radius:14px}
+.loft-back-btn{margin-left:auto;border:2px solid var(--border);background:var(--surface-alt);
+  color:var(--slate);border-radius:9px;padding:7px 12px;font-family:inherit;font-weight:800;
+  font-size:12.5px;cursor:pointer}
 .loft-flip .loft-back{pointer-events:none}
 .loft-flip.on .loft-back{pointer-events:auto}
 .loft-flip.on .loft-face{pointer-events:none}
@@ -277,6 +288,18 @@ export default function LoftCap({
 .loft-day span{flex:1 1 22%;min-width:96px}
 .loft-day span{flex:1;padding:9px 10px;border-radius:10px;background:var(--surface-alt);
   font-weight:700;font-size:10.5px;line-height:1.2;color:var(--slate);text-align:center}
+/* One colour per figure, drawn from tokens already on this page: blue for the
+   IQ the site scores you on, green for progress through the day, gold for a
+   ranking (the same gold the leaderboard's first place uses) and ember for the
+   streak. Tinted grounds with a matching ink, not four greys. */
+.loft-day .d1{background:var(--accent-soft)}
+.loft-day .d1 b{color:var(--blue-deep)}
+.loft-day .d2{background:rgba(21,128,61,0.10)}
+.loft-day .d2 b{color:var(--success-deep)}
+.loft-day .d3{background:rgba(232,180,58,0.20)}
+.loft-day .d3 b{color:#8a6d1a}
+.loft-day .d4{background:rgba(217,119,6,0.12)}
+.loft-day .d4 b{color:#b45309}
 .loft-day b{display:block;font-weight:800;font-size:17px;line-height:1;color:var(--ink);margin-bottom:4px}
 
 /* CALCULATING, never a blank or a zero. Every figure on this card comes from a
@@ -291,8 +314,7 @@ export default function LoftCap({
 @keyframes loftdot{0%,60%,100%{opacity:.25}30%{opacity:1}}
 
 /* The archive, opened IN the card. */
-.loft-arch{margin-top:9px;border-top:1px solid var(--border);padding-top:9px;
-  max-height:210px;overflow:auto}
+.loft-arch{margin-top:4px}
 .loft-archr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;
   text-decoration:none;color:var(--ink);font-weight:700;font-size:13px}
 .loft-archr+.loft-archr{margin-top:3px}
