@@ -418,6 +418,48 @@ function sub(src, find, repl, label, count = 1, mark = null) {
     `export default function DailyStrip({ board = null, layout = 'tiles', quizCats = [] }) {`,
     'DS:signature');
 
+  s = sub(s,
+    `const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };`,
+    `const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
+
+/* CIRCUITS (owner list, 2026-08-15). The cross-cut: a category says what a game
+   IS, a circuit says what SKILL it exercises, so they are two axes and a game
+   can sit in one, both or neither. Six of the owner's twenty-one were dropped
+   because they only restated a top-level category and would have rendered as
+   "Trivia: Trivia 7" (Trivia, End Games, Solitaire, Arcade, Crowd, Geography).
+
+   Circuits cross categories on purpose: Babel is Word Building and a Classic
+   Board Game, Blitz is Mental Math and Survival, Span is Spatial Puzzles and
+   the whole of Geography, Outrank is Ranking and Crowd. Keyed by display name,
+   which is how the list was given and how the roster reads.
+
+   MODULE SCOPE, NOT COMPONENT SCOPE, and that is load-bearing. slateMatch calls
+   circuitsOf, and slateList runs slateMatch during render some 250 lines above
+   where the rest of the catboard helpers are defined, so as a component-scope
+   const it sat in the temporal dead zone and threw ReferenceError on every
+   render. That is invisible to esbuild and to no-undef, and it fails the build
+   at prerender rather than at parse. Neither of these depends on component
+   state, so neither belongs in the component. */
+const CIRCUITS = [
+  ['Crosswords', ['Emcee', 'Crux', 'Shards', 'Glyph', 'Anon']],
+  ['Word Building', ['Tuck', 'Lode', 'Babel']],
+  ['Anagrams', ['Garble', 'Barter', 'Strata']],
+  ['Word Ladders', ['Rung', 'Warmer']],
+  ['Sorting', ['Links', 'Venn']],
+  ['Sudoku', ['Suds', 'Quilt', 'Cages', 'Sando']],
+  ['Mental Math', ['Blitz', 'Crunch', 'Cipher', 'Tally']],
+  ['Spatial Puzzles', ['Carve', 'Plot', 'Parker', 'Paths', 'Chomp', 'Span']],
+  ['Deduction', ['Alibi', 'Sworn', 'Hearsay', 'Stands', 'Docket', 'Suffice', 'Axiom']],
+  ['Pencil Puzzles', ['Etch', 'Hedge', 'Jesters', 'Fib']],
+  ['History', ['Dating', 'Extra', 'Redact']],
+  ['Ranking', ['Listed', 'Bracket', 'Outrank']],
+  ['Survival', ['Streak', 'Deep', 'Blitz']],
+  ['Chess', ['Mate', 'Defend']],
+  ['Classic Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
+];
+const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);`,
+    'DS:circuits-module');
+
   // The slate's own filter learns about circuits, which is what lets its real
   // rows answer an open circuit without a second row renderer existing.
   s = sub(s,
@@ -533,37 +575,6 @@ function sub(src, find, repl, label, count = 1, mark = null) {
              category takes the whole board.
      So the cap is the "what should I play" zone and it yields space the
      moment you have answered that question yourself by picking a category. */
-  /* CIRCUITS (owner list, 2026-08-15). The cross-cut: a category says what a
-     game IS, a circuit says what SKILL it exercises, so the two are different
-     axes and a game can sit in one, both or neither. Six of the owner's
-     twenty-one were dropped before this shipped because they only restated a
-     top-level category and would have rendered as "Trivia: Trivia 7" (Trivia,
-     End Games, Solitaire, Arcade, Crowd, Geography).
-
-     CIRCUITS CROSS CATEGORIES ON PURPOSE. Babel is Word Building and a Classic
-     Board Game, Blitz is Mental Math and Survival, Span is Spatial and the
-     whole of Geography, Outrank is Ranking and Crowd. A tile therefore counts
-     only ITS OWN members of a circuit, and opening one shows the circuit whole,
-     across every category it reaches. Keyed by display name because that is how
-     the list was given and how the roster reads. */
-  const CIRCUITS = [
-    ['Crosswords', ['Emcee', 'Crux', 'Shards', 'Glyph', 'Anon']],
-    ['Word Building', ['Tuck', 'Lode', 'Babel']],
-    ['Anagrams', ['Garble', 'Barter', 'Strata']],
-    ['Word Ladders', ['Rung', 'Warmer']],
-    ['Sorting', ['Links', 'Venn']],
-    ['Sudoku', ['Suds', 'Quilt', 'Cages', 'Sando']],
-    ['Mental Math', ['Blitz', 'Crunch', 'Cipher', 'Tally']],
-    ['Spatial Puzzles', ['Carve', 'Plot', 'Parker', 'Paths', 'Chomp', 'Span']],
-    ['Deduction', ['Alibi', 'Sworn', 'Hearsay', 'Stands', 'Docket', 'Suffice', 'Axiom']],
-    ['Pencil Puzzles', ['Etch', 'Hedge', 'Jesters', 'Fib']],
-    ['History', ['Dating', 'Extra', 'Redact']],
-    ['Ranking', ['Listed', 'Bracket', 'Outrank']],
-    ['Survival', ['Streak', 'Deep', 'Blitz']],
-    ['Chess', ['Mate', 'Defend']],
-    ['Classic Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
-  ];
-  const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
   const circuitGames = (name) => {
     const row = CIRCUITS.find(([n]) => n === name);
     if (!row) return [];
