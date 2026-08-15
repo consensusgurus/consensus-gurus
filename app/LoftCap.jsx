@@ -182,7 +182,7 @@ export default function LoftCap({
 /* With the label and the rule gone the band is only the roster, so it takes
    the whole width at every size. */
 .lcap-az .lcap-id{display:none}
-.lcap-az .lcap-col{border-left:0;max-width:none;width:100%}
+.lcap-az .lcap-col{border-left:0;max-width:none;width:100%;min-width:0}
 .lcap-az .lcap-tiles.az{padding-left:14px;padding-right:14px}
 
 .lcap-tiles.az{gap:5px;padding:5px 12px 7px;align-items:center;
