@@ -41,7 +41,9 @@
 //   missLabel  what this game counts against you, from the daily registry's
 //              `miss` field: Guesses, Errors, Moves, Tries... shown as a
 //              leaderboard column, because it means something different in
-//              every game and a shared header would be wrong.
+//              every game and a shared header would be wrong. On the six End
+//              Game titles the label is 'Tries' and the FIGURE comes from the
+//              row's `tries`, not `guessesUsed` (see the cell below).
 //   archive    [{ num, dateLabel, href, done, score, sunday }] newest first
 //   gameRank   { value, label } this game's own standing, which replaced the
 //              day's puzzle count on the tiles (owner, 2026-08-14): how you
@@ -139,7 +141,13 @@ export default function LoftFinish({
       <span className="r">{i + 1}</span>
       <span className="n">{r.username || 'Anonymous'}</span>
       <span className="s">{r.score}</span>
-      {missLabel ? <span className="c">{r.guessesUsed != null ? r.guessesUsed : '—'}</span> : null}
+      {/* END GAME prints TRIES here (owner, 2026-08-12): its registry label is
+          'Tries' and its board ranks on how many runs the solve took, not on
+          the per-run error count, which is 0 on every clean solve and printed
+          a column of zeroes. Every other game has no `tries` and falls through
+          to guessesUsed, so their column is unchanged. Same expression as
+          DailyEndCard and DailyBoardPanel: keep the three in step. */}
+      {missLabel ? <span className="c">{r.tries != null ? r.tries : (r.egTier != null ? '—' : (r.guessesUsed == null ? '—' : r.guessesUsed))}</span> : null}
       <span className="c">{fmtTime(r.timeElapsed) || '—'}</span>
     </div>
   );
