@@ -226,9 +226,8 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
    state, so neither belongs in the component. */
 const CIRCUITS = [
   ['Crosswords', ['Emcee', 'Crux', 'Shards', 'Glyph', 'Anon']],
-  ['Word Building', ['Tuck', 'Lode', 'Babel']],
+  ['Word Building', ['Tuck', 'Lode', 'Babel', 'Rung']],
   ['Anagrams', ['Garble', 'Barter', 'Strata']],
-  ['Word Ladders', ['Rung', 'Warmer']],
   ['Sorting', ['Links', 'Venn']],
   ['Sudoku', ['Suds', 'Quilt', 'Cages', 'Sando', 'Sixes']],
   ['Mental Math', ['Blitz', 'Crunch', 'Cipher', 'Tally']],
