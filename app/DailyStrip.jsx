@@ -3568,6 +3568,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
 
 
+
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
          board are untouched. Below 901px this block does not apply and the
@@ -3582,7 +3583,14 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .dhome.cats{display:flex;flex-direction:column;height:100%;min-height:0;}
         .dhome.cats .sl-bar{flex:none;}
         .dhome.cats .dh-sbar{flex:none;display:block;padding:0;gap:0;background:transparent;border:none;}
+        /* THE WHOLE CHAIN HAS TO GROW, not just the ends. Between the board
+           wrapper and the board sit .dh-vpwrap and .dh-vp, and .dh-vpwrap is a
+           plain block at flex:0 0 auto, so it stopped the height dead and
+           everything under it fell back to content size however many flex:1
+           rules were on the board itself. Measured: wrapper 607, vpwrap 369.
+           Every link in the chain is a growing flex column here. */
         .dhome.cats .dh-boardwrap{flex:1 1 auto;min-height:0;height:auto;overflow:hidden;display:flex;flex-direction:column;}
+        .dhome.cats .dh-vpwrap,.dhome.cats .dh-vp{flex:1 1 auto;min-height:0;height:auto;display:flex;flex-direction:column;}
         .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow-y:auto;gap:0;background:transparent;}
         /* The override layer: the slate's own rows, bands, column header and
            chip strip are still in the DOM and still correct on a phone; up here
