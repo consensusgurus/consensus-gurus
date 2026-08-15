@@ -3698,9 +3698,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            the whole point, and its own bottom rule so the pair reads as a unit
            rather than as one strip that happens to have wrapped. */
         .dhome.cats .sl-filtw2{position:relative;flex:none;}
-        /* Row two keeps its own chevrons on desktop only; on the phone row one
-           drives both and a second pair would just be a second control. */
-        @media(max-width:900px){.dhome.cats .sl-filtw2 .sl-fnav{display:none;}}
         .dhome.cats .sl-filt2{background:#2c4fa8;border-top:1px solid #16306e;}
         .dhome.cats .sl-filtw2.ml::before{background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
         .dhome.cats .sl-filtw2.mr::after{background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
@@ -3800,6 +3797,17 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
          Ready, Paused, Failed and Done are now selections rather than coloured
          bars you scroll to (owner, 2026-08-15). */
       .dhome.cats .sl-band{display:none !important;}
+      /* ONE PAIR OF CHEVRONS ON THE PHONE, centred between the two rows. Row
+         one's pair already scrolls both and already sits against a box that
+         spans both rows, since row two's strip is nested inside row one's
+         wrapper; the only thing wrong was that row two still drew its own.
+         This rule has to live OUT here: inside the min-width:901px block it
+         read "at least 901 and at most 900", which is never, because a nested
+         media query intersects with its parent rather than replacing it. */
+      @media(max-width:900px){
+        .dhome.cats .sl-filtw2 .sl-fnav{display:none !important;}
+        .dhome.cats .sl-filtw2::before,.dhome.cats .sl-filtw2::after{display:none !important;}
+      }
       /* Below 901px the catboard does not exist: every rule above is desktop
          only, so without this its elements would render unstyled underneath a
          perfectly good phone slate. MOBILE IS UNTOUCHED, and this is the line
