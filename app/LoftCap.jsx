@@ -505,6 +505,11 @@ export default function LoftCap({
   text-transform:uppercase;color:var(--success-deep);margin-left:6px}
 .loft-archr .v b{font-weight:800;font-size:13px;color:var(--ink)}
 .loft-archr.done{background:rgba(21,128,61,0.06)}
+.loft-sheet{background:var(--white);border-radius:14px;padding:14px 16px 16px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.34)}
+.loft-sheet .loft-card{box-shadow:none!important;background:transparent!important;
+  border-radius:0!important}
+@media(max-width:560px){.loft-sheet{padding:11px 11px 13px;border-radius:12px}}
 .loft-prompt{font-family:inherit;font-weight:700;font-size:12px;line-height:1.3;color:var(--slate);
   text-align:center;padding:0 2px 10px;border-bottom:1px solid rgba(20,22,28,0.10);margin-bottom:12px}
 .loft-showopts{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:2px solid var(--border);

@@ -777,6 +777,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT ? 'loft-sheet' : undefined}>
 
         {preStart && (
           <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -888,6 +889,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             is the bug that makes a signed-in player get asked to sign up on
             every board; Turn and Paths gate it on !identity and so does this. */}
 
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}

@@ -575,6 +575,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT ? 'loft-sheet' : undefined}>
 
         {!preStart && (
         <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
@@ -675,6 +676,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
 
         {/* result + the line-by-line replay, which is the teaching moment */}
 
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}

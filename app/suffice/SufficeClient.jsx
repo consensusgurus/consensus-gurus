@@ -423,6 +423,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT ? 'loft-sheet' : undefined}>
 
           {/* start tile: full rules for a first-timer, compact card otherwise */}
           {preStart && (
@@ -544,6 +545,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
               not as a sibling, which is the house arrangement every other
               daily uses. */}
 
+          </div>
           {LOFT && !playing && loftRevealed && (
             <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Show options</button>
           )}

@@ -827,6 +827,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT ? 'loft-sheet' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The assignment stays sealed until then. */}
@@ -931,6 +932,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         )}
 
 
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}

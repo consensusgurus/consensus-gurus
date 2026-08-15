@@ -512,6 +512,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT ? 'loft-sheet' : undefined}>
 
           {/* start gate — the puzzle card stays sealed until Start begins the clock */}
           {preStart && (
@@ -601,6 +602,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
           {/* result footer */}
 
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}

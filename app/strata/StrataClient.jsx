@@ -602,6 +602,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT ? 'loft-sheet' : undefined}>
 
           {preStart && (
             <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
@@ -721,6 +722,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
           )}
 
 
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
