@@ -458,7 +458,7 @@ export default function LoftCap({
   border-radius:10px;padding:10px 18px;font-weight:800;font-size:12.5px;text-decoration:none;opacity:1}
 .loft-report .ri-link:hover{background:rgba(255,255,255,0.22)}
 .loft-report .ri-form,.loft-report .ri-sent{background:var(--white);border-radius:12px;padding:12px;margin-top:10px;text-align:left}
-.loft-fiq .bi{flex:none;color:var(--blue);margin-right:2px}
+.loft-fiq .bi{flex:none;color:var(--white);margin-right:2px}
 .loft-back-btn{margin-left:auto;border:2px solid var(--border);background:var(--surface-alt);
   color:var(--slate);border-radius:9px;padding:7px 12px;font-family:inherit;font-weight:800;
   font-size:12.5px;cursor:pointer}
@@ -525,9 +525,9 @@ export default function LoftCap({
 .loft-fiq .today,.loft-fiq .today *{color:var(--white)}
 .loft-fiq .today s,.loft-fiq .today em,.loft-fiq .today i{color:#cfe0ff}
 .loft-fiq .today{flex:none;margin-left:auto;padding-left:12px;text-align:right}
-.loft-fiq .today b{display:block;font-weight:800;font-size:18px;line-height:1;color:var(--blue-deep)}
+.loft-fiq .today b{display:block;font-weight:800;font-size:18px;line-height:1;color:var(--white)}
 .loft-fiq .today i{display:block;font-style:normal;font-weight:700;font-size:9px;line-height:1;
-  letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:4px}
+  letter-spacing:.09em;text-transform:uppercase;color:#cfe0ff;margin-top:4px}
 
 /* Today's board, top three plus you when you are outside it. */
 /* Three rows plus the header and the Show-all bar. A board that comes back with
