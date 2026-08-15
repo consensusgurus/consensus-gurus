@@ -15,7 +15,7 @@
 // header bar with the name left, the figures and the help control at the
 // right edge. `.help` is a direct child rather than nested in the id block,
 // which is what lets `order` reach it.
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -32,6 +32,23 @@ export default function LoftCap({
   progress = null,   // 0-100, draws the hairline at the foot of the cap
   extra = null,      // an optional third tier (Anon's spine, for instance)
 }) {
+  useEffect(() => {
+    const board = () => document.querySelector('.loft-sheet') || document.querySelector('.loft-card');
+    const apply = () => {
+      const el = board();
+      if (!el) return;
+      const w = Math.round(el.getBoundingClientRect().width);
+      // guard against measuring a collapsed or hidden card
+      if (w > 240) document.documentElement.style.setProperty('--loft-col', `${w}px`);
+    };
+    apply();
+    const el = board();
+    const ro = el && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(apply) : null;
+    if (ro && el) ro.observe(el);
+    window.addEventListener('resize', apply);
+    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', apply); };
+  });
+
   const eyebrow = [cat, num != null ? `No. ${num}` : null, dateLabel]
     .filter(Boolean).join(' · ');
   return (
@@ -293,9 +310,9 @@ export default function LoftCap({
    the board. */
 .loft-report{margin-top:14px;display:flex;justify-content:center}
 .loft-report .ri-wrap{width:auto}
-.loft-report .ri-link{background:var(--accent);color:var(--white);border:1px solid rgba(255,255,255,0.28);
+.loft-report .ri-link{background:rgba(255,255,255,0.12);color:var(--white);border:1.5px solid rgba(255,255,255,0.45);
   border-radius:10px;padding:10px 18px;font-weight:800;font-size:12.5px;text-decoration:none;opacity:1}
-.loft-report .ri-link:hover{background:var(--blue-deep)}
+.loft-report .ri-link:hover{background:rgba(255,255,255,0.22)}
 .loft-report .ri-form,.loft-report .ri-sent{background:var(--white);border-radius:12px;padding:12px;margin-top:10px;text-align:left}
 .loft-fiq .bi{flex:none;color:var(--blue);margin-right:2px}
 .loft-back-btn{margin-left:auto;border:2px solid var(--border);background:var(--surface-alt);
