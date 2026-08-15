@@ -1082,6 +1082,14 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
             detail={`${filledCount}/${FREE.length} filled · ${elapsed}`}
             iq={iq}
             board={dailyBoard}
+            gameRank={(() => {
+              const rs = dailyBoard && dailyBoard.rows ? dailyBoard.rows : null;
+              if (!rs) return null;
+              const i = dailyBoard.mine
+                ? rs.findIndex((r) => String(r.username || '').toLowerCase() === dailyBoard.mine)
+                : -1;
+              return { value: i >= 0 ? `#${i + 1}` : '\u2014', label: 'sando today' };
+            })()}
             day={dayStats}
             streak={isTodays ? myStats.cur : null}
             archive={puzzles
@@ -1091,6 +1099,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
               .map((p) => ({
                 num: p.num,
                 dateLabel: p.dateLabel,
+                sunday: !!p.sunday,
                 href: `/sando?p=${p.num}`,
                 done: !!(myStats.rec && myStats.rec[p.num]),
                 score: myStats.rec && myStats.rec[p.num] ? myStats.rec[p.num].s : null,
@@ -1099,10 +1108,11 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
               won
                 ? { label: 'See the board', sub: 'Your finished grid', kind: 'pri', onClick: () => setRevealed(true) }
                 : { label: 'Reveal', sub: 'Show the solution', kind: 'pri', onClick: () => setRevealed(true) },
-              prevPuzzle && { label: 'Play another Sando', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/sando?p=${prevPuzzle.num}` },
-              nextUp && { label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
+              prevPuzzle && { tone: 'another', label: 'Play another Sando', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/sando?p=${prevPuzzle.num}` },
+              nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
               { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-              { label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+              { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+              { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
             ]}
           />
         )}

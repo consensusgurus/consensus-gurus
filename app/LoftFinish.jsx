@@ -41,12 +41,21 @@
 //              `miss` field: Guesses, Errors, Moves, Tries... shown as a
 //              leaderboard column, because it means something different in
 //              every game and a shared header would be wrong.
-//   archive    [{ num, dateLabel, href, done, score }] most recent first
+//   archive    [{ num, dateLabel, href, done, score, sunday }] newest first
+//   gameRank   { value, label } this game's own standing, which replaced the
+//              day's puzzle count on the tiles (owner, 2026-08-14): how you
+//              rank AT THIS GAME is the more interesting figure on its own
+//              end card, and the day count already sits on the home slate.
 //
 // An option is { label, sub, kind, href } plus either href or onClick:
 //   kind 'pri'  the one thing most players want next (filled blue)
 //   kind 'gold' share, because gold already means share-and-win on this site
+// and an optional `tone` (another | similar | replay | archive) which tints the
+// button and gives it a coloured left rule. The four secondary options were
+// four identical outlined boxes and read as one undifferentiated block (owner,
+// 2026-08-14); the tone is what tells them apart at a glance.
 import React, { useState } from 'react';
+import { Brain } from 'lucide-react';
 
 function fmtTime(s) {
   if (s == null) return null;
@@ -63,7 +72,7 @@ function Calculating({ wide = false }) {
 
 export default function LoftFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
-  missLabel = null, archive = null, options = [],
+  missLabel = null, archive = null, gameRank = null, options = [],
 }) {
   const [showAll, setShowAll] = useState(false);
   const [openArchive, setOpenArchive] = useState(false);
@@ -110,10 +119,17 @@ export default function LoftFinish({
           </div>
           <div className="loft-arch">
             {archive.map((a) => (
-              <a key={a.num} className={`loft-archr${a.done ? ' done' : ''}`} href={a.href}>
-                <span className="d">{a.dateLabel}</span>
+              <a key={a.num} className={`loft-archr${a.done ? ' done' : ''}${a.sunday ? ' sun' : ''}`} href={a.href}>
+                <span className="d">
+                  {a.dateLabel}
+                  {a.sunday ? <i className="sunchip">Sunday</i> : null}
+                </span>
                 <span className="no">No. {a.num}</span>
-                <span className="v">{a.done ? (a.score != null ? a.score : '\u2713') : 'Play'}</span>
+                {/* Played is stated, not implied. A score alone reads as noise
+                    next to a row that just says Play. */}
+                <span className="v">{a.done
+                  ? <>{a.score != null ? <b>{a.score}</b> : null}<em>Played</em></>
+                  : 'Play'}</span>
               </a>
             ))}
           </div>
@@ -128,6 +144,7 @@ export default function LoftFinish({
       <div className="loft-res"><b>{title}</b><s>{detail}</s></div>
 
       <div className="loft-fiq">
+        <Brain className="bi" size={26} strokeWidth={2.2} aria-hidden="true" />
         <span className="n">{iq && iq.gained != null ? `+${iq.gained}` : <Calculating />}</span>
         <span className="t">
           <span className="l">IQ points earned</span>
@@ -145,9 +162,9 @@ export default function LoftFinish({
         <span className="d1"><b>{day && day.ready
           ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>IQ today</span>
-        <span className="d2"><b>{day && (day.ready || day.done)
-          ? `${day.done}/${day.total}`
-          : <Calculating />}</b>puzzles today</span>
+        <span className="d2"><b>{gameRank && gameRank.value != null
+          ? gameRank.value
+          : <Calculating />}</b>{gameRank ? gameRank.label : 'this game'}</span>
         <span className="d3"><b>{day && day.ready
           ? (day.dayRank != null ? `#${Number(day.dayRank).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>rank today</span>
@@ -181,14 +198,14 @@ export default function LoftFinish({
 
       <div className="loft-opts">
         {opts.map((o, i) => {
-          const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${wide.has(i) ? ' wide' : ''}`;
+          const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}${wide.has(i) ? ' wide' : ''}`;
           const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
           return o.href
             ? <a key={i} className={cls} href={o.href}>{inner}</a>
             : <button key={i} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
         })}
         {archive && archive.length ? (
-          <button type="button" className="loft-opt wide" onClick={() => setOpenArchive(true)}>
+          <button type="button" className="loft-opt wide t-archive" onClick={() => setOpenArchive(true)}>
             Archive
             <span className="sub">Every daily puzzle, by date</span>
           </button>

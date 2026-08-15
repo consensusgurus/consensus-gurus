@@ -53,6 +53,13 @@ export default function LoftCap({
    the colour carries the outcome: green solved, red not. Anything else would
    make a miss look like a win at a glance, which is the one thing the cap is
    there to say. */
+/* THE GOLD RULE GOES WHEN THE CAP RESOLVES (owner, 2026-08-14). While you are
+   playing the rule marks the game's column; once the band carries a verdict the
+   colour is the whole statement, and a yellow bar down the left of a solid green
+   or red just chops it up. Each outcome re-inks the rule to its own ground. */
+.lcap-won .lcap-col{border-left-color:var(--success-deep)}
+.lcap-lost .lcap-col{border-left-color:var(--danger)}
+.lcap-part .lcap-col{border-left-color:var(--gold)}
 .lcap-won{background:var(--success-deep)}
 .lcap-won .lcap-eb,.lcap-won .lcap-k{color:#b9f0d0}
 .lcap-lost{background:var(--danger)}
@@ -205,6 +212,7 @@ export default function LoftCap({
   backface-visibility:hidden;-webkit-backface-visibility:hidden}
 .loft-backin{flex:1;min-height:0;overflow:auto;padding:12px;display:flex;flex-direction:column;
   border-radius:14px}
+.loft-fiq .bi{flex:none;color:var(--blue);margin-right:2px}
 .loft-back-btn{margin-left:auto;border:2px solid var(--border);background:var(--surface-alt);
   color:var(--slate);border-radius:9px;padding:7px 12px;font-family:inherit;font-weight:800;
   font-size:12.5px;cursor:pointer}
@@ -324,6 +332,53 @@ export default function LoftCap({
 .loft-archr .v{flex:none;min-width:44px;text-align:right;font-weight:800;font-size:12px;color:var(--blue)}
 .loft-archr.done .v{color:var(--success-deep)}
 .loft-opt.on{background:var(--surface-alt)}
+
+/* NO INNER SCROLLER ON A PHONE (owner, 2026-08-14: "it should all fit on the
+   card itself"). The back is absolutely positioned inside the flip so it
+   inherits the FRONT's height, which is the board's, so its own content can
+   never fit by construction: on a 390px screen it overran by a few pixels and
+   on a game with a short board it would overrun badly. Below 760px the flip
+   stops being a 3D turn and becomes a swap. The front leaves the flow, the back
+   goes back into it, and the card is then as tall as whatever is on it. The
+   turn animation is no loss here: on a phone the card fills the screen, so
+   almost none of it was ever visible. */
+@media(max-width:760px){
+  .loft-flip{perspective:none}
+  .loft-flip.on .loft-flip-in{transform:none}
+  .loft-flip.on .loft-face{display:none}
+  .loft-back{position:relative;inset:auto;transform:none;overflow:visible}
+  .loft-backin{overflow:visible}
+  .loft-day span{padding:7px 8px;font-size:9.5px}
+  .loft-day b{font-size:15px;margin-bottom:3px}
+  .loft-opt{min-height:52px;padding:10px 12px;font-size:14px}
+  .loft-opt .sub{font-size:10.5px;margin-top:3px}
+}
+
+/* THE FOUR SECONDARY OPTIONS LOOKED ALIKE. Reveal is filled blue and Share is
+   filled gold, but Archive, Play another, Play similar and Replay were four
+   identical outlined boxes. Each takes a tint and a coloured left rule: blue
+   for another round of THIS game, green for a different game, slate for the
+   unscored replay, ember for the archive. */
+.loft-opt.t-another{background:var(--accent-soft);border-color:rgba(37,99,235,0.28);
+  border-left:5px solid var(--blue)}
+.loft-opt.t-similar{background:rgba(21,128,61,0.08);border-color:rgba(21,128,61,0.26);
+  border-left:5px solid var(--success-deep)}
+.loft-opt.t-replay{background:var(--surface-alt);border-color:var(--border);
+  border-left:5px solid var(--slate)}
+.loft-opt.t-main{background:var(--surface-alt);border-color:var(--border);
+  border-left:5px solid var(--blue-deep)}
+.loft-opt.t-archive{background:rgba(217,119,6,0.09);border-color:rgba(217,119,6,0.26);
+  border-left:5px solid #b45309}
+
+/* Played rows read as played, and a Sunday Edition is marked. */
+.loft-archr .d{display:flex;align-items:center;gap:7px}
+.loft-archr .sunchip{font-style:normal;font-weight:800;font-size:8.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--gold-ink);background:var(--gold);border-radius:4px;padding:2px 5px}
+.loft-archr.sun{background:rgba(232,180,58,0.10)}
+.loft-archr .v em{font-style:normal;font-weight:800;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--success-deep);margin-left:6px}
+.loft-archr .v b{font-weight:800;font-size:13px;color:var(--ink)}
+.loft-archr.done{background:rgba(21,128,61,0.06)}
 .loft-showopts{width:100%;margin-top:10px;padding:11px;border-radius:10px;border:2px solid var(--border);
   background:var(--surface-alt);color:var(--muted);font-family:inherit;font-weight:800;font-size:13px;cursor:pointer}
 
