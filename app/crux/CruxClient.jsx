@@ -1199,7 +1199,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
              untouched. The floor stops a very tall board on a short window from
              shrinking to something unreadable; past that point the page scrolls,
              which is the better trade. At 1080 tall nothing changes at all. */
-          .cl-grid{--cs:min(${CS_FILL}px, max(42px, calc((100vh - 430px)/${ROWS})));}
+          .cl-grid{--cs:min(${CS_FILL}px, calc((596px - ${(COLS - 1) * 3}px)/${COLS}), max(42px, calc((100vh - 430px)/${ROWS})));}
           @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(42px, calc((100vh - 430px)/${ROWS})));}}
           @media (max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:min(46px, calc((100vw - ${52 + (COLS - 1) * 3}px)/${COLS}));}.cl-panel{padding:11px 11px 13px !important;}.cl-cat{flex-direction:column;align-items:flex-start;gap:5px;padding:9px 11px !important;}}
           @media (max-width:430px){.cl-cats{grid-template-columns:1fr;}}
