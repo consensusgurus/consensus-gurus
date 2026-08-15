@@ -507,6 +507,17 @@ export default function QuizHomeClient({ variant = 'current' }) {
         const el = document.querySelector('.qchm-r1') || document.querySelector('.qchm');
         const h = el ? Math.round(el.getBoundingClientRect().height) : 56;
         document.documentElement.style.setProperty('--v3top', (h + 12) + 'px');
+        // The rail STICKS at --v3top, but until the page is scrolled it SITS
+        // lower than that, because the stat bar above it is not sticky. Sizing
+        // it off the sticky offset therefore hangs it below the fold at scroll
+        // zero by exactly that difference (measured: sticks at 67, sits at 133,
+        // so 66px of it was under the fold and three of the four accordion
+        // bands with it). Size it off where it actually STARTS instead. The
+        // centre column is not sticky, so its document top is the row's true
+        // top, and the rail can then only ever come up SHORT once stuck, which
+        // is invisible, never long, which is the bug.
+        const row = document.querySelector('.dhx-v3 .dhx-center');
+        if (row) document.documentElement.style.setProperty('--v3nat', Math.round(row.getBoundingClientRect().top + window.scrollY) + 'px');
       } catch (e) {}
     };
     set();
@@ -2129,7 +2140,7 @@ export default function QuizHomeClient({ variant = 'current' }) {
                above 1200px, which is the same threshold railH uses. */
             .qzh .dhx-v3{grid-template-columns:minmax(0,1fr) 340px;}
             @media(min-width:1201px){
-              .qzh .dhx-v3 .dhx-right{position:sticky;top:var(--v3top,86px);height:calc(100vh - var(--v3top,86px) - 16px);align-self:start;overflow:hidden;}
+              .qzh .dhx-v3 .dhx-right{position:sticky;top:var(--v3top,86px);height:calc(100vh - var(--v3nat,140px) - 16px);align-self:start;overflow:hidden;}
               .qzh .dhx-v3 .dhx-right > .hr-panel{flex:1 1 auto;min-height:0;}
             }
             /* start, not stretch: the CENTRE column has to report its own content

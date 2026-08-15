@@ -12,6 +12,13 @@
  * never stale. Every anchor is asserted: a missing or duplicated anchor throws
  * rather than producing a half-patched file.
  *
+ * RE-RUNNABLE: sub() skips an edit whose replacement is already present, so the
+ * script can be re-run against an origin that already carries it in order to
+ * ship a follow-up. The rule that falls out of that: when an edit INSERTS
+ * around its anchor, any later fix to the inserted text must be a SEPARATE
+ * sub() rather than an amendment to the insert, because the insert is skipped
+ * and the amendment would go with it.
+ *
  *   node scripts/patch-home-v3.mjs <indir> <outdir>
  *
  * Reads  <indir>/{QuizHomeClient.jsx,DailyStrip.jsx,HomeRails.jsx}
@@ -25,8 +32,18 @@ if (!IN || !OUT) { console.error('usage: patch-home-v3.mjs <indir> <outdir>'); p
 mkdirSync(OUT, { recursive: true });
 
 let CHANGES = 0;
-/* Exact-once replacement. Throws unless `find` appears exactly `count` times. */
+let SKIPPED = 0;
+/* Exact-once replacement, and IDEMPOTENT: once this patch is on origin the
+ * script has to be re-runnable to ship a follow-up fix, so an anchor whose
+ * replacement is ALREADY present is skipped rather than treated as missing.
+ * Anything else still throws, which is what stops a half-applied patch. */
 function sub(src, find, repl, label, count = 1) {
+  // ALREADY-APPLIED IS TESTED FIRST, and it has to be. Several of these edits
+  // INSERT before their anchor rather than replacing it, so the anchor is still
+  // there afterwards and an occurrence count alone reads a patched file as
+  // unpatched: the first version of this guard checked `n === 0 && ...` and
+  // would have inserted the whole board branch a second time.
+  if (src.includes(repl)) { SKIPPED += 1; return src; }
   const n = src.split(find).length - 1;
   if (n !== count) throw new Error(`ANCHOR ${label}: expected ${count} occurrence(s), found ${n}`);
   CHANGES += n;
@@ -582,11 +599,15 @@ function sub(src, find, repl, label, count = 1) {
       }
 `;
   // The sheet's closing marker. Appending before it keeps the block last.
-  const CLOSE = '\n      ` }} />';
-  if (s.split(CLOSE).length - 1 < 1) throw new Error('ANCHOR DS:css-close not found');
-  const at = s.lastIndexOf(CLOSE);
-  s = s.slice(0, at) + '\n' + CSS + s.slice(at);
-  CHANGES += 1;
+  if (s.includes('.dhome.cats .dh-board{')) {
+    SKIPPED += 1; // stylesheet already appended by an earlier run
+  } else {
+    const CLOSE = '\n      ` }} />';
+    if (s.split(CLOSE).length - 1 < 1) throw new Error('ANCHOR DS:css-close not found');
+    const at = s.lastIndexOf(CLOSE);
+    s = s.slice(0, at) + '\n' + CSS + s.slice(at);
+    CHANGES += 1;
+  }
   writeFileSync(join(OUT, 'DailyStrip.jsx'), s);
 }
 
@@ -632,6 +653,25 @@ function sub(src, find, repl, label, count = 1) {
   }, [v3]);`,
     'QH:v3top');
 
+  // Sizing fix, kept as its OWN edit rather than folded into the insert above,
+  // because the insert is skipped once it is on origin and a follow-up buried
+  // inside it would then never apply.
+  s = sub(s,
+    `        document.documentElement.style.setProperty('--v3top', (h + 12) + 'px');`,
+    `        document.documentElement.style.setProperty('--v3top', (h + 12) + 'px');
+        // The rail STICKS at --v3top, but until the page is scrolled it SITS
+        // lower than that, because the stat bar above it is not sticky. Sizing
+        // it off the sticky offset therefore hangs it below the fold at scroll
+        // zero by exactly that difference (measured: sticks at 67, sits at 133,
+        // so 66px of it was under the fold and three of the four accordion
+        // bands with it). Size it off where it actually STARTS instead. The
+        // centre column is not sticky, so its document top is the row's true
+        // top, and the rail can then only ever come up SHORT once stuck, which
+        // is invisible, never long, which is the bug.
+        const row = document.querySelector('.dhx-v3 .dhx-center');
+        if (row) document.documentElement.style.setProperty('--v3nat', Math.round(row.getBoundingClientRect().top + window.scrollY) + 'px');`,
+    'QH:v3nat');
+
   s = sub(s,
     `        <div className="dhx">`,
     `        <div className={v3 ? 'dhx dhx-v3' : 'dhx'}>`,
@@ -650,6 +690,13 @@ function sub(src, find, repl, label, count = 1) {
               .qzh .dhx-v3 .dhx-right > .hr-panel{flex:1 1 auto;min-height:0;}
             }`,
     'QH:dhx-css');
+
+  // Same reasoning as QH:v3nat: a follow-up to an insert has to be its own
+  // edit, or it is skipped along with the insert once that is on origin.
+  s = sub(s,
+    `height:calc(100vh - var(--v3top,86px) - 16px);align-self:start;`,
+    `height:calc(100vh - var(--v3nat,140px) - 16px);align-self:start;`,
+    'QH:railheight');
 
   s = sub(s,
     `          <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>`,
@@ -710,4 +757,4 @@ export default function HomePreviewPage() {
 `);
 CHANGES += 1;
 
-console.log('patch-home-v3: ' + CHANGES + ' anchored edits applied');
+console.log('patch-home-v3: ' + CHANGES + ' anchored edits applied, ' + SKIPPED + ' already present');
