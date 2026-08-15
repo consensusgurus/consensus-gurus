@@ -220,6 +220,7 @@ export default function LoftCap({
 .loft-page section a{color:#ffd45e!important}
 .loft-page section em,.loft-page section i{color:#93a9d6!important}
 .loft-page .loft-stage ~ div:not([style*="fixed"]) > p{color:#bfd0ee!important}
+.loft-page > [class$="-wrap"] > div > p{color:#bfd0ee!important}
 .loft-page footer{color:#bfd0ee!important;border-top-color:rgba(255,255,255,0.18)!important}
 .loft-page footer b,.loft-page footer strong,.loft-page footer h3,.loft-page footer h4{color:var(--white)!important}
 .loft-page footer a{color:#dbe9ff!important}

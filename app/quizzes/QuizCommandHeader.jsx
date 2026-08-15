@@ -252,23 +252,15 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-nav a:hover,.qchm-nav button:hover{background:#3a60c4;border-color:#7a99e0;}
           .qchm-nav a.on{background:var(--white);border-color:var(--white);color:var(--accent);}
           .qchm-user{display:none;margin-left:auto;align-items:center;gap:8px;}
-          /* On a loft page this is the ONLY place the player's standing appears,
-             so it shows at every width. The compact figures are scoped to the
-             loft page: on the quizzes home the full stat row below still carries
-             them and printing both would say it twice. */
-          .dch-loft .qchm-user{display:flex;}
-          .qchm-ustat{display:none;align-items:center;gap:10px;margin-right:2px;}
-          .dch-loft .qchm-ustat{display:flex;}
-          .qchm-ustat b{display:flex;align-items:baseline;gap:4px;font-weight:800;font-size:13px;
-            color:var(--white);white-space:nowrap;}
-          .qchm-ustat b i{font-style:normal;font-weight:700;font-size:9px;letter-spacing:.09em;
-            text-transform:uppercase;color:var(--blue-200);}
-          .qchm-ustat em{font-style:normal;font-weight:800;font-size:11.5px;white-space:nowrap;}
-          .qchm-ustat em.up{color:#7ee2a8;}
-          .qchm-ustat em.down{color:#ffb4ab;}
-          /* Narrowest phones: the lifetime rank goes first, today's stays, since
-             today is what the player just changed. */
-          @media(max-width:430px){.qchm-ustat b:first-child{display:none;}}
+          /* THE NAME, AND ONLY THE NAME (owner). A loft page hides the stat row
+             below, so the header is where a signed-in player is named; the rank
+             figures that briefly sat here were noise. The name reads to the LEFT
+             of the nav with the whole group right-aligned, which takes an
+             explicit order because the name comes AFTER the nav in the DOM and
+             both used margin-left:auto, so the nav was winning the space. An
+             anonymous player gets the Sign Up button here instead, unchanged. */
+          .dch-loft .qchm-user{display:flex;order:3;margin-left:auto;}
+          .dch-loft .qchm-nav{order:4;margin-left:12px;}
           .qchm-user .nm{font-size:13.5px;font-weight:800;color:var(--white);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;}
           .qchm-pic{width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none;}
           .qchm-r2{background:#16307a;color:var(--white);border-bottom:3px solid var(--blue);}
@@ -364,12 +356,6 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           <div className="qchm-user">
             {found ? (
               <>
-                <span className="qchm-ustat">
-                  {rank ? <b>{`#${fmtK(rank)}`}<i>overall</i></b> : null}
-                  {dayRank ? <b>{`#${fmtK(dayRank)}`}<i>today</i></b> : null}
-                  {moved ? <em className={day.rankChange > 0 ? 'up' : 'down'}>
-                    {day.rankChange > 0 ? `\u25b2${day.rankChange}` : `\u25bc${Math.abs(day.rankChange)}`}</em> : null}
-                </span>
                 <Link href="/quizzes/hub" className="nm" style={{ color: '#fff', textDecoration: 'none' }}>{me.name}</Link>
                 <span className="qchm-pic">{(me.name || '?').slice(0, 1).toUpperCase()}</span>
               </>
