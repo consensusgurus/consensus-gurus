@@ -33,6 +33,17 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { isLoft } from '@/lib/loft';
+import ReportIssue from '../ReportIssue';
+import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -205,6 +216,12 @@ export default function GlyphClient({ puzzles, forceNum }) {
   const [toast, setToast] = useState(null);
   const [countdown, setCountdown] = useState('');
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [loftRevealed, setLoftRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [justWon, setJustWon] = useState(false);
   const [mobileUi, setMobileUi] = useState(false);
   const [standalone, setStandalone] = useState(false);
@@ -217,6 +234,14 @@ export default function GlyphClient({ puzzles, forceNum }) {
   const assign = g.assign;
   const checks = g.checks;
   const playing = g.status === 'playing';
+  const LOFT = isLoft('glyph');
+  const iq = useIqStanding({ game: 'glyph', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'glyph', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'glyph', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'glyph', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'glyph', active: LOFT && !playing });
   const won = g.status === 'won';
   const preStart = playing && !g.t0;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
@@ -511,12 +536,32 @@ export default function GlyphClient({ puzzles, forceNum }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative', fontFamily: SANS }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative', fontFamily: SANS , overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="glyph" name="Glyph" collapsed={playing && !!g.t0} />
+      <DailyChrome slug="glyph" name="Glyph" collapsed={playing && !!g.t0} loft={LOFT} />
+      {LOFT && (
+        <LoftCap
+          name="Glyph"
+          cat="Word"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          tiles={playing ? null : upNext}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: checks, k: 'checks' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: finalScore, k: 'score' },
+            { v: checks, k: 'checks' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div style={{ position: 'relative', zIndex: 2, padding: '14px 16px 8px' }}>
         <style>{`
           .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -553,6 +598,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
 
+          {!LOFT && (
           <DailyMasthead
             slug="glyph"
             num={PUZZLE.num}
@@ -567,9 +613,17 @@ export default function GlyphClient({ puzzles, forceNum }) {
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           />
+          )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen, so the board is the one lit object. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
           {preStart && (
-            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Glyph is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -589,7 +643,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
 
           {!preStart && (
             <div className="gl-card" style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b>/{MAX_CHECKS}</span>
                 <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
                 <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>cracked <b style={{ color: placed === PRESENT.length ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{placed}</b>/{PRESENT.length}</span>
@@ -655,12 +709,65 @@ export default function GlyphClient({ puzzles, forceNum }) {
             </div>
           )}
 
+
+          {LOFT && !playing && loftRevealed && (
+            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Glyph"
+              catRank={catRank}
+              outcome={won ? 'won' : 'lost'}
+              title={won ? 'Solved' : 'Not solved'}
+              detail={`${finalScore} \u00b7 ${checks} checks \u00b7 ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `glyph of ${allTime.field}` : 'glyph all time' }
+                : null}
+              day={dayStats}
+              streak={myStats.cur}
+              missLabel="Checks"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/glyph?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setLoftRevealed(true) },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
           {focusMode && (
             <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
               <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
             </div>
           )}
           <div style={{ display: focusMode ? 'none' : 'block' }}>
+          {LOFT && (
+            <div className="loft-report">
+              <ReportIssue self="glyph" name="Glyph" accent="#ffffff" align="center" />
+            </div>
+          )}
+          {!LOFT && (
           <DailyGamesGrid replay={!playing ? resetGame : null}
             self="glyph"
             maxWidth={620}
@@ -670,6 +777,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
             boardSlot={<DailyBoardPanel self="glyph" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
+          )}
           </div>
           {!focusMode && mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
@@ -705,7 +813,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="glyph"

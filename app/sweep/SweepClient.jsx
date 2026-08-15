@@ -31,6 +31,17 @@ import DailyChrome from '../DailyChrome';
 import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import DailyMasthead from '../DailyMasthead';
+import { isLoft } from '@/lib/loft';
+import ReportIssue from '../ReportIssue';
+import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { notifyShareCredit } from '../ShareCreditPop';
@@ -140,6 +151,13 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const STORE_KEY = `sot_sweep_${PUZZLE.num}`;
   const REC_KEY = `sot_sweep_rec_${PUZZLE.num}`;
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const iq = useIqStanding({ game: 'sweep', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'sweep', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'sweep', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'sweep', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'sweep', active: LOFT && !playing });
 
   const [g, setG] = useState(() => freshState());
   const gRef = useRef(g);
@@ -147,6 +165,12 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(true);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [copied, setCopied] = useState(false);
   const [identity, setIdentity] = useState(null);
   const [board, setBoard] = useState(EMPTY_BOARD);
@@ -170,6 +194,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
+  const LOFT = isLoft('sweep');
   const started = playing && !!g.t0;
   const preStart = playing && !g.t0;
   const over = g.status !== 'playing';
@@ -559,13 +584,33 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: '#fff', color: COLORS.accent, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, fontFamily: SANS }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, fontFamily: SANS , overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
-      <DailyChrome slug="sweep" name="Sweep" collapsed={started} />
+      <DailyChrome slug="sweep" name="Sweep" collapsed={started} loft={LOFT} />
+      {LOFT && (
+        <LoftCap
+          name="Sweep"
+          cat="Arcade"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          tiles={playing ? null : upNext}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: g.score, k: 'score' },
+            { v: PAR, k: 'par' },
+          ] : [
+            { v: g.score, k: 'score' },
+            { v: PAR, k: 'par' },
+          ]}
+        />
+      )}
 
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '18px 18px 40px', position: 'relative', zIndex: 2 }}>
         <DuelBanner token={duelToken} info={duelInfo} submitted={duelSubmitted} />
 
+        {!LOFT && (
         <DailyMasthead
           slug="sweep"
           num={PUZZLE.num}
@@ -580,9 +625,17 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             </span>
           )}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen, so the board is the one lit object. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Sweep is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -705,6 +758,53 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
+
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Sweep"
+              catRank={catRank}
+              outcome={won ? 'won' : 'lost'}
+              title={won ? 'Solved' : 'Not solved'}
+              detail={`${g.score} \u00b7 ${PAR} par`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `sweep of ${allTime.field}` : 'sweep all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Digs"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/sweep?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
@@ -718,6 +818,12 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
         )}
 
         <div style={{ display: focusMode ? 'none' : 'block' }}>
+          {LOFT && (
+            <div className="loft-report">
+              <ReportIssue self="sweep" name="Sweep" accent="#ffffff" align="center" />
+            </div>
+          )}
+          {!LOFT && (
           <DailyGamesGrid
             self="sweep"
             maxWidth={620}
@@ -727,6 +833,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             divider
             boardSlot={<DailyBoardPanel self="sweep" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />}
           />
+          )}
         </div>
 
         <section style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: COLORS.faded }}>
@@ -752,7 +859,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
       {/* OUTSIDE the page column on purpose: the column is a stacking context,
           and this card's backdrop sits at z-index 85. Nested inside, it paints
           under the masthead. See the same note in BlocksClient. */}
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="sweep"

@@ -34,6 +34,17 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { isLoft } from '@/lib/loft';
+import ReportIssue from '../ReportIssue';
+import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import DailyRules from '../DailyRules';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
@@ -143,6 +154,12 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   const [copied, setCopied] = useState(false);
   const [justWon, setJustWon] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [showChrome, setShowChrome] = useState(false);
   const [armGiveUp, setArmGiveUp] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -172,6 +189,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
   const guesses = g.guesses;
   const playing = g.status === 'playing';
+  const LOFT = isLoft('warmer');
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const won = g.status === 'won';
@@ -180,6 +198,13 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
   const todayNum = useMemo(() => { const t = etToday(); const open = puzzles.filter((p) => p.live <= t); return open.length ? open[open.length - 1].num : (puzzles[0] ? puzzles[0].num : PUZZLE.num); }, [puzzles, PUZZLE.num]);
   const isTodays = PUZZLE.num === todayNum;
+  const iq = useIqStanding({ game: 'warmer', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'warmer', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'warmer', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'warmer', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'warmer', active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
 
   // ---- persistence ----
@@ -407,12 +432,29 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="warmer" name="Warmer" collapsed={started} />
+      <DailyChrome slug="warmer" name="Warmer" collapsed={started} loft={LOFT} />
+      {LOFT && (
+        <LoftCap
+          name="Warmer"
+          cat="Word"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          tiles={playing ? null : upNext}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="wm-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.wm-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -447,6 +489,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 
           {/* masthead */}
+          {!LOFT && (
           <DailyMasthead
             slug="warmer"
             num={PUZZLE.num}
@@ -461,10 +504,18 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                 <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
               ))}
           />
+          )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen, so the board is the one lit object. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
           {/* start gate — the puzzle card stays sealed until Start begins the clock */}
           {preStart && (
-            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 200, display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
+            <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 200, display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Warmer is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -549,6 +600,54 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           )}
 
           {/* result footer */}
+
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Warmer"
+              catRank={catRank}
+              outcome={won ? 'won' : 'lost'}
+              title={won ? 'Solved' : 'Not solved'}
+              detail={`${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `warmer of ${allTime.field}` : 'warmer all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Guesses"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/warmer?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+              prevPuzzle && { tone: 'another', label: 'Play another Warmer', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/warmer?p=${prevPuzzle.num}` },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
           {!playing && (
             <div style={{ maxWidth: 472, margin: '14px auto 0' }}>
               <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: 0 }}>
@@ -572,7 +671,14 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
           {/* keep playing + share + grid */}
           <div style={{ margin: '30px auto 0', display: focusMode ? 'none' : 'block' }}>
+            {LOFT && (
+              <div className="loft-report">
+                <ReportIssue self="warmer" name="Warmer" accent="#ffffff" align="center" />
+              </div>
+            )}
+            {!LOFT && (
             <DailyGamesGrid replay={!playing ? resetGame : null} self="warmer" maxWidth={620} challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light boardSlot={<DailyBoardPanel self="warmer" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />} divider />
+            )}
             {mobileUi && !standalone && (
               <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}>
                 <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -594,7 +700,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="warmer"

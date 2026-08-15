@@ -40,6 +40,17 @@ import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import DailyMasthead from '../DailyMasthead';
+import { isLoft } from '@/lib/loft';
+import ReportIssue from '../ReportIssue';
+import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import DailyRules from '../DailyRules';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { T } from '@/lib/theme';
@@ -167,6 +178,12 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
   const [showHelp, setShowHelp] = useState(false);
   const [gateRules, setGateRules] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [loftRevealed, setLoftRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -178,6 +195,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
   const viewedRef = useRef(false);
 
   const playing = g.status === 'playing';
+  const LOFT = isLoft('suffice');
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
   // daily uses (owner rule, 2026-08-08). setShowChrome unfolds it for good.
@@ -325,15 +343,41 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
   }
 
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const iq = useIqStanding({ game: 'suffice', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'suffice', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'suffice', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'suffice', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'suffice', active: LOFT && !playing });
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const picked = g.picks[idx];
   const answerKey = KEY[idx];
   const ex = revealed && answerKey ? explainItem(item, answerKey) : null;
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
-      <DailyChrome slug="suffice" name="Suffice" collapsed={!!g.t0} />
+      <DailyChrome slug="suffice" name="Suffice" collapsed={!!g.t0} loft={LOFT} />
+      {LOFT && (
+        <LoftCap
+          name="Suffice"
+          cat="Logic"
+          outcome={playing ? null : (score === TOTAL ? 'won' : (score > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          tiles={playing ? null : upNext}
+          dateLabel={playing ? PUZZLE.dateLabel : (score === TOTAL ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved'))}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: `${score}/${TOTAL}`, k: 'score' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: `${score}/${TOTAL}`, k: 'score' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="sf-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.sf-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -357,6 +401,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          {!LOFT && (
           <DailyMasthead
             slug="suffice"
             num={PUZZLE.num}
@@ -370,6 +415,14 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           />
+          )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen, so the board is the one lit object. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
           {/* start tile: full rules for a first-timer, compact card otherwise */}
           {preStart && (
@@ -490,12 +543,65 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           {/* The daily leaderboard renders INSIDE DailyGamesGrid's boardSlot,
               not as a sibling, which is the house arrangement every other
               daily uses. */}
+
+          {LOFT && !playing && loftRevealed && (
+            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Suffice"
+              catRank={catRank}
+              outcome={score === TOTAL ? 'won' : (score > 0 ? 'part' : 'lost')}
+              title={score === TOTAL ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved')}
+              detail={`${`${score}/${TOTAL}`} \u00b7 ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `suffice of ${allTime.field}` : 'suffice all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Wrong"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/suffice?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: (score === TOTAL) ? 'Return to board' : 'Reveal answer',
+                  sub: (score === TOTAL) ? 'Your finished board' : 'Show what you missed', onClick: () => setLoftRevealed(true) },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
           </div>
         )}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
+            {LOFT && (
+              <div className="loft-report">
+                <ReportIssue self="suffice" name="Suffice" accent="#ffffff" align="center" />
+              </div>
+            )}
+            {!LOFT && (
             <DailyGamesGrid
               self="suffice"
               maxWidth={640}
@@ -506,11 +612,12 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
               divider
               boardSlot={<DailyBoardPanel self="suffice" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />}
             />
+            )}
           </div>
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="suffice"
