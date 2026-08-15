@@ -7,6 +7,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
+import { duelSubject } from '@/lib/duel-subjects';
 import { T } from '@/lib/theme';
 
 const C = { bg: T.white, surface: T.white, ink: T.ink, muted: T.muted, soft: T.muted, line: 'rgba(20,22,28,0.10)', accent: T.accent, accsoft: '#e8effb' };
@@ -34,10 +35,19 @@ export default function NewDuelPage() {
   const [device, setDevice] = useState('any');
   const [signupOpen, setSignupOpen] = useState(false);
   const [pendingQuiz, setPendingQuiz] = useState(null);
+  const [daily, setDaily] = useState([]);
 
   useEffect(() => { setName(storedName()); setMyAnon(ensureAnon() || ''); }, []);
   useEffect(() => {
-    try { const p = new URLSearchParams(window.location.search); const oa = p.get('opponent'); const on = p.get('oppName'); if (oa) setOpp({ anon: oa, name: on || 'Player' }); const qz = p.get('quiz'); if (qz) { const fq = QUIZZES.find((x) => x.id === qz); if (fq) setQ(fq.title || ''); } } catch {}
+    try { const p = new URLSearchParams(window.location.search); const oa = p.get('opponent'); const on = p.get('oppName'); if (oa) setOpp({ anon: oa, name: on || 'Player' }); const qz = p.get('quiz'); if (qz) { const s = duelSubject(qz, QUIZZES.find((x) => x.id === qz)); if (s.shortTitle && s.shortTitle !== qz) setQ(s.shortTitle); } } catch {}
+  }, []);
+  // Today's daily puzzles are duelable too. They are resolved server-side
+  // (/api/duel/subjects) because this picker is a client component and the
+  // slate module imports every game's puzzle file, answers and all.
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/duel/subjects').then((r) => r.json()).then((d) => { if (alive && d && Array.isArray(d.subjects)) setDaily(d.subjects); }).catch(() => {});
+    return () => { alive = false; };
   }, []);
   useEffect(() => {
     let alive = true; const s = oppQ.trim(); if (opp) return;
@@ -48,6 +58,12 @@ export default function NewDuelPage() {
     }, 220);
     return () => { alive = false; clearTimeout(t); };
   }, [oppQ, opp, myAnon]);
+
+  const dailyResults = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return daily;
+    return daily.filter((x) => `${x.title} ${x.category} ${x.tag} ${x.key}`.toLowerCase().includes(s));
+  }, [q, daily]);
 
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -75,6 +91,11 @@ export default function NewDuelPage() {
   }
 
   const inp = { width: '100%', boxSizing: 'border-box', padding: '11px 13px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 14, outline: 'none' };
+  const grpHd = { fontSize: 11, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: C.accent, margin: '2px 0 8px' };
+  const rowBtn = { textAlign: 'left', display: 'flex', minWidth: 0, alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 14px', fontFamily: FONT };
+  const rowNm = { display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflowWrap: 'anywhere' };
+  const rowSub = { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft };
+  const rowPill = { flex: 'none', fontSize: 12, fontWeight: 800, color: T.white, background: C.accent, padding: '6px 12px', borderRadius: 999 };
   const devOpts = [{ v: 'any', l: 'Any Device' }, { v: 'mobile', l: 'Mobile Only' }, { v: 'desktop', l: 'Desktop Only' }];
 
   return (
@@ -87,8 +108,8 @@ export default function NewDuelPage() {
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: C.accent, textDecoration: 'none' }}>← Back to Quizzes</Link>
           <div style={{ marginTop: 16, marginBottom: 4, fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Start a duel</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px' }}>Challenge Someone to a Quiz</h1>
-          <p style={{ color: C.muted, fontSize: 15, margin: '0 0 20px' }}>Pick a quiz. Challenge a specific player by name, or just share the invite link with anyone. Higher score wins (fastest on a tie).</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 6px' }}>Challenge Someone to a Puzzle or Quiz</h1>
+          <p style={{ color: C.muted, fontSize: 15, margin: '0 0 20px' }}>Pick a daily puzzle or a quiz. Challenge a specific player by name, or just share the invite link with anyone. Higher score wins (fastest on a tie).</p>
 
           <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>YOUR NAME</label>
           {name ? (
@@ -126,22 +147,41 @@ export default function NewDuelPage() {
               <button key={o.v} onClick={() => setDevice(o.v)} style={{ flex: '1 1 120px', padding: '10px 12px', borderRadius: 10, border: `1.5px solid ${device === o.v ? C.accent : C.line}`, background: device === o.v ? C.accent : T.white, color: device === o.v ? T.white : C.ink, fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>{o.l}</button>
             ))}
           </div>
-          <p style={{ color: C.soft, fontSize: 12, margin: '0 0 18px' }}>Playing on a computer is a big advantage on many quizzes. Require the same device so it{"'"}s a fair fight (for example, mobile vs mobile).</p>
+          <p style={{ color: C.soft, fontSize: 12, margin: '0 0 18px' }}>Playing on a computer is a big advantage on many puzzles and quizzes. Require the same device so it{"'"}s a fair fight (for example, mobile vs mobile).</p>
 
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>PICK A QUIZ{opp ? ` TO CHALLENGE ${opp.name.toUpperCase()}` : ''}</label>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search quizzes…" style={{ ...inp, marginBottom: 12 }} />
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: C.soft, marginBottom: 6 }}>PICK A PUZZLE OR QUIZ{opp ? ` TO CHALLENGE ${opp.name.toUpperCase()}` : ''}</label>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search daily puzzles and quizzes…" style={{ ...inp, marginBottom: 12 }} />
+          {dailyResults.length > 0 && (
+            <>
+              <div style={grpHd}>Today{"'"}s Daily Puzzles</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 8 }}>
+                {dailyResults.map((x) => (
+                  <button key={x.quizId} onClick={() => start(x.quizId)} disabled={busy} style={{ ...rowBtn, cursor: busy ? 'default' : 'pointer' }}>
+                    <span style={{ minWidth: 0, overflow: 'hidden' }}>
+                      <span style={rowNm}>{x.title}</span>
+                      <span style={rowSub}>{x.tag || x.category}</span>
+                    </span>
+                    <span style={rowPill}>Click to Challenge</span>
+                  </button>
+                ))}
+              </div>
+              {/* A daily duel is pinned to the dated board it was created on, which
+                  is the only way it is a fair fight. Say so before they pick one. */}
+              <p style={{ color: C.soft, fontSize: 12, margin: '10px 0 16px' }}>A daily puzzle duel is fought over today{"'"}s board, so both of you have to play it before midnight Eastern.</p>
+              <div style={grpHd}>Quizzes</div>
+            </>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 8 }}>
             {results.map((x) => (
-              <button key={x.id} onClick={() => start(x.id)} disabled={busy}
-                style={{ textAlign: 'left', display: 'flex', minWidth: 0, alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: '12px 14px', cursor: busy ? 'default' : 'pointer', fontFamily: FONT }}>
+              <button key={x.id} onClick={() => start(x.id)} disabled={busy} style={{ ...rowBtn, cursor: busy ? 'default' : 'pointer' }}>
                 <span style={{ minWidth: 0, overflow: 'hidden' }}>
-                  <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflowWrap: 'anywhere' }}>{x.title}</span>
-                  <span style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft }}>{x.category || 'Quiz'}</span>
+                  <span style={rowNm}>{x.title}</span>
+                  <span style={rowSub}>{x.category || 'Quiz'}</span>
                 </span>
-                <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: T.white, background: C.accent, padding: '6px 12px', borderRadius: 999 }}>Click to Challenge</span>
+                <span style={rowPill}>Click to Challenge</span>
               </button>
             ))}
-            {results.length === 0 && <div style={{ color: C.soft, fontSize: 14, padding: '8px 2px' }}>No quizzes match that search.</div>}
+            {results.length === 0 && dailyResults.length === 0 && <div style={{ color: C.soft, fontSize: 14, padding: '8px 2px' }}>Nothing matches that search.</div>}
           </div>
         </div>
       </div>

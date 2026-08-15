@@ -7,6 +7,7 @@ import Grain from '../../Grain';
 import Footer from '../../Footer';
 import DuelSignup from '../DuelSignup';
 import { QUIZZES } from '@/lib/quizzes';
+import { duelSubject } from '@/lib/duel-subjects';
 import { withRef } from '@/lib/referrals';
 import { T } from '@/lib/theme';
 
@@ -82,7 +83,15 @@ export default function DuelClient({ token }) {
   }, [load, autoSubmit]);
 
   const quiz = duel ? QUIZZES.find((q) => q.id === duel.quiz_id) : null;
-  const quizTitle = quiz ? quiz.title : (duel ? duel.quiz_id : '');
+  // A duel is fought over a quiz OR a dated daily puzzle. duelSubject turns
+  // either id into a title, a play route and, for a daily, whether that board
+  // is still today's (lib/duel-subjects).
+  const subj = duel ? duelSubject(duel.quiz_id, quiz) : null;
+  const quizTitle = subj ? subj.title : '';
+  const subjNoun = subj ? subj.noun : 'quiz';
+  const subjNounCap = subj ? subj.Noun : 'Quiz';
+  const subjIsDaily = !!(subj && subj.isDaily);
+  const playHref = subj ? `${subj.href}${subj.href.includes('?') ? '&' : '?'}duel=${token}` : '#';
   const dev = (duel && duel.device) || 'any';
   const localSide = duel && me.anon
     ? (duel.challenger_anon === me.anon ? 'challenger' : (duel.opponent_anon === me.anon ? 'opponent' : 'new'))
@@ -91,6 +100,12 @@ export default function DuelClient({ token }) {
   const myScore = side === 'challenger' ? duel?.challenger_score : side === 'opponent' ? duel?.opponent_score : null;
   const iSubmitted = myScore != null;
   const done = duel && (duel.status === 'complete' || duel.status === 'declined');
+  // A daily duel is pinned to one dated board, so once the game has rolled to
+  // the next puzzle there is nothing left to play. The Play button is replaced
+  // rather than sending the reader into a DIFFERENT puzzle, which would not be
+  // the duel they were invited to. Submitting stays available: someone who did
+  // play it on the day still has a real score to attach.
+  const dayGone = !!(subj && subj.expired && !done);
 
   async function submit() {
     const nm = (me.name || storedName() || '').trim().slice(0, 40);
@@ -100,7 +115,7 @@ export default function DuelClient({ token }) {
       const r = await fetch('/api/duel/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, anonId: me.anon, name: nm, email: storedEmail() || undefined }) });
       const d = await r.json();
       if (d && d.duel) { setDuel(d.duel); setMe((m) => ({ ...m, name: nm })); }
-      else if (d && d.error === 'no_play') setMsg(`No recent play of ${quizTitle} found. Tap Play the Quiz and your score sends to this duel automatically when you finish. (Rounds played within the last hour count too.)`);
+      else if (d && d.error === 'no_play') setMsg(`No play of ${quizTitle} found. Tap Play the ${subjNounCap} and your score sends to this duel automatically when you finish.${subjIsDaily ? '' : ' (Rounds played within the last hour count too.)'}`);
       else if (d && d.error === 'device_mismatch') setMsg(`This duel is ${d.device} only. Play on ${d.device === 'mobile' ? 'your phone' : 'a computer'}, then submit.`);
       else if (d && d.error === 'duel_full') setMsg('This duel already has two players.');
       else setMsg('Could not submit. Try again.');
@@ -165,7 +180,9 @@ export default function DuelClient({ token }) {
             <>
               <div style={{ marginTop: 16, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.12em', textTransform: 'uppercase', color: C.accent }}>Duel</span>
+                {subjIsDaily && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: T.white, background: C.accent, borderRadius: 999, padding: '3px 9px' }}>Daily Puzzle</span>}
                 {dev !== 'any' && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: T.white, background: C.ink, borderRadius: 999, padding: '3px 9px' }}>{devLabel(dev)}</span>}
+                {dayGone && <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: T.white, background: C.lose, borderRadius: 999, padding: '3px 9px' }}>Board Expired</span>}
               </div>
               <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', margin: '0 0 18px' }}>{quizTitle}</h1>
 
@@ -197,12 +214,16 @@ export default function DuelClient({ token }) {
                   ) : (
                     <>
                       <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 4 }}>{side === 'challenger' ? 'Play your round' : `${duel.challenger_name} challenged you`}</div>
-                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the quiz{'"'}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'your phone' : 'a computer'} (this duel is ${dev} only)` : ''}. When you finish, your score is sent to this duel automatically.</div>
+                      <div style={{ color: C.muted, fontSize: 14, marginBottom: 14 }}>Tap {'"'}Play the {subjNoun}{'"'}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'your phone' : 'a computer'} (this duel is ${dev} only)` : ''}. When you finish, your score is sent to this duel automatically.{subjIsDaily && !dayGone ? ' This one is a daily puzzle, so it is today\'s board and it goes at midnight Eastern.' : ''}</div>
                       {!me.name && (
                         <button onClick={() => setSignupOpen(true)} style={{ width: '100%', boxSizing: 'border-box', textAlign: 'left', background: T.white, color: C.accent, border: `1.5px solid ${C.accent}`, borderRadius: 10, padding: '10px 12px', marginBottom: 12, fontFamily: FONT, fontWeight: 800, fontSize: 14, cursor: 'pointer' }}>Claim your display name to play +</button>
                       )}
                       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <a href={`/quiz/${duel.quiz_id}?duel=${token}`} style={{ flex: '1 1 160px', textAlign: 'center', background: C.accent, color: T.white, padding: '12px 16px', borderRadius: 10, fontWeight: 800, textDecoration: 'none' }}>Play the Quiz →</a>
+                        {dayGone ? (
+                          <div style={{ flex: '1 1 160px', textAlign: 'center', background: C.accsoft, border: `1px solid ${C.line}`, color: C.muted, padding: '12px 16px', borderRadius: 10, fontWeight: 700, fontSize: 13 }}>This board is no longer live. If you played it on the day, submit your score.</div>
+                        ) : (
+                          <a href={playHref} style={{ flex: '1 1 160px', textAlign: 'center', background: C.accent, color: T.white, padding: '12px 16px', borderRadius: 10, fontWeight: 800, textDecoration: 'none' }}>Play the {subjNounCap} →</a>
+                        )}
                         <button onClick={submit} disabled={busy} style={{ flex: '1 1 160px', background: C.surface, color: C.accent, border: `1.5px solid ${C.accent}`, padding: '12px 16px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{busy ? 'Working…' : "I've Played — Submit My Score"}</button>
                       </div>
                       {side !== 'challenger' && (
@@ -227,7 +248,7 @@ export default function DuelClient({ token }) {
                       style={{ flex: '1 1 220px', minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${C.line}`, borderRadius: 10, fontFamily: FONT, fontSize: 13, background: T.white, color: C.muted, outline: 'none' }} />
                     <button onClick={copyLink} style={{ background: C.accent, color: T.white, border: 'none', padding: '10px 18px', borderRadius: 10, fontWeight: 800, cursor: 'pointer', fontFamily: FONT }}>{copied ? 'Copied!' : 'Copy'}</button>
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 12, color: C.soft }}>Send this to whoever you want to duel. They open it, play the same quiz{dev !== 'any' ? ` on ${dev === 'mobile' ? 'mobile' : 'desktop'}` : ''}, and the winner is decided automatically.</div>
+                  <div style={{ marginTop: 8, fontSize: 12, color: C.soft }}>Send this to whoever you want to duel. They open it, play the same {subjNoun}{dev !== 'any' ? ` on ${dev === 'mobile' ? 'mobile' : 'desktop'}` : ''}, and the winner is decided automatically.{subjIsDaily ? ' Send it today: a daily puzzle duel ends with the board at midnight Eastern.' : ''}</div>
                 </div>
               )}
 

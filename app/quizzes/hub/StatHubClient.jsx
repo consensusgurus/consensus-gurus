@@ -230,7 +230,9 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
   function toggleMuteAll() { setMuteAll((v) => { const n = !v; try { localStorage.setItem('sot_duel_mute_all', n ? '1' : '0'); } catch {} return n; }); }
   function unmute(a) { setMuted((m) => { const n = { ...m }; delete n[a]; try { localStorage.setItem('sot_duel_muted', JSON.stringify(n)); } catch {} return n; }); }
   const anon = getAnonId();
-  const qtitle = (id) => { const q = getQuiz(id); return (q && q.title) || id; };
+  // A duel's subject is a quiz OR a dated daily puzzle, so fall through to the
+  // daily label rather than printing a raw 'crux-8-15-26' at the reader.
+  const qtitle = (id) => { const q = getQuiz(id); return (q && q.title) || dailyLabel(id) || id; };
   const mutedEntries = Object.entries(muted);
   const card = { background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: 16, marginBottom: 14 };
   const hd = { fontSize: 13, fontWeight: 800, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft, margin: '0 0 10px' };

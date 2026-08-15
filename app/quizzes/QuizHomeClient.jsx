@@ -2074,7 +2074,9 @@ export default function QuizHomeClient({ variant = 'current' }) {
           (duelNotif.results || []).forEach((r) => { if (duelSeen[r.token]) return; const iAmCh = r.mine ? r.mine === 'challenger' : r.challenger_anon === myA; if (r.status === 'declined' && !iAmCh) return; q.push({ kind: 'result', iAmCh, ...r }); });
           if (!q.length) return null;
           const it = q[0];
-          const qTitle = (titleById[it.quiz_id] || it.quiz_id);
+          // resolveTitle, not titleById: a duel can be on a daily puzzle, whose
+          // dated id is not in the static catalog and would print raw.
+          const qTitle = (resolveTitle(it.quiz_id) || it.quiz_id);
           const more = q.length > 1 ? q.length - 1 : 0;
           let outcome = '';
           if (it.kind === 'result') {

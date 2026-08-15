@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import { DAILY_DATED_RE, etTodayISO } from '@/lib/daily-games';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -23,6 +24,16 @@ export async function POST(request) {
     const device = (b.device === 'mobile' || b.device === 'desktop') ? b.device : 'any';
     if (!quizId || quizId.length > 100) return NextResponse.json({ error: 'quizId required' }, { status: 400 });
     if (!anonId) return NextResponse.json({ error: 'anonId required' }, { status: 400 });
+    // A daily puzzle duel may only be opened on TODAY'S board. The dated id is
+    // what pins both players to the same puzzle, and the game route serves a
+    // different one after Eastern midnight, so a duel created on yesterday's id
+    // (a stale link, a bookmarked composer) would be dead on arrival.
+    if (DAILY_DATED_RE.test(quizId)) {
+      const [Y, M, D] = etTodayISO().split('-').map(Number);
+      const want = `${M}-${D}-${Y % 100}`;
+      const got = (quizId.match(/-(\d+-\d+-\d+)$/) || [])[1];
+      if (got !== want) return NextResponse.json({ error: 'daily_expired' }, { status: 400 });
+    }
 
     const baseRow = { quiz_id: quizId, challenger_anon: anonId, challenger_name: name, opponent_anon: opponentAnon, opponent_name: opponentAnon ? opponentName : null, status: 'open' };
     let tk = makeToken(), inserted = null, err = null;

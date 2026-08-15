@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Swords, UserPlus, ListChecks, ArrowRight, X, ChevronDown, Trophy } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
+import { duelSubject } from '@/lib/duel-subjects';
 import { T } from '@/lib/theme';
 
 const NAVY = T.accent, ACCENT = T.accent, AMBER = '#f8b84a';
@@ -22,7 +23,8 @@ function timeAgo(iso) {
 }
 
 // Quick-start duel composer in the quiz-hub tile grid. Pick an opponent
-// (optional) and a quiz, then jump to /duel/new with both prefilled. On desktop
+// (optional) and a subject, either one of today's daily puzzles or a quiz, then
+// jump to /duel/new with both prefilled. On desktop
 // the tile periodically FLIPS to a back face teasing the most recently completed
 // duel (from /api/duel/latest) with a Duel Leaderboard CTA; the flip pauses
 // whenever the user is hovering or has begun composing. On mobile the tile is a
@@ -38,6 +40,7 @@ export default function DuelTile() {
   const [quizQ, setQuizQ] = useState('');
   const [quiz, setQuiz] = useState(null);
   const [quizOpen, setQuizOpen] = useState(false);
+  const [daily, setDaily] = useState([]);
   const [latest, setLatest] = useState(null);
   const [face, setFace] = useState('form');
   const [hovered, setHovered] = useState(false);
@@ -51,6 +54,11 @@ export default function DuelTile() {
     fetch('/api/duel/latest')
       .then((r) => r.json())
       .then((d) => { if (alive && d && d.duel) setLatest(d.duel); })
+      .catch(() => {});
+    // Today's daily puzzles, which are duelable alongside the quizzes.
+    fetch('/api/duel/subjects')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.subjects)) setDaily(d.subjects); })
       .catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -69,6 +77,12 @@ export default function DuelTile() {
     }, 220);
     return () => { alive = false; clearTimeout(t); };
   }, [oppQ, opp, myAnon]);
+
+  const dailyResults = useMemo(() => {
+    const s = quizQ.trim().toLowerCase();
+    if (!s) return daily.slice(0, 4);
+    return daily.filter((x) => `${x.title} ${x.category} ${x.tag} ${x.key}`.toLowerCase().includes(s)).slice(0, 8);
+  }, [quizQ, daily]);
 
   const quizResults = useMemo(() => {
     const s = quizQ.trim().toLowerCase();
@@ -98,6 +112,7 @@ export default function DuelTile() {
   const last = useMemo(() => {
     if (!latest) return null;
     const qz = QUIZZES.find((x) => x.id === latest.quiz_id);
+    const subj = duelSubject(latest.quiz_id, qz);
     const tie = latest.winner === 'tie';
     const cw = latest.winner === 'challenger';
     const wName = (cw || tie ? latest.challenger_name : latest.opponent_name) || 'Player';
@@ -105,7 +120,7 @@ export default function DuelTile() {
     const wScore = cw || tie ? latest.challenger_score : latest.opponent_score;
     const lScore = cw || tie ? latest.opponent_score : latest.challenger_score;
     const scores = Number.isFinite(wScore) && Number.isFinite(lScore) ? `${wScore}–${lScore}` : '';
-    return { tie, wName, lName, scores, quizTitle: qz ? qz.title : 'a quiz', ago: timeAgo(latest.created_at) };
+    return { tie, wName, lName, scores, quizTitle: (qz || subj.isDaily) ? subj.title : 'a quiz', ago: timeAgo(latest.created_at) };
   }, [latest]);
 
   function toggle() { if (typeof window !== 'undefined' && window.innerWidth <= 560) setOpen((o) => !o); }
@@ -123,6 +138,7 @@ export default function DuelTile() {
   const inputEl = { flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: '#eaf0fb', fontFamily: FONT, fontSize: 12.5 };
   const menu = { position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 40, background: T.white, border: '1px solid rgba(20,22,28,0.12)', borderRadius: 10, boxShadow: '0 10px 28px rgba(8,15,35,0.28)', maxHeight: 210, overflowY: 'auto', padding: 4 };
   const item = { display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '8px 10px', borderRadius: 7, cursor: 'pointer', fontFamily: FONT, fontSize: 13, color: T.ink };
+  const menuHd = { padding: '6px 10px 3px', fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: ACCENT };
   const clearBtn = { border: 'none', background: 'transparent', color: '#9fb0d4', cursor: 'pointer', display: 'flex', flex: 'none' };
   const picked = { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12.5, color: '#eaf0fb', fontWeight: 700 };
   const ctaBtn = { marginTop: 'auto', width: '100%', background: T.cta, color: T.ctaInk, border: 'none', borderRadius: 10, padding: '10px', fontFamily: FONT, fontWeight: 800, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 };
@@ -180,21 +196,33 @@ export default function DuelTile() {
                   {quiz ? (
                     <>
                       <span style={picked}>{quiz.title}</span>
-                      <button aria-label="Clear quiz" onClick={(e) => { e.stopPropagation(); setQuiz(null); setQuizQ(''); }} style={clearBtn}><X size={14} /></button>
+                      <button aria-label="Clear selection" onClick={(e) => { e.stopPropagation(); setQuiz(null); setQuizQ(''); }} style={clearBtn}><X size={14} /></button>
                     </>
                   ) : (
-                    <input value={quizQ} onChange={(e) => { setQuizQ(e.target.value); setQuizOpen(true); }} onFocus={() => { setQuizOpen(true); setInteracted(true); }} placeholder="Choose a quiz" style={inputEl} />
+                    <input value={quizQ} onChange={(e) => { setQuizQ(e.target.value); setQuizOpen(true); }} onFocus={() => { setQuizOpen(true); setInteracted(true); }} placeholder="Choose a puzzle or quiz" style={inputEl} />
                   )}
                 </div>
                 {quizOpen && !quiz && (
                   <div style={menu}>
+                    {dailyResults.length > 0 && (
+                      <>
+                        <div style={menuHd}>Today{"'"}s Daily Puzzles</div>
+                        {dailyResults.map((x) => (
+                          <button key={x.quizId} onClick={() => { setQuiz({ id: x.quizId, title: x.title }); setQuizOpen(false); }} style={item}>
+                            <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: T.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
+                            <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: T.muted }}>{x.tag || x.category}</span>
+                          </button>
+                        ))}
+                        <div style={menuHd}>Quizzes</div>
+                      </>
+                    )}
                     {quizResults.map((x) => (
                       <button key={x.id} onClick={() => { setQuiz({ id: x.id, title: x.title }); setQuizOpen(false); }} style={item}>
                         <span style={{ display: 'block', fontWeight: 700, fontSize: 13, color: T.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.title}</span>
                         <span style={{ display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: T.muted }}>{x.category || 'Quiz'}</span>
                       </button>
                     ))}
-                    {quizResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: T.muted }}>No quizzes match.</div>}
+                    {quizResults.length === 0 && dailyResults.length === 0 && <div style={{ padding: '8px 10px', fontSize: 12, color: T.muted }}>Nothing matches.</div>}
                   </div>
                 )}
               </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { resolveAnonSet } from '@/lib/quiz-identity';
+import { DAILY_DATED_RE } from '@/lib/daily-games';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -42,8 +43,15 @@ export async function POST(request) {
     // creates the duel right after finishing a round (end-game Challenge Someone
     // flow), and an opponent may accept a challenge on a quiz they just played.
     // Older plays never count, so a stale score can't settle a fresh duel.
+    // A DAILY PUZZLE duel needs no window at all. Its quiz_id is dated
+    // ('crux-8-15-26'), so it already names one specific board: any play of
+    // that id IS a play of the very puzzle being fought over, whenever it
+    // happened. Keeping the hour floor here would reject the ordinary case,
+    // someone who did today's Crux this morning and gets challenged this
+    // afternoon, on a game they cannot replay for score.
+    const isDailySubject = DAILY_DATED_RE.test(duel.quiz_id || '');
     const GRACE_MS = 60 * 60 * 1000;
-    const sinceIso = new Date(new Date(duel.created_at).getTime() - GRACE_MS).toISOString();
+    const sinceIso = isDailySubject ? new Date(0).toISOString() : new Date(new Date(duel.created_at).getTime() - GRACE_MS).toISOString();
     const isOpponent = !!duel.opponent_anon && mine.has(duel.opponent_anon);
     if (!isChallenger && duel.opponent_anon && !isOpponent) {
       return NextResponse.json({ error: 'duel_full' }, { status: 409 });
