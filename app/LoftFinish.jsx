@@ -73,6 +73,7 @@ function Calculating({ wide = false }) {
 export default function LoftFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
   missLabel = null, archive = null, gameRank = null, outcome = null, options = [],
+  name = null, catRank = null,
 }) {
   const [showAll, setShowAll] = useState(false);
   const [openArchive, setOpenArchive] = useState(false);
@@ -114,7 +115,7 @@ export default function LoftFinish({
       <div className="loft-back">
         <div className="loft-backin">
           <div className="loft-res">
-            <b>Archive</b>
+            <b>{name ? `${name} Archive` : 'Archive'}</b>
             <button type="button" className="loft-back-btn" onClick={() => setOpenArchive(false)}>&#8592; Back</button>
           </div>
           <div className="loft-arch">
@@ -157,20 +158,25 @@ export default function LoftFinish({
               : ''}
           </span>
         </span>
+        <span className="today"><b>{day && day.ready
+          ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '\u2014')
+          : <Calculating />}</b><i>IQ today</i></span>
       </div>
       {/* Each figure gets its OWN colour (owner, 2026-08-14): four identical grey
           tiles read as one block and nothing stands out. */}
       <div className="loft-day">
         <span className="d1"><b>{day && day.ready
-          ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '\u2014')
-          : <Calculating />}</b>IQ today</span>
-        <span className="d2"><b>{day && day.ready
           ? (day.dayRank != null ? `#${Number(day.dayRank).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>rank today</span>
-        <span className="d3"><b>{gameRank && gameRank.value != null
+        <span className="d2"><b>{gameRank && gameRank.value != null
           ? gameRank.value
           : <Calculating />}</b>{gameRank ? gameRank.label : 'this game'}</span>
-        <span className="d4"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
+        <span className="d3"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
+        <span className="d4"><b>{catRank && catRank.ready
+          ? (catRank.rank != null ? `#${Number(catRank.rank).toLocaleString()}` : '\u2014')
+          : <Calculating />}</b>{catRank && catRank.cat
+            ? `${String(catRank.cat).toLowerCase()} today`
+            : 'category today'}</span>
       </div>
 
       <div className="loft-lb">
@@ -208,7 +214,7 @@ export default function LoftFinish({
         })}
         {archive && archive.length ? (
           <button type="button" className="loft-opt wide t-archive" onClick={() => setOpenArchive(true)}>
-            Archive
+            {name ? `${name} Archive` : 'Archive'}
             <span className="sub">Every daily puzzle, by date</span>
           </button>
         ) : null}

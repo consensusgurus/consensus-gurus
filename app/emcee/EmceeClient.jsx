@@ -41,6 +41,7 @@ import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isLoft } from '@/lib/loft';
@@ -385,6 +386,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const allTime = useGameAllTime({ game: 'emcee', active: LOFT && !playing });
   const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'emcee', active: LOFT && !playing });
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
   const isBlock = useCallback((i) => solFlat[i] === '#', [solFlat]);
@@ -902,6 +904,8 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
         </div>
         {LOFT && !playing && (
           <LoftFinish
+            name="Emcee"
+            catRank={catRank}
             outcome={won ? 'won' : (endScore > 0 ? 'part' : 'lost')}
             title={won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}
             detail={`${endScore}/${TOTAL} \u00b7 ${checks} checks \u00b7 ${elapsed}`}

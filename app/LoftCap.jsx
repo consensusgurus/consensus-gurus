@@ -78,11 +78,9 @@ export default function LoftCap({
    the hairline borders and the help button, which are white-alpha and vanish
    on gold. */
 
-.lcap-part .lcap-nm,.lcap-part .lcap-v{color:#2a1f04}
-.lcap-part .lcap-eb,.lcap-part .lcap-k{color:#6b5306}
-.lcap-part .lcap-figs{border-top-color:rgba(0,0,0,0.22);border-left-color:rgba(0,0,0,0.22)}
-.lcap-part .lcap-figs>div{border-right-color:rgba(0,0,0,0.22)}
-.lcap-part .lcap-help{background:rgba(0,0,0,0.16);color:#2a1f04}
+/* .lcap-part re-inking removed 2026-08-14: the band is always blue now, so the
+   dark ink only made the game name unreadable. The divider rules above still
+   carry the state. */
 .lcap-part .lcap-bar{background:rgba(0,0,0,0.16)}
 .lcap-part .lcap-bar i{background:#2a1f04}
 .lcap-id{flex:1;min-width:0;padding:8px 12px}
@@ -111,6 +109,11 @@ export default function LoftCap({
    118px, which truncates most taglines, so the row scrolls instead and shows
    about two and a half. The scrollbar is hidden because the partial tile at
    the edge is the affordance. */
+@media(max-width:899px) and (orientation:portrait){
+  .lcap-tiles i{display:none}
+  .lcap-tiles a{flex:1 1 0!important;min-width:0;gap:6px;padding-left:7px;padding-right:7px}
+  .lcap-tiles b{font-size:12px}
+}
 @media(max-width:899px){
   .lcap-tiles{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .lcap-tiles::-webkit-scrollbar{display:none}
@@ -198,11 +201,21 @@ export default function LoftCap({
    backtick here closes the style block and breaks the build. */
 .loft-page > [class$="-wrap"]:not(.dch-wrap){padding-top:0!important;padding-bottom:0!important}
 .loft-page{background:var(--accent)!important}
+/* NO GRAIN ON A LOFT PAGE. The grain is a fixed, 12%-opacity multiply layer at
+   z-index 1, so it DARKENS whatever sits under it, and the About section and
+   the footer carry z-index 2 and sit over it. The result was a page in two
+   different navies with a hard seam above the footer, which is exactly the
+   difference the owner reported. It is a paper texture for the cream magazine
+   theme and has no job on a flat navy ground. */
+.loft-page > svg{display:none}
 .loft-page .loft-stage ~ p{color:#bfd0ee!important}
 .loft-page .loft-stage ~ p a{color:#ffd45e!important}
-.loft-page > section h2{color:var(--white)!important}
-.loft-page > section p{color:#bfd0ee!important}
-.loft-page > section a{color:#ffd45e!important}
+.loft-page .loft-stage ~ p b{color:var(--white)!important}
+.loft-page section h2{color:var(--white)!important}
+.loft-page section p{color:#bfd0ee!important}
+.loft-page section a{color:#ffd45e!important}
+.loft-page section em,.loft-page section i{color:#93a9d6!important}
+.loft-page .loft-stage ~ div:not([style*="fixed"]) > p{color:#bfd0ee!important}
 .loft-page footer{color:#bfd0ee!important;border-top-color:rgba(255,255,255,0.18)!important}
 .loft-page footer b,.loft-page footer strong,.loft-page footer h3,.loft-page footer h4{color:var(--white)!important}
 .loft-page footer a{color:#dbe9ff!important}
@@ -324,8 +337,12 @@ export default function LoftCap({
 .loft-fiq .n{font-weight:800;font-size:29px;line-height:1;color:var(--ink);letter-spacing:-.02em}
 .loft-fiq .t{min-width:0}
 .loft-fiq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  text-transform:uppercase;color:var(--ink);margin-bottom:5px}
 .loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--slate)}
+.loft-fiq .today{flex:none;margin-left:auto;padding-left:12px;text-align:right}
+.loft-fiq .today b{display:block;font-weight:800;font-size:18px;line-height:1;color:var(--blue-deep)}
+.loft-fiq .today i{display:block;font-style:normal;font-weight:700;font-size:9px;line-height:1;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:4px}
 
 /* Today's board, top three plus you when you are outside it. */
 .loft-lb{margin-top:11px}
@@ -368,6 +385,15 @@ export default function LoftCap({
    IQ the site scores you on, green for progress through the day, gold for a
    ranking (the same gold the leaderboard's first place uses) and ember for the
    streak. Tinted grounds with a matching ink, not four greys. */
+@media(max-width:560px){
+  .loft-day{flex-wrap:nowrap;gap:5px}
+  .loft-day span{flex:1 1 0;min-width:0;padding:7px 4px;font-size:8.5px}
+  .loft-day span b{font-size:15px}
+  .loft-fiq{gap:9px;padding:10px 11px}
+  .loft-fiq .n{font-size:23px}
+  .loft-fiq .m{font-size:10.5px}
+  .loft-fiq .today b{font-size:15px}
+}
 .loft-day .d1{background:var(--accent-soft)}
 .loft-day .d1 b{color:var(--blue-deep)}
 .loft-day .d2{background:rgba(21,128,61,0.10)}
@@ -490,7 +516,9 @@ export default function LoftCap({
         <div className="lcap-tiles">
           {tiles.slice(0, 3).map((t) => (
             <a key={t.key} href={t.href || `/${t.key}`}>
-              <img src={`/games/btn-${t.key}.png`} alt="" width={30} height={30} />
+              <img src={`/games/blue/btn-${t.key}.png`} alt="" width={30} height={30}
+                onError={(e) => { const full = `/games/btn-${t.key}.png`;
+                  if (!e.currentTarget.src.endsWith(full)) e.currentTarget.src = full; }} />
               <span><b>{t.name}</b><i>{t.tag}</i></span>
             </a>
           ))}

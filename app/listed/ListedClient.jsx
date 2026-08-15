@@ -46,6 +46,7 @@ import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isLoft } from '@/lib/loft';
@@ -450,6 +451,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const allTime = useGameAllTime({ game: 'listed', active: LOFT && !playing });
   const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'listed', active: LOFT && !playing });
 
   // score: 10 for a clean first submit, -1 per extra submit, -1 per item never
   // locked. Revealed = 0.
@@ -880,6 +882,8 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         </div>
         {LOFT && !playing && (
           <LoftFinish
+            name="Listed"
+            catRank={catRank}
             outcome={won ? 'won' : (finalScore > 0 ? 'part' : 'lost')}
             title={won ? 'Solved' : (finalScore > 0 ? 'Partly solved' : 'Not solved')}
             detail={`${finalScore}/10 \u00b7 ${checksUsed}/${MAX_CHECKS} submits \u00b7 ${elapsed}`}

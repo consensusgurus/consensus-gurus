@@ -44,6 +44,7 @@ import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
 import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
@@ -275,6 +276,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const allTime = useGameAllTime({ game: 'quilt', active: LOFT && !playing });
   const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'quilt', active: LOFT && !playing });
 
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -978,7 +980,9 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
         </div>
         {LOFT && !playing && (
           <LoftFinish
-            outcome={won ? 'won' : (typeof endScore !== 'undefined' && endScore > 0 ? 'part' : 'lost')}
+            name="Quilt"
+            catRank={catRank}
+            outcome={won ? 'won' : 'lost'}
             title={won ? 'Solved' : 'Not solved'}
             detail={`${filledCount}/${FREE.length} filled · ${elapsed}`}
             iq={iq}

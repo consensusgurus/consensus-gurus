@@ -39,6 +39,7 @@ import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isLoft } from '@/lib/loft';
@@ -433,6 +434,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const allTime = useGameAllTime({ game: 'tally', active: LOFT && !playing });
   const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'tally', active: LOFT && !playing });
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
   const errors = g.moves > FEWEST ? g.moves - FEWEST : 0;
   const anyPlaced = FREE.some(([r, c]) => !!cells[r * N + c]);
@@ -1224,6 +1226,8 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         </div>
         {LOFT && !playing && (
           <LoftFinish
+            name="Tally"
+            catRank={catRank}
             outcome={won ? 'won' : 'lost'}
             title={won ? 'Solved' : 'Not solved'}
             detail={`${won ? Math.max(1, Math.min(10, 10 - Math.ceil(errors / 2))) : 0}/10 \u00b7 ${g.moves} moves \u00b7 ${elapsed}`}

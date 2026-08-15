@@ -43,6 +43,7 @@ import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { meRequest } from '@/app/quizMeClient';
@@ -1033,6 +1034,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const allTime = useGameAllTime({ game: 'crux', active: LOFT && !playing });
   const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'crux', active: LOFT && !playing });
 
   // Play space matches the daily-games grid width (640): the header + puzzle
   // card fill the same column as the navy grid below. The board keeps its own
@@ -1460,7 +1462,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           </div>
           {LOFT && !playing && (
             <LoftFinish
-            outcome={won ? 'won' : (typeof endScore !== 'undefined' && endScore > 0 ? 'part' : 'lost')}
+            name="Crux"
+            catRank={catRank}
+            outcome={won ? 'won' : 'lost'}
               title={won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}
               detail={`${endScore}/${PUZZLE.slots.length * 2} · ${guessesUsed} guesses · ${elapsed}`}
               iq={iq}
