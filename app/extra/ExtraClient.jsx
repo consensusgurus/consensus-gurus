@@ -751,7 +751,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
                     {gameRetired ? (

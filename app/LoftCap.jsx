@@ -103,7 +103,7 @@ export default function LoftCap({
   const eyebrow = [cat, num != null ? `No. ${num}` : null, dateLabel]
     .filter(Boolean).join(' · ');
   return (
-    <div className={outcome ? `lcap lcap-done lcap-${outcome}` : 'lcap'}>
+    <div className={`lcap${outcome ? ` lcap-done lcap-${outcome}` : ''}${strip && strip.length ? ' lcap-az' : ''}`}>
       <div className="lcap-col">
       <style>{`
 .lcap{background:var(--blue);position:relative;font-family:${SANS};z-index:4}
@@ -175,11 +175,30 @@ export default function LoftCap({
   .lcap-tiles a{flex:0 0 168px}
   /* The roster is long, so it takes the width that is going and scrolls inside
      it rather than pushing the band wider. */
-  .lcap-azwrap{flex:1 1 auto;max-width:min(62vw,860px)}
+  .lcap-azwrap{flex:1 1 100%;max-width:none}
   .lcap-azbtn{display:flex}
   .lcap-tiles.az a{flex:0 0 auto}}
 /* NAME-ONLY CHIPS, tight, so a lot of the roster is in view at once. */
-.lcap-azwrap{position:relative;min-width:0;display:flex}
+.lcap-azwrap{position:relative;min-width:0;display:flex;flex:1 1 100%}
+/* With the label and the rule gone the band is only the roster, so it takes
+   the whole width at every size. */
+.lcap-az .lcap-id{display:none}
+.lcap-az .lcap-col{border-left:0;max-width:none;width:100%}
+.lcap-az .lcap-tiles.az{padding-left:0;padding-right:0}
+.lcap-tiles.az a{display:inline-flex;align-items:center;gap:5px}
+.lcap-tiles.az a .mk{flex:none;width:11px;height:11px;position:relative}
+/* Done: a tick drawn from two borders, so it needs no glyph font. */
+.lcap-tiles.az a.done .mk::after{content:'';position:absolute;left:3px;top:0;width:4px;height:8px;
+  border:solid #7ef0b0;border-width:0 2px 2px 0;transform:rotate(43deg)}
+/* Open: the pause bars. */
+.lcap-tiles.az a.open .mk::before,.lcap-tiles.az a.open .mk::after{content:'';position:absolute;
+  top:1px;width:3px;height:9px;border-radius:1px;background:#f0c674}
+.lcap-tiles.az a.open .mk::before{left:1px}
+.lcap-tiles.az a.open .mk::after{left:6px}
+/* Missed: one red dot. */
+.lcap-tiles.az a.fail .mk::after{content:'';position:absolute;left:2px;top:2px;width:7px;height:7px;
+  border-radius:50%;background:#ff7b7b}
+.lcap-tiles.az a.done{color:#cfe4ff}
 .lcap-tiles.az{gap:5px;padding:5px 12px 7px;align-items:center;
   scroll-snap-type:none;scrollbar-width:none;-ms-overflow-style:none}
 .lcap-azbtn{display:none;position:absolute;top:0;bottom:0;z-index:2;width:34px;
@@ -323,6 +342,9 @@ export default function LoftCap({
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) strong{
   color:var(--white)!important}
 .loft-page > [class$="-wrap"] > div > p{color:#bfd0ee!important}
+.loft-page .loft-tailnote{color:#bfd0ee!important}
+.loft-page .loft-tailnote b{color:var(--white)!important}
+.loft-page .loft-tailnote a{color:var(--gold)!important}
 /* THE POST-GAME PANEL SITS UNDER THE BOARD, never under the finish card
    (owner, 2026-08-15). It used to render in the light tail BELOW the stage, so
    a player who had just been handed the finish card scrolled past their own end
@@ -707,7 +729,7 @@ export default function LoftCap({
       `}</style>
       <div className="lcap-id">
         <span className="lcap-eb">{eyebrow}</span>
-        <span className="lcap-nm">{strip && strip.length ? 'All puzzles:' : name}{sunday
+        <span className="lcap-nm">{strip && strip.length ? null : name}{sunday
           ? (typeof sunday === 'string'
               ? <span className="lcap-sun">{sunday}</span>
               : <span className="lcap-sunnode">{sunday}</span>)
@@ -724,7 +746,8 @@ export default function LoftCap({
           onClick={() => azNudge(1)}>&#8250;</button>
         <div className="lcap-tiles az" ref={azRef}>
           {strip.map((t) => (
-            <a key={t.key} href={t.href} className={played[t.key] ? 'done' : undefined}>{t.name}</a>
+            <a key={t.key} href={t.href} className={played[t.key] || undefined}>
+              {played[t.key] ? <i className="mk" aria-hidden="true" /> : null}{t.name}</a>
           ))}
         </div>
         </div>

@@ -1102,7 +1102,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                     </span>
                   </div>
                 </div>
-                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px auto 0', maxWidth: 472 }}>
+                <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px auto 0', maxWidth: 472 }}>
                   {isTodays ? (
                     <>
                       {countdown ? <>A fresh grid in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh grid lands at midnight Eastern.'}

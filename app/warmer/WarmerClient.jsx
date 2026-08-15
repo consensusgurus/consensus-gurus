@@ -606,7 +606,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           <div className="loft-sol">
             {!playing && (
               <div style={{ maxWidth: 472, margin: '14px auto 0' }}>
-                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: 0 }}>
+                <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: 0 }}>
                   {isTodays ? (
                     <>
                       {countdown ? <>Next Warmer in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new word drops at midnight Eastern.'}

@@ -12,7 +12,7 @@
 // not flagged abandoned. An abandoned run is not a completion, so a game you
 // walked away from still reads as open.
 import { useEffect, useMemo, useState } from 'react';
-import { DAILY_GAMES, isRetiredDaily } from '@/lib/daily-games';
+import { DAILY_GAMES, isRetiredDaily, etTodayISO } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
 export default function useDailyRoster({ active = false }) {
@@ -42,11 +42,24 @@ export default function useDailyRoster({ active = false }) {
         if (!alive) return;
         const per = (d && d.perGame) || {};
         const marks = {};
-        for (const k of Object.keys(per)) if (per[k] && !per[k].abandoned) marks[k] = true;
+        for (const k of Object.keys(per)) {
+          const g = per[k];
+          if (!g || g.abandoned) continue;
+          marks[k] = g.total > 0 && g.score === 0 ? 'fail' : 'done';
+        }
+        // Anything still open on this device, and not already finished.
+        try {
+          const today = etTodayISO();
+          for (const g of live) {
+            if (marks[g.key]) continue;
+            const c = JSON.parse(localStorage.getItem(`sot_${g.key}_day`) || 'null');
+            if (c && c.d === today && !c.done) marks[g.key] = 'open';
+          }
+        } catch (e) {}
         setPlayed(marks);
       })
       .catch((e) => { if (typeof console !== 'undefined') console.warn('useDailyRoster', e); });
     return () => { alive = false; };
-  }, [active]);
+  }, [active, live]);
   return { ready: true, cats, played };
 }

@@ -793,7 +793,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
               </div>
               {revealBoards()}
               <FeudLiveBoard board={result.board} total={TOTAL} />
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
                     {countdown ? <>The key freezes and a new survey opens in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new survey opens at midnight Eastern.'}

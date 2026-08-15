@@ -1104,7 +1104,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
                   so it is absent until ASINs are gathered. */}
               <PricerRolodex puzzle={PUZZLE} picks={g.picks} TRUE={TRUE} fmt={fmtValue}
                              colors={COLORS} mono={MONO} sans={SANS} />
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>{countdown ? <>A new field is seeded in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new field is seeded at midnight Eastern.'}
                     {prevPuzzle && <>{' '}Meanwhile: <a href={`/pricer?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>yesterday&rsquo;s bracket &rarr;</a></>}</>
