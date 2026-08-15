@@ -79,20 +79,29 @@ export default function LoftFinish({
   const [openArchive, setOpenArchive] = useState(false);
 
   const optsRaw = options.filter(Boolean);
-  // Share leads. It carries kind 'gold' (the contest CTA colour), so it is
-  // pulled to the front rather than restyled as 'pri'.
-  const opts = [...optsRaw.filter((o) => o.kind === 'gold'),
-                ...optsRaw.filter((o) => o.kind !== 'gold')];
+  // THE ROW ORDER IS DECIDED HERE, not by the order a client lists its options
+  // (owner): Share spans the top, then Reveal beside Replay, then Play another
+  // beside Play similar, and the Archive pairs with Back to main at the foot,
+  // Back to main on the right. Ordering by tone means a client only declares
+  // what it offers and never has to know the layout.
+  const RANK = { reveal: 1, replay: 2, another: 3, similar: 4 };
+  const rankOf = (o) => (o.kind === 'gold' ? 0 : o.tone === 'main' ? 9 : (RANK[o.tone] != null ? RANK[o.tone] : 5));
+  const sorted = [...optsRaw].sort((a, b) => rankOf(a) - rankOf(b));
+  // 'main' is held back so the Archive button, which this component renders
+  // itself, can sit to its LEFT.
+  const mains = sorted.filter((o) => o.tone === 'main');
+  const opts = sorted.filter((o) => o.tone !== 'main');
   // Which options span the full width: every primary, plus the last one when
   // the half-width ones would otherwise be odd.
   const wide = new Set();
   opts.forEach((o, i) => { if (o.kind === 'pri' || o.kind === 'gold') wide.add(i); });
   const narrow = opts.map((_, i) => i).filter((i) => !wide.has(i));
-  // The Archive button below is a narrow item too when it renders, so it counts
-  // toward the parity; otherwise the last option is forced wide and the two
-  // stack instead of pairing.
+  // The Archive and the held-back 'main' options are narrow items too, so they
+  // count toward the parity; otherwise the last option is forced wide and the
+  // bottom row breaks apart.
   const archiveIsNarrow = !!(archive && archive.length);
-  if ((narrow.length + (archiveIsNarrow ? 1 : 0)) % 2 === 1) wide.add(narrow[narrow.length - 1]);
+  const tailNarrow = (archiveIsNarrow ? 1 : 0) + mains.length;
+  if ((narrow.length + tailNarrow) % 2 === 1 && narrow.length) wide.add(narrow[narrow.length - 1]);
 
   const rows = board && Array.isArray(board.rows) ? board.rows : [];
   const mine = board ? board.mine : null;
@@ -226,6 +235,13 @@ export default function LoftFinish({
             <span className="sub">Every daily puzzle, by date</span>
           </button>
         ) : null}
+        {mains.map((o, i) => {
+          const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}`;
+          const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
+          return o.href
+            ? <a key={`m${i}`} className={cls} href={o.href}>{inner}</a>
+            : <button key={`m${i}`} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
+        })}
       </div>
       </div>
     </div>

@@ -678,8 +678,8 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
                 }))}
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
-                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+                { tone: 'reveal', label: won ? 'Return to board' : 'See the answer you missed',
+                  sub: won ? 'Your finished board' : 'The question that ended the run', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Deep', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/deep?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },

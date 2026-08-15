@@ -223,6 +223,12 @@ export default function LoftCap({
 .loft-page section a{color:#ffd45e!important}
 .loft-page section em,.loft-page section i{color:#93a9d6!important}
 .loft-page .loft-stage ~ div:not([style*="fixed"]) > p{color:#bfd0ee!important}
+.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)),
+.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) *{
+  color:#bfd0ee!important}
+.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) b,
+.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) strong{
+  color:var(--white)!important}
 .loft-page > [class$="-wrap"] > div > p{color:#bfd0ee!important}
 /* The "Show overview and more" control was styled for a light page: deep blue
    ink, no ground, a faint border. All three disappear on navy (owner: "it
@@ -463,6 +469,7 @@ export default function LoftCap({
 .loft-flip.on .loft-flip-in{transform:none}
 .loft-flip.on .loft-face{display:none}
 .loft-back{position:relative;inset:auto;transform:none;overflow:visible}
+.loft-flip:not(.on) .loft-back{margin-top:14px}
 .loft-backin{overflow:visible}
 @media(max-width:760px){
   .loft-day span{padding:7px 8px;font-size:9.5px}
