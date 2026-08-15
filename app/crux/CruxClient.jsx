@@ -1464,7 +1464,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             <LoftFinish
             name="Crux"
             catRank={catRank}
-            outcome={won ? 'won' : 'lost'}
+            outcome={won ? 'won' : (endScore > 0 ? 'part' : 'lost')}
               title={won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved')}
               detail={`${endScore}/${PUZZLE.slots.length * 2} · ${guessesUsed} guesses · ${elapsed}`}
               iq={iq}
