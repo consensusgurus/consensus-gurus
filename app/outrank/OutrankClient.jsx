@@ -978,7 +978,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
-      {!playing && result && !endClosed && (sharp || endCardReady) && (
+      {!playing && result && !endClosed && (sharp || endCardReady) && !LOFT && (
         <DailyEndCard
           modal
           self="outrank"

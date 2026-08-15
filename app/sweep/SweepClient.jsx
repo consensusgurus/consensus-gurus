@@ -188,6 +188,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('sweep');  const iq = useIqStanding({ game: 'sweep', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const nextUp = useNextUnplayed({ self: 'sweep', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'sweep', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
@@ -797,6 +798,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
                   sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+                prevPuzzle && { tone: 'another', label: 'Play another Sweep', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/sweep?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },

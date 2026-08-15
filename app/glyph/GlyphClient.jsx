@@ -235,6 +235,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
   const checks = g.checks;
   const playing = g.status === 'playing';
   const LOFT = isLoft('glyph');
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const iq = useIqStanding({ game: 'glyph', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'glyph', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'glyph', active: LOFT && !playing });
@@ -748,6 +749,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
                   sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setLoftRevealed(true) },
+                prevPuzzle && { tone: 'another', label: 'Play another Glyph', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/glyph?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },

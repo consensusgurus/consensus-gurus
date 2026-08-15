@@ -160,6 +160,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('docket');
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const [showChrome, setShowChrome] = useState(false);
   const focusMode = playing && !showChrome;
   const preStart = playing && !g.t0;
@@ -557,6 +558,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { tone: 'reveal', label: (score > 0) ? 'Return to board' : 'Reveal answer',
                   sub: (score > 0) ? 'Your finished board' : 'Show what you missed', onClick: () => setLoftRevealed(true) },
+                prevPuzzle && { tone: 'another', label: 'Play another Docket', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/docket?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },

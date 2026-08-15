@@ -1011,7 +1011,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal */}
-      {!playing && result && !endClosed && (
+      {!playing && result && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="outwit"

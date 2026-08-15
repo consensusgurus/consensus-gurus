@@ -924,7 +924,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && !endHold.held && (
+      {!playing && !endClosed && !endHold.held && !LOFT && (
         <DailyEndCard modal self="taire" won={won}
           headline={won ? (used === perfect ? <>Perfect. Nothing wasted.</> : used < par ? <>Under par.</> : <>All home.</>) : <>You scored 0%</>}
           subline={won

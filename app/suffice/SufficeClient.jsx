@@ -196,6 +196,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('suffice');
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
   // daily uses (owner rule, 2026-08-08). setShowChrome unfolds it for good.
@@ -582,6 +583,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { tone: 'reveal', label: (score === TOTAL) ? 'Return to board' : 'Reveal answer',
                   sub: (score === TOTAL) ? 'Your finished board' : 'Show what you missed', onClick: () => setLoftRevealed(true) },
+                prevPuzzle && { tone: 'another', label: 'Play another Suffice', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/suffice?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },

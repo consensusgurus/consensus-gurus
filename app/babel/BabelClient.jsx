@@ -1006,7 +1006,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         </div>
       </div>
 
-      {!playing && !endClosed && !endHold.held && (
+      {!playing && !endClosed && !endHold.held && !LOFT && (
         <DailyEndCard
           modal
           self="babel"

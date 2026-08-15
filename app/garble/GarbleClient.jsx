@@ -279,6 +279,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('garble');
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
@@ -728,6 +729,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
                   sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+                prevPuzzle && { tone: 'another', label: 'Play another Garble', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/garble?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
@@ -810,7 +812,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       {/* confetti now lives in the shared DailyEndCard (win-only), so every daily puzzle gets it */}
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
-      {ended && !endClosed && (
+      {ended && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="garble"

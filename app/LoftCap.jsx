@@ -370,7 +370,8 @@ export default function LoftCap({
 /* IQ earned, ON the card. It used to sit below the stage in .loft-iq, styled
    white-on-navy; the end card is the place a player looks for it, so it moves
    inside and takes light-card ink. Same gold rule, same figure. */
-.loft-fiq{display:flex;align-items:center;gap:13px;margin-top:11px;padding:11px 14px;
+.loft-fiq{min-height:64px;box-sizing:border-box;
+  display:flex;align-items:center;gap:13px;margin-top:11px;padding:11px 14px;
   background:var(--surface-alt);border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
 .loft-fiq .n{font-weight:800;font-size:29px;line-height:1;color:var(--ink);letter-spacing:-.02em}
 .loft-fiq .t{min-width:0}
@@ -383,7 +384,9 @@ export default function LoftCap({
   letter-spacing:.09em;text-transform:uppercase;color:var(--slate);margin-top:4px}
 
 /* Today's board, top three plus you when you are outside it. */
-.loft-lb{margin-top:11px}
+/* Three rows plus the header and the Show-all bar. A board that comes back with
+   fewer rows leaves the space rather than snapping the card shorter. */
+.loft-lb{margin-top:11px;min-height:150px}
 .loft-lb .h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
 .loft-lb .h b{font-weight:800;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
 .loft-lb .h s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
@@ -417,7 +420,9 @@ export default function LoftCap({
 /* The day, under the IQ tile: what the game paid, then where that leaves you. */
 .loft-day{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .loft-day span{flex:1 1 22%;min-width:96px}
-.loft-day span{flex:1;padding:9px 10px;border-radius:10px;background:var(--surface-alt);
+.loft-day span{min-height:52px;box-sizing:border-box;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  flex:1;padding:9px 10px;border-radius:10px;background:var(--surface-alt);
   font-weight:700;font-size:10.5px;line-height:1.2;color:var(--slate);text-align:center}
 /* One colour per figure, drawn from tokens already on this page: blue for the
    IQ the site scores you on, green for progress through the day, gold for a
@@ -447,6 +452,10 @@ export default function LoftCap({
    seconds, so while it waits the honest thing to say is that it is being worked
    out. The dots animate so it reads as pending rather than stuck. */
 .loft-calc{display:inline-flex;align-items:baseline;font-weight:800;font-size:13px;color:var(--muted)}
+/* The placeholder occupies the same line height as the figure it stands in for,
+   so swapping one for the other moves nothing. */
+.loft-day .loft-calc{font-size:17px;line-height:1}
+.loft-fiq .loft-calc{font-size:18px;line-height:1}
 .loft-calc.wide{display:flex;padding:10px 2px}
 .loft-calc i{font-style:normal;animation:loftdot 1.4s infinite}
 .loft-calc i:nth-child(2){animation-delay:.2s}

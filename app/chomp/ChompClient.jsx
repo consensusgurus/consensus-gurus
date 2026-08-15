@@ -285,6 +285,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('chomp');  const iq = useIqStanding({ game: 'chomp', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const nextUp = useNextUnplayed({ self: 'chomp', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'chomp', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
@@ -925,6 +926,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { tone: 'reveal', label: 'Return to board', sub: 'Your finished board', onClick: () => setRevealed(true) },
+                prevPuzzle && { tone: 'another', label: 'Play another Chomp', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/chomp?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },

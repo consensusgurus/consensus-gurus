@@ -220,6 +220,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('chain');
+  const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const won = g.status === 'won';
   const errors = g.errors;
   // What the round posted. Read ONLY by the cap, and only once the round is
@@ -895,6 +896,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
                 { tone: 'reveal', label: 'Return to board', sub: 'Your finished board', onClick: () => setRevealed(true) },
+                prevPuzzle && { tone: 'another', label: 'Play another Chain', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/chain?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
@@ -993,7 +995,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && !endHold.held && (
+      {!playing && !endClosed && !endHold.held && !LOFT && (
         <DailyEndCard
           modal
           self="chain"

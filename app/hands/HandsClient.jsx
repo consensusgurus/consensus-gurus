@@ -815,7 +815,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           perfect." rather than "Defeated.", which is why hands stays OUT of
           DEFEAT_GAMES in DailyEndCard, exactly like Babel. headline/subline are
           deprecated on that component; `score` is the live prop. */}
-      {done && !endClosed && !endHold.held && (
+      {done && !endClosed && !endHold.held && !LOFT && (
         <DailyEndCard modal self="hands" won={won} completed
           score={<>{total} pts &middot; par {par}</>}
           onShare={copyShare} shareLabel={copied ? 'Copied' : 'Share Result'}

@@ -1046,7 +1046,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && !endHold.held && (
+      {!playing && !endClosed && !endHold.held && !LOFT && (
         <DailyEndCard
           modal
           self="four"

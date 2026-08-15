@@ -939,7 +939,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && !endHold.held && (
+      {!playing && !endClosed && !endHold.held && !LOFT && (
         <DailyEndCard modal self="check" won={won}
           headline={won ? <>Swept.</> : g.status === 'gaveup' ? <>You scored 0%</> : <>You missed it.</>}
           subline={won
