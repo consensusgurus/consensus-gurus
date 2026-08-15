@@ -47,6 +47,14 @@ export default function LoftCap({
   const strip = outcome ? ALL_AZ.filter((g) => g.name !== name) : null;
 
   const azRef = useRef(null);
+  const wasDone = useRef(false);
+  useEffect(() => {
+    if (!outcome) { wasDone.current = false; return; }
+    if (wasDone.current) return;
+    wasDone.current = true;
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    catch (e) { window.scrollTo(0, 0); }
+  }, [outcome]);
   const [azPos, setAzPos] = useState('start');
   const azSync = () => {
     const el = azRef.current;
