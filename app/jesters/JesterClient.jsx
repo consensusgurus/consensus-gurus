@@ -697,18 +697,35 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   // row and column counting impossible, which is most of a two-jester solve.
   // COUNTER_GUTTER is the margin the per-row remaining-seat numbers sit in.
   const COUNTER_GUTTER = vw && vw <= 560 ? 17 : 22;
+  const boardBoxRef = useRef(null);
+  const [boxW, setBoxW] = useState(0);
   const cellPx = useMemo(() => {
     const base = N >= 10 ? 38 : N === 9 ? 42 : 46;
-    if (!vw) return base;
-    const pagePad = vw <= 560 ? 20 : 76;      // .je-wrap left+right padding
     const frame = 6 + COUNTER_GUTTER;         // board border + counter gutter
-    const avail = Math.min(vw - pagePad, 640) - frame;
-    return Math.max(30, Math.min(base, Math.floor(avail / N)));
-  }, [vw, N]);
+    // The measured box when we have it, the old estimate only until the first
+    // measurement lands, so the very first paint is never wildly wrong.
+    const box = boxW || (vw ? Math.min(vw - (vw <= 560 ? 20 : 76), 640) : 0);
+    if (!box) return base;
+    const avail = Math.min(box, 640) - frame;
+    // The floor is low enough that it never binds before the box does, so a
+    // narrow phone still gets a whole board rather than a scroller.
+    return Math.max(22, Math.min(base, Math.floor(avail / N)));
+  }, [boxW, vw, N, COUNTER_GUTTER]);
 
   // Seats still to fill in each row and column. This is the whole mental load
   // on a two-jester board, where "does this row want one more or two?" is not
   // answerable at a glance the way it is when the quota is one.
+  useEffect(() => {
+    const el = boardBoxRef.current;
+    if (!el) return undefined;
+    const apply = () => setBoxW(el.clientWidth || 0);
+    apply();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(apply) : null;
+    if (ro) ro.observe(el);
+    window.addEventListener('resize', apply);
+    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', apply); };
+  }, [preStart]);
+
   const { rowRemain, colRemain } = useMemo(() => {
     const rr = Array(N).fill(STARS), cc = Array(N).fill(STARS);
     for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
@@ -864,7 +881,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div className="je-board-scroll" style={{ textAlign: 'center' }}>
+        <div className="je-board-scroll" ref={boardBoxRef} style={{ textAlign: 'center' }}>
          <div style={{ display: 'inline-block' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start' }}>
           <div style={{ display: 'inline-block', border: `3px solid ${T.ink}`, borderRadius: 10, overflow: 'hidden', background: T.ink, boxShadow: '0 2px 10px rgba(20,22,28,0.12)' }}>
