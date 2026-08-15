@@ -51,6 +51,15 @@ function region(src, startMark, endMark, body, label) {
   if (j === -1) throw new Error(`REGION ${label}: end marker missing after start`);
   return src.slice(0, i) + body + src.slice(j);
 }
+/* Remove text if it is there, no-op if it is not. Needed when this file STOPS
+ * making an edit it used to make: the sub() that added it is gone, so nothing
+ * would ever take it back off an origin that already carries it. */
+function drop(src, text, label) {
+  if (!src.includes(text)) return src;
+  CHANGES += 1;
+  return src.split(text).join('');
+}
+
 /* Exact-once replacement, and IDEMPOTENT: once this patch is on origin the
  * script has to be re-runnable to ship a follow-up fix, so an anchor whose
  * replacement is ALREADY present is skipped rather than treated as missing.
@@ -399,18 +408,15 @@ function sub(src, find, repl, label, count = 1, mark = null) {
 
   // (a) The flag. `slate` is left exactly as it was so every existing branch
   //     is byte-identical; `cats` is a second, independent mode.
+  // The Daily/Quizzes switch is gone, so its state has to come back off any
+  // origin that already carries it.
+  s = drop(s, `
+  const [catKind, setCatKind] = useState('daily');`, 'DS:catkind-drop');
+
   s = sub(s,
     `export default function DailyStrip({ board = null, layout = 'tiles' }) {`,
     `export default function DailyStrip({ board = null, layout = 'tiles', quizCats = [] }) {`,
     'DS:signature');
-
-  // Which half of the board is showing. Daily leads: it is the thing that
-  // resets every night and the reason to come back.
-  s = sub(s,
-    `  const [filter, setFilter] = useState('all');`,
-    `  const [filter, setFilter] = useState('all');
-  const [catKind, setCatKind] = useState('daily');`,
-    'DS:catkind');
 
   s = sub(s,
     `  const slate = layout === 'slate';`,
@@ -608,43 +614,12 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         </div>
       );
     }
+    /* NO QUIZ TAB. It was built on a misread: the ask was for subcategories
+       WITHIN the daily categories (Word, then crosswords and acrostics inside
+       it; Numbers, then the sudoku family), not the quiz catalogue hoisted onto
+       the board (owner, 2026-08-15). The quizCats prop is left plumbed but
+       unrendered, since the data is cheap and correct if it is wanted later. */
     return (
-      <>
-        {/* DAILY PUZZLES AND QUIZZES ARE BOTH ON THE BOARD (owner, 2026-08-15).
-            They are two different things, so they are two sets of tiles behind
-            one switch rather than 23 categories in one grid: the dailies reset
-            every night and are the reason to come back, the quizzes are a
-            thousand-deep library you browse. Daily leads for that reason. */}
-        <div className="cb-kind" key="cb-kind">
-          <button type="button" className={catKind === 'daily' ? 'on' : undefined}
-            onClick={() => setCatKind('daily')}>Daily Puzzles <i>{games.length}</i></button>
-          <button type="button" className={catKind === 'quiz' ? 'on' : undefined}
-            onClick={() => setCatKind('quiz')}>Quizzes <i>{quizCats.reduce((n, c) => n + c.count, 0)}</i></button>
-        </div>
-        {catKind === 'quiz' ? (
-          <div className="cb-tiles" key="cb-qtiles">
-            {quizCats.slice(0, 9).map((c) => (
-              <div key={c.key} className="cb-tile" style={{ '--cc': deptBlue(c.key) }}>
-                <span className="cb-thead as-row">
-                  <span className="cb-tnm">{c.label}</span>
-                  <span className="cb-tct">{c.count}</span>
-                </span>
-                <span className="cb-bar"><i style={{ width: (c.count ? Math.round((c.played / c.count) * 100) : 0) + '%' }} /></span>
-                <div className="cb-list">
-                  {c.top.slice(0, 4).map((q) => (
-                    <a key={q.id} className={'cb-li' + (q.done ? ' done' : '')} href={'/quiz/' + q.id} title={q.title}>
-                      <i aria-hidden="true" />{q.title}
-                    </a>
-                  ))}
-                </div>
-                <span className="cb-tmt">
-                  <span>{c.played ? c.played + ' of ' + c.count + ' played' : 'None played'}</span>
-                  <a className="cb-more" href="/quizzes">All {c.count} &rarr;</a>
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
           <div className="cb-tiles" key="cb-tiles">
             {slateCats.map((c) => {
               const list = catOf(c);
@@ -690,8 +665,6 @@ function sub(src, find, repl, label, count = 1, mark = null) {
               );
             })}
           </div>
-        )}
-      </>
     );
   };
 
@@ -724,7 +697,15 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            Every link in the chain is a growing flex column here. */
         .dhome.cats .dh-boardwrap{flex:1 1 auto;min-height:0;height:auto;overflow:hidden;display:flex;flex-direction:column;}
         .dhome.cats .dh-vpwrap,.dhome.cats .dh-vp{flex:1 1 auto;min-height:0;height:auto;display:flex;flex-direction:column;}
-        .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow-y:auto;gap:0;background:transparent;}
+        /* LESS WHITE (owner, 2026-08-15: the face is still far too white). The
+           board was a white sheet edge to edge with white tiles on it, which
+           next to a navy header and a saturated cap read as glare rather than
+           as paper. Everything steps one value down into the same blue family:
+           the board ground goes blue-grey, the tiles a barely-tinted off-white,
+           and the grid lines a blue-grey rather than neutral. White is kept for
+           HOVER, so it now means "this one", which is what it should have been
+           spending itself on all along. */
+        .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow-y:auto;gap:0;background:#e4ebf5;}
         /* The override layer: the slate's own rows, bands, column header and
            chip strip are still in the DOM and still correct on a phone; up here
            they step aside for the tiles, and the four-card cap for the three. */
@@ -735,7 +716,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            once you have answered that yourself by choosing a category. Always
            three across, so six is two rows and the shrink is a row leaving
            rather than the cards resizing. */
-        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:10px;background:var(--surface-alt);}
+        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:10px;background:#e4ebf5;}
         /* NO ART ON THE CAP CARDS, and none in the tiles either (owner,
            2026-08-15). Sixty-three little pictures on one board read as noise
            rather than detail, and the cards are the one place on the page that
@@ -754,7 +735,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .cb-cb{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;background:var(--white);color:var(--accent);border-radius:7px;padding:10px 14px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
         .cb-card.prog .cb-cb{color:#3a2a05;}
         .cb-card.fail .cb-cb{color:#b91c1c;}
-        .cb-also{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 16px;background:var(--white);border-top:1px solid var(--border);font-size:13px;}
+        .cb-also{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 16px;background:#eef3fa;border-top:1px solid #d3ddec;font-size:13px;}
         .cb-al{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);}
         .cb-ali{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--muted);font-weight:600;}
         .cb-ali b{color:var(--ink);font-weight:800;}
@@ -766,15 +747,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            breathing room rather than reading as a dense index. They also GROW
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
-        /* The Daily / Quizzes switch. Rectangles, like every other control on
-           this page, and it stays put while the tiles under it scroll. */
-        .cb-kind{display:flex;flex:none;background:var(--surface-alt);border-top:1px solid var(--border);position:sticky;top:0;z-index:3;}
-        .cb-kind button{flex:1;border:none;border-radius:0;background:transparent;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#5b6478;padding:10px 6px;cursor:pointer;border-bottom:2px solid transparent;display:flex;align-items:center;justify-content:center;gap:7px;}
-        .cb-kind button:hover{color:var(--ink);}
-        .cb-kind button.on{background:var(--white);color:var(--blue-dark);border-bottom-color:var(--blue);}
-        .cb-kind i{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.02em;color:var(--slate);}
-        .cb-kind button.on i{color:var(--blue);}
-        .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);}
+        .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#d3ddec;border-top:1px solid #d3ddec;}
         /* WHAT FILLS THE TILE IS WHAT THE TILE IS ABOUT: the names themselves,
            each one a link. This is the third answer to the same empty box. The
            first (a two-name text peek) left it mostly bare, the second (all 63
@@ -790,15 +763,15 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .cb-li.fail i{background:var(--danger);}
         .cb-more{border:none;background:none;padding:0;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.05em;color:var(--blue);cursor:pointer;text-decoration:none;white-space:nowrap;}
         .cb-thead.as-row{display:flex;align-items:center;gap:12px;min-width:0;width:100%;}
-        .cb-tile{display:flex;flex-direction:column;justify-content:flex-start;gap:9px;align-items:stretch;text-align:left;background:var(--white);padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:104px;}
+        .cb-tile{display:flex;flex-direction:column;justify-content:flex-start;gap:9px;align-items:stretch;text-align:left;background:#f4f7fc;padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:104px;}
         .cb-thead{display:flex;align-items:center;gap:12px;min-width:0;width:100%;border:none;border-radius:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;}
-        .cb-tile:hover{background:var(--surface);}
+        .cb-tile:hover{background:var(--white);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
         .cb-sq{width:34px;height:34px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
         .cb-sq svg{display:block;}
         .cb-tnm{font-size:16px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
-        .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
+        .cb-bar{display:block;height:5px;border-radius:5px;background:#dbe4f1;overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
         /* NO margin-top:auto here. With the game art gone the tile has three short
            rows and a tall box, and an auto top margin pinned this one to the
@@ -824,10 +797,10 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .dhome.cats .cb-hd,.dhome.cats .cb-row{flex:none;}
         .cb-hsq{width:22px;height:22px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);margin-right:9px;}
 
-        .cb-hd{display:flex;align-items:center;width:100%;flex:none;border:none;border-top:1px solid var(--border);background:var(--surface-alt);color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
+        .cb-hd{display:flex;align-items:center;width:100%;flex:none;border:none;border-top:1px solid #d3ddec;background:#dde6f3;color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
         .cb-hd span{margin-left:auto;letter-spacing:.04em;color:var(--slate);}
-        .cb-row{display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--ink);background:var(--white);}
-        .cb-row:hover{background:var(--surface);}
+        .cb-row{display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid #d3ddec;text-decoration:none;color:var(--ink);background:#f4f7fc;}
+        .cb-row:hover{background:var(--white);}
         /* Rows carry the game's OWN art, already remapped onto the blue ramp by
            blueTile, so a row is identifiable at a glance without adding a
            tenth colour to the page. */
