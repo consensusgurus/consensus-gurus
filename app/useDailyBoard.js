@@ -3,10 +3,11 @@
 // Today's board for a just-finished daily, for the Loft end card.
 //
 // Reads the SHARED board API every quiz surface already uses,
-// GET /api/quiz/board?quizId=<id> -> { plays, best, leaderboard }, where a row
-// is { username, userKey, score, timeElapsed, tryNum, ... }. Nothing new is
+// GET /api/quiz/board?quizId=<id> -> { plays, best, leaderboards, ... }, where a
+// row is { username, userKey, score, timeElapsed, tryNum, ... }. Nothing new is
 // stored and no scoring lives here: the ordering is whatever the API returns,
-// which is the one comparator in lib/quiz-anon.js.
+// which is the one comparator in lib/quiz-anon.js. WHICH of the six boards it
+// returns is read below, and is not a detail.
 //
 // THE RETRY LADDER IS THE POINT, exactly as in useIqStanding, and for the same
 // reason: this read races the player's own result write, so a single fetch
@@ -40,7 +41,25 @@ export default function useDailyBoard({ quizId = null, active = false }) {
         .then((r) => r.json())
         .then((d) => {
           if (!alive || !d) return;
-          const rows = Array.isArray(d.leaderboard) ? d.leaderboard : [];
+          // READ THE RIGHT AXIS (owner, 2026-08-15). `d.leaderboard` is the
+          // 'registered:all' board, which is one row per ATTEMPT: a player who
+          // replayed today appeared once per run, and an owner report caught
+          // Four printing two identical-looking Gator85 rows (0:20 and 1:20)
+          // for one person. It is not only cosmetic, because the rank tile
+          // above the board (`myRank` in LoftFinish) is the player's index in
+          // THESE rows, so every duplicate moves the number the card reports.
+          // The board this card mirrors is the on-page DailyBoardPanel's,
+          // which is registered players at ONE ROW EACH, so read that:
+          // 'registered:first'. On an End Game title that row is the run the
+          // win landed on rather than the first attempt (endGamePlan), which
+          // is the same run /api/quiz/daily-me ranks, so the two boards agree.
+          // Same class of bug as the arcade ladder reading `leaderboard`
+          // instead of `leaderboardFirst` in BlocksClient. The fallback keeps
+          // an older or partial payload rendering rather than blanking the
+          // board; an EMPTY 'registered:first' is a real answer (nobody signed
+          // in has finished yet) and is kept as one.
+          const lb = d.leaderboards || {};
+          const rows = [lb['registered:first'], d.leaderboard].find((a) => Array.isArray(a)) || [];
           // Keep asking only while the player is not on the board yet.
           const onIt = mine && rows.some((r) => String(r.username || '').toLowerCase() === mine);
           // `settled` says the player's own position on this board is FINAL:
