@@ -51,6 +51,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import LoftCap from '../LoftCap';
 import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
@@ -292,6 +293,10 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
   const won = g.status === 'won';
   const LOFT = isLoft('sando');
   const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const iq = useIqStanding({ game: 'sando', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'sando', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
@@ -1110,7 +1115,8 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
                 : { label: 'Reveal', sub: 'Show the solution', kind: 'pri', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Sando', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/sando?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
-              { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+              { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers',
+                kind: 'gold', onClick: copyShare },
               { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
               { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
             ]}

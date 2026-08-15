@@ -42,6 +42,7 @@ import useNextUnplayed from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
 import useDayStats from '../useDayStats';
 import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
@@ -367,6 +368,10 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // The finished board starts turned OVER, showing what to do next. Revealing
   // turns it back to the board, which on a miss is the thing worth studying.
   const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [justWon, setJustWon] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -1485,7 +1490,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                   : { label: 'Reveal', sub: 'Show the words you missed', kind: 'pri', onClick: () => setRevealed(true) },
                 prevPuzzle && { tone: 'another', label: 'Play another Crux', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/crux?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
-                { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers',
+                kind: 'gold', onClick: copyShare },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
               ]}

@@ -243,6 +243,13 @@ export default function LoftCap({
   border-radius:11px;border:2px solid var(--border);background:var(--white);color:var(--ink);
   font-family:inherit;font-weight:800;font-size:15.5px;line-height:1.15;cursor:pointer;text-decoration:none}
 .loft-opt .sub{display:block;font-weight:600;font-size:11.5px;line-height:1.3;margin-top:5px;opacity:.72}
+/* A LONG GAME NAME MUST NOT BLOW THE BUTTON OUT. "Play another Crux" is short,
+   but the roster carries names well past it and these sit two to a row on a
+   phone, so the label has to be allowed to wrap and to break inside a word if
+   it ever has to. min-height rather than height means the button simply grows
+   to whatever the name needs, and its partner in the row grows with it. */
+.loft-opt{overflow-wrap:anywhere;word-break:normal}
+.loft-opt .sub{overflow-wrap:anywhere}
 .loft-opt.wide{grid-column:1 / -1}
 .loft-opt.pri{background:var(--blue);border-color:var(--blue);color:var(--white)}
 .loft-opt.gold{background:var(--gold);border-color:var(--gold);color:#3a2a05}
@@ -350,7 +357,7 @@ export default function LoftCap({
   .loft-backin{overflow:visible}
   .loft-day span{padding:7px 8px;font-size:9.5px}
   .loft-day b{font-size:15px;margin-bottom:3px}
-  .loft-opt{min-height:52px;padding:10px 12px;font-size:14px}
+  .loft-opt{min-height:52px;height:auto;padding:10px 11px;font-size:13.5px;line-height:1.2}
   .loft-opt .sub{font-size:10.5px;margin-top:3px}
 }
 
