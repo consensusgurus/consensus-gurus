@@ -40,7 +40,7 @@ import { catBlue, deptBlue } from '@/lib/home-blues';
 // the live roster and the archive figures behind it. fetchDayStatus is the same
 // memoized promise the command header already fires, so the second face costs
 // no request.
-import { liveDailyKeys, DAILY_GAME_MAP } from '@/lib/daily-games';
+import { liveDailyKeys, DAILY_GAME_MAP, dailyUnitOfQuizId } from '@/lib/daily-games';
 import { fetchDayStatus } from '../useDayStats';
 import MindLoftMark from '../MindLoftMark';
 
@@ -778,7 +778,17 @@ export default function QuizHomeClient({ variant = 'current' }) {
       label: c.label,
       count: c.count,
       played: c.quizzes.reduce((n, q) => n + (seen.has(q.id) ? 1 : 0), 0),
-      top: c.quizzes.slice(0, 6).map((q) => ({ id: q.id, title: q.title || q.id, done: seen.has(q.id) })),
+      // A department's six picks SKIP its dated daily-game archive (Crux 7/6/26,
+      // 7/7/26, ...). Those are one game's back catalogue sitting in catalog
+      // order, so on Word Puzzles they filled all six slots and the slate's fill
+      // panel recommended the same puzzle four times. The daily archive has its
+      // own home on the slate itself. Falls back to the unfiltered head if a
+      // department is nothing but dailies, so no department goes empty.
+      top: (() => {
+        const pick = c.quizzes.filter((q) => !dailyUnitOfQuizId(q.id));
+        return (pick.length ? pick : c.quizzes).slice(0, 6)
+          .map((q) => ({ id: q.id, title: q.title || q.id, done: seen.has(q.id) }));
+      })(),
     }));
   }, [cats, me]);
 
