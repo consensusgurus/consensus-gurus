@@ -50,7 +50,18 @@ export default function LoftCap({
   // A screenful less an overlap, so a reader keeps a landmark across a press.
   const azNudge = (dir) => {
     const el = azRef.current;
-    if (el) el.scrollBy({ left: dir * Math.max(160, el.clientWidth - 80), behavior: 'smooth' });
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    const from = el.scrollLeft;
+    const to = Math.max(0, Math.min(max, from + dir * Math.max(160, el.clientWidth - 80)));
+    if (to === from) return;
+    const t0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    const step = (now) => {
+      const p = Math.min(1, ((now || t0) - t0) / 320);
+      el.scrollLeft = from + (to - from) * (1 - Math.pow(1 - p, 3));
+      if (p < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
   };
   useEffect(() => {
     const el = azRef.current;
