@@ -1623,7 +1623,16 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
       seen.add(g.key); out.push({ kind, eb, g, btn, note });
     };
     if (nextGame) add('up', 'Up next', nextGame, 'Play', playsNote(nextPlays));
+    /* AT MOST TWO STATE CARDS (owner, 2026-08-15: more of the original blue
+       tiles up top, such as the easiest board). Paused and failed boards are
+       unbounded, so a busy day filled five of the six slots with gold and red
+       and the cap stopped suggesting anything: it just listed what you had left
+       lying around. Two is enough to say you have unfinished business and it
+       leaves four slots for picks that actually recommend something. */
+    let stateN = 0;
     for (const c of capState) {
+      if (stateN >= 2) break;
+      stateN += 1;
       const paused = c.kind === 'prog';
       // FAILED, not "Unfinished" (owner, 2026-08-15): a paused board is also
       // unfinished, so the word said nothing that told the two apart. Failed is
@@ -3659,6 +3668,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .dhome.slate .sl-filt button{padding:7px 13px;}
           .dhome.slate .dh-cmore{padding:4px 13px;}
         }
+
 
 
 
