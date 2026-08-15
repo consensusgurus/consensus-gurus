@@ -241,6 +241,29 @@ const CIRCUITS = [
   ['Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
 ];
 const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
+/* THE FILL PANEL (owner, 2026-08-15). A narrow group is three rows and then
+   600px of white, because the board's height is MEASURED to the fold (--dh-fit)
+   and does not shrink when a filter empties it. Rather than let that read as a
+   bug, the space answers the question the filter just asked, what else is
+   there, in the order a reader wants it: the last week of these same games,
+   the neighbouring groups, quizzes on the same subject, and a way to ask for
+   the game that is missing.
+
+   DESKTOP ONLY, like the whole catboard. Every rule is inside the
+   min-width:901px block and .cb-fill joins the max-width:900px hide list, so a
+   phone renders the plain slate exactly as before. */
+const FILL_MAX = 8;    // rows at or below which the panel renders
+const FILL_DAYS = 7;   // catch-up chips per game
+/* Group -> quiz department, and DELIBERATELY partial. A wrong pairing is worse
+   than no block: Logic, Deduction, Crowd and the number groups have no honest
+   department, so they render the panel without the quiz section rather than
+   pointing at Science because it was the nearest thing. Keys are quiz dept ids
+   from lib/quiz-departments (DEPT_LABEL). */
+const FILL_DEPT = {
+  Word: 'word', Crosswords: 'word', 'Word Building': 'word', Anagrams: 'word', Sorting: 'word',
+  Geography: 'geography', History: 'history', Trivia: 'entertainment',
+  Cards: 'gaming', Arcade: 'gaming', Chess: 'gaming', 'Board Games': 'gaming',
+};
 // The PHONE peek: six UNPLAYED games, and only unplayed ones (owner,
 // 2026-08-08). The collapsed slate is the "what should I play next" screen, so
 // every line of it goes to a game you have NOT started. Paused games are already
@@ -560,6 +583,22 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // it for a frame, which read as a flicker, so it is not rendered at all.
   const [etLabel, setEtLabel] = useState({ long: '', short: '' });
   useEffect(() => { setEtLabel(etDateLabel()); }, []);
+  // The fill panel's catch-up dates, computed in an effect for the same reason
+  // etLabel is: reading the clock during render makes the server and the client
+  // disagree either side of midnight. Until it resolves a chip names its puzzle
+  // number instead, so the first paint is deterministic.
+  const [backDates, setBackDates] = useState(null);
+  useEffect(() => {
+    const out = [];
+    for (let k = 1; k <= FILL_DAYS; k++) {
+      const d = new Date(Date.now() - k * 86400000);
+      let iso;
+      try { iso = d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
+      catch (e) { iso = d.toISOString().slice(0, 10); }
+      out.push(sunDate(iso));
+    }
+    setBackDates(out);
+  }, []);
   // The category strip runs past the console's right edge (Sundays was cut in
   // half on a 1180px desktop), and a horizontal scroller with its scrollbar
   // hidden gives a mouse no way to reach the rest and no hint there IS a rest.
@@ -1732,6 +1771,104 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     );
   };
 
+
+  const renderFill = () => {
+    if (!boardOpen || slateList.length > FILL_MAX) return null;
+    const label = boardOpen;
+
+    /* CATCH UP. The puzzle numbers come from the daily-combined payload the
+       strip already holds (byKey[key].num, the same field the same-device save
+       detection reads), so a week of archive links costs no fetch: drops are
+       daily, so num - k is k days ago. A game younger than a week simply shows
+       fewer chips, and one the payload has no number for is skipped. */
+    const back = [];
+    for (const g of slateList.slice(0, 6)) {
+      const b = byKey[g.key];
+      const num = b && b.num != null ? Number(b.num) : null;
+      if (!num) continue;
+      const chips = [];
+      for (let k = 1; k <= FILL_DAYS && num - k >= 1; k++) chips.push({ p: num - k, i: k - 1 });
+      if (chips.length) back.push({ g, chips });
+    }
+
+    /* NEIGHBOURS. A circuit crosses categories on purpose, so its neighbours
+       are whatever shares a category with it rather than a hand-kept list: the
+       categories it reaches, then every other circuit that reaches one of them.
+       An open CATEGORY instead offers the circuits that cut through it. */
+    const nbr = [];
+    const push = (k, text, n) => { if (n && k !== filter && !nbr.some((x) => x.k === k)) nbr.push({ k, text, n }); };
+    if (openCircuit) {
+      const mine = new Set(circuitGames(openCircuit).map((g) => g.cat));
+      for (const c of slateCats) if (mine.has(c)) push(c, 'All ' + (CAT_SHORT[c] || c), catOf(c).length);
+      for (const [n] of CIRCUITS) {
+        if (n === openCircuit) continue;
+        const gs = circuitGames(n);
+        if (gs.some((g) => mine.has(g.cat))) push('circuit:' + n, n, gs.length);
+      }
+    } else {
+      for (const [n] of CIRCUITS) {
+        if (circuitGames(n).some((g) => g.cat === catOpen)) push('circuit:' + n, n, circuitGames(n).length);
+      }
+    }
+
+    const dept = FILL_DEPT[label];
+    const qc = dept ? (quizCats || []).find((c) => c.key === dept) : null;
+    const quizzes = qc && Array.isArray(qc.top) ? qc.top.slice(0, 4) : [];
+
+    const sect = (key, title, sub, body) => (
+      <section className="cb-fs" key={key}>
+        <h4 className="cb-fh">{title}{sub ? <i>{sub}</i> : null}</h4>
+        {body}
+      </section>
+    );
+
+    return (
+      <div className="cb-fill">
+        {back.length ? sect('back', 'Catch up', 'The last week of ' + label, (
+          <div className="cb-fback">
+            {back.map(({ g, chips }) => (
+              <div className="cb-fbrow" key={g.key}>
+                <span className="cb-fbn">{g.name}</span>
+                <span className="cb-fbd">
+                  {chips.map((c) => (
+                    <a key={c.p} className="cb-fbc" href={g.href + '?p=' + c.p}>
+                      {backDates && backDates[c.i] ? backDates[c.i] : 'No. ' + c.p}
+                    </a>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        )) : null}
+        {nbr.length ? sect('nbr', 'More in ' + label, null, (
+          <div className="cb-fnb">
+            {nbr.slice(0, 9).map((x) => (
+              <button key={x.k} type="button" className="cb-fnc" onClick={() => setFilter(x.k)}>
+                {x.text}<b>{x.n}</b>
+              </button>
+            ))}
+          </div>
+        )) : null}
+        {quizzes.length ? sect('quiz', 'Quizzes on the same subject', qc.label + ' \u00b7 ' + qc.count, (
+          <div className="cb-fq">
+            {quizzes.map((q) => (
+              <a key={q.id} className={'cb-fqc' + (q.done ? ' done' : '')} href={'/quiz/' + q.id}>
+                <span className="cb-fqt">{q.title}</span>
+                <span className="cb-fqm">{q.done ? 'Played' : 'Play'}</span>
+              </a>
+            ))}
+          </div>
+        )) : null}
+        <a className="cb-fask" href="/request">
+          <span className="cb-fat">
+            <b>{slateList.length === 1 ? 'One game' : slateList.length + ' games'} in {label}</b>
+            <i>Tell us what belongs here and we will build it</i>
+          </span>
+          <span className="cb-fab">Suggest a game<ArrowRight size={12} strokeWidth={2.8} /></span>
+        </a>
+      </div>
+    );
+  };
 
   const renderSlate = (rows0, dim) => {
     const out = [];
@@ -3723,6 +3860,34 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            once you have answered that yourself by choosing a category. Always
            three across, so six is two rows and the shrink is a row leaving
            rather than the cards resizing. */
+        /* The fill panel. A full-width item at the foot of the two-column
+           board grid, so it sits under both columns however many rows the
+           group has, and last whatever order the rows and bands carry. */
+        .cb-fill{grid-column:1/-1;order:20;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
+        .cb-fs{padding:13px 16px 15px;border-bottom:1px solid var(--border);}
+        .cb-fh{margin:0 0 9px;display:flex;align-items:baseline;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);}
+        .cb-fh i{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:none;color:var(--muted);}
+        .cb-fback{display:flex;flex-direction:column;gap:6px;}
+        .cb-fbrow{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:10px;}
+        .cb-fbn{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-fbd{display:flex;flex-wrap:wrap;gap:5px;}
+        .cb-fbc{padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:10.5px;font-weight:700;color:var(--slate);text-decoration:none;font-variant-numeric:tabular-nums;}
+        .cb-fbc:hover{border-color:var(--blue);color:var(--blue);}
+        .cb-fnb{display:flex;flex-wrap:wrap;gap:6px;}
+        .cb-fnc{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--white);font:inherit;font-size:11.5px;font-weight:700;color:var(--ink);cursor:pointer;}
+        .cb-fnc:hover{border-color:var(--blue);color:var(--blue);}
+        .cb-fnc b{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
+        .cb-fq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+        .cb-fqc{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--white);text-decoration:none;}
+        .cb-fqc:hover{border-color:var(--blue);}
+        .cb-fqt{font-size:12.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-fqm{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);}
+        .cb-fqc.done .cb-fqm{color:var(--muted);}
+        .cb-fask{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--blue-deep);color:var(--white);text-decoration:none;}
+        .cb-fat{display:flex;flex-direction:column;gap:3px;min-width:0;}
+        .cb-fat b{font-size:14px;font-weight:800;}
+        .cb-fat i{font-style:normal;font-size:11.5px;color:var(--blue-200);}
+        .cb-fab{flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:7px;background:var(--white);color:var(--blue-deep);font-size:11.5px;font-weight:800;}
         .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding:0;background:transparent;}
         /* NO ART ON THE CAP CARDS, and none in the tiles either (owner,
            2026-08-15). Sixty-three little pictures on one board read as noise
@@ -3829,7 +3994,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
          perfectly good phone slate. MOBILE IS UNTOUCHED, and this is the line
          that guarantees it. */
       @media(max-width:900px){
-        .dhome.cats .cb-cap,.dhome.cats .cb-sect,.dhome.cats .cb-tiles,.dhome.cats .cb-hd{display:none !important;}
+        .dhome.cats .cb-cap,.dhome.cats .cb-sect,.dhome.cats .cb-tiles,.dhome.cats .cb-hd,.dhome.cats .cb-fill{display:none !important;}
       }
 
       ` }} />
@@ -4197,6 +4362,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
               </div>
             ) : null}
             {slate ? renderSlate(slateList, false) : renderTiles(list, false)}
+            {cats && boardOpen ? renderFill() : null}
           </div>
         </div>
         {/* Row-window pager (the round chevron under the board). It belongs to
