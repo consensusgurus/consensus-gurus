@@ -2522,6 +2522,7 @@ export default function QuizHomeClient({ variant = 'current' }) {
               refData={refData}
               me={me}
               myCats={myCats}
+              qotd={qotd}
               xp30={xp30}
               xpAll={xpAll}
               onCredit={() => { setCreditQr(false); setCreditOpen(true); }}

@@ -230,7 +230,7 @@ const CIRCUITS = [
   ['Anagrams', ['Garble', 'Barter', 'Strata']],
   ['Word Ladders', ['Rung', 'Warmer']],
   ['Sorting', ['Links', 'Venn']],
-  ['Sudoku', ['Suds', 'Quilt', 'Cages', 'Sando']],
+  ['Sudoku', ['Suds', 'Quilt', 'Cages', 'Sando', 'Sixes']],
   ['Mental Math', ['Blitz', 'Crunch', 'Cipher', 'Tally']],
   ['Spatial Puzzles', ['Carve', 'Plot', 'Parker', 'Paths', 'Chomp', 'Span']],
   ['Deduction', ['Alibi', 'Sworn', 'Hearsay', 'Stands', 'Docket', 'Suffice', 'Axiom']],
@@ -1443,6 +1443,12 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     el.scrollBy({ left: dir * Math.max(120, Math.round(el.clientWidth * 0.7)), behavior: 'smooth' });
   };
   const nudgeFilt = (dir) => {
+    try {
+      if (typeof window !== 'undefined' && window.matchMedia('(max-width:900px)').matches) {
+        const e2 = filt2Ref.current;
+        if (e2) e2.scrollBy({ left: dir * Math.max(120, Math.round(e2.clientWidth * 0.7)), behavior: 'smooth' });
+      }
+    } catch (e) {}
     const el = filtRef.current;
     if (!el) return;
     // Most of a screenful, not all of it: leaving a tab or two in view is what
@@ -3680,7 +3686,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            height that pushed the board around; a scroller is a fixed height
            whatever is in it. */
         .dhome.cats .sl-filt{flex-wrap:nowrap;overflow-x:auto;}
-        .dhome.cats .sl-filt button{font-size:10px;letter-spacing:.06em;padding:7px 11px;display:inline-flex;align-items:center;gap:6px;}
+        .dhome.cats .sl-filt button{font-size:10px;letter-spacing:.06em;padding:7px 11px;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1 0 auto;}
         /* The same four colours the header pills use, so the strip and the
            header say the same thing the same way. */
         .sl-sdot{width:6px;height:6px;border-radius:50%;flex:none;display:block;}
@@ -3692,6 +3698,9 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            the whole point, and its own bottom rule so the pair reads as a unit
            rather than as one strip that happens to have wrapped. */
         .dhome.cats .sl-filtw2{position:relative;flex:none;}
+        /* Row two keeps its own chevrons on desktop only; on the phone row one
+           drives both and a second pair would just be a second control. */
+        @media(max-width:900px){.dhome.cats .sl-filtw2 .sl-fnav{display:none;}}
         .dhome.cats .sl-filt2{background:#2c4fa8;border-top:1px solid #16306e;}
         .dhome.cats .sl-filtw2.ml::before{background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
         .dhome.cats .sl-filtw2.mr::after{background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
@@ -4048,7 +4057,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           the phone's order flip (bar -1, title 0, board 1) still lands it between
           the title band and the board on source order alone. */}
       {slate ? (
-        <div className={`sl-filtw${filtMore.l ? ' ml' : ''}${filtMore.r ? ' mr' : ''}`}>
+        <div className={`sl-filtw${(filtMore.l || (phone && filt2More.l)) ? ' ml' : ''}${(filtMore.r || (phone && filt2More.r)) ? ' mr' : ''}`}>
         <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
           {[['all', 'All']]
             // Paused and Done, which used to be the gold and green bands at the
@@ -4104,12 +4113,12 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           ) : null}
           </div>
         ) : null}
-        {filtMore.l ? (
+        {(filtMore.l || (phone && filt2More.l)) ? (
           <button type="button" className="sl-fnav l" onClick={() => nudgeFilt(-1)} aria-label="Scroll the categories left">
             <ChevronLeft size={14} strokeWidth={3} />
           </button>
         ) : null}
-        {filtMore.r ? (
+        {(filtMore.r || (phone && filt2More.r)) ? (
           <button type="button" className="sl-fnav r" onClick={() => nudgeFilt(1)} aria-label="Scroll the categories right">
             <ChevronRight size={14} strokeWidth={3} />
           </button>

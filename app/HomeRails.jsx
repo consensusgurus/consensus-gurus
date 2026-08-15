@@ -339,6 +339,7 @@ export default function HomeRails({
   dailyBoard,
   me,
   myCats = [],
+  qotd = null,
   xpToday = [],
   xp30 = [],
   xpAll = [],
@@ -942,6 +943,22 @@ export default function HomeRails({
           .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
           .hrb-body{min-height:0;overflow-y:auto;}
+          /* The foot. flex:none so it never gives up its height to the board
+             above it, which is the whole point of it being here. */
+          .hrb-foot{flex:none;border-top:1px solid var(--border);}
+          .hrb-qotd{display:flex;flex-direction:column;justify-content:flex-end;gap:2px;min-height:104px;padding:11px 13px;text-decoration:none;
+            background-color:var(--blue-dark);background-size:cover;background-position:center;position:relative;isolation:isolate;}
+          /* The scrim, not a filter on the image: the photo keeps its colour
+             and only the bottom third darkens, which is where the type sits. */
+          .hrb-qotd::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(10,20,45,.88),rgba(10,20,45,.35) 55%,rgba(10,20,45,.12));}
+          .hrb-qe{font-size:8.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#bcd3ff;}
+          .hrb-qt{font-size:15px;font-weight:800;line-height:1.25;color:var(--white);}
+          .hrb-duel{display:flex;align-items:center;gap:10px;padding:10px 13px;text-decoration:none;background:var(--accent-soft);border-top:1px solid var(--border);}
+          .hrb-duel:hover{background:var(--white);}
+          .hrb-dtx{display:flex;flex-direction:column;min-width:0;}
+          .hrb-de{font-size:8.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);}
+          .hrb-dn{font-size:14px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+          .hrb-dgo{margin-left:auto;flex:none;background:var(--blue);color:var(--white);border-radius:7px;padding:8px 15px;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;}
           /* YOU IS A REAL PANEL NOW (owner, 2026-08-15: it needs more content,
              your ranking and stats across categories). Streak, three headline
              figures, then where you rank inside every category you have played,
@@ -1129,6 +1146,22 @@ export default function HomeRails({
               </div>
             </div>
           ) : null}
+          <div className="hrb-foot">
+            {qotd ? (
+              <a className="hrb-qotd" href={`/quiz/${qotd.id}`}
+                style={qotd.hero ? { backgroundImage: `url(${qotd.hero})`, backgroundPosition: qotd.pos || 'center' } : undefined}>
+                <span className="hrb-qe">{qotd.eyebrow}</span>
+                <span className="hrb-qt">{qotd.title}</span>
+              </a>
+            ) : null}
+            <Link href={rival ? duelHref : '/duel/new'} className="hrb-duel">
+              <span className="hrb-dtx">
+                <span className="hrb-de">{rival ? (rival.behind ? 'Right behind you' : 'Next one ahead') : 'Head to head'}</span>
+                <span className="hrb-dn">{rival ? rival.username : 'Start a duel'}</span>
+              </span>
+              <span className="hrb-dgo">Duel</span>
+            </Link>
+          </div>
         </section>
       </>
     );
