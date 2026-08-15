@@ -43,8 +43,13 @@
 //    unanswerable — the player is guessing which synonym the author had in mind.
 //    Concretely, NEVER flag:
 //      · a US/British variant, in either direction (meter/metre, grade/gradient,
-//        leash/lead, nought/naught). The copy may keep its British voice, but no
-//        error may turn on the dialect axis, and both forms are accepted.
+//        leash/lead, nought/naught). No error may turn on the dialect axis, and
+//        both forms are accepted. Acceptance is now automatic: the grader runs
+//        every typed answer through lib/dialect-variants.js, so colour/color,
+//        practise/practice and recognise/recognize all score without per-item
+//        `alts`. Keep `alts` for genuinely DIFFERENT words (rein/curb/check).
+//        Where a fix has only a British spelling and the US form is a different
+//        word rather than a variant (draught/draft), list it in `alts` by hand.
 //      · a synonym or a house-style preference (vellum→parchment, slate→tab,
 //        creels→pots, juncture→time). "The other word is more usual" is not an error.
 //      · a one-word-vs-two-word compound call (fire proof→fireproof, quay
@@ -58,6 +63,18 @@
 //    Could a careful copy editor land anywhere else? Then re-cut it.
 //  - `alts` carries every other correct fix (only `fix` + `alts` score the second
 //    point, so a player who writes an equally right word must not be marked down).
+//  - THE COPY IS BRITISH, SO KEEP IT BRITISH (owner ruling 2026-08-15, after an
+//    English player wrote in about stet-8-15-26: "Playing the games in England,
+//    it's unfortunate when you use American terms. Never heard of a pry bar - we
+//    use crowbar or jemmy"). She was flagging item 2, which was CLEAN copy: an
+//    unfamiliar Americanism sitting in a clean sentence is an accidental decoy,
+//    and a British player who taps it loses the item for reading it correctly.
+//    So the bank prints British vocabulary and British spelling throughout, and
+//    verify-stet.mjs fails a US-only term outright from BRITISH_VOICE_FROM
+//    (2026-08-15) on. Note the two halves pull opposite ways and BOTH hold: the
+//    copy the reader sees is British, while the answer the reader TYPES may be
+//    in either dialect. Prefer a neutral word over either flag when one exists,
+//    which is why "pry bar" became "crowbar" rather than "jemmy".
 //  - never reuse a wrong→fix pair already banked here.
 export const PUZZLES = [
   {
@@ -991,7 +1008,7 @@ export const PUZZLES = [
         errors: [{ wrong: "did", fix: "done", kind: 'grammar', note: "After had the verb takes done, not did." }],
       },
       {
-        text: "Officers found the vault door had been forced with a pry bar.",
+        text: "Officers found the vault door had been forced with a crowbar overnight.",
         errors: [],
         cleanNote: "Clean copy: forced is the right verb for a broken lock.",
       },
@@ -1446,8 +1463,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: acquired is exact and correctly spelled.",
       },
       {
-        text: "The engineer measured the fall of the drain and said the gradient was to shallow for the flow.",
-        errors: [{ wrong: "to", fix: "too", kind: 'wordchoice', note: "Too means excessively; to is the preposition." }],
+        text: "The engineer measured the fall of the drain and said the surface water would never reach the mane.",
+        errors: [{ wrong: "mane", fix: "main", kind: 'wordchoice', note: "The main is the sewer pipe the drain feeds; a mane is the hair on a horse's neck." }],
       },
       {
         text: "The magistrate imposed a suspended sentence.",
@@ -1485,8 +1502,8 @@ export const PUZZLES = [
         errors: [{ wrong: "led", fix: "lead", kind: 'wordchoice', note: "Lead is the metal on the roof; led is the past tense of lead." }],
       },
       {
-        text: "The parish paid a mason to repair the lychgate roof, witch had been open to the weather for years.",
-        errors: [{ wrong: "witch", fix: "which", kind: 'wordchoice', note: "Which is the relative pronoun; a witch is a person." }],
+        text: "The parish paid a mason to repair the lychgate roof, where the beer once rested before a funeral.",
+        errors: [{ wrong: "beer", fix: "bier", kind: 'wordchoice', note: "A bier is the stand a coffin rests on, which is what a lychgate shelters; beer is the drink." }],
       },
       {
         text: "The station master rang the bell twice before departure.",
@@ -1706,8 +1723,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: ruins and charitable are correct as written.",
       },
       {
-        text: "The chandler sold rope, tar and canvas to the whole quayside, and kept his ledger in a hand no clerk could reed.",
-        errors: [{ wrong: "reed", fix: "read", kind: 'wordchoice', note: "To read is to make out writing; a reed is a marsh plant." }],
+        text: "The chandler sold rope, tar and canvas to the whole quayside, and knew the drought of every vessel that called there.",
+        errors: [{ wrong: "drought", fix: "draught", alts: ["draft"], kind: 'wordchoice', note: "The draught is how deep a vessel sits in the water; a drought is a long dry spell." }],
       },
       {
         text: "The bell ringers practised a method called Grandsire Triples every Tuesday, and the tower captain kept a peel book.",
@@ -1741,8 +1758,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: retraction is the right word for a printed correction.",
       },
       {
-        text: "The trust asked walkers to keep dogs on a leash near the ewes and to shut every gait behind them.",
-        errors: [{ wrong: "gait", fix: "gate", kind: 'wordchoice', note: "A gate is a barrier; a gait is a manner of walking." }],
+        text: "The trust asked walkers to keep dogs on a lead near the ewes and to stay on the bridal path.",
+        errors: [{ wrong: "bridal", fix: "bridle", kind: 'wordchoice', note: "A bridle path is the one horses and walkers share; bridal belongs to a wedding." }],
       },
       {
         text: "The estate has kept the same tenant farmers for decades.",
@@ -1772,8 +1789,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: restored and pipe by pipe are used correctly.",
       },
       {
-        text: "The keeper set a line of lobster creels along the reef and hauled them at first light on a rising tied.",
-        errors: [{ wrong: "tied", fix: "tide", kind: 'wordchoice', note: "The tide is the sea rising and falling; tied means fastened." }],
+        text: "The keeper set a line of lobster creels along the reef and marked each string with a boy.",
+        errors: [{ wrong: "boy", fix: "buoy", kind: 'wordchoice', note: "A buoy is the float that marks the gear; a boy is a child." }],
       },
       {
         text: "He gave a candid account of the night's events.",
@@ -1865,8 +1882,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: quarry and flooded are used correctly.",
       },
       {
-        text: "The society photographed every headstone before the clearance, though the lettering on many was pail and worn.",
-        errors: [{ wrong: "pail", fix: "pale", kind: 'wordchoice', note: "Pale means faint in colour; a pail is a bucket." }],
+        text: "The society photographed every headstone before the clearance, though the ewe shading the oldest plot had to be cut back.",
+        errors: [{ wrong: "ewe", fix: "yew", kind: 'wordchoice', note: "A yew is the churchyard tree that can be cut back; a ewe is a female sheep." }],
       },
       {
         text: "The tribunal ordered the firm to reinstate the worker.",
@@ -1975,8 +1992,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: bored is correct here, meaning drilled.",
       },
       {
-        text: "The society recorded the ring of six bells, the tenor recast in 1898 buy a Whitechapel founder.",
-        errors: [{ wrong: "buy", fix: "by", kind: 'wordchoice', note: "By names the agent who did the work; buy means to purchase." }],
+        text: "The society recorded the ring of six bells, and the board of ringers fixed to the wall of the knave.",
+        errors: [{ wrong: "knave", fix: "nave", kind: 'wordchoice', note: "The nave is the body of the church; a knave is a scoundrel." }],
       },
     ],
   },
@@ -2284,8 +2301,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: impassable is the right adjective, correctly spelled.",
       },
       {
-        text: "The trust rebuilt the dry stone wall using the original throughstones, a job that took to men a fortnight.",
-        errors: [{ wrong: "to", fix: "two", kind: 'wordchoice', note: "Two is the number; to is the preposition." }],
+        text: "The trust rebuilt the dry stone wall using the original throughstones, and re-set the style at the field corner.",
+        errors: [{ wrong: "style", fix: "stile", kind: 'wordchoice', note: "A stile is the step set into a wall for walkers; style is a manner of doing something." }],
       },
       {
         text: "The dairy bottles its milk on the farm.",

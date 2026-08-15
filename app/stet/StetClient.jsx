@@ -49,6 +49,7 @@ import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { T } from '@/lib/theme';
+import { acceptsAnswer } from '@/lib/dialect-variants';
 import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
@@ -254,7 +255,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
       if (s) {
         pts += 1;
         const accepted = [it.errors[e].fix, ...(it.errors[e].alts || [])].map(normFix);
-        if (accepted.includes(normFix(s.fix))) pts += 1;
+        if (acceptsAnswer(accepted, normFix(s.fix))) pts += 1;
       }
     }
     for (const s of staged) { if (!errTok.includes(s.tok)) misses += 1; }
@@ -641,7 +642,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
               <>
                 {sub.stet
                   ? null
-                  : <>Nothing was wrong here{(sub.staged || []).length ? <> &mdash; you flagged &ldquo;{stripTok(TOKS[i][sub.staged[0].tok].raw)}&rdquo;</> : null}. </>}
+                  : <>Nothing was wrong here{(sub.staged || []).length && TOKS[i][sub.staged[0].tok] ? <> &mdash; you flagged &ldquo;{stripTok(TOKS[i][sub.staged[0].tok].raw)}&rdquo;</> : null}. </>}
                 {it.cleanNote}
               </>
             ) : (
@@ -650,10 +651,11 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
                 {it.errors.map((e, k) => {
                   const s = (sub.staged || []).find((x) => x.tok === errTok[k]);
                   const accepted = [e.fix, ...(e.alts || [])].map(normFix);
+                  const ok = acceptsAnswer(accepted, normFix(s ? s.fix : ''));
                   return (
                     <span key={k}>
                       {!s && !sub.stet && <>Missed: <b style={{ color: COLORS.ink }}>{e.wrong}</b> &rarr; {e.fix}. </>}
-                      {s && !accepted.includes(normFix(s.fix)) && <>Right word, but the fix is <b style={{ color: COLORS.ink }}>{e.fix}</b>, not &ldquo;{s.fix}&rdquo;. </>}
+                      {s && !ok && <>Right word, but the fix is <b style={{ color: COLORS.ink }}>{e.fix}</b>, not &ldquo;{s.fix}&rdquo;. </>}
                       {e.note}{' '}
                     </span>
                   );

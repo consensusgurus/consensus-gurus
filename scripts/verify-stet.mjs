@@ -11,6 +11,44 @@ const GRAMMAR_FROM = '2026-08-11'; // every day on/after this must carry a kind:
 const SELF_CONTAINED_FROM = '2026-08-14';
 // A note that argues from house preference rather than from the sentence is the
 // tell that the flagged word was not actually wrong.
+// The bank speaks with a British voice (parish, lychgate, quayside, fells), so a
+// stray Americanism reads as an error to a British player and lures a flag onto
+// perfectly clean copy. That is what happened on 2026-08-15: "forced with a pry
+// bar" was clean, an English player flagged "pry bar" because nobody there says
+// it, and lost the item. The term itself is the bug, so it fails here rather
+// than waiting for the next reader to write in. Frozen boards are skipped.
+const BRITISH_VOICE_FROM = '2026-08-15';
+const US_ONLY = [
+  [/\bpry bar\b/i, 'crowbar'], [/\bsidewalks?\b/i, 'pavement'],
+  [/\belevators?\b/i, 'lift'], [/\bfaucets?\b/i, 'tap'],
+  [/\bflashlights?\b/i, 'torch'], [/\bgas stations?\b/i, 'petrol station'],
+  [/\bparking lots?\b/i, 'car park'], [/\bgarbage\b/i, 'rubbish'],
+  [/\btrash\b/i, 'rubbish'], [/\bdrugstores?\b/i, 'chemist'],
+  [/\brealtors?\b/i, 'estate agent'], [/\bzip codes?\b/i, 'postcode'],
+  [/\bdiapers?\b/i, 'nappy'], [/\bpacifiers?\b/i, 'dummy'],
+  [/\bstrollers?\b/i, 'pushchair'], [/\bband-aids?\b/i, 'plaster'],
+  [/\beggplants?\b/i, 'aubergine'], [/\bzucchinis?\b/i, 'courgette'],
+  [/\bcilantro\b/i, 'coriander'], [/\barugula\b/i, 'rocket'],
+  [/\bskillets?\b/i, 'frying pan'], [/\bdrywall\b/i, 'plasterboard'],
+  [/\bbaseboards?\b/i, 'skirting board'], [/\brailroads?\b/i, 'railway'],
+  [/\bstreetcars?\b/i, 'tram'], [/\bfreeways?\b/i, 'motorway'],
+  [/\bapartments?\b/i, 'flat'], [/\bsoccer\b/i, 'football'],
+  [/\bmailman\b/i, 'postman'], [/\bkerosene\b/i, 'paraffin'],
+  [/\bwrenches?\b/i, 'spanner'], [/\bthumbtacks?\b/i, 'drawing pin'],
+  [/\bfrench fries\b/i, 'chips'], [/\bgotten\b/i, 'got'],
+  // US spellings. The bank must not PRINT one; a player may still TYPE either,
+  // which lib/dialect-variants.js handles at grade time.
+  [/\bcolors?\b/i, 'colour'], [/\bflavors?\b/i, 'flavour'],
+  [/\bhonors?\b/i, 'honour'], [/\bneighbors?\b/i, 'neighbour'],
+  [/\bbehaviors?\b/i, 'behaviour'], [/\bharbors?\b/i, 'harbour'],
+  [/\brumors?\b/i, 'rumour'], [/\bcenters?\b/i, 'centre'],
+  [/\btheaters?\b/i, 'theatre'], [/\bfibers?\b/i, 'fibre'],
+  [/\bdefense\b/i, 'defence'], [/\boffense\b/i, 'offence'],
+  [/\baluminum\b/i, 'aluminium'], [/\bairplanes?\b/i, 'aeroplane'],
+  [/\btraveled\b/i, 'travelled'], [/\btraveling\b/i, 'travelling'],
+  [/\bcanceled\b/i, 'cancelled'], [/\bjewelry\b/i, 'jewellery'],
+  [/\bplowed?\b/i, 'ploughed'], [/\bcatalogs?\b/i, 'catalogue'],
+];
 const PREFERENCE_NOTE = /\b(british|american)\b|\busual(ly)? (term|word)\b|\bplain (term|word)\b|\bmore usual\b|\bin this trade\b|\b(written as |is )?(a )?(one|single) word\b|\bmodern usage\b|\bthe general term\b|\bdialect variant\b/i;
 let grammarErrors = 0;
 const err = (m) => { console.error('FAIL:', m); fail++; };
@@ -29,6 +67,14 @@ for (const p of PUZZLES) {
   if (p.items.length !== want) err(`#${p.num}: ${p.items.length} items, want ${want}`);
   const label = dt.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'long', day: 'numeric', year: 'numeric' });
   if (p.dateLabel !== label) err(`#${p.num}: dateLabel "${p.dateLabel}" != "${label}"`);
+  if (p.live >= BRITISH_VOICE_FROM) {
+    p.items.forEach((it, i) => {
+      for (const [re, uk] of US_ONLY) {
+        const m = it.text.match(re);
+        if (m) err(`#${p.num}.${i + 1}: "${m[0]}" is American. The bank reads British, so it lures a flag onto correct copy — use "${uk}"`);
+      }
+    });
+  }
   let dayClean = 0, dayErrors = 0, dayGrammar = 0;
   p.items.forEach((it, i) => {
     if (!Array.isArray(it.errors)) { err(`#${p.num}.${i + 1}: errors not an array`); return; }
