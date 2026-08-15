@@ -16,6 +16,15 @@
 // right edge. `.help` is a direct child rather than nested in the id block,
 // which is what lets `order` reach it.
 import React, { useEffect } from 'react';
+import { DAILY_GAMES, isRetiredDaily } from '@/lib/daily-games';
+import useDailyRoster from './useDailyRoster';
+
+// Alphabetical, retired games dropped, computed once at module load: it is the
+// same list on every page and never changes within a session.
+const ALL_AZ = DAILY_GAMES
+  .filter((g) => !isRetiredDaily(g.key))
+  .map((g) => ({ key: g.key, name: g.name, tag: g.tag, href: g.href || `/${g.key}` }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
@@ -32,6 +41,11 @@ export default function LoftCap({
   progress = null,   // 0-100, draws the hairline at the foot of the cap
   extra = null,      // an optional third tier (Anon's spine, for instance)
 }) {
+  // Only asks the network once the game is over, which is the only time the
+  // strip is shown.
+  const { played } = useDailyRoster({ active: !!outcome });
+  const strip = outcome ? ALL_AZ.filter((g) => g.name !== name) : null;
+
   useEffect(() => {
     const board = () => document.querySelector('.loft-sheet') || document.querySelector('.loft-card');
     const apply = () => {
@@ -121,7 +135,16 @@ export default function LoftCap({
   object-fit:contain;display:block}
 .lcap-tiles a>span{min-width:0}
 @media(min-width:900px){.lcap-tiles{flex:0 0 auto;order:3;margin-left:auto}
-  .lcap-tiles a{flex:0 0 168px}}
+  .lcap-tiles a{flex:0 0 168px}
+  /* The roster is long, so it takes the width that is going and scrolls inside
+     it rather than pushing the band wider. */
+  .lcap-tiles.az{flex:1 1 auto;max-width:min(60vw,760px);scroll-snap-type:x proximity}
+  .lcap-tiles.az a{flex:0 0 158px;scroll-snap-align:start}}
+.lcap-tiles.az{scrollbar-width:none}
+.lcap-tiles.az::-webkit-scrollbar{display:none}
+/* Finished today: still there, still reachable, just not competing with the
+   ones you have not played. */
+.lcap-tiles.az a.done{opacity:.55}
 /* PHONE: a snapping slider. Three tiles across a 390px row leaves each about
    118px, which truncates most taglines, so the row scrolls instead and shows
    about two and a half. The scrollbar is hidden because the partial tile at
@@ -597,7 +620,7 @@ export default function LoftCap({
       `}</style>
       <div className="lcap-id">
         <span className="lcap-eb">{eyebrow}</span>
-        <span className="lcap-nm">{outcome && tiles && tiles.length ? 'Play similar:' : name}{sunday
+        <span className="lcap-nm">{strip && strip.length ? 'All puzzles:' : name}{sunday
           ? (typeof sunday === 'string'
               ? <span className="lcap-sun">{sunday}</span>
               : <span className="lcap-sunnode">{sunday}</span>)
@@ -606,10 +629,10 @@ export default function LoftCap({
       {onHelp && !outcome ? (
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
       ) : null}
-      {tiles && tiles.length ? (
-        <div className="lcap-tiles">
-          {tiles.slice(0, 3).map((t) => (
-            <a key={t.key} href={t.href || `/${t.key}`}>
+      {strip && strip.length ? (
+        <div className="lcap-tiles az">
+          {strip.map((t) => (
+            <a key={t.key} href={t.href} className={played[t.key] ? 'done' : undefined}>
               <img src={`/games/blue/btn-${t.key}.png`} alt="" width={30} height={30}
                 onError={(e) => { const full = `/games/btn-${t.key}.png`;
                   if (!e.currentTarget.src.endsWith(full)) e.currentTarget.src = full; }} />
