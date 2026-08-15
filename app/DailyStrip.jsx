@@ -1698,83 +1698,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     );
   };
 
-  const renderCatBoard = () => {
-    if (boardOpen) {
-      const list = openCircuit ? circuitGames(openCircuit) : catOf(catOpen);
-      const label = openCircuit || CAT_SHORT[catOpen] || catOpen;
-      /* THE HEADER ONLY. The rows underneath are the SLATE'S OWN, which are
-         already in the DOM, already carry the full set of columns (rank today,
-         streak, leader, status, archive completion) and are already filtered by
-         the same state, which now understands a circuit as well as a category.
-         They were being hidden by the override layer and replaced with a simpler
-         list of my own, which was both less than the page already had and a
-         second thing to maintain (owner, 2026-08-15: these elements already
-         exist on our /daily page). The CSS below un-hides them when something
-         is open instead. */
-      return (
-        <button type="button" className="cb-hd" key="cb-open" onClick={() => setFilter('all')}>
-          <span className="cb-hsq" style={{ '--cc': openCircuit ? T.blueDark : catCol(catOpen) }}>
-            {(() => { const G = openCircuit ? Puzzle : (CAT_GLYPH[catOpen] || Star); return <G size={15} strokeWidth={2.4} />; })()}
-          </span>
-          {label} &middot; {list.length} game{list.length === 1 ? '' : 's'}
-          <span>All categories &#9650;</span>
-        </button>
-      );
-    }
-    /* The 24 tiles: nine categories then fifteen circuits. THIS DECLARATION
-       WAS DELETED ONCE, by a later edit whose replaced span ran from the open
-       branch down to tileEl and swallowed it, leaving the return mapping over a
-       name that no longer existed. It cost a red build and "ReferenceError:
-       tiles is not defined" at prerender, so if it looks redundant sitting here
-       between the two things that use it, it is not: it is between them on
-       purpose. */
-    const tiles = slateCats.map((c) => {
-      const list = catOf(c);
-      return {
-        k: 'cat:' + c, kind: 'cat', label: CAT_SHORT[c] || c, n: list.length,
-        nDone: list.filter((g) => done.has(g.key)).length,
-        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
-        col: catCol(c), glyph: CAT_GLYPH[c] || Star, go: () => setFilter(c),
-      };
-    }).concat(CIRCUITS.map(([name]) => {
-      const list = circuitGames(name);
-      return {
-        k: 'cir:' + name, kind: 'cir', label: name, n: list.length,
-        nDone: list.filter((g) => done.has(g.key)).length,
-        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
-        col: T.blueDark, glyph: null, go: () => setFilter('circuit:' + name),
-      };
-    }));
-    const tileEl = (t) => (
-      <button type="button" key={t.k} className={'cb-tile ' + t.kind}
-        style={{ '--cc': t.col }} onClick={t.go} title={t.label}>
-        <span className="cb-trow">
-          {t.glyph
-            ? <span className="cb-sq">{(() => { const G = t.glyph; return <G size={15} strokeWidth={2.3} />; })()}</span>
-            : <span className="cb-dot" aria-hidden="true" />}
-          <span className="cb-tnm">{t.label}</span>
-          <span className="cb-tct">{t.n}</span>
-        </span>
-        <span className="cb-bar"><i style={{ width: (t.n ? Math.round((t.nDone / t.n) * 100) : 0) + '%' }} /></span>
-      </button>
-    );
-    /* TWO GRIDS, NOT ONE (owner, 2026-08-15: need better differentiation, and
-       they do not all fit on one screen). Nine categories at three across is
-       three rows, fifteen circuits at five across is three rows: six rows that
-       divide the board exactly, where 24 tiles in one four-wide grid broke
-       mid-row between the two kinds and read as a single undifferentiated
-       field. The size difference now carries the hierarchy by itself, a
-       category being the thing and a circuit a cut across the things, and each
-       grid says which it is. */
-    return (
-      <>
-        <div className="cb-sect">Categories</div>
-        <div className="cb-tiles cats">{tiles.filter((t) => t.kind === 'cat').map(tileEl)}</div>
-        <div className="cb-sect">Circuits</div>
-        <div className="cb-tiles circs">{tiles.filter((t) => t.kind === 'cir').map(tileEl)}</div>
-      </>
-    );
-  };
 
   const renderSlate = (rows0, dim) => {
     const out = [];
@@ -3706,20 +3629,25 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            and the grid lines a blue-grey rather than neutral. White is kept for
            HOVER, so it now means "this one", which is what it should have been
            spending itself on all along. */
-                .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow:hidden;gap:0;background:#e4ebf5;}
+                /* THREE COLUMNS (owner, 2026-08-15). The one 340px rail replaced two
+           rails totalling 584px, so the centre is about 240px wider than it was
+           and a third column fits without squeezing the row. height:auto and
+           the flex sizing because the console above hands this its height now,
+           rather than --dh-fit measuring it independently. */
+        .dhome.cats .dh-board.slate{grid-template-columns:1fr 1fr 1fr;flex:1 1 auto;min-height:0;height:auto;max-height:none;}
+        /* THE FILTER STRIP WRAPS rather than scrolling sideways: with the
+           circuits in it there are 26 chips, and a one-line strip hides most of
+           them behind an arrow. The circuits are the half a reader has not seen
+           before, so they are the worst half to hide. */
+        .dhome.cats .sl-filt{flex-wrap:wrap;overflow:visible;}
+        .dhome.cats .sl-filtw::before,.dhome.cats .sl-filtw::after{display:none !important;}
         /* Shut, the grid fits by construction and must not scroll. Open, the
            game list is as long as the category is and scrolling is the point. */
         .dhome.cats .dh-board.cb-open{overflow-y:auto;background:var(--white);}
         /* The override layer: the slate's own rows, bands, column header and
            chip strip are still in the DOM and still correct on a phone; up here
            they step aside for the tiles, and the four-card cap for the three. */
-        .dhome.cats .sl-filtw,.dhome.cats .sl-more{display:none !important;}
-        .dhome.cats .dh-board:not(.cb-open) .sl-row,
-        .dhome.cats .dh-board:not(.cb-open) .sl-drawer,
-        .dhome.cats .dh-board:not(.cb-open) .sl-band,
-        .dhome.cats .dh-board:not(.cb-open) .sl-head{display:none !important;}
-        .dhome.cats .dh-board.cb-open .cb-tiles,
-        .dhome.cats .dh-board.cb-open .cb-sect{display:none !important;}
+        .dhome.cats .sl-more{display:none !important;}
         .dhome.cats .dh-sbar > .dh-cell,.dhome.cats .dh-sbar > .dh-cprog{display:none !important;}
 
         /* THE CAP IS THE "WHAT SHOULD I PLAY" ZONE, six picks wide open and three
@@ -3751,39 +3679,15 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            breathing room rather than reading as a dense index. They also GROW
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
-        /* 24 tiles, four across and six down, sharing the board's height
-           exactly. grid-auto-rows:1fr is what makes them EVEN and what makes
-           the board fit without scrolling: the rows divide whatever height
-           there is rather than each taking its content height and spilling. */
-        .cb-tiles{display:grid;grid-auto-rows:1fr;gap:1px;background:#d3ddec;flex:1 1 auto;min-height:0;}
-        .cb-tiles.cats{grid-template-columns:repeat(3,minmax(0,1fr));}
-        .cb-tiles.circs{grid-template-columns:repeat(5,minmax(0,1fr));}
-        .cb-sect{flex:none;padding:6px 14px;background:#dde6f3;border-top:1px solid #d3ddec;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#41506b;}
-                .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:7px;align-items:stretch;text-align:left;background:#f4f7fc;border:none;border-radius:0;padding:11px 13px;font:inherit;color:var(--ink);cursor:pointer;min-width:0;min-height:0;}
-        /* A circuit is a cut ACROSS the categories, not one of them, so it
-           reads one step quieter: a dot where a category has its glyph, and a
-           lighter ground. Same size, because they are peers to browse by. */
-                .cb-tile.cat{border-left:4px solid var(--cc,var(--blue-dark));}
-        .cb-tile.cir{background:#eaf0f8;}
-        .cb-tiles.circs .cb-tnm{font-size:12px;}
-        .cb-tiles.circs .cb-tile{padding:9px 11px;gap:6px;}
-        .cb-dot{width:9px;height:9px;border-radius:3px;flex:none;background:var(--cc,var(--blue-dark));margin:0 3px;}
         .cb-tile:hover{background:var(--white);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
         /* The row rule was removed with the name-list era and never put back,
            so the glyph and the name stacked and the tile grew a hole above
            them. One line: glyph, name, count. */
-        .cb-trow{display:flex;align-items:center;gap:9px;min-width:0;}
-        .cb-sq{width:26px;height:26px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
-        .cb-sq svg{display:block;}
         /* line-height, and it is load-bearing: an overflow:hidden nowrap name at
            the default 1.2 clips the descender of a g or y (Rung lost its tail).
            Anything that ellipsizes text needs a line box taller than the glyphs
            it is hiding the sides of. */
-        .cb-tnm{flex:1 1 auto;min-width:0;font-size:13.5px;line-height:1.45;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-tct{flex:none;margin-left:6px;font-size:11.5px;font-weight:800;color:var(--slate);font-variant-numeric:tabular-nums;}
-        .cb-bar{display:block;height:4px;border-radius:4px;background:#dbe4f1;overflow:hidden;}
-        .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
         /* NO margin-top:auto here. With the game art gone the tile has three short
            rows and a tall box, and an auto top margin pinned this one to the
            floor and opened a 92px hole above it. Centred as a group instead,
@@ -3802,10 +3706,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            they are not rendered at all, which is what "takes over the full
            space" has to mean if the list is going to be worth opening. */
         .dhome.cats .cb-hd{flex:none;}
-        .cb-hsq{width:22px;height:22px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);margin-right:9px;}
 
-        .cb-hd{display:flex;align-items:center;width:100%;flex:none;border:none;border-top:1px solid #d3ddec;background:#dde6f3;color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
-        .cb-hd span{margin-left:auto;letter-spacing:.04em;color:var(--slate);}
       }
       /* 901-1200px: the columns are NOT pinned at this width (railH is not set
          either), so the console goes back to natural height and scrolls with
@@ -4081,6 +3982,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
           {[['all', 'All'], ['todo', 'Unplayed']]
             .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c]))
+            // The circuits, on the same strip and driving the same state. A
+            // category says what a game IS, a circuit what SKILL it exercises,
+            // so they are two axes over one list rather than two controls.
+            .concat(cats ? CIRCUITS.map(([n]) => ['circuit:' + n, n]) : [])
             // LAST in the strip, and absent on a Sunday: on the day itself the
             // Sunday Editions ARE the board, so a tab pointing at last week's
             // would only be competing with them.
@@ -4155,7 +4060,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
                 })}
               </div>
             ) : null}
-            {cats ? renderCatBoard() : null}
             {slate ? renderSlate(slateList, false) : renderTiles(list, false)}
           </div>
         </div>
