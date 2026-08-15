@@ -152,7 +152,7 @@ export default function LoftFinish({
       <div className="loft-backin">
       {/* THE VERDICT LIVES HERE NOW, not on the page cap (owner, 2026-08-14).
           Colouring both said it twice, and this is where the result is. */}
-      <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title}` : title}</b><s>{detail}</s></div>
+      <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
       <div className="loft-fiq">
         <Brain className="bi" size={26} strokeWidth={2.2} aria-hidden="true" />
