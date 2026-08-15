@@ -451,10 +451,15 @@ export default function LoftCap({
    read that races the player's own result write and retries for several
    seconds, so while it waits the honest thing to say is that it is being worked
    out. The dots animate so it reads as pending rather than stuck. */
-.loft-calc{display:inline-flex;align-items:baseline;font-weight:800;font-size:13px;color:var(--muted)}
+.loft-calc{display:inline-flex;align-items:baseline;font-weight:800;font-size:13px;color:var(--muted);
+  white-space:nowrap;max-width:100%;overflow:hidden}
 /* The placeholder occupies the same line height as the figure it stands in for,
    so swapping one for the other moves nothing. */
 .loft-day .loft-calc{font-size:17px;line-height:1}
+.loft-day span b{display:block;line-height:1;white-space:nowrap}
+/* The tile's own label cannot wrap either, or a two-word category name makes
+   the row taller than the tiles beside it. */
+.loft-day span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .loft-fiq .loft-calc{font-size:18px;line-height:1}
 .loft-calc.wide{display:flex;padding:10px 2px}
 .loft-calc i{font-style:normal;animation:loftdot 1.4s infinite}

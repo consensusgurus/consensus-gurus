@@ -11,17 +11,14 @@
 // The played map is the SAME test the next-up hooks use: an entry exists and is
 // not flagged abandoned. An abandoned run is not a completion, so a game you
 // walked away from still reads as open.
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DAILY_GAMES, isRetiredDaily } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
 export default function useDailyRoster({ active = false }) {
-  const [state, setState] = useState({ ready: false, cats: [], played: {} });
-  useEffect(() => {
-    if (!active) return undefined;
-    let alive = true;
-    const live = DAILY_GAMES.filter((g) => !isRetiredDaily(g.key));
-    const build = (played) => {
+  const [played, setPlayed] = useState({});
+  const live = useMemo(() => DAILY_GAMES.filter((g) => !isRetiredDaily(g.key)), []);
+  const build = useMemo(() => (marks) => {
       const order = [];
       const byCat = new Map();
       for (const g of live) {
@@ -35,20 +32,21 @@ export default function useDailyRoster({ active = false }) {
         });
       }
       return order.map((c) => ({ cat: c, games: byCat.get(c) }));
-    };
-    // Paint the roster immediately; the played flags fill in when the fetch
-    // lands, so the panel never waits on the network to be useful.
-    setState({ ready: true, cats: build({}), played: {} });
+    }, [live]);
+  const cats = useMemo(() => build(played), [build, played]);
+  useEffect(() => {
+    if (!active) return undefined;
+    let alive = true;
     fetchDailyMe(dailyMeQuery(dailyMeIdentity()), { fresh: true })
       .then((d) => {
         if (!alive) return;
         const per = (d && d.perGame) || {};
-        const played = {};
-        for (const k of Object.keys(per)) if (per[k] && !per[k].abandoned) played[k] = true;
-        setState({ ready: true, cats: build(played), played });
+        const marks = {};
+        for (const k of Object.keys(per)) if (per[k] && !per[k].abandoned) marks[k] = true;
+        setPlayed(marks);
       })
       .catch((e) => { if (typeof console !== 'undefined') console.warn('useDailyRoster', e); });
     return () => { alive = false; };
   }, [active]);
-  return state;
+  return { ready: true, cats, played };
 }
