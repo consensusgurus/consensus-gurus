@@ -554,6 +554,21 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
     setShowPar(true);
   }
 
+  // Showing the gold network means showing the BOARD it is drawn on. On a loft
+  // page the finished board is flipped away behind the end card, so a bare
+  // setShowPar(true) painted the solution onto a face nobody could see and the
+  // button read as dead (owner report, 2026-08-15). Turning it on flips the
+  // board back up and scrolls to it; turning it off leaves the board where it is.
+  function showParToggle() {
+    const next = !showPar;
+    setShowPar(next);
+    if (!next) return;
+    setRevealed(true);
+    requestAnimationFrame(() => {
+      try { if (svgRef.current) svgRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    });
+  }
+
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     undoRef.current = []; setCanUndo(false);
@@ -933,8 +948,8 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               iq={iq}
               board={dailyBoard}
               gameRank={allTime && allTime.ready
-                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
-                    label: allTime.field != null ? `paths of ${allTime.field}` : 'paths all time' }
+                ? { value: allTime.rank != null ? `#${Number(allTime.rank).toLocaleString()}` : '\u2014',
+                    label: allTime.field != null ? `of ${Number(allTime.field).toLocaleString()} player${Number(allTime.field) === 1 ? '' : 's'} all time` : 'all-time rank' }
                 : null}
               day={dayStats}
               streak={isTodays ? myStats.cur : null}
@@ -969,7 +984,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
 
         {!playing && (
           <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <button className="pt-tool" onClick={() => setShowPar((v) => !v)} style={{ marginBottom: 4 }}>
+            <button className="pt-tool" onClick={showParToggle} style={{ marginBottom: 4 }}>
               {showPar ? 'Hide the cheapest network' : 'Show a cheapest network'}
             </button>
             <div style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '8px 0 0' }}>

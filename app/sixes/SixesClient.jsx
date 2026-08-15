@@ -946,8 +946,8 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
             iq={iq}
             board={dailyBoard}
             gameRank={allTime && allTime.ready
-              ? { value: allTime.rank != null ? `#${allTime.rank}` : '—',
-                  label: allTime.field != null ? `sixes of ${allTime.field}` : 'sixes all time' }
+              ? { value: allTime.rank != null ? `#${Number(allTime.rank).toLocaleString()}` : '—',
+                  label: allTime.field != null ? `of ${Number(allTime.field).toLocaleString()} player${Number(allTime.field) === 1 ? '' : 's'} all time` : 'all-time rank' }
               : null}
             day={dayStats}
             streak={isTodays ? myStats.cur : null}

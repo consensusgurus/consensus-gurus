@@ -749,8 +749,8 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
               iq={iq}
               board={dailyBoard}
               gameRank={allTime && allTime.ready
-                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
-                    label: allTime.field != null ? `anon of ${allTime.field}` : 'anon all time' }
+                ? { value: allTime.rank != null ? `#${Number(allTime.rank).toLocaleString()}` : '\u2014',
+                    label: allTime.field != null ? `of ${Number(allTime.field).toLocaleString()} player${Number(allTime.field) === 1 ? '' : 's'} all time` : 'all-time rank' }
                 : null}
               day={dayStats}
               streak={isTodays ? myStats.cur : null}
