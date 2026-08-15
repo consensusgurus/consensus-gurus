@@ -745,9 +745,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [
-            { v: g.moves.length, k: 'moves' },
+            { v: g.moves, k: 'moves' },
           ] : [
-            { v: g.moves.length, k: 'moves' },
+            { v: g.moves, k: 'moves' },
           ]}
         />
       )}
@@ -901,7 +901,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               catRank={catRank}
               outcome={won ? 'won' : 'lost'}
               title={won ? 'Solved' : 'Not solved'}
-              detail={`${g.moves.length} moves`}
+              detail={`${nf(g.moves)} moves`}
               iq={iq}
               board={dailyBoard}
               gameRank={allTime && allTime.ready
@@ -928,7 +928,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                 { tone: 'reveal', label: 'Return to board', sub: 'Your finished board', onClick: () => setRevealed(true) },
                 prevPuzzle && { tone: 'another', label: 'Play another Chomp', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/chomp?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
-                
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: tryAgain },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
               ]}
             />
