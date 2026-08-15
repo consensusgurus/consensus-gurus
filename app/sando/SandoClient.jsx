@@ -50,6 +50,11 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import LoftCap from '../LoftCap';
+import LoftFinish from '../LoftFinish';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useDayStats from '../useDayStats';
 import { isLoft } from '@/lib/loft';
 import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
@@ -286,6 +291,11 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const LOFT = isLoft('sando');
+  const [revealed, setRevealed] = useState(false);
+  const iq = useIqStanding({ game: 'sando', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'sando', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const dayStats = useDayStats();
 
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -933,6 +943,9 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
+        <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+        <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+        <div className={LOFT && !playing ? 'loft-face' : undefined}>
         <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* Both figures move UP into the cap on a loft page; printing them
               twice is the one thing to avoid. */}
@@ -1058,6 +1071,42 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+        </div>
+        </div>
+        {LOFT && !playing && (
+          <LoftFinish
+            title={won ? 'Solved' : 'Not solved'}
+            detail={`${filledCount}/${FREE.length} filled · ${elapsed}`}
+            iq={iq}
+            board={dailyBoard}
+            day={dayStats}
+            streak={isTodays ? myStats.cur : null}
+            archive={puzzles
+              .filter((p) => p.num !== PUZZLE.num)
+              .sort((a, b) => b.num - a.num)
+              .slice(0, 14)
+              .map((p) => ({
+                num: p.num,
+                dateLabel: p.dateLabel,
+                href: `/sando?p=${p.num}`,
+                done: !!(myStats.rec && myStats.rec[p.num]),
+                score: myStats.rec && myStats.rec[p.num] ? myStats.rec[p.num].s : null,
+              }))}
+            options={[
+              won
+                ? { label: 'See the board', sub: 'Your finished grid', kind: 'pri', onClick: () => setRevealed(true) }
+                : { label: 'Reveal', sub: 'Show the solution', kind: 'pri', onClick: () => setRevealed(true) },
+              prevPuzzle && { label: 'Play another Sando', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/sando?p=${prevPuzzle.num}` },
+              nextUp && { label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
+              { label: copied ? 'Copied' : 'Share', sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+              { label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+            ]}
+          />
+        )}
+        </div>
         </div>
         )}
 
@@ -1158,7 +1207,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="sando"

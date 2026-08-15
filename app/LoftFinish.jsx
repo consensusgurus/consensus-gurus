@@ -88,7 +88,7 @@ export default function LoftFinish({
       <span className="r">{i + 1}</span>
       <span className="n">{r.username || 'Anonymous'}</span>
       <span className="s">{r.score}</span>
-      {showAll ? <span className="c">{r.guessesUsed != null ? r.guessesUsed : '—'}</span> : null}
+      {showAll && missLabel ? <span className="c">{r.guessesUsed != null ? r.guessesUsed : '—'}</span> : null}
       <span className="c">{fmtTime(r.timeElapsed) || '—'}</span>
     </div>
   );
@@ -136,7 +136,7 @@ export default function LoftFinish({
             <span className="r" />
             <span className="n">Player</span>
             <span className="s">Score</span>
-            <span className="c">{missLabel || 'Misses'}</span>
+            {missLabel ? <span className="c">{missLabel}</span> : null}
             <span className="c">Time</span>
           </div>
         ) : null}
