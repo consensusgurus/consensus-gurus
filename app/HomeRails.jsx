@@ -927,7 +927,6 @@ export default function HomeRails({
     if (dailyMastery.length) youSubs.push(['daily', 'Dailies']);
     if (myCats.length) youSubs.push(['quiz', 'Quizzes']);
     const youSec = youSubs.some((x) => x[0] === bYou) ? bYou : (youSubs.length ? youSubs[0][0] : 'daily');
-    const youHasList = youSec === 'daily' ? dailyMastery.length > 0 : myCats.length > 0;
     return (
       <>
         {CSS}
@@ -986,6 +985,9 @@ export default function HomeRails({
           .hrb-stats b{font-size:16px;font-weight:800;letter-spacing:-.01em;}
           .hrb-stats em{font-style:normal;font-size:9.5px;font-weight:700;color:var(--slate);}
           .hrb-clab{padding:8px 13px 6px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);background:#f5f7fa;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;}
+          @media(max-width:1200px){
+            .hrb-you .hrb-body{max-height:222px;overflow-y:auto;}
+          }
           /* DAILY MASTERY ROWS. A meter behind the label, the same shape the
              Category Mastery tile on the browse row uses, so the two mastery
              surfaces read as one idea. The fill is a child rather than a
@@ -1165,31 +1167,6 @@ export default function HomeRails({
                   ))}
                 </div>
               ) : null}
-              <div className={youHasList ? 'hrb-duel' : 'hrb-body'}>
-                {rival ? (
-                  <Link href={duelHref} className="hr-fcard t0">
-                    <span className="hr-fctxt">
-                      <span className="hr-fceye">{rival.behind ? 'Right behind you' : 'Next one ahead'}</span>
-                      <span className="hr-fcnm">{rival.username}</span>
-                      <span className="hr-fcsub">
-                        {rival.rank ? '#' + rival.rank + ' today' : 'On the board today'}
-                        {gapLine ? <span className="hr-fcdot">&middot;</span> : null}
-                        {gapLine || null}
-                      </span>
-                    </span>
-                    <span className="hr-fcgo">Duel</span>
-                  </Link>
-                ) : (
-                  <Link href="/duel/new" className="hr-fcard t0">
-                    <span className="hr-fctxt">
-                      <span className="hr-fceye">Head to head</span>
-                      <span className="hr-fcnm">Start a duel</span>
-                      <span className="hr-fcsub">Pick anyone and a quiz, one round each</span>
-                    </span>
-                    <span className="hr-fcgo">Open</span>
-                  </Link>
-                )}
-              </div>
               <div className="hr-foot">
                 <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
                 <Link href="/quizzes/hub?tab=player" className="hr-link">Your stat hub &rarr;</Link>
@@ -1206,7 +1183,7 @@ export default function HomeRails({
             ) : null}
             <Link href={rival ? duelHref : '/duel/new'} className="hrb-duel">
               <span className="hrb-dtx">
-                <span className="hrb-de">{rival ? (rival.behind ? 'Right behind you' : 'Next one ahead') : 'Head to head'}</span>
+                <span className="hrb-de">{rival ? (rival.behind ? 'Ranked one behind you' : 'Ranked one ahead of you') : 'Head to head'}</span>
                 <span className="hrb-dn">{rival ? rival.username : 'Start a duel'}</span>
               </span>
               <span className="hrb-dgo">Challenge your rival</span>
