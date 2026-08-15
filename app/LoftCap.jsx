@@ -90,18 +90,18 @@ export default function LoftCap({
 .lcap-done .lcap-id{flex:0 0 auto}
 .lcap-tiles{display:flex;gap:6px;flex:1;min-width:0;padding:6px 12px 8px;overflow-x:auto}
 .lcap-tiles a{display:flex;align-items:center;gap:8px;
-  flex:1 1 0;min-width:88px;text-decoration:none;background:rgba(255,255,255,0.14);
-  border-radius:9px;padding:7px 9px;color:var(--white)}
-.lcap-tiles a:hover{background:rgba(255,255,255,0.22)}
+  flex:1 1 0;min-width:88px;text-decoration:none;background:rgba(255,255,255,0.95);
+  border-radius:9px;padding:6px 9px;color:var(--ink)}
+.lcap-tiles a:hover{background:var(--white)}
 .lcap-tiles b{display:block;font-weight:800;font-size:12.5px;line-height:1;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
 .lcap-tiles i{display:block;font-style:normal;font-weight:600;font-size:9.5px;line-height:1.25;
-  margin-top:3px;color:var(--blue-200);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  margin-top:3px;color:var(--slate);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* THE ICON SITS ON A WHITE PLATE, square and contained. The art is 76x76 and
    a non-square box renders it narrow, which throws the name out of line: that
    is the bug that shipped on the home rail when one game's art was 88x76. */
-.lcap-tiles img{flex:0 0 auto;width:30px;height:30px;border-radius:7px;
-  background:var(--white);padding:2px;object-fit:contain;display:block}
+.lcap-tiles img{flex:0 0 auto;width:34px;height:34px;border-radius:7px;
+  object-fit:contain;display:block}
 .lcap-tiles a>span{min-width:0}
 @media(min-width:900px){.lcap-tiles{flex:0 0 auto;order:3;margin-left:auto}
   .lcap-tiles a{flex:0 0 168px}}
@@ -208,6 +208,10 @@ export default function LoftCap({
    difference the owner reported. It is a paper texture for the cream magazine
    theme and has no job on a flat navy ground. */
 .loft-page > svg{display:none}
+.loft-page .loft-stage{min-height:0;padding-bottom:16px}
+.loft-page .loft-stage ~ div{margin-top:14px!important}
+.loft-page section{padding-top:0!important;padding-bottom:20px!important}
+.loft-page footer{margin-top:0!important;padding-top:18px!important}
 .loft-page .loft-stage ~ p{color:#bfd0ee!important}
 .loft-page .loft-stage ~ p a{color:#ffd45e!important}
 .loft-page .loft-stage ~ p b{color:var(--white)!important}

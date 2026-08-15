@@ -94,11 +94,11 @@ export default function LoftFinish({
   const myRow = !showAll && myIdx >= 3 ? rows[myIdx] : null;
 
   const lbRow = (r, i) => (
-    <div key={i} className={`loft-lbr${i === 0 ? ' first' : ''}${isMe(r) ? ' me' : ''}${showAll ? ' cols' : ''}`}>
+    <div key={i} className={`loft-lbr${i === 0 ? ' first' : ''}${isMe(r) ? ' me' : ''} cols`}>
       <span className="r">{i + 1}</span>
       <span className="n">{r.username || 'Anonymous'}</span>
       <span className="s">{r.score}</span>
-      {showAll && missLabel ? <span className="c">{r.guessesUsed != null ? r.guessesUsed : '—'}</span> : null}
+      {missLabel ? <span className="c">{r.guessesUsed != null ? r.guessesUsed : '—'}</span> : null}
       <span className="c">{fmtTime(r.timeElapsed) || '—'}</span>
     </div>
   );
@@ -171,12 +171,12 @@ export default function LoftFinish({
         <span className="d2"><b>{gameRank && gameRank.value != null
           ? gameRank.value
           : <Calculating />}</b>{gameRank ? gameRank.label : 'this game'}</span>
-        <span className="d3"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
-        <span className="d4"><b>{catRank && catRank.ready
+        <span className="d3"><b>{catRank && catRank.ready
           ? (catRank.rank != null ? `#${Number(catRank.rank).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>{catRank && catRank.cat
             ? `${String(catRank.cat).toLowerCase()} today`
             : 'category today'}</span>
+        <span className="d4"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
       </div>
 
       <div className="loft-lb">
@@ -186,7 +186,7 @@ export default function LoftFinish({
         </div>
         {!board ? <Calculating wide /> : null}
         {board && !rows.length ? <span className="loft-empty">Nobody has finished this one yet.</span> : null}
-        {showAll && rows.length ? (
+        {rows.length ? (
           <div className="loft-lbr head cols">
             <span className="r" />
             <span className="n">Player</span>
