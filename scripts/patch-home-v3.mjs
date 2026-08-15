@@ -820,6 +820,10 @@ const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name))
         .cb-dot{width:9px;height:9px;border-radius:3px;flex:none;background:var(--cc,var(--blue-dark));margin:0 3px;}
         .cb-tile:hover{background:var(--white);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
+        /* The row rule was removed with the name-list era and never put back,
+           so the glyph and the name stacked and the tile grew a hole above
+           them. One line: glyph, name, count. */
+        .cb-trow{display:flex;align-items:center;gap:9px;min-width:0;}
         .cb-sq{width:26px;height:26px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
         .cb-sq svg{display:block;}
         /* line-height, and it is load-bearing: an overflow:hidden nowrap name at
