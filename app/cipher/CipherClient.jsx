@@ -76,6 +76,7 @@ import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
 import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
+import useRailClearance from '../useRailClearance';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -390,6 +391,12 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   // Check move into a fixed dock at the bottom of the viewport, and the inline
   // rack + pad come out of the scroll flow. Everything else is unchanged.
   const dockUi = (mobileUi || narrowUi) && started;
+  // The foot of the page has to clear the pinned dock, and the reservation has to
+  // be a SPACER rather than padding on .cf-wrap: on a Loft page LoftCap zeroes that
+  // padding with !important, so the rail was covering the foot of the board
+  // outright (found alongside the Anon report, 2026-08-15). The height is read off
+  // the rail; the fallback is only for the first paint.
+  const rail = useRailClearance(dockUi && playing, 232);
   // Solving IS the win, so there is nothing left for a score to grade but
   // whether you got there. A reveal ends the day at 0, as before.
   const won = g.status === 'done';
@@ -921,7 +928,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           ]}
         />
       )}
-      <div className="cf-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: dockUi ? '18px 38px calc(232px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
+      <div className="cf-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cf-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .cf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -1274,6 +1281,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             streak logic; the on-page "Your stats" tile row is no longer shown.
             The daily leaderboard now renders in DailyGamesGrid's boardSlot,
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
+        {rail.height > 0 && <div aria-hidden style={{ height: rail.height }} />}
       </div>
 
       {/* Mobile dock. Everything a move needs, which letter and which digit,
@@ -1284,7 +1292,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           is the moment the rack's "lone" highlight used to flag), and the pad
           keys carry the rest of that bookkeeping themselves. */}
       {dockUi && playing && (
-        <div className={`cf-dock${noteMode ? ' notes' : ''}`}>
+        <div className={`cf-dock${noteMode ? ' notes' : ''}`} ref={rail.ref}>
           <div className="cf-dk">
             <div className={`cf-say${dockTone === 'bad' ? ' bad' : dockTone === 'good' ? ' good' : ''}`}>{dockSay}</div>
             <div className="cf-strip" style={{ gridTemplateColumns: `repeat(${LETTERS.length}, minmax(0,1fr))` }}>

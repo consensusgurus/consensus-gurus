@@ -37,6 +37,7 @@ import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import useIsMobile from '../quiz/[id]/useIsMobile';
+import useRailClearance from '../useRailClearance';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
@@ -221,6 +222,12 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   // The pinned keys, and the page padding that keeps content out from under them.
   const railUp = touchInput && playing && !!g.t0;
+  // The foot of the page has to clear the pinned rail, and the reservation has to
+  // be a SPACER rather than padding on .an-wrap: on a Loft page LoftCap zeroes
+  // that padding with !important, so the rail was covering the last stretch of the
+  // passage and the final row of the bank outright (owner, 2026-08-15). The height
+  // is read off the rail; the fallbacks are only for the first paint.
+  const rail = useRailClearance(railUp, narrow ? 250 : 168);
   const preStart = playing && !g.t0;
   const curAnswer = owner[cur];
 
@@ -485,13 +492,13 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
       const el = cellRefs.current[`q${cur}`];
       if (!el || !el.getBoundingClientRect) return;
       const r = el.getBoundingClientRect();
-      const foot = railUp ? (narrow ? 250 : 168) : 0;
+      const foot = rail.height;
       if (r.top < 60 || r.bottom > window.innerHeight - foot) {
         el.scrollIntoView({ block: 'center', behavior: 'smooth' });
       }
     });
     return () => cancelAnimationFrame(id);
-  }, [g.t0, cur, railUp, narrow]);
+  }, [g.t0, cur, rail.height]);
 
   const cellCls = (n) => {
     const c = ['an-cell'];
@@ -574,7 +581,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           ]}
         />
       )}
-      <div className="an-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: railUp ? `18px 38px calc(${narrow ? 250 : 168}px + env(safe-area-inset-bottom))` : '18px 38px 80px', fontFamily: SANS }}>
+      <div className="an-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.an-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .an-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -807,6 +814,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         </div>
+        {rail.height > 0 && <div aria-hidden style={{ height: rail.height }} />}
       </div>
 
           {/* The input rail, for any device with no physical keys. The keyboard is
@@ -817,9 +825,15 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           around the cell you are on. Those are the two most-pressed controls in
           the game and they belong under the thumb, not at the top of a page the
           player has scrolled away from. At tablet width both halves are already
-          visible, so a tablet gets the keys alone. */}
+          visible, so a tablet gets the keys alone.
+
+          The board clears it through the spacer at the foot of .an-wrap, whose
+          height is measured off this element by useRailClearance. It was bottom
+          padding on .an-wrap until 2026-08-15, which a Loft page zeroes with
+          !important, so the rail sat on top of the end of the passage and the
+          last row of the bank. */}
       {railUp && (
-        <div className="an-input">
+        <div className="an-input" ref={rail.ref}>
           <div className="an-inputin">
           {narrow && (
             <div className="an-dock">

@@ -334,7 +334,18 @@ export default function LoftCap({
    none) needs one added when it is converted.
 
    NO BACKTICKS IN THIS COMMENT. It lives inside a template literal, so a
-   backtick here closes the style block and breaks the build. */
+   backtick here closes the style block and breaks the build.
+
+   THIS RULE ALSO KILLS ANY CLEARANCE A GAME RESERVES FOR A PINNED RAIL, and it
+   does so silently. Anon, Cipher and Garble each pin their own keyboard or dock
+   to the bottom of the viewport and each reserved its height as padding-bottom on
+   the page column; the !important here won, the computed padding came out 0, and
+   the rail sat on top of the foot of the board. On Anon that meant the end of the
+   passage and the LAST ROW OF THE BANK could not be reached at all (owner,
+   2026-08-15). Do not special-case those games here: the zeroing is deliberate,
+   the stage supplies the spacing, and a game that pins a rail reserves its height
+   with a SPACER ELEMENT instead. app/useRailClearance.js is that mechanism, and it
+   measures the rail rather than trusting a hand-totalled constant. */
 .loft-page > [class$="-wrap"]:not(.dch-wrap){padding-top:0!important;padding-bottom:0!important}
 .loft-page{background:var(--accent)!important}
 /* NO GRAIN ON A LOFT PAGE. The grain is a fixed, 12%-opacity multiply layer at

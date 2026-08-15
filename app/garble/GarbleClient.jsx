@@ -36,6 +36,7 @@ import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
 import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
+import useRailClearance from '../useRailClearance';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
@@ -282,6 +283,12 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
   const started = playing && !!g.t0;   // clock running: show the board
+  // The foot of the page has to clear the pinned keys, and the reservation has to
+  // be a SPACER rather than padding on .gb-wrap: on a Loft page LoftCap zeroes that
+  // padding with !important, so the keys were covering the foot of the board
+  // outright (found alongside the Anon report, 2026-08-15). The height is read off
+  // the rail; the fallback is only for the first paint.
+  const rail = useRailClearance(started && mobileUi, 185);
   const focusMode = playing && !showChrome;
   const solvedCount = Object.keys(g.solved).length;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
@@ -540,7 +547,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           ]}
         />
       )}
-      <div className="gb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && started ? '18px 38px calc(185px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
+      <div className="gb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <style>{`
             .gb-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
@@ -795,14 +802,17 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             streak logic; the on-page "Your stats" tile row is no longer shown.
             The daily leaderboard now renders in DailyGamesGrid's boardSlot,
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
+        {rail.height > 0 && <div aria-hidden style={{ height: rail.height }} />}
       </div>
 
       {/* Mobile: keyboard pinned to the bottom of the viewport. The puzzle
-          content above scrolls independently (gb-wrap gets extra bottom padding
-          while playing), so the word rows and finale clue are never hidden
-          behind the keys — the fix for on-screen keys covering the top clues. */}
+          content above scrolls independently, so the word rows and finale clue
+          are never hidden behind the keys. The clearance that makes that true is
+          the spacer at the foot of gb-wrap, measured off this element by
+          useRailClearance: it used to be bottom padding on gb-wrap, which a Loft
+          page zeroes with !important, and the keys covered the board. */}
       {started && mobileUi && (
-        <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: COLORS.cream, borderTop: '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
+        <div ref={rail.ref} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: COLORS.cream, borderTop: '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
           <div style={{ maxWidth: 470, margin: '0 auto' }}>
             {keyboardRows}
           </div>
