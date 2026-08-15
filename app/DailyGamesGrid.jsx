@@ -64,6 +64,7 @@ const GAMES = [
   { key: 'quilt', href: '/quilt', name: 'Quilt', tag: 'The daily jigsaw sudoku', img: '/games/btn-quilt.png' },
   { key: 'cages', href: '/cages', name: 'Cages', tag: 'The daily killer sudoku', img: '/games/btn-cages.png' },
   { key: 'sando', href: '/sando', name: 'Sando', tag: 'The daily sandwich sudoku', img: '/games/btn-sando.png' },
+  { key: 'sixes', href: '/sixes', name: 'Sixes', tag: 'The daily mini sudoku', img: '/games/btn-sixes.png' },
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png' },
   { key: 'stet', href: '/stet', name: 'Stet', tag: 'Spot the error, fix the copy', img: '/games/btn-stet.png' },
@@ -130,7 +131,7 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon', 'rung', 'babel', 'barter'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'quilt', 'cages', 'sando', 'carve', 'cipher', 'crunch', 'blitz'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'sixes', 'quilt', 'cages', 'sando', 'carve', 'cipher', 'crunch', 'blitz'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket', 'plot'] },

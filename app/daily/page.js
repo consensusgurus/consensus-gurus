@@ -10,9 +10,11 @@ import { PUZZLES as SUDS } from '../suds/puzzles';
 import { PUZZLES as QUILT_FULL } from '../quilt/puzzles';
 import { PUZZLES as CAGES_FULL } from '../cages/puzzles';
 import { PUZZLES as SANDO_FULL } from '../sando/puzzles';
+import { PUZZLES as SIXES_FULL } from '../sixes/puzzles';
 const QUILT = QUILT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CAGES = CAGES_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SANDO = SANDO_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const SIXES = SIXES_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 import { PUZZLES as CARVE } from '../carve/puzzles';
 import { PUZZLES as CIRCA } from '../circa/puzzles';
 import { PUZZLES as OUTRANK } from '../outrank/puzzles';
@@ -180,6 +182,7 @@ const GAMES = [
   { key: 'suds', name: 'Suds', path: '/suds', tag: 'Fill the 9×9 grid, 1–9', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)', src: SUDS },
   { key: 'quilt', name: 'Quilt', path: '/quilt', tag: 'Nine crooked regions, 1–9', accent: '#a21caf', bg: '#fdf4ff', border: 'rgba(162,28,175,0.4)', src: QUILT },
   { key: 'cages', name: 'Cages', path: '/cages', tag: 'Killer sudoku, no clues', accent: '#6b21a8', bg: '#f6f2fd', border: 'rgba(107,33,168,0.4)', src: CAGES },
+  { key: 'sixes', name: 'Sixes', path: '/sixes', tag: 'Mini sudoku, 1 to 6', accent: '#1d4ed8', bg: '#eef3ff', border: 'rgba(29,78,216,0.4)', src: SIXES },
   { key: 'sando', name: 'Sando', path: '/sando', tag: 'Sandwich sudoku, 1 to 9', accent: '#15616b', bg: '#eaf6f7', border: 'rgba(21,97,107,0.4)', src: SANDO },
   { key: 'carve', name: 'Carve', path: '/carve', tag: 'Carve the grid into equal sums', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: CARVE },
   { key: 'circa', name: 'Circa', path: '/circa', tag: 'Pin the year of the moment', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)', src: CIRCA },

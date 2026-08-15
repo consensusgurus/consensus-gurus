@@ -64,6 +64,7 @@ const GAMES = [
   { key: 'quilt', href: '/quilt', name: 'Quilt', img: '/games/btn-quilt.png', store: 'sot_quilt_day', tag: "Sudoku with no straight lines" , cat: 'Numbers' },
   { key: 'cages', href: '/cages', name: 'Cages', img: '/games/btn-cages.png', store: 'sot_cages_day', tag: "The daily killer sudoku" , cat: 'Numbers' },
   { key: 'sando', href: '/sando', name: 'Sando', img: '/games/btn-sando.png', store: 'sot_sando_day', tag: "The daily sandwich sudoku" , cat: 'Numbers' },
+  { key: 'sixes', href: '/sixes', name: 'Sixes', img: '/games/btn-sixes.png', store: 'sot_sixes_day', tag: "The daily mini sudoku" , cat: 'Numbers' },
   { key: 'carve', href: '/carve', name: 'Carve', img: '/games/btn-carve.png', store: 'sot_carve_day', tag: "Equal-sum blocks" , cat: 'Numbers' },
   { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day', tag: "Name the story" , cat: 'Trivia' },
   { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day', tag: "Spot the error, fix the copy" , cat: 'Word' },
