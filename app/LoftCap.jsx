@@ -15,7 +15,7 @@
 // header bar with the name left, the figures and the help control at the
 // right edge. `.help` is a direct child rather than nested in the id block,
 // which is what lets `order` reach it.
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { DAILY_GAMES, isRetiredDaily } from '@/lib/daily-games';
 import useDailyRoster from './useDailyRoster';
 
@@ -45,6 +45,24 @@ export default function LoftCap({
   // strip is shown.
   const { played } = useDailyRoster({ active: !!outcome });
   const strip = outcome ? ALL_AZ.filter((g) => g.name !== name) : null;
+
+  const azRef = useRef(null);
+  useEffect(() => {
+    const el = azRef.current;
+    if (!el) return undefined;
+    const onWheel = (e) => {
+      if (e.deltaY === 0) return;
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 0) return;
+      const next = el.scrollLeft + e.deltaY;
+      if ((e.deltaY < 0 && el.scrollLeft > 0) || (e.deltaY > 0 && el.scrollLeft < max)) {
+        e.preventDefault();
+        el.scrollLeft = Math.max(0, Math.min(max, next));
+      }
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [outcome]);
 
   useEffect(() => {
     const board = () => document.querySelector('.loft-sheet') || document.querySelector('.loft-card');
@@ -138,13 +156,21 @@ export default function LoftCap({
   .lcap-tiles a{flex:0 0 168px}
   /* The roster is long, so it takes the width that is going and scrolls inside
      it rather than pushing the band wider. */
-  .lcap-tiles.az{flex:1 1 auto;max-width:min(60vw,760px);scroll-snap-type:x proximity}
-  .lcap-tiles.az a{flex:0 0 158px;scroll-snap-align:start}}
-.lcap-tiles.az{scrollbar-width:none}
-.lcap-tiles.az::-webkit-scrollbar{display:none}
+  .lcap-tiles.az{flex:1 1 auto;max-width:min(62vw,860px)}
+  .lcap-tiles.az a{flex:0 0 auto}}
+/* NAME-ONLY CHIPS, tight, so a lot of the roster is in view at once. */
+.lcap-tiles.az{gap:5px;padding:5px 12px 7px;align-items:center;
+  scroll-snap-type:none;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.45) transparent}
+.lcap-tiles.az a{display:block;flex:0 0 auto;min-width:0;white-space:nowrap;
+  background:rgba(255,255,255,0.14);color:var(--white);border-radius:7px;
+  padding:6px 10px;font-weight:800;font-size:12.5px;line-height:1.1;gap:0}
+.lcap-tiles.az a:hover{background:rgba(255,255,255,0.30)}
+.lcap-tiles.az::-webkit-scrollbar{height:6px}
+.lcap-tiles.az::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.45);border-radius:99px}
+.lcap-tiles.az::-webkit-scrollbar-track{background:rgba(255,255,255,0.10);border-radius:99px}
 /* Finished today: still there, still reachable, just not competing with the
    ones you have not played. */
-.lcap-tiles.az a.done{opacity:.55}
+.lcap-tiles.az a.done{opacity:.5}
 /* PHONE: a snapping slider. Three tiles across a 390px row leaves each about
    118px, which truncates most taglines, so the row scrolls instead and shows
    about two and a half. The scrollbar is hidden because the partial tile at
@@ -630,14 +656,9 @@ export default function LoftCap({
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
       ) : null}
       {strip && strip.length ? (
-        <div className="lcap-tiles az">
+        <div className="lcap-tiles az" ref={azRef}>
           {strip.map((t) => (
-            <a key={t.key} href={t.href} className={played[t.key] ? 'done' : undefined}>
-              <img src={`/games/blue/btn-${t.key}.png`} alt="" width={30} height={30}
-                onError={(e) => { const full = `/games/btn-${t.key}.png`;
-                  if (!e.currentTarget.src.endsWith(full)) e.currentTarget.src = full; }} />
-              <span><b>{t.name}</b><i>{t.tag}</i></span>
-            </a>
+            <a key={t.key} href={t.href} className={played[t.key] ? 'done' : undefined}>{t.name}</a>
           ))}
         </div>
       ) : null}
