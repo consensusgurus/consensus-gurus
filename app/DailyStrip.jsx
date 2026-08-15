@@ -191,6 +191,18 @@ for (const [k, v] of Object.entries(CAT_COLOR)) {
   CAT_BD[k] = mixHex(v, 0.72, TINT_BASE);
 }
 const catCol = (cat) => CAT_COLOR[cat] || T.muted;
+
+const CAT_GLYPH = {
+  Word: Type,
+  Numbers: Hash,
+  Logic: Puzzle,
+  Geography: Globe2,
+  Trivia: HelpCircle,
+  'End Game': Swords,
+  Cards: Spade,
+  Arcade: Gamepad2,
+  'Crowd Psychology': Users,
+};
 // 'Crowd Psychology' is too long for a tile chip.
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // The PHONE peek: six UNPLAYED games, and only unplayed ones (owner,
