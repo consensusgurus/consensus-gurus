@@ -595,7 +595,18 @@ function sub(src, find, repl, label, count = 1, mark = null) {
   })();
 
   const renderCatCap = () => {
-    const slots = capPool.slice(0, 3);
+    /* BLUE LEADS, STATE TRAILS (owner, 2026-08-15: blue tiles always upper
+       left, push paused to the right). Composition picks WHAT is in the cap;
+       this orders it. Without the sort a lone paused board landed in the middle
+       (blue, gold, blue) because it was chosen second; sorted, the recommending
+       picks group left and whatever is outstanding sits on the right edge where
+       it reads as a tail rather than an interruption. Stable, so the pick order
+       inside each colour survives. */
+    const RANK = { up: 0, easy: 0, lead: 0, prog: 1, fail: 2 };
+    const slots = capPool.slice(0, 3)
+      .map((sl, i) => ({ sl, i }))
+      .sort((a, b) => (RANK[a.sl.kind] ?? 0) - (RANK[b.sl.kind] ?? 0) || a.i - b.i)
+      .map((x) => x.sl);
     if (!slots.length) {
       return (
         <div className="cb-cap" style={{ gridTemplateColumns: '1fr' }}>
@@ -783,8 +794,8 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .cb-card.fail{background:#b91c1c;color:var(--white);border-left-color:#f3a5a5;}
         .cb-ct{display:flex;flex-direction:column;min-width:0;}
         .cb-ce{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.82;margin-bottom:4px;}
-        .cb-cn{font-size:20px;font-weight:800;letter-spacing:-.015em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-cs{font-size:11.5px;font-weight:500;opacity:.85;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-cn{font-size:20px;font-weight:800;letter-spacing:-.015em;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-cs{font-size:11.5px;line-height:1.45;font-weight:500;opacity:.85;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-cb{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;background:var(--white);color:var(--accent);border-radius:7px;padding:10px 14px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
         .cb-card.prog .cb-cb{color:#3a2a05;}
         .cb-card.fail .cb-cb{color:#b91c1c;}
@@ -815,7 +826,11 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
         .cb-sq{width:26px;height:26px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
         .cb-sq svg{display:block;}
-        .cb-tnm{flex:1 1 auto;min-width:0;font-size:13.5px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* line-height, and it is load-bearing: an overflow:hidden nowrap name at
+           the default 1.2 clips the descender of a g or y (Rung lost its tail).
+           Anything that ellipsizes text needs a line box taller than the glyphs
+           it is hiding the sides of. */
+        .cb-tnm{flex:1 1 auto;min-width:0;font-size:13.5px;line-height:1.45;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-tct{flex:none;margin-left:6px;font-size:11.5px;font-weight:800;color:var(--slate);font-variant-numeric:tabular-nums;}
         .cb-bar{display:block;height:4px;border-radius:4px;background:#dbe4f1;overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
@@ -850,8 +865,8 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            tenth colour to the page. */
         .cb-rsq{width:30px;height:30px;border-radius:7px;flex:none;object-fit:contain;background:var(--surface-alt);}
         .cb-rt{display:flex;flex-direction:column;min-width:0;}
-        .cb-rt b{font-size:15px;font-weight:800;}
-        .cb-rt span{font-size:12px;color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-rt b{font-size:15px;line-height:1.4;font-weight:800;}
+        .cb-rt span{font-size:12px;line-height:1.45;color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-rs{margin-left:auto;flex:none;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
         .cb-rs.go{color:var(--blue);}
         .cb-rs.prog{color:#8a5300;}
