@@ -418,6 +418,16 @@ function sub(src, find, repl, label, count = 1, mark = null) {
     `export default function DailyStrip({ board = null, layout = 'tiles', quizCats = [] }) {`,
     'DS:signature');
 
+  // The slate's own filter learns about circuits, which is what lets its real
+  // rows answer an open circuit without a second row renderer existing.
+  s = sub(s,
+    `  const slateMatch = (g) => (filter === 'all' ? true : filter === 'todo' ? !done.has(g.key) : g.cat === filter);`,
+    `  const slateMatch = (g) => (filter === 'all' ? true
+    : filter === 'todo' ? !done.has(g.key)
+      : String(filter).startsWith('circuit:') ? circuitsOf(g).includes(String(filter).slice(8))
+        : g.cat === filter);`,
+    'DS:slatematch');
+
   s = sub(s,
     `  const slate = layout === 'slate';`,
     `  // The category-tile board (home v3). Deliberately NOT the string 'tiles',
@@ -467,7 +477,15 @@ function sub(src, find, repl, label, count = 1, mark = null) {
   s = sub(s,
     `            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '')}`,
     `            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '') + (cats && slateCats.includes(filter) ? ' cb-open' : '')}`,
-    'DS:board-open');
+    'DS:board-open', 1, ` + (cats && `);
+
+  // cb-open has to mean ANY open filter, not only a category name, or a circuit
+  // opens without the board switching out of grid mode. Its own edit: the one
+  // above is an insert and is skipped once it is on origin.
+  s = sub(s,
+    `(cats && slateCats.includes(filter) ? ' cb-open' : '')`,
+    `(cats && filter !== 'all' && filter !== 'todo' && filter !== 'sunday' ? ' cb-open' : '')`,
+    'DS:board-open-any');
 
   // Category glyphs. lucide is already a dependency and already imported here,
   // so this is nine more names on the existing import rather than any new art.
@@ -640,64 +658,25 @@ function sub(src, find, repl, label, count = 1, mark = null) {
     if (boardOpen) {
       const list = openCircuit ? circuitGames(openCircuit) : catOf(catOpen);
       const label = openCircuit || CAT_SHORT[catOpen] || catOpen;
+      /* THE HEADER ONLY. The rows underneath are the SLATE'S OWN, which are
+         already in the DOM, already carry the full set of columns (rank today,
+         streak, leader, status, archive completion) and are already filtered by
+         the same state, which now understands a circuit as well as a category.
+         They were being hidden by the override layer and replaced with a simpler
+         list of my own, which was both less than the page already had and a
+         second thing to maintain (owner, 2026-08-15: these elements already
+         exist on our /daily page). The CSS below un-hides them when something
+         is open instead. */
       return (
-        <div className="cb-open-wrap" key="cb-open">
-          <button type="button" className="cb-hd" onClick={() => setFilter('all')}>
-            <span className="cb-hsq" style={{ '--cc': openCircuit ? T.blue : catCol(catOpen) }}>
-              {(() => { const G = openCircuit ? Puzzle : (CAT_GLYPH[catOpen] || Star); return <G size={15} strokeWidth={2.4} />; })()}
-            </span>
-            {label} &middot; {list.length} game{list.length === 1 ? '' : 's'}
-            <span>All categories &#9650;</span>
-          </button>
-          <div className="cb-rows">
-            {list.map((g) => {
-              const isDone = done.has(g.key);
-              const fl = isFail(g.key);
-              const ip = inprog.has(g.key) && !isDone;
-              return (
-                <a href={g.href} className="cb-row" key={'cb-' + g.key}>
-                  <img className="cb-rsq" src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
-                  <span className="cb-rt"><b>{g.name}</b><span>{openCircuit ? (CAT_SHORT[g.cat] || g.cat) + ' \u00b7 ' + g.tag : g.tag}</span></span>
-                  {fl ? <span className="cb-rs fail">Retry</span>
-                    : isDone ? <span className="cb-rs done">Done</span>
-                      : ip ? <span className="cb-rs prog">Resume</span>
-                        : <span className="cb-rs go">Play &rarr;</span>}
-                </a>
-              );
-            })}
-          </div>
-        </div>
+        <button type="button" className="cb-hd" key="cb-open" onClick={() => setFilter('all')}>
+          <span className="cb-hsq" style={{ '--cc': openCircuit ? T.blueDark : catCol(catOpen) }}>
+            {(() => { const G = openCircuit ? Puzzle : (CAT_GLYPH[catOpen] || Star); return <G size={15} strokeWidth={2.4} />; })()}
+          </span>
+          {label} &middot; {list.length} game{list.length === 1 ? '' : 's'}
+          <span>All categories &#9650;</span>
+        </button>
       );
     }
-    /* ONE FLAT GRID OF SMALL TILES (owner, 2026-08-15). Nine big tiles could
-       not be filled: whatever went inside them, a two-name peek, sixty-three
-       icons, four circuit rows, was either too thin to justify the box or too
-       busy to read, and every version left a hole. So the box stops being big.
-       Categories and circuits sit together as 24 equal tiles carrying only what
-       a tile needs to say: what it is, how many, how far in you are. Four
-       across and six down is exactly 24, so the grid fills the board evenly and
-       never scrolls until something is opened.
-
-       NO QUIZ TAB here either. That was built on a misread: the ask was for
-       subcategories WITHIN the daily categories, not the quiz catalogue hoisted
-       onto the board. The quizCats prop is left plumbed but unrendered. */
-    const tiles = slateCats.map((c) => {
-      const list = catOf(c);
-      return {
-        k: 'cat:' + c, kind: 'cat', label: CAT_SHORT[c] || c, n: list.length,
-        nDone: list.filter((g) => done.has(g.key)).length,
-        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
-        col: catCol(c), glyph: CAT_GLYPH[c] || Star, go: () => setFilter(c),
-      };
-    }).concat(CIRCUITS.map(([name]) => {
-      const list = circuitGames(name);
-      return {
-        k: 'cir:' + name, kind: 'cir', label: name, n: list.length,
-        nDone: list.filter((g) => done.has(g.key)).length,
-        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
-        col: T.blueDark, glyph: null, go: () => setFilter('circuit:' + name),
-      };
-    }));
     const tileEl = (t) => (
       <button type="button" key={t.k} className={'cb-tile ' + t.kind}
         style={{ '--cc': t.col }} onClick={t.go} title={t.label}>
@@ -769,11 +748,17 @@ function sub(src, find, repl, label, count = 1, mark = null) {
                 .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow:hidden;gap:0;background:#e4ebf5;}
         /* Shut, the grid fits by construction and must not scroll. Open, the
            game list is as long as the category is and scrolling is the point. */
-        .dhome.cats .dh-board.cb-open{overflow-y:auto;}
+        .dhome.cats .dh-board.cb-open{overflow-y:auto;background:var(--white);}
         /* The override layer: the slate's own rows, bands, column header and
            chip strip are still in the DOM and still correct on a phone; up here
            they step aside for the tiles, and the four-card cap for the three. */
-        .dhome.cats .sl-row,.dhome.cats .sl-drawer,.dhome.cats .sl-band,.dhome.cats .sl-head,.dhome.cats .sl-filtw,.dhome.cats .sl-more{display:none !important;}
+        .dhome.cats .sl-filtw,.dhome.cats .sl-more{display:none !important;}
+        .dhome.cats .dh-board:not(.cb-open) .sl-row,
+        .dhome.cats .dh-board:not(.cb-open) .sl-drawer,
+        .dhome.cats .dh-board:not(.cb-open) .sl-band,
+        .dhome.cats .dh-board:not(.cb-open) .sl-head{display:none !important;}
+        .dhome.cats .dh-board.cb-open .cb-tiles,
+        .dhome.cats .dh-board.cb-open .cb-sect{display:none !important;}
         .dhome.cats .dh-sbar > .dh-cell,.dhome.cats .dh-sbar > .dh-cprog{display:none !important;}
 
         /* THE CAP IS THE "WHAT SHOULD I PLAY" ZONE, six picks wide open and three
@@ -851,27 +836,11 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         /* Open: the category owns the whole board. The tiles are not shrunk,
            they are not rendered at all, which is what "takes over the full
            space" has to mean if the list is going to be worth opening. */
-        .dhome.cats .cb-open-wrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;}
-        .dhome.cats .cb-rows{flex:1 1 auto;min-height:0;overflow-y:auto;}
-        .dhome.cats .cb-hd,.dhome.cats .cb-row{flex:none;}
+        .dhome.cats .cb-hd{flex:none;}
         .cb-hsq{width:22px;height:22px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);margin-right:9px;}
 
         .cb-hd{display:flex;align-items:center;width:100%;flex:none;border:none;border-top:1px solid #d3ddec;background:#dde6f3;color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
         .cb-hd span{margin-left:auto;letter-spacing:.04em;color:var(--slate);}
-        .cb-row{display:flex;align-items:center;gap:13px;padding:13px 18px;border-bottom:1px solid #d3ddec;text-decoration:none;color:var(--ink);background:#f4f7fc;}
-        .cb-row:hover{background:var(--white);}
-        /* Rows carry the game's OWN art, already remapped onto the blue ramp by
-           blueTile, so a row is identifiable at a glance without adding a
-           tenth colour to the page. */
-        .cb-rsq{width:30px;height:30px;border-radius:7px;flex:none;object-fit:contain;background:var(--surface-alt);}
-        .cb-rt{display:flex;flex-direction:column;min-width:0;}
-        .cb-rt b{font-size:15px;line-height:1.4;font-weight:800;}
-        .cb-rt span{font-size:12px;line-height:1.45;color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-rs{margin-left:auto;flex:none;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
-        .cb-rs.go{color:var(--blue);}
-        .cb-rs.prog{color:#8a5300;}
-        .cb-rs.done{color:var(--success-deep);}
-        .cb-rs.fail{color:var(--danger);}
       }
       /* 901-1200px: the columns are NOT pinned at this width (railH is not set
          either), so the console goes back to natural height and scrolls with
@@ -891,7 +860,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
          perfectly good phone slate. MOBILE IS UNTOUCHED, and this is the line
          that guarantees it. */
       @media(max-width:900px){
-        .dhome.cats .cb-cap,.dhome.cats .cb-sect,.dhome.cats .cb-tiles,.dhome.cats .cb-hd,.dhome.cats .cb-row{display:none !important;}
+        .dhome.cats .cb-cap,.dhome.cats .cb-sect,.dhome.cats .cb-tiles,.dhome.cats .cb-hd{display:none !important;}
       }
 `;
   s = region(s, '      /* ── HOME v3 category board', '\n      ` }} />', CSS, 'DS:css');
