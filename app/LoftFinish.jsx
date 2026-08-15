@@ -55,6 +55,7 @@
 // four identical outlined boxes and read as one undifferentiated block (owner,
 // 2026-08-14); the tone is what tells them apart at a glance.
 import React, { useState } from 'react';
+import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
 
 function fmtTime(s) {
@@ -77,6 +78,18 @@ export default function LoftFinish({
 }) {
   const [showAll, setShowAll] = useState(false);
   const [openArchive, setOpenArchive] = useState(false);
+  // BROWSE EVERY GAME BY CATEGORY (owner). The next-up tiles offer a handful;
+  // this opens the whole roster, starting on the category just played, because
+  // that is the one the reader is already in the mood for.
+  const [browse, setBrowse] = useState(false);
+  const roster = useDailyRoster({ active: browse });
+  const [pickCat, setPickCat] = useState(null);
+  const myCat = (catRank && catRank.cat)
+    || (roster.cats.find((c) => c.games.some((g) => g.name === name)) || {}).cat
+    || (roster.cats[0] || {}).cat
+    || null;
+  const shownCat = pickCat || myCat;
+  const shownGames = (roster.cats.find((c) => c.cat === shownCat) || {}).games || [];
 
   const optsRaw = options.filter(Boolean);
   // THE ROW ORDER IS DECIDED HERE, not by the order a client lists its options
@@ -234,6 +247,32 @@ export default function LoftFinish({
             {name ? `${name} Archive` : 'Archive'}
             <span className="sub">Every daily puzzle, by date</span>
           </button>
+        ) : null}
+        {roster.cats.length ? (
+          <button type="button" className="loft-opt wide t-browse" onClick={() => setBrowse((v) => !v)}>
+            {browse ? 'Hide the other puzzles' : `Show all ${shownCat || 'puzzles'}`}
+            <span className="sub">{browse ? 'Back to your options' : 'Every daily, by category'}</span>
+          </button>
+        ) : null}
+        {browse && roster.cats.length ? (
+          <div className="loft-browse">
+            <div className="loft-cats">
+              {roster.cats.map((c) => (
+                <button key={c.cat} type="button"
+                  className={c.cat === shownCat ? 'on' : undefined}
+                  onClick={() => setPickCat(c.cat)}>{c.cat}<i>{c.games.length}</i></button>
+              ))}
+            </div>
+            <div className="loft-gtiles">
+              {shownGames.map((g) => (
+                <a key={g.key} href={g.href} className={g.played ? 'played' : undefined}>
+                  <img src={g.img} alt="" width={30} height={30} />
+                  <span><b>{g.name}</b><i>{g.tag}</i></span>
+                  {g.played ? <em>Played</em> : null}
+                </a>
+              ))}
+            </div>
+          </div>
         ) : null}
         {mains.map((o, i) => {
           const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}`;

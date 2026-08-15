@@ -510,6 +510,38 @@ export default function LoftCap({
   border-left:5px solid var(--blue-deep)}
 .loft-opt.t-reveal{background:rgba(109,40,217,0.08);border-color:rgba(109,40,217,0.26);
   border-left:5px solid #6d28d9}
+/* THE CATEGORY BROWSER. Its own tone, slate, so it does not read as one of the
+   coloured actions above it: it opens a panel rather than going anywhere. */
+.loft-opt.t-browse{background:var(--surface-alt);border-color:var(--border);
+  border-left:5px solid var(--muted)}
+.loft-browse{grid-column:1 / -1;margin-top:2px}
+.loft-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.loft-cats button{font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;
+  padding:6px 10px;border-radius:999px;border:1.5px solid var(--border);
+  background:var(--white);color:var(--slate);display:inline-flex;align-items:center;gap:6px}
+.loft-cats button i{font-style:normal;font-weight:700;font-size:9.5px;color:var(--slate);
+  background:var(--surface-alt);border-radius:999px;padding:1px 5px}
+.loft-cats button.on{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.loft-cats button.on i{background:rgba(255,255,255,0.24);color:var(--white)}
+/* Two across on a desktop card, one on a phone: a tagline needs the width more
+   than the grid needs a third column. */
+.loft-gtiles{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+@media(max-width:560px){.loft-gtiles{grid-template-columns:1fr}}
+.loft-gtiles a{display:flex;align-items:center;gap:9px;text-decoration:none;
+  border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--white);
+  color:var(--ink);min-width:0}
+.loft-gtiles a:hover{border-color:var(--blue);background:var(--accent-soft)}
+.loft-gtiles img{flex:0 0 auto;width:30px;height:30px;border-radius:7px;object-fit:contain;display:block}
+.loft-gtiles span{min-width:0;flex:1}
+.loft-gtiles b{display:block;font-weight:800;font-size:13px;line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loft-gtiles i{display:block;font-style:normal;font-weight:600;font-size:10.5px;line-height:1.25;
+  margin-top:2px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* A game you have already finished today stays reachable, just quieter. */
+.loft-gtiles a.played{background:var(--surface-alt);border-color:var(--border)}
+.loft-gtiles a.played b,.loft-gtiles a.played i{color:var(--slate)}
+.loft-gtiles em{flex:0 0 auto;font-style:normal;font-weight:800;font-size:9px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--success-deep)}
 .loft-opt.t-archive{background:rgba(217,119,6,0.09);border-color:rgba(217,119,6,0.26);
   border-left:5px solid #b45309}
 
