@@ -3803,9 +3803,26 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
          This rule has to live OUT here: inside the min-width:901px block it
          read "at least 901 and at most 900", which is never, because a nested
          media query intersects with its parent rather than replacing it. */
+      /* NO ARROWS AND NO FADES ON TOUCH (owner, 2026-08-15): flick to slide.
+         A chevron is a MOUSE affordance. It exists to tell a pointer that a
+         strip scrolls, because a pointer cannot simply try; a finger tries. On
+         a phone both the button and the fade are chrome sitting on top of the
+         thing they advertise, and the fade is the worse of the two, because
+         what it dims is the first and last chip you are reaching for.
+
+         The padding goes with them: .ml and .mr add 26px to clear a button
+         that is no longer drawn, and that padding is why the strip would
+         otherwise start with a gap where the arrow used to be. */
       @media(max-width:900px){
-        .dhome.cats .sl-filtw2 .sl-fnav{display:none !important;}
+        .dhome.cats .sl-fnav{display:none !important;}
+        .dhome.cats .sl-filtw::before,.dhome.cats .sl-filtw::after,
         .dhome.cats .sl-filtw2::before,.dhome.cats .sl-filtw2::after{display:none !important;}
+        .dhome.cats .sl-filtw.ml .sl-filt,.dhome.cats .sl-filtw.mr .sl-filt,
+        .dhome.cats .sl-filtw2.ml .sl-filt,.dhome.cats .sl-filtw2.mr .sl-filt{padding-left:0;padding-right:0;}
+        /* Momentum scrolling on the older iOS engines, and the strip owns its
+           horizontal gestures so a flick along it never turns into a page
+           scroll halfway through. */
+        .dhome.cats .sl-filt{-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x;}
       }
       /* Below 901px the catboard does not exist: every rule above is desktop
          only, so without this its elements would render unstyled underneath a
