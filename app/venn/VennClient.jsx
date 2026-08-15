@@ -32,6 +32,17 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { isLoft } from '@/lib/loft';
+import ReportIssue from '../ReportIssue';
+import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import DailyRules from '../DailyRules';
 import { T } from '@/lib/theme';
 import { ruleFn, ruleLabel, usesFacts } from '@/lib/venn-rules';
@@ -146,6 +157,12 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -166,6 +183,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
 
   const playing = g.status === 'playing';
+  const LOFT = isLoft('venn');
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
@@ -248,6 +266,13 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const iq = useIqStanding({ game: 'venn', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'venn', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'venn', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'venn', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'venn', active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
@@ -356,12 +381,33 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
   const trayItems = PUZZLE.items.map((w, i) => ({ w, i })).filter(({ i }) => !g.place[i]);
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="venn" name="Venn" collapsed={started} />
+      <DailyChrome slug="venn" name="Venn" collapsed={started} loft={LOFT} />
+      {LOFT && (
+        <LoftCap
+          name="Venn"
+          cat="Logic"
+          outcome={playing ? null : (won ? 'won' : (score > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          tiles={playing ? null : upNext}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved'))}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: liveScore, k: 'score' },
+            { v: g.rejected, k: 'rejected' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: `${score}/${TOTAL}`, k: 'score' },
+            { v: g.rejected, k: 'rejected' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="vn-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.vn-wrap{padding-left:12px !important;padding-right:12px !important;}}
@@ -392,6 +438,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
 
+        {!LOFT && (
         <DailyMasthead
           slug="venn"
           num={PUZZLE.num}
@@ -405,9 +452,17 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen, so the board is the one lit object. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The sheet is face down'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -498,6 +553,54 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
+
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Venn"
+              catRank={catRank}
+              outcome={won ? 'won' : (score > 0 ? 'part' : 'lost')}
+              title={won ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved')}
+              detail={`${`${score}/${TOTAL}`} \u00b7 ${g.rejected} rejected \u00b7 ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `venn of ${allTime.field}` : 'venn all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Rejects"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/venn?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+              prevPuzzle && { tone: 'another', label: 'Play another Venn', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/venn?p=${prevPuzzle.num}` },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
         {!playing && (
           <>
             <div style={{ maxWidth: 472, margin: '10px 0 12px' }}>
@@ -523,11 +626,17 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
+          {LOFT && (
+            <div className="loft-report">
+              <ReportIssue self="venn" name="Venn" accent="#ffffff" align="center" />
+            </div>
+          )}
+          {!LOFT && (
           <DailyGamesGrid replay={!playing ? resetGame : null} self="venn" maxWidth={640} challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light boardSlot={<DailyBoardPanel self="venn" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />} divider />
+          )}
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -557,7 +666,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
         </div>
       </div>
 
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard modal self="venn" won={won} completed={g.status === 'done'}
           headline={g.status === 'done' ? <>Every word filed</> : <>The sheet came back</>}
           subline={<>Venn #{PUZZLE.num} &middot; {score}/{TOTAL} &middot; {g.rejected} rejected sheet{g.rejected === 1 ? '' : 's'} &middot; {elapsed}</>}

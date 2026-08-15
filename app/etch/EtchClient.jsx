@@ -919,7 +919,6 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>

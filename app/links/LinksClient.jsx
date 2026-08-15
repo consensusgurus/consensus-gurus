@@ -30,6 +30,17 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { isLoft } from '@/lib/loft';
+import ReportIssue from '../ReportIssue';
+import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -209,6 +220,12 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   const [justSolved, setJustSolved] = useState(null); // ci of the group animating in
   const [justWon, setJustWon] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -329,6 +346,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
+  const LOFT = isLoft('links');
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
@@ -338,6 +356,13 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   const gridWords = g.order.filter((w) => !solvedWords.has(w));
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const iq = useIqStanding({ game: 'links', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'links', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'links', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'links', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'links', active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
@@ -514,12 +539,31 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: T.surface, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="links" name="Links" collapsed={started} />
+      <DailyChrome slug="links" name="Links" collapsed={started} loft={LOFT} />
+      {LOFT && (
+        <LoftCap
+          name="Links"
+          cat="Word"
+          outcome={playing ? null : (won ? 'won' : 'lost')}
+          num={PUZZLE.num}
+          tiles={playing ? null : upNext}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: `${g.solved.length}/4`, k: 'groups' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: `${g.solved.length}/4`, k: 'groups' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="lk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.lk-wrap{padding-left:14px !important;padding-right:14px !important;}}
@@ -544,6 +588,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         {/* puzzle-native top strip (Crux pattern): quiet nav + player chip */}
 
         {/* masthead: pressed LINKS tiles with No./date inline, one rule beneath */}
+        {!LOFT && (
         <DailyMasthead
           slug="links"
           num={PUZZLE.num}
@@ -558,10 +603,18 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
+        )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen, so the board is the one lit object. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
         {/* start tile — the board stays sealed until Start begins the clock */}
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
+          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Links is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -634,6 +687,54 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
+
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Links"
+              catRank={catRank}
+              outcome={won ? 'won' : 'lost'}
+              title={won ? 'Solved' : 'Not solved'}
+              detail={`${`${g.solved.length}/4`} groups \u00b7 ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `links of ${allTime.field}` : 'links all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Miss"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/links?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+              prevPuzzle && { tone: 'another', label: 'Play another Links', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/links?p=${prevPuzzle.num}` },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
         {/* result */}
         {!playing && (
           <>
@@ -670,11 +771,16 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         {focusMode && (
           <div style={{ maxWidth: 560, margin: '30px auto 0', textAlign: 'center' }}>
             <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          {LOFT && (
+            <div className="loft-report">
+              <ReportIssue self="links" name="Links" accent="#ffffff" align="center" />
+            </div>
+          )}
+          {!LOFT && (
           <DailyGamesGrid replay={!playing ? resetGame : null}
             self="links"
             maxWidth={560}
@@ -684,6 +790,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
             boardSlot={<DailyBoardPanel self="links" quizId={PUZZLE.quizId} maxWidth={560} streak={{ current: myStats.cur, best: myStats.max }} />}
             divider
           />
+          )}
           {mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
@@ -723,7 +830,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
       </div>
 
       {/* the end-of-puzzle popup: the shared DailyEndCard as a dismissible modal (win or loss) */}
-      {!playing && !endClosed && (
+      {!playing && !endClosed && !LOFT && (
         <DailyEndCard
           modal
           self="links"

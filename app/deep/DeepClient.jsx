@@ -678,8 +678,8 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
                 }))}
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { tone: 'reveal', label: won ? 'Return to board' : 'See the answer you missed',
-                  sub: won ? 'Your finished board' : 'The question that ended the run', onClick: () => setRevealed(true) },
+                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Deep', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/deep?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
@@ -731,7 +731,6 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
             <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
-            <div style={{ fontFamily: SANS, fontSize: 11, color: COLORS.faded, fontWeight: 600, marginTop: 8 }}>Leaderboards, share for credit &amp; the other daily puzzles</div>
           </div>
         )}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
