@@ -569,29 +569,25 @@ function sub(src, find, repl, label, count = 1, mark = null) {
       if (!g || seen.has(g.key)) return;
       seen.add(g.key); out.push({ kind, eb, g, btn, note });
     };
+    /* THE CAP IS ONE ROW OF THREE, and its colour is a rule rather than an
+       accident (owner, 2026-08-15): three blue when nothing is outstanding, at
+       most ONE gold, and blue-gold-red when there is one of each.
+
+       Unbounded state cards were what made this necessary. Paused and failed
+       boards accumulate, so a busy day filled the cap with gold and red and it
+       stopped suggesting anything: it just listed what you had left lying
+       around. One of each is enough to say you have unfinished business, and
+       every remaining slot goes to a pick that actually recommends something.
+       Up next always leads, so there is always at least one blue. */
     if (nextGame) add('up', 'Up next', nextGame, 'Play', playsNote(nextPlays));
-    /* AT MOST TWO STATE CARDS (owner, 2026-08-15: more of the original blue
-       tiles up top, such as the easiest board). Paused and failed boards are
-       unbounded, so a busy day filled five of the six slots with gold and red
-       and the cap stopped suggesting anything: it just listed what you had left
-       lying around. Two is enough to say you have unfinished business and it
-       leaves four slots for picks that actually recommend something. */
-    let stateN = 0;
-    for (const c of capState) {
-      if (stateN >= 2) break;
-      stateN += 1;
-      const paused = c.kind === 'prog';
-      // FAILED, not "Unfinished" (owner, 2026-08-15): a paused board is also
-      // unfinished, so the word said nothing that told the two apart. Failed is
-      // the wording the old cap used for exactly this state and it is the one
-      // the red already means.
-      add(paused ? 'prog' : 'fail', paused ? 'Paused' : 'Failed', c.game,
-        paused ? 'Resume' : 'Retry', paused ? playsNote(playsOf(c.game.key)) : '');
-    }
+    const prog = capState.find((c) => c.kind === 'prog');
+    if (prog) add('prog', 'Paused', prog.game, 'Resume', playsNote(playsOf(prog.game.key)));
+    const fail = capState.find((c) => c.kind === 'fail');
+    if (fail) add('fail', 'Failed', fail.game, 'Retry', '');
     if (easiest) add('easy', 'Easiest leaderboard', easiest.game, 'Play', fieldNote(easiest.players));
     for (const c of (capLead || [])) add('lead', CAP_LEAD_LABEL[c.kind], c.game, 'Play', '');
     for (const g of games) {
-      if (out.length >= 6) break;
+      if (out.length >= 3) break;
       if (done.has(g.key) || inprog.has(g.key)) continue;
       add('lead', CAT_SHORT[g.cat] || g.cat, g, 'Play', playsNote(playsOf(g.key)));
     }
@@ -599,7 +595,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
   })();
 
   const renderCatCap = () => {
-    const slots = capPool.slice(0, boardOpen ? 3 : 6);
+    const slots = capPool.slice(0, 3);
     if (!slots.length) {
       return (
         <div className="cb-cap" style={{ gridTemplateColumns: '1fr' }}>
@@ -614,7 +610,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
       );
     }
     return (
-      <div className={'cb-cap' + (slots.length > 3 ? ' six' : '')}>
+      <div className="cb-cap" style={{ gridTemplateColumns: 'repeat(' + Math.max(1, slots.length) + ', minmax(0,1fr))' }}>
         {slots.map((sl) => (
           <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
             <span className="cb-ct">
