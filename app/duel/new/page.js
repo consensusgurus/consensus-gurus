@@ -36,6 +36,7 @@ export default function NewDuelPage() {
   const [signupOpen, setSignupOpen] = useState(false);
   const [pendingQuiz, setPendingQuiz] = useState(null);
   const [daily, setDaily] = useState([]);
+  const [allDaily, setAllDaily] = useState(false);
 
   useEffect(() => { setName(storedName()); setMyAnon(ensureAnon() || ''); }, []);
   useEffect(() => {
@@ -64,6 +65,13 @@ export default function NewDuelPage() {
     if (!s) return daily;
     return daily.filter((x) => `${x.title} ${x.category} ${x.tag} ${x.key}`.toLowerCase().includes(s));
   }, [q, daily]);
+
+  // Peek six, then one bar. Listing all 62 of today's puzzles buried the quiz
+  // group a full four screens down. A search shows every match and drops the
+  // bar, because the search IS the reader narrowing the list.
+  const DAILY_PEEK = 6;
+  const dailyShown = (allDaily || q.trim()) ? dailyResults : dailyResults.slice(0, DAILY_PEEK);
+  const dailyHidden = dailyResults.length - dailyShown.length;
 
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -96,6 +104,7 @@ export default function NewDuelPage() {
   const rowNm = { display: 'block', fontSize: 15, fontWeight: 700, color: C.ink, overflowWrap: 'anywhere' };
   const rowSub = { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft };
   const rowPill = { flex: 'none', fontSize: 12, fontWeight: 800, color: T.white, background: C.accent, padding: '6px 12px', borderRadius: 999 };
+  const moreBar = { width: '100%', boxSizing: 'border-box', marginTop: 8, background: C.accsoft, border: `1px solid ${T.accentBorder}`, borderRadius: 10, padding: '10px 12px', fontFamily: FONT, fontWeight: 800, fontSize: 13, color: C.accent, cursor: 'pointer' };
   const devOpts = [{ v: 'any', l: 'Any Device' }, { v: 'mobile', l: 'Mobile Only' }, { v: 'desktop', l: 'Desktop Only' }];
 
   return (
@@ -155,7 +164,7 @@ export default function NewDuelPage() {
             <>
               <div style={grpHd}>Today{"'"}s Daily Puzzles</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: 8 }}>
-                {dailyResults.map((x) => (
+                {dailyShown.map((x) => (
                   <button key={x.quizId} onClick={() => start(x.quizId)} disabled={busy} style={{ ...rowBtn, cursor: busy ? 'default' : 'pointer' }}>
                     <span style={{ minWidth: 0, overflow: 'hidden' }}>
                       <span style={rowNm}>{x.title}</span>
@@ -165,6 +174,12 @@ export default function NewDuelPage() {
                   </button>
                 ))}
               </div>
+              {dailyHidden > 0 && (
+                <button onClick={() => setAllDaily(true)} style={moreBar}>Show all {dailyResults.length} daily puzzles</button>
+              )}
+              {allDaily && !q.trim() && dailyResults.length > DAILY_PEEK && (
+                <button onClick={() => setAllDaily(false)} style={moreBar}>Show fewer</button>
+              )}
               {/* A daily duel is pinned to the dated board it was created on, which
                   is the only way it is a fair fight. Say so before they pick one. */}
               <p style={{ color: C.soft, fontSize: 12, margin: '10px 0 16px' }}>A daily puzzle duel is fought over today{"'"}s board, so both of you have to play it before midnight Eastern.</p>
