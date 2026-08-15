@@ -15,7 +15,7 @@
 // header bar with the name left, the figures and the help control at the
 // right edge. `.help` is a direct child rather than nested in the id block,
 // which is what lets `order` reach it.
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DAILY_GAMES, isRetiredDaily } from '@/lib/daily-games';
 import useDailyRoster from './useDailyRoster';
 
@@ -47,6 +47,13 @@ export default function LoftCap({
   const strip = outcome ? ALL_AZ.filter((g) => g.name !== name) : null;
 
   const azRef = useRef(null);
+  const [azPos, setAzPos] = useState('start');
+  const azSync = () => {
+    const el = azRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setAzPos(max <= 1 ? 'both' : el.scrollLeft <= 1 ? 'start' : el.scrollLeft >= max - 1 ? 'end' : 'mid');
+  };
   // A screenful less an overlap, so a reader keeps a landmark across a press.
   const azNudge = (dir) => {
     const el = azRef.current;
@@ -59,6 +66,7 @@ export default function LoftCap({
     const step = (now) => {
       const p = Math.min(1, ((now || t0) - t0) / 320);
       el.scrollLeft = from + (to - from) * (1 - Math.pow(1 - p, 3));
+      azSync();
       if (p < 1) window.requestAnimationFrame(step);
     };
     window.requestAnimationFrame(step);
@@ -76,23 +84,16 @@ export default function LoftCap({
         el.scrollLeft = Math.max(0, Math.min(max, next));
       }
     };
-    const wrap = el.parentElement;
-    const sync = () => {
-      if (!wrap) return;
-      const max = el.scrollWidth - el.clientWidth;
-      wrap.classList.toggle('at-start', el.scrollLeft <= 1);
-      wrap.classList.toggle('at-end', el.scrollLeft >= max - 1);
-    };
+    const sync = () => azSync();
     sync();
     el.addEventListener('wheel', onWheel, { passive: false });
-    el.addEventListener('scroll', sync, { passive: true });
     window.addEventListener('resize', sync);
     return () => {
       el.removeEventListener('wheel', onWheel);
-      el.removeEventListener('scroll', sync);
       window.removeEventListener('resize', sync);
     };
-  }, [outcome]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [outcome, strip && strip.length]);
 
   useEffect(() => {
     const board = () => document.querySelector('.loft-sheet') || document.querySelector('.loft-card');
@@ -515,12 +516,14 @@ export default function LoftCap({
    inside and takes light-card ink. Same gold rule, same figure. */
 .loft-fiq{min-height:64px;box-sizing:border-box;
   display:flex;align-items:center;gap:13px;margin-top:11px;padding:11px 14px;
-  background:var(--surface-alt);border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
-.loft-fiq .n{font-weight:800;font-size:29px;line-height:1;color:var(--ink);letter-spacing:-.02em}
+  background:var(--blue);border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
+.loft-fiq .n{font-weight:800;font-size:29px;line-height:1;color:var(--white);letter-spacing:-.02em}
 .loft-fiq .t{min-width:0}
 .loft-fiq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--ink);margin-bottom:5px}
-.loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--slate)}
+  text-transform:uppercase;color:var(--white);margin-bottom:5px}
+.loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:#cfe0ff}
+.loft-fiq .today,.loft-fiq .today *{color:var(--white)}
+.loft-fiq .today s,.loft-fiq .today em,.loft-fiq .today i{color:#cfe0ff}
 .loft-fiq .today{flex:none;margin-left:auto;padding-left:12px;text-align:right}
 .loft-fiq .today b{display:block;font-weight:800;font-size:18px;line-height:1;color:var(--blue-deep)}
 .loft-fiq .today i{display:block;font-style:normal;font-weight:700;font-size:9px;line-height:1;
@@ -529,7 +532,7 @@ export default function LoftCap({
 /* Today's board, top three plus you when you are outside it. */
 /* Three rows plus the header and the Show-all bar. A board that comes back with
    fewer rows leaves the space rather than snapping the card shorter. */
-.loft-lb{margin-top:11px;min-height:150px}
+.loft-lb{margin-top:11px;min-height:191px}
 .loft-lb .h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
 .loft-lb .h b{font-weight:800;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
 .loft-lb .h s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
@@ -751,12 +754,12 @@ export default function LoftCap({
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
       ) : null}
       {strip && strip.length ? (
-        <div className="lcap-azwrap at-start">
+        <div className={`lcap-azwrap${azPos === 'start' || azPos === 'both' ? ' at-start' : ''}${azPos === 'end' || azPos === 'both' ? ' at-end' : ''}`}>
         <button type="button" className="lcap-azbtn prev" aria-label="Scroll back"
           onClick={() => azNudge(-1)}>&#8249;</button>
         <button type="button" className="lcap-azbtn next" aria-label="Scroll on"
           onClick={() => azNudge(1)}>&#8250;</button>
-        <div className="lcap-tiles az" ref={azRef}>
+        <div className="lcap-tiles az" ref={azRef} onScroll={azSync}>
           {strip.map((t) => (
             <a key={t.key} href={t.href} className={played[t.key] || undefined}>{t.name}</a>
           ))}
