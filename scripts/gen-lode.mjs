@@ -13,10 +13,17 @@
 //   multiplier= 1 / 2 / 3           (common / uncommon / rare)
 //   pangram   = +10
 //
-// The same frequency data doubles as the junk filter: the shipped dictionary
-// (public/tuck-dict.txt) is a Scrabble word list full of words no human knows,
-// so anything below the Zipf floor is dropped from the board entirely. Every
-// word on a Lode board is a word a reader could plausibly recognise.
+// The same frequency data doubles as the junk filter: the shipped dictionaries
+// (public/tuck-dict.txt for 4 to 8 letters, public/tuck-dict-long.txt for 9 to
+// 15) are Scrabble word lists full of words no human knows, so anything below
+// the Zipf floor, or outside hunspell's en_US/en_GB, is dropped from the board
+// entirely. Every word on a Lode board is a word a reader could plausibly
+// recognise.
+//
+// Lode read the 4-to-8 list ALONE until 2026-08-15, so no word of nine letters
+// or more could appear on any board. Players typed BEGINNING, COHERENCE,
+// INITIALLY and ABBREVIATE and were told they were not words. Both lists are
+// read now, which is where most of the pool's growth came from.
 //
 // Each day carries a VEIN: the target score that counts the day as solved, set
 // at a fixed share of the board's maximum. Ranks below it give the ladder
@@ -34,8 +41,8 @@
 // pure function of the date seed, so re-running never reshuffles history.
 
 import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { dirname, join, resolve } from 'path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -75,10 +82,16 @@ const TIER_UNCOMMON = 3.9;   // < this (and >= RARE)  is UNCOMMON  (x2)
 const MIN_LEN = 4;
 const LETTERS = 7;           // weekdays
 const LETTERS_SUNDAY = 8;    // Sunday Edition deals an extra letter
+// How many words a board may hold. Raised from 46/70 on 2026-08-15 (owner call)
+// in the same pass that lifted the pool's eight-letter cap: with nine- to
+// fifteen-letter words finally in the data the pool went 28,779 -> 49,189, and
+// holding the old ceiling would have spent that entirely on REJECTING the
+// fuller boards rather than on giving players more to find. At 60/95 the
+// average weekday board carries about 39 words and the Sunday about 64.
 const MIN_WORDS = 20;
-const MAX_WORDS = 46;
+const MAX_WORDS = 60;
 const MIN_WORDS_SUNDAY = 30;
-const MAX_WORDS_SUNDAY = 70;
+const MAX_WORDS_SUNDAY = 95;
 const MIN_PANGRAMS = 1;
 const MAX_PANGRAMS = 4;
 // The solve line, as a share of the board maximum. Deliberately reachable in a
@@ -194,6 +207,26 @@ const SEED = Number(arg('seed', 20260801));
 // numbering where the surviving bank left off:
 //   node scripts/gen-lode.mjs --from 2026-07-31 --startnum 7 --days 494
 const START_NUM = Number(arg('startnum', 1));
+// A regeneration keeps the boards that have already gone live and deals fresh
+// ones underneath them, so the new deal has to know what those kept boards
+// used or it can hand out a letter set a player saw a few weeks ago. Point
+// --avoid at the bank being spliced into and those boards leave the pool:
+//   node scripts/gen-lode.mjs --from 2026-08-16 --startnum 23 --days 478 \
+//     --avoid app/lode/puzzles.js
+// Filtering happens before the shuffle, so a re-run still reproduces exactly.
+const AVOID = arg('avoid', '');
+const avoidKeys = new Set();
+if (AVOID) {
+  const mod = await import(pathToFileURL(resolve(AVOID)).href);
+  // Only the boards the splice KEEPS matter: anything dated on or after --from
+  // is being replaced by this run, so excluding it would shrink the pool for
+  // no reason.
+  for (const p of mod.PUZZLES || []) {
+    if (p.live >= START) continue;
+    avoidKeys.add([p.core, ...p.outer].sort().join('') + '/' + p.core);
+  }
+}
+const boardKey = (b) => [...b.sig].sort().join('') + '/' + b.core;
 
 const weekday = rootSets(LETTERS);
 const sunday = rootSets(LETTERS_SUNDAY);
@@ -206,7 +239,7 @@ function poolFor(sigs, isSunday) {
   for (const sig of sigs) {
     for (const core of sig) {
       const b = buildBoard(sig, core);
-      if (boardOk(b, isSunday)) pool.push(b);
+      if (boardOk(b, isSunday) && !avoidKeys.has(boardKey(b))) pool.push(b);
     }
   }
   return pool;
@@ -283,4 +316,4 @@ ${lines.map((l) => '  ' + l + ',').join('\n')}
 ];
 `);
 
-console.error(`lode: ${DAYS} days from ${START} · weekday pool ${poolWeek.length} · sunday pool ${poolSun.length}`);
+console.error(`lode: ${DAYS} days from ${START} · weekday pool ${poolWeek.length} · sunday pool ${poolSun.length}` + (AVOID ? ` · avoiding ${avoidKeys.size} kept boards` : ''));

@@ -3323,6 +3323,40 @@ must not be punished for the author's collision.
   not "improve" it by widening the word list; that is a proven no-op. Shards
   needed nothing either: its grid is at most 8 wide, so no run can exceed the
   base list.
+- **Lode had the SAME hole and it lasted longer, because Lode bakes its answer
+  list into the bank (2026-08-15).** `scripts/lode-words.py` read only
+  `public/tuck-dict.txt`, so no word of nine letters or more could reach any
+  Lode board, ever. Seven reusable letters build long words constantly, so
+  players typed BEGINNING, COHERENCE, INITIALLY, ABBREVIATE, INVALUABLE and
+  ABOLITION and were told they were not words, and the complaint reached the
+  owner as "the dictionary is too small". Note the shape: a hole in a length
+  band is INVISIBLE to a spot check, because every word you think to test is a
+  word you already saw on a board. Lode reads BOTH lists now; the pool went
+  28,779 -> 49,189 words and the usable weekday board pool 4,528 -> 9,077.
+  `MAX_WORDS` went 46 -> 60 and Sunday 70 -> 95 in the same pass (owner call),
+  so the extra words are spent on giving players more to find rather than on
+  rejecting the fuller boards.
+- **Lode's dictionary gate is en_US THEN en_GB, and the order is the whole
+  design (2026-08-15).** en_US hunspell is CASE SENSITIVE, which is what lets it
+  veto proper nouns (`lard` is in it, `moby` and `texas` are not). en_GB is NOT:
+  it answers yes to lowercase `broadway`, `canterbury`, `kirk` and `bonnie`, so
+  it carries no proper-noun signal and can never be the gate. It runs only AFTER
+  the en_US proper-noun veto, where its one job is recognising British spellings
+  en_US genuinely does not know (gaol, moult, oedema, racoon, rouble, leant,
+  paralyse, encyclopaedic, and the whole -ise / -isation family). Reversing the
+  two, or ORing them, puts every lowercase name straight back on the boards.
+  Both dictionaries are a hard requirement at refresh time (`apt install
+  hunspell-en-us hunspell-en-gb`); the script exits rather than degrade to one,
+  because degrading silently changes which words the game accepts.
+- **A Lode regeneration passes `--avoid` at the boards it is keeping.** Boards
+  already live are frozen and the new deal is spliced underneath them, so the
+  fresh deal has to know their letter sets or it will hand out a board a player
+  saw a few weeks ago (it did, on the first attempt at this change). Full
+  refresh: rebuild `scripts/.lode-freq.json`, then
+  `node scripts/gen-lode.mjs --from <tomorrow> --startnum <last+1> --days N
+  --avoid app/lode/puzzles.js`, splice under the live boards, confirm those are
+  byte-identical to origin, and `node scripts/verify-lode.mjs` must report 0
+  failures AND no new warnings against the pre-change bank.
 - **Tuck's benchmark is CALIBRATED to real play from 2026-08-10, not equal to the
   solver's best line (owner ruling, 2026-08-09).** `benchmark = round(1.06 x
   solverBest)`. The solver can only build ONE SHAPE (a single horizontal spine
