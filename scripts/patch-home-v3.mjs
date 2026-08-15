@@ -658,31 +658,31 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
         .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);}
-        .cb-tile{display:flex;flex-direction:column;gap:10px;align-items:stretch;text-align:left;background:var(--white);padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:112px;}
+        .cb-tile{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;background:var(--white);padding:13px 15px 11px;color:var(--ink);min-width:0;min-height:104px;}
         .cb-thead{display:flex;align-items:center;gap:12px;min-width:0;width:100%;border:none;border-radius:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;}
         .cb-tile:hover{background:var(--surface);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
-        .cb-sq{width:38px;height:38px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
+        .cb-sq{width:34px;height:34px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
         .cb-sq svg{display:block;}
-        .cb-tnm{font-size:17px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-tnm{font-size:16px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
         .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
-        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
+        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
         /* The games themselves. Art is the already blue-remapped button PNG, so
            this adds detail without adding a colour. Done dims, paused takes the
            gold ring and unfinished the red one, which is the same three state
            language the cap and the rows use. */
-        .cb-games{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;min-width:0;}
-        .cb-gi{display:flex;width:30px;height:30px;border-radius:7px;overflow:hidden;background:var(--surface-alt);flex:none;text-decoration:none;}
+        .cb-games{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;min-width:0;}
+        .cb-gi{display:flex;width:27px;height:27px;border-radius:6px;overflow:hidden;background:var(--surface-alt);flex:none;text-decoration:none;}
         .cb-gi img{width:100%;height:100%;object-fit:contain;display:block;}
         .cb-gi:hover{box-shadow:0 0 0 2px var(--blue);}
         .cb-gi.done{opacity:.38;}
         .cb-gi.prog{box-shadow:inset 0 0 0 2px var(--gold);}
         .cb-gi.fail{box-shadow:inset 0 0 0 2px var(--danger);}
-        .cb-games.named{gap:12px 14px;}
+        .cb-games.named{gap:9px 13px;}
         .cb-games.named .cb-gi{width:auto;height:auto;flex-direction:column;align-items:center;gap:5px;background:none;border-radius:0;overflow:visible;max-width:74px;}
-        .cb-games.named .cb-gi img{width:34px;height:34px;border-radius:8px;background:var(--surface-alt);}
+        .cb-games.named .cb-gi img{width:31px;height:31px;border-radius:8px;background:var(--surface-alt);}
         .cb-games.named .cb-gi:hover{box-shadow:none;}
         .cb-games.named .cb-gi:hover .cb-gnm{color:var(--blue);}
         .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
