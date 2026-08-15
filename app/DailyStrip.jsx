@@ -1721,6 +1721,30 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         </button>
       );
     }
+    /* The 24 tiles: nine categories then fifteen circuits. THIS DECLARATION
+       WAS DELETED ONCE, by a later edit whose replaced span ran from the open
+       branch down to tileEl and swallowed it, leaving the return mapping over a
+       name that no longer existed. It cost a red build and "ReferenceError:
+       tiles is not defined" at prerender, so if it looks redundant sitting here
+       between the two things that use it, it is not: it is between them on
+       purpose. */
+    const tiles = slateCats.map((c) => {
+      const list = catOf(c);
+      return {
+        k: 'cat:' + c, kind: 'cat', label: CAT_SHORT[c] || c, n: list.length,
+        nDone: list.filter((g) => done.has(g.key)).length,
+        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
+        col: catCol(c), glyph: CAT_GLYPH[c] || Star, go: () => setFilter(c),
+      };
+    }).concat(CIRCUITS.map(([name]) => {
+      const list = circuitGames(name);
+      return {
+        k: 'cir:' + name, kind: 'cir', label: name, n: list.length,
+        nDone: list.filter((g) => done.has(g.key)).length,
+        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
+        col: T.blueDark, glyph: null, go: () => setFilter('circuit:' + name),
+      };
+    }));
     const tileEl = (t) => (
       <button type="button" key={t.k} className={'cb-tile ' + t.kind}
         style={{ '--cc': t.col }} onClick={t.go} title={t.label}>
@@ -3629,6 +3653,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .dhome.slate .sl-filt button{padding:7px 13px;}
           .dhome.slate .dh-cmore{padding:4px 13px;}
         }
+
 
 
 
