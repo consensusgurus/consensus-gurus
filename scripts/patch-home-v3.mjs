@@ -1016,7 +1016,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
           </div>
           )}
           <div className="dhx-center" ref={centerRef}>
-            <DailyStrip board={dailyBoard} layout={v3 ? 'catboard' : 'slate'} quizCats={v3 ? quizCats : undefined} />
+            <DailyStrip board={dailyBoard} layout={v3 ? 'catboard' : 'slate'} />
           </div>
           <div className="dhx-rail dhx-right" style={{ height: v3 ? undefined : (railH || undefined) }}>
             <HomeRails
@@ -1026,6 +1026,15 @@ function sub(src, find, repl, label, count = 1, mark = null) {
               xpAll={xpAll}
               onCredit={() => { setCreditQr(false); setCreditOpen(true); }}`,
     'QH:cols', 1, `              side={v3 ? 'board' : 'right'}`);
+
+  // Its own edit, NOT folded into QH:cols. That one is an insert and is skipped
+  // once it is on origin, so the prop went with it and the Quizzes tab shipped
+  // reading zero. Fourth time this rule has bitten; the marker comment above
+  // sub() is not decoration.
+  s = sub(s,
+    `            <DailyStrip board={dailyBoard} layout={v3 ? 'catboard' : 'slate'} />`,
+    `            <DailyStrip board={dailyBoard} layout={v3 ? 'catboard' : 'slate'} quizCats={v3 ? quizCats : undefined} />`,
+    'QH:quizcats-prop');
 
   // The You tab's data. Its own edit, not folded into QH:cols above, because
   // that one is an insert and is skipped once it is on origin.

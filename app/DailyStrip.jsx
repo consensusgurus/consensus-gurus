@@ -3643,6 +3643,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
 
 
 
+
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
          board are untouched. Below 901px this block does not apply and the

@@ -2514,7 +2514,7 @@ export default function QuizHomeClient({ variant = 'current' }) {
           </div>
           )}
           <div className="dhx-center" ref={centerRef}>
-            <DailyStrip board={dailyBoard} layout={v3 ? 'catboard' : 'slate'} />
+            <DailyStrip board={dailyBoard} layout={v3 ? 'catboard' : 'slate'} quizCats={v3 ? quizCats : undefined} />
           </div>
           <div className="dhx-rail dhx-right" style={{ height: v3 ? undefined : (railH || undefined) }}>
             <HomeRails
