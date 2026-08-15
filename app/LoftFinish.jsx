@@ -78,11 +78,15 @@ export default function LoftFinish({
   const [showAll, setShowAll] = useState(false);
   const [openArchive, setOpenArchive] = useState(false);
 
-  const opts = options.filter(Boolean);
+  const optsRaw = options.filter(Boolean);
+  // Share leads. It carries kind 'gold' (the contest CTA colour), so it is
+  // pulled to the front rather than restyled as 'pri'.
+  const opts = [...optsRaw.filter((o) => o.kind === 'gold'),
+                ...optsRaw.filter((o) => o.kind !== 'gold')];
   // Which options span the full width: every primary, plus the last one when
   // the half-width ones would otherwise be odd.
   const wide = new Set();
-  opts.forEach((o, i) => { if (o.kind === 'pri') wide.add(i); });
+  opts.forEach((o, i) => { if (o.kind === 'pri' || o.kind === 'gold') wide.add(i); });
   const narrow = opts.map((_, i) => i).filter((i) => !wide.has(i));
   // The Archive button below is a narrow item too when it renders, so it counts
   // toward the parity; otherwise the last option is forced wide and the two
@@ -148,7 +152,7 @@ export default function LoftFinish({
       <div className="loft-backin">
       {/* THE VERDICT LIVES HERE NOW, not on the page cap (owner, 2026-08-14).
           Colouring both said it twice, and this is where the result is. */}
-      <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{title}</b><s>{detail}</s></div>
+      <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title}` : title}</b><s>{detail}</s></div>
 
       <div className="loft-fiq">
         <Brain className="bi" size={26} strokeWidth={2.2} aria-hidden="true" />

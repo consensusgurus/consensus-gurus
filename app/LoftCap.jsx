@@ -515,7 +515,7 @@ export default function LoftCap({
       `}</style>
       <div className="lcap-id">
         <span className="lcap-eb">{eyebrow}</span>
-        <span className="lcap-nm">{name}{sunday
+        <span className="lcap-nm">{outcome && tiles && tiles.length ? 'Play similar:' : name}{sunday
           ? (typeof sunday === 'string'
               ? <span className="lcap-sun">{sunday}</span>
               : <span className="lcap-sunnode">{sunday}</span>)

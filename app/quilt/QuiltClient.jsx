@@ -1002,13 +1002,11 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
                 dateLabel: p.dateLabel,
                 sunday: !!p.sunday,
                 href: `/quilt?p=${p.num}`,
-                done: !!(myStats.rec && myStats.rec[p.num]),
-                score: myStats.rec && myStats.rec[p.num] ? myStats.rec[p.num].s : null,
+                done: !!(stats && stats.rec && stats.rec[p.num]),
+                score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
               }))}
             options={[
-              won
-                ? { label: 'See the board', sub: 'Your finished grid', kind: 'pri', onClick: () => setRevealed(true) }
-                : { label: 'Reveal', sub: 'Show the solution', kind: 'pri', onClick: () => setRevealed(true) },
+              { label: 'Reveal or return to game board', sub: won ? 'Your finished board' : 'Show the answer', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Quilt', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/quilt?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
               { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers',

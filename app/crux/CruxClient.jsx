@@ -1485,15 +1485,13 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                   dateLabel: p.dateLabel,
                   sunday: !!p.sunday,
                   href: `/crux?p=${p.num}`,
-                  done: !!(myStats.rec && myStats.rec[p.num]),
-                  score: myStats.rec && myStats.rec[p.num] ? myStats.rec[p.num].s : null,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
                 }))}
               options={[
                 // Crux hides its words, so it HAS a reveal. A game that never
                 // hid its board simply omits this one.
-                won
-                  ? { label: 'See the board', sub: 'Your finished grid', kind: 'pri', onClick: () => setRevealed(true) }
-                  : { label: 'Reveal', sub: 'Show the words you missed', kind: 'pri', onClick: () => setRevealed(true) },
+                { label: 'Reveal or return to game board', sub: won ? 'Your finished board' : 'Show the answer', onClick: () => setRevealed(true) },
                 prevPuzzle && { tone: 'another', label: 'Play another Crux', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/crux?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers',

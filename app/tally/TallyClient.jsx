@@ -1249,11 +1249,11 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                 dateLabel: p.dateLabel,
                 sunday: !!p.sunday,
                 href: `/tally?p=${p.num}`,
-                done: !!(myStats.rec && myStats.rec[p.num]),
-                score: myStats.rec && myStats.rec[p.num] ? myStats.rec[p.num].s : null,
+                done: !!(stats && stats.rec && stats.rec[p.num]),
+                score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
               }))}
             options={[
-              { label: 'See the board', sub: 'Your finished ledger', kind: 'pri', onClick: () => setRevealed(true) },
+              { label: 'Reveal or return to game board', sub: won ? 'Your finished board' : 'Show the answer', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Tally', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/tally?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
               { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
