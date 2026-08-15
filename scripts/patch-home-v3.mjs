@@ -687,25 +687,34 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         col: T.blueDark, glyph: null, go: () => setFilter('circuit:' + name),
       };
     }));
+    const tileEl = (t) => (
+      <button type="button" key={t.k} className={'cb-tile ' + t.kind}
+        style={{ '--cc': t.col }} onClick={t.go} title={t.label}>
+        <span className="cb-trow">
+          {t.glyph
+            ? <span className="cb-sq">{(() => { const G = t.glyph; return <G size={15} strokeWidth={2.3} />; })()}</span>
+            : <span className="cb-dot" aria-hidden="true" />}
+          <span className="cb-tnm">{t.label}</span>
+          <span className="cb-tct">{t.n}</span>
+        </span>
+        <span className="cb-bar"><i style={{ width: (t.n ? Math.round((t.nDone / t.n) * 100) : 0) + '%' }} /></span>
+      </button>
+    );
+    /* TWO GRIDS, NOT ONE (owner, 2026-08-15: need better differentiation, and
+       they do not all fit on one screen). Nine categories at three across is
+       three rows, fifteen circuits at five across is three rows: six rows that
+       divide the board exactly, where 24 tiles in one four-wide grid broke
+       mid-row between the two kinds and read as a single undifferentiated
+       field. The size difference now carries the hierarchy by itself, a
+       category being the thing and a circuit a cut across the things, and each
+       grid says which it is. */
     return (
-      <div className="cb-tiles" key="cb-tiles">
-        {tiles.map((t) => (
-          <button type="button" key={t.k} className={'cb-tile ' + t.kind}
-            style={{ '--cc': t.col }} onClick={t.go}>
-            <span className="cb-trow">
-              {t.glyph
-                ? <span className="cb-sq">{(() => { const G = t.glyph; return <G size={16} strokeWidth={2.3} />; })()}</span>
-                : <span className="cb-dot" aria-hidden="true" />}
-              <span className="cb-tnm">{t.label}</span>
-              <span className="cb-tct">{t.n}</span>
-            </span>
-            <span className="cb-bar"><i style={{ width: (t.n ? Math.round((t.nDone / t.n) * 100) : 0) + '%' }} /></span>
-            <span className="cb-tmt">
-              <span>{t.nDone ? t.nDone + ' of ' + t.n : (t.nProg ? t.nProg + ' paused' : 'None played')}</span>
-            </span>
-          </button>
-        ))}
-      </div>
+      <>
+        <div className="cb-sect">Categories</div>
+        <div className="cb-tiles cats">{tiles.filter((t) => t.kind === 'cat').map(tileEl)}</div>
+        <div className="cb-sect">Circuits</div>
+        <div className="cb-tiles circs">{tiles.filter((t) => t.kind === 'cir').map(tileEl)}</div>
+      </>
     );
   };
 
@@ -779,12 +788,6 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .cb-cb{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:5px;background:var(--white);color:var(--accent);border-radius:7px;padding:10px 14px;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
         .cb-card.prog .cb-cb{color:#3a2a05;}
         .cb-card.fail .cb-cb{color:#b91c1c;}
-        .cb-also{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:10px 16px;background:#eef3fa;border-top:1px solid #d3ddec;font-size:13px;}
-        .cb-al{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);}
-        .cb-ali{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--muted);font-weight:600;}
-        .cb-ali b{color:var(--ink);font-weight:800;}
-        .cb-ali:hover b{color:var(--blue);}
-        .cb-adot{font-style:normal;color:#c3c9d4;margin-right:2px;}
 
         /* BIGGER TILES (owner, 2026-08-15). They are the primary navigation on
            this page now, so they carry a 38px emblem, a 17px name and real
@@ -795,26 +798,31 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            exactly. grid-auto-rows:1fr is what makes them EVEN and what makes
            the board fit without scrolling: the rows divide whatever height
            there is rather than each taking its content height and spilling. */
-        .cb-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:1px;background:#d3ddec;border-top:1px solid #d3ddec;}
+        .cb-tiles{display:grid;grid-auto-rows:1fr;gap:1px;background:#d3ddec;flex:1 1 auto;min-height:0;}
+        .cb-tiles.cats{grid-template-columns:repeat(3,minmax(0,1fr));}
+        .cb-tiles.circs{grid-template-columns:repeat(5,minmax(0,1fr));}
+        .cb-sect{flex:none;padding:6px 14px;background:#dde6f3;border-top:1px solid #d3ddec;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#41506b;}
                 .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:7px;align-items:stretch;text-align:left;background:#f4f7fc;border:none;border-radius:0;padding:11px 13px;font:inherit;color:var(--ink);cursor:pointer;min-width:0;min-height:0;}
         /* A circuit is a cut ACROSS the categories, not one of them, so it
            reads one step quieter: a dot where a category has its glyph, and a
            lighter ground. Same size, because they are peers to browse by. */
-        .cb-tile.cir{background:#eef3fa;}
+                .cb-tile.cat{border-left:4px solid var(--cc,var(--blue-dark));}
+        .cb-tile.cir{background:#eaf0f8;}
+        .cb-tiles.circs .cb-tnm{font-size:12px;}
+        .cb-tiles.circs .cb-tile{padding:9px 11px;gap:6px;}
         .cb-dot{width:9px;height:9px;border-radius:3px;flex:none;background:var(--cc,var(--blue-dark));margin:0 3px;}
         .cb-tile:hover{background:var(--white);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
         .cb-sq{width:26px;height:26px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
         .cb-sq svg{display:block;}
-        .cb-tnm{font-size:13.5px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-tct{margin-left:auto;flex:none;font-size:11.5px;font-weight:800;color:var(--slate);}
+        .cb-tnm{flex:1 1 auto;min-width:0;font-size:13.5px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-tct{flex:none;margin-left:6px;font-size:11.5px;font-weight:800;color:var(--slate);font-variant-numeric:tabular-nums;}
         .cb-bar{display:block;height:4px;border-radius:4px;background:#dbe4f1;overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
         /* NO margin-top:auto here. With the game art gone the tile has three short
            rows and a tall box, and an auto top margin pinned this one to the
            floor and opened a 92px hole above it. Centred as a group instead,
            which is what justify-content on the tile was already asking for. */
-        .cb-tmt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10.5px;font-weight:600;color:var(--muted);min-width:0;}
         .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
         /* With no category open the nine tiles ARE the board, so they take the
            whole of it: three equal rows rather than a short block with a void
@@ -868,7 +876,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
          perfectly good phone slate. MOBILE IS UNTOUCHED, and this is the line
          that guarantees it. */
       @media(max-width:900px){
-        .dhome.cats .cb-cap,.dhome.cats .cb-also,.dhome.cats .cb-tiles,.dhome.cats .cb-hd,.dhome.cats .cb-row{display:none !important;}
+        .dhome.cats .cb-cap,.dhome.cats .cb-sect,.dhome.cats .cb-tiles,.dhome.cats .cb-hd,.dhome.cats .cb-row{display:none !important;}
       }
 `;
   s = region(s, '      /* ── HOME v3 category board', '\n      ` }} />', CSS, 'DS:css');
