@@ -26,6 +26,17 @@ import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { isLoft } from '@/lib/loft';
+import ReportIssue from '../ReportIssue';
+import LoftCap from '../LoftCap';
+import useIqStanding from '../useIqStanding';
+import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
+import useDailyBoard from '../useDailyBoard';
+import useGameAllTime from '../useGameAllTime';
+import useDayStats from '../useDayStats';
+import useCategoryRank from '../useCategoryRank';
+import LoftFinish from '../LoftFinish';
+import { CONTEST, contestIsLive } from '@/lib/contest';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -176,6 +187,12 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
   const [justWon, setJustWon] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
+  // The finished board starts turned OVER, showing what to do next.
+  const [revealed, setRevealed] = useState(false);
+  const [shareCta, setShareCta] = useState('Share');
+  useEffect(() => {
+    if (contestIsLive()) setShareCta(`Share for ${CONTEST.prizeLabel}*`);
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const [board, setBoard] = useState(EMPTY_BOARD);
   const [identity, setIdentity] = useState(null);
@@ -261,6 +278,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   }, [g.status, g.t0, g.tEnd]);
 
   const playing = g.status === 'playing';
+  const LOFT = isLoft('garble');
   const preStart = playing && !g.t0;   // not begun: show the start tile in place of the board
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
@@ -415,6 +433,13 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const ended = !playing;
   const won = g.status === 'won';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
+  const iq = useIqStanding({ game: 'garble', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'garble', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'garble', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'garble', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'garble', active: LOFT && !playing });
   const score = solvedCount + (g.finalSolved ? 5 : 0);
 
   const cellBase = { display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 800, borderRadius: 6, userSelect: 'none' };
@@ -488,12 +513,32 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
-      <DailyChrome slug="garble" name="Garble" collapsed={started} />
+      <DailyChrome slug="garble" name="Garble" collapsed={started} loft={LOFT} />
+      {LOFT && (
+        <LoftCap
+          name="Garble"
+          cat="Word"
+          outcome={playing ? null : (won ? 'won' : (score > 0 ? 'part' : 'lost'))}
+          num={PUZZLE.num}
+          tiles={playing ? null : upNext}
+          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved'))}
+          onHelp={() => setShowHelp(true)}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          figures={playing ? [
+            { v: solvedCount, k: 'solved' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: score, k: 'score' },
+            { v: solvedCount, k: 'solved' },
+            { v: elapsed, k: 'time' },
+          ]}
+        />
+      )}
       <div className="gb-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: mobileUi && started ? '18px 38px calc(185px + env(safe-area-inset-bottom))' : '18px 38px 80px', fontFamily: SANS }}>
         <div style={{ maxWidth: 640, margin: '0 auto' }}>
           <style>{`
@@ -511,6 +556,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
 
           {/* masthead: pressed GARBLE tiles with No./date inline, one rule beneath */}
+          {!LOFT && (
           <DailyMasthead
             slug="garble"
             num={PUZZLE.num}
@@ -528,10 +574,18 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                 );
               })}
           />
+          )}
+
+        {/* LOFT: the play area sits on the navy stage, which runs full bleed
+            and fills the first screen, so the board is the one lit object. */}
+        <div className={LOFT ? 'loft-stage' : undefined}>
+          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
           {/* start tile — the words stay sealed until Start begins the clock */}
           {preStart && (
-            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 16 }}>
+            <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 16 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Garble is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
@@ -635,13 +689,65 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
 
+
+          {LOFT && !playing && revealed && (
+            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
+          )}
+          </div>
+          {LOFT && !playing && (
+            <LoftFinish
+              name="Garble"
+              catRank={catRank}
+              outcome={won ? 'won' : (score > 0 ? 'part' : 'lost')}
+              title={won ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved')}
+              detail={`${score} \u00b7 ${solvedCount} solved \u00b7 ${elapsed}`}
+              iq={iq}
+              board={dailyBoard}
+              gameRank={allTime && allTime.ready
+                ? { value: allTime.rank != null ? `#${allTime.rank}` : '\u2014',
+                    label: allTime.field != null ? `garble of ${allTime.field}` : 'garble all time' }
+                : null}
+              day={dayStats}
+              streak={isTodays ? myStats.cur : null}
+              missLabel="Miss"
+              archive={puzzles
+                .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
+                .sort((x, y) => y.num - x.num)
+                .slice(0, 14)
+                .map((p) => ({
+                  num: p.num,
+                  dateLabel: p.dateLabel,
+                  sunday: !!p.sunday,
+                  href: `/garble?p=${p.num}`,
+                  done: !!(stats && stats.rec && stats.rec[p.num]),
+                  score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
+                }))}
+              options={[
+                { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
+                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+                nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
+                { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },
+                { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
+              ]}
+            />
+          )}
+          </div>
+          </div>
+        {/* end of the navy play stage; everything below is the light tail */}
+        </div>
         {focusMode && (
           <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
             <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
           </div>
         )}
         {/* daily-page bottom group: challenge + share + other puzzles + archive, divider below */}
-        {!focusMode && (<DailyGamesGrid replay={ended ? resetGame : null}
+        {LOFT && (
+          <div className="loft-report">
+            <ReportIssue self="garble" name="Garble" accent="#ffffff" align="center" />
+          </div>
+        )}
+        {!focusMode && !LOFT && (<DailyGamesGrid replay={ended ? resetGame : null}
           self="garble"
           maxWidth={640}
           challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`}
