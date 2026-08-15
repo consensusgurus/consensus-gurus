@@ -228,7 +228,10 @@ export default function LoftFinish({
         <span className="d4"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
       </div>
 
-      <div className="loft-lb">
+      {/* `wait` reserves the block's height only until the rows land, so a
+          settled board sizes to what it actually holds instead of leaving a run
+          of white above the options (owner, 2026-08-15). */}
+      <div className={rows.length ? 'loft-lb' : 'loft-lb wait'}>
         <div className="h">
           <b>Today&rsquo;s board</b>
           {board && board.plays ? <s>{Number(board.plays).toLocaleString()} played</s> : null}

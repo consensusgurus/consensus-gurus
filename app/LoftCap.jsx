@@ -549,9 +549,15 @@ export default function LoftCap({
   letter-spacing:.09em;text-transform:uppercase;color:#cfe0ff;margin-top:4px}
 
 /* Today's board, top three plus you when you are outside it. */
-/* Three rows plus the header and the Show-all bar. A board that comes back with
-   fewer rows leaves the space rather than snapping the card shorter. */
-.loft-lb{margin-top:11px;min-height:191px}
+/* THE RESERVE ONLY APPLIES WHILE THE BOARD IS STILL COMING BACK (owner,
+   2026-08-15). It used to be unconditional, at the height of three rows plus
+   the header AND the Show-all bar, so a settled three-row board that carries no
+   Show-all bar left about fifty pixels of white between the last player and the
+   Share button. LoftFinish drops the wait class the moment it has rows, and the
+   block then sizes to its own content; the reserve still holds the card steady
+   while the figure reads Calculating, which is all it was ever for. */
+.loft-lb{margin-top:11px}
+.loft-lb.wait{min-height:191px}
 .loft-lb .h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
 .loft-lb .h b{font-weight:800;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
 .loft-lb .h s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
