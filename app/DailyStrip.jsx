@@ -3585,6 +3585,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
 
 
+
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
          board are untouched. Below 901px this block does not apply and the
@@ -3660,7 +3661,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
         .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
-        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
+        /* NO margin-top:auto here. With the game art gone the tile has three short
+           rows and a tall box, and an auto top margin pinned this one to the
+           floor and opened a 92px hole above it. Centred as a group instead,
+           which is what justify-content on the tile was already asking for. */
+        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;}
         .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
         .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
         /* With no category open the nine tiles ARE the board, so they take the
