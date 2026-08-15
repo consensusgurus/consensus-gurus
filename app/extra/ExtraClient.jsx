@@ -732,6 +732,57 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         )}
 
 
+          <div className="loft-sol">
+          {/* result */}
+          {!playing && (
+            <>
+              {/* the answer */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
+                <Newspaper size={26} style={{ color: won ? COLORS.green : COLORS.ink, flex: '0 0 auto' }} />
+                <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  {PUZZLE.answer} ({PUZZLE.year}). <span style={{ color: COLORS.faded, fontWeight: 600 }}>{PUZZLE.d}</span>
+                </span>
+              </div>
+              {PUZZLE.sunday && (
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '2px 0 8px' }}>The Sunday Edition — a trickier story to name.</div>
+              )}
+              {isTodays && myStats.cur >= 2 && (
+                <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                {isTodays ? (
+                  <>
+                    {gameRetired ? (
+                      <>
+                        Extra has retired &mdash; this was its final front page. Every past edition stays playable in{' '}
+                        <a href="/daily" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
+                        {' '}Meet its successor:{' '}
+                        <a href="/redact" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
+                      </>
+                    ) : countdown ? <>Next Extra in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new front page drops at midnight Eastern.'}
+                    {prevPuzzle && (
+                      <>
+                        {' '}Meanwhile:{' '}
+                        <a href={`/extra?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                          play yesterday&rsquo;s Extra &rarr;
+                        </a>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                    <a href="/extra" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Extra &rarr;</a>
+                    {' · '}
+                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  </>
+                )}
+              </p>
+            </>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -780,55 +831,6 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        {/* result */}
-        {!playing && (
-          <>
-            {/* the answer */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
-              <Newspaper size={26} style={{ color: won ? COLORS.green : COLORS.ink, flex: '0 0 auto' }} />
-              <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                {PUZZLE.answer} ({PUZZLE.year}). <span style={{ color: COLORS.faded, fontWeight: 600 }}>{PUZZLE.d}</span>
-              </span>
-            </div>
-            {PUZZLE.sunday && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '2px 0 8px' }}>The Sunday Edition — a trickier story to name.</div>
-            )}
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {gameRetired ? (
-                    <>
-                      Extra has retired &mdash; this was its final front page. Every past edition stays playable in{' '}
-                      <a href="/daily" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
-                      {' '}Meet its successor:{' '}
-                      <a href="/redact" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
-                    </>
-                  ) : countdown ? <>Next Extra in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new front page drops at midnight Eastern.'}
-                  {prevPuzzle && (
-                    <>
-                      {' '}Meanwhile:{' '}
-                      <a href={`/extra?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                        play yesterday&rsquo;s Extra &rarr;
-                      </a>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/extra" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Extra &rarr;</a>
-                  {' · '}
-                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

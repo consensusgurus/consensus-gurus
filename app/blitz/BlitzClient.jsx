@@ -668,6 +668,43 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         )}
 
 
+          <div className="loft-sol">
+          {!playing && (
+            <div style={{ maxWidth: 472, margin: '0 auto' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                {won ? <>A clean run: <span style={{ color: COLORS.accent }}>all 20</span>.</> : <>You cleared <span style={{ color: COLORS.accent }}>{score} of {TOTAL_Q}</span>, out in the {TIER_NAMES[tierNum].toLowerCase()} round.</>}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
+                {won
+                  ? 'Twenty problems, no slips, no calculator. That is the whole game.'
+                  : score >= 17 ? 'Into the last round. Cubes and two-digit multiplication under fifteen seconds is a real skill.'
+                  : score >= 13 ? 'You cleared the sharp round. Most people do not.'
+                  : score >= 9 ? 'Through the middle, where the percentages and precedence start biting.'
+                  : score >= 5 ? 'Past the warm-up. It steepens quickly from there.'
+                  : 'A short one today. The first round is meant to be free, so take the next one slower.'}
+              </div>
+              {isTodays && myStats.cur >= 2 && (
+                <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                {isTodays ? (
+                  <>
+                    {countdown ? <>Twenty new problems in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'Twenty new problems at midnight Eastern.'}
+                    {prevPuzzle && (<>{' '}Meanwhile: <a href={`/blitz?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>run yesterday&rsquo;s twenty &rarr;</a></>)}
+                  </>
+                ) : (
+                  <>
+                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                    <a href="/blitz" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Blitz &rarr;</a>
+                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -716,41 +753,6 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        {!playing && (
-          <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              {won ? <>A clean run: <span style={{ color: COLORS.accent }}>all 20</span>.</> : <>You cleared <span style={{ color: COLORS.accent }}>{score} of {TOTAL_Q}</span>, out in the {TIER_NAMES[tierNum].toLowerCase()} round.</>}
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
-              {won
-                ? 'Twenty problems, no slips, no calculator. That is the whole game.'
-                : score >= 17 ? 'Into the last round. Cubes and two-digit multiplication under fifteen seconds is a real skill.'
-                : score >= 13 ? 'You cleared the sharp round. Most people do not.'
-                : score >= 9 ? 'Through the middle, where the percentages and precedence start biting.'
-                : score >= 5 ? 'Past the warm-up. It steepens quickly from there.'
-                : 'A short one today. The first round is meant to be free, so take the next one slower.'}
-            </div>
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {countdown ? <>Twenty new problems in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'Twenty new problems at midnight Eastern.'}
-                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/blitz?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>run yesterday&rsquo;s twenty &rarr;</a></>)}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/blitz" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Blitz &rarr;</a>
-                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </div>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

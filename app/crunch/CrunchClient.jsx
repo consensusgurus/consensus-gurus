@@ -777,6 +777,55 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
         )}
 
 
+          <div className="loft-sol">
+          {!playing && (
+            <div style={{ maxWidth: 472, margin: '0 auto' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                The target was <span style={{ color: COLORS.accent }}>{TARGET}</span>.
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>
+                {won
+                  ? `Exact, using ${used} step${used === 1 ? '' : 's'}. An exact answer needed ${need} of the six numbers.`
+                  : g.status === 'done'
+                    ? `Your closest was ${bestDiff} off, worth ${finalScore} out of 10.`
+                    : `It was reachable. An exact answer needed ${need} of the six.`}
+              </div>
+              {Array.isArray(PUZZLE.example) && PUZZLE.example.length > 0 && (
+                <div style={{ marginTop: 12, background: COLORS.cream, border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 9, padding: '10px 12px' }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500, marginBottom: 5 }}>One way there</div>
+                  {PUZZLE.example.map((st, i) => (
+                    <div key={i} style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{st[0]} {OPL[st[1]]} {st[2]} = {st[3]}</div>
+                  ))}
+                  {PUZZLE.solutions > 1 && (
+                    <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.faded, marginTop: 6 }}>One of {PUZZLE.solutions} exact routes to it.</div>
+                  )}
+                </div>
+              )}
+              {PUZZLE.sunday && (
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition, a harder set.</div>
+              )}
+              {isTodays && myStats.cur >= 2 && (
+                <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                {isTodays ? (
+                  <>
+                    {countdown ? <>Next Crunch in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board drops at midnight Eastern.'}
+                    {prevPuzzle && (<>{' '}Meanwhile: <a href={`/crunch?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Crunch &rarr;</a></>)}
+                  </>
+                ) : (
+                  <>
+                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                    <a href="/crunch" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crunch &rarr;</a>
+                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -825,53 +874,6 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        {!playing && (
-          <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              The target was <span style={{ color: COLORS.accent }}>{TARGET}</span>.
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>
-              {won
-                ? `Exact, using ${used} step${used === 1 ? '' : 's'}. An exact answer needed ${need} of the six numbers.`
-                : g.status === 'done'
-                  ? `Your closest was ${bestDiff} off, worth ${finalScore} out of 10.`
-                  : `It was reachable. An exact answer needed ${need} of the six.`}
-            </div>
-            {Array.isArray(PUZZLE.example) && PUZZLE.example.length > 0 && (
-              <div style={{ marginTop: 12, background: COLORS.cream, border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 9, padding: '10px 12px' }}>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 500, marginBottom: 5 }}>One way there</div>
-                {PUZZLE.example.map((st, i) => (
-                  <div key={i} style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{st[0]} {OPL[st[1]]} {st[2]} = {st[3]}</div>
-                ))}
-                {PUZZLE.solutions > 1 && (
-                  <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.faded, marginTop: 6 }}>One of {PUZZLE.solutions} exact routes to it.</div>
-                )}
-              </div>
-            )}
-            {PUZZLE.sunday && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition, a harder set.</div>
-            )}
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {countdown ? <>Next Crunch in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board drops at midnight Eastern.'}
-                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/crunch?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Crunch &rarr;</a></>)}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/crunch" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crunch &rarr;</a>
-                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </div>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

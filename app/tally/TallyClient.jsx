@@ -1218,6 +1218,21 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
+          <div className="loft-sol">
+          {/* result */}
+          {!playing && (
+            <>
+              {!isTodays && (
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/tally" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Tally &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </p>
+              )}
+            </>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -1269,19 +1284,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        {/* result */}
-        {!playing && (
-          <>
-            {!isTodays && (
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-                You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                <a href="/tally" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Tally &rarr;</a>
-                {' · '}
-                <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-              </p>
-            )}
-          </>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

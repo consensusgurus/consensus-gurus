@@ -1070,6 +1070,57 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
       )}
 
 
+          <div className="loft-sol">
+          {!playing && (
+            <div style={{ maxWidth: 472, margin: '0 auto' }}>
+              {/* The key move and the mating pattern are shown ONLY to a solver.
+                  The position is replayable, so naming the move to someone who
+                  missed it spends the puzzle for good. */}
+              {won ? (
+                <>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                    The key: <span style={{ color: COLORS.accent }}>{PUZZLE.keySan}</span>.
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}.</div>
+                </>
+              ) : (
+                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '8px 0 0', lineHeight: 1.5 }}>
+                  We are not printing the move. The forced mate is still there in the position, so take another run at it.
+                </div>
+              )}
+              {PUZZLE.sunday && (
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a mate in three.</div>
+              )}
+              {isTodays && myStats.cur >= 2 && (
+                <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                {isTodays ? (
+                  <>
+                    {countdown ? <>Next Mate in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new position drops at midnight Eastern.'}
+                    {prevPuzzle && (
+                      <>
+                        {' '}Meanwhile:{' '}
+                        <a href={`/mate?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                          play yesterday&rsquo;s Mate &rarr;
+                        </a>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                    <a href="/mate" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Mate &rarr;</a>
+                    {' · '}
+                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -1117,55 +1168,6 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
       {/* end of the navy play stage; everything below is the light tail */}
       </div>
 
-        {!playing && (
-          <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            {/* The key move and the mating pattern are shown ONLY to a solver.
-                The position is replayable, so naming the move to someone who
-                missed it spends the puzzle for good. */}
-            {won ? (
-              <>
-                <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-                  The key: <span style={{ color: COLORS.accent }}>{PUZZLE.keySan}</span>.
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}.</div>
-              </>
-            ) : (
-              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '8px 0 0', lineHeight: 1.5 }}>
-                We are not printing the move. The forced mate is still there in the position, so take another run at it.
-              </div>
-            )}
-            {PUZZLE.sunday && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a mate in three.</div>
-            )}
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {countdown ? <>Next Mate in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new position drops at midnight Eastern.'}
-                  {prevPuzzle && (
-                    <>
-                      {' '}Meanwhile:{' '}
-                      <a href={`/mate?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                        play yesterday&rsquo;s Mate &rarr;
-                      </a>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/mate" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Mate &rarr;</a>
-                  {' · '}
-                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </div>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

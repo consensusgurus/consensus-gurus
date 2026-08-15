@@ -641,6 +641,43 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
         )}
 
 
+          <div className="loft-sol">
+          {!playing && (
+            <div style={{ maxWidth: 472, margin: '0 auto' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                {won ? <>A perfect run: <span style={{ color: COLORS.accent }}>40 straight</span>.</> : <>You cleared <span style={{ color: COLORS.accent }}>{depth} of {TOTAL_Q}</span>.</>}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
+                {won
+                  ? 'Nobody can beat that score. They can only tie it faster.'
+                  : depth >= 32 ? 'Deep into the brutal round. That is a serious run.'
+                  : depth >= 24 ? 'You made it through the medium round and into the hard stuff.'
+                  : depth >= 16 ? 'Through the easy rounds and into real trivia.'
+                  : depth >= 8 ? 'The first round is behind you. The gauntlet gets mean fast.'
+                  : 'The gauntlet claims its share early. Tomorrow is a new run.'}
+              </div>
+              {isTodays && myStats.cur >= 2 && (
+                <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                {isTodays ? (
+                  <>
+                    {countdown ? <>Next Streak in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new gauntlet drops at midnight Eastern.'}
+                    {prevPuzzle && (<>{' '}Meanwhile: <a href={`/streak?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>run yesterday&rsquo;s gauntlet &rarr;</a></>)}
+                  </>
+                ) : (
+                  <>
+                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                    <a href="/streak" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Streak &rarr;</a>
+                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -689,41 +726,6 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        {!playing && (
-          <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              {won ? <>A perfect run: <span style={{ color: COLORS.accent }}>40 straight</span>.</> : <>You cleared <span style={{ color: COLORS.accent }}>{depth} of {TOTAL_Q}</span>.</>}
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
-              {won
-                ? 'Nobody can beat that score. They can only tie it faster.'
-                : depth >= 32 ? 'Deep into the brutal round. That is a serious run.'
-                : depth >= 24 ? 'You made it through the medium round and into the hard stuff.'
-                : depth >= 16 ? 'Through the easy rounds and into real trivia.'
-                : depth >= 8 ? 'The first round is behind you. The gauntlet gets mean fast.'
-                : 'The gauntlet claims its share early. Tomorrow is a new run.'}
-            </div>
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {countdown ? <>Next Streak in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new gauntlet drops at midnight Eastern.'}
-                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/streak?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>run yesterday&rsquo;s gauntlet &rarr;</a></>)}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/streak" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Streak &rarr;</a>
-                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </div>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

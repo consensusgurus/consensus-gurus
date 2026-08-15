@@ -1091,6 +1091,30 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           {/* result line */}
 
           </div>
+          <div className="loft-sol">
+            {!playing && (
+              <>
+                <div style={{ maxWidth: 472, margin: '18px auto 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                    <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
+                    <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                      Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    </span>
+                  </div>
+                </div>
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px auto 0', maxWidth: 472 }}>
+                  {isTodays ? (
+                    <>
+                      {countdown ? <>A fresh grid in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh grid lands at midnight Eastern.'}
+                      {prevPuzzle && (<>{' '}Meanwhile:{' '}<a href={`/shards?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s grid &rarr;</a></>)}
+                    </>
+                  ) : (
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/shards" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Shards &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                  )}
+                </p>
+              </>
+            )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -1138,28 +1162,6 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           </div>
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
-          {!playing && (
-            <>
-              <div style={{ maxWidth: 472, margin: '18px auto 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                    Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
-                  </span>
-                </div>
-              </div>
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px auto 0', maxWidth: 472 }}>
-                {isTodays ? (
-                  <>
-                    {countdown ? <>A fresh grid in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh grid lands at midnight Eastern.'}
-                    {prevPuzzle && (<>{' '}Meanwhile:{' '}<a href={`/shards?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s grid &rarr;</a></>)}
-                  </>
-                ) : (
-                  <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/shards" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Shards &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
-                )}
-              </p>
-            </>
-          )}
 
           {focusMode && (
             <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>

@@ -1455,6 +1455,40 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
+          <div className="loft-sol">
+            {/* result */}
+            {!playing && (
+              <>
+                {isTodays && myStats.cur >= 2 && (
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                  </div>
+                )}
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                  {isTodays ? (
+                    <>
+                      {countdown ? <>Next Crux in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
+                      {prevPuzzle && (
+                        <>
+                          {' '}Meanwhile:{' '}
+                          <a href={`/crux?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                            play yesterday&rsquo;s Crux &rarr;
+                          </a>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                      <a href="/crux" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crux &rarr;</a>
+                      {' · '}
+                      <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    </>
+                  )}
+                </p>
+              </>
+            )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -1509,38 +1543,6 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               a player looks for them. See LoftFinish. */}
         </div>
 
-          {/* result */}
-          {!playing && (
-            <>
-              {isTodays && myStats.cur >= 2 && (
-                <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-                </div>
-              )}
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-                {isTodays ? (
-                  <>
-                    {countdown ? <>Next Crux in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
-                    {prevPuzzle && (
-                      <>
-                        {' '}Meanwhile:{' '}
-                        <a href={`/crux?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
-                          play yesterday&rsquo;s Crux &rarr;
-                        </a>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/crux" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crux &rarr;</a>
-                    {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                  </>
-                )}
-              </p>
-            </>
-          )}
         </div>
         </div>
 

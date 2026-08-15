@@ -644,6 +644,43 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
         )}
 
 
+          <div className="loft-sol">
+          {!playing && (
+            <div style={{ maxWidth: 472, margin: '0 auto' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                {won ? <>A clean dive: <span style={{ color: COLORS.accent }}>all 15</span> on {TOPIC}.</> : <>You went <span style={{ color: COLORS.accent }}>{depth} of {TOTAL_Q}</span> deep on {TOPIC}.</>}
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
+                {won
+                  ? 'Nobody can beat that score. They can only tie it faster.'
+                  : depth >= 13 ? 'Into the last round. That is specialist territory.'
+                  : depth >= 10 ? 'You cleared the hard round. Most people do not.'
+                  : depth >= 7 ? 'Through the middle and into the real questions.'
+                  : depth >= 4 ? 'Past the gimmes. The subject bites back quickly.'
+                  : 'A shallow one today. Tomorrow is a different subject entirely.'}
+              </div>
+              {isTodays && myStats.cur >= 2 && (
+                <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                {isTodays ? (
+                  <>
+                    {countdown ? <>A new topic in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new topic drops at midnight Eastern.'}
+                    {prevPuzzle && (<>{' '}Meanwhile: <a href={`/deep?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>dive yesterday&rsquo;s topic &rarr;</a></>)}
+                  </>
+                ) : (
+                  <>
+                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                    <a href="/deep" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Deep &rarr;</a>
+                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -692,41 +729,6 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        {!playing && (
-          <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              {won ? <>A clean dive: <span style={{ color: COLORS.accent }}>all 15</span> on {TOPIC}.</> : <>You went <span style={{ color: COLORS.accent }}>{depth} of {TOTAL_Q}</span> deep on {TOPIC}.</>}
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
-              {won
-                ? 'Nobody can beat that score. They can only tie it faster.'
-                : depth >= 13 ? 'Into the last round. That is specialist territory.'
-                : depth >= 10 ? 'You cleared the hard round. Most people do not.'
-                : depth >= 7 ? 'Through the middle and into the real questions.'
-                : depth >= 4 ? 'Past the gimmes. The subject bites back quickly.'
-                : 'A shallow one today. Tomorrow is a different subject entirely.'}
-            </div>
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {countdown ? <>A new topic in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new topic drops at midnight Eastern.'}
-                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/deep?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>dive yesterday&rsquo;s topic &rarr;</a></>)}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/deep" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Deep &rarr;</a>
-                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </div>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

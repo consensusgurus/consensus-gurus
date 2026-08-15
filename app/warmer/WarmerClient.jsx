@@ -603,6 +603,22 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           {/* result footer */}
 
           </div>
+          <div className="loft-sol">
+            {!playing && (
+              <div style={{ maxWidth: 472, margin: '14px auto 0' }}>
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: 0 }}>
+                  {isTodays ? (
+                    <>
+                      {countdown ? <>Next Warmer in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new word drops at midnight Eastern.'}
+                      {prevPuzzle && (<> {' '}Meanwhile:{' '}<a href={`/warmer?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Warmer &rarr;</a></>)}
+                    </>
+                  ) : (
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/warmer" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Warmer &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                  )}
+                </p>
+              </div>
+            )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -650,20 +666,6 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           </div>
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
-          {!playing && (
-            <div style={{ maxWidth: 472, margin: '14px auto 0' }}>
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: 0 }}>
-                {isTodays ? (
-                  <>
-                    {countdown ? <>Next Warmer in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new word drops at midnight Eastern.'}
-                    {prevPuzzle && (<> {' '}Meanwhile:{' '}<a href={`/warmer?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Warmer &rarr;</a></>)}
-                  </>
-                ) : (
-                  <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/warmer" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Warmer &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
-                )}
-              </p>
-            </div>
-          )}
 
           {focusMode && (
             <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

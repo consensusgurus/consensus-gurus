@@ -874,6 +874,40 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           )}
 
 
+          <div className="loft-sol">
+            {!playing && (
+              <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
+                {/* The key square and the idea behind it go only to a solver, so
+                    a player who lost can come back to the position intact. */}
+                {won ? (
+                  <>
+                    <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
+                      The key: <span style={{ color: COLORS.accent }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
+                    We are not naming the square. The win is still sitting in this position, so take another run at it.
+                  </div>
+                )}
+                {PUZZLE.sunday && (
+                  <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, with two more squares to read.</div>
+                )}
+                {isTodays && myStats.cur >= 2 && (
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: '#b45309', marginTop: 8 }}>{myStats.cur}-day streak</div>
+                )}
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginTop: 12, lineHeight: 1.6 }}>
+                  {isTodays ? (
+                    <>Next Turn in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/turn?p=${PUZZLE.num - 1}`} style={{ color: COLORS.accent, fontWeight: 800 }}>Play yesterday&rsquo;s Turn &rarr;</a>)}</>
+                  ) : (
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/turn" style={{ color: COLORS.accent, fontWeight: 800 }}>Back to today&rsquo;s Turn &rarr;</a></>
+                  )}
+                  {' '}<a href="/daily" style={{ color: COLORS.accent, fontWeight: 800 }}>All daily puzzles</a>
+                </p>
+              </div>
+            )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -921,38 +955,6 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           {/* end of the navy play stage; everything below is the light tail */}
           </div>
 
-          {!playing && (
-            <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
-              {/* The key square and the idea behind it go only to a solver, so
-                  a player who lost can come back to the position intact. */}
-              {won ? (
-                <>
-                  <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
-                    The key: <span style={{ color: COLORS.accent }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
-                </>
-              ) : (
-                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
-                  We are not naming the square. The win is still sitting in this position, so take another run at it.
-                </div>
-              )}
-              {PUZZLE.sunday && (
-                <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, with two more squares to read.</div>
-              )}
-              {isTodays && myStats.cur >= 2 && (
-                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#b45309', marginTop: 8 }}>{myStats.cur}-day streak</div>
-              )}
-              <p style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginTop: 12, lineHeight: 1.6 }}>
-                {isTodays ? (
-                  <>Next Turn in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/turn?p=${PUZZLE.num - 1}`} style={{ color: COLORS.accent, fontWeight: 800 }}>Play yesterday&rsquo;s Turn &rarr;</a>)}</>
-                ) : (
-                  <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/turn" style={{ color: COLORS.accent, fontWeight: 800 }}>Back to today&rsquo;s Turn &rarr;</a></>
-                )}
-                {' '}<a href="/daily" style={{ color: COLORS.accent, fontWeight: 800 }}>All daily puzzles</a>
-              </p>
-            </div>
-          )}
 
           {focusMode && (
             <div style={{ textAlign: 'center', margin: '18px 0 0' }}>

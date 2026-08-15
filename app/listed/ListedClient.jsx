@@ -874,6 +874,37 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
         )}
+          <div className="loft-sol">
+          {/* result */}
+          {!playing && (!LOFT || revealed) && (
+            <>
+              <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
+                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>The real ranking</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {PUZZLE.items.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, color: COLORS.faded, width: 16, textAlign: 'right', marginTop: 2 }}>{i + 1}</span>
+                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 74, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{item.v}</span>
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: COLORS.ink }}>{item.t}</span>
+                        {item.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: COLORS.faded, marginTop: 1 }}>{item.d}</span> : null}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, marginTop: 11, borderTop: '1px solid rgba(28,30,36,0.14)', paddingTop: 8 }}>Source: {PUZZLE.source}</div>
+              </div>
+              {!isTodays && (
+                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                  <a href="/listed" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Listed &rarr;</a>
+                  {' · '}
+                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                </p>
+              )}
+            </>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -953,35 +984,6 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-        {/* result */}
-        {!playing && (!LOFT || revealed) && (
-          <>
-            <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>The real ranking</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {PUZZLE.items.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                    <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, color: COLORS.faded, width: 16, textAlign: 'right', marginTop: 2 }}>{i + 1}</span>
-                    <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 74, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{item.v}</span>
-                    <span style={{ minWidth: 0 }}>
-                      <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: COLORS.ink }}>{item.t}</span>
-                      {item.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: COLORS.faded, marginTop: 1 }}>{item.d}</span> : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, marginTop: 11, borderTop: '1px solid rgba(28,30,36,0.14)', paddingTop: 8 }}>Source: {PUZZLE.source}</div>
-            </div>
-            {!isTodays && (
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-                You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                <a href="/listed" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Listed &rarr;</a>
-                {' · '}
-                <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-              </p>
-            )}
-          </>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

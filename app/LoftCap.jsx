@@ -323,6 +323,28 @@ export default function LoftCap({
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) strong{
   color:var(--white)!important}
 .loft-page > [class$="-wrap"] > div > p{color:#bfd0ee!important}
+/* THE POST-GAME PANEL SITS UNDER THE BOARD, never under the finish card
+   (owner, 2026-08-15). It used to render in the light tail BELOW the stage, so
+   a player who had just been handed the finish card scrolled past their own end
+   card straight into the answer: Ping printed the city and its description
+   right there, in full, with the options still on screen. The panel is inside
+   the flip FRONT face now, at the foot of the board, so it is hidden along with
+   the board while the options are up and appears only once the player presses
+   Return to board. The panel itself did not change, only where it hangs.
+
+   Two supporting rules. The ink mirrors what the tail already gave it, because
+   the panel is still on navy and its own text is inked for paper; anything
+   carrying its own background (the answer card, the live crowd boards) keeps
+   its dark ink, exactly as the tail rules do. And :empty removes it while a
+   game is still being played, when the div renders with nothing inside it and
+   would otherwise push 14px of air under the board. */
+.loft-sol{margin-top:14px}
+.loft-sol:empty{display:none;margin-top:0}
+.loft-page .loft-sol,
+.loft-page .loft-sol *:not([style*="background"]):not([style*="background"] *){color:#bfd0ee!important}
+.loft-page .loft-sol b:not([style*="background"] b),
+.loft-page .loft-sol strong{color:var(--white)!important}
+.loft-page .loft-sol a{color:#ffd45e!important}
 /* The "Show overview and more" control was styled for a light page: deep blue
    ink, no ground, a faint border. All three disappear on navy (owner: "it
    blends into background now"). It reads as a proper button here. */

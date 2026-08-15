@@ -754,6 +754,49 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
         )}
 
 
+          <div className="loft-sol">
+          {!playing && (
+            <div style={{ maxWidth: 472, margin: '0 auto' }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                Par was <span style={{ color: COLORS.accent }}>{par} rungs</span>, perfect was <span style={{ color: COLORS.ink }}>{perfect}</span>.
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
+                {won && used === perfect
+                  ? 'You matched the shortest ladder there is, which on this board is not easy.'
+                  : won && used < par ? `You got there in ${used}, ${par - used} under par and ${used - perfect} off perfect.`
+                  : won && used === par ? `You got there in ${used}, level par, ${used - perfect} off perfect.`
+                  : won ? `You got there in ${used}, ${used - par} over par.`
+                  : 'One shortest ladder:'}
+                {PUZZLE.routes === 1 && ' There is exactly one shortest ladder between these two words.'}
+              </div>
+              <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.ink, fontWeight: 500, lineHeight: 1.7, wordBreak: 'break-word' }}>
+                {PUZZLE.example.join(' → ')}
+              </div>
+              {PUZZLE.sunday && (
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition, a much longer climb.</div>
+              )}
+              {isTodays && myStats.cur >= 2 && (
+                <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                </div>
+              )}
+              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                {isTodays ? (
+                  <>
+                    {countdown ? <>Next Rung in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new ladder drops at midnight Eastern.'}
+                    {prevPuzzle && (<>{' '}Meanwhile: <a href={`/rung?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>climb yesterday&rsquo;s Rung &rarr;</a></>)}
+                  </>
+                ) : (
+                  <>
+                    You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
+                    <a href="/rung" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Rung &rarr;</a>
+                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  </>
+                )}
+              </p>
+            </div>
+          )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -801,47 +844,6 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        {!playing && (
-          <div style={{ maxWidth: 472, margin: '0 auto' }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-              Par was <span style={{ color: COLORS.accent }}>{par} rungs</span>, perfect was <span style={{ color: COLORS.ink }}>{perfect}</span>.
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
-              {won && used === perfect
-                ? 'You matched the shortest ladder there is, which on this board is not easy.'
-                : won && used < par ? `You got there in ${used}, ${par - used} under par and ${used - perfect} off perfect.`
-                : won && used === par ? `You got there in ${used}, level par, ${used - perfect} off perfect.`
-                : won ? `You got there in ${used}, ${used - par} over par.`
-                : 'One shortest ladder:'}
-              {PUZZLE.routes === 1 && ' There is exactly one shortest ladder between these two words.'}
-            </div>
-            <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.ink, fontWeight: 500, lineHeight: 1.7, wordBreak: 'break-word' }}>
-              {PUZZLE.example.join(' → ')}
-            </div>
-            {PUZZLE.sunday && (
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition, a much longer climb.</div>
-            )}
-            {isTodays && myStats.cur >= 2 && (
-              <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
-              </div>
-            )}
-            <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
-              {isTodays ? (
-                <>
-                  {countdown ? <>Next Rung in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new ladder drops at midnight Eastern.'}
-                  {prevPuzzle && (<>{' '}Meanwhile: <a href={`/rung?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>climb yesterday&rsquo;s Rung &rarr;</a></>)}
-                </>
-              ) : (
-                <>
-                  You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/rung" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Rung &rarr;</a>
-                  {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
-                </>
-              )}
-            </p>
-          </div>
-        )}
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>

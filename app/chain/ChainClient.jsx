@@ -861,6 +861,41 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           )}
 
 
+          <div className="loft-sol">
+            {!playing && (
+              <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
+                {/* The key edge and the idea behind it go only to a solver. The
+                    motif states the take-versus-decline decision outright, which
+                    is the whole puzzle, so it is withheld from everyone else. */}
+                {won ? (
+                  <>
+                    <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
+                      The key: <span style={{ color: COLORS.accent }}>{revealKey ? 'the edge pulsing on the board' : 'the edge you found'}</span>.
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+                  </>
+                ) : (
+                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
+                    We are not marking the edge. The win is still sitting in this position, so take another run at it.
+                  </div>
+                )}
+                {PUZZLE.sunday && (
+                  <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, on the bigger 5 by 5 board.</div>
+                )}
+                {isTodays && myStats.cur >= 2 && (
+                  <div style={{ fontSize: 12.5, fontWeight: 800, color: '#b45309', marginTop: 8 }}>{myStats.cur}-day streak</div>
+                )}
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginTop: 12, lineHeight: 1.6 }}>
+                  {isTodays ? (
+                    <>Next Chain in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/chain?p=${PUZZLE.num - 1}`} style={{ color: COLORS.accent, fontWeight: 800 }}>Play yesterday&rsquo;s Chain &rarr;</a>)}</>
+                  ) : (
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/chain" style={{ color: COLORS.accent, fontWeight: 800 }}>Back to today&rsquo;s Chain &rarr;</a></>
+                  )}
+                  {' '}<a href="/daily" style={{ color: COLORS.accent, fontWeight: 800 }}>All daily puzzles</a>
+                </p>
+              </div>
+            )}
+          </div>
           {LOFT && !playing && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Show options</button>
           )}
@@ -908,39 +943,6 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           {/* end of the navy play stage; everything below is the light tail */}
           </div>
 
-          {!playing && (
-            <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
-              {/* The key edge and the idea behind it go only to a solver. The
-                  motif states the take-versus-decline decision outright, which
-                  is the whole puzzle, so it is withheld from everyone else. */}
-              {won ? (
-                <>
-                  <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
-                    The key: <span style={{ color: COLORS.accent }}>{revealKey ? 'the edge pulsing on the board' : 'the edge you found'}</span>.
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
-                </>
-              ) : (
-                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
-                  We are not marking the edge. The win is still sitting in this position, so take another run at it.
-                </div>
-              )}
-              {PUZZLE.sunday && (
-                <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, on the bigger 5 by 5 board.</div>
-              )}
-              {isTodays && myStats.cur >= 2 && (
-                <div style={{ fontSize: 12.5, fontWeight: 800, color: '#b45309', marginTop: 8 }}>{myStats.cur}-day streak</div>
-              )}
-              <p style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginTop: 12, lineHeight: 1.6 }}>
-                {isTodays ? (
-                  <>Next Chain in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/chain?p=${PUZZLE.num - 1}`} style={{ color: COLORS.accent, fontWeight: 800 }}>Play yesterday&rsquo;s Chain &rarr;</a>)}</>
-                ) : (
-                  <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/chain" style={{ color: COLORS.accent, fontWeight: 800 }}>Back to today&rsquo;s Chain &rarr;</a></>
-                )}
-                {' '}<a href="/daily" style={{ color: COLORS.accent, fontWeight: 800 }}>All daily puzzles</a>
-              </p>
-            </div>
-          )}
 
           {focusMode && (
             <div style={{ textAlign: 'center', margin: '18px 0 0' }}>
