@@ -56,6 +56,8 @@
 //        side→quayside). These also RENDER BROKEN: the reveal strikes the tapped
 //        word and inserts the fix after it, so "fire proof safe" reads back as
 //        "fire fireproof safe". verify-stet.mjs now fails these outright.
+//      · a listed variant spelling (wistaria for wisteria, gaol for jail). A
+//        dictionary variant is not an error, any more than a dialect one is.
 //      · a collective noun that is already correct. A pod of dolphins and a raft
 //        of eider are the right terms; the bank once flagged both AND taught the
 //        opposite on another day (#45.7 pod→school vs #74.3 school→pod).
@@ -75,6 +77,26 @@
 //    copy the reader sees is British, while the answer the reader TYPES may be
 //    in either dialect. Prefer a neutral word over either flag when one exists,
 //    which is why "pry bar" became "crowbar" rather than "jemmy".
+//  - AND THE FIX MUST BE FINDABLE (owner ruling 2026-08-15, after a second
+//    complaint of the same shape as the cyclist one: "for #5 there are no
+//    context clues to indicate the cyclist was cautioned rather than fined,
+//    either would have been equally acceptable"). The rule above says the
+//    flagged word must be WRONG; this one says it must POINT AT THE FIX. A
+//    reader can only produce the right word if the wrong one sounds like it
+//    (kerb/curb, allowed/aloud), is a form of it (had ran/run, thanked
+//    they/those), is a near-miss spelling of it (trellice/trellis,
+//    ampliation/amplification), or the two are a confusable pair a copy desk is
+//    taught to watch for (fewer/less, flaunt/flout). Two unrelated words are a
+//    synonym swap, and a reader who SPOTS the error still cannot know which
+//    word the author meant, so the item is a coin toss however wrong the
+//    flagged word is. verify-stet.mjs derives the relation itself and fails an
+//    unrelated pair from FORCED_FIX_FROM (2026-08-16). A real confusable the
+//    derivation misses goes in FORCED_PAIRS there WITH ITS REASON, and writing
+//    the reason is the gate: if it will not write, re-cut the item. This ruling
+//    turned reign→curb into kerb→curb, precise→specify into precise→precis
+//    (with every other sensible fix in alts), vestures→vestments into
+//    isle→aisle, wistaria→wisteria into trellice→trellis, and school→pod into
+//    tied→tide.
 //  - never reuse a wrong→fix pair already banked here.
 export const PUZZLES = [
   {
@@ -1052,8 +1074,8 @@ export const PUZZLES = [
         errors: [{ wrong: "of", fix: "off", kind: 'wordchoice', note: "Off means away from; of is a possessive preposition." }],
       },
       {
-        text: "The developer promised to reign back the costs.",
-        errors: [{ wrong: "reign", fix: "curb", alts: ["rein", "check"], kind: 'wordchoice', note: "To rein back or curb is to restrain; a reign is a monarch's rule." }],
+        text: "The developer promised to kerb the costs on the second phase.",
+        errors: [{ wrong: "kerb", fix: "curb", alts: ["check"], kind: 'wordchoice', note: "To curb is to hold back; a kerb is the stone edge of a pavement." }],
       },
       {
         text: "The bridge was closed after engineers found a hairline fracture.",
@@ -1093,7 +1115,7 @@ export const PUZZLES = [
       },
       {
         text: "The judge called the delay completely unexcusable.",
-        errors: [{ wrong: "unexcusable", fix: "inexcusable", kind: 'wordchoice', note: "Inexcusable is the standard form; unexcusable is not." }],
+        errors: [{ wrong: "unexcusable", fix: "inexcusable", kind: 'wordchoice', note: "Inexcusable is the word; unexcusable is not English." }],
       },
     ],
   },
@@ -1115,7 +1137,7 @@ export const PUZZLES = [
       },
       {
         text: "The applicant was asked to precise his claim in writing.",
-        errors: [{ wrong: "precise", fix: "specify", kind: 'wordchoice', note: "Specify is the verb; precise is an adjective." }],
+        errors: [{ wrong: "precise", fix: "precis", alts: ["précis", "specify", "clarify", "state", "detail", "summarise", "summarize"], kind: 'wordchoice', note: "Precis, to summarise, is the verb; precise is an adjective." }],
       },
       {
         text: "The archive holds letters from every decade of the last century.",
@@ -1124,7 +1146,7 @@ export const PUZZLES = [
       },
       {
         text: "The tenor's voice carried to the nave without ampliation.",
-        errors: [{ wrong: "ampliation", fix: "amplification", kind: 'wordchoice', note: "Amplification is the word; ampliation is a legal rarity." }],
+        errors: [{ wrong: "ampliation", fix: "amplification", kind: 'wordchoice', note: "Amplification is sound reinforcement; ampliation means enlargement in law." }],
       },
     ],
   },
@@ -1154,8 +1176,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: complement means to complete, which is what is meant.",
       },
       {
-        text: "The choir processed to the chancel in full vestures.",
-        errors: [{ wrong: "vestures", fix: "vestments", kind: 'wordchoice', note: "Vestments are church robes; vesture is a poetic covering." }],
+        text: "The choir processed down the isle in full vestments.",
+        errors: [{ wrong: "isle", fix: "aisle", kind: 'wordchoice', note: "An aisle is the passage between the pews; an isle is an island." }],
       },
     ],
   },
@@ -2239,8 +2261,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: limes is correct here, meaning lime trees.",
       },
       {
-        text: "The gardener pruned the wistaria back to two buds after flowering.",
-        errors: [{ wrong: "wistaria", fix: "wisteria", kind: 'spelling', note: "Wisteria is the standard modern spelling." }],
+        text: "The gardener pruned the wisteria back to two buds and tied the growth to the trellice.",
+        errors: [{ wrong: "trellice", fix: "trellis", kind: 'spelling', note: "Trellis is the spelling for the frame; trellice is not a word." }],
       },
       {
         text: "The scheme drew objections from three parishes.",
@@ -2433,8 +2455,8 @@ export const PUZZLES = [
         cleanNote: "Clean copy: releaded is the correct term for renewing lead work.",
       },
       {
-        text: "The keeper logged a school of porpoise working the tide race off the head.",
-        errors: [{ wrong: "school", fix: "pod", kind: 'wordchoice', note: "A pod is the usual collective term for porpoises." }],
+        text: "The keeper logged a pod of porpoise working the tied race off the head.",
+        errors: [{ wrong: "tied", fix: "tide", kind: 'wordchoice', note: "A tide race is the fast water off a headland; tied is the past of tie." }],
       },
       {
         text: "The tenant gave notice at the end of the quarter.",

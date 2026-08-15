@@ -49,7 +49,156 @@ const US_ONLY = [
   [/\bcanceled\b/i, 'cancelled'], [/\bjewelry\b/i, 'jewellery'],
   [/\bplowed?\b/i, 'ploughed'], [/\bcatalogs?\b/i, 'catalogue'],
 ];
-const PREFERENCE_NOTE = /\b(british|american)\b|\busual(ly)? (term|word)\b|\bplain (term|word)\b|\bmore usual\b|\bin this trade\b|\b(written as |is )?(a )?(one|single) word\b|\bmodern usage\b|\bthe general term\b|\bdialect variant\b/i;
+const PREFERENCE_NOTE = /\b(british|american)\b|\b(usual|normal|standard|customary|preferred|conventional|accepted|modern)(ly)?\s+(\w+\s+){0,2}(term|word|name|spelling|form|usage)\b|\bplain (term|word)\b|\bmore usual\b|\bin this trade\b|\b(written as |is )?(a )?(one|single) word\b|\bmodern usage\b|\bthe general term\b|\bdialect variant\b/i;
+// ---------------------------------------------------------------------------
+// THE FIX MUST BE FINDABLE (owner ruling 2026-08-15, after a second complaint
+// of the same shape as the 08-14 one: "for #5 there are no context clues to
+// indicate the cyclist was cautioned rather than fined, either would have been
+// equally acceptable"). The 08-14 rule says the flagged word must be WRONG.
+// This one says it must POINT AT THE FIX. A player can only produce the right
+// word if the wrong one sounds like it, is a form of it, is a near-miss
+// spelling of it, or the two are a confusable pair a copy desk is taught to
+// watch for. Two unrelated words are a synonym swap: even a reader who spots
+// the error cannot know which word the author had in mind.
+// Boards live before FORCED_FIX_FROM are played history and are skipped.
+const FORCED_FIX_FROM = '2026-08-16';
+const relations = {};
+// A rough phonetic key: enough to see that reign/rein, allowed/aloud and
+// threw/through are one sound. Deliberately loose, since a near-miss that
+// scores as a homophone is a real copy-desk error either way.
+function pkey(s) {
+  let w = String(s).toLowerCase().replace(/[^a-z]/g, '');
+  if (!w) return '';
+  w = w.replace(/^(kn|gn|pn|wr)/, (m) => m[1]);
+  if (/^wh[ou]/.test(w)) w = w.slice(1);              // who, whole: the w is silent
+  else if (w.startsWith('wh')) w = 'w' + w.slice(2);
+  w = w.replace(/ough/g, 'o').replace(/ph/g, 'f').replace(/gh/g, '').replace(/gn/g, 'n');
+  w = w.replace(/x/g, 'ks').replace(/ch(?=[rl])/g, 'k').replace(/sc(?=[lm])/g, 's');
+  w = w.replace(/sh|ch|ti(?=[oa])|ci(?=[oa])/g, 'X').replace(/th/g, '0');
+  w = w.replace(/ck/g, 'k').replace(/q/g, 'k').replace(/dg(?=[eiy])/g, 'j').replace(/g(?=[eiy])/g, 'j');
+  w = w.replace(/c(?=[eiy])/g, 's').replace(/c/g, 'k');
+  w = w.replace(/z/g, 's').replace(/v/g, 'f').replace(/h/g, '');
+  w = w.replace(/e$/, '');
+  const lead = /^[aeiouy]/.test(w) ? 'V' : '';
+  const rest = w.slice(lead ? 1 : 0).replace(/w/g, '').replace(/[aeiouy]/g, '');
+  return (lead + rest).replace(/(.)\1+/g, '$1');
+}
+function editDistance(a, b) {
+  const m = a.length, n = b.length;
+  let p = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const c = [i];
+    for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    p = c;
+  }
+  return p[n];
+}
+const SUFFIX = /^(s|es|d|ed|ing|en|n|er|est|ly|ies|ied)$/;
+function sameLemma(a, b) {
+  const [x, y] = a.length <= b.length ? [a, b] : [b, a];
+  if (y.startsWith(x) && x.length >= 3 && SUFFIX.test(y.slice(x.length))) return true;
+  const stem = x.replace(/e$/, '');
+  if (stem.length >= 3 && y.startsWith(stem)) {
+    const tail = y.slice(stem.length).replace(/^(.)\1/, '$1');
+    if (SUFFIX.test(tail)) return true;
+  }
+  return false;
+}
+// Irregular principal parts: any two forms of one verb are the same word, which
+// is what makes "had ran" and "was drove" grammar errors rather than swaps.
+const IRREGULAR = `arise arose arisen|awake awoke awoken|be am is are was were been being|
+bear bore borne|beat beat beaten|become became become|begin began begun|bid bade bidden|
+bind bound|bite bit bitten|bleed bled|blow blew blown|break broke broken|breed bred|
+bring brought|build built|burst burst|buy bought|catch caught|choose chose chosen|
+cling clung|come came|cost cost|creep crept|cut cut|deal dealt|dig dug|dive dived dove|
+do does did done doing|draw drew drawn|drink drank drunk|drive drove driven|dwell dwelt|
+eat ate eaten|fall fell fallen|feed fed|feel felt|fight fought|find found|flee fled|
+fling flung|fly flew flown|forbid forbade forbidden|forget forgot forgotten|
+forgive forgave forgiven|forsake forsook forsaken|freeze froze frozen|get got gotten|
+give gave given|go went gone|grind ground|grow grew grown|hang hung hanged|
+have has had having|hear heard|hide hid hidden|hold held|keep kept|kneel knelt|
+know knew known|lay laid|lead led|leave left|lend lent|lie lay lain|light lit|lose lost|
+make made|mean meant|meet met|mistake mistook mistaken|overtake overtook overtaken|
+pay paid|prove proved proven|put put|read read|ride rode ridden|ring rang rung|
+rise rose risen|run ran run|say said|see saw seen|seek sought|sell sold|send sent|
+set set|shake shook shaken|shine shone|shoot shot|show showed shown|shrink shrank shrunk|
+sing sang sung|sink sank sunk|sit sat|slay slew slain|sleep slept|slide slid|sling slung|
+speak spoke spoken|speed sped|spend spent|spin spun|spit spat|split split|spread spread|
+spring sprang sprung|stand stood|steal stole stolen|stick stuck|sting stung|
+stink stank stunk|strew strewed strewn|stride strode stridden|strike struck stricken|
+string strung|strive strove striven|swear swore sworn|sweep swept|swell swelled swollen|
+swim swam swum|swing swung|take took taken|teach taught|tear tore torn|tell told|
+think thought|thrive throve thriven|throw threw thrown|tread trod trodden|
+undertake undertook undertaken|wake woke woken|wear wore worn|weave wove woven|
+weep wept|win won|wind wound|withdraw withdrew withdrawn|wring wrung|write wrote written`;
+// Closed-class forms: case, number, agreement. Same word, different slot.
+const FORMS = `i me my mine|he him his|she her hers|we us our ours|they them their theirs|
+who whom whose|whoever whomever|this that these those|it its|there their|much many|
+another other`;
+const GROUPS = [...IRREGULAR.split('|'), ...FORMS.split('|')]
+  .map((g) => new Set(g.trim().split(/\s+/))).filter((g) => g.size > 1);
+// Confusable pairs a copy desk is taught to watch for, plus malaprops whose
+// context forces one reading. ADDING AN ENTRY IS A DELIBERATE ACT: write the
+// reason, and only after reading the sentence cold and confirming that a
+// careful editor could not land anywhere else. If the reason will not write,
+// the item is a synonym swap and must be re-cut instead.
+const FORCED_PAIRS = [
+  ['fewer', 'less', 'count nouns take fewer, mass nouns less: the noun decides'],
+  ['amount', 'number', 'the same rule, decided by the noun'],
+  ['uninterested', 'disinterested', 'impartial vs bored'],
+  ['incredulous', 'incredible', 'the hearer is incredulous, the claim incredible'],
+  ['exasperate', 'exacerbate', 'to worsen vs to annoy'],
+  ['comprise', 'compose', 'the whole comprises the parts'],
+  ['flaunt', 'flout', 'to show off vs to defy a rule'],
+  ['adverse', 'averse', 'unfavourable vs unwilling'],
+  ['historic', 'historical', 'momentous vs merely in the past'],
+  ['jibe', 'jive', 'to agree with vs to dance'],
+  ['gambit', 'gamut', 'an opening move vs the whole range'],
+  ['curb', 'curve', 'to restrain vs to bend'],
+  ['tack', 'tact', 'a course taken vs delicacy'],
+  ['cache', 'cachet', 'a hidden store vs prestige'],
+  ['hardy', 'hearty', 'tough vs warm, and they sound close'],
+  ['pour', 'pore', 'to pore over a document; pour tips a liquid'],
+  ['poise', 'pour', 'composure vs tipping a liquid'],
+  ['passed', 'past', 'verb vs preposition, and they sound alike'],
+  ['muscle', 'mussel', 'homophone the phonetic key misses on the silent c'],
+  ['yolk', 'yoke', 'homophone the phonetic key misses on the silent l'],
+  ['deaf', 'death', 'near homophone, and the sentence takes only one'],
+  ['they', 'those', 'a relative clause takes the demonstrative: those who'],
+  ['vernier', 'veneer', 'a measuring scale vs a surface layer'],
+  ['spectator', 'speculative', 'spec development is the trade term the sentence needs'],
+  ['principal', 'principle', 'the head, or the sum, vs a rule'],
+  ['stationary', 'stationery', 'standing still vs paper'],
+  ['complement', 'compliment', 'to complete vs to praise'],
+  ['discreet', 'discrete', 'tactful vs separate'],
+  ['elicit', 'illicit', 'to draw out vs unlawful'],
+  ['prescribe', 'proscribe', 'to recommend vs to forbid'],
+  ['militate', 'mitigate', 'to weigh against vs to soften'],
+  ['venal', 'venial', 'bribable vs pardonable'],
+  ['appraise', 'apprise', 'to value vs to inform'],
+  ['censor', 'censure', 'to suppress vs to condemn'],
+];
+const stemOf = (w) => w.replace(/(ed|ing|es|s|d|n)$/, '').replace(/e$/, '');
+const PAIRS = new Set();
+for (const [a, b] of FORCED_PAIRS) {
+  PAIRS.add([a, b].sort().join('|'));
+  PAIRS.add([stemOf(a), stemOf(b)].sort().join('|'));
+}
+const sharedPrefix = (a, b) => { let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++; return i; };
+// The relation that makes the fix findable, or null for a synonym swap.
+function relation(wrong, fix) {
+  const w = String(wrong).toLowerCase().replace(/[^a-z']/g, '');
+  const f = String(fix).toLowerCase().replace(/[^a-z']/g, '');
+  if (!w || !f) return null;
+  if (pkey(w) === pkey(f)) return 'homophone';
+  if (sameLemma(w, f)) return 'inflection';
+  if (GROUPS.some((g) => g.has(w) && g.has(f))) return 'form';
+  const ed = editDistance(w, f), max = Math.max(w.length, f.length), min = Math.min(w.length, f.length);
+  if (ed <= 2 && min >= 4 && (ed <= 0.25 * max || min >= 6)) return 'misspelling';
+  if (sharedPrefix(w, f) >= 5 && ed <= 0.35 * max) return 'near-miss';
+  if (PAIRS.has([w, f].sort().join('|')) || PAIRS.has([stemOf(w), stemOf(f)].sort().join('|'))) return 'confusable';
+  return null;
+}
 let grammarErrors = 0;
 const err = (m) => { console.error('FAIL:', m); fail++; };
 
@@ -118,6 +267,14 @@ for (const p of PUZZLES) {
         const m = (e.note || '').match(PREFERENCE_NOTE);
         if (m) err(`#${p.num}.${i + 1}.${j + 1}: note argues house preference ("${m[0]}") — an error must be wrong in THIS sentence, not merely less usual`);
       }
+      if (p.live >= FORCED_FIX_FROM) {
+        // (c) the flagged word must POINT at the fix. Unrelated words mean the
+        // sentence cannot choose between them and the player is guessing which
+        // synonym the author meant: the fined→cautioned failure.
+        const rel = relation(w, strip(e.fix));
+        if (rel) relations[rel] = (relations[rel] || 0) + 1;
+        else err(`#${p.num}.${i + 1}.${j + 1}: "${e.wrong}" → "${e.fix}" are unrelated words. Nothing in the sentence chooses between them, so the item is a guess: re-cut it, or add the pair to FORCED_PAIRS with the reason a careful editor could not land anywhere else`);
+      }
     }
   });
   if (dayClean) cleanDays++;
@@ -125,6 +282,7 @@ for (const p of PUZZLES) {
   if (p.live >= GRAMMAR_FROM && dayGrammar === 0) err(`#${p.num} (${p.live}): no kind:'grammar' error — every day on/after ${GRAMMAR_FROM} needs one`);
   if (!p.sunday && p.items.length - dayClean !== 5 - dayClean) { /* structural, covered above */ }
 }
+console.log('relations:', Object.entries(relations).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', '));
 console.log(`stats: ${PUZZLES.length} puzzles, ${totalErrors} errors (${grammarErrors} grammar), ${cleanItems} clean sentences across ${cleanDays} days, ${doubles} two-error sentences`);
 console.log(fail ? `${fail} failure(s)` : 'OK — all checks passed');
 process.exit(fail ? 1 : 0);
