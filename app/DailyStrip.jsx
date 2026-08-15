@@ -570,6 +570,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // to work under a mouse. Nothing renders when everything already fits.
   const filtRef = useRef(null);
   const [filtMore, setFiltMore] = useState({ l: false, r: false });
+  // Row two of the filter strip, the circuits. Its own ref and its own state,
+  // because the overflow of one scroller says nothing about the other.
+  const filt2Ref = useRef(null);
+  const [filt2More, setFilt2More] = useState({ l: false, r: false });
   const [phone, setPhone] = useState(false);
   // The Sundays tab. `sunToday` is computed in an effect, never during render:
   // the server has no idea what day it is in Eastern time and a mismatch is a
@@ -1421,6 +1425,23 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     window.addEventListener('resize', update);
     return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
   }, [slate, sunToday, slateCats.join('|')]);
+  useEffect(() => {
+    const el = filt2Ref.current;
+    if (!el) return undefined;
+    const update = () => {
+      const more = el.scrollWidth - el.clientWidth;
+      setFilt2More({ l: el.scrollLeft > 2, r: more > 2 && el.scrollLeft < more - 2 });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+  }, [slate, cats]);
+  const nudgeFilt2 = (dir) => {
+    const el = filt2Ref.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(120, Math.round(el.clientWidth * 0.7)), behavior: 'smooth' });
+  };
   const nudgeFilt = (dir) => {
     const el = filtRef.current;
     if (!el) return;
@@ -3659,11 +3680,21 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            height that pushed the board around; a scroller is a fixed height
            whatever is in it. */
         .dhome.cats .sl-filt{flex-wrap:nowrap;overflow-x:auto;}
-        .dhome.cats .sl-filt button{font-size:10px;letter-spacing:.06em;padding:7px 11px;}
+        .dhome.cats .sl-filt button{font-size:10px;letter-spacing:.06em;padding:7px 11px;display:inline-flex;align-items:center;gap:6px;}
+        /* The same four colours the header pills use, so the strip and the
+           header say the same thing the same way. */
+        .sl-sdot{width:6px;height:6px;border-radius:50%;flex:none;display:block;}
+        .sl-sdot.rdy{background:#9dbcf7;}
+        .sl-sdot.prg{background:var(--gold);}
+        .sl-sdot.fal{background:#f08a8a;}
+        .sl-sdot.dne{background:#5ad48f;}
         /* The circuits row: a shade lighter than the navy above it, which is
            the whole point, and its own bottom rule so the pair reads as a unit
            rather than as one strip that happens to have wrapped. */
+        .dhome.cats .sl-filtw2{position:relative;flex:none;}
         .dhome.cats .sl-filt2{background:#2c4fa8;border-top:1px solid #16306e;}
+        .dhome.cats .sl-filtw2.ml::before{background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
+        .dhome.cats .sl-filtw2.mr::after{background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
         .dhome.cats .sl-filt2 button{color:#c6d6f4;}
         .dhome.cats .sl-filt2 button:hover{color:var(--white);}
         .dhome.cats .sl-filt2 button.on{color:var(--white);border-bottom-color:var(--white);}
@@ -3697,7 +3728,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-card{display:flex;align-items:center;gap:10px;padding:15px 16px;border-radius:0;text-decoration:none;border-left:none;min-width:0;}
         .cb-card + .cb-card{box-shadow:inset 1.5px 0 0 rgba(255,255,255,.30);}
         .cb-card.up{background:var(--blue);color:var(--white);}
-        .cb-card.easy,.cb-card.lead{background:var(--blue-dark);color:var(--white);}
+        .cb-card.easy,.cb-card.lead{background:var(--blue-deep);color:var(--white);}
         .cb-card.prog{background:var(--gold);color:#3a2a05;border-left-color:#f7d98a;}
         .cb-card.fail{background:#b91c1c;color:var(--white);border-left-color:#f3a5a5;}
         .cb-ct{display:flex;flex-direction:column;min-width:0;}
@@ -4023,15 +4054,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             // Paused and Done, which used to be the gold and green bands at the
             // foot of the board. They carry their counts because that is the
             // one thing a band said that a chip otherwise would not.
-            .concat(cats ? [['ready', 'Ready ' + nReadyAll]] : [])
-            .concat(cats && nProgAll ? [['paused', 'Paused ' + nProgAll]] : [])
-            .concat(cats && nFailAll ? [['failed', 'Failed ' + nFailAll]] : [])
-            .concat(cats && nDoneAll ? [['done', 'Done ' + nDoneAll]] : [])
+            .concat(cats ? [['ready', <><i className="sl-sdot rdy" />Ready {nReadyAll}</>]] : [])
+            .concat(cats && nProgAll ? [['paused', <><i className="sl-sdot prg" />Paused {nProgAll}</>]] : [])
+            .concat(cats && nFailAll ? [['failed', <><i className="sl-sdot fal" />Failed {nFailAll}</>]] : [])
+            .concat(cats && nDoneAll ? [['done', <><i className="sl-sdot dne" />Done {nDoneAll}</>]] : [])
             .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c]))
-            // The circuits, on the same strip and driving the same state. A
-            // category says what a game IS, a circuit what SKILL it exercises,
-            // so they are two axes over one list rather than two controls.
-            .concat(cats ? CIRCUITS.map(([n]) => ['circuit:' + n, n]) : [])
             // LAST in the strip, and absent on a Sunday: on the day itself the
             // Sunday Editions ARE the board, so a tab pointing at last week's
             // would only be competing with them.
@@ -4052,7 +4079,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             long overflowing line, and it scrolls horizontally on its own with
             the same chevron affordance when it does not fit. */}
         {cats ? (
-          <div className="sl-filt sl-filt2" role="tablist" aria-label="Filter by circuit">
+          <div className={`sl-filtw sl-filtw2${filt2More.l ? ' ml' : ''}${filt2More.r ? ' mr' : ''}`}>
+          <div className="sl-filt sl-filt2" ref={filt2Ref} role="tablist" aria-label="Filter by circuit">
             {CIRCUITS.map(([n]) => (
               <button
                 key={'circuit:' + n}
@@ -4063,6 +4091,17 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
                 onClick={() => setFilter('circuit:' + n)}
               >{n}</button>
             ))}
+          </div>
+          {filt2More.l ? (
+            <button type="button" className="sl-fnav l" onClick={() => nudgeFilt2(-1)} aria-label="Scroll the circuits left">
+              <ChevronLeft size={14} strokeWidth={3} />
+            </button>
+          ) : null}
+          {filt2More.r ? (
+            <button type="button" className="sl-fnav r" onClick={() => nudgeFilt2(1)} aria-label="Scroll the circuits right">
+              <ChevronRight size={14} strokeWidth={3} />
+            </button>
+          ) : null}
           </div>
         ) : null}
         {filtMore.l ? (

@@ -56,7 +56,7 @@ export default function HomePage() {
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: ME_PRELOAD }} />
-      <QuizHomeClient />
+      <QuizHomeClient variant="v3" />
     </>
   );
 }
