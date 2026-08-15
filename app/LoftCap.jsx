@@ -241,9 +241,9 @@ export default function LoftCap({
 .loft-page section em,.loft-page section i{color:#93a9d6!important}
 .loft-page .loft-stage ~ div:not([style*="fixed"]) > p{color:#bfd0ee!important}
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)),
-.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) *{
+.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) *:not([style*="background"]):not([style*="background"] *){
   color:#bfd0ee!important}
-.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) b,
+.loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) b:not([style*="background"] b),
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) strong{
   color:var(--white)!important}
 .loft-page > [class$="-wrap"] > div > p{color:#bfd0ee!important}

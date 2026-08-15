@@ -248,10 +248,17 @@ export default function LoftFinish({
             <span className="sub">Every daily puzzle, by date</span>
           </button>
         ) : null}
+        {mains.map((o, i) => {
+          const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}`;
+          const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
+          return o.href
+            ? <a key={`m${i}`} className={cls} href={o.href}>{inner}</a>
+            : <button key={`m${i}`} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
+        })}
         {roster.cats.length ? (
           <button type="button" className="loft-opt wide t-browse" onClick={() => setBrowse((v) => !v)}>
-            {browse ? 'Hide the other puzzles' : `Show all ${shownCat || 'puzzles'}`}
-            <span className="sub">{browse ? 'Back to your options' : 'Every daily, by category'}</span>
+            {browse ? 'Hide the other puzzles' : 'Show all puzzles by category'}
+            <span className="sub">{browse ? 'Back to your options' : (shownCat ? `Starting with ${shownCat}` : 'Every daily')}</span>
           </button>
         ) : null}
         {browse && roster.cats.length ? (
@@ -274,13 +281,6 @@ export default function LoftFinish({
             </div>
           </div>
         ) : null}
-        {mains.map((o, i) => {
-          const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}`;
-          const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
-          return o.href
-            ? <a key={`m${i}`} className={cls} href={o.href}>{inner}</a>
-            : <button key={`m${i}`} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
-        })}
       </div>
       </div>
     </div>
