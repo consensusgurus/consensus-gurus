@@ -1741,6 +1741,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
               const circs = [...seenC.entries()].map(([name, n]) => ({ name, n, all: circuitGames(name).length }))
                 .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
               const loose = list.filter((g) => !circuitsOf(g).length);
+              const shownCircs = circs.slice(0, 4);
+              const shownLoose = circs.length < 4 ? loose.slice(0, 4 - circs.length) : [];
               return (
                 <div key={c} className="cb-tile" style={{ '--cc': catCol(c) }}>
                   <button type="button" className="cb-thead" aria-expanded={false}
@@ -1759,14 +1761,14 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
                       by name underneath rather than swept into an "Other" row
                       that would say nothing. */}
                   <div className="cb-list">
-                    {circs.slice(0, 4).map((c) => (
+                    {shownCircs.map((c) => (
                       <button type="button" key={c.name} className="cb-li cir"
                         onClick={() => setFilter('circuit:' + c.name)}
                         title={c.name + ' · ' + c.all + ' across the slate'}>
                         <i aria-hidden="true" />{c.name}<em>{c.n}</em>
                       </button>
                     ))}
-                    {circs.length < 4 ? loose.slice(0, 4 - circs.length).map((g) => {
+                    {shownLoose.map((g) => {
                       const gd = done.has(g.key);
                       const gf = isFail(g.key);
                       const gp = inprog.has(g.key) && !gd;
@@ -1776,11 +1778,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
                           <i aria-hidden="true" />{g.name}
                         </a>
                       );
-                    }) : null}
+                    })}
                   </div>
                   <span className="cb-tmt">
                     <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
-                    {list.length > peek.length
+                    {circs.length > shownCircs.length || loose.length > shownLoose.length
                       ? <button type="button" className="cb-more" onClick={() => setFilter(c)}>All {list.length} &rarr;</button>
                       : null}
                   </span>
