@@ -332,19 +332,30 @@ export default function LoftCap({
    the board while the options are up and appears only once the player presses
    Return to board. The panel itself did not change, only where it hangs.
 
-   Two supporting rules. The ink mirrors what the tail already gave it, because
-   the panel is still on navy and its own text is inked for paper; anything
-   carrying its own background (the answer card, the live crowd boards) keeps
-   its dark ink, exactly as the tail rules do. And :empty removes it while a
-   game is still being played, when the div renders with nothing inside it and
-   would otherwise push 14px of air under the board. */
+   IT IS STILL ON NAVY, so it still needs the ink the tail was giving it, and
+   the tail's own rules are worth understanding before copying them. The broad
+   catch-all up there, .loft-stage ~ div *:not([style*="background"] *), matches
+   NOTHING: the page root carries an inline background, so every element on the
+   page is a descendant of one and the second :not always fires. What actually
+   re-inked the tail was the plain p rules plus inheritance from the wrapper.
+   So that is what is mirrored here, measured on the live page rather than
+   assumed, and the first attempt at this shipped the countdown line in dark
+   slate on navy because it trusted the catch-all.
+
+   The div rule is the one addition: a panel line carrying its own dark ink and
+   no background of its own was unreadable in the tail too, on games like Barter
+   and Check. Cards keep their ink, both the card itself and anything inside it,
+   which is what the second :not does, scoped to this panel so it can actually
+   match. And :empty removes the panel while a game is still being played, when
+   the div renders with nothing in it and would push 14px of air under the
+   board. */
 .loft-sol{margin-top:14px}
 .loft-sol:empty{display:none;margin-top:0}
-.loft-page .loft-sol,
-.loft-page .loft-sol *:not([style*="background"]):not([style*="background"] *){color:#bfd0ee!important}
-.loft-page .loft-sol b:not([style*="background"] b),
-.loft-page .loft-sol strong{color:var(--white)!important}
-.loft-page .loft-sol a{color:#ffd45e!important}
+.loft-page .loft-sol{color:#bfd0ee}
+.loft-page .loft-sol p,
+.loft-page .loft-sol div:not([style*="background"]):not(.loft-sol [style*="background"] div){color:#bfd0ee!important}
+.loft-page .loft-sol p b,.loft-page .loft-sol p strong{color:var(--white)!important}
+.loft-page .loft-sol p a{color:#ffd45e!important}
 /* The "Show overview and more" control was styled for a light page: deep blue
    ink, no ground, a faint border. All three disappear on navy (owner: "it
    blends into background now"). It reads as a proper button here. */
