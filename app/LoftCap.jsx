@@ -176,7 +176,6 @@ export default function LoftCap({
   /* The roster is long, so it takes the width that is going and scrolls inside
      it rather than pushing the band wider. */
   .lcap-azwrap{flex:1 1 100%;max-width:none}
-  .lcap-azbtn{display:flex}
   .lcap-tiles.az a{flex:0 0 auto}}
 /* NAME-ONLY CHIPS, tight, so a lot of the roster is in view at once. */
 .lcap-azwrap{position:relative;min-width:0;display:flex;flex:1 1 100%}
@@ -184,21 +183,8 @@ export default function LoftCap({
    the whole width at every size. */
 .lcap-az .lcap-id{display:none}
 .lcap-az .lcap-col{border-left:0;max-width:none;width:100%}
-.lcap-az .lcap-tiles.az{padding-left:0;padding-right:0}
-.lcap-tiles.az a{display:inline-flex;align-items:center;gap:5px}
-.lcap-tiles.az a .mk{flex:none;width:11px;height:11px;position:relative}
-/* Done: a tick drawn from two borders, so it needs no glyph font. */
-.lcap-tiles.az a.done .mk::after{content:'';position:absolute;left:3px;top:0;width:4px;height:8px;
-  border:solid #7ef0b0;border-width:0 2px 2px 0;transform:rotate(43deg)}
-/* Open: the pause bars. */
-.lcap-tiles.az a.open .mk::before,.lcap-tiles.az a.open .mk::after{content:'';position:absolute;
-  top:1px;width:3px;height:9px;border-radius:1px;background:#f0c674}
-.lcap-tiles.az a.open .mk::before{left:1px}
-.lcap-tiles.az a.open .mk::after{left:6px}
-/* Missed: one red dot. */
-.lcap-tiles.az a.fail .mk::after{content:'';position:absolute;left:2px;top:2px;width:7px;height:7px;
-  border-radius:50%;background:#ff7b7b}
-.lcap-tiles.az a.done{color:#cfe4ff}
+.lcap-az .lcap-tiles.az{padding-left:14px;padding-right:14px}
+
 .lcap-tiles.az{gap:5px;padding:5px 12px 7px;align-items:center;
   scroll-snap-type:none;scrollbar-width:none;-ms-overflow-style:none}
 .lcap-azbtn{display:none;position:absolute;top:0;bottom:0;z-index:2;width:34px;
@@ -212,6 +198,20 @@ export default function LoftCap({
   background:rgba(255,255,255,0.14);color:var(--white);border-radius:7px;
   padding:6px 10px;font-weight:800;font-size:12.5px;line-height:1.1;gap:0}
 .lcap-tiles.az a:hover{background:rgba(255,255,255,0.30)}
+/* Green finished, amber still open, red missed. Declared AFTER the plain chip
+   so they win, and they change only colour, never a dimension. */
+.lcap-tiles.az a.done{background:rgba(52,211,153,0.30);color:#c9f8de}
+.lcap-tiles.az a.done:hover{background:rgba(52,211,153,0.46)}
+.lcap-tiles.az a.open{background:rgba(240,198,116,0.34);color:#ffeec6}
+.lcap-tiles.az a.open:hover{background:rgba(240,198,116,0.50)}
+.lcap-tiles.az a.fail{background:rgba(248,113,113,0.32);color:#ffdada}
+.lcap-tiles.az a.fail:hover{background:rgba(248,113,113,0.48)}
+/* THE ARROWS COULD NEVER SHOW: their display:flex sat in the desktop block
+   ABOVE this base rule, and a media query adds no specificity, so the later
+   display:none simply won. The override belongs after the thing it overrides. */
+@media(min-width:900px){
+  .lcap-azwrap .lcap-azbtn{display:flex}
+}
 .lcap-tiles.az::-webkit-scrollbar{display:none}
 /* Finished today: still there, still reachable, just not competing with the
    ones you have not played. */
@@ -746,8 +746,7 @@ export default function LoftCap({
           onClick={() => azNudge(1)}>&#8250;</button>
         <div className="lcap-tiles az" ref={azRef}>
           {strip.map((t) => (
-            <a key={t.key} href={t.href} className={played[t.key] || undefined}>
-              {played[t.key] ? <i className="mk" aria-hidden="true" /> : null}{t.name}</a>
+            <a key={t.key} href={t.href} className={played[t.key] || undefined}>{t.name}</a>
           ))}
         </div>
         </div>
