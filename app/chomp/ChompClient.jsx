@@ -249,13 +249,6 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const STORE_KEY = `sot_chomp_${PUZZLE.num}`;
   const REC_KEY = `sot_chomp_rec_${PUZZLE.num}`;
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
-  const iq = useIqStanding({ game: 'chomp', quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const nextUp = useNextUnplayed({ self: 'chomp', active: LOFT && !playing });
-  const upNext = useUnplayedSimilar({ self: 'chomp', active: LOFT && !playing });
-  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const allTime = useGameAllTime({ game: 'chomp', active: LOFT && !playing });
-  const dayStats = useDayStats();
-  const catRank = useCategoryRank({ self: 'chomp', active: LOFT && !playing });
 
   const [g, setG] = useState(() => freshState(PUZZLE));
   const gRef = useRef(g);
@@ -291,7 +284,14 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
-  const LOFT = isLoft('chomp');
+  const LOFT = isLoft('chomp');  const iq = useIqStanding({ game: 'chomp', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'chomp', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'chomp', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'chomp', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'chomp', active: LOFT && !playing });
+
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   // `started` means "mid-run" and goes false the instant a run ends, so it is

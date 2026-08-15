@@ -151,13 +151,6 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const STORE_KEY = `sot_sweep_${PUZZLE.num}`;
   const REC_KEY = `sot_sweep_rec_${PUZZLE.num}`;
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
-  const iq = useIqStanding({ game: 'sweep', quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const nextUp = useNextUnplayed({ self: 'sweep', active: LOFT && !playing });
-  const upNext = useUnplayedSimilar({ self: 'sweep', active: LOFT && !playing });
-  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const allTime = useGameAllTime({ game: 'sweep', active: LOFT && !playing });
-  const dayStats = useDayStats();
-  const catRank = useCategoryRank({ self: 'sweep', active: LOFT && !playing });
 
   const [g, setG] = useState(() => freshState());
   const gRef = useRef(g);
@@ -194,7 +187,14 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
-  const LOFT = isLoft('sweep');
+  const LOFT = isLoft('sweep');  const iq = useIqStanding({ game: 'sweep', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'sweep', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'sweep', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'sweep', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'sweep', active: LOFT && !playing });
+
   const started = playing && !!g.t0;
   const preStart = playing && !g.t0;
   const over = g.status !== 'playing';

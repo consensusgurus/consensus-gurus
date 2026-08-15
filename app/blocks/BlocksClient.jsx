@@ -223,13 +223,6 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   const STORE_KEY = `sot_blocks_${PUZZLE.num}`;
   const REC_KEY = `sot_blocks_rec_${PUZZLE.num}`;
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
-  const iq = useIqStanding({ game: 'blocks', quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const nextUp = useNextUnplayed({ self: 'blocks', active: LOFT && !playing });
-  const upNext = useUnplayedSimilar({ self: 'blocks', active: LOFT && !playing });
-  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const allTime = useGameAllTime({ game: 'blocks', active: LOFT && !playing });
-  const dayStats = useDayStats();
-  const catRank = useCategoryRank({ self: 'blocks', active: LOFT && !playing });
 
   const [g, setG] = useState(() => freshState(COLS, ROWS));
   const gRef = useRef(g);
@@ -263,7 +256,14 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
-  const LOFT = isLoft('blocks');
+  const LOFT = isLoft('blocks');  const iq = useIqStanding({ game: 'blocks', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'blocks', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'blocks', active: LOFT && !playing });
+  const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'blocks', active: LOFT && !playing });
+  const dayStats = useDayStats();
+  const catRank = useCategoryRank({ self: 'blocks', active: LOFT && !playing });
+
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
   // daily uses (owner rule, 2026-08-08). setShowChrome unfolds it for good.
