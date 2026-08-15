@@ -48,7 +48,7 @@ import DailyTilePanel from './DailyTilePanel';
 import { T } from '@/lib/theme';
 import { fetchDayStatus } from './useDayStats';
 import { catBlue, deptBlue } from '@/lib/home-blues';
-import { isSundayET } from '@/lib/sunday-editions';
+import { isSundayET, hasSundayEdition } from '@/lib/sunday-editions';
 import { isRetiredDaily, dailyScoreText, KEEPS_ANSWER } from '@/lib/daily-games';
 
 const GAMES = [
@@ -254,6 +254,13 @@ const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name))
    phone renders the plain slate exactly as before. */
 const FILL_MAX = 8;    // rows at or below which the panel renders
 const FILL_DAYS = 7;   // catch-up chips per game
+const FILL_GAMES = 6;  // games the catch-up strip covers
+// Is an ISO date a Sunday? Built on Date.UTC so it reads the date it was given
+// and not the viewer's timezone, the same reason sunDate parses by hand.
+function isoSunday(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return !!m && new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))).getUTCDay() === 0;
+}
 /* Group -> quiz department, and DELIBERATELY partial. A wrong pairing is worse
    than no block: Logic, Deduction, Crowd and the number groups have no honest
    department, so they render the panel without the quiz section rather than
@@ -595,7 +602,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
       let iso;
       try { iso = d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
       catch (e) { iso = d.toISOString().slice(0, 10); }
-      out.push(sunDate(iso));
+      out.push({ label: sunDate(iso), sun: isoSunday(iso) });
     }
     setBackDates(out);
   }, []);
@@ -1195,6 +1202,36 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     return () => { alive = false; };
   }, [sel]);
 
+  // The fill panel's catch-up strip wants each game's real drop list: the true
+  // dates, and whether the VIEWER played that day. That is exactly what the
+  // drawer fetch above returns, so this reuses its endpoint, its gameData cache
+  // and its fetchedRef rather than adding a second source of truth: a game
+  // loaded here costs nothing when its drawer opens later, and the other way
+  // round. Only the handful of games on a thin, open group are fetched, and
+  // only once the panel is actually on screen. Until it lands the strip renders
+  // from num arithmetic (see renderFill), so the panel never waits on a fetch.
+  useEffect(() => {
+    if (!cats || !boardOpen || slateList.length > FILL_MAX) return undefined;
+    let alive = true;
+    let anonId = null, email = null;
+    try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
+    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); email = id && id.email; } catch (e) {}
+    for (const g of slateList.slice(0, FILL_GAMES)) {
+      if (fetchedRef.current.has(g.key)) continue;
+      fetchedRef.current.add(g.key);
+      const key = g.key;
+      const qs = new URLSearchParams({ game: key });
+      if (anonId) qs.set('anonId', anonId);
+      if (email) qs.set('email', email);
+      fetch('/api/quiz/daily-game?' + qs.toString())
+        .then((r) => r.json())
+        .then((d) => { if (alive && d && !d.error) setGameData((cur) => ({ ...cur, [key]: d })); })
+        .catch(() => { fetchedRef.current.delete(key); });
+    }
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cats, boardOpen, slateList.length]);
+
   // FIT THE CONSOLE TO THE FOLD (owner, 2026-08-08). The board used to take a
   // hardcoded calc(100vh - 300px), where 300 was the sum of everything above it
   // back when the cap was a single row of two cards. The cap carries the paused
@@ -1782,12 +1819,40 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
        daily, so num - k is k days ago. A game younger than a week simply shows
        fewer chips, and one the payload has no number for is skipped. */
     const back = [];
-    for (const g of slateList.slice(0, 6)) {
-      const b = byKey[g.key];
-      const num = b && b.num != null ? Number(b.num) : null;
-      if (!num) continue;
+    let anySun = false;
+    for (const g of slateList.slice(0, FILL_GAMES)) {
+      const gd = gameData[g.key];
       const chips = [];
-      for (let k = 1; k <= FILL_DAYS && num - k >= 1; k++) chips.push({ p: num - k, i: k - 1 });
+      if (gd && Array.isArray(gd.drops) && gd.drops.length) {
+        // The real thing: the game's own live drops, today excluded (it is the
+        // row directly above), newest first. played/incomplete are the viewer's,
+        // resolved server side, so they hold on a device this browser has never
+        // seen. A Sunday drop is only an EDITION where the game runs one, which
+        // is the sunday-editions registry's job to say.
+        for (const d of gd.drops.filter((x) => !x.isToday).slice(-FILL_DAYS).reverse()) {
+          const sun = isoSunday(d.dateISO) && hasSundayEdition(g.key);
+          if (sun) anySun = true;
+          chips.push({
+            p: d.num, href: d.href, label: sunDate(d.dateISO) || ('No. ' + d.num),
+            played: !!d.played, part: !!d.incomplete, sun,
+          });
+        }
+      } else {
+        // Before the fetch lands. Drops are daily, so num - k is k days ago, and
+        // the numbers are already in hand from the daily-combined payload.
+        const b = byKey[g.key];
+        const num = b && b.num != null ? Number(b.num) : null;
+        if (!num) continue;
+        for (let k = 1; k <= FILL_DAYS && num - k >= 1; k++) {
+          const bd = backDates && backDates[k - 1];
+          const sun = !!(bd && bd.sun) && hasSundayEdition(g.key);
+          if (sun) anySun = true;
+          chips.push({
+            p: num - k, href: g.href + '?p=' + (num - k),
+            label: bd ? bd.label : 'No. ' + (num - k), sun,
+          });
+        }
+      }
       if (chips.length) back.push({ g, chips });
     }
 
@@ -1824,15 +1889,24 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
 
     return (
       <div className="cb-fill">
-        {back.length ? sect('back', 'Catch up', 'The last week of ' + label, (
+        {back.length ? sect('back', 'Catch up', 'The last week of ' + label + (anySun ? ' \u00b7 S marks a Sunday Edition' : ''), (
           <div className="cb-fback">
             {back.map(({ g, chips }) => (
               <div className="cb-fbrow" key={g.key}>
                 <span className="cb-fbn">{g.name}</span>
                 <span className="cb-fbd">
                   {chips.map((c) => (
-                    <a key={c.p} className="cb-fbc" href={g.href + '?p=' + c.p}>
-                      {backDates && backDates[c.i] ? backDates[c.i] : 'No. ' + c.p}
+                    <a
+                      key={c.p}
+                      className={'cb-fbc' + (c.played ? (c.part ? ' part' : ' done') : '') + (c.sun ? ' sun' : '')}
+                      href={c.href}
+                      title={g.name + ' ' + c.label + (c.sun ? ', Sunday Edition' : '') + (c.played ? (c.part ? ', started' : ', played') : '')}
+                    >
+                      {c.sun ? <i className="cb-fbs" aria-hidden="true">S</i> : null}
+                      {c.label}
+                      {c.played ? (
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4.2" aria-hidden="true"><path d="M20 6 9 17l-5-5" /></svg>
+                      ) : null}
                     </a>
                   ))}
                 </span>
@@ -3871,8 +3945,15 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fbrow{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:10px;}
         .cb-fbn{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-fbd{display:flex;flex-wrap:wrap;gap:5px;}
-        .cb-fbc{padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:10.5px;font-weight:700;color:var(--slate);text-decoration:none;font-variant-numeric:tabular-nums;}
+        .cb-fbc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:10.5px;font-weight:700;color:var(--slate);text-decoration:none;font-variant-numeric:tabular-nums;}
         .cb-fbc:hover{border-color:var(--blue);color:var(--blue);}
+        /* A day you finished, in the green the slate already uses for a done
+           row, so the strip reads as a to-do list at a glance. Amber is a board
+           you opened and left, matching the paused row's gold. */
+        .cb-fbc.done{border-color:#bfe3cd;background:#eff8f3;color:var(--success-deep);}
+        .cb-fbc.part{border-color:#eed9a6;background:#fdf7e8;color:#8a6d1a;}
+        .cb-fbc.sun{border-color:#e8cf92;}
+        .cb-fbs{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:3px;background:var(--gold);color:#2a1f04;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:0;}
         .cb-fnb{display:flex;flex-wrap:wrap;gap:6px;}
         .cb-fnc{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--white);font:inherit;font-size:11.5px;font-weight:700;color:var(--ink);cursor:pointer;}
         .cb-fnc:hover{border-color:var(--blue);color:var(--blue);}
