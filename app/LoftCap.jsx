@@ -91,15 +91,30 @@ export default function LoftCap({
 .lcap-done .lcap-eb{display:none}
 .lcap-done .lcap-id{flex:0 0 auto}
 .lcap-tiles{display:flex;gap:6px;flex:1;min-width:0;padding:6px 12px 8px;overflow-x:auto}
-.lcap-tiles a{flex:1 1 0;min-width:88px;text-decoration:none;background:rgba(255,255,255,0.14);
+.lcap-tiles a{display:flex;align-items:center;gap:8px;
+  flex:1 1 0;min-width:88px;text-decoration:none;background:rgba(255,255,255,0.14);
   border-radius:9px;padding:7px 9px;color:var(--white)}
 .lcap-tiles a:hover{background:rgba(255,255,255,0.22)}
 .lcap-tiles b{display:block;font-weight:800;font-size:12.5px;line-height:1;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
 .lcap-tiles i{display:block;font-style:normal;font-weight:600;font-size:9.5px;line-height:1.25;
   margin-top:3px;color:var(--blue-200);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* THE ICON SITS ON A WHITE PLATE, square and contained. The art is 76x76 and
+   a non-square box renders it narrow, which throws the name out of line: that
+   is the bug that shipped on the home rail when one game's art was 88x76. */
+.lcap-tiles img{flex:0 0 auto;width:30px;height:30px;border-radius:7px;
+  background:var(--white);padding:2px;object-fit:contain;display:block}
+.lcap-tiles a>span{min-width:0}
 @media(min-width:900px){.lcap-tiles{flex:0 0 auto;order:3;margin-left:auto}
-  .lcap-tiles a{flex:0 0 122px}}
+  .lcap-tiles a{flex:0 0 168px}}
+/* PHONE: a snapping slider. Three tiles across a 390px row leaves each about
+   118px, which truncates most taglines, so the row scrolls instead and shows
+   about two and a half. The scrollbar is hidden because the partial tile at
+   the edge is the affordance. */
+@media(max-width:899px){
+  .lcap-tiles{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .lcap-tiles::-webkit-scrollbar{display:none}
+  .lcap-tiles a{flex:0 0 44%;scroll-snap-align:start}}
 .lcap-eb{display:block;font-weight:800;font-size:11.5px;line-height:1;letter-spacing:.13em;
   text-transform:uppercase;color:var(--blue-200);margin-bottom:4px}
 .lcap-nm{display:block;font-weight:800;font-size:22px;line-height:1;letter-spacing:-.022em;color:var(--white)}
@@ -182,6 +197,16 @@ export default function LoftCap({
    NO BACKTICKS IN THIS COMMENT. It lives inside a template literal, so a
    backtick here closes the style block and breaks the build. */
 .loft-page > [class$="-wrap"]:not(.dch-wrap){padding-top:0!important;padding-bottom:0!important}
+.loft-page{background:var(--accent)!important}
+.loft-page .loft-stage ~ p{color:#bfd0ee!important}
+.loft-page .loft-stage ~ p a{color:#ffd45e!important}
+.loft-page > section h2{color:var(--white)!important}
+.loft-page > section p{color:#bfd0ee!important}
+.loft-page > section a{color:#ffd45e!important}
+.loft-page footer{color:#bfd0ee!important;border-top-color:rgba(255,255,255,0.18)!important}
+.loft-page footer b,.loft-page footer strong,.loft-page footer h3,.loft-page footer h4{color:var(--white)!important}
+.loft-page footer a{color:#dbe9ff!important}
+.loft-page footer div,.loft-page footer p,.loft-page footer span,.loft-page footer li{color:inherit!important}
 /* UNUSED as of 2026-08-14, kept for a game that wants a figure on the navy
    under its board. Crux was the only caller and its IQ figure moved ONTO the
    end card (.loft-fiq below), because that is where a player looks for it.
@@ -252,12 +277,12 @@ export default function LoftCap({
    rule in the same colour, so the result is the first thing on the card. */
 .loft-res-won,.loft-res-part,.loft-res-lost{margin:-12px -12px 10px;padding:12px;
   border-bottom:0;border-radius:14px 14px 0 0}
-.loft-res-won{background:rgba(21,128,61,0.12);border-left:6px solid var(--success-deep)}
-.loft-res-won b{color:var(--success-deep)}
-.loft-res-part{background:rgba(232,180,58,0.20);border-left:6px solid var(--gold)}
-.loft-res-part b{color:#8a6d1a}
-.loft-res-lost{background:rgba(190,42,42,0.10);border-left:6px solid var(--danger)}
-.loft-res-lost b{color:var(--danger)}
+.loft-res-won{background:var(--success-deep);border-left:6px solid var(--success-deep)}
+.loft-res.loft-res-won b,.loft-res.loft-res-won s{color:var(--white)}
+.loft-res-part{background:var(--gold);border-left:6px solid var(--gold)}
+.loft-res.loft-res-part b,.loft-res.loft-res-part s{color:#2a1f04}
+.loft-res-lost{background:var(--danger);border-left:6px solid var(--danger)}
+.loft-res.loft-res-lost b,.loft-res.loft-res-lost s{color:var(--white)}
 .loft-res s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
 /* THE OPTIONS ARE A TWO-ACROSS GRID THAT GROWS (owner, 2026-08-14: "these
    buttons all need to be larger, and can split width if needed").
@@ -458,15 +483,15 @@ export default function LoftCap({
               : <span className="lcap-sunnode">{sunday}</span>)
           : null}</span>
       </div>
-      {onHelp ? (
+      {onHelp && !outcome ? (
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
       ) : null}
       {tiles && tiles.length ? (
         <div className="lcap-tiles">
-          {tiles.map((t) => (
+          {tiles.slice(0, 3).map((t) => (
             <a key={t.key} href={t.href || `/${t.key}`}>
-              <b>{t.name}</b>
-              <i>{t.tag}</i>
+              <img src={`/games/btn-${t.key}.png`} alt="" width={30} height={30} loading="lazy" />
+              <span><b>{t.name}</b><i>{t.tag}</i></span>
             </a>
           ))}
         </div>

@@ -164,12 +164,12 @@ export default function LoftFinish({
         <span className="d1"><b>{day && day.ready
           ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>IQ today</span>
-        <span className="d2"><b>{gameRank && gameRank.value != null
-          ? gameRank.value
-          : <Calculating />}</b>{gameRank ? gameRank.label : 'this game'}</span>
-        <span className="d3"><b>{day && day.ready
+        <span className="d2"><b>{day && day.ready
           ? (day.dayRank != null ? `#${Number(day.dayRank).toLocaleString()}` : '\u2014')
           : <Calculating />}</b>rank today</span>
+        <span className="d3"><b>{gameRank && gameRank.value != null
+          ? gameRank.value
+          : <Calculating />}</b>{gameRank ? gameRank.label : 'this game'}</span>
         <span className="d4"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
       </div>
 
