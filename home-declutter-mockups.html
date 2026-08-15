@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mind Loft home, declutter mock-ups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#0f2143;
+  --navy:#14357f;
+  --navy2:#0f2a68;
+  --blue:#2f6ad6;
+  --blue-lite:#4d84f3;
+  --blue-deep:#1e3a8a;
+  --gold:#e3a72c;
+  --gold-deep:#d29a1f;
+  --gold-ink:#3a2a05;
+  --ink:#101828;
+  --sub:#5b6478;
+  --soft:#8a90a0;
+  --line:#e3e8f0;
+  --surface:#ffffff;
+  --wash:#f5f7fa;
+
+  /* simulated desktop viewport height, driven by the selector in the doc bar */
+  --vh:900px;
+  /* header 50 + stat bar 56 = 106, plus a 12px gap */
+  --railtop:118px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#1a1d24;font-family:Manrope,system-ui,sans-serif;color:var(--ink)}
+
+/* ---------- chrome for the mock-up document itself ---------- */
+.doc{max-width:1640px;margin:0 auto;padding:0 0 90px}
+.docbar{position:sticky;top:0;z-index:200;background:#12151c;border-bottom:1px solid #2a2f3a;padding:12px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.docbar b{color:#fff;font-size:14px;font-weight:800}
+.docbar .dim{color:#8d94a3;font-size:12.5px;font-weight:600}
+.seg{display:flex;gap:4px;background:#1e222c;border:1px solid #2f3542;border-radius:9px;padding:3px}
+.seg button{border:none;background:transparent;color:#9aa2b2;font:inherit;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:6px;cursor:pointer;letter-spacing:.02em}
+.seg button.on{background:var(--blue);color:#fff}
+.seg.vp{margin-left:auto}
+.seg.vp button{padding:7px 11px;font-size:12px}
+.fit{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:7px;border:1px solid;white-space:nowrap}
+.fit.ok{color:#8fd0a4;border-color:#2f5f42;background:#12291c}
+.fit.no{color:#f0a1a1;border-color:#6a3232;background:#2b1616}
+.mock{display:none;padding:22px 22px 0}
+.mock.on{display:block}
+
+.notes{max-width:1560px;margin:22px auto 0;background:#151922;border:1px solid #2a3040;border-radius:12px;padding:16px 20px;color:#c6ccd8}
+.notes h4{margin:0 0 10px;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#7f8798;font-weight:800}
+.notes ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.75}
+.notes li b{color:#fff}
+.notes .cut{color:#f0a1a1}
+.notes .keep{color:#8fd0a4}
+.notes .new{color:#9dbcf7}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.mobnote{max-width:1560px;margin:14px auto 0;background:#13251a;border:1px solid #27452f;border-radius:12px;padding:13px 20px;color:#a8d6b6;font-size:13.5px;font-weight:600}
+.mobnote b{color:#dcf3e3}
+.mathbox{max-width:1560px;margin:14px auto 0;background:#141a26;border:1px solid #29354a;border-radius:12px;padding:14px 20px;color:#aebbd0;font-size:12.5px;line-height:1.8;font-variant-numeric:tabular-nums}
+.mathbox b{color:#fff}
+.mathbox code{background:#1d2635;padding:2px 7px;border-radius:5px;color:#9dbcf7;font-family:ui-monospace,Menlo,monospace;font-size:11.5px}
+
+/* ---------- simulated browser viewport ---------- */
+.app{background:var(--ground);border-radius:10px;max-width:1560px;margin:0 auto;box-shadow:0 24px 60px rgba(0,0,0,.5);
+     height:var(--vh);overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:thin}
+.app::-webkit-scrollbar{width:10px}
+.app::-webkit-scrollbar-thumb{background:#2b4278;border-radius:6px}
+
+/* ---------- Mind Loft chrome (unchanged) ---------- */
+.hdr{background:var(--navy);display:flex;align-items:center;gap:14px;padding:12px 20px;position:sticky;top:0;z-index:30;height:50px}
+.logo{display:flex;align-items:center;gap:9px}
+.logo .mk{width:26px;height:26px;border:2px solid #fff;border-radius:5px;position:relative}
+.logo .mk:after{content:'';position:absolute;left:4px;right:4px;top:5px;height:2px;background:#fff;box-shadow:0 5px 0 #fff}
+.logo .wm{font-size:19px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.logo .wm i{font-style:normal;color:#9dbcf7}
+.tag{font-size:10.5px;font-weight:700;letter-spacing:.17em;color:#a9c1ef;text-transform:uppercase;margin-left:6px}
+.navs{margin-left:auto;display:flex;gap:9px}
+.navb{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:8px 15px;border-radius:7px;background:#1c4699;color:#dbe7ff;border:1px solid #2d5cba}
+.navb.on{background:#fff;color:var(--navy)}
+
+.sbar{background:var(--navy2);display:flex;align-items:center;padding:11px 20px;border-top:1px solid #1b3f8f;position:sticky;top:50px;z-index:29;height:56px}
+.sc{padding:0 20px;border-right:1px solid rgba(255,255,255,.12)}
+.sc:first-child{padding-left:0}
+.sc .k{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#93aee0;margin-bottom:3px}
+.sc .v{font-size:15.5px;font-weight:800;color:#fff;white-space:nowrap}
+.sc .v small{font-size:11px;font-weight:700;color:#9dbcf7}
+.sright{margin-left:auto;display:flex;gap:9px}
+.btn-ghost{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:9px 15px;border-radius:7px;background:#1c4699;color:#dbe7ff;border:1px solid #2d5cba}
+.btn-gold{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;padding:9px 15px;border-radius:7px;background:var(--gold);color:var(--gold-ink);border:1px solid var(--gold-deep)}
+
+/* ---------- panels ---------- */
+.body{padding:12px 16px 16px}
+.panel{background:var(--surface);border-radius:9px;overflow:hidden}
+.phead{background:var(--navy);color:#fff;display:flex;align-items:center;gap:9px;padding:11px 14px}
+.phead .t{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.phead .r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pill{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:20px;background:rgba(255,255,255,.16);color:#dce8ff;display:inline-flex;align-items:center;gap:5px}
+.pill i{width:6px;height:6px;border-radius:50%;background:#9dbcf7;display:block;font-style:normal}
+.pill i.g{background:var(--gold)}
+.pill i.grn{background:#5ad48f}
+.phead .date{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#b9cef3;text-transform:uppercase}
+
+/* cap: two across */
+.capgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;background:#eef2f8}
+.cap{border-radius:8px;padding:16px 18px;display:flex;align-items:center;gap:14px;border-left:5px solid rgba(255,255,255,.45)}
+.cap.blue{background:var(--blue);color:#fff}
+.cap.gold{background:var(--gold);color:var(--gold-ink);border-left-color:#f7d98a}
+.cap .eb{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#c5daff;margin-bottom:5px}
+.cap.gold .eb{color:#6b5209}
+.cap .nm{font-size:23px;font-weight:800;letter-spacing:-.015em}
+.cap .sb{font-size:12.5px;color:#cddfff;margin-top:4px;font-weight:500}
+.cap.gold .sb{color:#5f4a10}
+.cap .play{margin-left:auto;flex:none;background:#fff;color:var(--navy);border-radius:7px;padding:12px 24px;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap}
+.cap.gold .play{color:var(--gold-ink)}
+
+.subline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:11px 16px;background:#fff;font-size:13.5px;font-weight:600;color:var(--sub);border-top:1px solid var(--line)}
+.subline b{color:var(--ink);font-weight:800}
+.subline .dot{color:#c3c9d4}
+.subline a{color:var(--blue);font-weight:800;text-decoration:none}
+
+/* category tiles */
+.cats{display:grid;gap:1px;background:var(--line);grid-template-columns:repeat(3,1fr)}
+.cat{background:#fff;padding:14px 15px 12px;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.cat:hover{background:#f7f9fc}
+.cat .top{display:flex;align-items:center;gap:10px}
+.cat .sq{width:30px;height:30px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800}
+.cat .nm{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.cat .ct{margin-left:auto;font-size:11px;font-weight:700;color:var(--soft)}
+.cat .bar{height:4px;border-radius:4px;background:#e9edf4;overflow:hidden}
+.cat .bar i{display:block;height:100%;border-radius:4px}
+.cat .mt{font-size:11.5px;font-weight:600;color:var(--sub);display:flex;justify-content:space-between;gap:8px}
+.cat.open{background:#f2f6fd;box-shadow:inset 0 0 0 2px var(--blue)}
+
+/* game rows */
+.rows{background:#fff;border-top:1px solid var(--line)}
+.rowhd{background:#eef2f8;padding:8px 14px;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#4a5468;display:flex}
+.rowhd span{margin-left:auto;font-weight:700;letter-spacing:.04em;color:#7b8496}
+.grow{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #eef1f6}
+.grow:hover{background:#f7f9fc}
+.grow .sq{width:26px;height:26px;border-radius:6px;flex:none;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.grow .nm{font-size:14.5px;font-weight:800}
+.grow .tg{font-size:12px;color:var(--sub);font-weight:500}
+.grow .rt{margin-left:auto;font-size:11px;font-weight:700;color:var(--soft);text-align:right}
+.grow .go{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+.more{padding:11px;text-align:center;color:var(--blue);font-weight:800;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;background:#f7f9fc;cursor:pointer}
+
+/* search */
+.srch{display:flex;align-items:center;gap:10px;padding:11px 14px;background:#fff;border-bottom:1px solid var(--line)}
+.srch .fld{flex:1;background:var(--wash);border:1.5px solid #dbe1ea;border-radius:9px;padding:10px 14px;font-size:13.5px;color:var(--soft);font-weight:500}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:700;padding:7px 11px;border-radius:7px;border:1px solid #dbe1ea;background:#fff;color:#4a5468}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* ============ THE RAIL: pinned, measured, never taller than the viewport ==== */
+.rail{position:sticky;top:var(--railtop);height:calc(var(--vh) - var(--railtop) - 16px);
+      display:flex;flex-direction:column;background:var(--surface);border-radius:9px;overflow:hidden}
+.rail .phead{flex:none}
+.tabs{flex:none;display:flex;background:#0e2a63}
+.tabs button{flex:1;border:none;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent}
+.tabs button.on{color:#fff;border-bottom-color:#fff;background:var(--navy)}
+
+/* accordion: every section band always visible, one body open, the open body
+   takes the leftover height and scrolls only if the viewport is very short */
+.acc{flex:1;display:flex;flex-direction:column;min-height:0}
+.sect{flex:none;display:flex;align-items:center;gap:8px;background:#eef2f8;padding:9px 13px;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#41506b;border-top:1px solid var(--line);cursor:pointer;user-select:none}
+.sect .cv{margin-left:auto;font-size:10px;letter-spacing:.05em;font-weight:800;color:var(--blue-deep);text-transform:none}
+.sect .ch{flex:none;font-size:10px;color:#7b8496;width:10px;text-align:center}
+.sect.on{background:var(--navy);color:#fff;border-top-color:var(--navy)}
+.sect.on .cv{color:#bcd3ff}
+.sect.on .ch{color:#bcd3ff}
+.secb{display:none;overflow:auto;min-height:0;scrollbar-width:thin}
+.sect.on + .secb{display:block;flex:1 1 auto}
+
+.lbrow{display:flex;align-items:center;gap:10px;padding:8px 13px;border-bottom:1px solid #f0f3f7}
+.lbrow .n{width:16px;font-size:12px;font-weight:800;color:var(--soft);text-align:center}
+.lbrow .medal{width:16px;height:16px;border-radius:50%;font-size:9.5px;font-weight:800;color:#3a2f10;display:flex;align-items:center;justify-content:center;flex:none}
+.lbrow .who{font-size:13.5px;font-weight:800}
+.lbrow .pts{margin-left:auto;font-size:13px;font-weight:800}
+.lbrow .pts small{font-size:10.5px;font-weight:700;color:var(--soft)}
+.lbrow.me{background:#eef3ff;box-shadow:inset 3px 0 0 var(--blue)}
+.lbrow.me .who{color:var(--blue-deep)}
+.catrow{display:flex;align-items:center;gap:9px;padding:6px 13px;border-bottom:1px solid #f4f6f9;font-size:12.5px}
+.catrow .dt{width:9px;height:9px;border-radius:3px;flex:none}
+.catrow .cn{font-weight:800;width:72px}
+.catrow .ld{font-weight:700;color:var(--ink)}
+.catrow .ld.non{font-weight:600;color:#a8aeba}
+.catrow .pt{margin-left:auto;font-weight:800;font-size:12px;color:var(--sub)}
+.tinyfoot{padding:9px 13px;font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--blue);text-align:right;text-transform:uppercase;cursor:pointer}
+.feedrow{display:flex;align-items:center;gap:9px;padding:8px 13px;border-bottom:1px solid #f0f3f7;font-size:12.5px}
+.feedrow .tg{font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:#eef2f8;color:#41506b}
+.feedrow .pc{margin-left:auto;font-weight:800;color:var(--blue-deep)}
+
+/* strip (mock B) */
+.strip{background:#132f70;border-radius:9px;display:flex;align-items:center;overflow:hidden}
+.strip .cell{padding:14px 20px;border-right:1px solid rgba(255,255,255,.11);flex:1}
+.strip .cell:last-of-type{border-right:none}
+.strip .k{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#93aee0;margin-bottom:4px}
+.strip .v{font-size:15px;font-weight:800;color:#fff}
+.strip .v small{font-size:11.5px;font-weight:600;color:#9dbcf7}
+.strip a{margin-left:auto;flex:none;padding:0 20px;font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#bcd3ff;text-decoration:none}
+
+.hero{background:var(--blue);color:#fff;border-left:5px solid #8fb6ff;padding:26px;display:flex;align-items:center;gap:16px}
+.hero .eb{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#c5daff;margin-bottom:5px}
+.hero .nm{font-size:34px;font-weight:800;letter-spacing:-.02em}
+.hero .sb{font-size:14.5px;color:#cddfff;margin-top:7px;font-weight:500}
+.hero .play{margin-left:auto;flex:none;background:#fff;color:var(--navy);border-radius:9px;padding:16px 34px;font-size:14px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap}
+.ghostcard{display:flex;align-items:center;gap:12px;padding:13px 16px;background:#fff;border-radius:9px;border-left:5px solid #c7d5ec}
+.ghostcard .eb{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--soft)}
+.ghostcard .nm{font-size:16px;font-weight:800}
+.ghostcard .sb{font-size:12.5px;color:var(--sub);font-weight:500;margin-top:2px}
+.ghostcard .go{margin-left:auto;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);border:1.5px solid #cfdcf3;border-radius:7px;padding:9px 17px}
+
+.grid2{display:grid;grid-template-columns:1fr 340px;gap:14px;align-items:start}
+.col{max-width:1000px;margin:0 auto}
+.stack{display:flex;flex-direction:column;gap:14px}
+.label{font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#8fb0e8;padding:2px}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<div class="docbar">
+  <b>Mind Loft home, declutter mock-ups</b>
+  <span class="dim">desktop only</span>
+  <div class="seg">
+    <button data-m="cur">Current</button>
+    <button data-m="a" class="on">A · Tidy (v3)</button>
+    <button data-m="b">B · Clear</button>
+  </div>
+  <div class="seg vp">
+    <button data-vh="1080">1080</button>
+    <button data-vh="900" class="on">900</button>
+    <button data-vh="800">800</button>
+    <button data-vh="720">720</button>
+  </div>
+  <span class="fit ok" id="fitflag">rail fits</span>
+</div>
+
+<!-- ============================================================ CURRENT -->
+<div class="mock" id="m-cur">
+  <div class="notes" style="max-width:1560px">
+    <h4>What the current page asks of a visitor</h4>
+    <ul>
+      <li><b>Three competing columns.</b> Left rail (leaderboard, 9 category leaders), centre (4 cap cards, 11 filter chips, 63 game rows), right rail (live feed, streak, challenge). Roughly <b>110 distinct pieces of information</b> above the fold.</li>
+      <li><b>Ten of the eleven category-leader rows say "Nobody yet".</b> The single densest panel on the page is mostly empty state.</li>
+      <li><b>Four blue cap cards all look equally important</b>, so none of them reads as the thing to do.</li>
+      <li><b>The 63-row slate</b> is a spreadsheet where an index would do.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ MOCK A v3 -->
+<div class="mock on" id="m-a">
+<div class="app" id="appA">
+
+  <div class="hdr">
+    <div class="logo"><span class="mk"></span><span class="wm">Mind <i>Loft</i></span></div>
+    <span class="tag">Elevate Your Thinking</span>
+    <div class="navs"><span class="navb on">Today</span><span class="navb">Quizzes</span><span class="navb">Top 10 Lists</span></div>
+  </div>
+
+  <div class="sbar">
+    <div class="sc"><div class="k">Player</div><div class="v">Gator85</div></div>
+    <div class="sc"><div class="k">Rank</div><div class="v">#3 <small>of 3,170</small></div></div>
+    <div class="sc"><div class="k">IQ Points</div><div class="v">11,214 <small>+17</small></div></div>
+    <div class="sc"><div class="k">Played</div><div class="v">1<small>/63</small></div></div>
+    <div class="sc"><div class="k">Streak</div><div class="v">40 <small>days · at risk</small></div></div>
+    <div class="sc"><div class="k">Daily Rank</div><div class="v">#2 <small>of 2 · 17 IQ</small></div></div>
+    <div class="sright"><span class="btn-ghost">Stat Hub</span><span class="btn-gold">Share for $200*</span></div>
+  </div>
+
+  <div class="body">
+    <div class="grid2">
+
+      <div class="stack">
+
+        <!-- TOP CAP: two across -->
+        <div class="panel">
+          <div class="phead">
+            <span class="t">Today's Slate</span>
+            <div class="r">
+              <span class="pill"><i></i>61 Ready</span>
+              <span class="pill"><i class="g"></i>1 Paused</span>
+              <span class="pill"><i class="grn"></i>1 Done</span>
+              <span class="date">Saturday, August 15, 2026</span>
+            </div>
+          </div>
+          <div class="capgrid">
+            <div class="cap blue">
+              <div>
+                <div class="eb">Up next</div>
+                <div class="nm">Barter</div>
+                <div class="sb">Trade the letters home · no players today</div>
+              </div>
+              <span class="play">▶ Play</span>
+            </div>
+            <div class="cap gold">
+              <div>
+                <div class="eb">Paused</div>
+                <div class="nm">Sixes</div>
+                <div class="sb">The daily mini sudoku · no players today</div>
+              </div>
+              <span class="play">▶ Resume</span>
+            </div>
+          </div>
+          <div class="subline">
+            <span>Also today:</span>
+            <b>Sando</b><span style="font-weight:500">easiest leaderboard</span>
+            <span class="dot">·</span>
+            <b>Emcee</b><span style="font-weight:500">played 21 of the last 30 days</span>
+            <span style="margin-left:auto"><a href="#">Surprise me →</a></span>
+          </div>
+        </div>
+
+        <!-- 63 rows becomes 9 category tiles -->
+        <div class="panel">
+          <div class="phead">
+            <span class="t">All 63 Games</span>
+            <div class="r"><span class="pill">1 of 63 played</span></div>
+          </div>
+          <div class="srch">
+            <div class="fld">Search 63 games…</div>
+            <div class="chips"><span class="chip on">All</span><span class="chip">Unplayed</span><span class="chip">Sunday</span></div>
+          </div>
+          <div class="cats" id="catgrid"></div>
+          <div class="rows" id="catrows"></div>
+        </div>
+
+      </div>
+
+      <!-- ============ RAIL: pinned to the viewport, accordion sections ====== -->
+      <div class="rail" id="railA">
+        <div class="phead"><span class="t">Leaderboards</span><div class="r"><span class="pill">Today</span></div></div>
+        <div class="tabs">
+          <button class="on">Leaderboard</button><button>Live</button><button>You</button>
+        </div>
+
+        <div class="acc">
+
+          <div class="sect on"><span class="ch">▾</span>Today · Combined <span class="cv">You #8</span></div>
+          <div class="secb">
+            <div class="lbrow"><span class="medal" style="background:#e8b43a">1</span><span class="who">Gator85</span><span class="pts">15 <small>pts</small></span></div>
+            <div class="lbrow"><span class="medal" style="background:#c9ced7">2</span><span class="who">Mara_K</span><span class="pts">12 <small>pts</small></span></div>
+            <div class="lbrow"><span class="medal" style="background:#d09a63">3</span><span class="who">jonesy</span><span class="pts">10 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">4</span><span class="who">pintopete</span><span class="pts">9 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">5</span><span class="who">L. Okonkwo</span><span class="pts">8 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">6</span><span class="who">rvsmith</span><span class="pts">7 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">7</span><span class="who">deb_c</span><span class="pts">6 <small>pts</small></span></div>
+            <div class="lbrow me"><span class="n">8</span><span class="who">You</span><span class="pts">5 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">9</span><span class="who">tamsinq</span><span class="pts">5 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">10</span><span class="who">br_hall</span><span class="pts">4 <small>pts</small></span></div>
+            <div class="tinyfoot">Full daily board →</div>
+          </div>
+
+          <div class="sect"><span class="ch">▸</span>By category <span class="cv">You lead 2</span></div>
+          <div class="secb">
+            <div class="catrow"><span class="dt" style="background:#1e3a8a"></span><span class="cn">Word</span><span class="ld">Gator85</span><span class="pt">15</span></div>
+            <div class="catrow"><span class="dt" style="background:#3730a3"></span><span class="cn">Logic</span><span class="ld">Mara_K</span><span class="pt">12</span></div>
+            <div class="catrow"><span class="dt" style="background:#0369a1"></span><span class="cn">Numbers</span><span class="ld">jonesy</span><span class="pt">10</span></div>
+            <div class="catrow"><span class="dt" style="background:#2563eb"></span><span class="cn">Trivia</span><span class="ld">Gator85</span><span class="pt">15</span></div>
+            <div class="catrow"><span class="dt" style="background:#475b78"></span><span class="cn">End Game</span><span class="ld">rvsmith</span><span class="pt">7</span></div>
+            <div class="catrow"><span class="dt" style="background:#3d5a80"></span><span class="cn">Crowd</span><span class="ld non">Nobody yet</span><span class="pt">–</span></div>
+            <div class="catrow"><span class="dt" style="background:#075985"></span><span class="cn">Geography</span><span class="ld non">Nobody yet</span><span class="pt">–</span></div>
+            <div class="catrow"><span class="dt" style="background:#1e5f8f"></span><span class="cn">Cards</span><span class="ld non">Nobody yet</span><span class="pt">–</span></div>
+            <div class="catrow"><span class="dt" style="background:#0b4aa2"></span><span class="cn">Arcade</span><span class="ld non">Nobody yet</span><span class="pt">–</span></div>
+            <div class="tinyfoot">All categories →</div>
+          </div>
+
+          <div class="sect"><span class="ch">▸</span>This week <span class="cv">You #2</span></div>
+          <div class="secb">
+            <div class="lbrow"><span class="medal" style="background:#e8b43a">1</span><span class="who">pintopete</span><span class="pts">88 <small>pts</small></span></div>
+            <div class="lbrow me"><span class="medal" style="background:#c9ced7">2</span><span class="who">You</span><span class="pts">81 <small>pts</small></span></div>
+            <div class="lbrow"><span class="medal" style="background:#d09a63">3</span><span class="who">Mara_K</span><span class="pts">77 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">4</span><span class="who">rvsmith</span><span class="pts">71 <small>pts</small></span></div>
+            <div class="lbrow"><span class="n">5</span><span class="who">deb_c</span><span class="pts">66 <small>pts</small></span></div>
+            <div class="tinyfoot">Weekly board →</div>
+          </div>
+
+          <div class="sect"><span class="ch">▸</span>All time · IQ Points <span class="cv">You #3</span></div>
+          <div class="secb">
+            <div class="lbrow"><span class="medal" style="background:#e8b43a">1</span><span class="who">Mara_K</span><span class="pts">14,880</span></div>
+            <div class="lbrow"><span class="medal" style="background:#c9ced7">2</span><span class="who">rvsmith</span><span class="pts">12,401</span></div>
+            <div class="lbrow me"><span class="medal" style="background:#d09a63">3</span><span class="who">You</span><span class="pts">11,214</span></div>
+            <div class="lbrow"><span class="n">4</span><span class="who">deb_c</span><span class="pts">10,955</span></div>
+            <div class="lbrow"><span class="n">5</span><span class="who">jonesy</span><span class="pts">10,102</span></div>
+            <div class="tinyfoot">All time board →</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="mathbox">
+  <b>How the rail is sized.</b>
+  <code>height: calc(100vh - 118px - 16px)</code> where 118 is the sticky header (50) plus stat bar (56) plus a 12px gap, matching the
+  <code>--dh-fit</code> measured-height pattern already used for the slate board. The rail is <code>position: sticky</code>, so the long
+  centre column scrolls past it and the rail never leaves the screen.<br>
+  <b>Fixed cost inside it:</b> panel head 42 + tabs 40 + four section bands at 33 = <b>214px</b>. Everything left over goes to the one
+  open section. At a 720px viewport that leaves <b>372px</b>, which holds 10 leaderboard rows (330) or all 9 category rows (250) with room
+  to spare. The open body carries <code>overflow:auto</code> purely as a safety net for anything shorter than 720.
+</div>
+
+<div class="mobnote">
+  <b>Mobile is untouched.</b> Every change here is scoped above 900px. The phone keeps the Direction B slate, the cap cards, the six-row peek and the drawer exactly as they ship today.
+</div>
+
+<div class="notes">
+  <h4>Mock A v3 · the rail now fits, by construction</h4>
+  <div class="two">
+    <ul>
+      <li><span class="new">The rail is pinned and measured</span>, never taller than the viewport and never scrolling the page to reach it. Stacked sections became an <b>accordion</b>: all four bands stay visible, one body is open, and the open body takes exactly the leftover height.</li>
+      <li><span class="new">A collapsed band still tells you the answer</span> you came for. Each carries your standing on the right, "You #8", "You #3", "You lead 2", so nothing is lost by having three of them shut.</li>
+      <li><b>Today Combined now runs 10 deep</b> rather than 8, because the accordion freed the room. Four boards in total: Today, By Category, This Week, All Time.</li>
+      <li>Use the <b>720 / 800 / 900 / 1080</b> selector in the bar above to check it at each height. The flag next to it measures the live rail and turns red if anything overflows.</li>
+    </ul>
+    <ul>
+      <li><span class="keep">Unchanged from v2:</span> top cap two across with the Ready / Paused / Done pills and the date; Easiest and Familiar Favorite on the "Also today" line; streak in the stat bar; no duel or streak card in the rail.</li>
+      <li><span class="keep">Unchanged from v1:</span> 63 rows folded into 9 category tiles that expand in place, search added, filter chips cut from 11 to 3.</li>
+      <li><span class="keep">Kept exactly:</span> header, navy, blue ramp, gold, Manrope, panel head style, card style.</li>
+      <li>Above the fold: roughly <b>110 pieces down to 46</b>, and the rail carries four leaderboards where it used to carry one.</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ MOCK B -->
+<div class="mock" id="m-b">
+<div class="app">
+
+  <div class="hdr">
+    <div class="logo"><span class="mk"></span><span class="wm">Mind <i>Loft</i></span></div>
+    <span class="tag">Elevate Your Thinking</span>
+    <div class="navs"><span class="navb on">Today</span><span class="navb">Quizzes</span><span class="navb">Top 10 Lists</span></div>
+  </div>
+
+  <div class="sbar">
+    <div class="sc"><div class="k">Player</div><div class="v">Gator85</div></div>
+    <div class="sc"><div class="k">Today</div><div class="v">1<small>/63 · 17 IQ</small></div></div>
+    <div class="sc"><div class="k">Streak</div><div class="v">40 <small>days</small></div></div>
+    <div class="sright"><span class="btn-ghost">Stat Hub</span><span class="btn-gold">Share for $200*</span></div>
+  </div>
+
+  <div class="body">
+    <div class="col stack">
+
+      <div class="label">Saturday, August 15</div>
+
+      <div class="panel">
+        <div class="hero">
+          <div>
+            <div class="eb">Up next for you</div>
+            <div class="nm">Barter</div>
+            <div class="sb">Trade the letters home. Nobody has played it today.</div>
+          </div>
+          <span class="play">▶ Play</span>
+        </div>
+      </div>
+
+      <div class="ghostcard" style="border-left-color:var(--gold)">
+        <div>
+          <div class="eb">Unfinished</div>
+          <div class="nm">Sixes</div>
+          <div class="sb">The daily mini sudoku</div>
+        </div>
+        <span class="go" style="border-color:#eccb85;color:#8a5300">Resume</span>
+      </div>
+
+      <div class="subline" style="border-radius:9px;border-top:none">
+        <span>Or try</span> <b>Sando</b> <span style="font-weight:500">(easiest today)</span>
+        <span class="dot">·</span>
+        <b>Emcee</b> <span style="font-weight:500">(your favourite)</span>
+        <span style="margin-left:auto"><a href="#">Surprise me →</a></span>
+      </div>
+
+      <div class="panel">
+        <div class="srch" style="border-bottom:none">
+          <div class="fld">Search all 63 games…</div>
+        </div>
+        <div class="cats" style="border-top:1px solid var(--line)">
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#3730a3">L</span><span class="nm">Logic</span><span class="ct">16</span></div><div class="bar"><i style="width:6%;background:#3730a3"></i></div><div class="mt"><span>Chomp, Paths, Suffice…</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#1e3a8a">W</span><span class="nm">Word</span><span class="ct">15</span></div><div class="bar"><i style="width:0%;background:#1e3a8a"></i></div><div class="mt"><span>Crux, Emcee, Links…</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#0369a1">N</span><span class="nm">Numbers</span><span class="ct">10</span></div><div class="bar"><i style="width:10%;background:#0369a1"></i></div><div class="mt"><span>Sixes, Sando, Cipher…</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#2563eb">T</span><span class="nm">Trivia</span><span class="ct">7</span></div><div class="bar"><i style="width:0%;background:#2563eb"></i></div><div class="mt"><span>Redact, Streak, Deep…</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#475b78">E</span><span class="nm">End Game</span><span class="ct">6</span></div><div class="bar"><i style="width:0%;background:#475b78"></i></div><div class="mt"><span>Turn, Chain, Four…</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#3d5a80">C</span><span class="nm">Crowd</span><span class="ct">3</span></div><div class="bar"><i style="width:0%;background:#3d5a80"></i></div><div class="mt"><span>Outwit, Feud, Bid</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#075985">G</span><span class="nm">Geography</span><span class="ct">2</span></div><div class="bar"><i style="width:0%;background:#075985"></i></div><div class="mt"><span>Ping, Span</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#1e5f8f">K</span><span class="nm">Cards</span><span class="ct">2</span></div><div class="bar"><i style="width:0%;background:#1e5f8f"></i></div><div class="mt"><span>Hands, Taire</span></div></div>
+          <div class="cat" style="padding:19px 17px 17px"><div class="top"><span class="sq" style="background:#0b4aa2">A</span><span class="nm">Arcade</span><span class="ct">2</span></div><div class="bar"><i style="width:0%;background:#0b4aa2"></i></div><div class="mt"><span>Sweep, Blocks</span></div></div>
+        </div>
+      </div>
+
+      <div class="strip">
+        <div class="cell"><div class="k">Today's leader</div><div class="v">Gator85 <small>15 pts</small></div></div>
+        <div class="cell"><div class="k">Playing now</div><div class="v">2 <small>· 9 plays today</small></div></div>
+        <div class="cell"><div class="k">Your streak</div><div class="v">40 days <small>at risk</small></div></div>
+        <div class="cell"><div class="k">Head to head</div><div class="v">Start a duel</div></div>
+        <a href="#">Stat Hub →</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="notes">
+  <h4>Mock B · kept for reference, the aggressive end</h4>
+  <div class="two">
+    <ul>
+      <li><span class="cut">Both rails deleted</span> into a four-cell strip at the bottom.</li>
+      <li>Single 1000px column, one hero, stat bar cut to three cells.</li>
+    </ul>
+    <ul>
+      <li>Roughly <b>110 pieces down to 24</b>.</li>
+      <li>Superseded by A v3, which keeps the leaderboards a regular actually comes back for.</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   Category index. Click a tile, its games populate the area below.
+   Game names and taglines are the real ones; the category split for
+   the longer categories is illustrative, the counts are true.
+----------------------------------------------------------------*/
+var CATS=[
+ {k:'logic',nm:'Logic',n:16,c:'#3730a3',played:1,note:'1 played today',games:[
+   ['Chomp','Eat them in order'],['Paths','Link every town'],['Suffice','Decide what is enough'],
+   ['Plot','Cut the rectangle','done','Done · 8/10'],['Barter','Trade the letters home','next','Up next'],
+   ['Docket','Seven slots, two dimensions']]},
+ {k:'word',nm:'Word',n:15,c:'#1e3a8a',played:0,note:'None played',games:[
+   ['Crux','A clueless crossword'],['Emcee','The daily mini crossword'],['Garble','Five scrambles, one finale'],
+   ['Anon','A clueless acrostic'],['Strata','Dig the words out'],['Babel','The bag is empty']]},
+ {k:'numbers',nm:'Numbers',n:10,c:'#0369a1',played:0,note:'1 paused',games:[
+   ['Sixes','The daily mini sudoku','paused','Paused · 10/10'],['Sando','The daily sandwich sudoku'],
+   ['Cipher','Letters for digits'],['Tally','Add up to the edges'],['Cages','The daily killer sudoku'],
+   ['Crunch','Make the target']]},
+ {k:'trivia',nm:'Trivia',n:7,c:'#2563eb',played:0,note:'None played',games:[
+   ['Redact','Uncover the story'],['Streak','Forty questions, one life'],['Deep','How far can you go'],
+   ['Listed','Name them all'],['Circa','Place the moment'],['Extra','Name the story']]},
+ {k:'endgame',nm:'End Game',n:6,c:'#475b78',played:0,note:'None played',games:[
+   ['Turn','Ten squares left'],['Chain','Take them, or leave them'],['Four','One column wins'],
+   ['Mate','Force the mate'],['Check','Sweep the board'],['Defend','Hold for three']]},
+ {k:'crowd',nm:'Crowd',n:3,c:'#3d5a80',played:0,note:'None played',games:[
+   ['Outwit','Guess the rare bird'],['Feud','What did the crowd say'],['Bid','Read the room']]},
+ {k:'geo',nm:'Geography',n:2,c:'#075985',played:0,note:'None played',games:[
+   ['Ping','Find the city'],['Span','Cross the country']]},
+ {k:'cards',nm:'Cards',n:2,c:'#1e5f8f',played:0,note:'None played',games:[
+   ['Hands','The daily poker solitaire'],['Taire','The daily solitaire']]},
+ {k:'arcade',nm:'Arcade',n:2,c:'#0b4aa2',played:0,note:'None played',games:[
+   ['Sweep','No bottom edge'],['Blocks','Same shapes, same order']]}
+];
+var openCat='logic';
+
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+
+function renderTiles(){
+  var g=document.getElementById('catgrid'); if(!g) return;
+  g.innerHTML=CATS.map(function(c){
+    var pct=Math.round((c.played/c.n)*100);
+    var peek=c.games.slice(0,2).map(function(x){return x[0]}).join(', ')+(c.n>2?'…':'');
+    return '<div class="cat'+(c.k===openCat?' open':'')+'" data-k="'+c.k+'">'
+      +'<div class="top"><span class="sq" style="background:'+c.c+'">'+c.nm[0]+'</span>'
+      +'<span class="nm">'+esc(c.nm)+'</span><span class="ct">'+c.n+'</span></div>'
+      +'<div class="bar"><i style="width:'+pct+'%;background:'+c.c+'"></i></div>'
+      +'<div class="mt"><span>'+esc(c.note)+'</span><span>'+esc(peek)+'</span></div></div>';
+  }).join('');
+  g.querySelectorAll('.cat').forEach(function(t){
+    t.addEventListener('click',function(){
+      openCat = (openCat===t.dataset.k) ? null : t.dataset.k;
+      renderTiles(); renderRows();
+      if(openCat){var r=document.getElementById('catrows');
+        if(r) r.scrollIntoView({behavior:'smooth',block:'nearest'});}
+    });
+  });
+}
+
+function renderRows(){
+  var box=document.getElementById('catrows'); if(!box) return;
+  if(!openCat){box.innerHTML='';return;}
+  var c=CATS.filter(function(x){return x.k===openCat})[0];
+  var html='<div class="rowhd">'+esc(c.nm)+' · '+c.n+' game'+(c.n>1?'s':'')+' <span>Collapse ▲</span></div>';
+  html+=c.games.map(function(g){
+    var right='<span class="go">Play →</span>';
+    if(g[2]==='done')   right='<span class="rt" style="color:#16a34a">'+esc(g[3])+'</span>';
+    if(g[2]==='paused') right='<span class="rt" style="color:#8a5300">'+esc(g[3])+'</span>';
+    if(g[2]==='next')   right='<span class="go" style="background:'+c.c+';color:#fff;padding:6px 13px;border-radius:6px">▶ Play</span>';
+    return '<div class="grow"><span class="sq" style="background:'+c.c+'">'+g[0][0]+'</span>'
+      +'<div><div class="nm">'+esc(g[0])+'</div><div class="tg">'+esc(g[1])+'</div></div>'+right+'</div>';
+  }).join('');
+  if(c.n>c.games.length) html+='<div class="more">Show all '+c.n+' ▾</div>';
+  box.innerHTML=html;
+  var hd=box.querySelector('.rowhd');
+  if(hd) hd.addEventListener('click',function(){openCat=null;renderTiles();renderRows()});
+  var mr=box.querySelector('.more');
+  if(mr) mr.addEventListener('click',function(){mr.textContent='(the remaining '+(c.n-c.games.length)+' rows would render here)';mr.style.color='#8a90a0'});
+}
+
+function measure(){
+  var rail=document.getElementById('railA'), flag=document.getElementById('fitflag');
+  if(!rail||!flag) return;
+  var over=rail.scrollHeight>rail.clientHeight+1;
+  var body=rail.querySelector('.sect.on + .secb');
+  var innerOver=body?body.scrollHeight>body.clientHeight+1:false;
+  if(over){flag.className='fit no';flag.textContent='rail overflows';}
+  else if(innerOver){flag.className='fit no';flag.textContent='open section scrolls';}
+  else{flag.className='fit ok';flag.textContent='rail fits · '+rail.clientHeight+'px';}
+}
+document.querySelectorAll('.docbar .seg:not(.vp) button').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.docbar .seg:not(.vp) button').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    document.querySelectorAll('.mock').forEach(function(m){m.classList.remove('on')});
+    document.getElementById('m-'+b.dataset.m).classList.add('on');
+    window.scrollTo(0,0); setTimeout(measure,30);
+  });
+});
+document.querySelectorAll('.seg.vp button').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.seg.vp button').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    document.documentElement.style.setProperty('--vh',b.dataset.vh+'px');
+    setTimeout(measure,30);
+  });
+});
+document.querySelectorAll('.tabs button').forEach(function(b){
+  b.addEventListener('click',function(){
+    b.parentNode.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');
+  });
+});
+document.querySelectorAll('.sect').forEach(function(s){
+  s.addEventListener('click',function(){
+    var acc=s.parentNode;
+    acc.querySelectorAll('.sect').forEach(function(x){x.classList.remove('on');var c=x.querySelector('.ch');if(c)c.textContent='▸';});
+    s.classList.add('on');
+    var c=s.querySelector('.ch'); if(c)c.textContent='▾';
+    setTimeout(measure,30);
+  });
+});
+window.addEventListener('resize',measure);
+renderTiles(); renderRows(); measure();
+</script>
+</body>
+</html>

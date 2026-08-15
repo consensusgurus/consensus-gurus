@@ -351,6 +351,10 @@ export default function HomeRails({
   // ONE expand key, not three: the left rail's three boards are one panel now.
   const [open, setOpen] = useState({ lb: false });
   const toggle = (k) => setOpen((p) => ({ ...p, [k]: !p[k] }));
+  // side="board" only: which tab is showing, and which accordion section is
+  // open inside the Leaderboard tab. Declared here with the other hooks.
+  const [bTab, setBTab] = useState('lb');
+  const [bSec, setBSec] = useState('today');
 
   // ── LEFT ──────────────────────────────────────────────────────────────────
   const community = useMemo(() => {
@@ -365,7 +369,7 @@ export default function HomeRails({
   // the panel falls back to the normal community board.
   const [contestLive, setContestLive] = useState(false);
   const [contest, setContest] = useState(null);
-  useEffect(() => { if (side === 'left') setContestLive(contestIsLive()); }, [side]);
+  useEffect(() => { if (side === 'left' || side === 'board') setContestLive(contestIsLive()); }, [side]);
   useEffect(() => {
     if (!contestLive) return undefined;
     let alive = true;
@@ -489,7 +493,7 @@ export default function HomeRails({
   // reader the server cannot identify.
   const [day, setDay] = useState(null);
   useEffect(() => {
-    if (side !== 'right') return undefined;
+    if (side !== 'right' && side !== 'board') return undefined;
     let alive = true;
     fetchDayStatus().then((d) => { if (alive && d) setDay(d); }).catch(() => {});
     return () => { alive = false; };
@@ -866,6 +870,237 @@ export default function HomeRails({
       }
     `}</style>
   );
+
+  if (side === 'board') {
+    /* ONE PINNED PANEL (home v3). The left rail is gone and its two elements,
+       the three-face leaderboard and Category leaders, moved in here as
+       accordion sections alongside two IQ boards. Only one section is open at
+       a time and the open one is the flex child that grows, which is what
+       keeps the whole panel inside the viewport no matter how many rows a
+       board holds. Closed bands still carry their leader, so shutting three of
+       them loses nothing you came for.
+
+       Nothing here is new data: dailyRows, catLeaders, xp30 and xpAll are all
+       already computed above for the left rail, and the Live and You tabs
+       reuse the right rail's own feed, streak and rival. */
+    const bRows = (rows, fmt, unit, eyebrow, sub_, href, footLabel) => (
+      <>
+        <div className="hr-scroll hrb-body">
+          <Rows
+            rows={boardSlice(rows, true)}
+            fmt={fmt}
+            hrefFor={(n) => `/player/${encodeURIComponent(n)}`}
+            hero={{ eyebrow, sub: sub_, unit, tone: 'lite' }}
+          />
+        </div>
+        <div className="hr-foot">
+          <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
+          <Link href={href} className="hr-link">{footLabel} &rarr;</Link>
+        </div>
+      </>
+    );
+    const lead = (rows) => ((rows && rows.length) ? rows[0].name : null);
+    const catLed = catLeaders.filter((c) => c.leader).length;
+    const SECS = [
+      {
+        k: 'today',
+        label: 'Today \u00b7 Combined',
+        cap: lead(dailyRows),
+        body: () => bRows(dailyRows, (v) => v, 'points', "Today's leader", 'Combined daily games score', '/quizzes/hub?tab=daily', 'Full daily board'),
+      },
+      {
+        k: 'cats',
+        label: 'By category',
+        cap: catLeaders.length ? `${catLed} of ${catLeaders.length} led` : null,
+        body: () => (
+          <>
+            <div className="hr-scroll hrb-body">
+              {catLeaders.map((row) => <CatSlip key={row.name} row={row} />)}
+              {!catLeaders.length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No categories on the board yet today.</div> : null}
+            </div>
+            <div className="hr-foot">
+              <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
+              <Link href="/quizzes/hub?tab=daily" className="hr-link">Daily boards &rarr;</Link>
+            </div>
+          </>
+        ),
+      },
+      {
+        k: 'm30',
+        label: 'Last 30 days',
+        cap: lead(xp30),
+        body: () => bRows(xp30, num, 'IQ pts', 'Top of the month', 'IQ points earned in 30 days', '/quizzes/hub?tab=player', 'Monthly board'),
+      },
+      {
+        k: 'all',
+        label: 'All time \u00b7 IQ Points',
+        cap: lead(xpAll.length ? xpAll : xp30),
+        body: () => bRows(xpAll.length ? xpAll : xp30, num, 'IQ pts', 'Top player, all time', 'Lifetime IQ points', '/quizzes/hub?tab=player', 'All time board'),
+      },
+    ];
+    const TABS = [['lb', 'Leaderboard'], ['live', 'Live'], ['you', 'You']];
+    return (
+      <>
+        {CSS}
+        <style>{`
+          /* Scoped to .hr-board and placed AFTER the shared sheet on purpose:
+             the max-width:1200px block in CSS flattens .hr-flex to flex:none,
+             so anything that has to stretch must be declared later. Pinning is
+             min-width:1201px only, which is the same threshold the parent uses
+             to pin a rail at all, so 901-1200 and mobile keep their natural
+             stacked flow untouched. */
+          .hr-board{display:flex;flex-direction:column;min-height:0;}
+          .hrb-tabs{display:flex;flex:none;background:#0e2a63;}
+          .hrb-tabs button{flex:1;border:none;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:10px 4px;cursor:pointer;border-bottom:3px solid transparent;}
+          .hrb-tabs button.on{color:var(--white);border-bottom-color:var(--white);background:var(--accent);}
+          .hrb-acc{display:flex;flex-direction:column;min-height:0;}
+          .hrb-sec{display:flex;flex-direction:column;min-height:0;flex:none;}
+          .hrb-band{display:flex;align-items:center;gap:8px;width:100%;flex:none;border:none;border-top:1px solid var(--border);background:#eef2f8;color:#41506b;font:inherit;font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;padding:9px 13px;cursor:pointer;text-align:left;border-radius:0;}
+          .hrb-band .ch{flex:none;width:10px;text-align:center;font-size:10px;color:#7b8496;}
+          .hrb-band .cv{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.02em;text-transform:none;color:var(--blue-dark);max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+          .hrb-band.on{background:var(--accent);color:var(--white);border-top-color:var(--accent);}
+          .hrb-band.on .ch,.hrb-band.on .cv{color:#bcd3ff;}
+          .hrb-body{min-height:0;overflow-y:auto;}
+          .hrb-pane{display:flex;flex-direction:column;min-height:0;}
+          @media(min-width:1201px){
+            .hr-board{flex:1 1 auto;}
+            .hrb-acc{flex:1 1 auto;}
+            .hrb-sec.on{flex:1 1 auto;min-height:0;}
+            .hrb-sec.on .hrb-body{flex:1 1 auto;}
+            .hrb-pane{flex:1 1 auto;}
+            .hrb-pane .hrb-body{flex:1 1 auto;}
+          }
+        `}</style>
+        <section className="hr-panel hr-board">
+          <div className="hr-ph">
+            <span className="hr-pi"><CrownIcon /></span>
+            <h2>Leaderboards</h2>
+            <span className="hr-chip">TODAY</span>
+          </div>
+          <div className="hrb-tabs" role="tablist">
+            {TABS.map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                aria-selected={bTab === k}
+                className={bTab === k ? 'on' : undefined}
+                onClick={() => setBTab(k)}
+              >{label}</button>
+            ))}
+          </div>
+
+          {bTab === 'lb' ? (
+            <div className="hrb-acc">
+              {SECS.map((sc) => {
+                const on = bSec === sc.k;
+                return (
+                  <div key={sc.k} className={`hrb-sec${on ? ' on' : ''}`}>
+                    <button type="button" className={`hrb-band${on ? ' on' : ''}`} aria-expanded={on} onClick={() => setBSec(sc.k)}>
+                      <span className="ch" aria-hidden="true">{on ? '\u25be' : '\u25b8'}</span>
+                      <span>{sc.label}</span>
+                      {sc.cap ? <span className="cv">{sc.cap}</span> : null}
+                    </button>
+                    {on ? sc.body() : null}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {bTab === 'live' ? (
+            <div className="hrb-pane">
+              <div className="hr-lslab lite">
+                <div className="hr-lstxt">
+                  <div className="hr-lseye">Live &middot; today</div>
+                  <div className="hr-lsnm">{num(playsToday)} {playsToday === 1 ? 'play' : 'plays'}</div>
+                  <div className="hr-lssub">every puzzle and quiz</div>
+                </div>
+                <div className="hr-lspair">
+                  <span>{num(playersToday)}<i>{playersToday === 1 ? 'player' : 'players'}</i></span>
+                  <span>{timeToday}<i>played</i></span>
+                </div>
+              </div>
+              <div className="hr-scroll hrb-body">
+                {(lastPlayed || []).map((f, i) => {
+                  const frac = f.total ? f.score / f.total : 0;
+                  const pct = Math.round(frac * 100);
+                  const cat = catFor ? catFor(f.quizId) : null;
+                  return (
+                    <Link key={`${f.quizId}-${i}`} href={hrefFor ? hrefFor(f.quizId) : '#'} className="hr-res rule">
+                      <i className="hr-rl" style={{ background: ringTone(pct) }} aria-hidden="true" />
+                      <span className="hr-mid">
+                        <span className="hr-t">
+                          <span className="hr-ttl">{titleFor ? titleFor(f.quizId) : f.quizId}</span>
+                          {f.dayCount > 0 ? <span className="hr-x">(x{f.dayCount})</span> : null}
+                          {cat ? <span className="hr-cat" style={{ background: cat.tint, color: cat.color }}>{cat.label}</span> : null}
+                        </span>
+                        <span className="hr-s">
+                          <b className="hr-res-sc">{f.score}/{f.total}</b>
+                          {typeof f.pct === 'number' ? ` \u00b7 beat ${f.pct}%` : ''}{f.when ? ` \u00b7 ${f.when}` : ''}
+                        </span>
+                      </span>
+                      <span className="hr-pc">{pct}%</span>
+                    </Link>
+                  );
+                })}
+                {!(lastPlayed || []).length ? <div className="hr-none" style={{ padding: '10px 13px' }}>No recent plays yet.</div> : null}
+              </div>
+              <div className="hr-foot">
+                <button type="button" className="hr-exp" onClick={onAllLive}>All activity</button>
+                <Link href="/quizzes/hub?tab=player" className="hr-link">Stat hub &rarr;</Link>
+              </div>
+            </div>
+          ) : null}
+
+          {bTab === 'you' ? (
+            <div className="hrb-pane">
+              <div className={`hr-lslab${streak > 0 ? ' lite' : ''}`}>
+                <div className="hr-lstxt">
+                  <div className="hr-lseye">Days in a row</div>
+                  <div className="hr-lsnm">{streak > 0 ? `${streak} ${streak === 1 ? 'day' : 'days'}` : 'Not started'}</div>
+                  <div className="hr-lssub">
+                    {streak <= 0
+                      ? 'Finish any daily today and it begins'
+                      : (playedToday ? 'Today is in. Back tomorrow to extend it.' : 'Finish any daily today to keep it')}
+                  </div>
+                </div>
+              </div>
+              <div className="hrb-body">
+                {rival ? (
+                  <Link href={duelHref} className="hr-fcard t0">
+                    <span className="hr-fctxt">
+                      <span className="hr-fceye">{rival.behind ? 'Right behind you' : 'Next one ahead'}</span>
+                      <span className="hr-fcnm">{rival.username}</span>
+                      <span className="hr-fcsub">
+                        {rival.rank ? `#${rival.rank} today` : 'On the board today'}
+                        {gapLine ? <span className="hr-fcdot">&middot;</span> : null}
+                        {gapLine || null}
+                      </span>
+                    </span>
+                    <span className="hr-fcgo">Duel</span>
+                  </Link>
+                ) : (
+                  <Link href="/duel/new" className="hr-fcard t0">
+                    <span className="hr-fctxt">
+                      <span className="hr-fceye">Head to head</span>
+                      <span className="hr-fcnm">Start a duel</span>
+                      <span className="hr-fcsub">Pick anyone and a quiz, one round each</span>
+                    </span>
+                    <span className="hr-fcgo">Open</span>
+                  </Link>
+                )}
+              </div>
+              <div className="hr-foot">
+                <span className="hr-exp" style={{ opacity: 0 }} aria-hidden="true">&middot;</span>
+                <Link href="/quizzes/hub?tab=player" className="hr-link">Your stat hub &rarr;</Link>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      </>
+    );
+  }
 
   if (side === 'left') {
     return (

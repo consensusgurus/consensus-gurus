@@ -454,7 +454,10 @@ function FeedbackModal({ mode, onClose }) {
 }
 
 // ─── main ───────────────────────────────────────────────────────────────────
-export default function QuizHomeClient() {
+export default function QuizHomeClient({ variant = 'current' }) {
+  // HOME v3, served at /home-preview only. Everything it changes is gated on
+  // this one flag, so / renders byte-identically to before.
+  const v3 = variant === 'v3';
   const [scope, setScope] = useState('all');
   const [ddOpen, setDdOpen] = useState(false);
   const playerBarRef = useRef(null);
@@ -494,6 +497,23 @@ export default function QuizHomeClient() {
   // into Last Played's space instead of pushing the page down.
   const centerRef = useRef(null);
   const [railH, setRailH] = useState(null);
+  // v3 only: publish the sticky masthead's height so the pinned rail can sit
+  // directly under it and size itself to the rest of the viewport. Measured
+  // rather than hardcoded, the same reasoning as --dh-fit on the slate board.
+  useEffect(() => {
+    if (!v3 || typeof window === 'undefined') return undefined;
+    const set = () => {
+      try {
+        const el = document.querySelector('.qchm-r1') || document.querySelector('.qchm');
+        const h = el ? Math.round(el.getBoundingClientRect().height) : 56;
+        document.documentElement.style.setProperty('--v3top', (h + 12) + 'px');
+      } catch (e) {}
+    };
+    set();
+    const t = setTimeout(set, 500);
+    window.addEventListener('resize', set);
+    return () => { window.removeEventListener('resize', set); clearTimeout(t); };
+  }, [v3]);
   useEffect(() => {
     const el = centerRef.current;
     if (!el) return undefined;
@@ -2100,9 +2120,18 @@ export default function QuizHomeClient() {
             rail (Quiz of the Day + Last Played). The board carries the daily
             leaderboard (Today's Top 3 + expand) itself. Stacks to one column
             (board first) below 1200px. */}
-        <div className="dhx">
+        <div className={v3 ? 'dhx dhx-v3' : 'dhx'}>
           <style>{`
             .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:10px;align-items:start;margin-bottom:12px;}
+            /* HOME v3: the left rail is gone, so two columns. Declared here,
+               BEFORE the stacked and phone blocks further down, so those keep
+               overriding it and mobile is untouched. The rail is pinned only
+               above 1200px, which is the same threshold railH uses. */
+            .qzh .dhx-v3{grid-template-columns:minmax(0,1fr) 340px;}
+            @media(min-width:1201px){
+              .qzh .dhx-v3 .dhx-right{position:sticky;top:var(--v3top,86px);height:calc(100vh - var(--v3top,86px) - 16px);align-self:start;overflow:hidden;}
+              .qzh .dhx-v3 .dhx-right > .hr-panel{flex:1 1 auto;min-height:0;}
+            }
             /* start, not stretch: the CENTRE column has to report its own content
                height, because railH below measures it and pins both rails to it. With
                stretch the centre reported the row height instead, which was itself the
@@ -2410,6 +2439,7 @@ export default function QuizHomeClient() {
               .qzh .dhx-lb-gi{padding:5px 0 !important;}
             }
           `}</style>
+          {v3 ? null : (
           <div className="dhx-rail dhx-left" style={{ height: railH || undefined }}>
             <HomeRails
               side="left"
@@ -2421,12 +2451,17 @@ export default function QuizHomeClient() {
               onCredit={() => { setCreditQr(false); setCreditOpen(true); }}
             />
           </div>
+          )}
           <div className="dhx-center" ref={centerRef}>
-            <DailyStrip board={dailyBoard} layout="slate" />
+            <DailyStrip board={dailyBoard} layout={v3 ? 'catboard' : 'slate'} />
           </div>
-          <div className="dhx-rail dhx-right" style={{ height: railH || undefined }}>
+          <div className="dhx-rail dhx-right" style={{ height: v3 ? undefined : (railH || undefined) }}>
             <HomeRails
-              side="right"
+              side={v3 ? 'board' : 'right'}
+              refData={refData}
+              xp30={xp30}
+              xpAll={xpAll}
+              onCredit={() => { setCreditQr(false); setCreditOpen(true); }}
               dailyBoard={dailyBoard}
               totals={totals}
               lastPlayed={(lastPlayed || []).map((f) => ({ ...f, when: relTime(f.playedAt) ? `${relTime(f.playedAt)} ago` : '' }))}

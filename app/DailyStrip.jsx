@@ -372,7 +372,21 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   // scoreboard redesign, 2026-08-03). It is a layout switch only: the data,
   // the per-tile panel, the reset timer and every state flag are untouched,
   // so reverting is a one-word prop change.
-  const slate = layout === 'slate';
+  // The category-tile board (home v3). Deliberately NOT the string 'tiles',
+  // which is already this component's DEFAULT layout and means the legacy
+  // tile-card grid: reusing it would silently change every caller that omits
+  // the prop.
+  //
+  // catboard IMPLIES slate, and that is the whole trick. The category board is
+  // not a third layout, it is the slate with a desktop-only override layer on
+  // top: the slate's own markup, effects, fit measurement and phone styling all
+  // still run, and above 901px CSS hides the rows and the four-card cap and
+  // shows the tiles and the two-card cap instead. Both renders sit in the DOM
+  // at once, which is the same approach the home rails already use for their
+  // phone hero, and it means the phone is byte-identical to today and there is
+  // no viewport branch in the markup to desynchronise SSR from hydration.
+  const cats = layout === 'catboard';
+  const slate = layout === 'slate' || cats;
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   // Finished today, never solved, on a game that did not show the answer. A
@@ -1529,6 +1543,142 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
   // The slate: one row per game, with the per-game panel opening as a drawer
   // directly under its own row rather than as an overlay over the board.
+  /* ── HOME v3: the category board ──────────────────────────────────────
+     Two things replace the slate at layout="catboard": a cap of TWO cards
+     across instead of four, and nine category tiles instead of 63 rows.
+     Clicking a tile sets the SAME `filter` state the slate's chip strip
+     drives, so the games list below is the existing filter machinery rather
+     than a second source of truth. Everything here reads values the component
+     already computes (nextGame, easiest, capState, capLead, games, slateCats,
+     done, inprog, isFail, playsOf); no new state, no new data. */
+  const catOf = (c) => games.filter((g) => g.cat === c);
+  const renderCatCap = () => {
+    // Up next always leads. The second card is whatever is most worth acting
+    // on: a paused board if there is one, else the easiest leaderboard. The
+    // two picks that lose their card move to the "Also today" line, so nothing
+    // is dropped, it just stops competing for the eye.
+    const second = capState.length
+      ? { kind: capState[0].kind, game: capState[0].game }
+      : (easiest ? { kind: 'easy', game: easiest.game } : null);
+    const alsoRaw = [
+      (capState.length && easiest) ? { lbl: 'Easiest board', g: easiest.game } : null,
+      (capLead && capLead.length) ? { lbl: CAP_LEAD_LABEL[capLead[0].kind], g: capLead[0].game } : null,
+    ].filter(Boolean);
+    const paused = second && second.kind === 'prog';
+    const failed = second && second.kind === 'fail';
+    return (
+      <>
+        <div className="cb-cap">
+          {nextGame ? (
+            <a href={nextGame.href} className="cb-card up">
+              <span className="cb-ct">
+                <span className="cb-ce">Up next</span>
+                <span className="cb-cn">{nextGame.name}</span>
+                <span className="cb-cs">{nextGame.tag}{playsNote(nextPlays)}</span>
+              </span>
+              <span className="cb-cb"><Play size={11} fill="currentColor" strokeWidth={0} />Play</span>
+            </a>
+          ) : (
+            <span className="cb-card up">
+              <span className="cb-ct">
+                <span className="cb-ce">Clean sweep</span>
+                <span className="cb-cn">All {GAMES.length} done</span>
+                <span className="cb-cs">A fresh slate lands at midnight</span>
+              </span>
+            </span>
+          )}
+          {second ? (
+            <a href={second.game.href} className={'cb-card ' + (paused ? 'prog' : failed ? 'fail' : 'easy')}>
+              <span className="cb-ct">
+                <span className="cb-ce">{paused ? 'Paused' : failed ? 'Unfinished' : 'Easiest leaderboard'}</span>
+                <span className="cb-cn">{second.game.name}</span>
+                <span className="cb-cs">{second.game.tag}</span>
+              </span>
+              <span className="cb-cb"><Play size={11} fill="currentColor" strokeWidth={0} />{paused ? 'Resume' : 'Play'}</span>
+            </a>
+          ) : null}
+        </div>
+        {alsoRaw.length ? (
+          <div className="cb-also">
+            <span className="cb-al">Also today</span>
+            {alsoRaw.map((a, i) => (
+              <a key={a.g.key} href={a.g.href} className="cb-ali">
+                {i ? <i className="cb-adot" aria-hidden="true">&middot;</i> : null}
+                <b>{a.g.name}</b><span>{a.lbl}</span>
+              </a>
+            ))}
+          </div>
+        ) : null}
+      </>
+    );
+  };
+
+  const renderCatBoard = () => {
+    const openCat = slateCats.includes(filter) ? filter : null;
+    const out = [];
+    out.push(
+      <div className="cb-tiles" key="cb-tiles">
+        {slateCats.map((c) => {
+          const list = catOf(c);
+          const nD = list.filter((g) => done.has(g.key)).length;
+          const nP = list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length;
+          const on = openCat === c;
+          const label = CAT_SHORT[c] || c;
+          return (
+            <button
+              type="button"
+              key={c}
+              className={'cb-tile' + (on ? ' on' : '')}
+              style={{ '--cc': catCol(c) }}
+              aria-expanded={on}
+              onClick={() => setFilter(on ? 'all' : c)}
+            >
+              <span className="cb-trow">
+                <span className="cb-sq">{label.slice(0, 1)}</span>
+                <span className="cb-tnm">{label}</span>
+                <span className="cb-tct">{list.length}</span>
+              </span>
+              <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
+              <span className="cb-tmt">
+                <span>{nD ? nD + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
+                <span className="cb-pk">{list.slice(0, 2).map((g) => g.name).join(', ')}{list.length > 2 ? '\u2026' : ''}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+    if (openCat) {
+      const list = catOf(openCat);
+      const label = CAT_SHORT[openCat] || openCat;
+      out.push(
+        <button type="button" className="cb-hd" key="cb-hd" onClick={() => setFilter('all')}>
+          {label} &middot; {list.length} game{list.length === 1 ? '' : 's'}
+          <span>Collapse &#9650;</span>
+        </button>
+      );
+      list.forEach((g) => {
+        const isDone = done.has(g.key);
+        const fail = isFail(g.key);
+        const ip = inprog.has(g.key) && !isDone;
+        out.push(
+          <a href={g.href} className="cb-row" key={'cb-' + g.key} style={{ '--cc': catCol(g.cat) }}>
+            <span className="cb-rsq">{(CAT_SHORT[g.cat] || g.cat).slice(0, 1)}</span>
+            <span className="cb-rt">
+              <b>{g.name}</b>
+              <span>{g.tag}</span>
+            </span>
+            {fail ? <span className="cb-rs fail">Unfinished</span>
+              : isDone ? <span className="cb-rs done">Done</span>
+                : ip ? <span className="cb-rs prog">Resume</span>
+                  : <span className="cb-rs go">Play &rarr;</span>}
+          </a>
+        );
+      });
+    }
+    return out;
+  };
+
   const renderSlate = (rows0, dim) => {
     const out = [];
     // A PAUSED GAME IS A READY-TO-PLAY ROW AT THE FOOT OF THAT GROUP (owner,
@@ -2147,7 +2297,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
   });
 
   return (
-    <div className={'dhome' + (selGame ? ' open' : '') + (slate ? ' slate' : '')}>
+    <div className={'dhome' + (selGame ? ' open' : '') + (slate ? ' slate' : '') + (cats ? ' cats' : '')}>
       {/* RAW, not a JSX text child: React escapes `>` in a text node, so as
           `{`...`}` every child-combinator selector in here reached the browser
           as `.dh-cell &gt; img` and was dropped as invalid until hydration
@@ -3350,8 +3500,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            scrolls normally wherever you drag. */
         @media(max-width:980px){
           .dh-boardwrap.open{min-height:0;}
-          .dhome.open:not(.slate) .dh-sbar{display:none;}
-          .dhome.open:not(.slate) .dh-boardwrap{display:none;}
+          .dhome.open:not(.slate):not(.cats) .dh-sbar{display:none;}
+          .dhome.open:not(.slate):not(.cats) .dh-boardwrap{display:none;}
         }
         /* Phone cap (owner 2026-08-03). Both halves survive here, unlike the old
            bar where the Easiest CTA was hidden below 640px to make room for the
@@ -3406,6 +3556,76 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .sl-filt button{padding:7px 13px;}
           .dhome.slate .dh-cmore{padding:4px 13px;}
         }
+
+      /* ── HOME v3 category board (min-width:901px only) ───────────────────
+         Everything is scoped to .dhome.cats, so the slate and the legacy tile
+         board are untouched. Below 901px this block does not apply at all and
+         the phone keeps the layout it ships with. */
+      @media(min-width:901px){
+        /* The override layer. The slate's own rows, bands, column header and
+           chip strip are still in the DOM and still correct on a phone; up
+           here they step aside for the tiles, and the four-card cap steps
+           aside for the two-card one. */
+        .dhome.cats .sl-row,.dhome.cats .sl-drawer,.dhome.cats .sl-band,.dhome.cats .sl-head,.dhome.cats .sl-filtw,.dhome.cats .sl-more{display:none !important;}
+        .dhome.cats .dh-sbar > .dh-cell,.dhome.cats .dh-sbar > .dh-cprog{display:none !important;}
+        .dhome.cats .dh-board{display:block;height:auto;max-height:none;overflow:visible;gap:0;background:transparent;}
+        .dhome.cats .dh-boardwrap{height:auto;overflow:visible;}
+        .dhome.cats .dh-sbar{display:block;padding:0;gap:0;background:transparent;border:none;}
+        .cb-cap{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;background:var(--surface-alt);}
+        .cb-card{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
+        .cb-card.up{background:var(--blue);color:var(--white);}
+        .cb-card.easy{background:var(--blue-dark);color:var(--white);}
+        .cb-card.prog{background:var(--gold);color:#3a2a05;border-left-color:#f7d98a;}
+        .cb-card.fail{background:#b91c1c;color:var(--white);border-left-color:#f3a5a5;}
+        .cb-ct{display:flex;flex-direction:column;min-width:0;}
+        .cb-ce{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.8;margin-bottom:5px;}
+        .cb-cn{font-size:23px;font-weight:800;letter-spacing:-.015em;line-height:1.1;}
+        .cb-cs{font-size:12.5px;font-weight:500;opacity:.85;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-cb{margin-left:auto;flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--white);color:var(--accent);border-radius:7px;padding:12px 22px;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;}
+        .cb-card.prog .cb-cb{color:#3a2a05;}
+        .cb-also{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:11px 16px;background:var(--white);border-top:1px solid var(--border);font-size:13.5px;}
+        .cb-al{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);}
+        .cb-ali{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:var(--muted);font-weight:600;}
+        .cb-ali b{color:var(--ink);font-weight:800;}
+        .cb-ali:hover b{color:var(--blue);}
+        .cb-adot{font-style:normal;color:#c3c9d4;margin-right:2px;}
+        .cb-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
+        .cb-tile{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;background:var(--white);border:none;border-radius:0;padding:14px 15px 12px;font:inherit;cursor:pointer;color:var(--ink);min-width:0;}
+        .cb-tile:hover{background:var(--surface);}
+        .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
+        .cb-trow{display:flex;align-items:center;gap:10px;min-width:0;}
+        .cb-sq{width:30px;height:30px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:13px;font-weight:800;}
+        .cb-tnm{font-size:15px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-tct{margin-left:auto;flex:none;font-size:11px;font-weight:700;color:var(--slate);}
+        .cb-bar{display:block;height:4px;border-radius:4px;background:var(--surface-alt);overflow:hidden;}
+        .cb-bar i{display:block;height:100%;border-radius:4px;background:var(--cc,var(--blue-dark));}
+        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;}
+        .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
+        .cb-hd{display:flex;align-items:center;width:100%;border:none;border-top:1px solid var(--border);background:var(--surface-alt);color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:8px 14px;cursor:pointer;border-radius:0;text-align:left;}
+        .cb-hd span{margin-left:auto;letter-spacing:.04em;color:var(--slate);}
+        .cb-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--ink);background:var(--white);}
+        .cb-row:hover{background:var(--surface);}
+        .cb-rsq{width:26px;height:26px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:11px;font-weight:800;}
+        .cb-rt{display:flex;flex-direction:column;min-width:0;}
+        .cb-rt b{font-size:14.5px;font-weight:800;}
+        .cb-rt span{font-size:12px;color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-rs{margin-left:auto;flex:none;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+        .cb-rs.go{color:var(--blue);}
+        .cb-rs.prog{color:#8a5300;}
+        .cb-rs.done{color:var(--success-deep);}
+        .cb-rs.fail{color:var(--danger);}
+      }
+      @media(min-width:901px) and (max-width:1200px){
+        .cb-tiles{grid-template-columns:repeat(2,1fr);}
+      }
+      /* Below 901px the catboard does not exist: every rule above is desktop
+         only, so without this its elements would render unstyled underneath a
+         perfectly good phone slate. MOBILE IS UNTOUCHED, and this is the line
+         that guarantees it. */
+      @media(max-width:900px){
+        .dhome.cats .cb-cap,.dhome.cats .cb-also,.dhome.cats .cb-tiles,.dhome.cats .cb-hd,.dhome.cats .cb-row{display:none !important;}
+      }
+
       ` }} />
 
       {/* The cap. Welded directly onto the grid below (rounded top corners only,
@@ -3426,6 +3646,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         </div>
       ) : null}
       <div className="dh-sbar">
+        {cats ? renderCatCap() : null}
         <div className="dh-cell up">
           {nextGame ? (
             <>
@@ -3689,8 +3910,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         <div className="dh-vpwrap">
         <div
           ref={vpRef}
-          className={'dh-vp' + (!slate && metrics && metrics.maxOffset > 0 ? ' on' : '')}
-          style={!slate && metrics && metrics.maxOffset > 0
+          className={'dh-vp' + (!slate && !cats && metrics && metrics.maxOffset > 0 ? ' on' : '')}
+          style={!slate && !cats && metrics && metrics.maxOffset > 0
             ? { height: metrics.windowH }
             : undefined}
           onScroll={(e) => { e.currentTarget.scrollTop = 0; }}
@@ -3701,7 +3922,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             role="navigation"
             aria-label="Daily puzzles"
             aria-hidden={selGame && !slate ? 'true' : undefined}
-            style={!slate && metrics && metrics.maxOffset > 0
+            style={!slate && !cats && metrics && metrics.maxOffset > 0
               ? { transform: `translateY(-${shift * metrics.rowStep}px)` }
               : undefined}
           >
@@ -3732,6 +3953,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 })}
               </div>
             ) : null}
+            {cats ? renderCatBoard() : null}
             {slate ? renderSlate(slateList, false) : renderTiles(list, false)}
           </div>
         </div>
@@ -3742,7 +3964,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
             deleted, so it comes back on its own if the tile board ever returns.
             All wiring stays: rowOffset/metrics state, the measure effect, and
             the .dh-more CSS. */}
-        {!slate && metrics && metrics.maxOffset > 0 && !selGame ? (
+        {!slate && !cats && metrics && metrics.maxOffset > 0 && !selGame ? (
           <button
             type="button"
             className="dh-more"
