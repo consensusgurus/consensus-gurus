@@ -1574,7 +1574,11 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
     if (nextGame) add('up', 'Up next', nextGame, 'Play', playsNote(nextPlays));
     for (const c of capState) {
       const paused = c.kind === 'prog';
-      add(paused ? 'prog' : 'fail', paused ? 'Paused' : 'Unfinished', c.game,
+      // FAILED, not "Unfinished" (owner, 2026-08-15): a paused board is also
+      // unfinished, so the word said nothing that told the two apart. Failed is
+      // the wording the old cap used for exactly this state and it is the one
+      // the red already means.
+      add(paused ? 'prog' : 'fail', paused ? 'Paused' : 'Failed', c.game,
         paused ? 'Resume' : 'Retry', paused ? playsNote(playsOf(c.game.key)) : '');
     }
     if (easiest) add('easy', 'Easiest leaderboard', easiest.game, 'Play', fieldNote(easiest.players));
@@ -3578,6 +3582,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
           .dhome.slate .sl-filt button{padding:7px 13px;}
           .dhome.slate .dh-cmore{padding:4px 13px;}
         }
+
 
 
 

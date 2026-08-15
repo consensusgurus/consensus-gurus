@@ -929,10 +929,13 @@ export default function HomeRails({
           .hrb-tabs{display:flex;flex:none;background:#0e2a63;}
           .hrb-tabs button{flex:1;border:none;border-radius:0;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent;}
           .hrb-tabs button.on{color:var(--white);border-bottom-color:var(--white);background:var(--accent);}
-          /* Five sub-sorts do not fit one 340px line, so they wrap 3 and 2 at
-             a third each. Deliberate, not a reflow accident. */
-          .hrb-subs{display:flex;flex-wrap:wrap;flex:none;background:#eef2f8;border-bottom:1px solid var(--border);}
-          .hrb-subs button{flex:1 1 30%;border:none;border-radius:0;background:transparent;color:#5b6478;font:inherit;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:9px 4px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+          /* ALL FIVE ON ONE LINE. They used to wrap 3 and 2, and the owner read
+             the strip as three sub-sorts and asked where All time had gone: a
+             wrapped second row does not look like more of the same control, it
+             looks like a different one. Tightened until five fit (9px, .03em,
+             2px side padding), which they do inside 340px with room over. */
+          .hrb-subs{display:flex;flex-wrap:nowrap;flex:none;background:#eef2f8;border-bottom:1px solid var(--border);}
+          .hrb-subs button{flex:1 1 auto;min-width:0;border:none;border-radius:0;background:transparent;color:#5b6478;font:inherit;font-size:9px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:9px 2px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .hrb-subs button:hover{color:var(--ink);}
           .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
