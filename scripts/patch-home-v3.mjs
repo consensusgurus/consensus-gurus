@@ -526,22 +526,43 @@ function sub(src, find, repl, label, count = 1, mark = null) {
           const on = openCat === c;
           const label = CAT_SHORT[c] || c;
           return (
-            <button type="button" key={c} className={'cb-tile' + (on ? ' on' : '')}
-              style={{ '--cc': catCol(c) }} aria-expanded={on}
-              onClick={() => setFilter(on ? 'all' : c)}>
-              <span className="cb-trow">
+            <div key={c} className={'cb-tile' + (on ? ' on' : '')} style={{ '--cc': catCol(c) }}>
+              {/* The header is the control, the games below are their own
+                  links. A DIV, not a button, because an anchor inside a button
+                  is invalid HTML and the games have to be anchors. */}
+              <button type="button" className="cb-thead" aria-expanded={on}
+                onClick={() => setFilter(on ? 'all' : c)}>
                 <span className="cb-sq">
                   {(() => { const G = CAT_GLYPH[c] || Star; return <G size={20} strokeWidth={2.2} />; })()}
                 </span>
                 <span className="cb-tnm">{label}</span>
                 <span className="cb-tct">{list.length}</span>
-              </span>
+              </button>
               <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
+              {/* EVERY GAME IN THE CATEGORY, as its own art (owner,
+                  2026-08-15: fill the dead space with game detail). Names ride
+                  along only when the category is small enough to carry them,
+                  which is exactly where the empty space was worst: a two game
+                  tile is the same size as a sixteen game one. Above that the
+                  art alone carries it and the name is the tooltip. */}
+              <div className={'cb-games' + (list.length <= 6 ? ' named' : '')}>
+                {list.map((g) => {
+                  const gd = done.has(g.key);
+                  const gf = isFail(g.key);
+                  const gp = inprog.has(g.key) && !gd;
+                  return (
+                    <a key={g.key} href={g.href} title={g.name} aria-label={g.name}
+                      className={'cb-gi' + (gd && !gf ? ' done' : '') + (gp ? ' prog' : '') + (gf ? ' fail' : '')}>
+                      <img src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
+                      {list.length <= 6 ? <span className="cb-gnm">{g.name}</span> : null}
+                    </a>
+                  );
+                })}
+              </div>
               <span className="cb-tmt">
-                <span>{nD ? nD + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
-                <span className="cb-pk">{list.slice(0, 2).map((g) => g.name).join(', ')}{list.length > 2 ? '\\u2026' : ''}</span>
+                <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
               </span>
-            </button>
+            </div>
           );
         })}
       </div>
@@ -637,18 +658,34 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
         .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);}
-        .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:11px;align-items:stretch;text-align:left;background:var(--white);border:none;border-radius:0;padding:20px 18px;font:inherit;cursor:pointer;color:var(--ink);min-width:0;min-height:112px;}
+        .cb-tile{display:flex;flex-direction:column;gap:10px;align-items:stretch;text-align:left;background:var(--white);padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:112px;}
+        .cb-thead{display:flex;align-items:center;gap:12px;min-width:0;width:100%;border:none;border-radius:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;}
         .cb-tile:hover{background:var(--surface);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
-        .cb-trow{display:flex;align-items:center;gap:12px;min-width:0;}
         .cb-sq{width:38px;height:38px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
         .cb-sq svg{display:block;}
         .cb-tnm{font-size:17px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
         .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
-        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:600;color:var(--muted);min-width:0;}
-        .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
+        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
+        /* The games themselves. Art is the already blue-remapped button PNG, so
+           this adds detail without adding a colour. Done dims, paused takes the
+           gold ring and unfinished the red one, which is the same three state
+           language the cap and the rows use. */
+        .cb-games{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;min-width:0;}
+        .cb-gi{display:flex;width:30px;height:30px;border-radius:7px;overflow:hidden;background:var(--surface-alt);flex:none;text-decoration:none;}
+        .cb-gi img{width:100%;height:100%;object-fit:contain;display:block;}
+        .cb-gi:hover{box-shadow:0 0 0 2px var(--blue);}
+        .cb-gi.done{opacity:.38;}
+        .cb-gi.prog{box-shadow:inset 0 0 0 2px var(--gold);}
+        .cb-gi.fail{box-shadow:inset 0 0 0 2px var(--danger);}
+        .cb-games.named{gap:12px 14px;}
+        .cb-games.named .cb-gi{width:auto;height:auto;flex-direction:column;align-items:center;gap:5px;background:none;border-radius:0;overflow:visible;max-width:74px;}
+        .cb-games.named .cb-gi img{width:34px;height:34px;border-radius:8px;background:var(--surface-alt);}
+        .cb-games.named .cb-gi:hover{box-shadow:none;}
+        .cb-games.named .cb-gi:hover .cb-gnm{color:var(--blue);}
+        .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
         /* With no category open the nine tiles ARE the board, so they take the
            whole of it: three equal rows rather than a short block with a void
            of ground under it. */
