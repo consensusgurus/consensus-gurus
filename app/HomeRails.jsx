@@ -937,6 +937,13 @@ export default function HomeRails({
           .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
           .hrb-body{min-height:0;overflow-y:auto;}
+          /* You holds two blocks and nothing else, so they SPLIT the panel
+             rather than sitting at the top of an empty column. */
+          @media(min-width:1201px){
+            .hrb-you .hr-lslab{flex:1 1 0;}
+            .hrb-you .hrb-body{flex:1 1 0;display:flex;flex-direction:column;}
+            .hrb-you .hr-fcard{flex:1 1 auto;}
+          }
           @media(min-width:1201px){
             .hr-board{flex:1 1 auto;}
             .hrb-pane{flex:1 1 auto;}
@@ -1037,7 +1044,7 @@ export default function HomeRails({
           ) : null}
 
           {bTab === 'you' ? (
-            <div className="hrb-pane">
+            <div className="hrb-pane hrb-you">
               <div className={`hr-lslab${streak > 0 ? ' lite' : ''}`}>
                 <div className="hr-lstxt">
                   <div className="hr-lseye">Days in a row</div>

@@ -55,8 +55,15 @@ function region(src, startMark, endMark, body, label) {
  * script has to be re-runnable to ship a follow-up fix, so an anchor whose
  * replacement is ALREADY present is skipped rather than treated as missing.
  * Anything else still throws, which is what stops a half-applied patch. */
-function sub(src, find, repl, label, count = 1) {
-  // ALREADY-APPLIED IS TESTED FIRST, and it has to be. Several of these edits
+function sub(src, find, repl, label, count = 1, mark = null) {
+  // `mark` is an ALREADY-APPLIED fingerprint, for an insert whose body this
+  // file later edits: once the body changes, `repl` stops matching what is on
+  // origin and the insert fires a SECOND time. Give such an insert a mark that
+  // does not move (a declaration name, not its value) and ship the body change
+  // as its own sub(). Dropping this parameter while a call site still passes it
+  // silently reintroduces the duplicate, which is exactly what happened.
+  if (mark && src.includes(mark)) { SKIPPED += 1; return src; }
+  // ALREADY-APPLIED IS TESTED SECOND, and before the count. Several of these edits
   // INSERT before their anchor rather than replacing it, so the anchor is still
   // there afterwards and an occurrence count alone reads a patched file as
   // unpatched: the first version of this guard checked `n === 0 && ...` and
@@ -173,6 +180,13 @@ function sub(src, find, repl, label, count = 1) {
           .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
           .hrb-body{min-height:0;overflow-y:auto;}
+          /* You holds two blocks and nothing else, so they SPLIT the panel
+             rather than sitting at the top of an empty column. */
+          @media(min-width:1201px){
+            .hrb-you .hr-lslab{flex:1 1 0;}
+            .hrb-you .hrb-body{flex:1 1 0;display:flex;flex-direction:column;}
+            .hrb-you .hr-fcard{flex:1 1 auto;}
+          }
           @media(min-width:1201px){
             .hr-board{flex:1 1 auto;}
             .hrb-pane{flex:1 1 auto;}
@@ -273,7 +287,7 @@ function sub(src, find, repl, label, count = 1) {
           ) : null}
 
           {bTab === 'you' ? (
-            <div className="hrb-pane">
+            <div className="hrb-pane hrb-you">
               <div className={\`hr-lslab\${streak > 0 ? ' lite' : ''}\`}>
                 <div className="hr-lstxt">
                   <div className="hr-lseye">Days in a row</div>
@@ -387,6 +401,22 @@ function sub(src, find, repl, label, count = 1) {
     `            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '') + (cats && slateCats.includes(filter) ? ' cb-open' : '')}`,
     'DS:board-open');
 
+  // Category glyphs. lucide is already a dependency and already imported here,
+  // so this is nine more names on the existing import rather than any new art.
+  s = sub(s,
+    `import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, ArrowRight, Users, X, BarChart3, Star } from 'lucide-react';`,
+    `import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, ArrowRight, Users, X, BarChart3, Star, Type, Hash, Puzzle, HelpCircle, Globe2, Swords, Spade, Gamepad2 } from 'lucide-react';`,
+    'DS:icons-import');
+
+  // Arcade was the ONE category with no entry here, so catCol fell through to
+  // grey and it was the only tile on the board not wearing the blue family.
+  s = sub(s,
+    `  'End Game': catBlue('end game'), Cards: catBlue('cards'),
+};`,
+    `  'End Game': catBlue('end game'), Cards: catBlue('cards'), Arcade: catBlue('arcade'),
+};`,
+    'DS:arcade-blue');
+
   // (f) The cap fork. The existing four-card cap is untouched; the catboard
   //     renders its own two-across cap instead.
   s = sub(s,
@@ -407,6 +437,16 @@ function sub(src, find, repl, label, count = 1) {
      source of truth. Everything reads values the component already computes;
      no new state, no new data. */
   const catOf = (c) => games.filter((g) => g.cat === c);
+  /* One glyph per category, so a tile is recognisable before it is read
+     (owner, 2026-08-15). Deliberately NOT nine hues: the colour still comes
+     from catBlue, which is one blue family with a distinct value per category,
+     and the glyph carries the identity. A full spectrum was the thing the
+     homepage palette was unified to get rid of. */
+  const CAT_GLYPH = {
+    Word: Type, Numbers: Hash, Logic: Puzzle, Trivia: HelpCircle,
+    Geography: Globe2, 'Crowd Psychology': Users, 'End Game': Swords,
+    Cards: Spade, Arcade: Gamepad2,
+  };
   const renderCatCap = () => {
     /* THREE SLOTS: play, resume, retry, which is the order the old cap already
        ranked them (owner, 2026-08-15). Up next always leads. Slot two is a
@@ -438,7 +478,7 @@ function sub(src, find, repl, label, count = 1) {
     ].filter(Boolean);
     return (
       <>
-        <div className="cb-cap">
+        <div className="cb-cap" style={{ gridTemplateColumns: 'repeat(' + Math.max(1, slots.length) + ', minmax(0,1fr))' }}>
           {slots.map((sl) => (
             <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
               <span className="cb-ct">
@@ -490,7 +530,9 @@ function sub(src, find, repl, label, count = 1) {
               style={{ '--cc': catCol(c) }} aria-expanded={on}
               onClick={() => setFilter(on ? 'all' : c)}>
               <span className="cb-trow">
-                <span className="cb-sq">{label.slice(0, 1)}</span>
+                <span className="cb-sq">
+                  {(() => { const G = CAT_GLYPH[c] || Star; return <G size={20} strokeWidth={2.2} />; })()}
+                </span>
                 <span className="cb-tnm">{label}</span>
                 <span className="cb-tct">{list.length}</span>
               </span>
@@ -519,7 +561,7 @@ function sub(src, find, repl, label, count = 1) {
         const ip = inprog.has(g.key) && !isDone;
         out.push(
           <a href={g.href} className="cb-row" key={'cb-' + g.key} style={{ '--cc': catCol(g.cat) }}>
-            <span className="cb-rsq">{(CAT_SHORT[g.cat] || g.cat).slice(0, 1)}</span>
+            <img className="cb-rsq" src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
             <span className="cb-rt"><b>{g.name}</b><span>{g.tag}</span></span>
             {fl ? <span className="cb-rs fail">Retry</span>
               : isDone ? <span className="cb-rs done">Done</span>
@@ -555,7 +597,7 @@ function sub(src, find, repl, label, count = 1) {
         .dhome.cats .sl-bar{flex:none;}
         .dhome.cats .dh-sbar{flex:none;display:block;padding:0;gap:0;background:transparent;border:none;}
         .dhome.cats .dh-boardwrap{flex:1 1 auto;min-height:0;height:auto;overflow:hidden;display:flex;flex-direction:column;}
-        .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:block;height:auto;max-height:none;overflow-y:auto;gap:0;background:transparent;}
+        .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow-y:auto;gap:0;background:transparent;}
         /* The override layer: the slate's own rows, bands, column header and
            chip strip are still in the DOM and still correct on a phone; up here
            they step aside for the tiles, and the four-card cap for the three. */
@@ -592,7 +634,8 @@ function sub(src, find, repl, label, count = 1) {
         .cb-tile:hover{background:var(--surface);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
         .cb-trow{display:flex;align-items:center;gap:12px;min-width:0;}
-        .cb-sq{width:38px;height:38px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:16px;font-weight:800;}
+        .cb-sq{width:38px;height:38px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
+        .cb-sq svg{display:block;}
         .cb-tnm{font-size:17px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
         .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
@@ -602,13 +645,23 @@ function sub(src, find, repl, label, count = 1) {
         /* With no category open the nine tiles ARE the board, so they take the
            whole of it: three equal rows rather than a short block with a void
            of ground under it. */
-        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{min-height:100%;grid-auto-rows:1fr;}
+        /* THE TILES GROW INTO THE BOARD. min-height:100% could never have done
+           this: a percentage min-height resolves against a parent whose height
+           property is auto, so it was ignored and the tiles sat in a short block
+           with a void of ground underneath (owner, 2026-08-15: far too much dead
+           space). As a flex child with a definite parent height it just works. */
+        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{flex:1 1 auto;grid-auto-rows:1fr;}
+        .dhome.cats .dh-board.cb-open .cb-tiles{flex:none;}
+        .dhome.cats .cb-hd,.dhome.cats .cb-row{flex:none;}
 
         .cb-hd{display:flex;align-items:center;width:100%;border:none;border-top:1px solid var(--border);background:var(--surface-alt);color:#4a5468;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;text-align:left;position:sticky;top:0;z-index:2;}
         .cb-hd span{margin-left:auto;letter-spacing:.04em;color:var(--slate);}
         .cb-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border);text-decoration:none;color:var(--ink);background:var(--white);}
         .cb-row:hover{background:var(--surface);}
-        .cb-rsq{width:28px;height:28px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);font-size:12px;font-weight:800;}
+        /* Rows carry the game's OWN art, already remapped onto the blue ramp by
+           blueTile, so a row is identifiable at a glance without adding a
+           tenth colour to the page. */
+        .cb-rsq{width:30px;height:30px;border-radius:7px;flex:none;object-fit:contain;background:var(--surface-alt);}
         .cb-rt{display:flex;flex-direction:column;min-width:0;}
         .cb-rt b{font-size:15px;font-weight:800;}
         .cb-rt span{font-size:12px;color:var(--muted);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -629,7 +682,7 @@ function sub(src, find, repl, label, count = 1) {
         .cb-tiles{grid-template-columns:repeat(2,minmax(0,1fr));}
         .dhome.cats{height:auto;}
         .dhome.cats .dh-board{overflow:visible;}
-        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{min-height:0;grid-auto-rows:auto;}
+        .dhome.cats .dh-board:not(.cb-open) .cb-tiles{flex:none;grid-auto-rows:auto;}
       }
       /* Below 901px the catboard does not exist: every rule above is desktop
          only, so without this its elements would render unstyled underneath a
