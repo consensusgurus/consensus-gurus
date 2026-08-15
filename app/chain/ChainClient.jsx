@@ -872,7 +872,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
           {focusMode && (
             <div style={{ textAlign: 'center', margin: '18px 0 0' }}>
-              <button type="button" onClick={() => setShowChrome(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>Show leaderboard &amp; more</button>
+              <button type="button" className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>Show overview and more</button>
             </div>
           )}
 

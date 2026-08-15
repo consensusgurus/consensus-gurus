@@ -84,7 +84,11 @@ export default function LoftFinish({
   const wide = new Set();
   opts.forEach((o, i) => { if (o.kind === 'pri') wide.add(i); });
   const narrow = opts.map((_, i) => i).filter((i) => !wide.has(i));
-  if (narrow.length % 2 === 1) wide.add(narrow[narrow.length - 1]);
+  // The Archive button below is a narrow item too when it renders, so it counts
+  // toward the parity; otherwise the last option is forced wide and the two
+  // stack instead of pairing.
+  const archiveIsNarrow = !!(archive && archive.length);
+  if ((narrow.length + (archiveIsNarrow ? 1 : 0)) % 2 === 1) wide.add(narrow[narrow.length - 1]);
 
   const rows = board && Array.isArray(board.rows) ? board.rows : [];
   const mine = board ? board.mine : null;
@@ -213,7 +217,7 @@ export default function LoftFinish({
             : <button key={i} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
         })}
         {archive && archive.length ? (
-          <button type="button" className="loft-opt wide t-archive" onClick={() => setOpenArchive(true)}>
+          <button type="button" className="loft-opt t-archive" onClick={() => setOpenArchive(true)}>
             {name ? `${name} Archive` : 'Archive'}
             <span className="sub">Every daily puzzle, by date</span>
           </button>

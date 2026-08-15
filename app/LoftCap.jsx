@@ -221,6 +221,13 @@ export default function LoftCap({
 .loft-page section em,.loft-page section i{color:#93a9d6!important}
 .loft-page .loft-stage ~ div:not([style*="fixed"]) > p{color:#bfd0ee!important}
 .loft-page > [class$="-wrap"] > div > p{color:#bfd0ee!important}
+/* The "Show overview and more" control was styled for a light page: deep blue
+   ink, no ground, a faint border. All three disappear on navy (owner: "it
+   blends into background now"). It reads as a proper button here. */
+.loft-page .loft-showchrome{color:var(--white)!important;
+  background:rgba(255,255,255,0.10)!important;border:1.5px solid rgba(255,255,255,0.45)!important;
+  border-radius:9px!important;padding:10px 20px!important}
+.loft-page .loft-showchrome:hover{background:rgba(255,255,255,0.20)!important}
 .loft-page footer{color:#bfd0ee!important;border-top-color:rgba(255,255,255,0.18)!important}
 .loft-page footer b,.loft-page footer strong,.loft-page footer h3,.loft-page footer h4{color:var(--white)!important}
 .loft-page footer a{color:#dbe9ff!important}

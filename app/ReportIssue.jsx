@@ -31,6 +31,15 @@ function etTodayId() {
 }
 
 export default function ReportIssue({ self, name, accent = T.accent, align = 'center' }) {
+  // The send button sits on a white sheet and prints white text, so a light
+  // accent would make it invisible. Measure the accent and fall back to ink.
+  const btnAccent = (() => {
+    const m = String(accent || '').trim().match(/^#?([0-9a-f]{6})$/i);
+    if (!m) return accent;
+    const n = parseInt(m[1], 16);
+    const lum = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+    return lum > 0.75 ? T.accent : accent;
+  })();
   const [open, setOpen] = useState(false);
   const [msg, setMsg] = useState('');
   const [nm, setNm] = useState('');
@@ -110,7 +119,7 @@ export default function ReportIssue({ self, name, accent = T.accent, align = 'ce
             <button
               type="button"
               className="ri-btn primary"
-              style={{ background: accent, borderColor: accent }}
+              style={{ background: btnAccent, borderColor: btnAccent }}
               onClick={submit}
               disabled={busy || !msg.trim()}
             >
