@@ -857,7 +857,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
               board={dailyBoard}
               gameRank={allTime && allTime.ready
                 ? { value: allTime.rank != null ? `#${Number(allTime.rank).toLocaleString()}` : '\u2014',
-                    label: allTime.field != null ? `of ${Number(allTime.field).toLocaleString()} player${Number(allTime.field) === 1 ? '' : 's'} all time` : 'all-time rank' }
+                    label: allTime.field != null ? `of ${Number(allTime.field).toLocaleString()} Ping all time` : 'all-time rank' }
                 : null}
               day={dayStats}
               streak={isTodays ? myStats.cur : null}
@@ -936,7 +936,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
 
         {focusMode && (
           <div style={{ maxWidth: 620, margin: '30px auto 0', textAlign: 'center' }}>
-            <button onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show navigation &amp; more</button>
+            <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
           </div>
         )}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}

@@ -47,6 +47,11 @@ export default function LoftCap({
   const strip = outcome ? ALL_AZ.filter((g) => g.name !== name) : null;
 
   const azRef = useRef(null);
+  // A screenful less an overlap, so a reader keeps a landmark across a press.
+  const azNudge = (dir) => {
+    const el = azRef.current;
+    if (el) el.scrollBy({ left: dir * Math.max(160, el.clientWidth - 80), behavior: 'smooth' });
+  };
   useEffect(() => {
     const el = azRef.current;
     if (!el) return undefined;
@@ -60,8 +65,22 @@ export default function LoftCap({
         el.scrollLeft = Math.max(0, Math.min(max, next));
       }
     };
+    const wrap = el.parentElement;
+    const sync = () => {
+      if (!wrap) return;
+      const max = el.scrollWidth - el.clientWidth;
+      wrap.classList.toggle('at-start', el.scrollLeft <= 1);
+      wrap.classList.toggle('at-end', el.scrollLeft >= max - 1);
+    };
+    sync();
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('scroll', sync);
+      window.removeEventListener('resize', sync);
+    };
   }, [outcome]);
 
   useEffect(() => {
@@ -156,18 +175,25 @@ export default function LoftCap({
   .lcap-tiles a{flex:0 0 168px}
   /* The roster is long, so it takes the width that is going and scrolls inside
      it rather than pushing the band wider. */
-  .lcap-tiles.az{flex:1 1 auto;max-width:min(62vw,860px)}
+  .lcap-azwrap{flex:1 1 auto;max-width:min(62vw,860px)}
+  .lcap-azbtn{display:flex}
   .lcap-tiles.az a{flex:0 0 auto}}
 /* NAME-ONLY CHIPS, tight, so a lot of the roster is in view at once. */
+.lcap-azwrap{position:relative;min-width:0;display:flex}
 .lcap-tiles.az{gap:5px;padding:5px 12px 7px;align-items:center;
-  scroll-snap-type:none;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.45) transparent}
+  scroll-snap-type:none;scrollbar-width:none;-ms-overflow-style:none}
+.lcap-azbtn{display:none;position:absolute;top:0;bottom:0;z-index:2;width:34px;
+  align-items:center;justify-content:center;cursor:pointer;
+  border:0;padding:0;font-family:inherit;font-size:21px;font-weight:800;line-height:1;
+  color:var(--white)}
+.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,var(--blue) 45%,rgba(37,99,235,0) 100%)}
+.lcap-azbtn.next{right:0;background:linear-gradient(270deg,var(--blue) 45%,rgba(37,99,235,0) 100%)}
+.lcap-azwrap.at-start .lcap-azbtn.prev,.lcap-azwrap.at-end .lcap-azbtn.next{display:none}
 .lcap-tiles.az a{display:block;flex:0 0 auto;min-width:0;white-space:nowrap;
   background:rgba(255,255,255,0.14);color:var(--white);border-radius:7px;
   padding:6px 10px;font-weight:800;font-size:12.5px;line-height:1.1;gap:0}
 .lcap-tiles.az a:hover{background:rgba(255,255,255,0.30)}
-.lcap-tiles.az::-webkit-scrollbar{height:6px}
-.lcap-tiles.az::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.45);border-radius:99px}
-.lcap-tiles.az::-webkit-scrollbar-track{background:rgba(255,255,255,0.10);border-radius:99px}
+.lcap-tiles.az::-webkit-scrollbar{display:none}
 /* Finished today: still there, still reachable, just not competing with the
    ones you have not played. */
 .lcap-tiles.az a.done{opacity:.5}
@@ -179,6 +205,7 @@ export default function LoftCap({
   .lcap-done .lcap-nm{font-size:17px;line-height:1.08;white-space:normal;max-width:5.2em}
   .lcap-tiles{scroll-snap-type:x mandatory}
   .lcap-tiles i{display:block}
+  .lcap-tiles.az a{flex:0 0 auto!important;scroll-snap-align:none}
   .lcap-tiles a{flex:0 0 78%!important;scroll-snap-align:start;min-width:0;
     gap:8px;padding-left:9px;padding-right:9px}
   .lcap-tiles b{font-size:12.5px}
@@ -472,14 +499,15 @@ export default function LoftCap({
 .loft-day span{min-height:52px;box-sizing:border-box;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   flex:1;padding:9px 10px;border-radius:10px;background:var(--surface-alt);
-  font-weight:700;font-size:10.5px;line-height:1.2;color:var(--slate);text-align:center}
+  font-weight:700;font-size:10.5px;line-height:1.2;color:var(--slate);text-align:center;
+  overflow-wrap:anywhere}
 /* One colour per figure, drawn from tokens already on this page: blue for the
    IQ the site scores you on, green for progress through the day, gold for a
    ranking (the same gold the leaderboard's first place uses) and ember for the
    streak. Tinted grounds with a matching ink, not four greys. */
 @media(max-width:560px){
-  .loft-day{flex-wrap:nowrap;gap:5px}
-  .loft-day span{flex:1 1 0;min-width:0;padding:7px 4px;font-size:8.5px}
+  .loft-day{flex-wrap:wrap;gap:6px}
+  .loft-day span{flex:1 1 calc(50% - 3px);min-width:0;padding:8px 6px;font-size:9.5px}
   .loft-day span b{font-size:15px}
   .loft-fiq{gap:9px;padding:10px 11px}
   .loft-fiq .n{font-size:23px}
@@ -656,10 +684,16 @@ export default function LoftCap({
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
       ) : null}
       {strip && strip.length ? (
+        <div className="lcap-azwrap at-start">
+        <button type="button" className="lcap-azbtn prev" aria-label="Scroll back"
+          onClick={() => azNudge(-1)}>&#8249;</button>
+        <button type="button" className="lcap-azbtn next" aria-label="Scroll on"
+          onClick={() => azNudge(1)}>&#8250;</button>
         <div className="lcap-tiles az" ref={azRef}>
           {strip.map((t) => (
             <a key={t.key} href={t.href} className={played[t.key] ? 'done' : undefined}>{t.name}</a>
           ))}
+        </div>
         </div>
       ) : null}
       {!(tiles && tiles.length) && figures.length ? (
