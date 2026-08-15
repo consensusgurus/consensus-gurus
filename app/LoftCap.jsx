@@ -490,7 +490,7 @@ export default function LoftCap({
         <div className="lcap-tiles">
           {tiles.slice(0, 3).map((t) => (
             <a key={t.key} href={t.href || `/${t.key}`}>
-              <img src={`/games/btn-${t.key}.png`} alt="" width={30} height={30} loading="lazy" />
+              <img src={`/games/btn-${t.key}.png`} alt="" width={30} height={30} />
               <span><b>{t.name}</b><i>{t.tag}</i></span>
             </a>
           ))}
