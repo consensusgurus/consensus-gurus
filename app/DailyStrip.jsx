@@ -1622,7 +1622,6 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
       <div className={'cb-cap' + (slots.length > 3 ? ' six' : '')}>
         {slots.map((sl) => (
           <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
-            <img className="cb-cim" src={blueTile(sl.g.img)} alt="" aria-hidden="true" onError={tileFallback} />
             <span className="cb-ct">
               <span className="cb-ce">{sl.eb}</span>
               <span className="cb-cn">{sl.g.name}</span>
@@ -1689,26 +1688,9 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
                 <span className="cb-tct">{list.length}</span>
               </button>
               <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
-              {/* EVERY GAME IN THE CATEGORY, as its own art. Names ride along
-                  only when the category is small enough to carry them, which is
-                  exactly where the empty space was worst: a two game tile is
-                  the same size as a sixteen game one. */}
-              <div className={'cb-games' + (list.length <= 6 ? ' named' : '')}>
-                {list.map((g) => {
-                  const gd = done.has(g.key);
-                  const gf = isFail(g.key);
-                  const gp = inprog.has(g.key) && !gd;
-                  return (
-                    <a key={g.key} href={g.href} title={g.name} aria-label={g.name}
-                      className={'cb-gi' + (gd && !gf ? ' done' : '') + (gp ? ' prog' : '') + (gf ? ' fail' : '')}>
-                      <img src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
-                      {list.length <= 6 ? <span className="cb-gnm">{g.name}</span> : null}
-                    </a>
-                  );
-                })}
-              </div>
               <span className="cb-tmt">
                 <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
+                <span className="cb-pk">{list.slice(0, 2).map((g) => g.name).join(', ')}{list.length > 2 ? '…' : ''}</span>
               </span>
             </div>
           );
@@ -3602,6 +3584,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
 
 
 
+
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
          board are untouched. Below 901px this block does not apply and the
@@ -3636,13 +3619,13 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            three across, so six is two rows and the shrink is a row leaving
            rather than the cards resizing. */
         .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:10px;background:var(--surface-alt);}
-        .cb-cim{width:30px;height:30px;border-radius:7px;flex:none;object-fit:contain;background:rgba(255,255,255,.16);}
-        .cb-card.prog .cb-cim{background:rgba(0,0,0,.10);}
+        /* NO ART ON THE CAP CARDS, and none in the tiles either (owner,
+           2026-08-15). Sixty-three little pictures on one board read as noise
+           rather than detail, and the cards are the one place on the page that
+           has to be legible at a glance. The cards keep their full size at six,
+           tagline and all: the extra row is what pays for the space, not
+           shrinking the cards. */
         .cb-card{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
-        .cb-cap.six .cb-card{padding:10px 12px;}
-        .cb-cap.six .cb-cn{font-size:17px;}
-        .cb-cap.six .cb-cs{display:none;}
-        .cb-cap.six .cb-cb{padding:8px 12px;font-size:10.5px;}
         .cb-card.up{background:var(--blue);color:var(--white);}
         .cb-card.easy,.cb-card.lead{background:var(--blue-dark);color:var(--white);}
         .cb-card.prog{background:var(--gold);color:#3a2a05;border-left-color:#f7d98a;}
@@ -3667,7 +3650,7 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
         .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);}
-        .cb-tile{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;background:var(--white);padding:13px 15px 11px;color:var(--ink);min-width:0;min-height:104px;}
+        .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:10px;align-items:stretch;text-align:left;background:var(--white);padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:104px;}
         .cb-thead{display:flex;align-items:center;gap:12px;min-width:0;width:100%;border:none;border-radius:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;}
         .cb-tile:hover{background:var(--surface);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
@@ -3677,23 +3660,8 @@ export default function DailyStrip({ board = null, layout = 'tiles' }) {
         .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
         .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
-        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
-        /* The games themselves. Art is the already blue-remapped button PNG, so
-           this adds detail without adding a colour. Done dims, paused takes the
-           gold ring and unfinished the red one, which is the same three state
-           language the cap and the rows use. */
-        .cb-games{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;min-width:0;}
-        .cb-gi{display:flex;width:27px;height:27px;border-radius:6px;overflow:hidden;background:var(--surface-alt);flex:none;text-decoration:none;}
-        .cb-gi img{width:100%;height:100%;object-fit:contain;display:block;}
-        .cb-gi:hover{box-shadow:0 0 0 2px var(--blue);}
-        .cb-gi.done{opacity:.38;}
-        .cb-gi.prog{box-shadow:inset 0 0 0 2px var(--gold);}
-        .cb-gi.fail{box-shadow:inset 0 0 0 2px var(--danger);}
-        .cb-games.named{gap:9px 13px;}
-        .cb-games.named .cb-gi{width:auto;height:auto;flex-direction:column;align-items:center;gap:5px;background:none;border-radius:0;overflow:visible;max-width:74px;}
-        .cb-games.named .cb-gi img{width:31px;height:31px;border-radius:8px;background:var(--surface-alt);}
-        .cb-games.named .cb-gi:hover{box-shadow:none;}
-        .cb-games.named .cb-gi:hover .cb-gnm{color:var(--blue);}
+        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
+        .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
         .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
         /* With no category open the nine tiles ARE the board, so they take the
            whole of it: three equal rows rather than a short block with a void

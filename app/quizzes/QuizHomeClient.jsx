@@ -981,6 +981,22 @@ export default function QuizHomeClient({ variant = 'current' }) {
     .slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5), [dailyLb, boardsExpanded, mobLbOpen]);
   const todayCorrectRows = useMemo(() => (todayData.byCorrect || []).slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5), [todayData, boardsExpanded, mobLbOpen]);
   const todayQuizRows = useMemo(() => (todayData.byQuizzes || []).slice(0, (boardsExpanded || mobLbOpen) ? 10 : 5), [todayData, boardsExpanded, mobLbOpen]);
+  const myCats = useMemo(() => {
+    const bc = (me && me.byCategory) || {};
+    return Object.keys(bc).map((k) => {
+      const c = bc[k] || {};
+      if (!(c.matches > 0)) return null;
+      return {
+        key: k,
+        name: DEPT_LABEL[k] || k,
+        rank: c.completedRank ?? c.rank ?? null,
+        total: c.catTotal || 0,
+        completed: c.completed || 0,
+        matches: c.matches || 0,
+      };
+    }).filter(Boolean).sort((x, y) => (x.rank || 1e9) - (y.rank || 1e9));
+  }, [me]);
+
   const bestCat = useMemo(() => {
     if (!me || !me.byCategory) return null;
     // Best category = where the player ranks highest on COMPLETED; ties break to
@@ -2494,6 +2510,8 @@ export default function QuizHomeClient({ variant = 'current' }) {
             <HomeRails
               side={v3 ? 'board' : 'right'}
               refData={refData}
+              me={me}
+              myCats={myCats}
               xp30={xp30}
               xpAll={xpAll}
               onCredit={() => { setCreditQr(false); setCreditOpen(true); }}

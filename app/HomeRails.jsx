@@ -337,6 +337,8 @@ export default function HomeRails({
   side,
   refData,
   dailyBoard,
+  me,
+  myCats = [],
   xpToday = [],
   xp30 = [],
   xpAll = [],
@@ -940,12 +942,21 @@ export default function HomeRails({
           .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
           .hrb-body{min-height:0;overflow-y:auto;}
-          /* You holds two blocks and nothing else, so they SPLIT the panel
-             rather than sitting at the top of an empty column. */
+          /* YOU IS A REAL PANEL NOW (owner, 2026-08-15: it needs more content,
+             your ranking and stats across categories). Streak, three headline
+             figures, then where you rank inside every category you have played,
+             then the duel. The category list is the part that scrolls, so the
+             panel fills its height whatever the player's history looks like. */
+          .hrb-stats{display:flex;flex:none;border-bottom:1px solid var(--border);}
+          .hrb-stats span{flex:1;display:flex;flex-direction:column;gap:1px;padding:9px 11px;border-right:1px solid var(--border);min-width:0;}
+          .hrb-stats span:last-child{border-right:none;}
+          .hrb-stats i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);}
+          .hrb-stats b{font-size:16px;font-weight:800;letter-spacing:-.01em;}
+          .hrb-stats em{font-style:normal;font-size:9.5px;font-weight:700;color:var(--slate);}
+          .hrb-clab{padding:8px 13px 6px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);background:#f5f7fa;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;}
+          .hrb-duel{flex:none;}
           @media(min-width:1201px){
-            .hrb-you .hr-lslab{flex:1 1 0;}
-            .hrb-you .hrb-body{flex:1 1 0;display:flex;flex-direction:column;}
-            .hrb-you .hr-fcard{flex:1 1 auto;}
+            .hrb-you .hrb-body{flex:1 1 auto;}
           }
           @media(min-width:1201px){
             .hr-board{flex:1 1 auto;}
@@ -1059,7 +1070,35 @@ export default function HomeRails({
                   </div>
                 </div>
               </div>
-              <div className="hrb-body">
+              {me && me.found ? (
+                <div className="hrb-stats">
+                  {/* These are the fields me.activity actually carries
+                      (correct, played, completed, accuracy) and the rank the
+                      player bar itself reads. There is no activity.xp, so an IQ
+                      figure here would have rendered a confident zero. */}
+                  <span><i>Rank</i><b>{((me.ranks && me.ranks.xp) || me.rank) ? '#' + num((me.ranks && me.ranks.xp) || me.rank) : '—'}</b>{me.totalPlayers ? <em>of {num(me.totalPlayers)}</em> : null}</span>
+                  <span><i>Played</i><b>{num((me.activity && me.activity.played) || 0)}</b></span>
+                  <span><i>Completed</i><b>{num((me.activity && me.activity.completed) || 0)}</b></span>
+                </div>
+              ) : null}
+              {myCats.length ? (
+                <div className="hr-scroll hrb-body">
+                  <div className="hrb-clab">Your rank by category</div>
+                  {myCats.map((c) => (
+                    <div key={c.key} className="hr-cl" style={{ '--clr': catBlue(c.key) }}>
+                      <span className="hr-cltxt">
+                        <span className="hr-clcat">{c.name}</span>
+                        <span className="hr-clnm">{c.rank ? '#' + num(c.rank) + (c.total ? ' of ' + num(c.total) : '') : 'Unranked'}</span>
+                      </span>
+                      <span className="hr-clr">
+                        <span className="hr-clg">{num(c.completed)} done</span>
+                        <span className="hr-clv">{num(c.matches)}<i>played</i></span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              <div className={myCats.length ? 'hrb-duel' : 'hrb-body'}>
                 {rival ? (
                   <Link href={duelHref} className="hr-fcard t0">
                     <span className="hr-fctxt">

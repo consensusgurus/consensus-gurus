@@ -108,6 +108,15 @@ function sub(src, find, repl, label, count = 1, mark = null) {
     `  useEffect(() => { if (side === 'left' || side === 'board') setContestLive(contestIsLive()); }, [side]);`,
     'HR:contest-gate');
   s = sub(s,
+    `  refData,
+  dailyBoard,`,
+    `  refData,
+  dailyBoard,
+  me,
+  myCats = [],`,
+    'HR:props');
+
+  s = sub(s,
     `    if (side !== 'right') return undefined;`,
     `    if (side !== 'right' && side !== 'board') return undefined;`,
     'HR:day-gate');
@@ -183,12 +192,21 @@ function sub(src, find, repl, label, count = 1, mark = null) {
           .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
           .hrb-pane{display:flex;flex-direction:column;min-height:0;}
           .hrb-body{min-height:0;overflow-y:auto;}
-          /* You holds two blocks and nothing else, so they SPLIT the panel
-             rather than sitting at the top of an empty column. */
+          /* YOU IS A REAL PANEL NOW (owner, 2026-08-15: it needs more content,
+             your ranking and stats across categories). Streak, three headline
+             figures, then where you rank inside every category you have played,
+             then the duel. The category list is the part that scrolls, so the
+             panel fills its height whatever the player's history looks like. */
+          .hrb-stats{display:flex;flex:none;border-bottom:1px solid var(--border);}
+          .hrb-stats span{flex:1;display:flex;flex-direction:column;gap:1px;padding:9px 11px;border-right:1px solid var(--border);min-width:0;}
+          .hrb-stats span:last-child{border-right:none;}
+          .hrb-stats i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);}
+          .hrb-stats b{font-size:16px;font-weight:800;letter-spacing:-.01em;}
+          .hrb-stats em{font-style:normal;font-size:9.5px;font-weight:700;color:var(--slate);}
+          .hrb-clab{padding:8px 13px 6px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);background:#f5f7fa;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;}
+          .hrb-duel{flex:none;}
           @media(min-width:1201px){
-            .hrb-you .hr-lslab{flex:1 1 0;}
-            .hrb-you .hrb-body{flex:1 1 0;display:flex;flex-direction:column;}
-            .hrb-you .hr-fcard{flex:1 1 auto;}
+            .hrb-you .hrb-body{flex:1 1 auto;}
           }
           @media(min-width:1201px){
             .hr-board{flex:1 1 auto;}
@@ -302,7 +320,35 @@ function sub(src, find, repl, label, count = 1, mark = null) {
                   </div>
                 </div>
               </div>
-              <div className="hrb-body">
+              {me && me.found ? (
+                <div className="hrb-stats">
+                  {/* These are the fields me.activity actually carries
+                      (correct, played, completed, accuracy) and the rank the
+                      player bar itself reads. There is no activity.xp, so an IQ
+                      figure here would have rendered a confident zero. */}
+                  <span><i>Rank</i><b>{((me.ranks && me.ranks.xp) || me.rank) ? '#' + num((me.ranks && me.ranks.xp) || me.rank) : '—'}</b>{me.totalPlayers ? <em>of {num(me.totalPlayers)}</em> : null}</span>
+                  <span><i>Played</i><b>{num((me.activity && me.activity.played) || 0)}</b></span>
+                  <span><i>Completed</i><b>{num((me.activity && me.activity.completed) || 0)}</b></span>
+                </div>
+              ) : null}
+              {myCats.length ? (
+                <div className="hr-scroll hrb-body">
+                  <div className="hrb-clab">Your rank by category</div>
+                  {myCats.map((c) => (
+                    <div key={c.key} className="hr-cl" style={{ '--clr': catBlue(c.key) }}>
+                      <span className="hr-cltxt">
+                        <span className="hr-clcat">{c.name}</span>
+                        <span className="hr-clnm">{c.rank ? '#' + num(c.rank) + (c.total ? ' of ' + num(c.total) : '') : 'Unranked'}</span>
+                      </span>
+                      <span className="hr-clr">
+                        <span className="hr-clg">{num(c.completed)} done</span>
+                        <span className="hr-clv">{num(c.matches)}<i>played</i></span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              <div className={myCats.length ? 'hrb-duel' : 'hrb-body'}>
                 {rival ? (
                   <Link href={duelHref} className="hr-fcard t0">
                     <span className="hr-fctxt">
@@ -499,7 +545,6 @@ function sub(src, find, repl, label, count = 1, mark = null) {
       <div className={'cb-cap' + (slots.length > 3 ? ' six' : '')}>
         {slots.map((sl) => (
           <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
-            <img className="cb-cim" src={blueTile(sl.g.img)} alt="" aria-hidden="true" onError={tileFallback} />
             <span className="cb-ct">
               <span className="cb-ce">{sl.eb}</span>
               <span className="cb-cn">{sl.g.name}</span>
@@ -566,26 +611,9 @@ function sub(src, find, repl, label, count = 1, mark = null) {
                 <span className="cb-tct">{list.length}</span>
               </button>
               <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
-              {/* EVERY GAME IN THE CATEGORY, as its own art. Names ride along
-                  only when the category is small enough to carry them, which is
-                  exactly where the empty space was worst: a two game tile is
-                  the same size as a sixteen game one. */}
-              <div className={'cb-games' + (list.length <= 6 ? ' named' : '')}>
-                {list.map((g) => {
-                  const gd = done.has(g.key);
-                  const gf = isFail(g.key);
-                  const gp = inprog.has(g.key) && !gd;
-                  return (
-                    <a key={g.key} href={g.href} title={g.name} aria-label={g.name}
-                      className={'cb-gi' + (gd && !gf ? ' done' : '') + (gp ? ' prog' : '') + (gf ? ' fail' : '')}>
-                      <img src={blueTile(g.img)} alt="" aria-hidden="true" onError={tileFallback} />
-                      {list.length <= 6 ? <span className="cb-gnm">{g.name}</span> : null}
-                    </a>
-                  );
-                })}
-              </div>
               <span className="cb-tmt">
                 <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
+                <span className="cb-pk">{list.slice(0, 2).map((g) => g.name).join(', ')}{list.length > 2 ? '\u2026' : ''}</span>
               </span>
             </div>
           );
@@ -636,13 +664,13 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            three across, so six is two rows and the shrink is a row leaving
            rather than the cards resizing. */
         .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:10px;background:var(--surface-alt);}
-        .cb-cim{width:30px;height:30px;border-radius:7px;flex:none;object-fit:contain;background:rgba(255,255,255,.16);}
-        .cb-card.prog .cb-cim{background:rgba(0,0,0,.10);}
+        /* NO ART ON THE CAP CARDS, and none in the tiles either (owner,
+           2026-08-15). Sixty-three little pictures on one board read as noise
+           rather than detail, and the cards are the one place on the page that
+           has to be legible at a glance. The cards keep their full size at six,
+           tagline and all: the extra row is what pays for the space, not
+           shrinking the cards. */
         .cb-card{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
-        .cb-cap.six .cb-card{padding:10px 12px;}
-        .cb-cap.six .cb-cn{font-size:17px;}
-        .cb-cap.six .cb-cs{display:none;}
-        .cb-cap.six .cb-cb{padding:8px 12px;font-size:10.5px;}
         .cb-card.up{background:var(--blue);color:var(--white);}
         .cb-card.easy,.cb-card.lead{background:var(--blue-dark);color:var(--white);}
         .cb-card.prog{background:var(--gold);color:#3a2a05;border-left-color:#f7d98a;}
@@ -667,7 +695,7 @@ function sub(src, find, repl, label, count = 1, mark = null) {
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
         .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border-top:1px solid var(--border);}
-        .cb-tile{display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;background:var(--white);padding:13px 15px 11px;color:var(--ink);min-width:0;min-height:104px;}
+        .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:10px;align-items:stretch;text-align:left;background:var(--white);padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:104px;}
         .cb-thead{display:flex;align-items:center;gap:12px;min-width:0;width:100%;border:none;border-radius:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;}
         .cb-tile:hover{background:var(--surface);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
@@ -677,23 +705,8 @@ function sub(src, find, repl, label, count = 1, mark = null) {
         .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
         .cb-bar{display:block;height:5px;border-radius:5px;background:var(--surface-alt);overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
-        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
-        /* The games themselves. Art is the already blue-remapped button PNG, so
-           this adds detail without adding a colour. Done dims, paused takes the
-           gold ring and unfinished the red one, which is the same three state
-           language the cap and the rows use. */
-        .cb-games{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;min-width:0;}
-        .cb-gi{display:flex;width:27px;height:27px;border-radius:6px;overflow:hidden;background:var(--surface-alt);flex:none;text-decoration:none;}
-        .cb-gi img{width:100%;height:100%;object-fit:contain;display:block;}
-        .cb-gi:hover{box-shadow:0 0 0 2px var(--blue);}
-        .cb-gi.done{opacity:.38;}
-        .cb-gi.prog{box-shadow:inset 0 0 0 2px var(--gold);}
-        .cb-gi.fail{box-shadow:inset 0 0 0 2px var(--danger);}
-        .cb-games.named{gap:9px 13px;}
-        .cb-games.named .cb-gi{width:auto;height:auto;flex-direction:column;align-items:center;gap:5px;background:none;border-radius:0;overflow:visible;max-width:74px;}
-        .cb-games.named .cb-gi img{width:31px;height:31px;border-radius:8px;background:var(--surface-alt);}
-        .cb-games.named .cb-gi:hover{box-shadow:none;}
-        .cb-games.named .cb-gi:hover .cb-gnm{color:var(--blue);}
+        .cb-tmt{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
+        .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
         .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
         /* With no category open the nine tiles ARE the board, so they take the
            whole of it: three equal rows rather than a short block with a void
@@ -796,6 +809,32 @@ function sub(src, find, repl, label, count = 1, mark = null) {
   }, [v3]);`,
     'QH:v3top');
 
+  // The You tab's content. me.byCategory already carries the player's rank and
+  // completion WITHIN each category, which is exactly what was asked for, and
+  // it is already fetched for the player bar, so this costs no request. Labels
+  // come from this file's own DEPT_LABEL rather than being reinvented in the
+  // rail.
+  s = sub(s,
+    `  const bestCat = useMemo(() => {`,
+    `  const myCats = useMemo(() => {
+    const bc = (me && me.byCategory) || {};
+    return Object.keys(bc).map((k) => {
+      const c = bc[k] || {};
+      if (!(c.matches > 0)) return null;
+      return {
+        key: k,
+        name: DEPT_LABEL[k] || k,
+        rank: c.completedRank ?? c.rank ?? null,
+        total: c.catTotal || 0,
+        completed: c.completed || 0,
+        matches: c.matches || 0,
+      };
+    }).filter(Boolean).sort((x, y) => (x.rank || 1e9) - (y.rank || 1e9));
+  }, [me]);
+
+  const bestCat = useMemo(() => {`,
+    'QH:mycats');
+
   // Sizing fix, kept as its OWN edit rather than folded into the insert above,
   // because the insert is skipped once it is on origin and a follow-up buried
   // inside it would then never apply.
@@ -869,7 +908,18 @@ function sub(src, find, repl, label, count = 1, mark = null) {
               xp30={xp30}
               xpAll={xpAll}
               onCredit={() => { setCreditQr(false); setCreditOpen(true); }}`,
-    'QH:cols');
+    'QH:cols', 1, `              side={v3 ? 'board' : 'right'}`);
+
+  // The You tab's data. Its own edit, not folded into QH:cols above, because
+  // that one is an insert and is skipped once it is on origin.
+  s = sub(s,
+    `              side={v3 ? 'board' : 'right'}
+              refData={refData}`,
+    `              side={v3 ? 'board' : 'right'}
+              refData={refData}
+              me={me}
+              myCats={myCats}`,
+    'QH:me-props');
 
   writeFileSync(join(OUT, 'QuizHomeClient.jsx'), s);
 }
