@@ -173,6 +173,24 @@ function spawnOf(key, cols) {
   const m = shapeAt(key, 0);
   return { k: key, r: 0, x: Math.floor((cols - m.length) / 2), y: -topOffset(m) };
 }
+// A BLOCKED SPAWN LIFTS ABOVE THE WELL, IT DOES NOT END THE RUN (owner report,
+// 2026-08-15). Shapes spawned with their top row ON row 0, so the run ended the
+// moment the stack reached row ONE: the player was looking at an empty top row
+// while being told the well was full, and row 0 of a 16-row well could never be
+// filled at all. The well's ceiling is now the ceiling. A shape that will not
+// fit at row 0 is raised a row at a time until it clears the stack and plays
+// from above the well, exactly as it does in the arcade; cells above row 0
+// collide with nothing (see hits), so a lift always finds room, and the shape
+// can still be slid sideways into a lower column on the way down.
+//
+// The run therefore ends at the OTHER end: settle tops it out when a shape
+// comes to rest with any cell still above row 0, which is the stack genuinely
+// overflowing the well rather than merely reaching the last row of it.
+function liftIn(grid, cols, rows, p) {
+  let guard = shapeAt(p.k, p.r).length + 1;
+  while (guard-- > 0 && hits(grid, cols, rows, p, p.x, p.y)) p.y -= 1;
+  return p;
+}
 function hits(grid, cols, rows, p, gx, gy, gr) {
   const m = shapeAt(p.k, gr === undefined ? p.r : gr);
   const px = gx === undefined ? p.x : gx, py = gy === undefined ? p.y : gy;
@@ -369,9 +387,8 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
 
   const nextPiece = useCallback((st) => {
     if (st.idx >= SEQ.length) { st.status = 'over'; st.tEnd = Date.now(); st.cur = null; return st; }
-    st.cur = spawnOf(SEQ[st.idx], COLS);
+    st.cur = liftIn(st.grid, COLS, ROWS, spawnOf(SEQ[st.idx], COLS));
     st.idx += 1; st.held = false;
-    if (hits(st.grid, COLS, ROWS, st.cur)) { st.status = 'over'; st.tEnd = Date.now(); st.cur = null; }
     return st;
   }, [SEQ, COLS, ROWS]);
 
@@ -432,7 +449,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
       else if (st.idx < SEQ.length) { st.cur = spawnOf(SEQ[st.idx], COLS); st.idx += 1; }
       else return;
       st.hold = k; st.held = true;
-      if (hits(st.grid, COLS, ROWS, st.cur)) { st.status = 'over'; st.tEnd = Date.now(); st.cur = null; }
+      liftIn(st.grid, COLS, ROWS, st.cur);
     }
     commit(st);
     if (st.status !== 'playing') postResult(st);
