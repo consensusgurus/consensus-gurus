@@ -1715,81 +1715,54 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         </div>
       );
     }
-    /* NO QUIZ TAB. It was built on a misread: the ask was for subcategories
-       WITHIN the daily categories (Word, then crosswords and acrostics inside
-       it; Numbers, then the sudoku family), not the quiz catalogue hoisted onto
-       the board (owner, 2026-08-15). The quizCats prop is left plumbed but
-       unrendered, since the data is cheap and correct if it is wanted later. */
+    /* ONE FLAT GRID OF SMALL TILES (owner, 2026-08-15). Nine big tiles could
+       not be filled: whatever went inside them, a two-name peek, sixty-three
+       icons, four circuit rows, was either too thin to justify the box or too
+       busy to read, and every version left a hole. So the box stops being big.
+       Categories and circuits sit together as 24 equal tiles carrying only what
+       a tile needs to say: what it is, how many, how far in you are. Four
+       across and six down is exactly 24, so the grid fills the board evenly and
+       never scrolls until something is opened.
+
+       NO QUIZ TAB here either. That was built on a misread: the ask was for
+       subcategories WITHIN the daily categories, not the quiz catalogue hoisted
+       onto the board. The quizCats prop is left plumbed but unrendered. */
+    const tiles = slateCats.map((c) => {
+      const list = catOf(c);
+      return {
+        k: 'cat:' + c, kind: 'cat', label: CAT_SHORT[c] || c, n: list.length,
+        nDone: list.filter((g) => done.has(g.key)).length,
+        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
+        col: catCol(c), glyph: CAT_GLYPH[c] || Star, go: () => setFilter(c),
+      };
+    }).concat(CIRCUITS.map(([name]) => {
+      const list = circuitGames(name);
+      return {
+        k: 'cir:' + name, kind: 'cir', label: name, n: list.length,
+        nDone: list.filter((g) => done.has(g.key)).length,
+        nProg: list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length,
+        col: T.blueDark, glyph: null, go: () => setFilter('circuit:' + name),
+      };
+    }));
     return (
-          <div className="cb-tiles" key="cb-tiles">
-            {slateCats.map((c) => {
-              const list = catOf(c);
-              const nD = list.filter((g) => done.has(g.key)).length;
-              const nP = list.filter((g) => inprog.has(g.key) && !done.has(g.key)).length;
-              const label = CAT_SHORT[c] || c;
-              /* The tile's own space, filled with the thing the tile is ABOUT.
-                 Unplayed games lead, because a tile listing four games you have
-                 already finished is a worse answer to "what is in here" than one
-                 listing four you have not. */
-              /* Circuits present among THIS category's games, biggest first,
-                 with the count of its own members. The circuit's FULL size
-                 across the slate rides in the tooltip instead. NO BACKTICKS in
-                 here: this whole block is one template literal, the same hazard
-                 the stylesheet is documented for. */
-              const seenC = new Map();
-              for (const g of list) for (const cn of circuitsOf(g)) seenC.set(cn, (seenC.get(cn) || 0) + 1);
-              const circs = [...seenC.entries()].map(([name, n]) => ({ name, n, all: circuitGames(name).length }))
-                .sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
-              const loose = list.filter((g) => !circuitsOf(g).length);
-              const shownCircs = circs.slice(0, 4);
-              const shownLoose = circs.length < 4 ? loose.slice(0, 4 - circs.length) : [];
-              return (
-                <div key={c} className="cb-tile" style={{ '--cc': catCol(c) }}>
-                  <button type="button" className="cb-thead" aria-expanded={false}
-                    onClick={() => setFilter(c)}>
-                    <span className="cb-sq">
-                      {(() => { const G = CAT_GLYPH[c] || Star; return <G size={20} strokeWidth={2.2} />; })()}
-                    </span>
-                    <span className="cb-tnm">{label}</span>
-                    <span className="cb-tct">{list.length}</span>
-                  </button>
-                  <span className="cb-bar"><i style={{ width: (list.length ? Math.round((nD / list.length) * 100) : 0) + '%' }} /></span>
-                  {/* THE CIRCUITS IN THIS CATEGORY, which is the tile's real
-                      content: what the category is made OF. Counted against
-                      this tile's own members, since a circuit can reach into
-                      other categories. Games belonging to no circuit are listed
-                      by name underneath rather than swept into an "Other" row
-                      that would say nothing. */}
-                  <div className="cb-list">
-                    {shownCircs.map((c) => (
-                      <button type="button" key={c.name} className="cb-li cir"
-                        onClick={() => setFilter('circuit:' + c.name)}
-                        title={c.name + ' · ' + c.all + ' across the slate'}>
-                        <i aria-hidden="true" />{c.name}<em>{c.n}</em>
-                      </button>
-                    ))}
-                    {shownLoose.map((g) => {
-                      const gd = done.has(g.key);
-                      const gf = isFail(g.key);
-                      const gp = inprog.has(g.key) && !gd;
-                      return (
-                        <a key={g.key} href={g.href} title={g.tag}
-                          className={'cb-li' + (gd && !gf ? ' done' : '') + (gp ? ' prog' : '') + (gf ? ' fail' : '')}>
-                          <i aria-hidden="true" />{g.name}
-                        </a>
-                      );
-                    })}
-                  </div>
-                  <span className="cb-tmt">
-                    <span>{nD ? nD + ' of ' + list.length + ' played' : (nP ? nP + ' paused' : 'None played')}</span>
-                    {circs.length > shownCircs.length || loose.length > shownLoose.length
-                      ? <button type="button" className="cb-more" onClick={() => setFilter(c)}>All {list.length} &rarr;</button>
-                      : null}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+      <div className="cb-tiles" key="cb-tiles">
+        {tiles.map((t) => (
+          <button type="button" key={t.k} className={'cb-tile ' + t.kind}
+            style={{ '--cc': t.col }} onClick={t.go}>
+            <span className="cb-trow">
+              {t.glyph
+                ? <span className="cb-sq">{(() => { const G = t.glyph; return <G size={16} strokeWidth={2.3} />; })()}</span>
+                : <span className="cb-dot" aria-hidden="true" />}
+              <span className="cb-tnm">{t.label}</span>
+              <span className="cb-tct">{t.n}</span>
+            </span>
+            <span className="cb-bar"><i style={{ width: (t.n ? Math.round((t.nDone / t.n) * 100) : 0) + '%' }} /></span>
+            <span className="cb-tmt">
+              <span>{t.nDone ? t.nDone + ' of ' + t.n : (t.nProg ? t.nProg + ' paused' : 'None played')}</span>
+            </span>
+          </button>
+        ))}
+      </div>
     );
   };
 
@@ -3685,6 +3658,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
 
 
 
+
       /* ── HOME v3 category board (min-width:901px only) ───────────────────
          Everything is scoped to .dhome.cats, so the slate and the legacy tile
          board are untouched. Below 901px this block does not apply and the
@@ -3715,7 +3689,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            and the grid lines a blue-grey rather than neutral. White is kept for
            HOVER, so it now means "this one", which is what it should have been
            spending itself on all along. */
-        .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow-y:auto;gap:0;background:#e4ebf5;}
+                .dhome.cats .dh-board{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;height:auto;max-height:none;overflow:hidden;gap:0;background:#e4ebf5;}
+        /* Shut, the grid fits by construction and must not scroll. Open, the
+           game list is as long as the category is and scrolling is the point. */
+        .dhome.cats .dh-board.cb-open{overflow-y:auto;}
         /* The override layer: the slate's own rows, bands, column header and
            chip strip are still in the DOM and still correct on a phone; up here
            they step aside for the tiles, and the four-card cap for the three. */
@@ -3757,42 +3734,30 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            breathing room rather than reading as a dense index. They also GROW
            into whatever height the board has spare, which is what fills the
            screen when no category is open. */
-        .cb-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:#d3ddec;border-top:1px solid #d3ddec;}
-        /* WHAT FILLS THE TILE IS WHAT THE TILE IS ABOUT: the names themselves,
-           each one a link. This is the third answer to the same empty box. The
-           first (a two-name text peek) left it mostly bare, the second (all 63
-           games as art) read as noise, and this one is the middle: four names,
-           unplayed first, as plain rows. */
-        .cb-list{display:flex;flex-direction:column;min-width:0;}
-        .cb-li{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:12.5px;font-weight:700;color:var(--muted);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-li i{width:5px;height:5px;border-radius:50%;background:var(--cc,var(--blue-dark));flex:none;}
-        .cb-li.cir{border:none;background:none;padding:3px 0;font:inherit;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;width:100%;text-align:left;border-radius:0;}
-        .cb-li.cir:hover{color:var(--blue);}
-        .cb-li.cir em{margin-left:auto;font-style:normal;font-size:11px;font-weight:800;color:var(--slate);}
-        .cb-li.cir:hover em{color:var(--blue);}
-        .cb-li:hover{color:var(--blue);}
-        .cb-li.done{color:#a8aeba;}
-        .cb-li.done i{background:#cbd2dd;}
-        .cb-li.prog i{background:var(--gold);}
-        .cb-li.fail i{background:var(--danger);}
-        .cb-more{border:none;background:none;padding:0;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.05em;color:var(--blue);cursor:pointer;text-decoration:none;white-space:nowrap;}
-        .cb-thead.as-row{display:flex;align-items:center;gap:12px;min-width:0;width:100%;}
-        .cb-tile{display:flex;flex-direction:column;justify-content:flex-start;gap:9px;align-items:stretch;text-align:left;background:#f4f7fc;padding:16px 16px 14px;color:var(--ink);min-width:0;min-height:104px;}
-        .cb-thead{display:flex;align-items:center;gap:12px;min-width:0;width:100%;border:none;border-radius:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:left;}
+        /* 24 tiles, four across and six down, sharing the board's height
+           exactly. grid-auto-rows:1fr is what makes them EVEN and what makes
+           the board fit without scrolling: the rows divide whatever height
+           there is rather than each taking its content height and spilling. */
+        .cb-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:1px;background:#d3ddec;border-top:1px solid #d3ddec;}
+                .cb-tile{display:flex;flex-direction:column;justify-content:center;gap:7px;align-items:stretch;text-align:left;background:#f4f7fc;border:none;border-radius:0;padding:11px 13px;font:inherit;color:var(--ink);cursor:pointer;min-width:0;min-height:0;}
+        /* A circuit is a cut ACROSS the categories, not one of them, so it
+           reads one step quieter: a dot where a category has its glyph, and a
+           lighter ground. Same size, because they are peers to browse by. */
+        .cb-tile.cir{background:#eef3fa;}
+        .cb-dot{width:9px;height:9px;border-radius:3px;flex:none;background:var(--cc,var(--blue-dark));margin:0 3px;}
         .cb-tile:hover{background:var(--white);}
         .cb-tile.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--blue);}
-        .cb-sq{width:34px;height:34px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
+        .cb-sq{width:26px;height:26px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--cc,var(--blue-dark));color:var(--white);}
         .cb-sq svg{display:block;}
-        .cb-tnm{font-size:16px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-tct{margin-left:auto;flex:none;font-size:13px;font-weight:800;color:var(--slate);}
-        .cb-bar{display:block;height:5px;border-radius:5px;background:#dbe4f1;overflow:hidden;}
+        .cb-tnm{font-size:13.5px;font-weight:800;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-tct{margin-left:auto;flex:none;font-size:11.5px;font-weight:800;color:var(--slate);}
+        .cb-bar{display:block;height:4px;border-radius:4px;background:#dbe4f1;overflow:hidden;}
         .cb-bar i{display:block;height:100%;border-radius:5px;background:var(--cc,var(--blue-dark));}
         /* NO margin-top:auto here. With the game art gone the tile has three short
            rows and a tall box, and an auto top margin pinned this one to the
            floor and opened a 92px hole above it. Centred as a group instead,
            which is what justify-content on the tile was already asking for. */
-        .cb-tmt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0;margin-top:auto;}
-        .cb-pk{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--slate);}
+        .cb-tmt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10.5px;font-weight:600;color:var(--muted);min-width:0;}
         .cb-gnm{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
         /* With no category open the nine tiles ARE the board, so they take the
            whole of it: three equal rows rather than a short block with a void
