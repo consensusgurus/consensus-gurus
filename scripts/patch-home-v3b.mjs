@@ -127,5 +127,98 @@ for (const dead of ['.cb-sect{', '.cb-tnm{', '.cb-tct{', '.cb-bar{', '.cb-bar i{
   N += 1;
 }
 
+/* FULL PANEL CAP (owner, 2026-08-15: should match existing and be full panel,
+   not with a white border). The cards were rounded boxes floating on a grey
+   ground with a 10px gutter; the slate's own cap is padding 0, gap 0,
+   transparent, with its cells divided by a rule rather than by space. Match it. */
+s = sub(s,
+  `        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:10px;background:#e4ebf5;}`,
+  `        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding:0;background:transparent;}`,
+  'DS:cap-fullbleed');
+s = sub(s,
+  `        .cb-card{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}`,
+  `        .cb-card{display:flex;align-items:center;gap:10px;padding:15px 16px;border-radius:0;text-decoration:none;border-left:none;min-width:0;}
+        .cb-card + .cb-card{box-shadow:inset 1.5px 0 0 rgba(255,255,255,.30);}`,
+  'DS:card-fullbleed');
+s = sub(s,
+  `        .cb-cap{gap:8px;padding:8px;}`,
+  `        .cb-cap{gap:0;padding:0;}`,
+  'DS:cap-fullbleed-narrow');
+
+/* The strip has to shrink to hold two rows. Its OWN edit, not folded into the
+   three-column block above, because that block is already on origin and an
+   amendment inside it would never apply. That rule has now cost five separate
+   fixes in this feature; it is the single most expensive thing I have learned
+   here. */
+s = sub(s,
+  `        .dhome.cats .sl-filt{flex-wrap:wrap;overflow:visible;}`,
+  `        /* TWO ROWS, and it has to be smaller to manage it: with the four
+           state chips, nine categories, fifteen circuits and Sundays there are
+           about thirty, which at the strip's normal size is three rows. */
+        .dhome.cats .sl-filt{flex-wrap:wrap;overflow:visible;gap:4px;padding:7px 12px;}
+        .dhome.cats .sl-filt button{font-size:9.5px;letter-spacing:.04em;padding:5px 9px;}`,
+  'DS:strip-two-rows');
+
+/* ── 5. the Paused and Done bands become chips ────────────────────────────
+   Owner, 2026-08-15: instead of the coloured bars at the bottom, on desktop AND
+   mobile, put those in the category row as selections. A band is a heading you
+   scroll to; a chip is a control you press, and the strip is already where every
+   other way of narrowing this list lives. The counts come with them, so nothing
+   the bars said is lost. */
+s = sub(s,
+  `  const slateMatch = (g) => (filter === 'all' ? true
+    : filter === 'todo' ? !done.has(g.key)`,
+  `  const slateMatch = (g) => (filter === 'all' ? true
+    : filter === 'ready' ? (!done.has(g.key) && !inprog.has(g.key))
+      : filter === 'paused' ? (inprog.has(g.key) && !done.has(g.key))
+      : filter === 'failed' ? isFail(g.key)
+      : filter === 'done' ? (done.has(g.key) && !isFail(g.key))
+        : filter === 'todo' ? !done.has(g.key)`,
+  'DS:match-state');
+s = sub(s,
+  `        : g.cat === filter);`,
+  `          : g.cat === filter);`,
+  'DS:match-indent');
+
+s = sub(s,
+  `          {[['all', 'All'], ['todo', 'Unplayed']]`,
+  `          {[['all', 'All'], ['todo', 'Unplayed']]
+            // Paused and Done, which used to be the gold and green bands at the
+            // foot of the board. They carry their counts because that is the
+            // one thing a band said that a chip otherwise would not.
+            .concat(cats ? [['ready', 'Ready ' + nReadyAll]] : [])
+            .concat(cats && nProgAll ? [['paused', 'Paused ' + nProgAll]] : [])
+            .concat(cats && nFailAll ? [['failed', 'Failed ' + nFailAll]] : [])
+            .concat(cats && nDoneAll ? [['done', 'Done ' + nDoneAll]] : [])`,
+  'DS:state-chips');
+
+/* The two counts, computed where the other slate figures are. */
+s = sub(s,
+  `  const slateMatch = (g) => (filter === 'all' ? true`,
+  `  const nReadyAll = games.filter((g) => !done.has(g.key) && !inprog.has(g.key)).length;
+  const nProgAll = games.filter((g) => inprog.has(g.key) && !done.has(g.key)).length;
+  const nFailAll = games.filter((g) => isFail(g.key)).length;
+  const nDoneAll = games.filter((g) => done.has(g.key) && !isFail(g.key)).length;
+  const slateMatch = (g) => (filter === 'all' ? true`,
+  'DS:state-counts');
+
+/* And the bands themselves go, at BOTH widths, which is why this rule sits
+   outside the min-width:901px block. The Ready band goes too: with Paused and
+   Done gone it is the only one left and a sole heading over the whole list
+   labels nothing. */
+s = sub(s,
+  `        .dhome.cats .sl-more{display:none !important;}`,
+  `        .dhome.cats .sl-more{display:none !important;}`,
+  'DS:noop-marker');
+s = sub(s,
+  `      /* Below 901px the catboard does not exist:`,
+  `      /* THE BANDS ARE GONE AT BOTH WIDTHS, so this rule sits outside the
+         desktop block on purpose. Their job moved to the filter strip, where
+         Ready, Paused, Failed and Done are now selections rather than coloured
+         bars you scroll to (owner, 2026-08-15). */
+      .dhome.cats .sl-band{display:none !important;}
+      /* Below 901px the catboard does not exist:`,
+  'DS:hide-bands');
+
 writeFileSync(join(OUT, 'DailyStrip.jsx'), s);
 console.log(`patch-home-v3b: ${N} edits, ${SKIP} already present`);

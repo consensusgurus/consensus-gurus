@@ -1351,10 +1351,18 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // filtered tile set
   const list = games.filter((g) => !done.has(g.key)).concat(games.filter((g) => done.has(g.key)));
   // The slate filters for real (the tile board still dims rather than removes).
+  const nReadyAll = games.filter((g) => !done.has(g.key) && !inprog.has(g.key)).length;
+  const nProgAll = games.filter((g) => inprog.has(g.key) && !done.has(g.key)).length;
+  const nFailAll = games.filter((g) => isFail(g.key)).length;
+  const nDoneAll = games.filter((g) => done.has(g.key) && !isFail(g.key)).length;
   const slateMatch = (g) => (filter === 'all' ? true
-    : filter === 'todo' ? !done.has(g.key)
+    : filter === 'ready' ? (!done.has(g.key) && !inprog.has(g.key))
+      : filter === 'paused' ? (inprog.has(g.key) && !done.has(g.key))
+      : filter === 'failed' ? isFail(g.key)
+      : filter === 'done' ? (done.has(g.key) && !isFail(g.key))
+        : filter === 'todo' ? !done.has(g.key)
       : String(filter).startsWith('circuit:') ? circuitsOf(g).includes(String(filter).slice(8))
-        : g.cat === filter);
+          : g.cat === filter);
   const SORT_NUMERIC = new Set(['players', 'streak', 'archive', 'status']);
   const sortVal = (g, key) => {
     if (key === 'game') return g.name || '';
@@ -3639,7 +3647,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            circuits in it there are 26 chips, and a one-line strip hides most of
            them behind an arrow. The circuits are the half a reader has not seen
            before, so they are the worst half to hide. */
-        .dhome.cats .sl-filt{flex-wrap:wrap;overflow:visible;}
+        /* TWO ROWS, and it has to be smaller to manage it: with the four
+           state chips, nine categories, fifteen circuits and Sundays there are
+           about thirty, which at the strip's normal size is three rows. */
+        .dhome.cats .sl-filt{flex-wrap:wrap;overflow:visible;gap:4px;padding:7px 12px;}
+        .dhome.cats .sl-filt button{font-size:9.5px;letter-spacing:.04em;padding:5px 9px;}
         .dhome.cats .sl-filtw::before,.dhome.cats .sl-filtw::after{display:none !important;}
         /* Shut, the grid fits by construction and must not scroll. Open, the
            game list is as long as the category is and scrolling is the point. */
@@ -3654,14 +3666,15 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            once you have answered that yourself by choosing a category. Always
            three across, so six is two rows and the shrink is a row leaving
            rather than the cards resizing. */
-        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:10px;background:#e4ebf5;}
+        .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding:0;background:transparent;}
         /* NO ART ON THE CAP CARDS, and none in the tiles either (owner,
            2026-08-15). Sixty-three little pictures on one board read as noise
            rather than detail, and the cards are the one place on the page that
            has to be legible at a glance. The cards keep their full size at six,
            tagline and all: the extra row is what pays for the space, not
            shrinking the cards. */
-        .cb-card{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:8px;text-decoration:none;border-left:5px solid rgba(255,255,255,0.45);min-width:0;}
+        .cb-card{display:flex;align-items:center;gap:10px;padding:15px 16px;border-radius:0;text-decoration:none;border-left:none;min-width:0;}
+        .cb-card + .cb-card{box-shadow:inset 1.5px 0 0 rgba(255,255,255,.30);}
         .cb-card.up{background:var(--blue);color:var(--white);}
         .cb-card.easy,.cb-card.lead{background:var(--blue-dark);color:var(--white);}
         .cb-card.prog{background:var(--gold);color:#3a2a05;border-left-color:#f7d98a;}
@@ -3712,7 +3725,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
          either), so the console goes back to natural height and scrolls with
          the page. Two tiles across, and a tighter cap. */
       @media(min-width:901px) and (max-width:1200px){
-        .cb-cap{gap:8px;padding:8px;}
+        .cb-cap{gap:0;padding:0;}
         .cb-card{padding:12px;}
         .cb-cn{font-size:17px;}
         .cb-cb{padding:9px 11px;}
@@ -3721,6 +3734,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .dhome.cats .dh-board{overflow:visible;}
         .dhome.cats .cb-tiles{flex:none;grid-auto-rows:auto;}
       }
+      /* THE BANDS ARE GONE AT BOTH WIDTHS, so this rule sits outside the
+         desktop block on purpose. Their job moved to the filter strip, where
+         Ready, Paused, Failed and Done are now selections rather than coloured
+         bars you scroll to (owner, 2026-08-15). */
+      .dhome.cats .sl-band{display:none !important;}
       /* Below 901px the catboard does not exist: every rule above is desktop
          only, so without this its elements would render unstyled underneath a
          perfectly good phone slate. MOBILE IS UNTOUCHED, and this is the line
@@ -3981,6 +3999,13 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         <div className={`sl-filtw${filtMore.l ? ' ml' : ''}${filtMore.r ? ' mr' : ''}`}>
         <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
           {[['all', 'All'], ['todo', 'Unplayed']]
+            // Paused and Done, which used to be the gold and green bands at the
+            // foot of the board. They carry their counts because that is the
+            // one thing a band said that a chip otherwise would not.
+            .concat(cats ? [['ready', 'Ready ' + nReadyAll]] : [])
+            .concat(cats && nProgAll ? [['paused', 'Paused ' + nProgAll]] : [])
+            .concat(cats && nFailAll ? [['failed', 'Failed ' + nFailAll]] : [])
+            .concat(cats && nDoneAll ? [['done', 'Done ' + nDoneAll]] : [])
             .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c]))
             // The circuits, on the same strip and driving the same state. A
             // category says what a game IS, a circuit what SKILL it exercises,
