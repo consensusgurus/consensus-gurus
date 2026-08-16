@@ -16,7 +16,9 @@
 // right edge. `.help` is a direct child rather than nested in the id block,
 // which is what lets `order` reach it.
 import React, { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { DAILY_GAMES, isRetiredDaily } from '@/lib/daily-games';
+import { SHARE_HOST } from '@/lib/site';
 import useDailyRoster from './useDailyRoster';
 
 // Alphabetical, retired games dropped, computed once at module load: it is the
@@ -41,6 +43,22 @@ export default function LoftCap({
   progress = null,   // 0-100, draws the hairline at the foot of the cap
   extra = null,      // an optional third tier (Anon's spine, for instance)
 }) {
+  // THE PAGE'S OWN ADDRESS, printed beside the game name (owner, 2026-08-15).
+  // DailyMasthead carried "mindloftdaily.com/<slug>" so the address rode along
+  // in every screenshot and share; the Loft cap dropped it, and this puts it
+  // back.
+  //
+  // It is read from the ROUTE, not from a passed slug. That is one less prop to
+  // thread through 65 clients, and it cannot go stale the way a hand-written one
+  // did: the old masthead printed /jester and /park, which are REGISTRY KEYS,
+  // not routes (those pages are /jesters and /parker). usePathname is always the
+  // address the reader is actually on, so it is right by construction. The host
+  // comes from lib/site so a future domain move stays a one-line change.
+  const pathname = usePathname();
+  const url = pathname && pathname !== '/'
+    ? `${SHARE_HOST}${pathname.replace(/\/+$/, '')}`
+    : null;
+
   // Only asks the network once the game is over, which is the only time the
   // strip is shown.
   const { played } = useDailyRoster({ active: !!outcome });
@@ -261,6 +279,17 @@ export default function LoftCap({
   letter-spacing:.11em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold);
   border-radius:4px;padding:3px 6px;vertical-align:middle}
 .lcap-sunnode{display:inline-flex;align-items:center;margin-left:8px;vertical-align:middle}
+/* THE URL RIDES THE NAME LINE, never the eyebrow. The eyebrow (category, No.,
+   date) is already the widest thing in this block, so the name line has the
+   room going spare and the cap gets no wider on any game; on the eyebrow it
+   would push the desktop band out past the board column, which the
+   min-width:fit-content rule below would then honour on all 65 games.
+   On a finish the eyebrow goes and the A-Z roster takes the width, so the URL
+   steps aside rather than squeezing it. */
+.lcap-url{display:inline-block;margin-left:10px;font-weight:700;font-size:11.5px;
+  line-height:1;letter-spacing:0;color:var(--blue-200);vertical-align:middle;
+  white-space:nowrap}
+.lcap-done .lcap-url{display:none}
 /* The shared masthead sits inside the page column, so the cap has to break out
    of it to run edge to edge the way the bands above it do. */
 .lcap-bleed{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-bottom:14px}
@@ -773,7 +802,7 @@ export default function LoftCap({
           ? (typeof sunday === 'string'
               ? <span className="lcap-sun">{sunday}</span>
               : <span className="lcap-sunnode">{sunday}</span>)
-          : null}</span>
+          : null}{url ? <span className="lcap-url">{url}</span> : null}</span>
       </div>
       {onHelp && !outcome ? (
         <button className="lcap-help" onClick={onHelp} aria-label="How to play">?</button>
