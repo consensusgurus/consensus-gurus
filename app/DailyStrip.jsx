@@ -1880,7 +1880,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
 
     const dept = FILL_DEPT[label];
     const qc = dept ? (quizCats || []).find((c) => c.key === dept) : null;
-    const quizzes = qc && Array.isArray(qc.top) ? qc.top.slice(0, 4) : [];
+    const quizzes = qc && Array.isArray(qc.top) ? qc.top.slice(0, 6) : [];
 
     const sect = (key, title, sub, body) => (
       <section className="cb-fs" key={key}>
@@ -1889,8 +1889,32 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
       </section>
     );
 
+    // DEFINED AFTER sect, WHICH IT CALLS. A const arrow is in its temporal dead
+    // zone until its own line, so hoisting this above sect throws at runtime and
+    // esbuild passes it clean.
+    const quizSect = quizzes.length ? sect('quiz', 'Quizzes on the same subject', qc.label + ' \u00b7 ' + qc.count, (
+      <div className="cb-fq">
+        {quizzes.map((q) => (
+          <a key={q.id} className={'cb-fqc' + (q.done ? ' done' : '')} href={'/quiz/' + q.id}>
+            <span className="cb-fqt">{q.title}</span>
+            <span className="cb-fqm">{q.done ? 'Played' : 'Play'}</span>
+          </a>
+        ))}
+      </div>
+    )) : null;
+
     return (
       <div className="cb-fill">
+        {/* TWO COLUMNS (owner, 2026-08-15). Stacked full width, every block
+            stopped 277 to 585px short of the right edge at every desktop size,
+            measured across seven viewports. Catch up and the neighbours read as
+            a pair and keep the wider column; the quizzes run DOWN the narrow one
+            as six rows rather than across as four, which is what pays for the
+            width. The suggest bar still spans the foot, since it is the panel's
+            one full-width statement. With no quiz department for this group the
+            left column simply takes the whole width. */}
+        <div className={'cb-fcols' + (quizzes.length ? '' : ' one')}>
+        <div className="cb-fcl">
         {back.length ? sect('back', 'Catch up', 'The last week of ' + label + (anySun ? ' \u00b7 S marks a Sunday Edition' : ''), (
           <div className="cb-fback">
             {back.map(({ g, chips }) => (
@@ -1925,16 +1949,9 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             ))}
           </div>
         )) : null}
-        {quizzes.length ? sect('quiz', 'Quizzes on the same subject', qc.label + ' \u00b7 ' + qc.count, (
-          <div className="cb-fq">
-            {quizzes.map((q) => (
-              <a key={q.id} className={'cb-fqc' + (q.done ? ' done' : '')} href={'/quiz/' + q.id}>
-                <span className="cb-fqt">{q.title}</span>
-                <span className="cb-fqm">{q.done ? 'Played' : 'Play'}</span>
-              </a>
-            ))}
-          </div>
-        )) : null}
+        </div>
+        {quizzes.length ? <div className="cb-fcr">{quizSect}</div> : null}
+        </div>
         <a className="cb-fask" href="/request">
           <span className="cb-fat">
             <b>{slateList.length === 1 ? 'One game' : slateList.length + ' games'} in {label}</b>
@@ -3937,10 +3954,25 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            once you have answered that yourself by choosing a category. Always
            three across, so six is two rows and the shrink is a row leaving
            rather than the cards resizing. */
+        /* SHRINK TO FIT A THIN GROUP (owner, 2026-08-15). The board's height is
+           measured to the fold (--dh-fit) so the three console columns line up,
+           which left 121px of white under the panel at 1440 and 221px at 1920,
+           growing with the viewport HEIGHT. Open on a thin group the height
+           becomes the CONTENT and --dh-fit becomes a ceiling, so a short group
+           ends where it ends and a long one still scrolls exactly as before.
+           No measurement loop: the --dh-fit effect reads the board's document
+           TOP, never its height, and the ResizeObserver watches the cap. */
+        .dhome.cats .dh-board.slate.cb-fit{height:auto;min-height:0;max-height:var(--dh-fit,calc(100vh - 300px));}
         /* The fill panel. A full-width item at the foot of the two-column
            board grid, so it sits under both columns however many rows the
            group has, and last whatever order the rows and bands carry. */
         .cb-fill{grid-column:1/-1;order:20;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
+        .cb-fcols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
+        .cb-fcols.one{grid-template-columns:minmax(0,1fr);}
+        .cb-fcl,.cb-fcr{min-width:0;display:flex;flex-direction:column;}
+        .cb-fcr{border-left:1px solid var(--border);}
+        .cb-fcl > .cb-fs:last-child,.cb-fcr > .cb-fs:last-child{border-bottom:none;}
+        .cb-fcr > .cb-fs{flex:1 1 auto;}
         .cb-fs{padding:13px 16px 15px;border-bottom:1px solid var(--border);}
         .cb-fh{margin:0 0 9px;display:flex;align-items:baseline;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);}
         .cb-fh i{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:none;color:var(--muted);}
@@ -3961,7 +3993,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fnc{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--white);font:inherit;font-size:11.5px;font-weight:700;color:var(--ink);cursor:pointer;}
         .cb-fnc:hover{border-color:var(--blue);color:var(--blue);}
         .cb-fnc b{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
-        .cb-fq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+        .cb-fq{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;}
         .cb-fqc{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--white);text-decoration:none;}
         .cb-fqc:hover{border-color:var(--blue);}
         .cb-fqt{font-size:12.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -4400,7 +4432,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         >
           <div
             ref={boardRef}
-            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '') + (cats && filter !== 'all' && filter !== 'todo' && filter !== 'sunday' ? ' cb-open' : '')}
+            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '') + (cats && filter !== 'all' && filter !== 'todo' && filter !== 'sunday' ? ' cb-open' : '') + (cats && boardOpen && slateList.length <= FILL_MAX ? ' cb-fit' : '')}
             role="navigation"
             aria-label="Daily puzzles"
             aria-hidden={selGame && !slate ? 'true' : undefined}
