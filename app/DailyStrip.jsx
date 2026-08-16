@@ -252,9 +252,22 @@ const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name))
    DESKTOP ONLY, like the whole catboard. Every rule is inside the
    min-width:901px block and .cb-fill joins the max-width:900px hide list, so a
    phone renders the plain slate exactly as before. */
-const FILL_MAX = 8;    // rows at or below which the panel renders
-const FILL_DAYS = 7;   // catch-up chips per game
-const FILL_GAMES = 6;  // games the catch-up strip covers
+const FILL_DAYS = 7;    // catch-up chips per game
+const FILL_GAMES = 24;  // games the catch-up table covers, i.e. all of them
+/* THE PANEL IS NOT SIZE-GATED (owner, 2026-08-15). It used to render only on
+   groups of eight games or fewer, on the reasoning that a long group fills the
+   console by itself, which made Word, Logic and Numbers the only three subjects
+   on the board that behaved differently and read as a bug rather than a rule.
+   Every category and every circuit gets it now; a long one simply scrolls, which
+   it already did. */
+/* STATE CHIPS GET A TABLE, AND ONLY A TABLE (owner, 2026-08-15). Paused, Failed
+   and Done are not subjects, so More in X and a matching quiz department mean
+   nothing there and are dropped. Catch up and archive completion work on any
+   list of games however it was assembled, and those screens are often the
+   emptiest on the board: Failed regularly holds one row. All, Ready and Sundays
+   stay out, since they are the whole slate rather than a narrowing of it. */
+const FILL_STATES = ['paused', 'failed', 'done'];
+const FILL_STATE_WORD = { paused: 'paused', failed: 'failed today', done: 'done today' };
 // Is an ISO date a Sunday? Built on Date.UTC so it reads the date it was given
 // and not the viewer's timezone, the same reason sunDate parses by hand.
 function isoSunday(iso) {
@@ -1710,6 +1723,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   const catOf = (c) => games.filter((g) => g.cat === c);
   const catOpen = slateCats.includes(filter) ? filter : null;
   const boardOpen = catOpen || openCircuit;
+  const fillState = FILL_STATES.includes(filter) ? filter : null;
+  const fillOn = cats && !!(boardOpen || fillState);
 
   /* The cap's candidates, best first, deduped. The first three are the old
      cap's own ranking and keep its wording: play, resume, retry. After those
@@ -1815,7 +1830,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // slateList or boardOpen must sit BELOW them. Declared 500 lines earlier it
   // threw Cannot access before initialization and took the whole homepage down.
   useEffect(() => {
-    if (!cats || !boardOpen || slateList.length > FILL_MAX) return undefined;
+    if (!fillOn) return undefined;
     let alive = true;
     let anonId = null, email = null;
     try { anonId = localStorage.getItem('sot_quiz_anon'); } catch (e) {}
@@ -1834,11 +1849,15 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     }
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cats, boardOpen, slateList.length]);
+  }, [fillOn, filter, slateList.length]);
 
   const renderFill = () => {
-    if (!boardOpen || slateList.length > FILL_MAX) return null;
-    const label = boardOpen;
+    if (!fillOn) return null;
+    // A state has no subject to name, so the copy says "these games" and the
+    // two subject blocks fall away on their own: nbr finds nothing without a
+    // category or circuit, and FILL_DEPT has no entry for an empty label.
+    const label = boardOpen || '';
+    const subj = boardOpen || 'these games';
 
     /* CATCH UP. The puzzle numbers come from the daily-combined payload the
        strip already holds (byKey[key].num, the same field the same-device save
@@ -1954,7 +1973,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
 
     return (
       <div className="cb-fill">
-        {recs.length ? sect('rec', 'Catch up', 'The last week of ' + label + (anySun ? ' \u00b7 S marks a Sunday Edition' : ''), (
+        {recs.length ? sect('rec', 'Catch up', 'The last week of ' + subj + (anySun ? ' \u00b7 S marks a Sunday Edition' : ''), (
           <div className="cb-frows">
             <div className="cb-frow head">
               <span />
@@ -2001,13 +2020,23 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           </div>
           {quizSect ? <div className="cb-fcr">{quizSect}</div> : null}
         </div>
-        <a className="cb-fask" href="/request">
-          <span className="cb-fat">
-            <b>{slateList.length === 1 ? 'One game' : slateList.length + ' games'} in {label}</b>
-            <i>Tell us what belongs here and we will build it</i>
-          </span>
-          <span className="cb-fab">Suggest a game<ArrowRight size={12} strokeWidth={2.8} /></span>
-        </a>
+        {fillState ? (
+          <button type="button" className="cb-fask" onClick={() => setFilter('ready')}>
+            <span className="cb-fat">
+              <b>{slateList.length === 1 ? 'One game' : slateList.length + ' games'} {FILL_STATE_WORD[fillState]}</b>
+              <i>Here is where each one stands</i>
+            </span>
+            <span className="cb-fab">Show what is left<ArrowRight size={12} strokeWidth={2.8} /></span>
+          </button>
+        ) : (
+          <a className="cb-fask" href="/request">
+            <span className="cb-fat">
+              <b>{slateList.length === 1 ? 'One game' : slateList.length + ' games'} in {label}</b>
+              <i>Tell us what belongs here and we will build it</i>
+            </span>
+            <span className="cb-fab">Suggest a game<ArrowRight size={12} strokeWidth={2.8} /></span>
+          </a>
+        )}
       </div>
     );
   };
@@ -4104,6 +4133,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            one growing child, so the sections and the two columns keep their own
            heights. flex-shrink 0 throughout, so a panel taller than the console
            is scrolled by the wrapper rather than crushed. */
+        button.cb-fask{width:100%;border:0;border-radius:0;font:inherit;text-align:left;cursor:pointer;}
         .cb-fask{flex:1 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--blue-deep);color:var(--white);text-decoration:none;}
         .cb-fat{display:flex;flex-direction:column;gap:3px;min-width:0;}
         .cb-fat b{font-size:14px;font-weight:800;}
@@ -4527,7 +4557,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         ) : null}
         </div>
       ) : null}
-      <div className={'dh-boardwrap' + (selGame ? ' open' : '') + (slate ? ' slate' : '') + (cats && boardOpen && slateList.length <= FILL_MAX ? ' cb-fitted' : '')}>
+      <div className={'dh-boardwrap' + (selGame ? ' open' : '') + (slate ? ' slate' : '') + (fillOn ? ' cb-fitted' : '')}>
         <div className="dh-vpwrap">
         <div
           ref={vpRef}
@@ -4608,7 +4638,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             1920 without the console moving at all. Inside the board it was also
             a row in the scroller; out here it stays put while long groups
             scroll past it. */}
-        {cats && boardOpen ? renderFill() : null}
+        {fillOn ? renderFill() : null}
         {/* Phone board cut (owner, 2026-07-31): eight tiles, then this toggle.
             The cut is CSS-only -- .mcut hides :nth-child(n+9) under 640px -- so
             the server renders the collapsed board and a phone never flashes all
