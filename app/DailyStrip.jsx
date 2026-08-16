@@ -1917,6 +1917,30 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     // DEFINED AFTER sect, WHICH IT CALLS. A const arrow is in its temporal dead
     // zone until its own line, so hoisting this above sect throws at runtime and
     // esbuild passes it clean.
+    /* ARCHIVE COMPLETION for the same games (owner, 2026-08-15). The right
+       column's own block, and the one that is always there: every game has an
+       archive and a percentage of it done, where a quiz department exists for
+       only some groups. Numbers come from the archive map daily-status already
+       returns and the row's own ring already draws, so this costs no fetch and
+       cannot disagree with the ring beside it. */
+    const arch = slateList.slice(0, FILL_GAMES)
+      .map((g) => ({ g, a: archive[g.key] }))
+      .filter((x) => x.a && x.a.total)
+      .map((x) => ({ g: x.g, played: x.a.played || 0, total: x.a.total,
+                     pct: Math.round(((x.a.played || 0) / x.a.total) * 100) }));
+    const archSect = arch.length ? sect('arch', 'Archive completion', 'Every drop of these games to date', (
+      <div className="cb-farch">
+        {arch.map(({ g, played, total, pct }) => (
+          <div className="cb-far" key={g.key}>
+            <span className="cb-fan">{g.name}</span>
+            <span className="cb-fab"><i style={{ width: Math.max(pct, 1) + '%' }} /></span>
+            <span className="cb-fap">{pct}<em>%</em></span>
+            <span className="cb-fac">{played} of {total}</span>
+          </div>
+        ))}
+      </div>
+    )) : null;
+
     const quizSect = quizzes.length ? sect('quiz', 'Quizzes on the same subject', qc.label + ' \u00b7 ' + qc.count, (
       <div className="cb-fq">
         {quizzes.map((q) => (
@@ -1938,7 +1962,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             width. The suggest bar still spans the foot, since it is the panel's
             one full-width statement. With no quiz department for this group the
             left column simply takes the whole width. */}
-        <div className={'cb-fcols' + (quizzes.length ? '' : ' one')}>
+        <div className={'cb-fcols' + ((archSect || quizSect) ? '' : ' one')}>
         <div className="cb-fcl">
         {back.length ? sect('back', 'Catch up', 'The last week of ' + label + (anySun ? ' \u00b7 S marks a Sunday Edition' : ''), (
           <div className="cb-fback">
@@ -1975,7 +1999,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           </div>
         )) : null}
         </div>
-        {quizzes.length ? <div className="cb-fcr">{quizSect}</div> : null}
+        {(archSect || quizSect) ? <div className="cb-fcr">{archSect}{quizSect}</div> : null}
         </div>
         <a className="cb-fask" href="/request">
           <span className="cb-fat">
@@ -4004,13 +4028,19 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         /* The fill panel. A full-width item at the foot of the two-column
            board grid, so it sits under both columns however many rows the
            group has, and last whatever order the rows and bands carry. */
-        .cb-fill{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
-        .cb-fcols{flex:1 1 auto;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
+        /* NATURAL HEIGHT, NOT STRETCHED (owner, 2026-08-15: "horrible use of
+           space"). Stretching the panel over the pinned console did not fill it,
+           it just moved the emptiness inside the columns and left 300px of blank
+           bordered box. Every block here is per-game, so a thin group has thin
+           content by definition and no amount of stretching invents any. The
+           panel ends where it ends; the board above it still gives up the rows
+           it does not need, so the panel sits directly under them. */
+        .cb-fill{flex:0 0 auto;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
+        .cb-fcols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
         .cb-fcols.one{grid-template-columns:minmax(0,1fr);}
         .cb-fcl,.cb-fcr{min-width:0;display:flex;flex-direction:column;}
         .cb-fcr{border-left:1px solid var(--border);}
         .cb-fcl > .cb-fs:last-child,.cb-fcr > .cb-fs:last-child{border-bottom:none;}
-        .cb-fcr > .cb-fs{flex:1 1 auto;}
         .cb-fs{padding:13px 16px 15px;border-bottom:1px solid var(--border);}
         .cb-fh{margin:0 0 9px;display:flex;align-items:baseline;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);}
         .cb-fh i{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:none;color:var(--muted);}
@@ -4031,6 +4061,14 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fnc{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--white);font:inherit;font-size:11.5px;font-weight:700;color:var(--ink);cursor:pointer;}
         .cb-fnc:hover{border-color:var(--blue);color:var(--blue);}
         .cb-fnc b{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
+        .cb-farch{display:flex;flex-direction:column;gap:7px;}
+        .cb-far{display:grid;grid-template-columns:minmax(0,84px) minmax(0,1fr) 34px 52px;align-items:center;gap:9px;}
+        .cb-fan{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .cb-fab{height:6px;border-radius:3px;background:#e3e8f0;overflow:hidden;}
+        .cb-fab i{display:block;height:100%;border-radius:3px;background:var(--blue);}
+        .cb-fap{font-size:12.5px;font-weight:800;color:var(--blue-deep);text-align:right;font-variant-numeric:tabular-nums;}
+        .cb-fap em{font-style:normal;font-size:9px;font-weight:700;color:var(--muted);margin-left:1px;}
+        .cb-fac{font-size:10px;font-weight:700;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;}
         .cb-fq{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;}
         .cb-fqc{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--white);text-decoration:none;}
         .cb-fqc:hover{border-color:var(--blue);}
