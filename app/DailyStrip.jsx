@@ -3899,6 +3899,16 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            the flex sizing because the console above hands this its height now,
            rather than --dh-fit measuring it independently. */
         .dhome.cats .dh-board.slate{grid-template-columns:1fr 1fr 1fr;flex:1 1 auto;min-height:0;height:auto;max-height:none;
+          /* THE BOARD IS A SCROLLER, so it is 10px narrower INSIDE than out
+             and two things drifted off it (owner, 2026-08-15: the three
+             colored cards do not line up with the columns below them).
+             scrollbar-gutter:stable so the reservation is CONSTANT rather
+             than appearing with the 43rd row, and background-origin so the
+             33.3%/66.7% divider lines are measured against the content box
+             the rows actually sit in: on padding-box they landed at 387.3px
+             against columns breaking at 384px, so the board disagreed with
+             its own rows before the cap was ever in the picture. */
+          scrollbar-gutter:stable;background-origin:content-box;
           background:linear-gradient(to right,
             transparent calc(33.333% - .5px),#eef0f4 calc(33.333% - .5px),#eef0f4 calc(33.333% + .5px),
             transparent calc(33.333% + .5px),transparent calc(66.667% - .5px),
@@ -4004,6 +4014,21 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fat i{font-style:normal;font-size:11.5px;color:var(--blue-200);}
         .cb-fab{flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:7px;background:var(--white);color:var(--blue-deep);font-size:11.5px;font-weight:800;}
         .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding:0;background:transparent;}
+        /* AND THE CAP RESERVES THE SAME GUTTER. Cap and board are both three
+           equal columns across the same 1162px console, but only the board
+           loses 10px to a scrollbar, so its tracks came out 384px against the
+           cap's 387.3px: card two started 3px right of its column and card
+           three 7px, which is the whole misalignment. The cap reserves an
+           invisible gutter of its own rather than hard-coding 10px, so it is
+           still right wherever the scrollbar is a different width, and on
+           macOS overlay scrollbars both sides simply reserve 0. Mirror the
+           board's declarations EXACTLY, the standard properties and the
+           webkit ones, or an engine honoring only one pair sizes the two
+           gutters differently and the drift comes back smaller. The cap
+           never overflows, so this adds a reservation and no scrolling. */
+        .dhome.cats .cb-cap{overflow-y:scroll;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:transparent transparent;}
+        .dhome.cats .cb-cap::-webkit-scrollbar{width:6px;}
+        .dhome.cats .cb-cap::-webkit-scrollbar-track,.dhome.cats .cb-cap::-webkit-scrollbar-thumb{background:transparent;}
         /* NO ART ON THE CAP CARDS, and none in the tiles either (owner,
            2026-08-15). Sixty-three little pictures on one board read as noise
            rather than detail, and the cards are the one place on the page that
@@ -4069,6 +4094,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-tiles{grid-template-columns:repeat(2,minmax(0,1fr));}
         .dhome.cats{height:auto;}
         .dhome.cats .dh-board{overflow:visible;}
+        /* The board is overflow:visible at this width, so it has no scrollbar
+           and no gutter. The cap must drop its matching reservation here or
+           the same 3px mismatch simply runs the other way. */
+        .dhome.cats .cb-cap{overflow-y:visible;scrollbar-gutter:auto;}
         .dhome.cats .cb-tiles{flex:none;grid-auto-rows:auto;}
       }
       /* THE BANDS ARE GONE AT BOTH WIDTHS, so this rule sits outside the
