@@ -1928,18 +1928,18 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
       .filter((x) => x.a && x.a.total)
       .map((x) => ({ g: x.g, played: x.a.played || 0, total: x.a.total,
                      pct: Math.round(((x.a.played || 0) / x.a.total) * 100) }));
-    const archSect = arch.length ? sect('arch', 'Archive completion', 'Every drop of these games to date', (
-      <div className="cb-farch">
-        {arch.map(({ g, played, total, pct }) => (
-          <div className="cb-far" key={g.key}>
-            <span className="cb-fan">{g.name}</span>
-            <span className="cb-fab"><i style={{ width: Math.max(pct, 1) + '%' }} /></span>
-            <span className="cb-fap">{pct}<em>%</em></span>
-            <span className="cb-fac">{played} of {total}</span>
-          </div>
-        ))}
-      </div>
-    )) : null;
+    /* ONE ROW PER GAME (owner, 2026-08-15). Catch up and Archive completion
+       named the SAME games in the SAME order in two columns, so every title was
+       printed twice and the two lists sat on different pitches, which put a name
+       beside the wrong bar by the sixth game. One table instead: the name once
+       on the left, then its week of drops, then how much of that game's whole
+       archive is done. Reading across a row is the point now rather than an
+       accident of alignment. A game missing either half still gets its row. */
+    const backBy = {}; for (const b of back) backBy[b.g.key] = b;
+    const archBy = {}; for (const a of arch) archBy[a.g.key] = a;
+    const recs = slateList.slice(0, FILL_GAMES)
+      .map((g) => ({ g, chips: (backBy[g.key] && backBy[g.key].chips) || [], a: archBy[g.key] || null }))
+      .filter((r) => r.chips.length || r.a);
 
     const quizSect = quizzes.length ? sect('quiz', 'Quizzes on the same subject', qc.label + ' \u00b7 ' + qc.count, (
       <div className="cb-fq">
@@ -1954,20 +1954,15 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
 
     return (
       <div className="cb-fill">
-        {/* TWO COLUMNS (owner, 2026-08-15). Stacked full width, every block
-            stopped 277 to 585px short of the right edge at every desktop size,
-            measured across seven viewports. Catch up and the neighbours read as
-            a pair and keep the wider column; the quizzes run DOWN the narrow one
-            as six rows rather than across as four, which is what pays for the
-            width. The suggest bar still spans the foot, since it is the panel's
-            one full-width statement. With no quiz department for this group the
-            left column simply takes the whole width. */}
-        <div className={'cb-fcols' + ((archSect || quizSect) ? '' : ' one')}>
-        <div className="cb-fcl">
-        {back.length ? sect('back', 'Catch up', 'The last week of ' + label + (anySun ? ' \u00b7 S marks a Sunday Edition' : ''), (
-          <div className="cb-fback">
-            {back.map(({ g, chips }) => (
-              <div className="cb-fbrow" key={g.key}>
+        {recs.length ? sect('rec', 'Catch up', 'The last week of ' + label + (anySun ? ' \u00b7 S marks a Sunday Edition' : ''), (
+          <div className="cb-frows">
+            <div className="cb-frow head">
+              <span />
+              <span>Last week</span>
+              <span className="ar">Archive to date</span>
+            </div>
+            {recs.map(({ g, chips, a }) => (
+              <div className="cb-frow" key={g.key}>
                 <span className="cb-fbn">{g.name}</span>
                 <span className="cb-fbd">
                   {chips.map((c) => (
@@ -1985,21 +1980,26 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
                     </a>
                   ))}
                 </span>
+                <span className="cb-fbar">{a ? <i style={{ width: Math.max(a.pct, 1) + '%' }} /> : null}</span>
+                <span className="cb-fap">{a ? <>{a.pct}<em>%</em></> : null}</span>
+                <span className="cb-fac">{a ? a.played + ' of ' + a.total : ''}</span>
               </div>
             ))}
           </div>
         )) : null}
-        {nbr.length ? sect('nbr', 'More in ' + label, null, (
-          <div className="cb-fnb">
-            {nbr.slice(0, 9).map((x) => (
-              <button key={x.k} type="button" className="cb-fnc" onClick={() => setFilter(x.k)}>
-                {x.text}<b>{x.n}</b>
-              </button>
-            ))}
+        <div className={'cb-fcols' + (quizSect ? '' : ' one')}>
+          <div className="cb-fcl">
+            {nbr.length ? sect('nbr', 'More in ' + label, null, (
+              <div className="cb-fnb">
+                {nbr.slice(0, 9).map((x) => (
+                  <button key={x.k} type="button" className="cb-fnc" onClick={() => setFilter(x.k)}>
+                    {x.text}<b>{x.n}</b>
+                  </button>
+                ))}
+              </div>
+            )) : null}
           </div>
-        )) : null}
-        </div>
-        {(archSect || quizSect) ? <div className="cb-fcr">{archSect}{quizSect}</div> : null}
+          {quizSect ? <div className="cb-fcr">{quizSect}</div> : null}
         </div>
         <a className="cb-fask" href="/request">
           <span className="cb-fat">
@@ -4044,8 +4044,14 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fs{padding:13px 16px 15px;border-bottom:1px solid var(--border);}
         .cb-fh{margin:0 0 9px;display:flex;align-items:baseline;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);}
         .cb-fh i{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:none;color:var(--muted);}
-        .cb-fback{display:flex;flex-direction:column;gap:var(--fillgap,6px);}
-        .cb-fbrow{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:10px;min-height:var(--fillrow,22px);}
+        /* ONE GRID FOR BOTH HALVES, so the week and the archive share a row and
+           a pitch by construction rather than by two lists agreeing to be the
+           same height. Columns: name, the week's chips, the archive bar, its
+           percent, its count. */
+        .cb-frows{display:flex;flex-direction:column;gap:var(--fillgap,6px);}
+        .cb-frow{display:grid;grid-template-columns:104px minmax(0,1fr) minmax(90px,190px) 40px 58px;align-items:center;gap:12px;min-height:var(--fillrow,22px);}
+        .cb-frow.head{min-height:0;margin-bottom:1px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+        .cb-frow.head .ar{grid-column:3 / span 3;}
         .cb-fbn{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-fbd{display:flex;flex-wrap:wrap;gap:5px;}
         .cb-fbc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:10.5px;font-weight:700;color:var(--slate);text-decoration:none;font-variant-numeric:tabular-nums;}
@@ -4061,16 +4067,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fnc{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--white);font:inherit;font-size:11.5px;font-weight:700;color:var(--ink);cursor:pointer;}
         .cb-fnc:hover{border-color:var(--blue);color:var(--blue);}
         .cb-fnc b{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
-        /* SAME PITCH AS THE CATCH-UP ROWS OPPOSITE (owner, 2026-08-15). The two
-           lists name the same games in the same order, so a reader reads across
-           them; on different pitches they drifted 4px a row and by the sixth
-           game a name no longer sat beside its own bar. --fillrow and --fillgap
-           are the shared pitch: change them together or not at all. */
-        .cb-farch{display:flex;flex-direction:column;gap:var(--fillgap,6px);}
-        .cb-far{display:grid;grid-template-columns:minmax(0,84px) minmax(0,1fr) 34px 52px;align-items:center;gap:9px;min-height:var(--fillrow,22px);}
-        .cb-fan{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        .cb-fab{height:6px;border-radius:3px;background:#e3e8f0;overflow:hidden;}
-        .cb-fab i{display:block;height:100%;border-radius:3px;background:var(--blue);}
+        /* NOT .cb-fab: that is the Suggest button at the foot of the panel, and
+           sharing the name painted the bar white and the button 6px tall. */
+        .cb-fbar{height:6px;border-radius:3px;background:#e3e8f0;overflow:hidden;}
+        .cb-fbar i{display:block;height:100%;border-radius:3px;background:var(--blue);}
         .cb-fap{font-size:12.5px;font-weight:800;color:var(--blue-deep);text-align:right;font-variant-numeric:tabular-nums;}
         .cb-fap em{font-style:normal;font-size:9px;font-weight:700;color:var(--muted);margin-left:1px;}
         .cb-fac{font-size:10px;font-weight:700;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;}
