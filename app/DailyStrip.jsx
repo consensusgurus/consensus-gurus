@@ -4048,17 +4048,21 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            a pitch by construction rather than by two lists agreeing to be the
            same height. Columns: name, the week's chips, the archive bar, its
            percent, its count. */
-        /* ONE GRID FOR THE WHOLE TABLE, rows as display:contents. A grid per ROW
-           is five independent grids: 1fr and minmax() resolve against each row's
-           own content, so the header row (tiny text) sized its tracks completely
-           differently and the two labels sat over the wrong columns, Archive to
-           date landing on the percent. Only the container can guarantee one set
-           of column positions. Every cell is a direct grid item now, so the row
-           pitch is the container's row-gap rather than a min-height. */
-        .cb-frows{display:grid;grid-template-columns:104px minmax(0,1fr) minmax(90px,190px) 40px 58px;align-items:center;column-gap:12px;row-gap:var(--fillgap,6px);}
-        .cb-frow{display:contents;}
-        .cb-frow.head > span{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
-        .cb-frow.head .ar{grid-column:3 / -1;}
+        /* EVERY TRACK FIXED BUT ONE, which is what makes the rows agree. Each row
+           is its own grid, so a CONTENT-SIZED track (the minmax(90px,190px) the
+           archive bar had) resolves per row: the header row is tiny text, so its
+           tracks came out narrower and both column labels sat over the wrong
+           columns. With four fixed widths and a single 1fr, every row solves to
+           the same numbers because the container width is the same for all of
+           them. Do not reintroduce a content-sized track here.
+           display:contents on the row was tried and is worse: it makes the cells
+           direct items of one grid, which does fix the widths, but the header's
+           two spans and each row's five then auto-place into one shared stream
+           and everything lands a column out. */
+        .cb-frows{display:flex;flex-direction:column;gap:var(--fillgap,6px);}
+        .cb-frow{display:grid;grid-template-columns:104px minmax(0,1fr) 190px 40px 58px;align-items:center;gap:12px;min-height:var(--fillrow,22px);}
+        .cb-frow.head{min-height:0;margin-bottom:1px;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+        .cb-frow.head .ar{grid-column:3 / span 3;}
         .cb-fbn{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-fbd{display:flex;flex-wrap:wrap;gap:5px;}
         .cb-fbc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:10.5px;font-weight:700;color:var(--slate);text-decoration:none;font-variant-numeric:tabular-nums;}
