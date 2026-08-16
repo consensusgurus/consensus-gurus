@@ -40,7 +40,7 @@ import { catBlue, deptBlue } from '@/lib/home-blues';
 // the live roster and the archive figures behind it. fetchDayStatus is the same
 // memoized promise the command header already fires, so the second face costs
 // no request.
-import { liveDailyKeys, DAILY_GAME_MAP, dailyUnitOfQuizId } from '@/lib/daily-games';
+import { liveDailyKeys, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDayStatus } from '../useDayStats';
 import MindLoftMark from '../MindLoftMark';
 
@@ -781,13 +781,24 @@ export default function QuizHomeClient({ variant = 'current' }) {
       // A department's six picks SKIP its dated daily-game archive (Crux 7/6/26,
       // 7/7/26, ...). Those are one game's back catalogue sitting in catalog
       // order, so on Word Puzzles they filled all six slots and the slate's fill
-      // panel recommended the same puzzle four times. The daily archive has its
-      // own home on the slate itself. Falls back to the unfiltered head if a
-      // department is nothing but dailies, so no department goes empty.
+      // panel recommended the same puzzle six times.
+      //
+      // TEST THE ID, NOT THE UNIT. The first attempt filtered on
+      // dailyUnitOfQuizId, which returns a game's SCORING UNIT and is null for
+      // every game that has none, so it read "not a daily" for exactly the games
+      // it was meant to catch and Crux sailed straight through. Match the dated
+      // shape and confirm the prefix is a real daily.
+      //
+      // UNPLAYED FIRST, for the same reason: a pick you have already finished is
+      // not a recommendation. Played ones only backfill once the unplayed run out.
       top: (() => {
-        const pick = c.quizzes.filter((q) => !dailyUnitOfQuizId(q.id));
-        return (pick.length ? pick : c.quizzes).slice(0, 6)
-          .map((q) => ({ id: q.id, title: q.title || q.id, done: seen.has(q.id) }));
+        const dated = /^([a-z]+)-\d{1,2}-\d{1,2}-\d{2}$/;
+        const isDaily = (id) => { const m = dated.exec(id || ''); return !!(m && DAILY_GAME_MAP[m[1]]); };
+        const pool = c.quizzes.filter((q) => !isDaily(q.id));
+        const list = pool.length ? pool : c.quizzes;
+        const fresh = list.filter((q) => !seen.has(q.id));
+        const order = fresh.length >= 6 ? fresh : fresh.concat(list.filter((q) => seen.has(q.id)));
+        return order.slice(0, 6).map((q) => ({ id: q.id, title: q.title || q.id, done: seen.has(q.id) }));
       })(),
     }));
   }, [cats, me]);
