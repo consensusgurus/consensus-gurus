@@ -3954,20 +3954,19 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            once you have answered that yourself by choosing a category. Always
            three across, so six is two rows and the shrink is a row leaving
            rather than the cards resizing. */
-        /* SHRINK TO FIT A THIN GROUP (owner, 2026-08-15). The board's height is
-           measured to the fold (--dh-fit) so the three console columns line up,
-           which left 121px of white under the panel at 1440 and 221px at 1920,
-           growing with the viewport HEIGHT. Open on a thin group the height
-           becomes the CONTENT and --dh-fit becomes a ceiling, so a short group
-           ends where it ends and a long one still scrolls exactly as before.
-           No measurement loop: the --dh-fit effect reads the board's document
-           TOP, never its height, and the ResizeObserver watches the cap. */
-        .dhome.cats .dh-board.slate.cb-fit{height:auto;min-height:0;max-height:var(--dh-fit,calc(100vh - 300px));}
+        /* THE PANEL ABSORBS THE SLACK (owner, 2026-08-15). With the panel
+           present the board stops growing and takes only what its rows need,
+           and the panel grows into the rest, so the console still fills the
+           screen exactly as it was built to and no white is left under either.
+           A first attempt shrank the BOARD instead and did nothing, because the
+           height comes down a chain of flex:1 1 auto from a console pinned to
+           the viewport: the board was never the thing setting it. */
+        .dhome.cats .dh-boardwrap.cb-fitted .dh-vpwrap{flex:0 0 auto;}
         /* The fill panel. A full-width item at the foot of the two-column
            board grid, so it sits under both columns however many rows the
            group has, and last whatever order the rows and bands carry. */
-        .cb-fill{grid-column:1/-1;order:20;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
-        .cb-fcols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
+        .cb-fill{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
+        .cb-fcols{flex:1 1 auto;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
         .cb-fcols.one{grid-template-columns:minmax(0,1fr);}
         .cb-fcl,.cb-fcr{min-width:0;display:flex;flex-direction:column;}
         .cb-fcr{border-left:1px solid var(--border);}
@@ -4420,7 +4419,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         ) : null}
         </div>
       ) : null}
-      <div className={'dh-boardwrap' + (selGame ? ' open' : '') + (slate ? ' slate' : '')}>
+      <div className={'dh-boardwrap' + (selGame ? ' open' : '') + (slate ? ' slate' : '') + (cats && boardOpen && slateList.length <= FILL_MAX ? ' cb-fitted' : '')}>
         <div className="dh-vpwrap">
         <div
           ref={vpRef}
@@ -4432,7 +4431,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         >
           <div
             ref={boardRef}
-            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '') + (cats && filter !== 'all' && filter !== 'todo' && filter !== 'sunday' ? ' cb-open' : '') + (cats && boardOpen && slateList.length <= FILL_MAX ? ' cb-fit' : '')}
+            className={'dh-board' + (showAll ? '' : ' mcut') + (slate ? ' slate' : '') + (slate && myGamesOn ? ' pins' : '') + (cats && filter !== 'all' && filter !== 'todo' && filter !== 'sunday' ? ' cb-open' : '')}
             role="navigation"
             aria-label="Daily puzzles"
             aria-hidden={selGame && !slate ? 'true' : undefined}
@@ -4468,7 +4467,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
               </div>
             ) : null}
             {slate ? renderSlate(slateList, false) : renderTiles(list, false)}
-            {cats && boardOpen ? renderFill() : null}
           </div>
         </div>
         {/* Row-window pager (the round chevron under the board). It belongs to
@@ -4492,6 +4490,17 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           </button>
         ) : null}
         </div>
+        {/* THE PANEL IS A SIBLING OF THE BOARD, not a row inside it (2026-08-15).
+            Above 1200px the console and the Loft rail are both pinned to the
+            viewport on purpose, so the home board is exactly one screen, and
+            shrinking the board would undo that rather than fix anything. So the
+            board keeps the height it is given and gives up only what its rows
+            do not need: .dh-vpwrap goes flex:0 0 auto and the panel takes the
+            rest, which is what closes the 121px of white at 1440 and 221px at
+            1920 without the console moving at all. Inside the board it was also
+            a row in the scroller; out here it stays put while long groups
+            scroll past it. */}
+        {cats && boardOpen ? renderFill() : null}
         {/* Phone board cut (owner, 2026-07-31): eight tiles, then this toggle.
             The cut is CSS-only -- .mcut hides :nth-child(n+9) under 640px -- so
             the server renders the collapsed board and a phone never flashes all
