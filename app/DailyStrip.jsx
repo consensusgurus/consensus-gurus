@@ -1221,6 +1221,20 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     const fit = () => {
       raf = 0;
       const prog = con ? con.querySelector('.dh-cprog') : null;
+      // THE BOARD'S SCROLLBAR GUTTER, published so the cap above can line its
+      // cards up with the columns under them (owner, 2026-08-15: the three
+      // colored cards do not line up with the grid below). Both are three
+      // equal tracks across the same console width, but only the board is a
+      // scroller, and its gutter comes out of the CONTENT box: measured, its
+      // 1fr tracks were 384px against the cap's 387.3px, so card two started
+      // 3px right of its column and card three 7px. Measured rather than
+      // hardcoded at 10px because the number is the OS and engine's, not ours
+      // (macOS overlay scrollbars are 0 and this correctly collapses to it),
+      // and read before the width bail below so the 901-1200px tier, where the
+      // board is overflow:visible, publishes the 0 that tier actually has.
+      // scrollbar-gutter:stable on the board is what keeps it CONSTANT rather
+      // than appearing with the 43rd row.
+      if (con) con.style.setProperty('--dh-sbw', Math.max(0, board.offsetWidth - board.clientWidth) + 'px');
       // The board is height:auto and scrolls with the page in BOTH peek tiers, so
       // there is no fixed port to size: the phone/tablet one under 900px, and the
       // stacked one above it (STACKED_MQ), which would otherwise get a fold-height
@@ -1742,6 +1756,17 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
        picks group left and whatever is outstanding sits on the right edge where
        it reads as a tail rather than an interruption. Stable, so the pick order
        inside each colour survives. */
+    // EVERY TRACK BUT THE LAST is sized against the board's content width, and
+    // the last one takes the remainder. That puts every card's LEFT edge on its
+    // column's edge while the cap still runs the full width of the console: a
+    // first attempt reserved a matching gutter on the cap itself, which aligned
+    // the cards but left the last one ending 10px short, so the red card had a
+    // dark notch beside it while the navy strips above and below ran to the
+    // edge. --dh-sbw defaults to 0, which is both the pre-measurement state and
+    // the correct answer wherever the board does not scroll.
+    const capCols = (n) => (n <= 1
+      ? '1fr'
+      : 'repeat(' + (n - 1) + ',calc((100% - var(--dh-sbw,0px)) / ' + n + ')) 1fr');
     const RANK = { up: 0, easy: 0, lead: 0, prog: 1, fail: 2 };
     const slots = capPool.slice(0, 3)
       .map((sl, i) => ({ sl, i }))
@@ -1761,7 +1786,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
       );
     }
     return (
-      <div className="cb-cap" style={{ gridTemplateColumns: 'repeat(' + Math.max(1, slots.length) + ', minmax(0,1fr))' }}>
+      <div className="cb-cap" style={{ gridTemplateColumns: capCols(Math.max(1, slots.length)) }}>
         {slots.map((sl) => (
           <a key={sl.g.key} href={sl.g.href} className={'cb-card ' + sl.kind} aria-label={sl.btn + ' ' + sl.g.name}>
             <span className="cb-ct">
@@ -3902,17 +3927,21 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           /* THE BOARD IS A SCROLLER, so it is 10px narrower INSIDE than out
              and two things drifted off it (owner, 2026-08-15: the three
              colored cards do not line up with the columns below them).
-             scrollbar-gutter:stable so the reservation is CONSTANT rather
-             than appearing with the 43rd row, and background-origin so the
-             33.3%/66.7% divider lines are measured against the content box
-             the rows actually sit in: on padding-box they landed at 387.3px
-             against columns breaking at 384px, so the board disagreed with
-             its own rows before the cap was ever in the picture. */
-          scrollbar-gutter:stable;background-origin:content-box;
+             stable so the reservation is CONSTANT rather than appearing
+             with the 43rd row. The cap's own tracks are sized off the gutter
+             this reserves (see capCols); the background-origin that goes with
+             it is noted under the gradient below. */
+          scrollbar-gutter:stable;
           background:linear-gradient(to right,
             transparent calc(33.333% - .5px),#eef0f4 calc(33.333% - .5px),#eef0f4 calc(33.333% + .5px),
             transparent calc(33.333% + .5px),transparent calc(66.667% - .5px),
-            #eef0f4 calc(66.667% - .5px),#eef0f4 calc(66.667% + .5px),transparent calc(66.667% + .5px));}
+            #eef0f4 calc(66.667% - .5px),#eef0f4 calc(66.667% + .5px),transparent calc(66.667% + .5px));
+          /* AFTER the shorthand above, which resets it. The divider lines are
+             percentages of the background positioning area, and on the default
+             padding-box that area includes the scrollbar gutter: they landed at
+             387.3px while the rows they divide broke at 384px, so the board
+             disagreed with its own columns before the cap was ever involved. */
+          background-origin:content-box;}
         /* THE FILTER STRIP WRAPS rather than scrolling sideways: with the
            circuits in it there are 26 chips, and a one-line strip hides most of
            them behind an arrow. The circuits are the half a reader has not seen
@@ -4014,21 +4043,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fat i{font-style:normal;font-size:11.5px;color:var(--blue-200);}
         .cb-fab{flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:7px;background:var(--white);color:var(--blue-deep);font-size:11.5px;font-weight:800;}
         .cb-cap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding:0;background:transparent;}
-        /* AND THE CAP RESERVES THE SAME GUTTER. Cap and board are both three
-           equal columns across the same 1162px console, but only the board
-           loses 10px to a scrollbar, so its tracks came out 384px against the
-           cap's 387.3px: card two started 3px right of its column and card
-           three 7px, which is the whole misalignment. The cap reserves an
-           invisible gutter of its own rather than hard-coding 10px, so it is
-           still right wherever the scrollbar is a different width, and on
-           macOS overlay scrollbars both sides simply reserve 0. Mirror the
-           board's declarations EXACTLY, the standard properties and the
-           webkit ones, or an engine honoring only one pair sizes the two
-           gutters differently and the drift comes back smaller. The cap
-           never overflows, so this adds a reservation and no scrolling. */
-        .dhome.cats .cb-cap{overflow-y:scroll;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:transparent transparent;}
-        .dhome.cats .cb-cap::-webkit-scrollbar{width:6px;}
-        .dhome.cats .cb-cap::-webkit-scrollbar-track,.dhome.cats .cb-cap::-webkit-scrollbar-thumb{background:transparent;}
+        /* The cap's TRACKS carry the alignment, not a gutter of its own: see
+           capCols in the component. The cap stays full width. */
         /* NO ART ON THE CAP CARDS, and none in the tiles either (owner,
            2026-08-15). Sixty-three little pictures on one board read as noise
            rather than detail, and the cards are the one place on the page that
@@ -4094,10 +4110,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-tiles{grid-template-columns:repeat(2,minmax(0,1fr));}
         .dhome.cats{height:auto;}
         .dhome.cats .dh-board{overflow:visible;}
-        /* The board is overflow:visible at this width, so it has no scrollbar
-           and no gutter. The cap must drop its matching reservation here or
-           the same 3px mismatch simply runs the other way. */
-        .dhome.cats .cb-cap{overflow-y:visible;scrollbar-gutter:auto;}
         .dhome.cats .cb-tiles{flex:none;grid-auto-rows:auto;}
       }
       /* THE BANDS ARE GONE AT BOTH WIDTHS, so this rule sits outside the
