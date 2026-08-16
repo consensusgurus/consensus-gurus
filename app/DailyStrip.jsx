@@ -4035,7 +4035,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            content by definition and no amount of stretching invents any. The
            panel ends where it ends; the board above it still gives up the rows
            it does not need, so the panel sits directly under them. */
-        .cb-fill{flex:0 0 auto;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
+        .cb-fill{--fillrow:22px;--fillgap:6px;flex:0 0 auto;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
         .cb-fcols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
         .cb-fcols.one{grid-template-columns:minmax(0,1fr);}
         .cb-fcl,.cb-fcr{min-width:0;display:flex;flex-direction:column;}
@@ -4044,8 +4044,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fs{padding:13px 16px 15px;border-bottom:1px solid var(--border);}
         .cb-fh{margin:0 0 9px;display:flex;align-items:baseline;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);}
         .cb-fh i{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:none;color:var(--muted);}
-        .cb-fback{display:flex;flex-direction:column;gap:6px;}
-        .cb-fbrow{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:10px;}
+        .cb-fback{display:flex;flex-direction:column;gap:var(--fillgap,6px);}
+        .cb-fbrow{display:grid;grid-template-columns:104px minmax(0,1fr);align-items:center;gap:10px;min-height:var(--fillrow,22px);}
         .cb-fbn{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-fbd{display:flex;flex-wrap:wrap;gap:5px;}
         .cb-fbc{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:10.5px;font-weight:700;color:var(--slate);text-decoration:none;font-variant-numeric:tabular-nums;}
@@ -4061,8 +4061,13 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fnc{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--border);border-radius:999px;background:var(--white);font:inherit;font-size:11.5px;font-weight:700;color:var(--ink);cursor:pointer;}
         .cb-fnc:hover{border-color:var(--blue);color:var(--blue);}
         .cb-fnc b{font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
-        .cb-farch{display:flex;flex-direction:column;gap:7px;}
-        .cb-far{display:grid;grid-template-columns:minmax(0,84px) minmax(0,1fr) 34px 52px;align-items:center;gap:9px;}
+        /* SAME PITCH AS THE CATCH-UP ROWS OPPOSITE (owner, 2026-08-15). The two
+           lists name the same games in the same order, so a reader reads across
+           them; on different pitches they drifted 4px a row and by the sixth
+           game a name no longer sat beside its own bar. --fillrow and --fillgap
+           are the shared pitch: change them together or not at all. */
+        .cb-farch{display:flex;flex-direction:column;gap:var(--fillgap,6px);}
+        .cb-far{display:grid;grid-template-columns:minmax(0,84px) minmax(0,1fr) 34px 52px;align-items:center;gap:9px;min-height:var(--fillrow,22px);}
         .cb-fan{font-size:12.5px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-fab{height:6px;border-radius:3px;background:#e3e8f0;overflow:hidden;}
         .cb-fab i{display:block;height:100%;border-radius:3px;background:var(--blue);}
