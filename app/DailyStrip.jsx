@@ -4025,6 +4025,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            height comes down a chain of flex:1 1 auto from a console pinned to
            the viewport: the board was never the thing setting it. */
         .dhome.cats .dh-boardwrap.cb-fitted .dh-vpwrap{flex:0 0 auto;}
+        /* The wrapper clips (overflow:hidden for its rounded bottom), so a panel
+           a few pixels taller than the console lost the bottom of its own blue
+           bar silently. Measured: Word Building overflowed by 9px. */
+        .dhome.cats .dh-boardwrap.cb-fitted{overflow-y:auto;}
         /* The fill panel. A full-width item at the foot of the two-column
            board grid, so it sits under both columns however many rows the
            group has, and last whatever order the rows and bands carry. */
@@ -4035,7 +4039,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            content by definition and no amount of stretching invents any. The
            panel ends where it ends; the board above it still gives up the rows
            it does not need, so the panel sits directly under them. */
-        .cb-fill{--fillrow:22px;--fillgap:6px;flex:0 0 auto;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
+        .cb-fill{--fillrow:22px;--fillgap:6px;flex:1 0 auto;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--surface);}
         .cb-fcols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
         .cb-fcols.one{grid-template-columns:minmax(0,1fr);}
         .cb-fcl,.cb-fcr{min-width:0;display:flex;flex-direction:column;}
@@ -4091,7 +4095,16 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .cb-fqt{font-size:12.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .cb-fqm{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);}
         .cb-fqc.done .cb-fqm{color:var(--muted);}
-        .cb-fask{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--blue-deep);color:var(--white);text-decoration:none;}
+        /* THE SUGGEST BAR TAKES THE FLOOR (owner, 2026-08-15). Whatever the
+           pinned console has left over after the table and the chips is blue
+           rather than a strip of dead board ground, so the panel ends on an edge
+           instead of trailing off. Its content stays at the TOP of that blue,
+           exactly where the bar sat before, so nothing moves when a group is
+           thick enough to leave no slack at all: only the fill grows. It is the
+           one growing child, so the sections and the two columns keep their own
+           heights. flex-shrink 0 throughout, so a panel taller than the console
+           is scrolled by the wrapper rather than crushed. */
+        .cb-fask{flex:1 0 auto;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--blue-deep);color:var(--white);text-decoration:none;}
         .cb-fat{display:flex;flex-direction:column;gap:3px;min-width:0;}
         .cb-fat b{font-size:14px;font-weight:800;}
         .cb-fat i{font-style:normal;font-size:11.5px;color:var(--blue-200);}
