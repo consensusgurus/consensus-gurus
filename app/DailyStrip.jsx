@@ -1488,12 +1488,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     el.scrollBy({ left: dir * Math.max(120, Math.round(el.clientWidth * 0.7)), behavior: 'smooth' });
   };
   const nudgeFilt = (dir) => {
-    try {
-      if (typeof window !== 'undefined' && window.matchMedia('(max-width:900px)').matches) {
-        const e2 = filt2Ref.current;
-        if (e2) e2.scrollBy({ left: dir * Math.max(120, Math.round(e2.clientWidth * 0.7)), behavior: 'smooth' });
-      }
-    } catch (e) {}
+    // Both rows, every width. A row that already fits has nothing to scroll,
+    // so this is a no-op on it and the top row stays put, which is the point.
+    const e2 = filt2Ref.current;
+    if (e2) e2.scrollBy({ left: dir * Math.max(120, Math.round(e2.clientWidth * 0.7)), behavior: 'smooth' });
     const el = filtRef.current;
     if (!el) return;
     // Most of a screenful, not all of it: leaving a tab or two in view is what
@@ -3913,8 +3911,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            rather than as one strip that happens to have wrapped. */
         .dhome.cats .sl-filtw2{position:relative;flex:none;}
         .dhome.cats .sl-filt2{background:#2c4fa8;border-top:1px solid #16306e;}
-        .dhome.cats .sl-filtw2.ml::before{background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
-        .dhome.cats .sl-filtw2.mr::after{background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
+        .dhome.cats .sl-filtw2::before,.dhome.cats .sl-filtw2::after{content:'';position:absolute;top:0;bottom:0;width:60px;pointer-events:none;z-index:1;}
+        .dhome.cats .sl-filtw2:not(.ml)::before,.dhome.cats .sl-filtw2:not(.mr)::after{display:none;}
+        .dhome.cats .sl-filtw2.ml::before{left:0;background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
+        .dhome.cats .sl-filtw2.mr::after{right:0;background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
         .dhome.cats .sl-filt2 button{color:#c6d6f4;}
         .dhome.cats .sl-filt2 button:hover{color:var(--white);}
         .dhome.cats .sl-filt2 button.on{color:var(--white);border-bottom-color:var(--white);}
@@ -3924,7 +3924,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            the state chips are how you narrow now, so the unfiltered view stops
            narrowing anything. */
         .dhome.cats .dh-board .sl-row.sl-hid{display:grid !important;}
-        .dhome.cats .sl-filtw::before,.dhome.cats .sl-filtw::after{display:none !important;}
         /* Shut, the grid fits by construction and must not scroll. Open, the
            game list is as long as the category is and scrolling is the point. */
         .dhome.cats .dh-board.cb-open{overflow-y:auto;background:var(--white);}
@@ -4331,7 +4330,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           the phone's order flip (bar -1, title 0, board 1) still lands it between
           the title band and the board on source order alone. */}
       {slate ? (
-        <div className={`sl-filtw${(filtMore.l || (phone && filt2More.l)) ? ' ml' : ''}${(filtMore.r || (phone && filt2More.r)) ? ' mr' : ''}`}>
+        <div className={`sl-filtw${(filtMore.l || filt2More.l) ? ' ml' : ''}${(filtMore.r || filt2More.r) ? ' mr' : ''}`}>
         <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
           {[['all', 'All']]
             // Paused and Done, which used to be the gold and green bands at the
@@ -4375,24 +4374,14 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
               >{n}</button>
             ))}
           </div>
-          {filt2More.l ? (
-            <button type="button" className="sl-fnav l" onClick={() => nudgeFilt2(-1)} aria-label="Scroll the circuits left">
-              <ChevronLeft size={14} strokeWidth={3} />
-            </button>
-          ) : null}
-          {filt2More.r ? (
-            <button type="button" className="sl-fnav r" onClick={() => nudgeFilt2(1)} aria-label="Scroll the circuits right">
-              <ChevronRight size={14} strokeWidth={3} />
-            </button>
-          ) : null}
           </div>
         ) : null}
-        {(filtMore.l || (phone && filt2More.l)) ? (
+        {(filtMore.l || filt2More.l) ? (
           <button type="button" className="sl-fnav l" onClick={() => nudgeFilt(-1)} aria-label="Scroll the categories left">
             <ChevronLeft size={14} strokeWidth={3} />
           </button>
         ) : null}
-        {(filtMore.r || (phone && filt2More.r)) ? (
+        {(filtMore.r || filt2More.r) ? (
           <button type="button" className="sl-fnav r" onClick={() => nudgeFilt(1)} aria-label="Scroll the categories right">
             <ChevronRight size={14} strokeWidth={3} />
           </button>
