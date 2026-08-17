@@ -3211,11 +3211,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            of the three that follow it, because which of those exist depends on
            the day: an auto margin on two of them would split the free space. */
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);order:1;margin-right:auto;}
-        /* Two spellings of the same title, one per breakpoint, the way .sl-dt
-           already carries its long and short date. The phone takes "Today:",
-           which is what frees the width for all four pips on one line. */
-        .sl-ttl i{font-style:normal;}
-        .sl-ttl .p{display:none;}
         .sl-ptodo{order:2;}
         .sl-count{order:3;display:flex;align-items:center;gap:6px;}
         /* The four state counts. Each pip is a coloured dot, the number, and the
@@ -3723,14 +3718,20 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              Desktop keeps its light underline tabs. */
           /* ONE LINE, AND THE TITLE PAYS FOR IT (owner, 2026-08-17). This bar
              used to WRAP on a phone: title / ready / date on line one, and the
-             other three pips centred on a line of their own, because "Today's
-             slate" plus four worded pips does not fit a 390px viewport. Two
-             things buy that width back, and both were the owner's call:
-             the title shortens to "Today:", and the DATE COMES OFF entirely.
-             The date was the least important thing here (it was already
-             dropping to its short form, and then out under 400px), and the four
-             state counts describe the day better than it did. What is left is
-             one line, right-aligned against the title's auto margin.
+             other three pips centred on a line of their own, because the title
+             plus four worded pips did not fit a 390px viewport. What buys the
+             width back is the DATE COMING OFF entirely. It was the least
+             important thing here (it was already dropping to its short form,
+             and then out under 400px), and the four state counts describe the
+             day better than it did. What is left is one line, right-aligned
+             against the title's auto margin.
+
+             THE TITLE STAYS "Today's slate" IN FULL (owner, 2026-08-17). It was
+             briefly shortened to "Today:" in the same pass; dropping the date
+             turned out to free enough room without it, and measured on the live
+             bar it does: 17px of slack at 390px and 6px at 375px, on a
+             FOUR-state day, which is the worst case. See .sl-bar.four below,
+             which is what makes the four-state case fit.
 
              The pips KEEP THEIR WORDS, which is the 2026-08-10 owner rule this
              preserves: four bare dots at the top of the page read as nothing.
@@ -3739,8 +3740,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              against the bands below. */
           .sl-bar{flex-wrap:nowrap;gap:7px;}
           .sl-ttl{flex:none;white-space:nowrap;}
-          .sl-ttl .d{display:none;}
-          .sl-ttl .p{display:inline;}
           .sl-ptodo{margin-left:0;}
           .sl-dt{display:none;}
           .sl-count{order:3;flex-wrap:nowrap;gap:7px;}
@@ -3750,6 +3749,18 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .sl-pip{flex:none;padding:0;background:none;gap:4px;font-size:10px;letter-spacing:.02em;}
           .sl-pw.alt{display:none;}
           .sl-ps{display:inline;}
+          /* A FOUR-STATE DAY IS THE WORST CASE, and it is the only one that
+             needs this. Three states and the full title fit at 375px with room
+             over; add a fourth worded pip and the bar overflowed by 9px at
+             390px and 24px at 375px, and since it no longer wraps that would
+             CLIP rather than fall to a second line. So the four-state day, and
+             only that day, takes a hair off the type and the gaps: measured
+             after, 17px of slack at 390px and 6px at 375px, still one line.
+             The class comes from dayTally's own length, so a day that gains or
+             loses a state gets the right treatment with no other change. */
+          .sl-bar.four{gap:6px;}
+          .sl-bar.four .sl-count{gap:5px;}
+          .sl-bar.four .sl-pip{font-size:9px;gap:3px;letter-spacing:0;}
           .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
           /* Same fade, the phone strip's own ground. The bottom is flush here
              because this strip carries no 2px bottom rule to sit above. */
@@ -4338,8 +4349,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           leaderboard on the right. The Your-day stats that used to live here
           moved into the page header on 2026-08-03. */}
       {slate ? (
-        <div className="sl-bar">
-          <span className="sl-ttl"><i className="d">Today&rsquo;s slate</i><i className="p">Today:</i></span>
+        <div className={dayTally.length > 3 ? 'sl-bar four' : 'sl-bar'}>
+          <span className="sl-ttl">Today&rsquo;s slate</span>
           {/* THE READY PIP IS ITS OWN FLEX CHILD, not one of the group (owner,
               2026-08-10), which is what holds the phone header to two lines: it
               rides up beside the title and the date, leaving the other three to
