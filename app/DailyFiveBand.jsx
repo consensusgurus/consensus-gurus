@@ -204,9 +204,18 @@ export default function DailyFiveBand() {
            inside an <a>, and nesting block elements in an anchor is legal but
            reads badly in the surrounding JSX. */
         .d5-gbody{display:block;min-width:0;}
+        /* DESCENDERS. A nowrap + ellipsis line needs overflow:hidden, and that
+           clips at the CONTENT BOX, so a line-height under about 1.35 cuts the
+           tail off every g, j, p, q and y ("Put history in order" lost both).
+           Rather than open the leading up and move every row, the box is grown
+           by 3px and the same 3px is taken back off the flow with a negative
+           margin: the clip box clears the descenders and nothing shifts. Any
+           new single-line clamped text here needs the same pair. */
         .d5-gn{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.2px;line-height:1.2;
+               padding-bottom:3px;margin-bottom:-3px;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-gt{display:block;font-size:10.5px;font-weight:600;color:#93aae2;margin-top:1px;
+               padding-bottom:3px;margin-bottom:-3px;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-st{margin-top:6px;display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
                letter-spacing:.04em;color:#8fa9de;}

@@ -3342,7 +3342,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-ic{display:flex;align-items:center;justify-content:center;height:34px;background:var(--surface-alt);border-radius:8px;}
         .sl-ic img{height:24px;width:auto;max-width:30px;object-fit:contain;}
         .sl-nm{min-width:0;text-decoration:none;color:var(--ink);display:block;}
-        .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        /* padding-bottom + an equal negative margin so descenders clear the clip box
+           without the line-height, and therefore every row's height, changing.
+           The two media-query overrides below only restate font-size and
+           line-height, so they inherit this and need no copy of it. */
+        .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;padding-bottom:3px;margin-bottom:-3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-nm .sl-sub{display:block;font-size:11.5px;color:var(--slate);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .sl-cm{display:none;}
         /* The tagline's wrapper. Desktop renders it as the plain inline text it

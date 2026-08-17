@@ -33,6 +33,58 @@ const flat = (p) => p.replace(/\//g, '_');
 
 const PATCHES = [
   {
+    // DESCENDERS CLIPPED BY THE LINE BELOW (owner report, 2026-08-17).
+    //
+    // A single-line label that must not wrap carries nowrap + ellipsis, which
+    // needs overflow:hidden, and overflow clips at the CONTENT BOX. So any of
+    // these with a line-height under roughly 1.35 cuts the tail off every g, j,
+    // p, q and y. The Up next name on the finish card runs 1.05 and lost them
+    // outright.
+    //
+    // THE FIX IS NOT MORE LINE-HEIGHT. These are deliberately tight so a long
+    // game name cannot make the band taller than the verdict it sits under (the
+    // comment above the rule says so). Instead the box is grown by 3px and the
+    // same 3px is taken straight back off the flow with a negative margin: the
+    // clip box clears the descenders and no layout moves at all. Any new
+    // single-line clamped text needs the same pair.
+    file: 'app/LoftCap.jsx',
+    applied: 'descenders clear the clip box',
+    edits: [
+      {
+        what: 'up-next name and tag descenders',
+        anchor: `.loft-next .nm{display:block;font-weight:800;font-size:19px;line-height:1.05;letter-spacing:-.022em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loft-next .tg{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--muted);
+  margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}`,
+        replace: `/* padding-bottom + an equal negative margin so descenders clear the clip box
+   without the line-height, and therefore the band's height, changing. */
+.loft-next .nm{display:block;font-weight:800;font-size:19px;line-height:1.05;letter-spacing:-.022em;
+  padding-bottom:4px;margin-bottom:-4px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loft-next .tg{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--muted);
+  margin-top:3px;padding-bottom:3px;margin-bottom:-3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}`,
+      },
+    ],
+  },
+  {
+    // The same defect on the console's game rows, which is the other place the
+    // owner saw it: the row name is a clamped 15px line at 1.15.
+    file: 'app/DailyStrip.jsx',
+    applied: 'descenders clear the clip box',
+    edits: [
+      {
+        what: 'slate row name descenders',
+        anchor: '        .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}',
+        replace: `        /* padding-bottom + an equal negative margin so descenders clear the clip box
+           without the line-height, and therefore every row's height, changing.
+           The two media-query overrides below only restate font-size and
+           line-height, so they inherit this and need no copy of it. */
+        .sl-nm b{display:block;font-size:15px;font-weight:800;letter-spacing:-.3px;line-height:1.15;padding-bottom:3px;margin-bottom:-3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}`,
+      },
+    ],
+  },
+  {
     // The run's own documentation, spliced into the Daily Five section rather
     // than appended to the end of the file, so the section stays one thing.
     file: 'CLAUDE.md',

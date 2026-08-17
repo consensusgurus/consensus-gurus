@@ -552,10 +552,14 @@ export default function LoftCap({
   text-transform:uppercase;color:var(--success-deep);margin-bottom:4px}
 /* Every line clamps: a long game name or tag must not make the band taller
    than the verdict it sits under. */
+/* padding-bottom + an equal negative margin so descenders clear the clip box
+   without the line-height, and therefore the band's height, changing. */
 .loft-next .nm{display:block;font-weight:800;font-size:19px;line-height:1.05;letter-spacing:-.022em;
+  padding-bottom:4px;margin-bottom:-4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .loft-next .tg{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--muted);
-  margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  margin-top:3px;padding-bottom:3px;margin-bottom:-3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .loft-next .go{flex:none;background:var(--success-deep);color:var(--white);border-radius:10px;
   padding:11px 15px;font-weight:800;font-size:13.5px;white-space:nowrap}
 @media(max-width:560px){

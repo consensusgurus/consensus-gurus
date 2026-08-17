@@ -21,7 +21,7 @@
 // unplayed games as empty cards).
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Trophy } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Trophy } from 'lucide-react';
 import { fiveFor, fiveHref, FIVE_NAME } from '@/lib/daily-five';
 import { DAILY_GAME_MAP, dailyScoreText } from '@/lib/daily-games';
 import { dailyMeIdentity } from '../dailyMeClient';
@@ -110,9 +110,23 @@ export default function DailyFiveSummary() {
         .d5s-fig div i{font-style:normal;display:block;font-size:9px;font-weight:800;letter-spacing:.12em;
                        text-transform:uppercase;color:#9fb6e8;margin-top:5px;}
 
+        /* THESE TWO SIT DIRECTLY ON THE PAGE, WHICH IS NAVY. Everything else on
+           this page is inside a white card and inherits the dark ink above, but
+           the section labels and the notes are on the site's own navy ground, so
+           --blue and --slate came out as dark-on-dark and were close to
+           unreadable. Anything added here outside a card needs a light colour
+           chosen against the navy, not against white. */
         .d5s-sec{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
-                 color:var(--blue);margin:26px 0 9px;}
-        .d5s-note{font-size:11.5px;font-weight:600;color:var(--slate);line-height:1.6;margin-top:9px;}
+                 color:#bfdbfe;margin:26px 0 9px;}
+        .d5s-note{font-size:11.5px;font-weight:600;color:#9fb6e8;line-height:1.6;margin-top:9px;}
+        /* One way back, at the foot, where a reader who has finished reading is.
+           The run's other exits all lead deeper into a game; this is the only
+           one that leaves. */
+        .d5s-home{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;
+                  background:var(--white);color:var(--accent);border:1.5px solid #2c437c;
+                  border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
+                  letter-spacing:.03em;text-decoration:none;}
+        .d5s-home:hover{background:#eef3ff;}
 
         /* board */
         .d5s-lb{border:1.5px solid var(--border);border-radius:13px;overflow:hidden;background:var(--white);}
@@ -249,6 +263,11 @@ export default function DailyFiveSummary() {
           A fresh five lands at midnight Eastern.
         </div>
       ) : null}
+
+      <a className="d5s-home" href="/">
+        <ArrowLeft size={15} strokeWidth={2.6} />
+        Return to main
+      </a>
     </div>
   );
 }
