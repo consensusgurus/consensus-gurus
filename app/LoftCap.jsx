@@ -386,7 +386,16 @@ export default function LoftCap({
 .loft-page > svg{display:none}
 .loft-page .loft-stage{min-height:0;padding-bottom:16px}
 .loft-page .loft-stage ~ div{margin-top:14px!important}
-.loft-page section{padding-top:0!important;padding-bottom:20px!important}
+/* THE ABOUT SECTION NEEDS AIR ABOVE IT. This was padding-top:0, which put the
+   section flush against whatever the page column ended with: measured on the
+   live page, the foot of the join form's "Trouble signing back in?" link and
+   the top of the "About <Game>" heading were the SAME y coordinate, and so were
+   the Report an issue chip and that heading for a signed-in player. Two
+   unrelated regions touching reads as one broken block rather than as a
+   boundary (owner, 2026-08-17). 30px is the smallest step that reads as a
+   separation here without opening a void on the navy, which is what the
+   original 0 was avoiding. The bottom padding is unchanged. */
+.loft-page section{padding-top:30px!important;padding-bottom:20px!important}
 .loft-page footer{margin-top:0!important;padding-top:18px!important}
 .loft-page .loft-stage ~ p{color:#bfd0ee!important}
 .loft-page .loft-stage ~ p a{color:#ffd45e!important}
