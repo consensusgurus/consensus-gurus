@@ -44,6 +44,11 @@ export default function DailyFiveBand() {
   const [day, setDay] = useState(null);
   const [data, setData] = useState(null);
   const [open, setOpen] = useState(false);
+  // Separate from `open` on purpose: `open` is the leaderboard, which desktop
+  // and phone share, and `popen` is the phone-only list of the five, which
+  // desktop always shows. One flag for both would mean opening the board on a
+  // phone also unfolded the games, or the reverse.
+  const [popen, setPopen] = useState(false);
 
   useEffect(() => { setDay(etToday()); }, []);
 
@@ -60,7 +65,7 @@ export default function DailyFiveBand() {
   useEffect(() => {
     if (!day) return;
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
-  }, [open, day]);
+  }, [open, popen, day]);
 
   useEffect(() => {
     if (!day) return undefined;
@@ -124,7 +129,7 @@ export default function DailyFiveBand() {
   const nextGame = nextKey ? DAILY_GAME_MAP[nextKey] : null;
 
   return (
-    <div className={complete ? 'd5 is-done' : 'd5'}>
+    <div className={`d5${complete ? ' is-done' : ''}${popen ? ' is-popen' : ''}`}>
       {/* RAW, not a JSX text child: React escapes `>` inside a text node, so any
           child-combinator selector would reach the browser as `&gt;` and be
           dropped as invalid until hydration replaced the node. There are none in
@@ -177,9 +182,17 @@ export default function DailyFiveBand() {
                 justify-content:center;font-variant-numeric:tabular-nums;}
         .d5-cat{font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#8fa9de;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .d5-gn{font-size:14.5px;font-weight:800;letter-spacing:-.2px;line-height:1.2;
+        /* THESE ARE SPANS AND THEY MUST BE TOLD TO BE BLOCKS. A span is inline
+           by default, so without this the name and the tagline render on one
+           line with no space between them ("DatingPut history in order"), which
+           is exactly how this shipped for one deploy. Anything added to a card
+           here gets the same treatment; the card cannot use <div> because it is
+           inside an <a>, and nesting block elements in an anchor is legal but
+           reads badly in the surrounding JSX. */
+        .d5-gbody{display:block;min-width:0;}
+        .d5-gn{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.2px;line-height:1.2;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .d5-gt{font-size:10.5px;font-weight:600;color:#93aae2;margin-top:1px;
+        .d5-gt{display:block;font-size:10.5px;font-weight:600;color:#93aae2;margin-top:1px;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-st{margin-top:6px;display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
                letter-spacing:.04em;color:#8fa9de;}
@@ -209,11 +222,13 @@ export default function DailyFiveBand() {
         .d5-tot i{font-style:normal;font-size:9px;font-weight:700;color:#8fa9de;margin-left:3px;}
         .d5-note{margin-top:8px;font-size:10.5px;font-weight:600;color:#8fa9de;}
 
-        /* ── phone (owner rule: the console is one column at 900) ──
-           Five cards side by side is unreadable at 390px, so the track collapses
-           to pips and the list is what the toggle opens. Two lines and five pips
-           is the whole resting state, which is less of the first screen than one
-           slate row per game it replaces. */
+        /* ── phone (the console is one column at 900) ──
+           Five cards side by side is unreadable at 390px, so the track becomes a
+           list. It is also COLLAPSED BY DEFAULT here, which desktop is not:
+           expanded it runs 303px, and the phone console's whole first screen is
+           an argument for what to play next, with the slate's own peek budgeted
+           at six rows. Two lines and five pips is the resting state, ~90px, and
+           the pip bar is the control that opens the rest. */
         @media(max-width:900px){
           .d5{padding:11px 12px 12px;}
           .d5-hd{gap:9px;margin-bottom:9px;}
@@ -222,15 +237,21 @@ export default function DailyFiveBand() {
           .d5-sc b{font-size:17px;}
           .d5-go{padding:9px 12px;font-size:10px;}
           .d5-bd{display:none;}
-          .d5-track{grid-template-columns:1fr;gap:5px;}
-          .d5-pipbar{display:flex;gap:4px;}
-          .d5-pipbar span{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.18);}
-          .d5-pipbar span.done{background:var(--success);}
-          .d5-pipbar span.now{background:var(--blue-400);}
+          .d5-track{display:none;grid-template-columns:1fr;gap:5px;margin-top:9px;}
+          .d5.is-popen .d5-track{display:grid;}
+          .d5-pipbar{display:flex;align-items:center;gap:8px;width:100%;padding:0;border:0;
+                     background:transparent;font-family:inherit;cursor:pointer;
+                     -webkit-tap-highlight-color:transparent;}
+          .d5-pips5{display:flex;gap:4px;flex:1;min-width:0;}
+          .d5-pips5 span{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.18);}
+          .d5-pips5 span.done{background:var(--success);}
+          .d5-pips5 span.now{background:var(--blue-400);}
+          .d5-pipl{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.1em;
+                   text-transform:uppercase;color:#9fb6e8;}
           .d5-g{display:flex;align-items:center;gap:9px;padding:8px 10px;}
           .d5-gi{margin-bottom:0;flex:none;}
           .d5-gcat{display:none;}
-          .d5-gbody{min-width:0;flex:1;}
+          .d5-gbody{flex:1;}
           .d5-st{margin-top:0;flex:none;}
           .d5-gt{display:none;}
           .d5-lbr .d5-pips{display:none;}
@@ -271,12 +292,23 @@ export default function DailyFiveBand() {
         )}
       </div>
 
-      <div className="d5-pipbar">
-        {members.map((k) => {
-          const p = playedOf(k);
-          return <span key={k} className={p ? 'done' : (k === nextKey ? 'now' : '')} />;
-        })}
-      </div>
+      {/* Phone only (display:none above 900). The pips ARE the control: they
+          already say where you are in the run, so making them the thing you tap
+          to see the five costs no extra row. */}
+      <button
+        type="button"
+        className="d5-pipbar"
+        aria-expanded={popen}
+        onClick={() => setPopen((o) => !o)}
+      >
+        <span className="d5-pips5">
+          {members.map((k) => {
+            const p = playedOf(k);
+            return <span key={k} className={p ? 'done' : (k === nextKey ? 'now' : '')} />;
+          })}
+        </span>
+        <span className="d5-pipl">{popen ? 'Hide' : `All ${members.length}`}</span>
+      </button>
 
       <div className="d5-track">
         {members.map((k, i) => {
