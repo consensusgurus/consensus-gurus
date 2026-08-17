@@ -253,9 +253,20 @@ export default function DailyFiveBand() {
           .d5-bd{display:none;}
           .d5-track{display:none;grid-template-columns:1fr;gap:5px;margin-top:9px;}
           .d5.is-popen .d5-track{display:grid;}
-          .d5-pipbar{display:flex;align-items:center;gap:8px;width:100%;padding:0;border:0;
+          .d5-pipbar{display:flex;align-items:center;gap:9px;width:100%;}
+          .d5-piptog{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:0;border:0;
                      background:transparent;font-family:inherit;cursor:pointer;
                      -webkit-tap-highlight-color:transparent;}
+          /* Sized as a real tap target, not a text link: it is one of only two
+             controls on the phone band. */
+          .d5-pipbd{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;
+                    border-radius:7px;padding:7px 11px;font-size:9.5px;font-weight:800;
+                    letter-spacing:.11em;text-transform:uppercase;color:#dbe6ff;
+                    text-decoration:none;-webkit-tap-highlight-color:transparent;}
+          .d5-pipbd:active{background:rgba(255,255,255,.22);}
+          /* Once the run is complete the header's primary control IS the board,
+             so the small one here would be the same link twice on one screen. */
+          .d5.is-done .d5-pipbd{display:none;}
           .d5-pips5{display:flex;gap:4px;flex:1;min-width:0;}
           .d5-pips5 span{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.18);}
           .d5-pips5 span.done{background:var(--success);}
@@ -295,8 +306,16 @@ export default function DailyFiveBand() {
         <button type="button" className="d5-bd" onClick={() => setOpen((o) => !o)}>
           {open ? 'Hide board' : 'Board'}
         </button>
+        {/* A COMPLETED RUN'S PRIMARY CONTROL IS THE BOARD (owner, 2026-08-17).
+            It used to be a static "All five done" chip, which is a dead end at
+            every width: the eyebrow above already says Run complete, so the chip
+            restated it and led nowhere. The board is what a finished run is FOR,
+            so it takes the slot. This is also the only board affordance a phone
+            gets in this row, since the toggle beside it is hidden under 900. */}
         {complete ? (
-          <span className="d5-go done"><Trophy size={12} strokeWidth={2.6} />All five done</span>
+          <a className="d5-go done" href="/daily-five">
+            <Trophy size={12} strokeWidth={2.6} />See the board
+          </a>
         ) : (
           <a className="d5-go" href={fiveHref(nextKey || members[0])}>
             <Play size={11} fill="currentColor" strokeWidth={0} />
@@ -306,23 +325,33 @@ export default function DailyFiveBand() {
         )}
       </div>
 
-      {/* Phone only (display:none above 900). The pips ARE the control: they
+      {/* Phone only (display:none above 900). The pips ARE the toggle: they
           already say where you are in the run, so making them the thing you tap
-          to see the five costs no extra row. */}
-      <button
-        type="button"
-        className="d5-pipbar"
-        aria-expanded={popen}
-        onClick={() => setPopen((o) => !o)}
-      >
-        <span className="d5-pips5">
-          {members.map((k) => {
-            const p = playedOf(k);
-            return <span key={k} className={p ? 'done' : (k === nextKey ? 'now' : '')} />;
-          })}
-        </span>
-        <span className="d5-pipl">{popen ? 'Hide' : `All ${members.length}`}</span>
-      </button>
+          to see the five costs no extra row.
+          THE BOARD LINK RIDES HERE TOO, because the header's board toggle is
+          hidden under 900 and a landscape phone is still under 900, so a phone
+          had no way to the board at all while a run was in progress. It is a
+          LINK to /daily-five rather than the desktop's inline expander: the
+          board wants more room than a phone band has, and the page is the same
+          board with space to read it. Two elements rather than one, because an
+          anchor cannot be nested inside a button. */}
+      <div className="d5-pipbar">
+        <button
+          type="button"
+          className="d5-piptog"
+          aria-expanded={popen}
+          onClick={() => setPopen((o) => !o)}
+        >
+          <span className="d5-pips5">
+            {members.map((k) => {
+              const p = playedOf(k);
+              return <span key={k} className={p ? 'done' : (k === nextKey ? 'now' : '')} />;
+            })}
+          </span>
+          <span className="d5-pipl">{popen ? 'Hide' : `All ${members.length}`}</span>
+        </button>
+        <a className="d5-pipbd" href="/daily-five">Board</a>
+      </div>
 
       <div className="d5-track">
         {members.map((k, i) => {
