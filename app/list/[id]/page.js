@@ -1,7 +1,9 @@
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import DetailClient from './DetailClient';
+import { ListSeoSection } from '@/app/SeoSection';
 import { LISTS } from '@/lib/data';
+import { DESCRIPTIONS } from '@/lib/descriptions';
 import { getSources } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
 import { SITE_URL } from '@/lib/site';
@@ -107,6 +109,13 @@ function buildStructuredData(list, baseUrl, consensusItems) {
 
   if (itemNames.length === 0) return null;
 
+  // Per-item `description` added 2026-08-17. The ItemList previously carried
+  // name + position only, which is the thinnest shape the type allows; the
+  // descriptions already exist in lib/descriptions.js for every consensus
+  // top-10 item (it is a build requirement, see CLAUDE.md), so this costs
+  // nothing and gives the markup something to actually say.
+  const descs = DESCRIPTIONS[list.id] || {};
+
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -119,8 +128,26 @@ function buildStructuredData(list, baseUrl, consensusItems) {
       '@type': 'ListItem',
       position: idx + 1,
       name,
+      ...(descs[name] ? { description: descs[name] } : {}),
     })),
   };
+}
+
+// Server-side mirror of the `relatedLists` memo in DetailClient: most shared
+// tags first, backfilled to six. Kept deterministic (no votes, no views) so the
+// server HTML and the hydrated page agree on the links.
+function relatedListsFor(list) {
+  const tagsOf = (l) =>
+    Array.isArray(l.tags) && l.tags.length > 0 ? l.tags : l.type ? [l.type] : [];
+  const mine = new Set(tagsOf(list));
+
+  const scored = LISTS.filter((l) => l.id !== list.id)
+    .map((l) => ({ list: l, overlap: tagsOf(l).filter((t) => mine.has(t)).length }))
+    .filter((x) => x.overlap > 0)
+    .sort((a, b) => b.overlap - a.overlap || a.list.id.localeCompare(b.list.id))
+    .map((x) => x.list);
+
+  return scored.slice(0, 6);
 }
 
 export async function generateMetadata({ params }) {
@@ -183,7 +210,24 @@ export default async function ListPage({ params }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <DetailClient key="list-overview" listId={id} />
+      {/* The section is passed INTO DetailClient rather than rendered beside
+          it, so it lands above the shared <Footer /> that DetailClient owns.
+          This works because DetailClient genuinely server-renders (it just
+          renders its "Loading the ranking..." state), unlike the quiz route,
+          where a useSearchParams Suspense bail forces the section outside the
+          client tree. A server-rendered element passed as a prop to a client
+          component is rendered on the server and slotted in. */}
+      <DetailClient
+        key="list-overview"
+        listId={id}
+        seo={
+          <ListSeoSection
+            list={list}
+            items={consensusItems}
+            related={relatedListsFor(list)}
+          />
+        }
+      />
     </>
   );
 }

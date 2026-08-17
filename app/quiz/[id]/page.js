@@ -2,7 +2,8 @@ import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import QuizClient from './QuizClient';
 import CruxRedirect from './CruxRedirect';
-import { QUIZZES, getQuiz } from '@/lib/quizzes';
+import { QuizSeoSection } from '@/app/SeoSection';
+import { getQuiz } from '@/lib/quizzes';
 import { SITE_URL } from '@/lib/site';
 
 // 24h, not 1h (2026-08-08, Vercel cost fix). ~1,200 quiz pages expiring hourly
@@ -60,6 +61,16 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// ISO 8601 duration for the Quiz JSON-LD's timeRequired.
+function isoDuration(seconds) {
+  if (!seconds || seconds <= 0) return null;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  const mm = m ? String(m) + 'M' : '';
+  const ss = s ? String(s) + 'S' : '';
+  return 'PT' + mm + ss;
+}
+
 export default function QuizPage({ params }) {
   const id = decodeURIComponent(params.id);
   const quiz = getQuiz(id);
@@ -92,6 +103,17 @@ export default function QuizPage({ params }) {
   if (quiz && quiz.format === 'jester') return <CruxRedirect num={quiz.gameNum || null} base="/jesters" />;
   if (quiz && quiz.format === 'sworn') return <CruxRedirect num={quiz.gameNum || null} base="/sworn" />;
 
+  // numberOfQuestions / timeRequired added 2026-08-17 alongside the SEO
+  // section: they are the two facts a Quiz result can actually display, and
+  // they cost nothing because both already sit on the quiz object.
+  const questionCount =
+    quiz &&
+    ((Array.isArray(quiz.answers) && quiz.answers.length) ||
+      (Array.isArray(quiz.questions) && quiz.questions.length) ||
+      (Array.isArray(quiz.pairs) && quiz.pairs.length) ||
+      0);
+  const duration = quiz ? isoDuration(quiz.timeLimit) : null;
+
   const jsonLd = quiz
     ? {
         '@context': 'https://schema.org',
@@ -99,6 +121,11 @@ export default function QuizPage({ params }) {
         name: quiz.title,
         about: quiz.blurb,
         url: `${SITE_URL}/quiz/${quiz.id}`,
+        inLanguage: 'en',
+        isAccessibleForFree: true,
+        learningResourceType: 'Quiz',
+        ...(questionCount ? { numberOfQuestions: questionCount } : {}),
+        ...(duration ? { timeRequired: duration } : {}),
       }
     : null;
 
@@ -113,6 +140,13 @@ export default function QuizPage({ params }) {
       <Suspense fallback={null}>
         <QuizClient quizId={id} />
       </Suspense>
+      {/* Sits OUTSIDE the Suspense boundary on purpose. QuizClient calls
+          useSearchParams, which bails the whole boundary to its null fallback
+          during static rendering, so anything inside it (children and props
+          included) is dropped from the server HTML. Outside the boundary is
+          the only place a server-rendered node survives on this route, and
+          that is the entire point of this section. See app/SeoSection.jsx. */}
+      <QuizSeoSection quiz={quiz} />
     </>
   );
 }

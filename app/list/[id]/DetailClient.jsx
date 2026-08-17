@@ -1503,7 +1503,13 @@ function getUserVoteForList(listId) {
   return userVotes[listId] || null;
 }
 
-export default function DetailClient({ listId }) {
+// `seo` is a SERVER-RENDERED element handed down from app/list/[id]/page.js
+// (see ListSeoSection in app/SeoSection.jsx). It is a slot, not data: this
+// component never reads inside it. It exists because the ranking itself is
+// client-only, so before this the server sent crawlers the words "Loading the
+// ranking..." and nothing else, and Search Console indexed 5 of 585 list URLs.
+// Render it as-is, above the footer, in BOTH the loading and loaded states.
+export default function DetailClient({ listId, seo = null }) {
   const router = useRouter();
   const [voteData, setVoteData] = useState({});
   const [userVotes, setUserVotes] = useState({});
@@ -1669,6 +1675,7 @@ export default function DetailClient({ listId }) {
           </button>
         </div>
       )}
+      {seo}
       <Footer />
     </div>
   );
