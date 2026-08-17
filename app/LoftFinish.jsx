@@ -61,7 +61,7 @@
 // button and gives it a coloured left rule. The four secondary options were
 // four identical outlined boxes and read as one undifferentiated block (owner,
 // 2026-08-14); the tone is what tells them apart at a glance.
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
 
@@ -89,6 +89,19 @@ export default function LoftFinish({
   // this opens the whole roster, starting on the category just played, because
   // that is the one the reader is already in the mood for.
   const [browse, setBrowse] = useState(false);
+  // ONE loading state for the whole IQ bar, with a ceiling (owner, 2026-08-17).
+  // The bar itself carries the why. Ready means the gain AND the day figures
+  // are in, because the bar prints all three on one nowrap row.
+  const iqReady = !!(iq && iq.gained != null) && !!(day && day.ready);
+  const [iqStalled, setIqStalled] = useState(false);
+  useEffect(() => {
+    if (iqReady) return undefined;
+    // useIqStanding is five attempts over ~10s and then stops for good, so
+    // without a ceiling a read that never lands says Calculating forever.
+    const t = setTimeout(() => setIqStalled(true), 11000);
+    return () => clearTimeout(t);
+  }, [iqReady]);
+  const iqShow = iqReady || iqStalled;
   const roster = useDailyRoster({ active: browse });
   const [pickCat, setPickCat] = useState(null);
   const myCat = (catRank && catRank.cat)
@@ -110,7 +123,25 @@ export default function LoftFinish({
   // 'main' is held back so the Archive button, which this component renders
   // itself, can sit to its LEFT.
   const mains = sorted.filter((o) => o.tone === 'main');
-  const opts = sorted.filter((o) => o.tone !== 'main');
+  // UP NEXT LEADS THE CARD (owner, 2026-08-17). The 'similar' option comes OUT
+  // of the options grid and renders as a band directly under the verdict, above
+  // the IQ bar: it was a half tile in the third row, below the verdict, the IQ
+  // bar, four day tiles and the whole board, so a finisher passed two exits
+  // before reaching the one thing that hands them forward.
+  //
+  // No game client changes, because all 65 already pass the identical shape:
+  //   { tone: 'similar', label: 'Play similar', sub: `${name} · ${tag}`, href }
+  // so the game's name and tag are read back off `sub`. A client that passes a
+  // `sub` with no middot still renders, using the label as the heading.
+  //
+  // Parity needs no help: dropping one item from `narrow` leaves the existing
+  // tail-parity rule to widen the new last half tile. `RANK.similar` stays so
+  // a client that somehow keeps it in the grid still sorts where it used to.
+  const simOpt = sorted.find((o) => o.tone === 'similar') || null;
+  const simBits = simOpt && simOpt.sub ? String(simOpt.sub).split('\u00b7') : [];
+  const simName = simBits.length > 1 ? simBits[0].trim() : null;
+  const simTag = simBits.length > 1 ? simBits.slice(1).join('\u00b7').trim() : null;
+  const opts = sorted.filter((o) => o.tone !== 'main' && o.tone !== 'similar');
   // Which options span the full width: every primary, plus the last one when
   // the half-width ones would otherwise be odd.
   const wide = new Set();
@@ -215,9 +246,46 @@ export default function LoftFinish({
           Colouring both said it twice, and this is where the result is. */}
       <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
+      {/* Up next. Sits between the verdict and the IQ bar so the result is
+          still read first and the handoff is the second thing on the card. */}
+      {simOpt ? (
+        <a className="loft-next" href={simOpt.href || undefined} onClick={simOpt.onClick || undefined}>
+          <span className="t">
+            <span className="eb">Up next</span>
+            <span className="nm">{simName || simOpt.label}</span>
+            {simTag ? <span className="tg">{simTag}</span> : null}
+          </span>
+          <span className="go">Play</span>
+        </a>
+      ) : null}
+
+      {/* ONE loading state for the WHOLE bar (owner, 2026-08-17). Each of the
+          three figures used to carry its own <Calculating />, and this row is
+          nowrap with only `.t` able to shrink (min-width:0), so three nowrap
+          18px placeholders came to ~276px where the settled figures come to
+          ~122px. `.t` collapsed to zero, the auto margin gave up its free
+          space, the flex:none figures overflowed and the text collided, clipped
+          by .loft-back's overflow:hidden.
+
+          It showed on a phone and not on desktop because the max-width:560px
+          block shrinks every real figure (.n to 23px, .today b to 15px, and it
+          hides the em) and never touches `.loft-fiq .loft-calc`, which stays
+          18px at every width. So the phone tightened the settled state and left
+          the loading state at full size.
+
+          The bar now says it once, on one line, and swaps to the figures when
+          they are ALL in. Past the ceiling it lays out normally and prints a
+          dash for whatever is missing, which is why no <Calculating /> is left
+          inside it. */}
+      {!iqShow ? (
+        <div className="loft-fiq calc1">
+          <Brain className="bi" size={26} strokeWidth={2.2} aria-hidden="true" />
+          <span className="cc">Calculating IQ<i>.</i><i>.</i><i>.</i></span>
+        </div>
+      ) : (
       <div className="loft-fiq">
         <Brain className="bi" size={26} strokeWidth={2.2} aria-hidden="true" />
-        <span className="n">{iq && iq.gained != null ? `+${iq.gained}` : <Calculating />}</span>
+        <span className="n">{iq && iq.gained != null ? `+${iq.gained}` : '\u2014'}</span>
         <span className="t">
           <span className="l">IQ points earned</span>
           <span className="m">
@@ -229,7 +297,7 @@ export default function LoftFinish({
         </span>
         <span className="today"><b>{day && day.ready
           ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '\u2014')
-          : <Calculating />}</b><i>IQ today</i></span>
+          : '\u2014'}</b><i>IQ today</i></span>
         {/* THE DAY'S IQ RANK SITS BESIDE THE DAY'S IQ (owner, 2026-08-17). This
             bar is the card's DAY-WIDE axis and it was carrying only a points
             figure: the tiles below rank the player on this game's board and in
@@ -244,8 +312,9 @@ export default function LoftFinish({
           ? (day.dayRank != null
             ? <>#{Number(day.dayRank).toLocaleString()}{day.dayField != null ? <em>of {Number(day.dayField).toLocaleString()}</em> : null}</>
             : '\u2014')
-          : <Calculating />}</b><i>IQ rank today</i></span>
+          : '\u2014'}</b><i>IQ rank today</i></span>
       </div>
+      )}
       {/* Each figure gets its OWN colour (owner, 2026-08-14): four identical grey
           tiles read as one block and nothing stands out. */}
       <div className="loft-day">

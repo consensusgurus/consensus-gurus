@@ -536,6 +536,33 @@ export default function LoftCap({
 .loft-res-lost{background:var(--danger);border-left:6px solid var(--danger)}
 .loft-res.loft-res-lost b,.loft-res.loft-res-lost s{color:var(--white)}
 .loft-res s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
+
+/* UP NEXT, under the verdict (owner, 2026-08-17). The 'similar' option was a
+   half tile in the third row of .loft-opts; it is a band of its own now. Green
+   because that is already the similar tone, and outlined rather than filled so
+   it does not compete with the solid verdict directly above it. No icon: the
+   cap tiles above carry the game art, and the option a client passes has no
+   image in it. */
+.loft-next{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:11px;
+  background:rgba(21,128,61,0.09);border:2px solid rgba(21,128,61,0.26);
+  color:var(--ink);text-decoration:none;font-family:inherit;text-align:left;cursor:pointer}
+.loft-next:hover{background:rgba(21,128,61,0.14)}
+.loft-next .t{flex:1;min-width:0}
+.loft-next .eb{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--success-deep);margin-bottom:4px}
+/* Every line clamps: a long game name or tag must not make the band taller
+   than the verdict it sits under. */
+.loft-next .nm{display:block;font-weight:800;font-size:19px;line-height:1.05;letter-spacing:-.022em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loft-next .tg{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--muted);
+  margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loft-next .go{flex:none;background:var(--success-deep);color:var(--white);border-radius:10px;
+  padding:11px 15px;font-weight:800;font-size:13.5px;white-space:nowrap}
+@media(max-width:560px){
+  .loft-next{gap:9px;padding:10px 11px}
+  .loft-next .nm{font-size:17px}
+  .loft-next .go{padding:10px 13px;font-size:13px}
+}
 /* THE OPTIONS ARE A TWO-ACROSS GRID THAT GROWS (owner, 2026-08-14: "these
    buttons all need to be larger, and can split width if needed").
    They were a single stacked column of 11px-padded rows, which on a card sized
@@ -685,6 +712,17 @@ export default function LoftCap({
 .loft-calc i{font-style:normal;animation:loftdot 1.4s infinite}
 .loft-calc i:nth-child(2){animation-delay:.2s}
 .loft-calc i:nth-child(3){animation-delay:.4s}
+/* The IQ bar's SINGLE loading line, in place of three per-figure placeholders
+   (owner, 2026-08-17). See the comment on the bar in LoftFinish for the
+   overflow this replaced. One short nowrap string cannot outgrow the row, at
+   any width, so this needs no phone variant. The bar keeps its min-height, so
+   swapping this for the figures moves nothing below it. */
+.loft-fiq.calc1{gap:11px}
+.loft-fiq .cc{display:inline-flex;align-items:baseline;min-width:0;
+  font-weight:800;font-size:15px;letter-spacing:.02em;color:var(--white);white-space:nowrap}
+.loft-fiq .cc i{font-style:normal;animation:loftdot 1.4s infinite}
+.loft-fiq .cc i:nth-child(2){animation-delay:.2s}
+.loft-fiq .cc i:nth-child(3){animation-delay:.4s}
 @keyframes loftdot{0%,60%,100%{opacity:.25}30%{opacity:1}}
 
 /* The archive, opened IN the card. */
