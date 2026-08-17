@@ -3393,6 +3393,42 @@ Validate every bank with the full structural sweep before pushing.
 
 ---
 
+## THE REGISTRY KEY IS NOT THE ROUTE NAME, and two games differ (owner bug, 2026-08-17)
+
+Every per-game lookup on the site keys off the **registry key** in `lib/daily-games.js`, which is
+also the quiz-id prefix (`park-8-17-26`) and the localStorage namespace. It is NOT the folder name,
+the route, or the reader-facing name. For 63 of the 65 dailies all four happen to be the same word,
+so passing the wrong one is invisible. **Two games are exceptions**, both because they were renamed
+after launch while deliberately keeping their original key:
+
+| Game | Registry key | Route / folder | Reader-facing name |
+|---|---|---|---|
+| Parker | **`park`** | `/parker`, `app/parker/` | Parker |
+| Jesters | **`jester`** | `/jesters`, `app/jesters/` | Jesters |
+
+**A wrong key does not throw, it returns an EMPTY ANSWER**, which is why this shipped and sat there.
+`/api/quiz/daily-game` bails on `if (!DAILY_KEYS.includes(game)) return none`, and `none` is
+`{ field: 0, plays: 0, myRank: null }`; `DAILY_GAME_MAP[key]` on an unknown key is `undefined`, so a
+category lookup resolves to `cat: null` and reports itself `ready`. Both render as a dash next to a
+plausible-looking label, so the card looks finished and is simply wrong. Found on the Parker end
+card reading "**—** of **0** Parker all time" and "**—** category today"; `useGameAllTime({ game:
+'parker' })` and `useCategoryRank({ self: 'parker' })` had been wired with the route name, and
+Jesters carried the identical bug with `'jesters'`.
+
+**When adding or touching ANY per-game hook, prop or API call, pass the registry key.** As of
+2026-08-17 the consumers are `useGameAllTime({ game })`, `useCategoryRank({ self })`,
+`DailyBoardPanel self=`, `hintAllowed`/`spendHint`, `dailyAttemptRule`, `endGamePlan`, `dailyDept`,
+`hasSundayEdition`, and every `/api/quiz/daily-*` route. The cheap audit, which is worth running
+after any batch that touches the clients:
+
+```bash
+grep -rhoE "useGameAllTime\(\{ game: '[a-z]+'" app/*/*.jsx | grep -oE "'[a-z]+'" | tr -d "'" | sort -u > /tmp/used.txt
+grep -oE "key: '[a-z]+'" lib/daily-games.js | sed "s/key: '//;s/'//" | sort -u > /tmp/keys.txt
+comm -23 /tmp/used.txt /tmp/keys.txt   # anything printed is a dead key
+```
+
+A new game should be named so its key, folder and route match, precisely so this cannot recur.
+
 ## Sunday Editions — the flag, the label, and which games have one (owner rule, 2026-07-20)
 
 Twelve of the twenty daily games run a bigger/harder **Sunday Edition**. Eight do not.

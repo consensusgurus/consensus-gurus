@@ -500,9 +500,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const nextUp = useNextUnplayed({ self: 'jesters', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'jesters', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const allTime = useGameAllTime({ game: 'jesters', active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'jester', active: LOFT && !playing });
   const dayStats = useDayStats();
-  const catRank = useCategoryRank({ self: 'jesters', active: LOFT && !playing });
+  const catRank = useCategoryRank({ self: 'jester', active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 

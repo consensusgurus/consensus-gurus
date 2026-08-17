@@ -383,9 +383,9 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   const nextUp = useNextUnplayed({ self: 'parker', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'parker', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const allTime = useGameAllTime({ game: 'parker', active: LOFT && !playing });
+  const allTime = useGameAllTime({ game: 'park', active: LOFT && !playing });
   const dayStats = useDayStats();
-  const catRank = useCategoryRank({ self: 'parker', active: LOFT && !playing });
+  const catRank = useCategoryRank({ self: 'park', active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
