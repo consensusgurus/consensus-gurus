@@ -2403,13 +2403,35 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             // The status cell holds the one control that leaves for the
             // game, so a click anywhere inside it follows that link rather than
             // expanding, even if it lands on the cell's padding instead of the
-            // button itself (owner, 2026-08-08). Done rows are the exception by
-            // construction: their chip is a static score with no link in it, so
-            // there is nothing to follow and they expand like any other row.
+            // button itself (owner, 2026-08-08).
             const st = e.target.closest && e.target.closest('.sl-status');
             const go = st && st.querySelector('a[href]');
             if (go) { e.preventDefault(); window.location.assign(go.getAttribute('href')); return; }
             if (e.target.closest && e.target.closest('.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb')) return;
+            // A FINISHED ROW GOES BACK TO THE BOARD (owner, 2026-08-16). Its
+            // chip was a static score with no link in it and the row swallowed
+            // the name link's navigation, so a game you had already played was
+            // the ONE row on the slate with no path back to the page you played
+            // it on: you could open its stats and nothing else. It clicks
+            // through like every other row now, and the drawer moves to the
+            // archive chevron beside it.
+            // Gated on that chevron ACTUALLY BEING ON SCREEN rather than on a
+            // width: .sl-arch is display:none at 900px and under, where the
+            // drawer has no other opener, so the phone keeps the drawer on the
+            // row and reaches the board through the Play again chip at the top
+            // of it. Testing the affordance instead of the breakpoint means the
+            // two can never drift apart.
+            if (isDone) {
+              const ab = e.currentTarget.querySelector('.sl-ab');
+              if (ab && ab.offsetParent !== null) {
+                // Already inside a real link, so let the browser have it and
+                // keep middle-click and cmd-click opening a tab.
+                if (e.target.closest && e.target.closest('a[href]')) return;
+                e.preventDefault();
+                window.location.assign(g.href);
+                return;
+              }
+            }
             e.preventDefault(); // swallow the name link's navigation
             pick(g.key, e.currentTarget);
           }}
@@ -2485,7 +2507,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             {fail
               ? <a className="sl-btn fail" href={g.href} aria-label={`Retry ${g.name}`}>Retry</a>
               : isDone
-              ? <span className="sl-btn done">{sl || 'Done'}</span>
+              ? <a className="sl-btn done" href={g.href} aria-label={`Back to ${g.name}${sl ? `, you scored ${sl} today` : ', done today'}`}>{sl || 'Done'}</a>
               : ip
                 ? <a className="sl-btn prog" href={g.href} aria-label={`Resume ${g.name}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg>
@@ -3347,7 +3369,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-status{display:flex;justify-content:center;}
         .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
-        .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);cursor:default;}
+        /* A LINK NOW, NOT A LABEL (owner, 2026-08-16). The score chip is how a
+           finished row says Play, so it takes the same pointer and hover as
+           every other chip in this column; cursor:default read as inert. */
+        .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);}
+        .sl-btn.done:hover{background:var(--success-deep);border-color:var(--success-deep);color:var(--white);}
         .sl-btn.fail{border-color:#f6c9c4;background:#fdeceb;color:#b91c1c;}
         .sl-btn.fail:hover{background:#dc2626;border-color:#dc2626;color:var(--white);}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
