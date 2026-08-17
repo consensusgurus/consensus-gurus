@@ -186,7 +186,11 @@ export default function LoftFinish({
   // count toward the parity; otherwise the last option is forced wide and the
   // bottom row breaks apart.
   const archiveIsNarrow = !!(archive && archive.length);
-  const tailNarrow = (archiveIsNarrow ? 1 : 0) + mains.length;
+  // The browse toggle is a half tile too now (owner, 2026-08-17), so it counts
+  // toward the parity. With it and the Archive both narrow the grid pairs as
+  // Reveal/Replay, Play another/Archive, Show all/Back to main.
+  const browseIsNarrow = !!(roster.cats && roster.cats.length);
+  const tailNarrow = (archiveIsNarrow ? 1 : 0) + (browseIsNarrow ? 1 : 0) + mains.length;
   if ((narrow.length + tailNarrow) % 2 === 1 && narrow.length) wide.add(narrow[narrow.length - 1]);
 
   const rows = board && Array.isArray(board.rows) ? board.rows : [];
@@ -245,6 +249,50 @@ export default function LoftFinish({
   // of fourteen dates also wants the whole face rather than a squeezed strip
   // under six buttons. So it replaces the content instead of joining it, and
   // Back returns.
+  // ── the Daily Five run ────────────────────────────────────────────────────
+  // LoftFinish is handed a display `name`, not a key, so the roster is matched
+  // on it. Names are unique across the registry.
+  const runSelf = (DAILY_GAMES.find((g) => g.name === name) || {}).key || null;
+  const runMembers = inRun && runDay ? fiveFor(runDay) : [];
+  // A stale or hand-typed ?five=1 must not put a game inside a run that does
+  // not contain it.
+  const runActive = runMembers.length >= 2 && !!runSelf && runMembers.includes(runSelf);
+  // PLAYED, not SOLVED, and the game just finished always counts: its row may
+  // not be readable yet, but the player is looking at its result.
+  const runDone = new Set(runActive ? [runSelf] : []);
+  if (runActive && runPer) {
+    for (const [k, v] of Object.entries(runPer)) if (!(v && v.abandoned)) runDone.add(k);
+  }
+  const runN = runMembers.filter((k) => runDone.has(k)).length;
+  // Only call a run complete once the day's completions have actually landed,
+  // or the first finish of the run reports 1 of 1 and sends the player to the
+  // summary after one game.
+  const runComplete = runActive && !!runPer && runN === runMembers.length;
+  const runNextKey = runActive ? (runMembers.find((k) => k !== runSelf && !runDone.has(k)) || null) : null;
+  const runNext = runNextKey ? DAILY_GAME_MAP[runNextKey] : null;
+
+  // The board is the thing the run was FOR, so completing the fifth goes there
+  // rather than offering a button and waiting. Six seconds with a visible count
+  // and an escape hatch, the same shape as the card's own 30s auto-advance. The
+  // THIS WHOLE BLOCK MUST STAY ABOVE THE ARCHIVE EARLY RETURN (fixed
+  // 2026-08-17). It used to sit below it, with a comment arguing the effect
+  // is unconditional. It is, and that is not the test: an early return ABOVE
+  // a hook makes the hook conditional, so opening the archive rendered one
+  // fewer hook than the render before it and React threw "Rendered fewer
+  // hooks than expected". The computations move with the effect because the
+  // dependency array is evaluated during RENDER, so a hook placed above the
+  // consts it names is a temporal dead zone crash that esbuild accepts.
+  const runAuto = runComplete && !runStay;
+  useEffect(() => {
+    if (!runAuto) return undefined;
+    if (runSecs <= 0) {
+      if (typeof window !== 'undefined') window.location.href = '/daily-five';
+      return undefined;
+    }
+    const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [runAuto, runSecs]);
+
   if (openArchive && archive && archive.length) {
     return (
       <div className="loft-back">
@@ -273,45 +321,6 @@ export default function LoftFinish({
       </div>
     );
   }
-
-  // ── the Daily Five run ────────────────────────────────────────────────────
-  // LoftFinish is handed a display `name`, not a key, so the roster is matched
-  // on it. Names are unique across the registry.
-  const runSelf = (DAILY_GAMES.find((g) => g.name === name) || {}).key || null;
-  const runMembers = inRun && runDay ? fiveFor(runDay) : [];
-  // A stale or hand-typed ?five=1 must not put a game inside a run that does
-  // not contain it.
-  const runActive = runMembers.length >= 2 && !!runSelf && runMembers.includes(runSelf);
-  // PLAYED, not SOLVED, and the game just finished always counts: its row may
-  // not be readable yet, but the player is looking at its result.
-  const runDone = new Set(runActive ? [runSelf] : []);
-  if (runActive && runPer) {
-    for (const [k, v] of Object.entries(runPer)) if (!(v && v.abandoned)) runDone.add(k);
-  }
-  const runN = runMembers.filter((k) => runDone.has(k)).length;
-  // Only call a run complete once the day's completions have actually landed,
-  // or the first finish of the run reports 1 of 1 and sends the player to the
-  // summary after one game.
-  const runComplete = runActive && !!runPer && runN === runMembers.length;
-  const runNextKey = runActive ? (runMembers.find((k) => k !== runSelf && !runDone.has(k)) || null) : null;
-  const runNext = runNextKey ? DAILY_GAME_MAP[runNextKey] : null;
-
-  // The board is the thing the run was FOR, so completing the fifth goes there
-  // rather than offering a button and waiting. Six seconds with a visible count
-  // and an escape hatch, the same shape as the card's own 30s auto-advance. The
-  // effect sits here rather than beside the other hooks because it reads
-  // runComplete, which is computed just above; it is still unconditional, which
-  // is all rules of hooks asks.
-  const runAuto = runComplete && !runStay;
-  useEffect(() => {
-    if (!runAuto) return undefined;
-    if (runSecs <= 0) {
-      if (typeof window !== 'undefined') window.location.href = '/daily-five';
-      return undefined;
-    }
-    const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [runAuto, runSecs]);
 
   // IN A RUN, THIS IS THE WHOLE CARD. No IQ bar, no day tiles, no leaderboard,
   // no options grid, no browse-every-puzzle: the verdict, where you are in the
@@ -521,6 +530,16 @@ export default function LoftFinish({
             <span className="sub">Every daily puzzle, by date</span>
           </button>
         ) : null}
+        {/* Half width and BEFORE the held-back 'main' options, so it pairs with
+            Back to main on the last row (owner, 2026-08-17). The expanded panel
+            below still renders last: it spans the grid, so between the two it
+            would split the pair it belongs under. */}
+        {roster.cats.length ? (
+          <button type="button" className="loft-opt t-browse" onClick={() => setBrowse((v) => !v)}>
+            {browse ? 'Hide the other puzzles' : 'Show all puzzles by category'}
+            <span className="sub">{browse ? 'Back to your options' : (shownCat ? `Starting with ${shownCat}` : 'Every daily')}</span>
+          </button>
+        ) : null}
         {mains.map((o, i) => {
           const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}`;
           const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
@@ -528,12 +547,6 @@ export default function LoftFinish({
             ? <a key={`m${i}`} className={cls} href={o.href}>{inner}</a>
             : <button key={`m${i}`} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
         })}
-        {roster.cats.length ? (
-          <button type="button" className="loft-opt wide t-browse" onClick={() => setBrowse((v) => !v)}>
-            {browse ? 'Hide the other puzzles' : 'Show all puzzles by category'}
-            <span className="sub">{browse ? 'Back to your options' : (shownCat ? `Starting with ${shownCat}` : 'Every daily')}</span>
-          </button>
-        ) : null}
         {browse && roster.cats.length ? (
           <div className="loft-browse">
             <div className="loft-cats">
