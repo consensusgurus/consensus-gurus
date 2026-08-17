@@ -15,7 +15,22 @@
 // from. The delays are GAPS between attempts, not cumulative targets. It stops
 // early once the player's own row shows up, so a player who was already on the
 // board pays for one request.
+//
+// THE RANK IS THE SERVER'S, NOT AN INDEX INTO THE TEN ROWS (owner, 2026-08-16).
+// The board API returns the TOP TEN of each axis, and the end card used to rank
+// the player by their position within them, so anyone who finished eleventh or
+// worse had no row to be found in and the tile printed a dash (reported on Crux:
+// 20/24 in a field of 108). Passing the identity gets `me` back: the placement
+// on the FULL 'registered:first' board, that board's size, and the player's own
+// row. `myRank` prefers it and only falls back to the row index, so a payload
+// from an older deploy still renders.
+//
+// It also FIXES THE LADDER. "Am I on the board yet" was answered by scanning ten
+// rows, which is false for most players however long they wait, so every finish
+// outside the top ten burned all five attempts. `me.placement` answers it
+// properly, so those players now stop on the first read like everyone else.
 import { useEffect, useState } from 'react';
+import { dailyMeIdentity } from './dailyMeClient';
 
 const GAPS = [0, 1500, 2000, 2500, 4000];
 
@@ -35,9 +50,20 @@ export default function useDailyBoard({ quizId = null, active = false }) {
       const ident = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
       if (ident && ident.username) mine = String(ident.username).toLowerCase();
     } catch (e) {}
+    // The same identity the result was written under, so the server can find
+    // this player's row under either key shape. Reused from dailyMeClient rather
+    // than re-read here, so the two never drift on where the tokens live.
+    const { anonId, email } = dailyMeIdentity();
+    const who = new URLSearchParams();
+    if (anonId) who.set('anonId', anonId);
+    if (email) who.set('email', email);
+    // 'registered:first' is the axis rendered below, named explicitly so the
+    // rank and the rows can never come from different boards.
+    if (who.toString()) who.set('placeOn', 'registered:first');
+    const idq = who.toString() ? `&${who.toString()}` : '';
 
     const attempt = () => {
-      fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}${i > 0 ? `&_=${Date.now()}` : ''}`)
+      fetch(`/api/quiz/board?quizId=${encodeURIComponent(quizId)}${idq}${i > 0 ? `&_=${Date.now()}` : ''}`)
         .then((r) => r.json())
         .then((d) => {
           if (!alive || !d) return;
@@ -60,8 +86,12 @@ export default function useDailyBoard({ quizId = null, active = false }) {
           // in has finished yet) and is kept as one.
           const lb = d.leaderboards || {};
           const rows = [lb['registered:first'], d.leaderboard].find((a) => Array.isArray(a)) || [];
-          // Keep asking only while the player is not on the board yet.
-          const onIt = mine && rows.some((r) => String(r.username || '').toLowerCase() === mine);
+          // The server's answer when it gave one, the ten visible rows otherwise.
+          const me = d.me && d.me.placement != null ? d.me : null;
+          // Keep asking only while the player is not on the board yet. A found
+          // placement settles it whatever rank it is; without one, fall back to
+          // looking for them among the ten.
+          const onIt = !!me || (mine && rows.some((r) => String(r.username || '').toLowerCase() === mine));
           // `settled` says the player's own position on this board is FINAL:
           // their row is here, or the ladder is spent, or there is no identity to
           // find them by. The end card's rank tile needs it to tell "still
@@ -69,7 +99,15 @@ export default function useDailyBoard({ quizId = null, active = false }) {
           // a dash); without it an identified player whose row never arrives
           // would read Calculating forever.
           const last = i >= GAPS.length - 1;
-          setBoard({ plays: d.plays || 0, rows, mine, settled: !!onIt || last || !mine });
+          setBoard({
+            plays: d.plays || 0,
+            rows,
+            mine,
+            myRank: me ? me.placement : null,
+            field: me ? me.field : null,
+            myRow: me ? me.row : null,
+            settled: !!onIt || last || !mine,
+          });
           if (!onIt) schedule();
         })
         .catch(() => schedule());

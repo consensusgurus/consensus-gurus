@@ -31,8 +31,10 @@
 //
 // Props beyond title/detail/options:
 //   iq         from useIqStanding  — gained, xp, rank, total, todayGained
-//   board      from useDailyBoard  — { plays, rows, mine, settled }. Drives the
-//              leaderboard AND the first rank tile, so the two read one order.
+//   board      from useDailyBoard  — { plays, rows, mine, settled, myRank,
+//              field, myRow }. Drives the leaderboard AND the first rank tile,
+//              so the two read one order. `rows` is only the top ten; `myRank`
+//              and `myRow` are the server's answer for a player below them.
 //   day        from useDayStats    — the SHARED hook: { todayXp, dayRank,
 //              dayField, done, total, ready }. Its `total` already excludes
 //              retired games, and its fetch is memoized for the page load, so
@@ -124,7 +126,6 @@ export default function LoftFinish({
   const isMe = (r) => mine && String(r.username || '').toLowerCase() === mine;
   const shown = showAll ? rows : rows.slice(0, 3);
   const myIdx = rows.findIndex(isMe);
-  const myRow = !showAll && myIdx >= 3 ? rows[myIdx] : null;
   // THE FIRST TILE RANKS YOU ON THE BOARD PRINTED BELOW IT, not on the day's
   // combined board (owner, 2026-08-15). It used to show `day.dayRank`: your
   // place among everyone who banked ANY IQ today across all the dailies, which
@@ -134,7 +135,24 @@ export default function LoftFinish({
   // different question. The day-wide standing is still on the card as
   // "+N IQ today". Taken off the RENDERED rows so the tile and the row numbers
   // below can never disagree.
-  const myRank = myIdx >= 0 ? myIdx + 1 : null;
+  //
+  // BUT THE RENDERED ROWS ARE ONLY THE TOP TEN (owner, 2026-08-16), so an index
+  // into them answers nothing for the player who came 25th: it returned -1 and
+  // the tile printed a dash, which reads as "you did not place" rather than the
+  // truth, which is that they placed outside the ten shown. The API now returns
+  // the placement on the FULL board of that same axis, so `myRank` prefers it
+  // and keeps the index only as the fallback for a stale payload. The two still
+  // cannot disagree, because the server ranks the very board printed below.
+  const myRank = board && board.myRank != null
+    ? board.myRank
+    : (myIdx >= 0 ? myIdx + 1 : null);
+  const field = board && board.field != null ? board.field : null;
+  // Pin the player's own row under the top three when it is not already up
+  // there, whether it came out of the ten or off the server.
+  const inShown = myIdx >= 0 && (showAll || myIdx < 3);
+  const myRow = !inShown && myRank != null
+    ? (myIdx >= 0 ? rows[myIdx] : (board && board.myRow) || null)
+    : null;
 
   const lbRow = (r, i) => (
     <div key={i} className={`loft-lbr${i === 0 ? ' first' : ''}${isMe(r) ? ' me' : ''} cols`}>
@@ -214,9 +232,15 @@ export default function LoftFinish({
       {/* Each figure gets its OWN colour (owner, 2026-08-14): four identical grey
           tiles read as one block and nothing stands out. */}
       <div className="loft-day">
+        {/* The field size goes in the LABEL, matching the tile beside it
+            ("of 991 Crux all time"): a rank means little without the size of
+            the thing it is a rank in, and it is what tells a player that 25th
+            of 108 is a good day. */}
         <span className="d1"><b>{board && (myRank != null || board.settled)
           ? (myRank != null ? `#${myRank.toLocaleString()}` : '\u2014')
-          : <Calculating />}</b>on today&rsquo;s board</span>
+          : <Calculating />}</b>{myRank != null && field
+            ? `of ${Number(field).toLocaleString()} on today\u2019s board`
+            : <>on today&rsquo;s board</>}</span>
         <span className="d2"><b>{gameRank && gameRank.value != null
           ? gameRank.value
           : <Calculating />}</b>{gameRank ? gameRank.label : 'this game'}</span>
@@ -248,7 +272,7 @@ export default function LoftFinish({
           </div>
         ) : null}
         {shown.map(lbRow)}
-        {myRow ? lbRow(myRow, myIdx) : null}
+        {myRow ? lbRow(myRow, myRank - 1) : null}
         {rows.length > 3 ? (
           <button type="button" className="loft-more" onClick={() => setShowAll((v) => !v)}>
             {showAll ? 'Show less' : `Show all ${rows.length}`}

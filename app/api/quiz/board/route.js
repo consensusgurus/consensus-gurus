@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { buildLeaderboardMatrix } from '@/lib/quiz-anon';
+import { buildLeaderboardMatrix, playerStanding } from '@/lib/quiz-anon';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
+import { resolvePlayerKeys } from '@/lib/quiz-identity';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' };
+// A response carrying the caller's OWN placement is per-player, so it never goes
+// in a shared cache.
+const NO_STORE_HEADERS = { 'Cache-Control': 'no-store' };
+const AXES = new Set([
+  'registered:all', 'registered:mobile', 'registered:first',
+  'all:all', 'all:mobile', 'all:first',
+]);
 
 // Summarize completed games for a quiz into play count, average correct, and
 // the leaderboard (each signed-up user's best attempt, ranked by score desc
@@ -39,7 +47,21 @@ export function summarize(rows) {
   return { plays, best, topTime: Number.isFinite(topTime) ? topTime : null, leaderboard, leaderboardMobile, leaderboardFirst, leaderboardAll, leaderboards, scoreDist };
 }
 
-// GET /api/quiz/board?quizId=...  -> { plays, avg, leaderboard }
+// GET /api/quiz/board?quizId=...                       -> { plays, avg, leaderboard }
+// GET /api/quiz/board?quizId=&anonId=&email=&placeOn=  -> ...plus { me }
+//
+// THE CALLER'S OWN PLACEMENT (owner, 2026-08-16). Every board above is capped at
+// TEN rows, and the Loft end card was ranking the player by their INDEX in those
+// ten (`myRank` in LoftFinish). A player who finished outside the top ten was
+// simply not in the payload, so the rank tile printed a dash rather than a
+// number: an owner report on Crux, 20/24 in a field of 108, is what surfaced it.
+// The rows are already in this process's shared cache, so answering honestly
+// costs one more pass over ONE quiz's rows, not a second request.
+//
+// `placeOn` names the board the caller is PRINTING, because a rank from a
+// different axis than the rows shown underneath it is the same class of bug in a
+// new coat. It defaults to 'registered:first', which is what the end card and
+// DailyBoardPanel render.
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const quizId = (searchParams.get('quizId') || '').trim();
@@ -58,7 +80,25 @@ export async function GET(request) {
       return NextResponse.json({ error: 'db error' }, { status: 500 });
     }
     const data = (all || []).filter((r) => r.quiz_id === quizId);
-    return NextResponse.json(summarize(data), { headers: CACHE_HEADERS });
+    const anonId = (searchParams.get('anonId') || '').trim() || null;
+    const email = (searchParams.get('email') || '').trim() || null;
+    // No identity means the old, shared-cacheable answer, byte for byte.
+    if (!anonId && !email) return NextResponse.json(summarize(data), { headers: CACHE_HEADERS });
+    const asked = searchParams.get('placeOn');
+    const axis = AXES.has(asked) ? asked : 'registered:first';
+    const [population, filter] = axis.split(':');
+    let me = null;
+    try {
+      // resolvePlayerKeys, not a username match: one person's rows carry BOTH
+      // `u:<id>` and `a:<anon>` shapes, and matching on the display name is what
+      // the row-index approach was already doing.
+      const who = await resolvePlayerKeys(supabaseAdmin, { anonId, email });
+      const st = playerStanding(data, who.keys, { population, filter });
+      me = { key: who.primary, axis, placement: st.placement, field: st.field, row: st.row };
+    } catch (e) {
+      me = null; // the boards themselves are still worth returning
+    }
+    return NextResponse.json({ ...summarize(data), me }, { headers: NO_STORE_HEADERS });
   } catch (e) {
     return NextResponse.json({ error: 'db error' }, { status: 500 });
   }
