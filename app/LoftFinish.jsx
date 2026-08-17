@@ -36,7 +36,9 @@
 //              so the two read one order. `rows` is only the top ten; `myRank`
 //              and `myRow` are the server's answer for a player below them.
 //   day        from useDayStats    — the SHARED hook: { todayXp, dayRank,
-//              dayField, done, total, ready }. Its `total` already excludes
+//              dayField, done, total, ready }. BOTH day figures ride the blue
+//              bar: the points banked today and the rank they bought.
+//              Its `total` already excludes
 //              retired games, and its fetch is memoized for the page load, so
 //              the end card costs no extra request.
 //   streak     the game's own current streak, or null
@@ -228,6 +230,21 @@ export default function LoftFinish({
         <span className="today"><b>{day && day.ready
           ? (day.todayXp != null ? `+${Number(day.todayXp).toLocaleString()}` : '\u2014')
           : <Calculating />}</b><i>IQ today</i></span>
+        {/* THE DAY'S IQ RANK SITS BESIDE THE DAY'S IQ (owner, 2026-08-17). This
+            bar is the card's DAY-WIDE axis and it was carrying only a points
+            figure: the tiles below rank the player on this game's board and in
+            their category, and neither answers "where did today put me across
+            all the dailies". The figure was on the card once, on the first tile,
+            and was pulled on 2026-08-15 because it sat two inches above a header
+            reading "Today's board" and a field of eight, so it read as a wrong
+            answer to a different question. Beside "+N IQ today", off the SAME
+            useDayStats payload, it is unambiguous and the two can never
+            disagree. */}
+        <span className="today rank"><b>{day && day.ready
+          ? (day.dayRank != null
+            ? <>#{Number(day.dayRank).toLocaleString()}{day.dayField != null ? <em>of {Number(day.dayField).toLocaleString()}</em> : null}</>
+            : '\u2014')
+          : <Calculating />}</b><i>IQ rank today</i></span>
       </div>
       {/* Each figure gets its OWN colour (owner, 2026-08-14): four identical grey
           tiles read as one block and nothing stands out. */}

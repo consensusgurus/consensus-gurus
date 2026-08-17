@@ -585,6 +585,12 @@ export default function LoftCap({
 .loft-fiq .today b{display:block;font-weight:800;font-size:18px;line-height:1;color:var(--white)}
 .loft-fiq .today i{display:block;font-style:normal;font-weight:700;font-size:9px;line-height:1;
   letter-spacing:.09em;text-transform:uppercase;color:#cfe0ff;margin-top:4px}
+/* The day's IQ RANK, second of the two right-hand figures. .today carries
+   margin-left:auto to push itself to the right edge; a SECOND auto margin would
+   split the free space between the two and park them apart, so this one takes a
+   plain gap and rides along behind the first. */
+.loft-fiq .today.rank{margin-left:0;padding-left:18px}
+.loft-fiq .today b em{font-style:normal;font-weight:700;font-size:11px;margin-left:5px}
 
 /* Today's board, top three plus you when you are outside it. */
 /* THE RESERVE ONLY APPLIES WHILE THE BOARD IS STILL COMING BACK (owner,
@@ -646,6 +652,10 @@ export default function LoftCap({
   .loft-fiq .n{font-size:23px}
   .loft-fiq .m{font-size:10.5px}
   .loft-fiq .today b{font-size:15px}
+  /* Two figures plus the run of text is a lot for a phone: the field size is
+     the least of it, so it goes and the two figures stay. */
+  .loft-fiq .today.rank{padding-left:12px}
+  .loft-fiq .today b em{display:none}
 }
 .loft-day .d1{background:var(--accent-soft)}
 .loft-day .d1 b{color:var(--blue-deep)}

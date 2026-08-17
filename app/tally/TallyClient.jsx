@@ -457,7 +457,17 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       if (v) sum += v; else empty += 1;
     }
     const tgt = isRow ? ROWT[i] : COLT[i];
-    return { sum, empty, tgt, full: empty === 0, ok: empty === 0 && sum === tgt };
+    // OVER IS DECIDED THE MOMENT THE SUM PASSES THE TARGET, whether or not the
+    // line is full (owner report, 2026-08-17: a row reading 21 against a target
+    // of 19 with a square still open showed a neutral "now 21"). Every tile is
+    // a digit of 1 or more, so a line already past its target can never come
+    // back: the squares still open can only push it further over. Reporting
+    // that as a running total hides a settled mistake, and hides it longest on
+    // exactly the lines the player is still working. `bad` is the state the
+    // chip colours amber: this line cannot come right as it stands.
+    const over = sum > tgt;
+    const full = empty === 0;
+    return { sum, empty, tgt, full, over, ok: full && sum === tgt, bad: over || (full && sum !== tgt) };
   }
 
   const linesOk = (() => { let n = 0; for (let i = 0; i < N; i++) { if (lineState(i, true).ok) n++; if (lineState(i, false).ok) n++; } return n; })();
@@ -925,8 +935,8 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
     const st = lineState(i, isRow);
     const locked = lineMarked(i, isRow);
     const bg = st.ok ? COLORS.green : locked ? '#eef1f8' : T.white;
-    const bd = st.ok ? COLORS.green : locked ? COLORS.ember : st.full ? 'rgba(180,83,9,0.75)' : 'rgba(28,30,36,0.4)';
-    const tc = st.ok ? T.white : st.full ? COLORS.amber : COLORS.ink;
+    const bd = st.ok ? COLORS.green : locked ? COLORS.ember : st.bad ? 'rgba(180,83,9,0.75)' : 'rgba(28,30,36,0.4)';
+    const tc = st.ok ? T.white : st.bad ? COLORS.amber : COLORS.ink;
     const label = isRow ? 'row' : 'column';
     return (
       <div key={key} className={`tl-tgt${playing ? ' live' : ''}`} role={playing ? 'button' : undefined} tabIndex={playing ? 0 : undefined}
@@ -936,7 +946,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         aria-label={playing ? `${isRow ? 'Row' : 'Column'} ${i + 1} target ${isRow ? ROWT[i] : COLT[i]} — ${locked ? 'clear' : 'mark'} the right-${label} note on its tiles` : undefined}
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 13, border: `${locked && !st.ok ? 2 : 1.5}px solid ${bd}`, background: bg, fontFamily: MONO, lineHeight: 1.02, padding: '2px 0', minHeight: 34, boxSizing: 'border-box' }}>
         <span style={{ fontSize: 15, fontWeight: 500, color: st.ok ? T.white : locked ? COLORS.ember : tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
-        {!st.ok && <span style={{ fontSize: 8.5, color: st.full ? COLORS.amber : locked ? COLORS.ember : T.muted }}>{st.full ? `${st.sum > st.tgt ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
+        {!st.ok && <span style={{ fontSize: 8.5, color: st.bad ? COLORS.amber : locked ? COLORS.ember : T.muted }}>{st.bad ? `${st.over ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
       </div>
     );
   }
