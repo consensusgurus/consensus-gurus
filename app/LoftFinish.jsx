@@ -64,6 +64,9 @@
 import React, { useEffect, useState } from 'react';
 import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
+import { fiveFor, fiveHref, readFiveParam, FIVE_NAME } from '@/lib/daily-five';
+import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
+import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
 function fmtTime(s) {
   if (s == null) return null;
@@ -84,6 +87,36 @@ export default function LoftFinish({
   name = null, catRank = null,
 }) {
   const [showAll, setShowAll] = useState(false);
+  // Is this finish part of a Daily Five run? Read in an effect, never during
+  // render: the server has no window and no idea what today is in Eastern, so
+  // deriving either during render makes the first client paint disagree with
+  // the server's. False for the first paint, which is the correct answer for
+  // every ordinary finish.
+  const [inRun, setInRun] = useState(false);
+  const [runDay, setRunDay] = useState(null);
+  const [runPer, setRunPer] = useState(null);
+  useEffect(() => {
+    setInRun(readFiveParam());
+    try { setRunDay(new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })); }
+    catch (e) { setRunDay(new Date().toISOString().slice(0, 10)); }
+  }, []);
+  useEffect(() => {
+    if (!inRun || !runDay) return undefined;
+    const { anonId, email } = dailyMeIdentity();
+    if (!anonId && !email) return undefined;
+    let alive = true;
+    // The shared client, so this joins the request the page is already making
+    // rather than adding one. { fresh: true } because the row this finish just
+    // wrote is the whole point of asking.
+    const load = () => {
+      fetchDailyMe(dailyMeQuery({ anonId, email }), { fresh: true })
+        .then((d) => { if (alive && d && d.perGame) setRunPer(d.perGame); })
+        .catch(() => {});
+    };
+    load();
+    window.addEventListener('sot:daily-updated', load);
+    return () => { alive = false; window.removeEventListener('sot:daily-updated', load); };
+  }, [inRun, runDay]);
   const [openArchive, setOpenArchive] = useState(false);
   // BROWSE EVERY GAME BY CATEGORY (owner). The next-up tiles offer a handful;
   // this opens the whole roster, starting on the category just played, because
@@ -233,6 +266,89 @@ export default function LoftFinish({
                   : 'Play'}</span>
               </a>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── the Daily Five run ────────────────────────────────────────────────────
+  // LoftFinish is handed a display `name`, not a key, so the roster is matched
+  // on it. Names are unique across the registry.
+  const runSelf = (DAILY_GAMES.find((g) => g.name === name) || {}).key || null;
+  const runMembers = inRun && runDay ? fiveFor(runDay) : [];
+  // A stale or hand-typed ?five=1 must not put a game inside a run that does
+  // not contain it.
+  const runActive = runMembers.length >= 2 && !!runSelf && runMembers.includes(runSelf);
+  // PLAYED, not SOLVED, and the game just finished always counts: its row may
+  // not be readable yet, but the player is looking at its result.
+  const runDone = new Set(runActive ? [runSelf] : []);
+  if (runActive && runPer) {
+    for (const [k, v] of Object.entries(runPer)) if (!(v && v.abandoned)) runDone.add(k);
+  }
+  const runN = runMembers.filter((k) => runDone.has(k)).length;
+  // Only call a run complete once the day's completions have actually landed,
+  // or the first finish of the run reports 1 of 1 and sends the player to the
+  // summary after one game.
+  const runComplete = runActive && !!runPer && runN === runMembers.length;
+  const runNextKey = runActive ? (runMembers.find((k) => k !== runSelf && !runDone.has(k)) || null) : null;
+  const runNext = runNextKey ? DAILY_GAME_MAP[runNextKey] : null;
+
+  // IN A RUN, THIS IS THE WHOLE CARD. No IQ bar, no day tiles, no leaderboard,
+  // no options grid, no browse-every-puzzle: the verdict, where you are in the
+  // five, and one control. Five ordinary finishes in a row is the same page of
+  // furniture five times, and every block on it points away from the run the
+  // player is in the middle of. The summary arrives once, at /daily-five.
+  if (runActive) {
+    return (
+      <div className="loft-back">
+        <div className="loft-backin">
+          <style>{`
+            .d5f-run{display:flex;align-items:center;gap:10px;margin:12px 0 2px;}
+            .d5f-eye{font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#a98a2e;white-space:nowrap;}
+            .d5f-run.done .d5f-eye{color:#15803d;}
+            .d5f-pips{display:flex;gap:4px;flex:1;min-width:0;}
+            .d5f-pips span{flex:1;height:6px;border-radius:3px;background:#dbe2ee;}
+            .d5f-pips span.on{background:#10b981;}
+            .d5f-pips span.now{background:#2563eb;}
+            .d5f-alt{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px;}
+            .d5f-alt a{font-size:11.5px;font-weight:800;letter-spacing:.03em;color:#646c7a;text-decoration:none;}
+            .d5f-alt a:hover{color:#0b0c0e;}
+          `}</style>
+          <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
+
+          <div className={runComplete ? 'd5f-run done' : 'd5f-run'}>
+            <span className="d5f-eye">{FIVE_NAME} {'\u00b7'} {runN} of {runMembers.length}</span>
+            <span className="d5f-pips">
+              {runMembers.map((k) => (
+                <span key={k} className={runDone.has(k) ? 'on' : (k === runNextKey ? 'now' : '')} />
+              ))}
+            </span>
+          </div>
+
+          {runComplete ? (
+            <a className="loft-next" href="/daily-five">
+              <span className="t">
+                <span className="eb">Run complete</span>
+                <span className="nm">See how the run went</span>
+                <span className="tg">The board for all five, and every result</span>
+              </span>
+              <span className="go">Open</span>
+            </a>
+          ) : runNext ? (
+            <a className="loft-next" href={fiveHref(runNextKey)}>
+              <span className="t">
+                <span className="eb">Next in the run {'\u00b7'} {runN + 1} of {runMembers.length}</span>
+                <span className="nm">{runNext.name}</span>
+                {runNext.tag ? <span className="tg">{runNext.tag}</span> : null}
+              </span>
+              <span className="go">Play</span>
+            </a>
+          ) : null}
+
+          <div className="d5f-alt">
+            {!runComplete ? <a href="/daily-five">Run summary</a> : null}
+            <a href={(DAILY_GAME_MAP[runSelf] || {}).href || `/${runSelf}`}>Leave the run</a>
           </div>
         </div>
       </div>

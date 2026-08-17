@@ -4939,6 +4939,21 @@ the player is in the middle of**.
   honestly with the unplayed games as empty cards. `noindex`: every word on it is either an
   hourly leaderboard or one viewer's own results.
 
+**THE SURFACE IS `LoftFinish`, NOT `DailyEndCard`.** Every one of the 65 dailies is on the
+Loft format, so the run branch lives in `LoftFinish.jsx`, NOT `DailyEndCard.jsx`. The run
+card was written into `DailyEndCard` first and never appeared once, on any game: it is the
+component everything in this file is documented against, and it is not the one on screen.
+This is the fifth-mirror trap already recorded above under LoftFinish. When changing what a
+player sees after a daily, change `LoftFinish`, and **verify on the live page rather than on
+the component you edited**. `DailyEndCard` keeps its own copy of the run branch for any
+surface still rendering it, which is why both exist.
+
+`LoftFinish` is handed a display `name`, not a key, so the run matches on it against
+`DAILY_GAMES` (names are unique). The branch is an EARLY RETURN placed after every hook in
+the component (showAll, openArchive, browse, the IQ ceiling effect, useDailyRoster, pickCat,
+and the three the run adds), so the ordinary path is untouched and rules of hooks hold. Any
+hook added to that component later must go ABOVE it.
+
 **THE GENERIC AUTO-ADVANCE MUST BE SUPPRESSED IN A RUN.** `autoRun` in `DailyEndCard` sends
 the player to the most similar unplayed daily after 30 seconds. Inside a run that walks them
 out of it and into an unrelated game, so `autoRun` carries `&& !runActive` and the run has
