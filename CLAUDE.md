@@ -4785,3 +4785,145 @@ board was reverted to the full visible bracket tree (owner call: seeing the whol
 point of that game). The zoomed-in arena went with it, and the chip lane was part of the arena, so
 there is no Bracket copy of this CSS to keep in sync. Do NOT go looking for one, and do not
 reintroduce the arena into Bracket to restore the pairing. Pricer keeps the layout unchanged.
+
+## The Daily Five: a five-game run with one combined board (owner, 2026-08-17)
+
+Five dailies, one from each of five different categories, played as one sitting, with a
+leaderboard that ranks on the **combined placement across all five**. The roster for each
+date is a hand-picked, dated bank in **`lib/daily-five.js`**, which is the single source of
+truth: the console band, the in-game strip and the board all read it, and adding a day means
+adding one line there.
+
+**It is a LENS OVER THE ROSTER, never a second content stream.** The five are the same
+puzzles everybody else plays, on the same dates, scored by the same engine. Nothing about
+the run is stored: no table, no flag on a row, no opt-in. A game played on its own still
+counts toward the run, so there is no way to be locked out of it by playing in the wrong
+order, and no way for the run and the per-game board to disagree about a result.
+
+### The board is `/api/quiz/daily-combined?five=1`, not a route of its own
+
+`?five=1` narrows that route's slate to `fiveForSuffix(suffix)` and drops `bestN` to 5.
+**That is the entire difference.** Everything else runs untouched: the same `scoreGame`, the
+same ladder, the same crowd recomputes for Outwit/Outrank/Feud, the same guest provisional,
+the same day freeze, the same caches. A route of its own would have meant a second copy of a
+comparator that this file already says twice must never be copied (`buildLeaderboard` and
+`scoreGame` are the two mirrors), and it would have drifted the first time either moved.
+
+- The response carries **`five: true`** so a client cannot mistake one payload for the other
+  when both are in flight.
+- An **unbanked date falls through to the full slate** rather than returning an empty board,
+  which is why the flag is `fiveKeys.length >= 2` and not the raw query param.
+- Max is `5 x GAME_MAX` = **75**, and it comes off `maxTotal` in the payload. Never hardcode
+  it on a client: the day's real ceiling drops if a game did not publish.
+
+### Why COMBINED PLACEMENT and not score
+
+The five games do not share a unit. A mini crossword is 25 squares, Sixes is a clock, Dating
+is five events in order, Four is binary. Raw scores are not comparable, so each game's FINISH
+converts to the fixed ladder `gamePoints()` already pays (15/12/10/8/7/6/5/4/3/2/1 by
+position, registered-only) and the run adds the five up. That also means a player who wins one
+game and skips four cannot beat a player who came 4th in all five, which is the whole reason
+to run a five rather than five separate boards.
+
+### Four rules for the bank, all enforced by `scripts/verify-daily-five.mjs`
+
+1. **Five different categories, every day.** That is what makes the run a spread rather than
+   a genre, and what gives it five different boards and five different end screens. The shape
+   is Word + Numbers + Logic (the three deep pools, 15/10/16 games, so the bank can always be
+   filled) plus **two rotating** from Trivia, End Game, Geography, Cards, Arcade and Crowd,
+   shared **in proportion to pool size**. Geography, Cards and Arcade hold two games each, so
+   giving them a slot as often as Trivia would put the same two games in the run every seventh
+   day forever.
+2. **A time budget, and the day ascends: SHORTEST FIRST, LONGEST LAST** (owner, 2026-08-17).
+   Two separate things, both measured rather than guessed. Over 14 days of leaderboard rows,
+   Dating's median is 22 seconds and Sando's is 1,171, so a weekday five is banked to 600-1000
+   seconds of top-10 median (the fast end of the field, so an ordinary player lands around 12
+   to 18 minutes); Monday runs shorter. Without a budget the generator cheerfully produced
+   30-minute Sundays. The ORDER then ascends by that same median, so the run opens with
+   something you finish in half a minute and closes with the one that takes real time: a
+   player who has banked four games has a reason to start the fifth, where the same five with
+   the long one first loses people before they have anything invested. **The categories decide
+   MEMBERSHIP, the clock decides SEQUENCE** — an earlier draft ordered each row by category
+   (Word, Numbers, Logic, then the two rotating), which is why the array order in the bank is
+   not that. The 2026-08-17 launch five is deliberately the shortest in the bank (5:42) because
+   the run shipped mid-afternoon Eastern.
+   The medians live in `scripts/verify-daily-five.mjs` as a DATED SNAPSHOT, not in the library:
+   they are a measurement with a date on it rather than a fact about the games, and shipping
+   them in `lib/daily-five.js` would invite a client to render them as one. Re-measure by
+   pooling `timeElapsed` off `/api/quiz/daily-combined?date=<suffix>` over a couple of weeks.
+   The order check carries 25% tolerance per step so drift cannot fail a good bank.
+3. **At least seven days between repeats** of any one game.
+4. **The bank is dated and hand-picked, never derived at read time.** A date with no entry
+   simply has no run: `fiveFor` returns `[]`, every consumer renders nothing, and the site is
+   exactly as it was. **Do NOT add a computed fallback** to cover a gap; check the runway
+   instead. The verifier warns under 14 days left and fails when the bank is exhausted.
+
+**THE CHECK THAT EARNED ITS KEEP: every game must have PUBLISHED a puzzle on the date it is
+banked for.** A game with no puzzle that day is not an error anywhere. `gamesForSuffix`
+silently skips it, so the run quietly becomes a four with a 60-point ceiling and nothing on
+any surface says so. The first hand-written bank named four games (listed, deep, chain, babel)
+on dates their own puzzle banks do not reach. Generate the bank against real publication data
+and review it; never type one from memory.
+
+Two things that will bite a future bank edit: **Pricer is excluded on purpose** (it is pulled
+from the server slate in `lib/daily-slate` `GAME_PUZZLES`, so it has no board, no field and
+no points, and a run cannot contain a game the scoring engine cannot see), and the puzzle
+banks are **not written in one style** — hand-authored ones read `quizId: 'lode-8-2-26'` while
+every generated one is JSON-stringified as `"quizId":"lode-8-2-26"`. A checker regex that
+assumed the first form found ZERO puzzles in the generated banks, which reports as "published
+no puzzle" on every date rather than as a parse failure, so the most useful test was also the
+most confidently wrong one. Match both, and treat an empty set as unreadable, not as empty.
+
+### The three surfaces
+
+- **`app/DailyFiveBand.jsx`** — the console band, mounted in `DailyStrip.jsx` between the
+  title band and the cap. First thing on the console, and it takes no slot away: the cap keeps
+  all three cards. The only GOLD-ruled thing on the surface, because an open run is unfinished
+  business and gold is what this console already paints unfinished business with; the rule
+  turns green when all five are done. One request, `?five=1`, which answers every question it
+  asks at once. On a phone the five-across track collapses to pips plus a list, because five
+  cards side by side at 390px is unreadable.
+- **`app/DailyFiveBar.jsx`** — the in-game strip, mounted ONCE in `DailyChrome.jsx` so one
+  edit puts it on all 63 dailies. It shows **only during a run** (the `?five=1` flag), so
+  opening `/suds` directly shows nothing and a player who did not ask for a run is never told
+  they are behind on one. It renders on the Loft branch too: the slate rail is a browse
+  surface, this is navigation for something already in progress. Costs no request of its own,
+  riding the shared `daily-me` client.
+- **The hand-off** is the `Next: <game>` control on that strip, which is what turns a finished
+  game into the next game. **Still owed: the same hand-off inside `DailyEndCard.jsx`**, which
+  is the higher-attention moment. Do that next.
+
+`?five=1` is the ONLY state a run carries. No cookie, no localStorage, no row. A run therefore
+survives a reload, a share and a cold browser, and leaving one is the same URL without the
+flag, which is exactly what the strip's Leave control links to.
+
+### Rules it must not break
+
+- **PLAYED, not SOLVED.** An abandoned row is a started-and-left run and is not a tick, the
+  same test the slate rail uses. Solved-versus-failed needs data these payloads do not carry
+  per game, and navigation only needs to know what is left.
+- **Which attempt counts is each game's own rule.** `dailyAttemptRule()` is the only source:
+  ordinary dailies keep the first attempt, End Game titles rank on attempts to solve, Arcade
+  keeps the best run. No surface here restates it per game.
+- **Guests play the run** and are scored into `overallFull` exactly as they are on the full
+  board. Only registered positions pay, per `gamePoints`.
+- **IQ Points are untouched.** The run changes what a player is shown, not what a play is
+  worth.
+- **The five roll at Eastern midnight** with the puzzles, and a completed day freezes.
+- **The day is read in an EFFECT on both clients, never during render.** The server has no
+  idea what today is in Eastern, so computing it during render makes the first client paint
+  disagree with the server's and React throws. Same rule `isSundayET` follows.
+- **The board below the band is measured to the fold** (`--dh-fit`), and the fit effect
+  re-runs on resize, on a ResizeObserver on the CAP, and on two late timers. The band is
+  neither the cap nor a resize, so opening its leaderboard dispatches a resize rather than
+  adding a second observer above the board, which is another way to build the loop that
+  effect's own comment warns about.
+
+### Wiring is applied by `scripts/patch-daily-five.mjs`, as anchored edits
+
+The three files the run touches (`DailyStrip.jsx` at 4,769 lines, `DailyChrome.jsx`, the
+combined route) are patched by anchor + insertion against a copy taken from a fetch in the
+SAME deploy step, never from the working tree. Every anchor must match **exactly once**: zero
+means origin moved, two means the anchor is not specific enough and the patch would land
+twice, and both throw. That is the deploy section's stale-base rule applied to a change too
+large to re-write whole.

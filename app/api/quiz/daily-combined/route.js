@@ -8,6 +8,7 @@ import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
 import { isEndGameQuizId, endGamePlan, arcadeRanksForQuizId } from '@/lib/daily-games';
 import { GAME_PUZZLES, etTodayServer, suffixOfDate, gamesForSuffix } from '@/lib/daily-slate';
+import { fiveForSuffix, FIVE_SIZE } from '@/lib/daily-five';
 
 // The day's slate (which puzzle each game published on a date) lives in
 // lib/daily-slate.js, shared with /api/quiz/daily-me. This route used to carry
@@ -241,7 +242,18 @@ export async function GET(request) {
   // The games that ran on that date (skip any that didn't publish that day). Each
   // game gets a play href for THAT date: today's slate links to the live game
   // (streak-counting), an archived day links to that exact puzzle via ?p=<num>.
-  const games = gamesForSuffix(DAILY_KEYS, suffix, today);
+  // THE DAILY FIVE IS THIS SAME BOARD OVER A FIVE-GAME SLATE (owner,
+  // 2026-08-17). ?five=1 narrows the day's games to lib/daily-five's roster and
+  // drops best-N to five, and that is the ENTIRE difference. Everything else
+  // here runs untouched: the same scoreGame, the same ladder, the same crowd
+  // recomputes, the same guest provisional, the same day freeze. That is the
+  // point of doing it here rather than in a route of its own, which would have
+  // meant a second copy of a comparator this file's own comments say must never
+  // be copied. An unbanked date has no roster, so the flag falls through to the
+  // full slate rather than returning an empty board.
+  const fiveKeys = searchParams.get('five') === '1' ? fiveForSuffix(suffix) : [];
+  const fiveOnly = fiveKeys.length >= 2;
+  const games = gamesForSuffix(fiveOnly ? fiveKeys : DAILY_KEYS, suffix, today);
   const wanted = new Set(games.map((g) => g.quizId));
   // FROZEN: the Eastern day is over, so this board is final. Rows that landed
   // after midnight still count for their own game's leaderboard (read straight
@@ -252,14 +264,14 @@ export async function GET(request) {
   // Best-N and the ceiling scale to how many games existed that day (1..10).
   const gameCount = games.length;
   // best-N is per-day: best 10 from the 2026-07-24 slate on, best 5 before.
-  const dayBestN = bestNForSuffix(suffix);
+  const dayBestN = fiveOnly ? FIVE_SIZE : bestNForSuffix(suffix);
   // Which points rule this day pays, so the client can print the matching
   // explainer on an archived day instead of describing today's rule.
   const ladder = usesLadder(suffix);
   const effBestN = gameCount ? Math.min(dayBestN, gameCount) : dayBestN;
   const maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: suffix, frozen, maxTotal, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
+  const empty = { date: suffix, five: fiveOnly, frozen, maxTotal, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
     // Read ONLY this day's quizIds (indexed by quiz_results_quiz, migration 20)
     // rather than the whole table. This route never looks at a row outside
@@ -490,6 +502,9 @@ export async function GET(request) {
 
     return NextResponse.json({
       date: suffix,
+      // Whether this payload is the five-game run or the full slate, so a
+      // client cannot mistake one for the other when both are in flight.
+      five: fiveOnly,
       // The day is over and this board is final. Clients label it, and nothing
       // posted since Eastern midnight is in it.
       frozen,

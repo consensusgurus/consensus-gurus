@@ -43,6 +43,7 @@
 import React from 'react';
 import QuizNavHeader from './quizzes/QuizNavHeader';
 import DailySlateRail from './DailySlateRail';
+import DailyFiveBar from './DailyFiveBar';
 import useLoft from './useLoft';
 
 export default function DailyChrome({ slug, loft: loftProp = false }) {
@@ -65,6 +66,17 @@ export default function DailyChrome({ slug, loft: loftProp = false }) {
       <style>{'.dch-wrap{position:relative;z-index:5;}' + (loft ? '.dch-loft .qchm-r2{display:none}' : '')}</style>
       <QuizNavHeader />
       {!loft && <DailySlateRail current={slug} />}
+      {/* The Daily Five run strip. Mounted HERE rather than in each game
+          client, which is the whole reason this component exists: one edit puts
+          it on all 63 dailies. It renders on the LOFT branch too, deliberately.
+          The rail above is a browse surface and dropping it on Loft was a
+          choice about where CHOOSING another daily belongs; this is navigation
+          for a run already in progress, which is a different thing and belongs
+          above the board. It returns null unless the page was opened with
+          ?five=1 AND this game is in today's run, so on every ordinary page
+          load it costs one mounted component that renders nothing and asks for
+          nothing. */}
+      <DailyFiveBar slug={slug} />
     </div>
   );
 }
