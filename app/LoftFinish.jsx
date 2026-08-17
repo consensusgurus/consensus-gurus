@@ -95,6 +95,8 @@ export default function LoftFinish({
   const [inRun, setInRun] = useState(false);
   const [runDay, setRunDay] = useState(null);
   const [runPer, setRunPer] = useState(null);
+  const [runSecs, setRunSecs] = useState(6);
+  const [runStay, setRunStay] = useState(false);
   useEffect(() => {
     setInRun(readFiveParam());
     try { setRunDay(new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })); }
@@ -294,6 +296,23 @@ export default function LoftFinish({
   const runNextKey = runActive ? (runMembers.find((k) => k !== runSelf && !runDone.has(k)) || null) : null;
   const runNext = runNextKey ? DAILY_GAME_MAP[runNextKey] : null;
 
+  // The board is the thing the run was FOR, so completing the fifth goes there
+  // rather than offering a button and waiting. Six seconds with a visible count
+  // and an escape hatch, the same shape as the card's own 30s auto-advance. The
+  // effect sits here rather than beside the other hooks because it reads
+  // runComplete, which is computed just above; it is still unconditional, which
+  // is all rules of hooks asks.
+  const runAuto = runComplete && !runStay;
+  useEffect(() => {
+    if (!runAuto) return undefined;
+    if (runSecs <= 0) {
+      if (typeof window !== 'undefined') window.location.href = '/daily-five';
+      return undefined;
+    }
+    const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [runAuto, runSecs]);
+
   // IN A RUN, THIS IS THE WHOLE CARD. No IQ bar, no day tiles, no leaderboard,
   // no options grid, no browse-every-puzzle: the verdict, where you are in the
   // five, and one control. Five ordinary finishes in a row is the same page of
@@ -333,7 +352,7 @@ export default function LoftFinish({
                 <span className="nm">See how the run went</span>
                 <span className="tg">The board for all five, and every result</span>
               </span>
-              <span className="go">Open</span>
+              <span className="go">{runAuto ? (runSecs > 0 ? `Opening in ${runSecs}s` : 'Opening\u2026') : 'Open'}</span>
             </a>
           ) : runNext ? (
             <a className="loft-next" href={fiveHref(runNextKey)}>
@@ -348,6 +367,7 @@ export default function LoftFinish({
 
           <div className="d5f-alt">
             {!runComplete ? <a href="/daily-five">Run summary</a> : null}
+            {runAuto ? <a href="#" onClick={(e) => { e.preventDefault(); setRunStay(true); }}>Stay here</a> : null}
             <a href={(DAILY_GAME_MAP[runSelf] || {}).href || `/${runSelf}`}>Leave the run</a>
           </div>
         </div>

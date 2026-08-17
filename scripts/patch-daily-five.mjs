@@ -318,6 +318,58 @@ hook added to that component later must go ABOVE it.
     ],
   },
   {
+    // Phase 4: finishing the fifth TAKES you to the board rather than offering
+    // it (owner, 2026-08-17). Its own entry so a re-run skips it independently.
+    file: 'app/LoftFinish.jsx',
+    applied: 'const runAuto = runComplete',
+    edits: [
+      {
+        what: 'countdown state',
+        anchor: '  const [runPer, setRunPer] = useState(null);',
+        after: '\n  const [runSecs, setRunSecs] = useState(6);\n  const [runStay, setRunStay] = useState(false);',
+      },
+      {
+        what: 'auto-advance to the summary once the run is complete',
+        anchor: '  // IN A RUN, THIS IS THE WHOLE CARD.',
+        before: `  // The board is the thing the run was FOR, so completing the fifth goes there
+  // rather than offering a button and waiting. Six seconds with a visible count
+  // and an escape hatch, the same shape as the card's own 30s auto-advance. The
+  // effect sits here rather than beside the other hooks because it reads
+  // runComplete, which is computed just above; it is still unconditional, which
+  // is all rules of hooks asks.
+  const runAuto = runComplete && !runStay;
+  useEffect(() => {
+    if (!runAuto) return undefined;
+    if (runSecs <= 0) {
+      if (typeof window !== 'undefined') window.location.href = '/daily-five';
+      return undefined;
+    }
+    const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [runAuto, runSecs]);
+
+`,
+      },
+      {
+        what: 'show the countdown and the escape',
+        anchor: `                <span className="nm">See how the run went</span>
+                <span className="tg">The board for all five, and every result</span>
+              </span>
+              <span className="go">Open</span>`,
+        replace: `                <span className="nm">See how the run went</span>
+                <span className="tg">The board for all five, and every result</span>
+              </span>
+              <span className="go">{runAuto ? (runSecs > 0 ? \`Opening in \${runSecs}s\` : 'Opening\\u2026') : 'Open'}</span>`,
+      },
+      {
+        what: 'the escape hatch beside Leave the run',
+        anchor: `            {!runComplete ? <a href="/daily-five">Run summary</a> : null}`,
+        replace: `            {!runComplete ? <a href="/daily-five">Run summary</a> : null}
+            {runAuto ? <a href="#" onClick={(e) => { e.preventDefault(); setRunStay(true); }}>Stay here</a> : null}`,
+      },
+    ],
+  },
+  {
     // THE END CARD, INSIDE A RUN (owner, 2026-08-17). A player who opted into
     // the Daily Five should not be handed five full end cards: each is an IQ
     // hero, rank tiles, a share bar, "up next", "easiest leaderboard", the whole
