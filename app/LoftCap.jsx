@@ -555,7 +555,7 @@ export default function LoftCap({
    on the finish card while it sat, fully visible, in the flow under the board.
    The face is display:none when .on, so it needs no gate either. Do NOT
    reintroduce either rule without also reinstating the 3D turn. */
-.loft-res{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;
+.loft-res{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;
   padding-bottom:9px;border-bottom:1px solid var(--border)}
 .loft-res b{font-weight:800;font-size:17px;line-height:1}
 /* The verdict, moved off the cap. A full-bleed tinted header with a solid left
