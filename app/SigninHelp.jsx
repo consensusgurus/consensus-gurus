@@ -22,6 +22,17 @@ import React, { useState } from 'react';
 import { T } from '@/lib/theme';
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+// Same custom-property ink as JoinLeaderboardForm, for the same reason: this
+// renders straight onto the page ground, and on a navy Loft page the prominent
+// link was var(--accent), the exact colour of the ground behind it. See the INK
+// note in app/quiz/[id]/JoinLeaderboardForm.jsx. Unset on the light surfaces
+// (the claim-your-name modals) the fallbacks apply and nothing changes.
+const INK = {
+  body: `var(--join-body, ${T.ink})`,
+  soft: `var(--join-soft, ${T.slate})`,
+  loud: `var(--join-loud, ${T.accent})`,
+  ok: `var(--join-ok, ${T.successDeep})`,
+};
 
 // The server says `username_taken` when a name is already registered. That is the
 // exact moment a locked-out player needs this, so callers pass the error text and
@@ -69,7 +80,7 @@ export default function SigninHelp({ name = '', email = '', prominent = false })
 
   if (sent) {
     return (
-      <p style={{ fontFamily: FONT, fontSize: 12.5, fontWeight: 700, color: T.successDeep, margin: '12px 0 0' }}>
+      <p style={{ fontFamily: FONT, fontSize: 12.5, fontWeight: 700, color: INK.ok, margin: '12px 0 0' }}>
         Thanks. That went to the editors with your details, and someone will reconnect your account.
       </p>
     );
@@ -78,7 +89,7 @@ export default function SigninHelp({ name = '', email = '', prominent = false })
   if (open) {
     return (
       <div style={{ marginTop: 12 }}>
-        <p style={{ fontFamily: FONT, fontSize: 12.5, color: T.ink, margin: '0 0 8px' }}>
+        <p style={{ fontFamily: FONT, fontSize: 12.5, color: INK.body, margin: '0 0 8px' }}>
           Tell us what happens when you try. Your display name and browser details are attached automatically.
         </p>
         <textarea
@@ -95,7 +106,7 @@ export default function SigninHelp({ name = '', email = '', prominent = false })
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
           <button
             onClick={() => setOpen(false)}
-            style={{ fontFamily: FONT, fontSize: 12.5, fontWeight: 700, background: 'transparent', border: 'none', color: T.slate, cursor: 'pointer', padding: '8px 10px' }}
+            style={{ fontFamily: FONT, fontSize: 12.5, fontWeight: 700, background: 'transparent', border: 'none', color: INK.soft, cursor: 'pointer', padding: '8px 10px' }}
           >
             Cancel
           </button>
@@ -119,7 +130,7 @@ export default function SigninHelp({ name = '', email = '', prominent = false })
         fontFamily: FONT, textAlign: 'left', textDecoration: 'underline',
         fontSize: prominent ? 13 : 12,
         fontWeight: prominent ? 800 : 600,
-        color: prominent ? T.accent : T.slate,
+        color: prominent ? INK.loud : INK.soft,
       }}
     >
       {prominent

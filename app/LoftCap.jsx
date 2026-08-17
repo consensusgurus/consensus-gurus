@@ -446,6 +446,30 @@ export default function LoftCap({
   background:rgba(255,255,255,0.10)!important;border:1.5px solid rgba(255,255,255,0.45)!important;
   border-radius:9px!important;padding:10px 20px!important}
 .loft-page .loft-showchrome:hover{background:rgba(255,255,255,0.20)!important}
+/* THE JOIN FORM IS BODY COPY ON THE NAVY, and it shipped in the light-page ink
+   (owner, 2026-08-17: the "see your stats and join the leaderboard" text
+   "blends into the navy background"). It is the block a player is sent to by the
+   end card's sign-up action, so an anonymous player who has just finished a game
+   lands on it. Measured on the live page before the fix: the heading ran 1.8:1
+   against this ground, the two intro paragraphs and the field labels 1.0 to
+   1.1:1, and the prominent "I cannot get back in" link was var(--accent), the
+   EXACT colour of the ground, so it was not low contrast, it was invisible.
+
+   RE-INKED WITH CUSTOM PROPERTIES rather than the !important overrides used
+   above, and that is mechanism rather than taste. JoinLeaderboardForm and
+   SigninHelp set their colours INLINE, inline beats a stylesheet at any
+   specificity, and the broad tail catch-all a few rules up provably matches
+   nothing (see its own comment). A var with a light-page fallback declared in
+   the component is the only thing that lets ONE rule here move all of them.
+   Unset on every other surface that renders those two components (the /quiz
+   boards, the claim-your-name modals, ShareCreditPop) the fallbacks apply, so
+   nothing off a loft page changes.
+
+   The white INPUT FIELDS are deliberately absent: they carry their own ground
+   and keep their dark ink. The values are the tail's existing palette, so the
+   form reads as the same object as the copy above it. */
+.loft-page{--join-head:var(--white);--join-body:#bfd0ee;--join-soft:#9dc0f5;
+  --join-loud:#ffd45e;--join-ok:#6ee7b7;--join-err:#ffb4a8}
 .loft-page footer{color:#bfd0ee!important;border-top-color:rgba(255,255,255,0.18)!important}
 .loft-page footer b,.loft-page footer strong,.loft-page footer h3,.loft-page footer h4{color:var(--white)!important}
 .loft-page footer a{color:#dbe9ff!important}

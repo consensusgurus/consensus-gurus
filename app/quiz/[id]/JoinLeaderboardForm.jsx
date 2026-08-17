@@ -10,9 +10,35 @@ import SigninHelp, { isLockedOut } from '../../SigninHelp';
 // fires after a successful join so the board can update its own identity and
 // navigate; onViewLeaderboard switches to the leaderboard tab.
 const C = { ember: T.accent, ink: T.ink, faded: T.muted, forest: T.success };
+// INK: this form's text colours, as CSS custom properties with the light-page
+// value as the fallback.
+//
+// WHY. The form sets its colours INLINE, and inline beats a stylesheet at any
+// specificity, so a dark page cannot re-ink it with an ordinary rule. It is
+// rendered straight onto the navy ground of every daily Loft page, where the
+// whole block shipped in near-black (owner, 2026-08-17: the "see your stats and
+// join the leaderboard" text "blends into the navy background"). Measured on the
+// live page before the fix: the heading ran 1.8:1 against that ground, the two
+// intro paragraphs and the field labels 1.0 to 1.1:1, and the prominent
+// SigninHelp link was var(--accent), the EXACT colour of the ground.
+//
+// A var with a fallback is the one mechanism that lets a single rule move all of
+// them without an !important war. app/LoftCap.jsx sets the navy values under
+// .loft-page. Unset everywhere else (the /quiz boards, the claim-your-name
+// modals, ShareCreditPop) the fallbacks apply and nothing changes.
+//
+// The INPUT FIELDS are deliberately not in here: they carry their own white
+// ground, so they keep their dark ink on a navy page too.
+const INK = {
+  head: `var(--join-head, ${T.ink})`,
+  body: 'var(--join-body, #4a4339)',
+  soft: `var(--join-soft, ${T.muted})`,
+  ok: `var(--join-ok, ${T.success})`,
+  err: `var(--join-err, ${T.accent})`,
+};
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const labelStyle = { display: 'block', fontFamily: FONT, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.faded, marginBottom: 6 };
+const labelStyle = { display: 'block', fontFamily: FONT, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: INK.soft, marginBottom: 6 };
 const fieldStyle = { width: '100%', fontFamily: FONT, fontSize: 16, padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${C.ink}`, background: T.white, color: C.ink, boxSizing: 'border-box' };
 
 function getAnonId() {
@@ -123,12 +149,12 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
     <div id="daily-join" style={{ maxWidth: 440, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         {!hideIcon && <Trophy size={22} strokeWidth={2.2} style={{ color: C.ember }} />}
-        <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, margin: 0, color: C.ink }}>{heading}</h2>
+        <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, margin: 0, color: INK.head }}>{heading}</h2>
       </div>
-      <p style={{ fontFamily: FONT, fontSize: 15, color: '#4a4339', margin: '0 0 6px' }}>
+      <p style={{ fontFamily: FONT, fontSize: 15, color: INK.body, margin: '0 0 6px' }}>
         Sign Up with a display name and it appears on the leaderboard after you finish a game. No password needed.
       </p>
-      <p style={{ fontFamily: FONT, fontSize: 12, color: C.faded, margin: '0 0 22px' }}>
+      <p style={{ fontFamily: FONT, fontSize: 12, color: INK.soft, margin: '0 0 22px' }}>
         Your display name is shown publicly. Email is optional, required only for prizes, and kept private.
       </p>
       <label style={labelStyle}>Display name</label>
@@ -150,11 +176,11 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
       <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: T.cta, color: T.ctaInk, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
         {busy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
       </button>
-      {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? C.ember : C.forest }}>{msg}</p>)}
-      {identity && !msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: C.faded }}>You're signed up as "{srvName || identity.username}". Finish a game to post your score.</p>)}
+      {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? INK.err : INK.ok }}>{msg}</p>)}
+      {identity && !msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: INK.soft }}>You're signed up as "{srvName || identity.username}". Finish a game to post your score.</p>)}
       <SigninHelp name={jName} email={jEmail} prominent={recover || isLockedOut(msg)} />
       {onViewLeaderboard && (
-        <button onClick={onViewLeaderboard} style={{ marginTop: 18, background: 'transparent', border: 'none', color: C.faded, cursor: 'pointer', fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>
+        <button onClick={onViewLeaderboard} style={{ marginTop: 18, background: 'transparent', border: 'none', color: INK.soft, cursor: 'pointer', fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'underline', padding: 0 }}>
           View the leaderboard →
         </button>
       )}
