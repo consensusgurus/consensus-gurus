@@ -3211,6 +3211,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            of the three that follow it, because which of those exist depends on
            the day: an auto margin on two of them would split the free space. */
         .sl-ttl{font-size:11.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--white);order:1;margin-right:auto;}
+        /* Two spellings of the same title, one per breakpoint, the way .sl-dt
+           already carries its long and short date. The phone takes "Today:",
+           which is what frees the width for all four pips on one line. */
+        .sl-ttl i{font-style:normal;}
+        .sl-ttl .p{display:none;}
         .sl-ptodo{order:2;}
         .sl-count{order:3;display:flex;align-items:center;gap:6px;}
         /* The four state counts. Each pip is a coloured dot, the number, and the
@@ -3277,6 +3282,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            tab and its rule have to be. -2px above pulls the rule down onto the
            strip's own 2px bottom border so the two read as one edge. */
         .sl-filt button.on{color:var(--white);border-bottom-color:var(--white);background:transparent;}
+        /* The phone's inline copy of the circuits. Above 900px they live in
+           their own lighter strip (.sl-filt2), which is the owner-approved
+           desktop split, so this copy is hidden and desktop is untouched. */
+        .sl-filt .sl-fc{display:none;}
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         /* Pinnable board: one 26px star column at the far left, 36px including
@@ -3712,43 +3721,35 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              2026-08-07), so it belongs to the navy slate header above it rather
              than reading as a pale gap between the header and the first row.
              Desktop keeps its light underline tabs. */
-          /* Space is short and the bands below now carry the words, so the pips
-             drop to dot-and-number, the title drops to "Today:" and the date
-             drops to its short form. Under 400px the date goes entirely: it is
-             the least important thing on the bar (owner, 2026-08-10). */
-          /* THE PIPS KEEP THEIR WORDS ON A PHONE (owner, 2026-08-10). They lost
-             them in the first pass on the theory that the bands below teach the
-             colours, which left four bare dots at the top of the page and a bar
-             two thirds empty. There is no room for them BESIDE the title, so
-             they get a line of their own: the bar wraps, the date moves up
-             beside the title, and the pip row spreads across the full width.
-             It costs one line only when there is something to say, since a day
-             with two states still fits on one and four wrap among themselves
-             rather than overflowing. The title stays "Today's slate" in full,
-             which is what the reordering buys back. */
-          .sl-bar{flex-wrap:wrap;row-gap:7px;}
-          .sl-ttl{margin-right:0;}
-          /* Line one is title / ready / date, spread by the two auto margins;
-             line two is everything else. Measured at 356px, where all four
-             states plus the date come to a 54px header, two lines. A 320px
-             screen still wraps the pip row on a four-state day, which is the
-             width where something has to give. */
-          .sl-ptodo{margin-left:auto;}
-          .sl-dt{order:3;margin-left:auto;}
-          /* CENTERED, not left aligned (owner, 2026-08-10). Line one spreads
-             title / ready / date across the full width with two auto margins,
-             so a left-aligned second row of two or three pips sat under the
-             title with a wide empty gutter to its right and read as an
-             overflow rather than a row of its own. */
-          .sl-count{order:4;flex-basis:100%;flex-wrap:wrap;justify-content:center;gap:6px 9px;}
-          /* On its own row the pill chrome is doing nothing (nothing sits beside
-             a pip to be separated from), and dropping it, with a hair off the
-             type, is what fits three worded pips on one line at 356px. */
-          .sl-pip{padding:0;background:none;gap:5px;font-size:10.5px;letter-spacing:.02em;}
+          /* ONE LINE, AND THE TITLE PAYS FOR IT (owner, 2026-08-17). This bar
+             used to WRAP on a phone: title / ready / date on line one, and the
+             other three pips centred on a line of their own, because "Today's
+             slate" plus four worded pips does not fit a 390px viewport. Two
+             things buy that width back, and both were the owner's call:
+             the title shortens to "Today:", and the DATE COMES OFF entirely.
+             The date was the least important thing here (it was already
+             dropping to its short form, and then out under 400px), and the four
+             state counts describe the day better than it did. What is left is
+             one line, right-aligned against the title's auto margin.
+
+             The pips KEEP THEIR WORDS, which is the 2026-08-10 owner rule this
+             preserves: four bare dots at the top of the page read as nothing.
+             Under 372px the words do come off, since that is the width where
+             something still has to give, and the dot plus number carries it
+             against the bands below. */
+          .sl-bar{flex-wrap:nowrap;gap:7px;}
+          .sl-ttl{flex:none;white-space:nowrap;}
+          .sl-ttl .d{display:none;}
+          .sl-ttl .p{display:inline;}
+          .sl-ptodo{margin-left:0;}
+          .sl-dt{display:none;}
+          .sl-count{order:3;flex-wrap:nowrap;gap:7px;}
+          /* No pill chrome: nothing sits beside a pip to be separated from any
+             more, and dropping it plus a hair off the type is what fits four
+             worded pips beside the title. */
+          .sl-pip{flex:none;padding:0;background:none;gap:4px;font-size:10px;letter-spacing:.02em;}
           .sl-pw.alt{display:none;}
           .sl-ps{display:inline;}
-          .sl-dt .d{display:none;}
-          .sl-dt .p{display:inline;}
           .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
           /* Same fade, the phone strip's own ground. The bottom is flush here
              because this strip carries no 2px bottom rule to sit above. */
@@ -3761,6 +3762,43 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .sl-filt button.on{border-bottom-color:transparent;}
           .sl-filt button:hover{color:var(--white);}
           .sl-filt button.on{background:var(--white);color:var(--blue-deep);border-bottom-color:transparent;}
+          /* ONE LONG FLICKABLE ROW (owner, 2026-08-17). The circuits used to be
+             a SECOND strip stacked under this one. On a phone two navy scrolling
+             rows in the same shade do not read as two questions, they read as
+             one line overflowing, and they cost a whole band for chips you can
+             only reach by scrolling anyway. So here the circuits join THIS row,
+             after the categories, and the second strip is hidden.
+
+             The same chips are rendered TWICE in the markup, once in each strip,
+             and each breakpoint display:none's the copy it does not want. That
+             is deliberate and it is the approach the catboard and the home rails
+             already use: a matchMedia branch in the markup would desynchronise
+             SSR from hydration, and display:none takes the hidden copy out of
+             the accessibility tree as well as off the screen, so no chip is
+             announced twice.
+
+             STATES GO LAST, by the order property rather than by source
+             position, so the
+             desktop strip is untouched. The row should open on All and the
+             categories: Ready / Paused / Failed / Done are a state filter, not a
+             subject, and putting them first is what pushed every category off
+             the right edge before you could see one.
+
+             NO CHEVRONS: a phone flicks. They are hidden rather than removed so
+             the desktop affordance is unchanged, and the 30px padding they
+             reserved comes back off the strip with them. */
+          .sl-filt .sl-fc{display:inline-flex;align-items:center;gap:6px;order:3;}
+          .sl-filt .sl-fs{display:inline-flex;align-items:center;gap:6px;order:4;}
+          .sl-filtw2{display:none;}
+          .sl-fnav{display:none;}
+          .sl-filtw.mr .sl-filt{padding-right:8px;}
+          .sl-filtw.ml .sl-filt{padding-left:8px;}
+        }
+        /* The width where the worded pips stop fitting beside the title. Placed
+           AFTER the max-width:900px block on purpose: same specificity, so the
+           later rule is the one that wins. */
+        @media(max-width:372px){
+          .sl-pw,.sl-ps{display:none;}
         }
         /* ── TABLET AND LANDSCAPE PHONE: THE PHONE SLATE, TWO ACROSS ──────────
            (owner, 2026-08-08.) From 641px there is room for two of everything,
@@ -4301,7 +4339,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           moved into the page header on 2026-08-03. */}
       {slate ? (
         <div className="sl-bar">
-          <span className="sl-ttl">Today&rsquo;s slate</span>
+          <span className="sl-ttl"><i className="d">Today&rsquo;s slate</i><i className="p">Today:</i></span>
           {/* THE READY PIP IS ITS OWN FLEX CHILD, not one of the group (owner,
               2026-08-10), which is what holds the phone header to two lines: it
               rides up beside the title and the date, leaving the other three to
@@ -4548,22 +4586,27 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             // Paused and Done, which used to be the gold and green bands at the
             // foot of the board. They carry their counts because that is the
             // one thing a band said that a chip otherwise would not.
-            .concat(cats ? [['ready', <><i className="sl-sdot rdy" />Ready {nReadyAll}</>]] : [])
-            .concat(cats && nProgAll ? [['paused', <><i className="sl-sdot prg" />Paused {nProgAll}</>]] : [])
-            .concat(cats && nFailAll ? [['failed', <><i className="sl-sdot fal" />Failed {nFailAll}</>]] : [])
-            .concat(cats && nDoneAll ? [['done', <><i className="sl-sdot dne" />Done {nDoneAll}</>]] : [])
+            .concat(cats ? [['ready', <><i className="sl-sdot rdy" />Ready {nReadyAll}</>, 'sl-fs']] : [])
+            .concat(cats && nProgAll ? [['paused', <><i className="sl-sdot prg" />Paused {nProgAll}</>, 'sl-fs']] : [])
+            .concat(cats && nFailAll ? [['failed', <><i className="sl-sdot fal" />Failed {nFailAll}</>, 'sl-fs']] : [])
+            .concat(cats && nDoneAll ? [['done', <><i className="sl-sdot dne" />Done {nDoneAll}</>, 'sl-fs']] : [])
             .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c]))
             // LAST in the strip, and absent on a Sunday: on the day itself the
             // Sunday Editions ARE the board, so a tab pointing at last week's
             // would only be competing with them.
             .concat(sunToday ? [] : [['sunday', 'Sundays']])
-            .map(([k, label]) => (
+            // PHONE ONLY (display:none above 900px, see .sl-fc). The circuits
+            // are their own strip on a desktop and one long flickable row here,
+            // so both copies ship and CSS picks. Source order stays desktop's;
+            // the phone moves these and the state chips with `order`.
+            .concat(cats ? CIRCUITS.map(([n]) => ['circuit:' + n, n, 'sl-fc']) : [])
+            .map(([k, label, cls]) => (
             <button
               key={k}
               type="button"
               role="tab"
               aria-selected={filter === k}
-              className={filter === k ? 'on' : undefined}
+              className={[cls, filter === k ? 'on' : null].filter(Boolean).join(' ') || undefined}
               onClick={() => setFilter(k)}
             >{label}</button>
           ))}
