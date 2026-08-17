@@ -6,14 +6,18 @@ import { SITE_URL } from '@/lib/site';
 
 // Etch launched 2026-07-27 as the 29th daily: linked from the hub puzzles row,
 // the footer, the /daily archive, and the sitemap (/etch is the canonical,
-// evergreen URL). Weekdays are a 10x10 picture; Sundays step up to a 15x15
-// Edition. Puzzles are gated by Eastern date here, so tomorrow's picture (and
-// its solution) never reaches the browser.
+// evergreen URL). Mon-Fri are a 10x10 picture, Saturday steps up to 15x15, and
+// Sunday is a 20x20 Edition. Puzzles are gated by Eastern date here, so
+// tomorrow's picture (and its solution) never reaches the browser.
+//
+// That gate is also what makes the client's gallery safe: it only ever receives
+// boards that are already live, so drawing their finished pictures leaks
+// nothing about a puzzle nobody can play yet.
 
 export const metadata = {
   title: 'Etch — Free Daily Nonogram (Picross) | Mind Loft',
   description:
-    'A free daily nonogram, also called picross or griddler. The row and column clues give the run lengths of filled squares. Fill the grid by pure logic, never guesswork, and a picture appears. One solution, a new picture every day, and a bigger 15x15 Edition on Sundays.',
+    'A free daily nonogram, also called picross or griddler. The row and column clues give the run lengths of filled squares. Fill the grid by pure logic, never guesswork, and a picture appears. One solution, a new picture every day, 10x10 on weekdays, a 15x15 on Saturday and a 20x20 Edition on Sunday.',
   alternates: { canonical: '/etch' },
   openGraph: {
     title: 'Etch — A Daily Nonogram',
@@ -37,7 +41,7 @@ const gameJsonLd = {
   alternateName: 'Etch — Daily Nonogram',
   url: `${SITE_URL}/etch`,
   description:
-    'A free daily nonogram (picross): the numbers beside each row and above each column give the lengths of the filled runs in that line, in order. Fill every square the clues force and a hidden picture appears. Each board has exactly one solution and is solvable by pure line logic, with no guessing. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
+    'A free daily nonogram (picross): the numbers beside each row and above each column give the lengths of the filled runs in that line, in order. Fill every square the clues force and a hidden picture appears. Boards run 10x10 Monday to Friday, 15x15 on Saturday and 20x20 on Sunday. Each board has exactly one solution and is solvable by pure line logic, with no guessing. A clean, error-free solve earns a perfect score, and ties break on fewest errors then fastest time.',
   genre: ['Logic puzzle', 'Nonogram', 'Picross', 'Puzzle'],
   gamePlatform: 'Web browser',
   isAccessibleForFree: true,

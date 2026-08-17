@@ -1,15 +1,20 @@
 // Verify the Etch (daily nonogram / picture-logic) bank. Etch's own header
 // comment (app/etch/puzzles.js) and its client's rules copy (EtchClient.jsx)
 // promise, per puzzle:
-//   - a w x h grid (weekdays 10x10, Sundays a 15x15 Edition);
+//   - a w x h grid (Mon-Fri 10x10, Saturday 15x15, Sunday a 20x20 Edition,
+//     and the older weekday-10x10 / Sunday-15x15 rule before SIZES_FROM);
 //   - `rows`/`cols` are printed run-length clues, an empty line written [0];
 //   - `sol` is the answer and must actually satisfy those clues;
 //   - EXACTLY ONE solution, reachable by PURE LINE LOGIC with no guessing
 //     ("a careful solver never has to gamble").
 // None of that was previously machine-checked. This script recomputes it all:
 //
-//   1. Structural: w/h match the sunday flag (10x10 / 15x15); rows.length===h,
-//      cols.length===w; sol is h rows of w chars, each '.' or '#'.
+//   1. Structural: w/h match the size the schedule calls for on that weekday,
+//      rows.length===h, cols.length===w; sol is h rows of w chars, '.' or '#'.
+//      From SIZES_FROM the schedule is Mon-Fri 10x10, Saturday 15x15, Sunday a
+//      20x20 Edition. Boards live before that date ran the older Sunday-only
+//      step-up (weekday 10x10, Sunday 15x15) and are grandfathered: they are
+//      already played and frozen, so the rule applies going forward only.
 //   2. sol actually satisfies its own printed clues (recomputed run-lengths,
 //      not trusted).
 //   3. UNIQUENESS + NO-GUESSING, together: a standard nonogram line-solver
@@ -31,6 +36,10 @@
 //
 // Run: node scripts/verify-etch.mjs
 import { PUZZLES } from '../app/etch/puzzles.js';
+
+// The Saturday 15x15 / Sunday 20x20 schedule starts here. Earlier boards are
+// frozen history and are checked against the rule they shipped under.
+const SIZES_FROM = '2026-08-18';
 
 let BAD = 0;
 const fail = (id, msg) => { BAD++; console.error(`✗ ${id}: ${msg}`); };
@@ -124,8 +133,11 @@ PUZZLES.forEach((p, i) => {
     if (!!p.sunday !== isSun) errs.push(`sunday must be ${isSun} for ${p.live} (real weekday)`);
   }
 
-  const wantSize = p.sunday ? 15 : 10;
-  if (p.w !== wantSize || p.h !== wantSize) errs.push(`${p.w}x${p.h}, want ${wantSize}x${wantSize} for ${p.sunday ? 'Sunday' : 'weekday'}`);
+  const dw = p.live ? new Date(`${p.live}T12:00:00Z`).getUTCDay() : 1;
+  const modern = p.live >= SIZES_FROM;
+  const slot = !modern ? (p.sunday ? 'Sunday' : 'weekday') : dw === 0 ? 'Sunday' : dw === 6 ? 'Saturday' : 'weekday';
+  const wantSize = !modern ? (p.sunday ? 15 : 10) : dw === 0 ? 20 : dw === 6 ? 15 : 10;
+  if (p.w !== wantSize || p.h !== wantSize) errs.push(`${p.w}x${p.h}, want ${wantSize}x${wantSize} for ${slot}`);
   if (!Array.isArray(p.rows) || p.rows.length !== p.h) errs.push(`rows.length ${p.rows?.length} != h ${p.h}`);
   if (!Array.isArray(p.cols) || p.cols.length !== p.w) errs.push(`cols.length ${p.cols?.length} != w ${p.w}`);
   if (!Array.isArray(p.sol) || p.sol.length !== p.h) errs.push(`sol has ${p.sol?.length} rows, want ${p.h}`);
@@ -168,7 +180,7 @@ PUZZLES.forEach((p, i) => {
   if (p.subject) { seenSubjects.set(p.subject, (seenSubjects.get(p.subject) || []).concat(p.quizId)); }
   if (Array.isArray(p.sol)) { const key = p.sol.join('|'); seenSols.set(key, (seenSols.get(key) || []).concat(p.quizId)); }
 
-  errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${p.w}x${p.h}${p.sunday ? ' Sunday' : ''}, "${p.subject}", unique + pure-logic solvable`);
+  errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${p.w}x${p.h} ${slot}, "${p.subject}", unique + pure-logic solvable`);
 });
 
 // ─── pool variety: no duplicate subject, no duplicate board ────────────────

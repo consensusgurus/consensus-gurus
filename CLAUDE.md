@@ -3486,9 +3486,39 @@ archive and hub chips use the short form `Sun`.
 | Defend | a hold for four instead of a hold for three, so a fourth white move to survive before the attack is spent (from 2026-08-12) |
 | Barter | eight seven-letter words on a 7x7 lattice instead of six five-letter words on 5x5, and a deeper par (from launch, 2026-08-16) |
 | Sixes | a grid in the top fraction of a percent of the difficulty distribution: ten to fourteen squares reachable only by a hidden single, against none on a Monday (from launch, 2026-08-14) |
+| Etch | a 20x20 picture instead of Saturday's 15x15 and the weekday 10x10 (from 2026-08-23) |
+| Hedge | a 10x10 loop lattice instead of the weekday 7x7 |
 
 **Every daily on the roster runs a Sunday Edition.** A new daily game should decide at launch
 whether it has one (see "Adding a BRAND NEW daily game" below).
+
+### Etch runs a THREE-tier size ramp, and every size shown is read off the board (2026-08-17)
+
+Etch is the first daily whose grid grows twice in a week: **Mon-Fri 10x10, Saturday 15x15,
+Sunday a 20x20 Edition** (from 2026-08-18). The 15x15 boards that used to run on Sunday were
+moved to Saturday rather than thrown away, and the 10x10 boards they displaced took the next
+free weekdays at the end of the bank, which is why the bank ends 2026-10-07 rather than 09-29.
+
+- **Boards live before 2026-08-18 are FROZEN and ran the old schedule** (weekday 10x10, Sunday
+  15x15). `scripts/verify-etch.mjs` carries `SIZES_FROM = '2026-08-18'` and checks each board
+  against the rule it shipped under. Never resize a played board.
+- **NEVER write a grid size as a literal in reader-facing copy.** Both Sunday badges, the
+  post-game note, and the gallery caption derive from `PUZZLE.w`, because `/etch?p=N` replays
+  the archive and a hardcoded "15x15" lies on every board from the other era. Schedule
+  descriptions (the rules footer, the SEO prose, page metadata) state all three sizes and are
+  the only place a literal belongs.
+- **The bank is generated, not hand edited.** `scripts/etch-art.mjs` holds the big boards as
+  drawing primitives (rects, ellipses, polygons, thick segments) rasterised at 5x5 supersampling;
+  `scripts/gen-etch.mjs` derives the clues, proves each board twice, and owns the re-slotting and
+  the numbering. Editing a date or a `num` by hand will desync it from the schedule walk.
+- **Two independent solvers, as with Cages and Quilt.** The generator proves no-guessing with
+  constraint propagation AND uniqueness with a capped DFS that never looks at a single-cell
+  deduction; `verify-etch.mjs` then re-proves both over the committed bank with its own solver.
+  A subject that fails is DROPPED, never nudged into passing. Helicopter, Seahorse and Crab were
+  all cut this way at 20x20.
+- **Look at every picture before shipping it.** Line-solvability is machine-checkable;
+  recognisability is not. Render each candidate as ASCII and judge it as a picture. Tractor and
+  Lantern both passed the solver and were cut for reading as speckle and as a hollow box.
 
 ### Links collisions and the pinning proof (owner rule, 2026-07-20)
 

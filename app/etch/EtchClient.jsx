@@ -14,8 +14,12 @@
 //
 // Same daily plumbing as Suds/Tally: banked boards gated by Eastern date on the
 // server (app/etch/page.js), per-puzzle localStorage saves, /etch?p=N archive
-// pinning, streaks + stats, and the shared /api/quiz/* board flow. Weekdays are
-// 10×10; Sundays step up to a 15×15 Edition.
+// pinning, streaks + stats, and the shared /api/quiz/* board flow. Mon-Fri are
+// 10×10, Saturday steps up to 15×15, and Sunday is a 20×20 Edition.
+//
+// Every size shown to a reader is read off PUZZLE.w, never written as a
+// literal: archive boards from before 2026-08-18 ran the older schedule
+// (Sunday 15×15, no Saturday step-up) and a hardcoded size would lie on them.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -178,6 +182,73 @@ function runsOf(vals) {
   return out.length ? out : [0];
 }
 const sameRuns = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+
+// One SVG path per finished picture: each horizontal run of filled squares
+// becomes a rectangle subpath, so a thumbnail is ONE dom node rather than w*h
+// divs. The gallery draws every live board, so at 73 boards the naive version
+// would be ~29,000 nodes.
+function solPath(sol) {
+  let d = '';
+  for (let r = 0; r < sol.length; r++) {
+    const row = sol[r];
+    let c = 0;
+    while (c < row.length) {
+      if (row[c] === '#') { const st = c; while (c < row.length && row[c] === '#') c++; d += `M${st} ${r}h${c - st}v1h${-(c - st)}z`; }
+      else c++;
+    }
+  }
+  return d;
+}
+
+// The gallery. Every board you have SOLVED shows its picture; the rest stay
+// blank plates, so the archive reads as a set to complete and an unsolved
+// day never gives its picture away. A revealed board scores 0 and stays
+// blank on purpose: seeing the answer is not developing it.
+function EtchGallery({ puzzles, rec, currentNum }) {
+  const items = useMemo(() => puzzles.slice().sort((a, b) => a.num - b.num), [puzzles]);
+  const got = (p) => !!(rec[p.num] && rec[p.num].s > 0);
+  const developed = items.filter(got).length;
+  if (items.length < 2) return null;
+  return (
+    <div style={{ margin: '20px 0 0' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.faded }}>Your gallery</span>
+        <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 800, color: developed ? COLORS.accent : COLORS.faded }}>
+          {developed} of {items.length} developed
+        </span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(42px, 1fr))', gap: 5 }}>
+        {items.map((p) => {
+          const done = got(p);
+          const here = p.num === currentNum;
+          return (
+            <a
+              key={p.num}
+              href={`/etch?p=${p.num}`}
+              aria-label={done ? `${p.subject}, ${p.dateLabel}` : `${p.dateLabel}, not developed yet`}
+              title={done ? `${p.subject} \u00b7 ${p.dateLabel}` : `${p.dateLabel} \u00b7 not developed yet`}
+              style={{
+                display: 'block', borderRadius: 4, overflow: 'hidden', aspectRatio: '1',
+                background: done ? T.white : '#eceff4',
+                border: here ? `2px solid ${COLORS.accent}` : `1px solid ${done ? 'rgba(28,30,36,0.18)' : 'rgba(28,30,36,0.08)'}`,
+                boxSizing: 'border-box', padding: done ? 2 : 0,
+              }}
+            >
+              {done ? (
+                <svg viewBox={`0 0 ${p.w} ${p.h}`} width="100%" height="100%" style={{ display: 'block' }} aria-hidden="true" focusable="false">
+                  <path d={solPath(p.sol)} fill={p.sunday ? COLORS.accent : COLORS.ink} />
+                </svg>
+              ) : null}
+            </a>
+          );
+        })}
+      </div>
+      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: COLORS.faded, margin: '8px 0 0' }}>
+        Solve a day and its picture fills in here. Sundays develop in {'\u2009'}<span style={{ color: COLORS.accent, fontWeight: 800 }}>moss</span>.
+      </div>
+    </div>
+  );
+}
 
 const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
@@ -605,8 +676,10 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
-  const clueFs = W > 12 ? 'clamp(7px, 1.5vw, 11px)' : 'clamp(9px, 2vw, 13px)';
-  const boardMax = W > 12 ? 620 : 470;
+  const clueFs = W >= 18 ? 'clamp(6px, 1.15vw, 10px)' : W > 12 ? 'clamp(7px, 1.5vw, 11px)' : 'clamp(9px, 2vw, 13px)';
+  const boardMax = W >= 18 ? 740 : W > 12 ? 620 : 470;
+  const shellMax = W >= 18 ? 760 : 660;
+  const sizeLabel = `${W}\u00d7${H}`;
 
   const rulesBody = (
     <DailyRules
@@ -624,7 +697,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       ]}
       knack="One solution per board, reachable by pure logic, so you never have to guess. Marking what you have ruled out is free, filling it wrong is not."
       note={<>Filling a square that isn&rsquo;t part of the picture turns <b>red</b> and counts as an error. Clear it to carry on.</>}
-      footer="A clean solve with no errors is a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Sundays are a bigger 15×15 Edition."
+      footer="A clean solve with no errors is a perfect 10, every two errors cost a point. Ties break on fewest errors, then fastest time. Monday to Friday is 10×10, Saturday steps up to 15×15, and Sunday is a 20×20 Edition."
     />
   );
 
@@ -647,7 +720,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           tiles={playing ? null : upNext}
           dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday ? `Sunday Edition · 15×15` : null}
+          sunday={PUZZLE.sunday ? `Sunday Edition · ${sizeLabel}` : null}
           figures={playing ? [
             { v: errors, k: 'errors' },
             { v: elapsed, k: 'time' },
@@ -672,7 +745,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           .et-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
         `}</style>
 
-        <div style={{ maxWidth: 660, margin: '0 auto' }}>
+        <div style={{ maxWidth: shellMax, margin: '0 auto' }}>
 
 
         {!LOFT && (
@@ -685,7 +758,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 15&times;15</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {sizeLabel}</span>}
           blocks={'ETCH'.split('').map((ch, i) => (
               <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
@@ -837,8 +910,12 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                 The picture: <span style={{ color: COLORS.accent }}>{PUZZLE.subject}</span>.
               </div>
               {PUZZLE.sunday && (
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a bigger 15&times;15 grid.</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a bigger {sizeLabel} grid.</div>
               )}
+              {!PUZZLE.sunday && PUZZLE.w === 15 && (
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>Saturday steps up to a {sizeLabel} grid.</div>
+              )}
+              <EtchGallery puzzles={puzzles} rec={(stats && stats.rec) || {}} currentNum={PUZZLE.num} />
               {isTodays && myStats.cur >= 2 && (
                 <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
@@ -1020,7 +1097,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           Every board has exactly one solution and is reachable by pure line logic, so there is never a moment where you have to guess. Drag to fill a run, mark the squares you have ruled out with an ×, and watch each clue dim as its line falls into place. Fill a square that isn&rsquo;t part of the picture and it turns red, so you always know where you stand.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new picture drops every day at midnight Eastern, and Sundays step up to a 15&times;15 Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/hedge" style={{ color: COLORS.ink, fontWeight: 800 }}>Hedge</a>, our loop puzzle, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new picture drops every day at midnight Eastern: 10&times;10 Monday to Friday, 15&times;15 on Saturday, and a 20&times;20 Edition on Sunday. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/hedge" style={{ color: COLORS.ink, fontWeight: 800 }}>Hedge</a>, our loop puzzle, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 

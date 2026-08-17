@@ -1,0 +1,142 @@
+// Art source for the big Etch boards (Saturday 15x15 and the Sunday 20x20
+// Edition). A subject is described with primitives in board space [0,n)x[0,n),
+// supersampled 5x5 per cell and thresholded at half coverage, so the silhouette
+// is smooth and exact by construction rather than hand-typed cell by cell.
+//
+// Nothing here decides what ships. scripts/gen-etch.mjs rasterises these,
+// derives the clues, and keeps only the boards that a nonogram line solver can
+// finish with no guessing; scripts/verify-etch.mjs then re-proves that
+// independently over the committed bank. A subject that fails is dropped, never
+// nudged into passing by hand.
+const S = 5;
+
+export const rect = (x0, y0, x1, y1) => (x, y) => x >= x0 && x < x1 && y >= y0 && y < y1;
+export const ell = (cx, cy, rx, ry) => (x, y) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1;
+export const poly = (pts) => (x, y) => {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+};
+export const seg = (x0, y0, x1, y1, t) => (x, y) => {
+  const dx = x1 - x0, dy = y1 - y0, L = dx * dx + dy * dy;
+  let u = L ? ((x - x0) * dx + (y - y0) * dy) / L : 0;
+  u = Math.max(0, Math.min(1, u));
+  const px = x0 + u * dx, py = y0 + u * dy;
+  return (x - px) ** 2 + (y - py) ** 2 <= (t / 2) ** 2;
+};
+const anyOf = (fs) => (x, y) => fs.some((f) => f(x, y));
+
+export function raster(n, add, cut = []) {
+  const A = anyOf(add), C = cut.length ? anyOf(cut) : () => false;
+  const g = [];
+  for (let r = 0; r < n; r++) {
+    let row = '';
+    for (let c = 0; c < n; c++) {
+      let hit = 0;
+      for (let sy = 0; sy < S; sy++) for (let sx = 0; sx < S; sx++) {
+        const x = c + (sx + 0.5) / S, y = r + (sy + 0.5) / S;
+        if (A(x, y) && !C(x, y)) hit++;
+      }
+      row += hit * 2 >= S * S ? '#' : '.';
+    }
+    g.push(row);
+  }
+  return g;
+}
+
+const keys = (y0, y1, xs) => xs.map((x) => rect(x, y0, x + 1, y1));
+
+// Sunday Edition, 20x20.
+export const BIG = [
+  { name: 'Castle',
+    add: [
+      rect(1,0,2,2), rect(3,0,4,2), rect(5,0,6,2),
+      rect(14,0,15,2), rect(16,0,17,2), rect(18,0,19,2),
+      rect(1,2,6,17), rect(14,2,19,17),
+      rect(6,3,7,5), rect(8,3,9,5), rect(10,3,11,5), rect(12,3,13,5),
+      rect(6,5,14,17),
+      rect(0,17,20,19),
+    ],
+    cut: [ rect(8,13,12,17), ell(10,13,2,2.2), rect(3,7,4,9), rect(16,7,17,9) ] },
+
+  { name: 'Submarine',
+    add: [
+      ell(9,11,8,3.8),
+      rect(8,5,13,8),
+      rect(10.2,1,11.2,5),
+      rect(11,1,14,2),
+      poly([[17,7],[19,4],[19,15],[17,13]]),
+    ],
+    cut: [ ell(5,11,1.1,1.1), ell(9,11,1.1,1.1), ell(13,11,1.1,1.1) ] },
+
+  { name: 'Grand Piano',
+    add: [
+      poly([[4,3],[12,3],[16,5],[17.4,9],[15.6,14],[9,16],[4,16]]),
+      rect(1.4,5,4,14),
+      rect(6,16,7.6,18.6), rect(14,16,15.6,18.6),
+    ],
+    cut: [ poly([[6,5.4],[12,5.4],[14.6,7],[15.4,9.6],[14,12.6],[9,14],[6,14]]) ] },
+
+  { name: 'Chess Knight',
+    add: [
+      rect(3,17,17,19),
+      poly([[6,17],[14,17],[13,13],[15,9],[15,5],[13,2],[10,1],[7,2],[4,5],[2,8],[4,9],[6,8],[7,9],[7,12],[6,15]]),
+      poly([[12,2],[13.5,0],[14.5,3]]),
+    ],
+    cut: [ ell(10.5,5,0.9,0.9) ] },
+
+  { name: 'Suspension Bridge',
+    add: [
+      rect(4,3,6,15), rect(14,3,16,15),
+      rect(4,6,6,7), rect(14,6,16,7),
+      rect(0,13,20,15),
+      seg(5,3.4,10,9.6,1), seg(10,9.6,15,3.4,1),
+      seg(0,8.6,5,3.4,1), seg(15,3.4,20,8.6,1),
+      rect(7.4,6.6,8.1,13), rect(11.9,6.6,12.6,13),
+      rect(2.4,7.2,3.1,13), rect(16.9,7.2,17.6,13),
+      rect(0,17,20,19),
+    ],
+    cut: [] },
+
+  { name: 'Typewriter',
+    add: [
+      rect(7,0,13,3),
+      rect(3,3,17,5),
+      ell(2.3,4,1.6,1.3), ell(17.7,4,1.6,1.3),
+      rect(4,5,16,7),
+      poly([[3,7],[17,7],[18,15],[2,15]]),
+      rect(1,15,19,17),
+    ],
+    cut: [
+      rect(8,3,12,4),
+      ...keys(9,10,[4,6,8,10,12,14]),
+      ...keys(11,12,[5,7,9,11,13,15]),
+      ...keys(13,14,[4,6,8,10,12,14]),
+    ] },
+
+  { name: 'Violin',
+    add: [
+      ell(10,14.5,5,4.2),
+      ell(10,8.5,4.2,3.2),
+      poly([[6.6,9],[13.4,9],[12.2,12],[13.4,15],[6.6,15],[7.8,12]]),
+      rect(9.2,2,10.8,8),
+      ell(10,2,1.9,1.6),
+    ],
+    cut: [ rect(7,11,8,14), rect(12,11,13,14), ell(10,2,0.7,0.6) ] },
+];
+
+// Saturday, 15x15.
+export const MID = [
+  { name: 'Whale',
+    add: [
+      ell(6.8,8,5.5,3.3),
+      poly([[10.8,8],[14.6,4.4],[13.6,8],[14.6,11.6]]),
+      rect(3.6,2.6,4.7,5),
+      ell(4.15,2,1.8,1.4),
+      poly([[5.5,10.5],[9,10.5],[6.8,12.6]]),
+    ],
+    cut: [ ell(3.3,7.2,0.85,0.85) ] },
+];
