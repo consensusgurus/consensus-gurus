@@ -763,7 +763,26 @@ export default function LoftCap({
 @keyframes loftdot{0%,60%,100%{opacity:.25}30%{opacity:1}}
 
 /* The archive, opened IN the card. */
-.loft-arch{margin-top:4px}
+/* THE FULL ARCHIVE, IN A SCROLLER (owner, 2026-08-17). The list was capped at
+   14 dates in every client; banks run 73 to 86 puzzles, so most of each game's
+   history was unreachable. Uncapped it needs a scroller of its own: the finish
+   card deliberately has none (the flip is a swap, so .loft-back is
+   overflow:visible and the card is as tall as its content), and ~80 rows at
+   44px would make it roughly 3,500px tall.
+
+   The height is min(58vh, 520px): tall enough to show about eleven rows, short
+   enough that the card still fits a phone viewport with the header above it.
+   overscroll-behavior:contain stops a flick at the end of the list from
+   scrolling the page behind it, which on a touch device reads as the archive
+   closing itself. */
+.loft-arch{margin-top:4px;max-height:min(58vh, 520px);overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;padding-right:3px;
+  scrollbar-width:thin;scrollbar-color:#c9cfda transparent}
+.loft-arch::-webkit-scrollbar{width:9px}
+.loft-arch::-webkit-scrollbar-track{background:transparent}
+.loft-arch::-webkit-scrollbar-thumb{background:#c9cfda;border-radius:999px;
+  border:2px solid var(--white);background-clip:padding-box}
+.loft-arch::-webkit-scrollbar-thumb:hover{background:#aeb6c5;background-clip:padding-box}
 .loft-archr{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;
   text-decoration:none;color:var(--ink);font-weight:700;font-size:13px}
 .loft-archr+.loft-archr{margin-top:3px}

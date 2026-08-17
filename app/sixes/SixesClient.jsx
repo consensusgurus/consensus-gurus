@@ -990,7 +990,6 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
             archive={puzzles
               .filter((p) => p.num !== PUZZLE.num)
               .sort((a, b) => b.num - a.num)
-              .slice(0, 14)
               .map((p) => ({
                 num: p.num,
                 dateLabel: p.dateLabel,

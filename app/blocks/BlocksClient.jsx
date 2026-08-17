@@ -1085,7 +1085,6 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
               archive={puzzles
                 .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
                 .sort((x, y) => y.num - x.num)
-                .slice(0, 14)
                 .map((p) => ({
                   num: p.num,
                   dateLabel: p.dateLabel,

@@ -1513,7 +1513,6 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               archive={puzzles
                 .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
                 .sort((a, b) => b.num - a.num)
-                .slice(0, 14)
                 .map((p) => ({
                   num: p.num,
                   dateLabel: p.dateLabel,

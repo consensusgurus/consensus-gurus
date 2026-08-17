@@ -299,6 +299,9 @@ export default function LoftFinish({
         <div className="loft-backin">
           <div className="loft-res">
             <b>{name ? `${name} Archive` : 'Archive'}</b>
+            {/* A scrolled list does not show its own length, so the header
+                states it (owner, 2026-08-17). */}
+            <s>{archive.length} puzzle{archive.length === 1 ? '' : 's'}</s>
             <button type="button" className="loft-back-btn" onClick={() => setOpenArchive(false)}>&#8592; Back</button>
           </div>
           <div className="loft-arch">
