@@ -510,9 +510,18 @@ export default function LoftCap({
 .loft-back-btn{margin-left:auto;border:2px solid var(--border);background:var(--surface-alt);
   color:var(--slate);border-radius:9px;padding:7px 12px;font-family:inherit;font-weight:800;
   font-size:12.5px;cursor:pointer}
-.loft-flip .loft-back{pointer-events:none}
-.loft-flip.on .loft-back{pointer-events:auto}
-.loft-flip.on .loft-face{pointer-events:none}
+/* NO POINTER-EVENTS GATE ON THE FACES ANY MORE (owner report, 2026-08-16:
+   "if you press Reveal answer, it disables every button in the end game card").
+   These three rules were the belt-and-braces guard for the 3D turn: whichever
+   face was rotated away could not be clicked. The turn was then retired at EVERY
+   width (see the "NO SCROLLER, AT ANY WIDTH" block below, which sets
+   perspective:none, transform:none, and display:none on the turned-away face),
+   so the two faces are no longer stacked and nothing needs guarding. What was
+   left was a gate that fired in exactly the wrong state: Reveal drops the .on
+   class, and .loft-flip .loft-back{pointer-events:none} then killed every button
+   on the finish card while it sat, fully visible, in the flow under the board.
+   The face is display:none when .on, so it needs no gate either. Do NOT
+   reintroduce either rule without also reinstating the 3D turn. */
 .loft-res{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;
   padding-bottom:9px;border-bottom:1px solid var(--border)}
 .loft-res b{font-weight:800;font-size:17px;line-height:1}
