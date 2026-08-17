@@ -288,11 +288,16 @@ export default function LoftFinish({
         <span className="n">{iq && iq.gained != null ? `+${iq.gained}` : '\u2014'}</span>
         <span className="t">
           <span className="l">IQ points earned</span>
+          {/* RANK ONLY, no lifetime total (owner, 2026-08-17). This line
+              led with a running total and the row is nowrap with only `.t`
+              able to shrink, so the lifetime figure was spending width the
+              rank needs. It is still on the player's profile and in the Stat
+              Hub; what belongs beside a gain that was just earned is where
+              that gain puts you, not a running sum. */}
           <span className="m">
-            {iq && iq.xp != null ? `${Number(iq.xp).toLocaleString()} total` : 'counting your run'}
             {iq && iq.rank != null
-              ? ` \u00b7 rank #${Number(iq.rank).toLocaleString()}${iq.total != null ? ` of ${Number(iq.total).toLocaleString()}` : ''}`
-              : ''}
+              ? `rank #${Number(iq.rank).toLocaleString()}${iq.total != null ? ` of ${Number(iq.total).toLocaleString()}` : ''}`
+              : '\u2014'}
           </span>
         </span>
         <span className="today"><b>{day && day.ready
