@@ -496,9 +496,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
-  const iq = useIqStanding({ game: 'jesters', quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const nextUp = useNextUnplayed({ self: 'jesters', active: LOFT && !playing });
-  const upNext = useUnplayedSimilar({ self: 'jesters', active: LOFT && !playing });
+  const iq = useIqStanding({ game: 'jester', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'jester', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'jester', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const allTime = useGameAllTime({ game: 'jester', active: LOFT && !playing });
   const dayStats = useDayStats();

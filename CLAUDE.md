@@ -3417,6 +3417,7 @@ Jesters carried the identical bug with `'jesters'`.
 
 **When adding or touching ANY per-game hook, prop or API call, pass the registry key.** As of
 2026-08-17 the consumers are `useGameAllTime({ game })`, `useCategoryRank({ self })`,
+`useNextUnplayed({ self })`, `useUnplayedSimilar({ self })`, `useIqStanding({ game })`,
 `DailyBoardPanel self=`, `hintAllowed`/`spendHint`, `dailyAttemptRule`, `endGamePlan`, `dailyDept`,
 `hasSundayEdition`, and every `/api/quiz/daily-*` route. The cheap audit, which is worth running
 after any batch that touches the clients:
@@ -3428,6 +3429,16 @@ comm -23 /tmp/used.txt /tmp/keys.txt   # anything printed is a dead key
 ```
 
 A new game should be named so its key, folder and route match, precisely so this cannot recur.
+
+
+**The failure is not always a visible dash.** `useNextUnplayed` / `useUnplayedSimilar` look the game
+up with `DAILY_GAMES.find((g) => g.key === self)`; a wrong key makes `mine` null, so the
+same-category preference silently dies and the player is offered a random unplayed daily instead of
+another from the category they just played, AND the `g.key !== self` self-exclusion stops excluding.
+`useIqStanding({ game, quizId })` gets away with it only because `quizId` is the primary matcher and
+the `game` prefix test is a fallback. `isLoft` is the one caller that is safe by design: `lib/loft.js`
+carries a `ROUTE_TO_KEY` map built off the registry's `href` overrides. Do not rely on that map
+elsewhere, it is local to the Loft flag.
 
 ## Sunday Editions — the flag, the label, and which games have one (owner rule, 2026-07-20)
 

@@ -379,9 +379,9 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
 
   const elapsed = g.t0 ? fmtTime((g.tEnd || nowTick) - g.t0) : '0:00';
   const isTodays = PUZZLE.num === pickPuzzle(puzzles, null).num;
-  const iq = useIqStanding({ game: 'parker', quizId: PUZZLE.quizId, active: LOFT && !playing });
-  const nextUp = useNextUnplayed({ self: 'parker', active: LOFT && !playing });
-  const upNext = useUnplayedSimilar({ self: 'parker', active: LOFT && !playing });
+  const iq = useIqStanding({ game: 'park', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const nextUp = useNextUnplayed({ self: 'park', active: LOFT && !playing });
+  const upNext = useUnplayedSimilar({ self: 'park', active: LOFT && !playing });
   const dailyBoard = useDailyBoard({ quizId: PUZZLE.quizId, active: LOFT && !playing });
   const allTime = useGameAllTime({ game: 'park', active: LOFT && !playing });
   const dayStats = useDayStats();
