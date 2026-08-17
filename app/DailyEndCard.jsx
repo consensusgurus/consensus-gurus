@@ -93,6 +93,7 @@ import MindLoftMark from './MindLoftMark';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
 import { isRetiredDaily, DAILY_GAME_MAP, dailyAttemptRule } from '@/lib/daily-games';
+import { fiveFor, fiveHref, readFiveParam, FIVE_NAME } from '@/lib/daily-five';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
 
@@ -436,6 +437,14 @@ export default function DailyEndCard({
   // the contest has ended.
   const [contestLive, setContestLive] = useState(false);
   useEffect(() => { setContestLive(contestIsLive()); }, []);
+  // Is this page part of a Daily Five run? Read in an effect for the same
+  // reason contestLive above is: it reads window, so evaluating it during SSR
+  // and again on the client can disagree across that boundary. False for the
+  // first paint, which is also the correct answer for every ordinary page.
+  const [inRun, setInRun] = useState(false);
+  useEffect(() => { setInRun(readFiveParam()); }, []);
+  const [runSecs, setRunSecs] = useState(6);
+  const [runStay, setRunStay] = useState(false);
   const [popularCats, setPopularCats] = useState(null);             // popular quiz per category, once every daily is done
   const [pastHref, setPastHref] = useState(null);     // most-recent unplayed PAST drop of this game
   const [iq, setIq] = useState(null);                 // { gained, todayGained, rank, total, xp, level, window, provisional }
@@ -706,6 +715,40 @@ export default function DailyEndCard({
   const total = DAILY_GAMES.length;
   const doneCount = DAILY_GAMES.filter((g) => doneKeys.has(g.key)).length;
 
+  // ── the Daily Five run ────────────────────────────────────────────────────
+  // Computed HERE, above autoRun, because autoRun has to be suppressed inside a
+  // run: it navigates to the most similar unplayed daily after 30 seconds, which
+  // in a run means walking the player out of it and into an unrelated game.
+  const runDay = etTodayEC();
+  const runMembers = inRun ? fiveFor(runDay) : [];
+  // A stale or hand-typed ?five=1 must not put a game inside a run that does not
+  // contain it.
+  const runActive = runMembers.length >= 2 && runMembers.includes(self);
+  const runDoneKeys = runMembers.filter((k) => doneKeys.has(k));
+  // Gated on combinedResolved: until the day's completions land, doneKeys holds
+  // only the game just finished, so an ungated test would call a run complete on
+  // its first finish and bounce the player to the summary after one game.
+  const runComplete = runActive && combinedResolved && runDoneKeys.length === runMembers.length;
+  const runNextKey = runActive ? (runMembers.find((k) => k !== self && !doneKeys.has(k)) || null) : null;
+  const runNext = runNextKey ? DAILY_GAME_MAP[runNextKey] : null;
+  const runPoints = runMembers.reduce((s, k) => {
+    const p = perGameDone && perGameDone[k];
+    return s + (p && !p.abandoned ? (Number(p.points) || 0) : 0);
+  }, 0);
+  // Finishing the fifth TAKES you to the board rather than offering it, because
+  // the board is the thing the run was for. Six seconds and an escape hatch, the
+  // same shape as the card's own auto-advance.
+  const runAuto = runComplete && revealed && !runStay;
+  useEffect(() => {
+    if (!runAuto) return undefined;
+    if (runSecs <= 0) {
+      if (typeof window !== 'undefined') window.location.href = '/daily-five';
+      return undefined;
+    }
+    const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [runAuto, runSecs]);
+
   // Slate strip cells, PACKED. Rendering DAILY_GAMES in its own order put the
   // filled cells wherever those games happen to sit in the list, so the strip
   // read as scattered noise rather than as progress. Finished games come
@@ -820,7 +863,7 @@ export default function DailyEndCard({
 
   // 25s auto-advance to the next game (win only; a loss shows the block without
   // the ticking clock so the player can retry or read the board first).
-  const autoRun = revealed && won && completionKnown && !!nextTarget && !autoCancel;
+  const autoRun = revealed && won && completionKnown && !!nextTarget && !autoCancel && !runActive;
   useEffect(() => {
     if (!autoRun) return undefined;
     if (secs <= 0) {
@@ -2556,6 +2599,100 @@ export default function DailyEndCard({
     </div>
   );
 
+  // THE RUN CARD. Verdict, where you are in the five, and one control. It
+  // carries its own styles because the card's stylesheet lives INSIDE `inner`
+  // (including .dec-backdrop and .dec-x, which the modal wrapper below needs),
+  // so a branch that renders instead of `inner` renders unstyled without them.
+  const runInner = (
+    <div className="d5e-card" style={modal ? { position: 'relative' } : undefined}>
+      {modal && (
+        <button type="button" className="dec-x" onClick={onClose} aria-label="Close">
+          <X size={14} strokeWidth={2.6} />
+        </button>
+      )}
+      <style>{`
+        .dec-backdrop{position:fixed;inset:0;z-index:85;background:rgba(20,22,28,0.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
+        .dec-x{position:absolute;top:9px;right:11px;width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid #2c437c;color:#cfe0ff;cursor:pointer;z-index:3;}
+        .d5e-card{position:relative;background:var(--ground);color:#fff;border-radius:16px;padding:0;max-width:520px;width:100%;margin:0 auto;overflow:hidden;font-family:${SANS};}
+        .d5e-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--gold);z-index:2;}
+        .d5e-card.done::before{background:var(--success);}
+        .d5e-cap{display:flex;align-items:center;gap:8px;padding:9px 16px;background:rgba(0,0,0,.22);}
+        .d5e-mk{display:inline-flex;width:19px;height:19px;border-radius:5px;background:#fff;align-items:center;justify-content:center;flex:none;}
+        .d5e-wm{font-size:11.5px;font-weight:800;letter-spacing:-.2px;}
+        .d5e-wm i{font-style:normal;font-weight:500;opacity:.85;}
+        .d5e-gm{margin-left:auto;font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9fb6e8;}
+        .d5e-body{padding:17px 18px 18px;}
+        .d5e-vd{display:flex;align-items:center;gap:9px;}
+        .d5e-ck{display:inline-flex;color:var(--success);flex:none;}
+        .d5e-ck.loss{color:#ffb3ad;}
+        .d5e-tt{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+        .d5e-sc{margin-left:auto;font-size:13px;font-weight:700;color:#cfe0ff;font-variant-numeric:tabular-nums;}
+        .d5e-eye{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-top:15px;}
+        .d5e-card.done .d5e-eye{color:#7ff0c0;}
+        .d5e-pips{display:flex;gap:5px;margin-top:8px;}
+        .d5e-pips span{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.17);}
+        .d5e-pips span.on{background:var(--success);}
+        .d5e-pips span.now{background:var(--blue-400);}
+        .d5e-go{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;background:var(--gold);color:#3a2a05;border-radius:10px;padding:14px 16px;font-size:13px;font-weight:800;letter-spacing:.03em;text-decoration:none;}
+        .d5e-go:hover{background:#f0c65c;}
+        .d5e-go.done{background:var(--success);color:#04301f;}
+        .d5e-cd{font-size:11px;font-weight:700;opacity:.75;}
+        .d5e-alt{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:11px;}
+        .d5e-alt a,.d5e-alt button{background:none;border:0;padding:0;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;color:#93aae2;text-decoration:none;cursor:pointer;}
+        .d5e-alt a:hover,.d5e-alt button:hover{color:#dbe6ff;}
+      `}</style>
+      <div className="d5e-cap">
+        <span className="d5e-mk" aria-hidden="true"><MindLoftMark size={15} ink="#1e3a8a" accent="#2563eb" title="Mind Loft" /></span>
+        <span className="d5e-wm">Mind <i>Loft</i></span>
+        <span className="d5e-gm">{FIVE_NAME}</span>
+      </div>
+      <div className="d5e-body">
+        <div className="d5e-vd">
+          <span className={`d5e-ck${isCompleted ? '' : ' loss'}`}>
+            {isCompleted ? <CheckCircle2 size={21} strokeWidth={2.4} /> : <Flag size={19} strokeWidth={2.4} />}
+          </span>
+          <span className="d5e-tt">{selfName} {isCompleted ? 'done' : 'finished'}</span>
+          {score ? <span className="d5e-sc">{score}</span> : null}
+        </div>
+
+        <div className="d5e-eye">
+          {runComplete
+            ? `All five done ${runPoints ? `\u00b7 ${Math.round(runPoints * 10) / 10} pts` : ''}`
+            : `${runDoneKeys.length} of ${runMembers.length} ${runPoints ? `\u00b7 ${Math.round(runPoints * 10) / 10} pts banked` : ''}`}
+        </div>
+        <div className="d5e-pips">
+          {runMembers.map((k) => (
+            <span key={k} className={doneKeys.has(k) ? 'on' : (k === runNextKey ? 'now' : '')} />
+          ))}
+        </div>
+
+        {runComplete ? (
+          <a className="d5e-go done" href="/daily-five">
+            <Trophy size={15} strokeWidth={2.4} />
+            See how the run went
+            {runAuto ? <span className="d5e-cd">{runSecs > 0 ? `${runSecs}s` : '\u2026'}</span> : null}
+          </a>
+        ) : runNext ? (
+          <a className="d5e-go" href={fiveHref(runNextKey)}>
+            Next {'\u00b7'} {runNext.name}
+            <ArrowRight size={15} strokeWidth={2.6} />
+          </a>
+        ) : (
+          <a className="d5e-go" href="/daily-five">Run summary <ArrowRight size={15} strokeWidth={2.6} /></a>
+        )}
+
+        <div className="d5e-alt">
+          {runAuto ? <button type="button" onClick={() => setRunStay(true)}>Stay here</button> : null}
+          {!runComplete ? <a href="/daily-five">Run summary</a> : null}
+          <a href={(DAILY_GAME_MAP[self] || {}).href || `/${self}`}>Leave the run</a>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Which card this render is. The ordinary path is untouched.
+  const cardBody = runActive ? runInner : inner;
+
   // Confetti is a fixed, pointer-events-off overlay rendered continuously so it
   // plays over the completed board during the reveal delay AND behind the popup.
   const confettiEl = confetti.length ? (
@@ -2576,7 +2713,7 @@ export default function DailyEndCard({
   ) : null;
 
   if (!modal) {
-    return (<>{confettiEl}{revealed ? inner : null}</>);
+    return (<>{confettiEl}{revealed ? cardBody : null}</>);
   }
   return (
     <>
@@ -2584,7 +2721,7 @@ export default function DailyEndCard({
       {revealed ? (
         <div className="dec-backdrop" onClick={onClose}>
           <div style={{ width: '100%', maxWidth: 760, margin: 'auto' }} onClick={(e) => e.stopPropagation()}>
-            {inner}
+            {cardBody}
           </div>
         </div>
       ) : null}

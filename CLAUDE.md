@@ -4919,6 +4919,53 @@ flag, which is exactly what the strip's Leave control links to.
   adding a second observer above the board, which is another way to build the loop that
   effect's own comment warns about.
 
+### Inside a run you get ONE end card, at the end (owner, 2026-08-17)
+
+A player who opts into the Daily Five must **not** be handed five ordinary end cards. Each
+one is a full page of furniture: an IQ hero, rank tiles, a share bar, "up next", "easiest
+leaderboard", the whole of today's slate, a popular quiz per category, a footer. Five in a
+row is the same page five times, and **every one of those blocks points AWAY from the run
+the player is in the middle of**.
+
+- **During a run** (`?five=1`, and this game is in today's five) `DailyEndCard` renders
+  `runInner` instead of `inner`: the verdict, where you are in the five, and one control
+  (`Next · <game>`). Nothing else.
+- **On the fifth finish** it becomes "See how the run went" and auto-advances to
+  `/daily-five` after six seconds, with a Stay here escape.
+- **`/daily-five`** is where the summary arrives once: the board for the five, then one
+  **abridged** result card per game. Abridged means the result and nothing else, no per-game
+  next-up, play-similar, share bar, archive or back-to-main, because those are page-level
+  things and this is one page. It is also the run's permalink, and a half-done run renders
+  honestly with the unplayed games as empty cards. `noindex`: every word on it is either an
+  hourly leaderboard or one viewer's own results.
+
+**THE GENERIC AUTO-ADVANCE MUST BE SUPPRESSED IN A RUN.** `autoRun` in `DailyEndCard` sends
+the player to the most similar unplayed daily after 30 seconds. Inside a run that walks them
+out of it and into an unrelated game, so `autoRun` carries `&& !runActive` and the run has
+its own hand-off. Anything else added to that card which navigates on a timer needs the same
+gate.
+
+Two implementation notes that will bite otherwise. The run block is computed **above**
+`autoRun` in the file, because `autoRun` reads `runActive`. And `runComplete` is gated on
+`combinedResolved`: until the day's completions land, `doneKeys` holds only the game just
+finished, so an ungated test calls a one-game run complete and bounces the player to the
+summary after their first game.
+
+`runInner` carries **its own stylesheet**, including `.dec-backdrop` and `.dec-x`. The end
+card's styles live INSIDE `inner`, so a branch that renders instead of it renders unstyled,
+and in modal mode loses the backdrop and the close button with it.
+
+### The band's right edge is a rule, not decoration
+
+The console band's ground (`--ground` #14264f) is DARKER than the page behind the console
+(`--accent` #1e3a8a), and every other part of that console is defined by contrast rather than
+by a border: the title band is the page colour, the cap cards are blue, the board is white.
+So the band's right edge met the page navy with nothing between them and the section read as
+a hole in the card. It carries `border-right:1.5px solid #2c437c`, the same colour it draws
+its own game cards in, which is lighter than both the band and the page and so reads against
+either. Dropped on a phone, where the console is full-bleed and a right rule would be a stray
+line down the screen.
+
 ### Wiring is applied by `scripts/patch-daily-five.mjs`, as anchored edits
 
 The three files the run touches (`DailyStrip.jsx` at 4,769 lines, `DailyChrome.jsx`, the

@@ -136,8 +136,22 @@ export default function DailyFiveBand() {
           here, but the console's own stylesheet was bitten by exactly that and
           the rule is cheaper to follow than to rediscover. */}
       <style dangerouslySetInnerHTML={{ __html: `
+        /* THE EDGE IS LOAD-BEARING, not decoration. The band's ground
+           (--ground #14264f) is DARKER than the page behind the console
+           (--accent #1e3a8a), and every other part of the console is defined by
+           contrast rather than by a border: the title band is the page colour,
+           the cap cards are blue, the board is white. So the band's right edge
+           met the page navy with nothing between them and the section read as a
+           hole in the card rather than as part of it. The 1.5px rule is the same
+           #2c437c the band already draws its own game cards in, which is lighter
+           than BOTH the band and the page, so it reads against either. Left is
+           covered by the 4px gold rule, so only the right needs one. */
         .d5{position:relative;background:var(--ground);color:#fff;padding:12px 16px 13px;
+            border-right:1.5px solid #2c437c;
             font-family:'Manrope',system-ui,-apple-system,sans-serif;}
+        /* Full-bleed on a phone (the console loses its own side edges there), so
+           a right rule would be a stray line down the screen. */
+        @media(max-width:900px){ .d5{border-right:none;} }
         /* The 4px rule where an icon would be: the home surface's own vocabulary,
            in gold because an open run is the same state the cap paints gold. It
            goes green once the run is complete, which is the only colour change
