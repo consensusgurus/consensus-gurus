@@ -2407,30 +2407,39 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             const st = e.target.closest && e.target.closest('.sl-status');
             const go = st && st.querySelector('a[href]');
             if (go) { e.preventDefault(); window.location.assign(go.getAttribute('href')); return; }
-            if (e.target.closest && e.target.closest('.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb')) return;
-            // A FINISHED ROW GOES BACK TO THE BOARD (owner, 2026-08-16). Its
+            // A FINISHED ROW GOES BACK TO ITS BOARD, AND ITS SCORE CHIP IS THE
+            // DRAWER (owner, 2026-08-16). Until now a done row was the ONE row
+            // on the slate with no path back to the page you played it on: its
             // chip was a static score with no link in it and the row swallowed
-            // the name link's navigation, so a game you had already played was
-            // the ONE row on the slate with no path back to the page you played
-            // it on: you could open its stats and nothing else. It clicks
-            // through like every other row now, and the drawer moves to the
-            // archive chevron beside it.
-            // Gated on that chevron ACTUALLY BEING ON SCREEN rather than on a
-            // width: .sl-arch is display:none at 900px and under, where the
-            // drawer has no other opener, so the phone keeps the drawer on the
-            // row and reaches the board through the Play again chip at the top
-            // of it. Testing the affordance instead of the breakpoint means the
-            // two can never drift apart.
-            if (isDone) {
-              const ab = e.currentTarget.querySelector('.sl-ab');
-              if (ab && ab.offsetParent !== null) {
-                // Already inside a real link, so let the browser have it and
-                // keep middle-click and cmd-click opening a tab.
-                if (e.target.closest && e.target.closest('a[href]')) return;
-                e.preventDefault();
-                window.location.assign(g.href);
-                return;
-              }
+            // the name link's navigation, so clicking a game you had already
+            // played could open its stats and nothing else. The two swap round
+            // here. The row is the primary target and it goes to the game, like
+            // every other row in the column does; the chip that appears in the
+            // hover zone on the right edge keeps the score AND becomes the way
+            // into the stats and archive drawer.
+            // It has to be the chip because .sl-arch, the archive chevron this
+            // handler used to defer to, is display:none at EVERY width in the
+            // card slate, so the row click was the drawer's only door.
+            // Which leaves the phone, where .sl-status is display:none and
+            // there is no hover to reveal it: no chip means no door, so a done
+            // row there keeps the drawer on the row and reaches the board
+            // through the Play again chip at the top of it. That is gated on
+            // the cell ACTUALLY BEING RENDERED rather than on a breakpoint, so
+            // the behaviour and the CSS can never drift apart.
+            const stCell = e.currentTarget.querySelector('.sl-status');
+            const stShown = !!(stCell && stCell.offsetParent !== null);
+            // Anywhere in the cell, not just on the chip: the same courtesy the
+            // link branch above extends to Play, Resume and Retry.
+            if (isDone && st) { e.preventDefault(); pick(g.key, e.currentTarget); return; }
+            if (e.target.closest && e.target.closest('.sl-btn.play,.sl-btn.prog,.sl-ab,.sl-favb')) return;
+            if (isDone && stShown) {
+              // Already inside a real link (the emblem, the name), so let the
+              // browser have it and keep middle-click and cmd-click opening a
+              // tab.
+              if (e.target.closest && e.target.closest('a[href]')) return;
+              e.preventDefault();
+              window.location.assign(g.href);
+              return;
             }
             e.preventDefault(); // swallow the name link's navigation
             pick(g.key, e.currentTarget);
@@ -2507,7 +2516,13 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             {fail
               ? <a className="sl-btn fail" href={g.href} aria-label={`Retry ${g.name}`}>Retry</a>
               : isDone
-              ? <a className="sl-btn done" href={g.href} aria-label={`Back to ${g.name}${sl ? `, you scored ${sl} today` : ', done today'}`}>{sl || 'Done'}</a>
+              ? <button
+                  type="button"
+                  className="sl-btn done"
+                  aria-expanded={open}
+                  aria-label={`${g.name}${sl ? `, you scored ${sl} today` : ', done today'} \u2014 stats and archive`}
+                  title="Stats and archive. The row itself goes back to the board."
+                >{sl || 'Done'}</button>
               : ip
                 ? <a className="sl-btn prog" href={g.href} aria-label={`Resume ${g.name}`}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5l11 7-11 7z" /></svg>
@@ -3369,11 +3384,13 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-status{display:flex;justify-content:center;}
         .sl-btn{display:inline-flex;align-items:center;justify-content:center;width:70px;padding:6px 0;border-radius:7px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);color:var(--blue-deep);cursor:pointer;font-family:inherit;}
         .sl-btn.play:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
-        /* A LINK NOW, NOT A LABEL (owner, 2026-08-16). The score chip is how a
-           finished row says Play, so it takes the same pointer and hover as
-           every other chip in this column; cursor:default read as inert. */
+        /* A CONTROL NOW, NOT A LABEL (owner, 2026-08-16): the score chip opens
+           the stats and archive drawer, since the row around it goes to the
+           game. cursor:default read as inert. The hover is a deepening rather
+           than the full invert Play and Retry take, because it opens a panel in
+           place instead of leaving the page. */
         .sl-btn.done{border-color:#cfeadd;background:#f1faf5;color:var(--success-deep);}
-        .sl-btn.done:hover{background:var(--success-deep);border-color:var(--success-deep);color:var(--white);}
+        .sl-btn.done:hover{background:#dcf2e6;border-color:#a9d9c2;}
         .sl-btn.fail{border-color:#f6c9c4;background:#fdeceb;color:#b91c1c;}
         .sl-btn.fail:hover{background:#dc2626;border-color:#dc2626;color:var(--white);}
         .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
