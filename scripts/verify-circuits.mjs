@@ -12,11 +12,18 @@
 //
 // Usage: node scripts/verify-circuits.mjs
 
+import { register } from 'node:module';
 import { DAILY_KEYS, DAILY_GAME_MAP, RETIRED_DAILY } from '../lib/daily-games.js';
 import {
   CIRCUITS, ALL_CIRCUITS, MARQUEE, MARQUEE_ID, CIRCUIT_NAME_LISTS,
   circuitById, circuitKeysFor, isMarquee,
 } from '../lib/circuits.js';
+
+// lib/trophy-defs.js reaches for '@/lib/theme', which node cannot resolve on its
+// own, so it comes in through the alias loader and therefore has to be a dynamic
+// import (the hook must be installed before the import resolves).
+register('./alias-loader.mjs', import.meta.url);
+const { TROPHIES, TROPHY_GROUPS, TROPHY_TIERS } = await import('../lib/trophy-defs.js');
 
 const fails = [];
 const warns = [];
@@ -164,6 +171,54 @@ for (const c of CIRCUITS) {
 }
 if (!circuitKeysFor(MARQUEE_ID, todayIso).length) {
   warns.push(`the marquee has no run today (${todayIso}) — lib/daily-five's bank may need extending`);
+}
+
+// ── 8. the trophy case matches the rosters, 1:1 ─────────────────────────────
+// lib/trophy-defs.js lists the circuit trophies LITERALLY, because it is
+// client-safe metadata and must not drag lib/daily-games into every bundle that
+// renders a trophy case. That is only safe if something checks the two lists
+// agree, which is this. A new circuit with no trophy, or a trophy for a circuit
+// that no longer exists, fails here rather than shipping a hole.
+if (!TROPHY_GROUPS.some((g) => g.key === 'circuits')) {
+  fails.push("TROPHY_GROUPS has no 'circuits' group, so the circuit trophies would render ungrouped");
+}
+const troById = new Map(TROPHIES.map((t) => [t.id, t]));
+for (const c of ALL_CIRCUITS) {
+  const id = `circuit-${c.id}`;
+  const t = troById.get(id);
+  if (!t) { fails.push(`${c.id}: no trophy row ${id} in lib/trophy-defs.js`); continue; }
+  if (!c.trophy) { fails.push(`${c.id}: no trophy metadata on the circuit`); continue; }
+  if (t.name !== c.trophy.name) fails.push(`${id}: named "${t.name}" in trophy-defs, "${c.trophy.name}" in circuits`);
+  if (t.tier !== c.trophy.tier) fails.push(`${id}: tier "${t.tier}" in trophy-defs, "${c.trophy.tier}" in circuits`);
+  if (t.icon !== c.trophy.icon) fails.push(`${id}: icon "${t.icon}" in trophy-defs, "${c.trophy.icon}" in circuits`);
+  if (t.group !== 'circuits') fails.push(`${id}: group is "${t.group}", expected circuits`);
+  if (!TROPHY_TIERS[t.tier]) fails.push(`${id}: unknown tier "${t.tier}"`);
+}
+const strayTrophies = TROPHIES
+  .filter((t) => t.id.startsWith('circuit-') && t.id !== 'circuit-all')
+  .filter((t) => !ALL_CIRCUITS.some((c) => `circuit-${c.id}` === t.id));
+if (strayTrophies.length) {
+  fails.push(`trophy row(s) for circuits that no longer exist: ${strayTrophies.map((t) => t.id).join(', ')}`);
+}
+if (!troById.has('circuit-all')) fails.push("the 'circuit-all' capstone trophy is missing");
+
+// ── 9. the trophy tier matches the circuit's measured length ────────────────
+// Recomputed from the same snapshot the ascent check uses, so a tier cannot be
+// set by feel. The marquee is exempt and always gold: its roster changes daily,
+// so it has no fixed length to tier by.
+const TIER_AT = (secs) => (secs < 360 ? 'bronze' : secs < 1200 ? 'silver' : 'gold');
+for (const c of CIRCUITS) {
+  if (!c.trophy) continue;
+  const known = c.keys.filter((k) => k in MED);
+  if (known.length !== c.keys.length) continue; // already warned above
+  const total = known.reduce((a, k) => a + MED[k], 0);
+  const want = TIER_AT(total);
+  if (c.trophy.tier !== want) {
+    fails.push(`${c.id}: trophy tier is ${c.trophy.tier} but the roster totals ${total}s, which is ${want}`);
+  }
+}
+if (MARQUEE.trophy && MARQUEE.trophy.tier !== 'gold') {
+  fails.push('the marquee trophy must be gold: its roster changes daily, so there is no length to tier by');
 }
 
 // ── report ──────────────────────────────────────────────────────────────────
