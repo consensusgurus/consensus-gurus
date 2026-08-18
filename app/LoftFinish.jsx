@@ -193,6 +193,34 @@ export default function LoftFinish({
   const tailNarrow = (archiveIsNarrow ? 1 : 0) + (browseIsNarrow ? 1 : 0) + mains.length;
   if ((narrow.length + tailNarrow) % 2 === 1 && narrow.length) wide.add(narrow[narrow.length - 1]);
 
+  // REPLAY PUTS THE READER BACK AT THE TOP OF THE PAGE (owner report,
+  // 2026-08-18: "you can't actually replay Paths despite the button for
+  // replay existing"). Both legacy replay surfaces already did this and said
+  // why in the same words: goReplay in DailyEndCard and goReplay in
+  // DailyGamesGrid each call the caller's resetGame and then scrollTo(0), "so
+  // they land on the fresh board rather than halfway down the leaderboard".
+  // This card was written fresh and dropped it, so when the whole roster moved
+  // to the Loft format all 63 games with a Replay button lost the scroll. That
+  // is the fifth-mirror trap this component has hit before: the behaviour is
+  // documented against DailyEndCard, and this is the component on screen.
+  //
+  // It is not cosmetic, because a replay UNMOUNTS this card and, on any game
+  // that gates a fresh board behind a start tile, unmounts the board with it.
+  // Paths renders its entire board inside {!preStart && ...}, so the page
+  // collapses from ~2300px to ~840px and a reader parked where the card used
+  // to be is left on the page tail with no board and no Start button in sight.
+  // Nothing appears to have happened. Paths is the worst case because its own
+  // "Show a cheapest network" scrolls the reader DOWN to the board first, but
+  // every game with a start gate has the same hole.
+  //
+  // Scoped to tone 'replay', so no other option's behaviour changes.
+  const fire = (o) => (e) => {
+    if (o.onClick) o.onClick(e);
+    if (o.tone !== 'replay' || typeof window === 'undefined') return;
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    catch (err) { window.scrollTo(0, 0); }
+  };
+
   const rows = board && Array.isArray(board.rows) ? board.rows : [];
   const mine = board ? board.mine : null;
   const isMe = (r) => mine && String(r.username || '').toLowerCase() === mine;
@@ -525,7 +553,7 @@ export default function LoftFinish({
           const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
           return o.href
             ? <a key={i} className={cls} href={o.href}>{inner}</a>
-            : <button key={i} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
+            : <button key={i} type="button" className={cls} onClick={fire(o)}>{inner}</button>;
         })}
         {archive && archive.length ? (
           <button type="button" className="loft-opt t-archive" onClick={() => setOpenArchive(true)}>
@@ -548,7 +576,7 @@ export default function LoftFinish({
           const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
           return o.href
             ? <a key={`m${i}`} className={cls} href={o.href}>{inner}</a>
-            : <button key={`m${i}`} type="button" className={cls} onClick={o.onClick}>{inner}</button>;
+            : <button key={`m${i}`} type="button" className={cls} onClick={fire(o)}>{inner}</button>;
         })}
         {browse && roster.cats.length ? (
           <div className="loft-browse">

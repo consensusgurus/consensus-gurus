@@ -1099,7 +1099,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                   sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
                 prevPuzzle && { tone: 'another', label: 'Play another Blocks', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/blocks?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
-                
+                { tone: 'replay', label: 'Play again', sub: 'Another run, your best one counts', onClick: replayRun },
                 { label: 'Back to main', sub: 'The day\u2019s full board', tone: 'main', href: '/' },
               ]}
             />

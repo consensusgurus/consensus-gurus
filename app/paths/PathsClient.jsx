@@ -573,7 +573,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     undoRef.current = []; setCanUndo(false);
     commit(freshState(LANES.length));
-    setEndClosed(false); setShowPar(false);
+    setEndClosed(false); setShowPar(false); setRevealed(false);
   }
 
   const onKey = useCallback((e) => {
