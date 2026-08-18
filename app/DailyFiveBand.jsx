@@ -539,6 +539,16 @@ export default function DailyFiveBand() {
         .d5-pkh b{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8fa9de;}
         .d5-pkh i{margin-left:auto;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.1em;
                   text-transform:uppercase;color:#8fa9de;}
+        /* THE PANEL CLOSES FROM ITS OWN HEADER, not only from the control that
+           opened it. In the flow the panel is 549px tall on a phone, and the
+           button that opened it is in the pip bar UNDERNEATH: at 390x844 that
+           lands the close at y=799, inside the viewport by 45px and off the
+           bottom of anything shorter. A control at the top of the thing you
+           want to shut does not depend on how tall it is. */
+        .d5-pkx{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;color:#dbe6ff;
+                border-radius:5px;height:20px;padding:0 9px;font-size:8.5px;font-weight:800;
+                letter-spacing:.11em;text-transform:uppercase;cursor:pointer;font-family:inherit;}
+        .d5-pkx:hover{background:rgba(255,255,255,.24);}
         .d5-pkg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
         .d5-pkc{position:relative;background:rgba(255,255,255,.07);border:1px solid #2c437c;
                 border-radius:8px;padding:7px 9px 8px;cursor:pointer;overflow:hidden;text-align:left;
@@ -661,6 +671,7 @@ export default function DailyFiveBand() {
             <i>{allPer
               ? `${ALL_CIRCUITS.filter((c) => { const p = progOf(c.id); return p.total && p.done === p.total; }).length} of ${ALL_CIRCUITS.length} complete`
               : 'Loading your progress'}</i>
+            <button type="button" className="d5-pkx" onClick={() => setPick(false)}>Close</button>
           </div>
           <div className="d5-pkg">
             {ALL_CIRCUITS.map((c) => {
