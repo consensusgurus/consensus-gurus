@@ -218,6 +218,7 @@ export default function DailyFiveBand() {
   const field = (data && data.overallField) || 0;
 
   const board = (data && Array.isArray(data.overall) ? data.overall : []).slice(0, 5);
+  const partial = (data && data.partial) || 0;
   const meRow = data && data.me ? data.me : null;
   const meInTop = !!(meRow && board.some((r) => r.userKey === meRow.userKey));
 
@@ -226,7 +227,9 @@ export default function DailyFiveBand() {
   // TO RANK ON A SKILL CIRCUIT YOU HAVE TO FINISH IT. The server is the
   // authority (it withholds the rank); this is only the label, because a player
   // sitting on four of five needs to be told why their standing is a dash.
-  const ranksAll = !marq;
+  // Read from the payload rather than assumed, so an archived or ungated board
+  // labels itself honestly. Defaults to gated, which is what every run is.
+  const ranksAll = data ? !!data.rankRequiresAll : true;
   const ranked = !ranksAll || complete;
 
   // Per-circuit progress for the picker, off the full-slate payload. Null until
@@ -331,7 +334,10 @@ export default function DailyFiveBand() {
         .d5-n{font-size:20px;font-weight:800;letter-spacing:-.35px;line-height:1.15;}
         .d5-s{font-size:11.5px;font-weight:600;color:#9fb6e8;margin-top:2px;
               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .d5-sc{margin-left:auto;flex:none;text-align:right;line-height:1.1;}
+        /* min-width, because the digits change on every rotation and a box that
+           resizes moves the title block beside it. Wide enough for the longest
+           thing it says, "of 75 pts · #12". */
+        .d5-sc{margin-left:auto;flex:none;text-align:right;line-height:1.1;min-width:96px;}
         .d5-sc b{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
         .d5-sc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9fb6e8;}
         .d5-go{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#3a2a05;
@@ -632,12 +638,16 @@ export default function DailyFiveBand() {
             {ranksAll && !complete ? ` Finish all ${members.length} to rank.` : ''}
           </div>
         </div>
-        {data && data.me ? (
-          <div className="d5-sc">
-            <b>{total}</b>
-            <i>of {maxTotal} pts{ranked && myRank ? ` · #${myRank}` : ''}</i>
-          </div>
-        ) : null}
+        {/* ALWAYS MOUNTED, placeholder and all. It used to render only once the
+            viewer's own row had loaded, so every rotation unmounted it, the
+            title block widened into the gap, the name and the arrows slid
+            across, and on a phone the whole header reflowed — eight seconds
+            later it did it again. A box that is always there and only changes
+            its digits cannot move anything. */}
+        <div className="d5-sc">
+          <b>{data && data.me ? total : '—'}</b>
+          <i>of {maxTotal} pts{data && data.me && ranked && myRank ? ` · #${myRank}` : ''}</i>
+        </div>
         <button type="button" className="d5-bd" onClick={() => setOpen((o) => !o)}>
           {open ? 'Hide board' : 'Board'}
         </button>
@@ -781,7 +791,13 @@ export default function DailyFiveBand() {
           </div>
           {board.length ? board.map((r, i) => (
             <BoardRow key={r.userKey} row={r} pos={i + 1} members={members} me={meRow && r.userKey === meRow.userKey} />
-          )) : <div className="d5-note">Nobody has scored on the run yet today. Be first.</div>}
+          )) : (
+            <div className="d5-note">
+              {ranksAll
+                ? `Nobody has finished all ${members.length} yet today.${partial ? ` ${partial} ${partial === 1 ? 'player is' : 'players are'} partway through.` : ''} Be first.`
+                : 'Nobody has scored on the run yet today. Be first.'}
+            </div>
+          )}
           {meRow && !meInTop ? (
             <BoardRow row={meRow} pos={meRow.rank} members={members} me />
           ) : null}

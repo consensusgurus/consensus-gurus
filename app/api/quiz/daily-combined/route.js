@@ -287,7 +287,7 @@ export async function GET(request) {
   const effBestN = gameCount ? Math.min(dayBestN, gameCount) : dayBestN;
   const maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: suffix, five: fiveOnly && !circuitOn, circuit: circuitOn ? circuitId : null, rankRequiresAll: circuitOn, frozen, maxTotal, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
+  const empty = { date: suffix, five: fiveOnly && !circuitOn, circuit: circuitOn ? circuitId : null, rankRequiresAll: fiveOnly, partial: 0, frozen, maxTotal, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
     // Read ONLY this day's quizIds (indexed by quiz_results_quiz, migration 20)
     // rather than the whole table. This route never looks at a row outside
@@ -458,7 +458,14 @@ export async function GET(request) {
     // rule that the Five persists as it is covers its board too. Extending it
     // there is one word here (drop the !fiveFlag from circuitOn above) and an
     // owner call, not an implementation detail.
-    const memberKeys = circuitOn ? games.map((g) => g.key) : null;
+    // THE MARQUEE IS GATED TOO (owner, 2026-08-18, reversing the same day's
+    // carve-out). It was excluded on the reasoning that the Daily Five's board
+    // was already live and ranking partial runs, so changing it mid-day would
+    // move a board people were already on. The owner's call is that the Five is
+    // a circuit and the rule is the rule: a combined placement across five
+    // games means nothing from somebody who played two of them. So the gate is
+    // now every run, marquee included, and only the full slate is ungated.
+    const memberKeys = fiveOnly ? games.map((g) => g.key) : null;
     const rankEligible = (r) => {
       if (!memberKeys) return true;
       const pg = r && r.perGame;
@@ -550,7 +557,12 @@ export async function GET(request) {
       // another when more than one is in flight.
       circuit: circuitOn ? circuitId : null,
       // Whether this board ranks only players who finished every game in it.
-      rankRequiresAll: circuitOn,
+      rankRequiresAll: fiveOnly,
+      // Named players who have STARTED the run but not finished it. The gate
+      // makes an early-in-the-day circuit board legitimately empty, and an
+      // empty board with no explanation reads as broken rather than as strict,
+      // so the client can say how many people are partway instead.
+      partial: memberKeys ? overallFull.filter((r) => r.username && !rankEligible(r)).length : 0,
       // The day is over and this board is final. Clients label it, and nothing
       // posted since Eastern midnight is in it.
       frozen,
