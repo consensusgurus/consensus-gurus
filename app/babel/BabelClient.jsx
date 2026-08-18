@@ -625,6 +625,19 @@ export default function BabelClient({ puzzles, forceNum }) {
   }
 
   const won = g.status === 'done' && spread >= BENCH;
+  // Babel is the one game whose WIN sits ABOVE its COMPLETION: clearing the
+  // solver benchmark is the win, but BEATING THE OPPONENT is a finished game and
+  // the home slate has counted it green since 2026-08-10 (solvesOnScore /
+  // dailySolvedRow in lib/daily-games). The verdict header used to be binary and
+  // called a won endgame under the benchmark "Not solved", which contradicted the
+  // slate and read as a loss. Middle tier now: beat them and it is COMPLETED
+  // (the gold `part` band). "Not solved" is reserved for a loss or a dead heat.
+  // DISPLAY ONLY. `won` still owns the posted `correct` flag, the share tick, the
+  // streak and IQ Points; never widen those to the spread (see the note in
+  // lib/daily-games above SOLVES_ON_SCORE).
+  const beat = g.status === 'done' && !won && spread > 0;
+  const verdictTone = won ? 'won' : (beat ? 'part' : 'lost');
+  const verdictWord = won ? 'Solved' : (beat ? 'Completed' : 'Not solved');
 
   function copyShare() {
     const line = g.status === 'playing'
@@ -667,10 +680,10 @@ export default function BabelClient({ puzzles, forceNum }) {
         <LoftCap
           name="Babel"
           cat="Word"
-          outcome={playing ? null : (won ? 'won' : 'lost')}
+          outcome={playing ? null : verdictTone}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={playing ? PUZZLE.dateLabel : verdictWord}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [
@@ -884,9 +897,9 @@ export default function BabelClient({ puzzles, forceNum }) {
             <>
               <div style={{ maxWidth: 480, margin: '16px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : beat ? COLORS.gold : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                    {won ? `The benchmark was ${signed(BENCH)}. You matched the book line.` : `The benchmark was ${signed(BENCH)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}
+                    {won ? `The benchmark was ${signed(BENCH)}. You matched the book line.` : beat ? `You beat them by ${spread}. The benchmark was ${signed(BENCH)}, and greedy play gets ${signed(PUZZLE.greedy)}.` : `The benchmark was ${signed(BENCH)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}
                     {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>
                       {g.over === 'you-out' ? 'You went out first.' : g.over === 'foe-out' ? 'They went out first.' : 'The board closed out.'} {elapsed}
                     </span>
@@ -925,8 +938,8 @@ export default function BabelClient({ puzzles, forceNum }) {
             <LoftFinish
               name="Babel"
               catRank={catRank}
-              outcome={won ? 'won' : 'lost'}
-              title={won ? 'Solved' : 'Not solved'}
+              outcome={verdictTone}
+              title={verdictWord}
               detail={`${spread} spread \u00b7 ${BENCH} benchmark \u00b7 ${elapsed}`}
               iq={iq}
               board={dailyBoard}
