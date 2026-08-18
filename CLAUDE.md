@@ -3359,6 +3359,44 @@ must not be punished for the author's collision.
   have noticed until a player complained. The script now exits if a previously
   shipped word is missing from the corpus. To genuinely remove a word, delete it
   from the frozen file, or run a clean rebuild with `LODE_REBUILD=1`.
+- **THE FREQUENCY FLOOR IS GONE ENTIRELY (owner call, 2026-08-17, same day).**
+  This SUPERSEDES the 1.5 entry below, which lasted a few hours. The only bars a
+  word clears now are **four letters** and the **proper-noun veto**; every other
+  word in the shipped corpus is scored. Pool **67,300 -> 267,009**. The reasoning
+  is that a curated pool always omits SOMETHING, and every omission reads to a
+  player as "that is not a word", so no floor setting ends the complaint.
+  - **The zero-frequency branch in `tierOf` is load-bearing, not cosmetic.**
+    167,286 of the added words have NO wordfreq entry (eild, pumy, skirrs,
+    konbus, solpugids). Zero is less than `TIER_RARE`, so without the branch each
+    would pay TREBLE: measured, the median board's rare share goes 0.25 -> 0.49,
+    half of every board becomes a x3 word nobody knows, and memorising a Scrabble
+    list beats knowing English — the exact inversion of what rarity scoring is
+    for. They score at the BASE rate (`NO_FREQ_TIER = 1`), which holds the rare
+    share at 0.307 on the shipped bank. A frequency of 0 means "no recorded
+    usage", NEVER "vanishingly rare"; do not collapse the two.
+  - **The proper-noun veto SURVIVED the floor removal** and is now the only
+    exclusion (1,419 words). It is a dictionary gate, not a frequency one. Drop
+    it and india, michael, jordan and texas land on the boards. Vetoed words are
+    not refused to the player either: they fall through to `extra` as tailings,
+    so the "no real word is ever called a non-word" property still holds — 0
+    buildable dictionary words are refused across all 500 boards.
+  - **Caps went to 110 weekday / 120 Sunday**, and Sunday is NOT proportional on
+    purpose. The vein is a share of the maximum, so a bigger board needs more
+    words before the day closes: cap 170 -> 23 grind Sundays, 150 -> 15, 140 -> 7,
+    130 -> 6, 120 -> 1. The bank ships with ONE grind board rather than a third of
+    its Sundays. To make Sundays bigger the lever is `VEIN_SHARE`, not the cap,
+    and that changes the rank ladder everywhere, so it is an owner decision.
+  - **`buildBoard` had to be rewritten to finish at all.** It scanned every
+    signature in the pool per board, which at 267,009 words ran over 25 minutes
+    without producing a bank. It now walks the **subsets** of the board's letters
+    (64 or 128 lookups) — provably equivalent, since a bucket belongs to a board
+    iff its letter set is a subset containing the core, and `words` is sorted by a
+    total order before return. Verified byte-identical against the old scan on a
+    sample of generated boards. Runtime 25+ min -> **9 seconds**.
+  - ⚠️ **`verify-lode.mjs` writes warnings with `console.warn` (STDERR).** A cap
+    sweep that redirects `2>/dev/null` counts zero warnings at every setting and
+    looks clean; that is how Sunday was briefly set to 150. Capture `2>&1`.
+
 - **The floor is 1.5 and flat, and the RARE tier moved with it (2026-08-17).**
   Owner call after complaints kept coming in. Measured first: of every corpus
   word a player could build from a day's letters, 68% was refused, and the

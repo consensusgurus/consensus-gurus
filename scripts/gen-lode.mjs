@@ -13,17 +13,19 @@
 //   multiplier= 1 / 2 / 3           (common / uncommon / rare)
 //   pangram   = +10
 //
-// The same frequency data doubles as the junk filter: the shipped dictionaries
-// (public/tuck-dict.txt for 4 to 8 letters, public/tuck-dict-long.txt for 9 to
-// 15) are Scrabble word lists full of words no human knows, so anything below
-// the Zipf floor, or outside hunspell's en_US/en_GB, is dropped from the board
-// entirely. Every word on a Lode board is a word a reader could plausibly
-// recognise.
+// The frequency data USED to double as the junk filter, and no longer does.
+// As of 2026-08-17 there is NO frequency floor: every word in the shipped
+// dictionaries (public/tuck-dict.txt for 4 to 8 letters, tuck-dict-long.txt for
+// 9 to 15) is scored, except proper nouns, which scripts/lode-words.py vetoes
+// with hunspell and which reach the player as tailings instead. Frequency now
+// decides only the MULTIPLIER, not membership.
 //
-// Lode read the 4-to-8 list ALONE until 2026-08-15, so no word of nine letters
-// or more could appear on any board. Players typed BEGINNING, COHERENCE,
-// INITIALLY and ABBREVIATE and were told they were not words. Both lists are
-// read now, which is where most of the pool's growth came from.
+// Two holes closed on the way here, both of which reached players as "that is
+// not a word": the 4-to-8 list was read alone until 2026-08-15, so no word of
+// nine letters or more could appear on any board (BEGINNING, COHERENCE,
+// INITIALLY, ABBREVIATE); and the floor itself was cutting ordinary vocabulary
+// (rile, glob, clef, gild, dolt, kith, mien, riffraff, ogled) right up until it
+// was removed.
 //
 // Each day carries a VEIN: the target score that counts the day as solved, set
 // at a fixed share of the board's maximum. Ranks below it give the ladder
@@ -47,50 +49,34 @@ import { dirname, join, resolve } from 'path';
 const here = dirname(fileURLToPath(import.meta.url));
 
 // ─── tunables ──────────────────────────────────────────────────────────────
-// The junk floor is scaled BY LENGTH, and for most of Lode's life it was the
-// ONLY thing standing between a reader and the Scrabble tail. That was the
-// wrong tool. The shipped dictionary is full of proper nouns (james, texas,
-// paris, facebook), and a name is FREQUENT, so the only floor high enough to
-// stop names also stopped ordinary vocabulary that simply is not written down
-// much. Four letters was where it hurt: at a 3.4 floor the board rejected lard
-// (2.98), howl (3.18), silt (2.96), coax (2.96), hilt (2.90), faze (2.91),
-// cowl (2.87), ruse (3.16) and yelp (3.25), all words a player will type and
-// expect to count. Frequency cannot tell "nobody knows it" from "nobody writes
-// it"; only a dictionary can.
+// A junk floor scaled BY LENGTH was, for most of Lode's life, the only thing
+// between a reader and the Scrabble tail. It was the wrong tool, and the reason
+// is worth keeping: the dictionary is full of proper nouns (james, texas, paris,
+// facebook), and a name is FREQUENT, so any floor high enough to stop names also
+// stopped ordinary vocabulary nobody writes down (lard 2.98, howl 3.18, silt
+// 2.96, coax 2.96, ruse 3.16). Frequency cannot tell "nobody knows it" from
+// "nobody writes it"; only a dictionary can. The vocabulary gate therefore moved
+// to hunspell in scripts/lode-words.py on 2026-07-30, the floor came down to 1.5
+// once it no longer had to police names, and then came off entirely.
 //
-// So as of 2026-07-30 the vocabulary gate moved into scripts/lode-words.py,
-// which checks every word against hunspell's CASE SENSITIVE en_US dictionary
-// and drops anything that exists only as a capitalized name. With names gone,
-// the floor no longer has to do their policing and drops to where the gated
-// list genuinely stops being placeable vocabulary: about 2.7 at four letters,
-// 2.25 at five, 2.1 at six and just above 2 beyond that. Below those the gated
-// list turns into words that are real but nobody could place (fulvous, bascule,
-// catechin, ecotone), which is the category Lode exists to keep off the board.
-//
-// These MUST stay in sync with NEW / NEW_LONG in scripts/lode-words.py, which
-// applies the same floors when it freezes the data — the JSON is authoritative
-// and these are the second gate.
-//
-// Flat 1.5 since 2026-08-17, down from 2.7/2.25/2.1/2.05. The per-length shape
-// existed because frequency was policing proper nouns; the dictionary gate does
-// that now, so a four-letter word no longer has to be commoner than a nine to
-// earn its place. Measured before the change, 68% of the words a player could
-// build from a day's letters were refused, and the band between 1.5 and 2.5 was
-// ordinary English (rile, glob, clef, gild, dolt, kith, mien, jamb, riffraff,
-// ogled, tiptop). The pool went 49,189 -> 67,300 words.
-const FLOORS = { 4: 1.5, 5: 1.5, 6: 1.5 };
-const FLOOR_LONG = 1.5;      // seven letters and up
-const floorFor = (n) => FLOORS[n] ?? FLOOR_LONG;
-// The tier boundary moves with the floor, and it HAS to: every word the 1.5
-// floor admits is rarer than the old 2.05 floor, so leaving RARE at 2.9 shoved
-// all 18,111 of them into the top tier and took the median board's rare share
-// from 0.20 to 0.34. The x3 multiplier is the game's prize for knowing a word,
-// and a prize a third of the board earns is not one. At 2.4 the distribution is
-// back where it was (rare share p10/p50/p90 = 0.10/0.19/0.32 against the old
-// 0.10/0.20/0.33), so the newly admitted words mostly score as UNCOMMON and
-// only the genuinely obscure ones pay treble.
-const TIER_RARE = 2.4;       // < this (and above the floor) is RARE (x3)
-const TIER_UNCOMMON = 3.9;   // < this (and >= RARE)  is UNCOMMON  (x2)
+// THERE IS NO FREQUENCY FLOOR (owner call, 2026-08-17). A word needs four
+// letters and to not be a proper noun; scripts/lode-words.py applies the second
+// of those and nothing else. Every one of the 267,009 words it emits is scored.
+// Do not reintroduce a floor here: this file used to hold a second gate that
+// had to be kept in sync with the Python, and there is no longer anything to
+// keep in sync.
+const TIER_RARE = 2.4;       // < this is RARE (x3)
+const TIER_UNCOMMON = 3.9;   // < this (and >= RARE) is UNCOMMON (x2)
+// A frequency of 0 means wordfreq has NO entry for the word — about 167,300 of
+// them (eild, pumy, skirrs, konbus, solpugids). They are real and they count,
+// but they score at the BASE rate, and that branch is load-bearing rather than
+// cosmetic: 0 is less than TIER_RARE, so without it every one of them would pay
+// TREBLE. Measured, that took the median board's rare share from 0.25 to 0.49,
+// i.e. half of every board would be a x3 word nobody knows, and memorising a
+// Scrabble list would beat knowing real vocabulary — the exact inversion of
+// what the rarity scoring exists to reward. With the branch, rare share sits at
+// 0.28 and the treble still points at words a reader could actually place.
+const NO_FREQ_TIER = 1;
 const MIN_LEN = 4;
 const LETTERS = 7;           // weekdays
 const LETTERS_SUNDAY = 8;    // Sunday Edition deals an extra letter
@@ -105,13 +91,37 @@ const LETTERS_SUNDAY = 8;    // Sunday Edition deals an extra letter
 // took the pool to 67,300: the median candidate board grew to 60 words, so a
 // 60 cap would have thrown away half the field. The rise is deliberately much
 // smaller than the pool's, because the VEIN is a share of the board maximum and
-// Lode has to close in a few minutes against two dozen other dailies. At 70/110
-// the average weekday board holds 44.5 words and the Sunday 72.6, which moves
-// the vein about 11% and 14%. Do not scale these with the pool one-for-one.
+// Lode has to close in a few minutes against two dozen other dailies.
+//
+// And again to 110/150 later the same day, when the floor was removed outright
+// and the pool went to 267,009. A 7-letter set now builds 138 words on average,
+// so the old 70 cap left only the sparsest letter sets eligible and biased the
+// deal toward awkward boards. This IS a materially longer day than the morning's
+// 70/110 (weekday vein 119 -> 170), which was the owner's explicit call when the
+// floor came off: fuller, more representative boards over a shorter close.
+//
+// SUNDAY IS 120, NOT the ~170 the weekday:Sunday ratio would imply, and the
+// verifier is what set it. The vein is a share of the board maximum, so a bigger
+// Sunday needs proportionally MORE words before the day closes, and past a point
+// that trips "needs N words at best to reach the vein — a grind". Measured over
+// the whole bank: cap 170 -> 23 grind Sundays, 150 -> 15, 140 -> 7, 130 -> 6,
+// 120 -> 1. So Sunday sits at 120 (~88 words against the weekday's ~71) and the
+// bank ships with a single grind board rather than a third of its Sundays.
+//
+// The remaining warning is a consequence of the owner's fuller-board call, not a
+// regression: the >26-word threshold was calibrated when a weekday board held
+// ~39 words and the vein was ~106, and boards are now roughly 1.8x that. If
+// bigger Sundays are wanted, the lever is VEIN_SHARE — close the day at a lower
+// share of a larger maximum — NOT a higher cap. That changes the rank ladder for
+// every board, so it is an owner decision.
+//
+// ⚠️ verify-lode.mjs writes warnings with console.WARN (stderr). A sweep that
+// redirects 2>/dev/null counts zero warnings at every cap and looks like a clean
+// result; that mistake picked 150 here before it was caught. Capture 2>&1.
 const MIN_WORDS = 20;
-const MAX_WORDS = 70;
+const MAX_WORDS = 110;
 const MIN_WORDS_SUNDAY = 30;
-const MAX_WORDS_SUNDAY = 110;
+const MAX_WORDS_SUNDAY = 120;
 const MIN_PANGRAMS = 1;
 const MAX_PANGRAMS = 4;
 // The solve line, as a share of the board maximum. Deliberately reachable in a
@@ -166,14 +176,17 @@ for (const w of CORPUS) {
   corpusBySig.get(sig).push(w);
 }
 export function extraFor(core, outer, scored) {
-  const allowed = new Set([core, ...outer]);
+  // Same subset walk as buildBoard, for the same reason.
+  const letters = [core, ...outer].sort();
   const on = new Set(scored);
   const out = [];
-  for (const [sig, ws] of corpusBySig) {
+  const n = letters.length;
+  for (let mask = 0; mask < (1 << n); mask++) {
+    let sig = '';
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) sig += letters[i];
     if (!sig.includes(core)) continue;
-    let ok = true;
-    for (const ch of sig) if (!allowed.has(ch)) { ok = false; break; }
-    if (!ok) continue;
+    const ws = corpusBySig.get(sig);
+    if (!ws) continue;
     for (const w of ws) if (!on.has(w)) out.push(w);
   }
   out.sort();
@@ -181,7 +194,8 @@ export function extraFor(core, outer, scored) {
 }
 
 function tierOf(z, upper) {
-  const t = z < TIER_RARE ? 3 : z < TIER_UNCOMMON ? 2 : 1;
+  // z === 0 is "no recorded usage", NOT "vanishingly rare". See NO_FREQ_TIER.
+  const t = z === 0 ? NO_FREQ_TIER : z < TIER_RARE ? 3 : z < TIER_UNCOMMON ? 2 : 1;
   return INFLECTED.test(upper) ? Math.min(t, 2) : t;
 }
 function pointsOf(word, isPangram, tier) {
@@ -190,7 +204,7 @@ function pointsOf(word, isPangram, tier) {
 
 const WORDS = [];
 for (const [w, z] of Object.entries(freq)) {
-  if (w.length < MIN_LEN || z < floorFor(w.length)) continue;
+  if (w.length < MIN_LEN) continue;   // the letter minimum is the only bar left
   const up = w.toUpperCase();
   WORDS.push({ w: up, set: new Set(up), tier: tierOf(z, up) });
 }
@@ -214,15 +228,31 @@ function rootSets(size) {
   return out;
 }
 
+// Enumerate the SUBSETS of the board's letters and look each one up, rather than
+// scanning every signature in the pool and testing it. The two are exactly
+// equivalent — a bucket belongs to a board iff its letter set is a subset of the
+// board's letters and contains the core — but the scan is O(all signatures) per
+// board and the subset walk is O(2^letters), which is 64 or 128 lookups.
+//
+// This stopped being an optimisation and became a requirement when the floor was
+// removed: at 267,009 words the pool holds ~10x the distinct signatures, and the
+// scan version ran over 25 minutes without finishing a single bank. It is a pure
+// performance change and the output is byte-identical: `words` is sorted by a
+// total order (points desc, then alphabetical) before it is returned, and
+// `pangrams` and `max` are order-independent, so nothing downstream can observe
+// the iteration order. The OUTER loops in poolFor are deliberately untouched, so
+// the pool order — and therefore the seeded deal — is unchanged too.
 function buildBoard(sig, core) {
-  const allowed = new Set(sig);
+  const letters = [...sig];
   const words = [];
   let pangrams = 0;
-  for (const [s, items] of bySig) {
+  const n = letters.length;
+  for (let mask = 0; mask < (1 << n); mask++) {
+    let s = '';
+    for (let i = 0; i < n; i++) if (mask & (1 << i)) s += letters[i];
     if (!s.includes(core)) continue;
-    let ok = true;
-    for (const ch of s) if (!allowed.has(ch)) { ok = false; break; }
-    if (!ok) continue;
+    const items = bySig.get(s);
+    if (!items) continue;
     const isPan = s.length === sig.length;
     for (const it of items) {
       if (isPan) pangrams++;

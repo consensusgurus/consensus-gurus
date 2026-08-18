@@ -77,35 +77,37 @@ DICTS = [
 HUNSPELL = os.environ.get("LODE_HUNSPELL", "/usr/share/hunspell/en_US")
 HUNSPELL_GB = os.environ.get("LODE_HUNSPELL_GB", "/usr/share/hunspell/en_GB")
 
-# Keep a little headroom under the generator's own floors (gen-lode.mjs FLOORS /
-# FLOOR_LONG), so a small tweak there does not require re-running this script.
+# THERE IS NO FREQUENCY FLOOR (owner call, 2026-08-17). The only bars a word has
+# to clear are the LETTER MINIMUM (four) and the proper-noun veto below. Every
+# other word in the shipped corpus is scored.
 #
-# This was 1.9 until 2026-08-17, and 1.9 was still cutting real vocabulary.
-# Measured over the boards dealt from the current pool: of every corpus word a
-# player could build from the day's letters, 68% was refused, and the refusals
-# between Zipf 1.5 and 2.5 were words hunspell confirms are ordinary English —
-# rile, glob, clef, ream, gild, rend, dolt, kith, mien, jamb, blab, clod, luau,
-# riffraff, ogled, fawned, tiptop, lamely, catcall. Those are exactly the words
-# a player types and expects to count. Below about 1.5 the gated list does turn
-# into the Scrabble tail (rochet, potto, uvea, motmot, guenon, theca, atlatl,
-# aedile), which is the category Lode exists to keep off the board, so that is
-# where the floor now sits.
-FLOOR = 1.4
+# The floor came down in three steps and it is worth knowing why it went all the
+# way. It started as the ONLY junk filter, so it had to be high enough to stop
+# proper nouns, which are frequent; that also stopped ordinary vocabulary nobody
+# writes down (lard, howl, silt, coax, ruse). The hunspell gate took the
+# proper-noun job in July, and the floor dropped to 1.5 in the morning of
+# 2026-08-17, which admitted another 18,111 words (rile, glob, clef, gild, dolt,
+# kith, mien, riffraff, ogled). Players still hit refusals, so the floor went
+# entirely: a curated pool always omits SOMETHING, and every omission reads to a
+# player as "that is not a word".
+#
+# What this costs, stated plainly so nobody re-adds a floor by accident: about
+# 167,500 of the words now scored have NO recorded usage at all (eild, pumy,
+# skirrs, konbus, solpugids). They are real dictionary words and they count, but
+# they are scored at the BASE rate rather than the rare multiplier — see the
+# zero-frequency branch of tierOf in gen-lode.mjs. Without that branch they
+# would each have paid TREBLE, taking the median board's rare share from 0.25 to
+# 0.49 and making a Scrabble list the fastest way to win, which is the exact
+# opposite of what the rarity scoring is for.
+#
+# A word with no wordfreq entry is emitted with a frequency of 0.0, which is the
+# signal the generator keys the base-rate branch off. It is NOT a missing value.
+FLOOR = None
 
-# The generator's floors, mirrored here because the grandfather rule below needs
-# to know what used to be allowed. OLD is the pre-gate floor set; NEW is what
-# gen-lode.mjs uses now that the dictionary gate carries the quality burden.
-# Keep NEW in sync with FLOORS / FLOOR_LONG in scripts/gen-lode.mjs.
-#
-# NEW went to a flat 1.5 on 2026-08-17. The per-length shape existed because
-# frequency was doing the proper nouns' policing; the dictionary gate does that
-# now, so a short word no longer has to be commoner than a long one to earn its
-# place. A word is admitted because a dictionary confirms it, not because it is
-# written often.
+# Retained ONLY for the grandfather bookkeeping in the stats below; no word is
+# excluded on frequency any more.
 OLD = {4: 3.4, 5: 2.6, 6: 2.25}
 OLD_LONG = 2.1
-NEW = {4: 1.5, 5: 1.5, 6: 1.5}
-NEW_LONG = 1.5
 
 # Words hunspell en_US files as capitalized-only that are still worth playing.
 # The proper-noun veto runs before en_GB precisely so that names stay out, which
@@ -132,10 +134,6 @@ KEEP = {
 
 def old_floor(n):
     return OLD.get(n, OLD_LONG)
-
-
-def new_floor(n):
-    return NEW.get(n, NEW_LONG)
 
 
 def open_dict(path, label):
@@ -208,27 +206,26 @@ stats = {"known": 0, "proper": 0, "british": 0, "unknown": 0,
 for w in sorted(words):
     z = zipf_frequency(w, "en")
     was = w in prev
-
-    if z < FLOOR and not was:
-        continue
     cls = classify(w)
     stats[cls] += 1
 
-    # A name is a name however often it is written.
+    # THE ONLY EXCLUSION LEFT. A name is a name however often it is written, and
+    # a word board full of india, michael, jordan and texas is a different game.
+    # This is a DICTIONARY gate, not a frequency one, so removing the floor did
+    # not remove it. Excluded words are not refused to the player either: they
+    # fall through to the board's `extra` list and are accepted as tailings, so
+    # nothing a player types is ever called a non-word.
     if cls == "proper" and w not in KEEP and not was:
         stats["dropped_proper"] += 1
         continue
 
     if was:
         stats["kept_prior"] += 1  # already shipped; never taken back
-    elif z >= old_floor(len(w)):
-        stats["added"] += 1  # grandfathered: allowed before the gate, still allowed
-    elif cls != "unknown" and z >= new_floor(len(w)):
-        stats["added"] += 1  # admitted on a dictionary's word, not on frequency
     else:
-        stats["below"] += 1
-        continue
+        stats["added"] += 1
 
+    # 0.0 means wordfreq has no entry: a real word nobody has written down in the
+    # reference corpus. The generator scores these at the base rate.
     out[w] = round(z, 2)
 
 missing = [w for w in prev if w not in out]
@@ -240,11 +237,13 @@ if missing:
     )
 
 print(json.dumps(out, separators=(",", ":"), sort_keys=True))
+nofreq = sum(1 for v in out.values() if v == 0)
 print(
     f"{len(out)} words kept ({stats['kept_prior']} already shipped, "
-    f"{stats['added']} newly admitted) - dropped {stats['dropped_proper']} "
-    f"proper nouns, {stats['below']} below floor - classes: {stats['known']} "
-    f"known / {stats['british']} british / {stats['proper']} proper / "
+    f"{stats['added']} newly admitted) - {nofreq} have no recorded usage and "
+    f"score at the base rate - dropped {stats['dropped_proper']} proper nouns "
+    f"(the ONLY exclusion) - classes: {stats['known']} known / "
+    f"{stats['british']} british / {stats['proper']} proper / "
     f"{stats['unknown']} unknown to either",
     file=sys.stderr,
 )

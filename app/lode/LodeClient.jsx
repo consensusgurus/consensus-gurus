@@ -804,6 +804,13 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                 <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 10 }}>
                   {TIERS[1].block} common &middot; {TIERS[2].block} uncommon &middot; {TIERS[3].block} rare &middot; {PANGRAM_BLOCK} pangram. Rarity is what pays here.
                 </div>
+                {/* Every dictionary word scores, so the board carries a long tail
+                    the rarity data cannot rank. Saying so is better than letting a
+                    player conclude the tiers are wrong when an obscure word pays
+                    the base rate. */}
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 8 }}>
+                  Rarity is measured from how often a word appears in real writing. Every word in the dictionary counts here, and the most obscure ones have no usage on record at all, so those score at the common rate rather than the rare one.
+                </div>
               </div>
             </div>
           </>
