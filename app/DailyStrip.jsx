@@ -51,6 +51,7 @@ import { fetchDayStatus } from './useDayStats';
 import { catBlue, deptBlue } from '@/lib/home-blues';
 import { isSundayET, hasSundayEdition } from '@/lib/sunday-editions';
 import { isRetiredDaily, dailyScoreText, KEEPS_ANSWER } from '@/lib/daily-games';
+import { CIRCUIT_NAME_LISTS } from '@/lib/circuits';
 
 const GAMES = [
   { key: 'crux', href: '/crux', name: 'Crux', img: '/games/btn-crux.png', store: 'sot_crux_day', tag: "A clueless crossword" , cat: 'Word' },
@@ -225,22 +226,21 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
    render. That is invisible to esbuild and to no-undef, and it fails the build
    at prerender rather than at parse. Neither of these depends on component
    state, so neither belongs in the component. */
-const CIRCUITS = [
-  ['Crosswords', ['Emcee', 'Crux', 'Shards', 'Glyph', 'Anon']],
-  ['Word Building', ['Tuck', 'Lode', 'Babel', 'Rung']],
-  ['Anagrams', ['Garble', 'Barter', 'Strata']],
-  ['Sorting', ['Links', 'Venn']],
-  ['Sudoku', ['Suds', 'Quilt', 'Cages', 'Sando', 'Sixes']],
-  ['Mental Math', ['Blitz', 'Crunch', 'Cipher', 'Tally']],
-  ['Spatial Puzzles', ['Carve', 'Plot', 'Parker', 'Paths', 'Chomp', 'Span']],
-  ['Deduction', ['Alibi', 'Sworn', 'Hearsay', 'Stands', 'Docket', 'Suffice', 'Axiom']],
-  ['Pencil Puzzles', ['Etch', 'Hedge', 'Jesters', 'Fib']],
-  ['History', ['Dating', 'Extra', 'Redact']],
-  ['Ranking', ['Listed', 'Bracket', 'Outrank']],
-  ['Survival', ['Streak', 'Deep', 'Blitz']],
-  ['Chess', ['Mate', 'Defend']],
-  ['Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
-];
+// THE ROSTERS MOVED TO lib/circuits.js (owner, 2026-08-18), and this is now a
+// derived view of them rather than a second list. A circuit is a thing you can
+// RUN as well as a thing you can filter by, so the two had to become one list
+// or they would have drifted the first time either changed. The shape is
+// unchanged ([displayName, [gameName, ...]]), so circuitsOf, slateMatch and the
+// filter strip below are untouched.
+//
+// What changed in the rosters themselves: the fourteen ad-hoc groups ran from 2
+// to 7 games, left eleven games in no circuit at all and put two games in two.
+// They are now thirteen EXCLUSIVE circuits capped at five, covering every
+// eligible daily exactly once, ordered shortest-median-first like the Daily
+// Five. Renames on the way: Anagrams became Wordplay, Chess and Board Games
+// merged into Chess & Board, History became Recall, Survival became Table
+// Games. See the block comment in lib/circuits.js for why.
+const CIRCUITS = CIRCUIT_NAME_LISTS;
 const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
 /* THE FILTER STRIP'S OWN ORDER: A-Z (owner, 2026-08-18). CIRCUITS above keeps
    the order the owner gave it, since circuitsOf reads it to build a single

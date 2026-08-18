@@ -9,6 +9,7 @@ import { scoreFeudGame } from '@/lib/feud-score';
 import { isEndGameQuizId, endGamePlan, arcadeRanksForQuizId } from '@/lib/daily-games';
 import { GAME_PUZZLES, etTodayServer, suffixOfDate, gamesForSuffix } from '@/lib/daily-slate';
 import { fiveForSuffix, FIVE_SIZE } from '@/lib/daily-five';
+import { circuitKeysFor, circuitById, isMarquee } from '@/lib/circuits';
 
 // The day's slate (which puzzle each game published on a date) lives in
 // lib/daily-slate.js, shared with /api/quiz/daily-me. This route used to carry
@@ -251,8 +252,23 @@ export async function GET(request) {
   // meant a second copy of a comparator this file's own comments say must never
   // be copied. An unbanked date has no roster, so the flag falls through to the
   // full slate rather than returning an empty board.
-  const fiveKeys = searchParams.get('five') === '1' ? fiveForSuffix(suffix) : [];
+  // A SKILL CIRCUIT IS THE SAME NARROWING, on a fixed roster instead of the
+  // day's banked five (owner, 2026-08-18). ?circuit=<id> narrows the slate to
+  // lib/circuits' roster for that id and drops best-N to five in exactly the
+  // same way, so both run kinds share every line of scoring below this point.
+  // ?five=1 wins if both are passed: the marquee is the marquee.
+  const circuitId = (searchParams.get('circuit') || '').trim();
+  const circuitDef = circuitId && !isMarquee(circuitId) ? circuitById(circuitId) : null;
+  const fiveFlag = searchParams.get('five') === '1';
+  const fiveKeys = fiveFlag
+    ? fiveForSuffix(suffix)
+    : (circuitDef ? circuitKeysFor(circuitId, isoOfSuffix(suffix)) : []);
   const fiveOnly = fiveKeys.length >= 2;
+  // Is this payload a SKILL circuit rather than the marquee? Kept separate from
+  // fiveOnly because fiveOnly answers "is this a run at all", which is what
+  // every scoring line below cares about, while this answers "which run", which
+  // is what the completion gate and the client's labels care about.
+  const circuitOn = fiveOnly && !fiveFlag && !!circuitDef;
   const games = gamesForSuffix(fiveOnly ? fiveKeys : DAILY_KEYS, suffix, today);
   const wanted = new Set(games.map((g) => g.quizId));
   // FROZEN: the Eastern day is over, so this board is final. Rows that landed
@@ -271,7 +287,7 @@ export async function GET(request) {
   const effBestN = gameCount ? Math.min(dayBestN, gameCount) : dayBestN;
   const maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: suffix, five: fiveOnly, frozen, maxTotal, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
+  const empty = { date: suffix, five: fiveOnly && !circuitOn, circuit: circuitOn ? circuitId : null, rankRequiresAll: circuitOn, frozen, maxTotal, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
     // Read ONLY this day's quizIds (indexed by quiz_results_quiz, migration 20)
     // rather than the whole table. This route never looks at a row outside
@@ -428,7 +444,28 @@ export async function GET(request) {
 
     // Combined-today board: same treatment. Registered players only, renumbered
     // sequentially by best-N total, with the full pool still behind the "of N".
-    const overallNamed = overallFull.filter((r) => !!r.username);
+    // TO RANK ON A CIRCUIT BOARD YOU MUST HAVE PLAYED EVERY GAME IN IT (owner,
+    // 2026-08-18). A skill circuit is a fixed roster that is open all day, so
+    // partial credit would let a player top it by playing the one game they are
+    // best at and skipping the other four, which is the opposite of what a
+    // circuit is for. Incomplete players still SCORE — their points, their
+    // per-game rows and the plays counts are all untouched — they simply carry
+    // no rank until the circuit is finished.
+    //
+    // PLAYED, not SOLVED, and an abandoned row is not played: the same test the
+    // band and the slate rail use. Deliberately NOT applied to the marquee: the
+    // Daily Five's board is live and ranks partial runs today, and the owner's
+    // rule that the Five persists as it is covers its board too. Extending it
+    // there is one word here (drop the !fiveFlag from circuitOn above) and an
+    // owner call, not an implementation detail.
+    const memberKeys = circuitOn ? games.map((g) => g.key) : null;
+    const rankEligible = (r) => {
+      if (!memberKeys) return true;
+      const pg = r && r.perGame;
+      if (!pg) return false;
+      return memberKeys.every((k) => pg[k] && !pg[k].abandoned);
+    };
+    const overallNamed = overallFull.filter((r) => !!r.username && rankEligible(r));
     const overallRankByKey = new Map();
     {
       let dr = 0, prevT = null, seenN = 0;
@@ -498,13 +535,22 @@ export async function GET(request) {
         }
       }
       if (me.userKey && overallRankByKey.has(me.userKey)) me.rank = overallRankByKey.get(me.userKey);
+      // combineDaily already stamped a rank over the whole field, so without
+      // this an incomplete circuit player would keep it and read as ranked.
+      if (memberKeys && !rankEligible(me)) me.rank = null;
     }
 
     return NextResponse.json({
       date: suffix,
       // Whether this payload is the five-game run or the full slate, so a
       // client cannot mistake one for the other when both are in flight.
-      five: fiveOnly,
+      five: fiveOnly && !circuitOn,
+      // Which skill circuit this payload is, or null for the marquee and for
+      // the full slate, so a client cannot mistake one narrowed board for
+      // another when more than one is in flight.
+      circuit: circuitOn ? circuitId : null,
+      // Whether this board ranks only players who finished every game in it.
+      rankRequiresAll: circuitOn,
       // The day is over and this board is final. Clients label it, and nothing
       // posted since Eastern midnight is in it.
       frozen,
@@ -517,7 +563,7 @@ export async function GET(request) {
       // overallField = full combined field (all players) for the end card's
       // "Combined today · of <field>". `overall` shows only named players but
       // ranks reflect the full pool (guests included).
-      overallField: overallFull.length,
+      overallField: (memberKeys ? overallFull.filter(rankEligible) : overallFull).length,
       games: gameBoards,
       overall: overallBoardOut,
       me,

@@ -27,8 +27,9 @@
 // rather than flashing the wrong day. Same rule isSundayET follows.
 
 import React, { useEffect, useState } from 'react';
-import { Play, Trophy } from 'lucide-react';
-import { fiveFor, fiveHref, FIVE_NAME } from '@/lib/daily-five';
+import { Play, Trophy, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
+import { fiveFor, FIVE_NAME } from '@/lib/daily-five';
+import { ALL_CIRCUITS, MARQUEE_ID, circuitById, circuitKeysFor, circuitHref, isMarquee } from '@/lib/circuits';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { dailyMeIdentity } from './dailyMeClient';
 
@@ -49,8 +50,30 @@ export default function DailyFiveBand() {
   // desktop always shows. One flag for both would mean opening the board on a
   // phone also unfolded the games, or the reverse.
   const [popen, setPopen] = useState(false);
+  // WHICH CIRCUIT THE BAND IS SHOWING (owner, 2026-08-18). The marquee, the
+  // Daily Five, is the default on every load; the arrows and the picker move
+  // it. Deliberately NOT persisted: opening on the marquee every time is what
+  // makes it the marquee. `pick` is the All-14 overlay, kept separate from
+  // `open` (the leaderboard) and `popen` (the phone's list of the five) for the
+  // same reason those two are separate from each other.
+  const [sel, setSel] = useState(MARQUEE_ID);
+  const [pick, setPick] = useState(false);
+  // The FULL slate's payload, fetched LAZILY the first time the picker opens.
+  // It is the only way to know how far along the other thirteen circuits are,
+  // since a narrowed payload carries only the selected circuit's games, and
+  // fetching it eagerly would double the band's cost for a panel most readers
+  // never open. One extra fetch per page load, at most.
+  const [pickData, setPickData] = useState(null);
 
-  useEffect(() => { setDay(etToday()); }, []);
+  useEffect(() => {
+    const d = etToday();
+    setDay(d);
+    // THE MARQUEE'S BANK CAN RUN OUT and the thirteen fixed circuits cannot, so
+    // an unbanked date now opens on the first skill circuit rather than taking
+    // the whole band down with it. Rendering nothing was the correct degrade
+    // for a run that was only the Five; for a family of fourteen it is not.
+    if (!fiveFor(d).length && ALL_CIRCUITS.length > 1) setSel(ALL_CIRCUITS[1].id);
+  }, []);
 
   // THE BOARD BELOW IS MEASURED TO THE FOLD, so anything that changes this
   // band's height has to tell it. DailyStrip sets --dh-fit from the board's own
@@ -65,15 +88,19 @@ export default function DailyFiveBand() {
   useEffect(() => {
     if (!day) return;
     try { window.dispatchEvent(new Event('resize')); } catch (e) {}
-  }, [open, popen, day]);
+  }, [open, popen, pick, sel, day]);
 
   useEffect(() => {
     if (!day) return undefined;
-    const keys = fiveFor(day);
+    const keys = circuitKeysFor(sel, day);
     if (!keys.length) return undefined;
     let alive = true;
+    // Clear first: the previous circuit's points and rank are wrong the instant
+    // the selection changes, and showing them for a frame reads as a score that
+    // then drops.
+    setData(null);
     const { anonId, email } = dailyMeIdentity();
-    const qs = new URLSearchParams({ five: '1' });
+    const qs = new URLSearchParams(isMarquee(sel) ? { five: '1' } : { circuit: sel });
     if (anonId) qs.set('anonId', anonId);
     if (email) qs.set('email', email);
     const load = () => {
@@ -87,10 +114,28 @@ export default function DailyFiveBand() {
     // the run without a reload.
     window.addEventListener('sot:daily-updated', load);
     return () => { alive = false; window.removeEventListener('sot:daily-updated', load); };
-  }, [day]);
+  }, [day, sel]);
+
+  // Lazy: nothing is fetched until the picker is opened, and then only once.
+  useEffect(() => {
+    if (!pick || !day || pickData) return undefined;
+    let alive = true;
+    const { anonId, email } = dailyMeIdentity();
+    const qs = new URLSearchParams();
+    if (anonId) qs.set('anonId', anonId);
+    if (email) qs.set('email', email);
+    fetch('/api/quiz/daily-combined?' + qs.toString(), { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && !d.error) setPickData(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [pick, day, pickData]);
 
   if (!day) return null;
-  const keys = fiveFor(day);
+  const circuit = circuitById(sel) || ALL_CIRCUITS[0];
+  const marq = isMarquee(sel);
+  const cIdx = ALL_CIRCUITS.findIndex((c) => c.id === sel);
+  const keys = circuitKeysFor(sel, day);
   // A date with no entry in the bank simply has no run (see lib/daily-five rule
   // 4). Render nothing rather than an empty band.
   if (keys.length < 2) return null;
@@ -128,8 +173,44 @@ export default function DailyFiveBand() {
 
   const nextGame = nextKey ? DAILY_GAME_MAP[nextKey] : null;
 
+  // TO RANK ON A SKILL CIRCUIT YOU HAVE TO FINISH IT. The server is the
+  // authority (it withholds the rank); this is only the label, because a player
+  // sitting on four of five needs to be told why their standing is a dash.
+  const ranksAll = !marq;
+  const ranked = !ranksAll || complete;
+
+  // Per-circuit progress for the picker, off the full-slate payload. Null until
+  // that lands, which the panel renders as the game count rather than as zero.
+  const allPer = (pickData && pickData.me && pickData.me.perGame) || null;
+  const progOf = (id) => {
+    const ks = circuitKeysFor(id, day);
+    if (id === sel) return { done: doneCount, total: members.length };
+    if (!allPer) return { done: null, total: ks.length };
+    return { done: ks.filter((k) => allPer[k] && !allPer[k].abandoned).length, total: ks.length };
+  };
+  const step = (d) => {
+    const n = ALL_CIRCUITS.length;
+    setSel(ALL_CIRCUITS[((cIdx < 0 ? 0 : cIdx) + d + n) % n].id);
+    setPick(false);
+  };
+  // NEXT STEPS TO THE NEXT UNFINISHED CIRCUIT, not the next in the list, which
+  // is what makes the cycler read as progress rather than as a carousel. Falls
+  // back to the next in order before the full slate has been fetched.
+  const nextCircuit = () => {
+    const n = ALL_CIRCUITS.length;
+    const from = cIdx < 0 ? 0 : cIdx;
+    for (let i = 1; i <= n; i += 1) {
+      const c = ALL_CIRCUITS[(from + i) % n];
+      const ks = circuitKeysFor(c.id, day);
+      if (ks.length < 2) continue;
+      if (!allPer) return c;
+      if (ks.some((k) => !allPer[k] || allPer[k].abandoned)) return c;
+    }
+    return ALL_CIRCUITS[(from + 1) % n];
+  };
+
   return (
-    <div className={`d5${complete ? ' is-done' : ''}${popen ? ' is-popen' : ''}`}>
+    <div className={`d5${complete ? ' is-done' : ''}${popen ? ' is-popen' : ''}${marq ? '' : ' is-circ'}`}>
       {/* RAW, not a JSX text child: React escapes `>` inside a text node, so any
           child-combinator selector would reach the browser as `&gt;` and be
           dropped as invalid until hydration replaced the node. There are none in
@@ -291,25 +372,133 @@ export default function DailyFiveBand() {
           .d5-lbr .d5-pips{display:none;}
         }
         @media(min-width:901px){ .d5-pipbar{display:none;} }
+
+        /* ── CIRCUITS ──────────────────────────────────────────────────────
+           The band is shared by all fourteen runs and its height does not
+           change for any of them, which was the whole constraint. The console
+           already spends 179px on this band and 335px above the board, and the
+           board's height is MEASURED to the fold, so a second band would have
+           come straight off the board. The cycler therefore sits INLINE on the
+           name line that already exists, and the picker is absolutely
+           positioned over the track, so opening it moves nothing.
+
+           Colour is the only thing that says which kind of run you are looking
+           at: the marquee keeps the gold rule it already had, a skill circuit
+           takes blue, and complete is green for both. */
+        .d5.is-circ::before{background:var(--blue);}
+        .d5.is-circ.is-done::before{background:var(--success);}
+        .d5.is-circ .d5-e{color:#8ab4ff;}
+        .d5.is-circ.is-done .d5-e{color:#7ff0c0;}
+        .d5.is-circ .d5-go{background:var(--blue);color:#fff;}
+        .d5.is-circ .d5-go:hover{background:#4f86f7;}
+        .d5.is-circ .d5-go.done{background:var(--success);color:#04301f;}
+        .d5.is-circ .d5-lbh{color:#8ab4ff;}
+        /* The marquee badge sits where the eyebrow text already sat, so it
+           costs no line. Same gold as the rule, which is what ties the two
+           together with no caption. */
+        .d5-e{display:flex;align-items:center;gap:7px;}
+        .d5-mq{flex:none;background:var(--gold);color:#3a2a05;border-radius:3px;padding:1px 5px;
+               font-size:8px;font-weight:800;letter-spacing:.13em;}
+        .d5-n{display:flex;align-items:center;gap:8px;min-width:0;}
+        .d5-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .d5-cyc{flex:none;width:21px;height:21px;border-radius:5px;background:rgba(255,255,255,.12);
+                border:1px solid #2c437c;color:#dbe6ff;display:inline-flex;align-items:center;
+                justify-content:center;cursor:pointer;font-family:inherit;padding:0;}
+        .d5-cyc:hover{background:rgba(255,255,255,.24);}
+        .d5-all{flex:none;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);
+                border:1px solid #2c437c;color:#dbe6ff;border-radius:5px;height:21px;padding:0 9px;
+                font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+                cursor:pointer;font-family:inherit;white-space:nowrap;}
+        .d5-all:hover{background:rgba(255,255,255,.24);}
+        .d5-pipbd{cursor:pointer;font-family:inherit;}
+
+        /* THE PICKER IS ABSOLUTE, and that is load-bearing rather than tidy:
+           the board below is sized from this band's document top, so a panel
+           that took part in the flow would push the board past the fold every
+           time somebody opened it. It sits over the track instead, which is the
+           only thing in the band it is allowed to hide. */
+        .d5-pick{position:absolute;left:16px;right:16px;top:56px;z-index:6;background:#0f2350;
+                 border:1px solid #3a5a9e;border-radius:11px;padding:9px;
+                 box-shadow:0 14px 34px rgba(0,0,0,.45);}
+        .d5-pkh{display:flex;align-items:center;gap:10px;padding:0 3px 8px;}
+        .d5-pkh b{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8fa9de;}
+        .d5-pkh i{margin-left:auto;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.1em;
+                  text-transform:uppercase;color:#8fa9de;}
+        .d5-pkg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+        .d5-pkc{position:relative;background:rgba(255,255,255,.07);border:1px solid #2c437c;
+                border-radius:8px;padding:7px 9px 8px;cursor:pointer;overflow:hidden;text-align:left;
+                font-family:inherit;color:inherit;}
+        .d5-pkc:hover{background:rgba(255,255,255,.15);border-color:#5b8cf0;}
+        .d5-pkc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#3d5794;}
+        .d5-pkc.on::before{background:var(--blue);}
+        .d5-pkc.fin::before{background:var(--success);}
+        .d5-pkc.mq::before{background:var(--gold);}
+        .d5-pkc.on{background:rgba(37,99,235,.28);border-color:#5b8cf0;}
+        /* The marquee takes a double-width cell in the lead position, so the
+           grid says which one it is with no caption at all. */
+        .d5-pkc.mq{grid-column:span 2;background:rgba(232,180,58,.14);border-color:#7a6021;}
+        .d5-pkc.mq.on{background:rgba(232,180,58,.3);}
+        .d5-pkn{display:block;font-size:12px;font-weight:800;letter-spacing:-.15px;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .d5-pkc.mq .d5-pkn{font-size:14px;}
+        .d5-pks{display:block;font-size:9px;font-weight:700;color:#8fa9de;margin-top:1px;
+                letter-spacing:.04em;text-transform:uppercase;
+                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .d5-pkc.mq .d5-pks{color:#d9b969;}
+        .d5-pkp{display:flex;gap:3px;margin-top:6px;}
+        .d5-pkp span{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.2);}
+        .d5-pkp span.on{background:var(--success);}
+        .d5-pkp span.now{background:var(--gold);}
+        /* A phone console is one column, so five across is unreadable and the
+           overlay would run off the band entirely. Two across, scrolling. */
+        @media(max-width:900px){
+          .d5-pick{left:12px;right:12px;top:52px;max-height:60vh;overflow-y:auto;}
+          .d5-pkg{grid-template-columns:1fr 1fr;}
+          .d5-pkc.mq{grid-column:span 2;}
+          .d5-all{padding:0 7px;}
+        }
       ` }} />
 
       <div className="d5-hd">
         <div className="d5-ht">
           <div className="d5-e">
-            {complete ? 'Run complete' : `Today's run · ${doneCount} of ${members.length} played`}
+            {marq ? <span className="d5-mq">Marquee</span> : null}
+            {marq
+              ? (complete ? 'Run complete' : `Today's run · ${doneCount} of ${members.length} played`)
+              : `Circuit ${cIdx + 1} of ${ALL_CIRCUITS.length} · ${complete ? 'complete' : (doneCount ? `${doneCount} of ${members.length} played` : 'not started')}`}
           </div>
-          <div className="d5-n">{FIVE_NAME}</div>
+          {/* THE CYCLER IS INLINE ON THE NAME LINE, not a row of its own and
+              not a pair of tabs. Tabs would have said the Five is one of two
+              things; it is the HEAD of a list of fourteen, which is why
+              stepping left from it wraps to the last circuit rather than
+              stopping. */}
+          <div className="d5-n">
+            <span className="d5-nm">{marq ? FIVE_NAME : circuit.name}</span>
+            <button type="button" className="d5-cyc" onClick={() => step(-1)} aria-label="Previous circuit">
+              <ChevronLeft size={13} strokeWidth={2.8} />
+            </button>
+            <button type="button" className="d5-cyc" onClick={() => step(1)} aria-label="Next circuit">
+              <ChevronRight size={13} strokeWidth={2.8} />
+            </button>
+            <button type="button" className="d5-all" aria-expanded={pick} onClick={() => setPick((p) => !p)}>
+              <LayoutGrid size={10} strokeWidth={2.8} />
+              {pick ? 'Close' : `All ${ALL_CIRCUITS.length}`}
+            </button>
+          </div>
           {/* The ramp is worth saying out loud: it tells a first-time reader
               that the run opens with something they can finish in half a
-              minute, which is the objection the word "five" raises. */}
+              minute, which is the objection the word "five" raises. A skill
+              circuit says what it exercises instead, plus the completion gate,
+              which is the one rule that differs between the two kinds. */}
           <div className="d5-s">
-            One game from each of five categories, shortest first. A new five at midnight.
+            {circuit.blurb}
+            {ranksAll && !complete ? ` Finish all ${members.length} to rank.` : ''}
           </div>
         </div>
         {data && data.me ? (
           <div className="d5-sc">
             <b>{total}</b>
-            <i>of {maxTotal} pts{myRank ? ` · #${myRank}` : ''}</i>
+            <i>of {maxTotal} pts{ranked && myRank ? ` · #${myRank}` : ''}</i>
           </div>
         ) : null}
         <button type="button" className="d5-bd" onClick={() => setOpen((o) => !o)}>
@@ -321,18 +510,57 @@ export default function DailyFiveBand() {
             restated it and led nowhere. The board is what a finished run is FOR,
             so it takes the slot. This is also the only board affordance a phone
             gets in this row, since the toggle beside it is hidden under 900. */}
-        {complete ? (
+        {complete && marq ? (
           <a className="d5-go done" href="/daily-five">
             <Trophy size={12} strokeWidth={2.6} />See the board
           </a>
+        ) : complete ? (
+          <button type="button" className="d5-go done" onClick={() => setSel(nextCircuit().id)}>
+            <Play size={11} fill="currentColor" strokeWidth={0} />Next · {nextCircuit().name}
+          </button>
         ) : (
-          <a className="d5-go" href={fiveHref(nextKey || members[0])}>
+          <a className="d5-go" href={circuitHref(nextKey || members[0], sel)}>
             <Play size={11} fill="currentColor" strokeWidth={0} />
             {doneCount ? 'Resume' : 'Start'}
             {nextGame ? ` · ${nextGame.name}` : ''}
           </a>
         )}
       </div>
+
+      {pick ? (
+        <div className="d5-pick">
+          <div className="d5-pkh">
+            <b>All circuits · today</b>
+            <i>{allPer
+              ? `${ALL_CIRCUITS.filter((c) => { const p = progOf(c.id); return p.total && p.done === p.total; }).length} of ${ALL_CIRCUITS.length} complete`
+              : 'Loading your progress'}</i>
+          </div>
+          <div className="d5-pkg">
+            {ALL_CIRCUITS.map((c) => {
+              const p = progOf(c.id);
+              const fin = !!p.total && p.done === p.total;
+              const cls = `d5-pkc${c.marquee ? ' mq' : ''}${c.id === sel ? ' on' : ''}${fin ? ' fin' : ''}`;
+              return (
+                <button key={c.id} type="button" className={cls} onClick={() => { setSel(c.id); setPick(false); }}>
+                  <span className="d5-pkn">{c.marquee ? `★ ${c.name}` : c.name}</span>
+                  <span className="d5-pks">
+                    {!p.total ? 'no run today'
+                      : p.done === null ? `${p.total} games`
+                      : fin ? 'complete'
+                      : p.done ? `${p.done} of ${p.total}`
+                      : 'not started'}
+                  </span>
+                  <span className="d5-pkp">
+                    {Array.from({ length: p.total || 5 }).map((_, i) => (
+                      <span key={i} className={p.done === null ? '' : (i < p.done ? 'on' : (i === p.done ? 'now' : ''))} />
+                    ))}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {/* Phone only (display:none above 900). The pips ARE the toggle: they
           already say where you are in the run, so making them the thing you tap
@@ -359,7 +587,11 @@ export default function DailyFiveBand() {
           </span>
           <span className="d5-pipl">{popen ? 'Hide' : `All ${members.length}`}</span>
         </button>
-        <a className="d5-pipbd" href="/daily-five">Board</a>
+        {marq ? (
+          <a className="d5-pipbd" href="/daily-five">Board</a>
+        ) : (
+          <button type="button" className="d5-pipbd" onClick={() => setOpen((o) => !o)}>Board</button>
+        )}
       </div>
 
       <div className="d5-track">
@@ -371,7 +603,7 @@ export default function DailyFiveBand() {
           return (
             <a
               key={k}
-              href={fiveHref(k)}
+              href={circuitHref(k, sel)}
               className={`d5-g${p ? ' done' : (now ? ' now' : '')}`}
               title={g.tag || g.name}
             >
@@ -395,7 +627,8 @@ export default function DailyFiveBand() {
       {open ? (
         <div className="d5-lb">
           <div className="d5-lbh">
-            Combined placement across the five{field ? ` · ${field.toLocaleString()} players` : ''}
+            Combined placement · {marq ? 'the five' : circuit.name}
+            {field ? ` · ${field.toLocaleString()} ${ranksAll ? 'finishers' : 'players'}` : ''}
           </div>
           {board.length ? board.map((r, i) => (
             <BoardRow key={r.userKey} row={r} pos={i + 1} members={members} me={meRow && r.userKey === meRow.userKey} />
@@ -404,8 +637,9 @@ export default function DailyFiveBand() {
             <BoardRow row={meRow} pos={meRow.rank} members={members} me />
           ) : null}
           <div className="d5-note">
-            Each game pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the five up.
+            Each game pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds them up.
             A game played on its own still counts, so there is nothing to opt into.
+            {ranksAll ? ` You have to finish all ${members.length} to take a place on this board.` : ''}
           </div>
         </div>
       ) : null}
