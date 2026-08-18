@@ -533,6 +533,18 @@ export default function LoftCap({
    to live inside the games grid in the tail, which is gone, and it is the one
    thing down there worth keeping. Navy pill, white letters, on the stage under
    the board. */
+/* THE HOLD NOTE (app/EndHoldNote.jsx), on the stage under the board for the
+   beat between the last move and the card flipping in. Translucent white on the
+   navy so it reads as part of the stage rather than as a toast that has drifted
+   onto it, and it fades in rather than appearing, because it lands while the
+   player is still looking at the board. */
+.loft-hold{margin-top:14px;display:flex;justify-content:center;animation:loftHoldIn .22s ease both}
+.loft-hold span{background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.5);
+  color:var(--white);border-radius:999px;padding:9px 18px;font-weight:800;font-size:13.5px;
+  line-height:1.35;text-align:center;max-width:472px}
+@keyframes loftHoldIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.loft-hold{animation:none}}
+
 .loft-report{margin-top:14px;display:flex;justify-content:center}
 .loft-report .ri-wrap{width:auto}
 .loft-report .ri-link{background:rgba(255,255,255,0.12);color:var(--white);border:1.5px solid rgba(255,255,255,0.45);

@@ -4215,6 +4215,54 @@ Babel was the one End Game title untouched by this: it has no loss state at all,
 against a benchmark instead. That is also why it LEFT the category on 2026-08-12 (see the Babel move
 below), so the six titles this section covers are Mate, Defend, Four, Check, Chain and Turn.
 
+## THE BOARD IS HELD UP AFTER THE LAST MOVE, and every end-of-game surface waits for it (owner, 2026-08-18)
+
+A loss in an End Game title arrives on the OPPONENT's move, in the same tick that
+sets the status, so the player has seen nothing when the round stops. `useEndHold`
+(`app/useEndHold.js`) exists to hold the finish card back for a beat while the
+finished board, deciding move lit, stays on screen.
+
+**It did nothing for most of its life.** Only the legacy pre-Loft card was gated on
+`!endHold.held`; the Loft flip is gated on `!playing`, so the card turned over the
+instant the game ended and the hold expired behind it, unseen, on all seven games
+that call it. The player's report was "Four auto-ends after one wrong drop", which
+is a rendering complaint, not a rules one. Fixed 2026-08-18.
+
+- **FOUR THINGS WAIT ON THE HOLD, and a new one must join them:** the three
+  `loft-flip` / `loft-flip-in` / `loft-face` wrappers, the `loft-showopts` button,
+  `LoftFinish`, and the `.loft-sol` post-game panel. Anything added later that
+  appears when a game ends belongs behind the same gate, or it covers the board and
+  the hook goes quiet again exactly as it did before.
+- **What does NOT wait:** the six data hooks (`useIqStanding`, `useNextUnplayed`,
+  `useUnplayedSimilar`, `useDailyBoard`, `useGameAllTime`, `useCategoryRank`) keep
+  their `active: LOFT && !playing`, so the card's figures are already fetched when
+  it flips in and the hold costs no loading time.
+- **`HOLD_LONG` (3s) on a loss, `HOLD_SHORT` (1.2s) on a win, a give-up or a
+  reveal.** A win is your own move and you knew it was coming; a give-up you chose.
+  A DRAW takes the long hold, because a draw in these positions is the win thrown
+  away and reads like a loss. Pass the delay at every `hold()` call site; the hook's
+  `ms` argument is only a fallback.
+- **The verdict copy already existed, in every End Game title.** Each has a
+  `statusLine()` (Mate and Defend inline the same ternary) that names the outcome
+  the moment play stops, and those lines are better than any shared string because
+  they carry the real figures ("Boxes counted. The engine takes it 13 to 11."). They
+  were simply never readable. So do NOT add a second announcement: the hold makes
+  the existing one visible, and it is amplified for the beat (15px, ink instead of
+  faded). **Babel is the one exception** and passes a note to `EndHoldNote`, because
+  its verdict lives in the `.loft-sol` panel, which is held back with the card, so
+  it has nothing on the board to read.
+- **A note never names what was missed.** These positions are replayable and the key
+  is deliberately withheld from a player who did not find it, so the note states the
+  opponent's own move ("Your opponent went out.") and never the column, the line or
+  the word, exactly as `.loft-sol` is careful not to.
+- **`release()` on replay still clears the hold**, so a restarted board is never
+  stuck behind one.
+
+Verifying this off-cycle is the same problem as a Sunday Edition: the hold is one
+second of one ending. Assert it structurally instead. Every `hold()` call names a
+delay, every one of the six gates carries `!endHold.held`, `release()` survives in
+`resetGame`, and the data hooks still prefetch.
+
 ## DAILY POINTS ARE A FIXED LADDER BY FINISH, not a field-scaled split (owner rule, 2026-08-12)
 
 Every daily game pays the SAME table, whatever the field:

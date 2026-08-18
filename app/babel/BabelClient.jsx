@@ -35,7 +35,8 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
-import useEndHold from '../useEndHold';
+import useEndHold, { HOLD_SHORT, HOLD_LONG } from '../useEndHold';
+import EndHoldNote from '../EndHoldNote';
 import DailyChrome from '../DailyChrome';
 import DailyRules from '../DailyRules';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
@@ -517,7 +518,7 @@ export default function BabelClient({ puzzles, forceNum }) {
     const log = g.log.concat([{ who: 'you', word: res.words.map((w) => w.word).join(' / '), score: res.score }]);
     const next = { ...g, rows, rack, my: g.my + res.score, log, passes: 0, foeCells: [], t0: g.t0 || Date.now() };
     setPending([]); setArmed(null); setSel(null);
-    if (!rack.length) { const done = finish(next, 'you-out'); setG(done); setEndClosed(false); endHold.hold(); postResult(done); return; }
+    if (!rack.length) { const done = finish(next, 'you-out'); setG(done); setEndClosed(false); endHold.hold(HOLD_SHORT, 'You went out.'); postResult(done); return; }
     setG(next);
     setThinking(true);
   }
@@ -526,7 +527,7 @@ export default function BabelClient({ puzzles, forceNum }) {
     if (!playing || thinking || !ready) return;
     const next = { ...g, log: g.log.concat([{ who: 'you', word: 'pass', score: 0 }]), passes: g.passes + 1, t0: g.t0 || Date.now() };
     setPending([]); setArmed(null);
-    if (next.passes >= 2) { const done = finish(next, 'passes'); setG(done); setEndClosed(false); endHold.hold(); postResult(done); return; }
+    if (next.passes >= 2) { const done = finish(next, 'passes'); setG(done); setEndClosed(false); endHold.hold(HOLD_SHORT, 'Two passes in a row. That is the game.'); postResult(done); return; }
     setG(next);
     setThinking(true);
   }
@@ -568,7 +569,16 @@ export default function BabelClient({ puzzles, forceNum }) {
       }
       setG(out);
       setThinking(false);
-      if (out.status === 'done') { setEndClosed(false); endHold.hold(); postResult(out); }
+      // The opponent going out is the ending this hold was written for: it
+      // lands on THEIR move, with their word new on the board. Babel has no
+      // verdict line on the board (its .loft-sol panel is held back with the
+      // card), so this is the one game that passes a note.
+      if (out.status === 'done') {
+        setEndClosed(false);
+        endHold.hold(out.over === 'foe-out' ? HOLD_LONG : HOLD_SHORT,
+          out.over === 'foe-out' ? 'Your opponent went out.' : null);
+        postResult(out);
+      }
     }, 90);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -727,9 +737,9 @@ export default function BabelClient({ puzzles, forceNum }) {
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
         <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
         {preStart && (
@@ -870,7 +880,7 @@ export default function BabelClient({ puzzles, forceNum }) {
 
           </div>
           <div className="loft-sol">
-          {!playing && (
+          {!playing && !endHold.held && (
             <>
               <div style={{ maxWidth: 480, margin: '16px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
@@ -906,11 +916,12 @@ export default function BabelClient({ puzzles, forceNum }) {
             </>
           )}
           </div>
-          {LOFT && !playing && revealed && (
+          <EndHoldNote show={LOFT} note={endHold.note} />
+          {LOFT && !playing && !endHold.held && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
-          {LOFT && !playing && (
+          {LOFT && !playing && !endHold.held && (
             <LoftFinish
               name="Babel"
               catRank={catRank}

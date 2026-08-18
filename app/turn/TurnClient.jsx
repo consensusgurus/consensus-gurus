@@ -26,7 +26,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import DailyEndCard from '../DailyEndCard';
-import useEndHold from '../useEndHold';
+import useEndHold, { HOLD_SHORT, HOLD_LONG } from '../useEndHold';
 import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -443,7 +443,11 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
     if (!done.t0) done.t0 = Date.now();
     vibrate(status === 'won' ? HAPT.win : HAPT.wrong);
     postResult(done, SCORE[status] ?? 0);
-    endHold.hold();
+    // A loss lands on the OPPONENT's move, so the player has not seen it yet:
+    // the board holds for HOLD_LONG with the deciding move still lit and the
+    // verdict line readable. A win is your own move, so it keeps the old beat.
+    // Giving up is your own doing, so it takes the short beat like a win.
+    endHold.hold(status === 'lost' ? HOLD_LONG : HOLD_SHORT);
     commit(done);
   }
 
@@ -785,9 +789,9 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           {/* LOFT: the play area sits on the navy stage, which runs full bleed
               and fills the first screen. */}
           <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
 
           {preStart && (
             <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
@@ -840,7 +844,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: COLORS.ink }}>{statusLine()}</div>
+                <div style={{ fontSize: endHold.held ? 15 : 13.5, fontWeight: endHold.held ? 800 : 700, color: COLORS.ink }}>{statusLine()}</div>
                 <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: DISC_YOU, display: 'inline-block' }} /> you
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: DISC_FOE, border: '1px solid rgba(28,30,36,0.3)', display: 'inline-block', marginLeft: 4 }} /> engine
@@ -875,7 +879,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
 
 
           <div className="loft-sol">
-            {!playing && (
+            {!playing && !endHold.held && (
               <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
                 {/* The key square and the idea behind it go only to a solver, so
                     a player who lost can come back to the position intact. */}
@@ -908,11 +912,11 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
           </div>
-          {LOFT && !playing && revealed && (
+          {LOFT && !playing && !endHold.held && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
-          {LOFT && !playing && (
+          {LOFT && !playing && !endHold.held && (
             <LoftFinish
               name="Turn"
               catRank={catRank}
