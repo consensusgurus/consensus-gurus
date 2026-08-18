@@ -242,6 +242,14 @@ const CIRCUITS = [
   ['Board Games', ['Check', 'Four', 'Turn', 'Chain', 'Babel']],
 ];
 const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
+/* THE FILTER STRIP'S OWN ORDER: A-Z (owner, 2026-08-18). CIRCUITS above keeps
+   the order the owner gave it, since circuitsOf reads it to build a single
+   game's chips and the fill panel walks it for its groups; only the strip
+   re-sorts, because a fifteen-chip scrolling row in no order at all is a linear
+   read. Same reasoning as DailySlateRail, which sorts its 60-odd game names A-Z
+   over the home board's order for exactly this. */
+const CIRCUITS_AZ = CIRCUITS.map(([n]) => n)
+  .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
 /* THE FILL PANEL (owner, 2026-08-15). A narrow group is three rows and then
    600px of white, because the board's height is MEASURED to the fold (--dh-fit)
    and does not shrink when a filter empties it. Rather than let that read as a
@@ -3280,7 +3288,9 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-filt button.on{color:var(--white);border-bottom-color:var(--white);background:transparent;}
         /* The phone's inline copy of the circuits. Above 900px they live in
            their own lighter strip (.sl-filt2), which is the owner-approved
-           desktop split, so this copy is hidden and desktop is untouched. */
+           desktop split, so this copy is hidden there. NOT SUFFICIENT ON ITS
+           OWN: the min-width:901px block sets display on .sl-filt button at a
+           higher specificity, so the desktop hide is repeated down there. */
         .sl-filt .sl-fc{display:none;}
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
@@ -4105,6 +4115,15 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            whatever is in it. */
         .dhome.cats .sl-filt{flex-wrap:nowrap;overflow-x:auto;}
         .dhome.cats .sl-filt button{font-size:10px;letter-spacing:.06em;padding:7px 11px;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1 0 auto;}
+        /* AND THE PHONE'S CIRCUIT COPY STAYS HIDDEN UP HERE (owner, 2026-08-18).
+           The line above sets display on EVERY button in the strip, which at
+           (0,3,1) outranks the base .sl-filt .sl-fc{display:none} at (0,2,0), so
+           all fifteen circuits were rendering at the tail of row one AND again
+           in row two: every circuit named twice. Re-hidden at (0,4,0), beside
+           the rule that broke it and inside the same desktop-only block, so the
+           phone (which has no row two) is untouched. Any future rule that sets
+           display on .sl-filt button must stay ABOVE this one. */
+        .dhome.cats .sl-filt .sl-fc{display:none;}
         /* The same four colours the header pills use, so the strip and the
            header say the same thing the same way. */
         .sl-sdot{width:6px;height:6px;border-radius:50%;flex:none;display:block;}
@@ -4613,7 +4632,13 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             .concat(cats && nProgAll ? [['paused', <><i className="sl-sdot prg" />Paused {nProgAll}</>, 'sl-fs']] : [])
             .concat(cats && nFailAll ? [['failed', <><i className="sl-sdot fal" />Failed {nFailAll}</>, 'sl-fs']] : [])
             .concat(cats && nDoneAll ? [['done', <><i className="sl-sdot dne" />Done {nDoneAll}</>, 'sl-fs']] : [])
-            .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c]))
+            // A-Z (owner, 2026-08-18), sorted on the LABEL the reader sees, so
+            // CAT_SHORT is applied before the sort. slateCats is first-appearance
+            // order off the board, which is meaningful on the board and arbitrary
+            // in a strip you scan. The state chips above (All / Ready / Paused /
+            // Failed / Done) keep their state order, and Sundays stays last.
+            .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c])
+              .sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'en', { sensitivity: 'base' })))
             // LAST in the strip, and absent on a Sunday: on the day itself the
             // Sunday Editions ARE the board, so a tab pointing at last week's
             // would only be competing with them.
@@ -4622,7 +4647,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             // are their own strip on a desktop and one long flickable row here,
             // so both copies ship and CSS picks. Source order stays desktop's;
             // the phone moves these and the state chips with `order`.
-            .concat(cats ? CIRCUITS.map(([n]) => ['circuit:' + n, n, 'sl-fc']) : [])
+            .concat(cats ? CIRCUITS_AZ.map((n) => ['circuit:' + n, n, 'sl-fc']) : [])
             .map(([k, label, cls]) => (
             <button
               key={k}
@@ -4641,7 +4666,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         {cats ? (
           <div className={`sl-filtw sl-filtw2${filt2More.l ? ' ml' : ''}${filt2More.r ? ' mr' : ''}`}>
           <div className="sl-filt sl-filt2" ref={filt2Ref} role="tablist" aria-label="Filter by circuit">
-            {CIRCUITS.map(([n]) => (
+            {CIRCUITS_AZ.map((n) => (
               <button
                 key={'circuit:' + n}
                 type="button"
