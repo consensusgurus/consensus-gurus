@@ -248,7 +248,17 @@ export default function DailyFiveBand() {
            in one file. */
         .d5 + .dh-sbar{border-radius:0;}
         .d5-hd{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
-        .d5-ht{min-width:0;}
+        /* THE TITLE BLOCK TAKES THE SLACK, so the trailing controls are always
+           hard right (owner, 2026-08-18). It used to size to its content, and
+           the only thing pushing Board and Start to the right edge was the
+           margin-left:auto on the score box — which renders ONLY once the
+           viewer's own row has loaded. So a circuit you had not played yet, or
+           any render before the fetch landed, drew Board and Start bunched up
+           against the title in the middle of the band, and they jumped right
+           when the score appeared. Growing this instead makes the alignment a
+           property of the row rather than a side effect of whether there is a
+           score to show. */
+        .d5-ht{flex:1 1 auto;min-width:0;}
         .d5-e{font-size:9px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
         .d5.is-done .d5-e{color:#7ff0c0;}
         .d5-n{font-size:20px;font-weight:800;letter-spacing:-.35px;line-height:1.15;}
@@ -267,7 +277,15 @@ export default function DailyFiveBand() {
                text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .d5-bd:hover{background:rgba(255,255,255,.2);}
 
-        .d5-track{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;}
+        /* THE TRACK HAS AS MANY COLUMNS AS THE RUN HAS GAMES, not five. Two
+           circuits are fours (Wordplay, Sorting), the marquee becomes a four
+           the day Extra retires, and retirement can shorten any of them at read
+           time — a hardcoded five left those with a card-shaped hole at the end
+           of the row. Passed as a CUSTOM PROPERTY rather than an inline
+           grid-template-columns on purpose: an inline value would outrank the
+           phone rule below, which collapses the track to one column, and the
+           five cards would come back side by side at 390px. */
+        .d5-track{display:grid;grid-template-columns:repeat(var(--d5-cols,5),minmax(0,1fr));gap:7px;}
         .d5-g{position:relative;display:block;background:rgba(255,255,255,.07);border:1px solid #2c437c;
               border-radius:9px;padding:8px 10px;min-width:0;text-decoration:none;color:inherit;}
         .d5-g:hover{background:rgba(255,255,255,.14);border-color:#4a6ab5;}
@@ -404,7 +422,12 @@ export default function DailyFiveBand() {
            flex:none, so without a grow-and-shrink basis the name is the only
            thing that can give and it gives ALL of it: measured 0px wide on a
            390px phone, i.e. the band lost its title completely. */
-        .d5-nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* SHRINK BUT DO NOT GROW. It has to shrink or it squeezes the controls
+           beside it to nothing (measured 0px on a phone before this had a flex
+           basis at all). It must NOT grow, or now that .d5-ht takes the slack
+           the name would stretch the whole title block and drag the arrows to
+           the far side of the band, away from the name they belong to. */
+        .d5-nm{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         /* The panel opens over the track, and the sub line is the one thing it
            lands half on top of. Hide it rather than let it read as clipped. */
         .d5.is-pick .d5-s{visibility:hidden;}
@@ -625,7 +648,7 @@ export default function DailyFiveBand() {
         )}
       </div>
 
-      <div className="d5-track">
+      <div className="d5-track" style={{ '--d5-cols': members.length }}>
         {members.map((k, i) => {
           const g = DAILY_GAME_MAP[k];
           if (!g) return null;
