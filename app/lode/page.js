@@ -101,10 +101,27 @@ function ComingSoon({ first }) {
 
 export default function LodePage({ searchParams }) {
   const today = etTodayServer();
-  const visiblePuzzles = PUZZLES.filter((p) => p.live <= today);
-  if (!visiblePuzzles.length) return <ComingSoon first={PUZZLES[0]} />;
+  const live = PUZZLES.filter((p) => p.live <= today);
+  if (!live.length) return <ComingSoon first={PUZZLES[0]} />;
   const n = Number(searchParams && searchParams.p);
   const forceNum = Number.isInteger(n) && n > 0 ? n : null;
+
+  // `extra` (the real-but-unscored words, ~88 a board) is only ever consulted
+  // for the board being PLAYED, but every live board ships to the browser so the
+  // archive works. Sending all of them would grow the payload by about 0.75 KB
+  // per board per day forever, for data that is dead weight on all but one. So
+  // it is stripped from the rest here.
+  //
+  // This mirrors pickPuzzle() in LodeClient: forceNum when it matches, else the
+  // newest live board. `live` is already filtered to live<=today, so "newest
+  // live" is simply the last one. If the two ever disagree the board just falls
+  // back to refusing unscored words, which is the old behaviour, not a break.
+  const activeNum = (forceNum && live.some((p) => p.num === forceNum))
+    ? forceNum
+    : live[live.length - 1].num;
+  const visiblePuzzles = live.map((p) => (
+    p.num === activeNum || !p.extra ? p : { ...p, extra: undefined }
+  ));
   return (
     <>
       <script

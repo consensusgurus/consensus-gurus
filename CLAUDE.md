@@ -3348,6 +3348,57 @@ must not be punished for the author's collision.
   Both dictionaries are a hard requirement at refresh time (`apt install
   hunspell-en-us hunspell-en-gb`); the script exits rather than degrade to one,
   because degrading silently changes which words the game accepts.
+- **THE REFRESH IS ADDITIVE, and that is now enforced rather than hoped for
+  (2026-08-17).** `lode-words.py` reads its own previous `.lode-freq.json` back
+  and unions it in, so a re-run can only ever ADD words. It used to be true only
+  because the rules happened to widen each time, which made it a coincidence
+  rather than a guarantee: a hunspell built by a different packager knows a
+  different word list (the en_GB on npm as `dictionary-en-gb` does NOT know
+  gaol, racoon or leant, which the Debian one does), so re-running on another
+  machine would have quietly deleted real words from the game and nobody would
+  have noticed until a player complained. The script now exits if a previously
+  shipped word is missing from the corpus. To genuinely remove a word, delete it
+  from the frozen file, or run a clean rebuild with `LODE_REBUILD=1`.
+- **The floor is 1.5 and flat, and the RARE tier moved with it (2026-08-17).**
+  Owner call after complaints kept coming in. Measured first: of every corpus
+  word a player could build from a day's letters, 68% was refused, and the
+  refusals between Zipf 1.5 and 2.5 were ordinary English that hunspell confirms
+  (rile, glob, clef, ream, gild, rend, dolt, kith, mien, jamb, blab, clod,
+  riffraff, ogled, fawned, tiptop, catcall). The per-length shape (4 letters
+  2.7, 5 letters 2.25, 6 letters 2.1, 2.05 beyond) existed because frequency was
+  policing proper nouns before the dictionary gate took that job, so it had
+  outlived its reason. Pool 49,189 -> 67,300. **`TIER_RARE` had to drop 2.9 ->
+  2.4 in the same pass**: every newly admitted word is rarer than the old floor,
+  so leaving the boundary alone shoved all 18,111 of them into the x3 tier and
+  took the median board's rare share from 0.20 to 0.34. A prize a third of the
+  board earns is not a prize. At 2.4 the distribution lands back on the old one
+  (rare share 0.257 -> 0.246). `MAX_WORDS` went 60 -> 70 and Sunday 95 -> 110,
+  deliberately a much smaller rise than the pool's, because the VEIN is a share
+  of the board maximum and the day still has to close in a few minutes: weekday
+  boards went 39.0 -> 45.4 words and the vein 106 -> 119. Do NOT scale the caps
+  with the pool one-for-one.
+- **A REAL WORD IS NEVER CALLED A NON-WORD: every board carries `extra`
+  (2026-08-17).** The scored pool is curated on purpose, so a board will always
+  omit words that are in the dictionary, and "Not in today's lode" read to
+  players as "that is not a word". Each board now also ships `extra`, every
+  corpus word buildable from its letters that the pool does not score; typing
+  one banks it as a **tailing**, acknowledged and worth zero. Verified across
+  all 500 boards: **0 buildable dictionary words are refused anywhere.**
+  - It touches NOTHING that scores: not the score, the found count, the rank,
+    the board maximum, or the fewest-words tiebreak. That is precisely what made
+    it safe to **backfill onto the 24 boards already played and ranked**, which
+    is how the owner chose to fix them rather than regenerating and invalidating
+    their leaderboards. BEGINNING, ABOLITION, PARAGRAPH, INITIALLY, COHERENCE
+    and INVALUABLE are accepted on those boards now.
+  - **`app/lode/page.js` strips `extra` from every board except the one being
+    played.** All live boards ship to the browser so the archive works, and
+    `extra` averages 66 words a board, so sending them all would add about
+    0.75 KB per board per day forever for data that is dead weight on all but
+    one (179 KB by mid-2027). The strip mirrors `pickPuzzle` in the client;
+    if the two ever disagree the board just refuses unscored words again, which
+    is the old behaviour rather than a break.
+  - A board with no `extra` (anything generated before this date, or any board
+    the page stripped) simply behaves the old way, so the field is optional.
 - **A Lode regeneration passes `--avoid` at the boards it is keeping.** Boards
   already live are frozen and the new deal is spliced underneath them, so the
   fresh deal has to know their letter sets or it will hand out a board a player

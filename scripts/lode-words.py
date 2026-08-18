@@ -79,19 +79,33 @@ HUNSPELL_GB = os.environ.get("LODE_HUNSPELL_GB", "/usr/share/hunspell/en_GB")
 
 # Keep a little headroom under the generator's own floors (gen-lode.mjs FLOORS /
 # FLOOR_LONG), so a small tweak there does not require re-running this script.
-# Below roughly 1.9 the gated list stops being vocabulary a reader would place
-# and turns into the Scrabble tail (fulvous, catechin, ecotone, bascule), which
-# is the whole category Lode exists to keep off the board.
-FLOOR = 1.9
+#
+# This was 1.9 until 2026-08-17, and 1.9 was still cutting real vocabulary.
+# Measured over the boards dealt from the current pool: of every corpus word a
+# player could build from the day's letters, 68% was refused, and the refusals
+# between Zipf 1.5 and 2.5 were words hunspell confirms are ordinary English —
+# rile, glob, clef, ream, gild, rend, dolt, kith, mien, jamb, blab, clod, luau,
+# riffraff, ogled, fawned, tiptop, lamely, catcall. Those are exactly the words
+# a player types and expects to count. Below about 1.5 the gated list does turn
+# into the Scrabble tail (rochet, potto, uvea, motmot, guenon, theca, atlatl,
+# aedile), which is the category Lode exists to keep off the board, so that is
+# where the floor now sits.
+FLOOR = 1.4
 
 # The generator's floors, mirrored here because the grandfather rule below needs
 # to know what used to be allowed. OLD is the pre-gate floor set; NEW is what
 # gen-lode.mjs uses now that the dictionary gate carries the quality burden.
 # Keep NEW in sync with FLOORS / FLOOR_LONG in scripts/gen-lode.mjs.
+#
+# NEW went to a flat 1.5 on 2026-08-17. The per-length shape existed because
+# frequency was doing the proper nouns' policing; the dictionary gate does that
+# now, so a short word no longer has to be commoner than a long one to earn its
+# place. A word is admitted because a dictionary confirms it, not because it is
+# written often.
 OLD = {4: 3.4, 5: 2.6, 6: 2.25}
 OLD_LONG = 2.1
-NEW = {4: 2.7, 5: 2.25, 6: 2.1}
-NEW_LONG = 2.05
+NEW = {4: 1.5, 5: 1.5, 6: 1.5}
+NEW_LONG = 1.5
 
 # Words hunspell en_US files as capitalized-only that are still worth playing.
 # The proper-noun veto runs before en_GB precisely so that names stay out, which
@@ -165,37 +179,72 @@ for path in DICTS:
             if len(w) >= 4:
                 words.add(w)
 
+# THE REFRESH IS STRICTLY ADDITIVE: every word already in the frozen file stays
+# in it. The script has always claimed that no change here takes away a word a
+# player could type before it shipped, but until 2026-08-17 that was a property
+# of the rules happening to widen rather than something enforced, so any future
+# tightening — or a differently-built hunspell — would silently drop words.
+# A dictionary is not perfectly reproducible across machines: the en_GB packaged
+# for one distribution knows gaol, racoon and leant while another's does not, and
+# re-running on the second machine would quietly delete them from the game. So
+# the previous output is read back and unioned in. The frequency is refreshed
+# (wordfreq moves), only the membership is sticky.
+#
+# To genuinely REMOVE a word, delete it from the frozen file and re-run, or run
+# with LODE_REBUILD=1 for a clean rebuild that honours only today's rules.
+PREV_PATH = os.path.join(HERE, ".lode-freq.json")
+prev = {}
+if not os.environ.get("LODE_REBUILD"):
+    try:
+        with open(PREV_PATH, encoding="utf8") as fh:
+            prev = json.load(fh)
+    except FileNotFoundError:
+        pass
+
 out = {}
 stats = {"known": 0, "proper": 0, "british": 0, "unknown": 0,
-         "dropped_proper": 0, "below": 0}
+         "dropped_proper": 0, "below": 0, "kept_prior": 0, "added": 0}
 
 for w in sorted(words):
     z = zipf_frequency(w, "en")
-    if z < FLOOR:
+    was = w in prev
+
+    if z < FLOOR and not was:
         continue
     cls = classify(w)
     stats[cls] += 1
 
     # A name is a name however often it is written.
-    if cls == "proper" and w not in KEEP:
+    if cls == "proper" and w not in KEEP and not was:
         stats["dropped_proper"] += 1
         continue
 
-    if z >= old_floor(len(w)):
-        pass  # grandfathered: allowed before the gate, still allowed
+    if was:
+        stats["kept_prior"] += 1  # already shipped; never taken back
+    elif z >= old_floor(len(w)):
+        stats["added"] += 1  # grandfathered: allowed before the gate, still allowed
     elif cls != "unknown" and z >= new_floor(len(w)):
-        pass  # admitted on a dictionary's word, not on frequency
+        stats["added"] += 1  # admitted on a dictionary's word, not on frequency
     else:
         stats["below"] += 1
         continue
 
     out[w] = round(z, 2)
 
+missing = [w for w in prev if w not in out]
+if missing:
+    sys.exit(
+        f"lode-words: {len(missing)} words in {PREV_PATH} are not in the corpus "
+        f"any more (e.g. {', '.join(sorted(missing)[:8])}). The refresh must be "
+        f"additive, so this is a bug rather than a tuning result."
+    )
+
 print(json.dumps(out, separators=(",", ":"), sort_keys=True))
 print(
-    f"{len(out)} words kept - dropped {stats['dropped_proper']} proper nouns, "
-    f"{stats['below']} below floor - classes: {stats['known']} known / "
-    f"{stats['british']} british / {stats['proper']} proper / "
+    f"{len(out)} words kept ({stats['kept_prior']} already shipped, "
+    f"{stats['added']} newly admitted) - dropped {stats['dropped_proper']} "
+    f"proper nouns, {stats['below']} below floor - classes: {stats['known']} "
+    f"known / {stats['british']} british / {stats['proper']} proper / "
     f"{stats['unknown']} unknown to either",
     file=sys.stderr,
 )

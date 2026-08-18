@@ -70,14 +70,26 @@ const here = dirname(fileURLToPath(import.meta.url));
 // These MUST stay in sync with NEW / NEW_LONG in scripts/lode-words.py, which
 // applies the same floors when it freezes the data — the JSON is authoritative
 // and these are the second gate.
-const FLOORS = { 4: 2.7, 5: 2.25, 6: 2.1 };
-const FLOOR_LONG = 2.05;     // seven letters and up
+//
+// Flat 1.5 since 2026-08-17, down from 2.7/2.25/2.1/2.05. The per-length shape
+// existed because frequency was policing proper nouns; the dictionary gate does
+// that now, so a four-letter word no longer has to be commoner than a nine to
+// earn its place. Measured before the change, 68% of the words a player could
+// build from a day's letters were refused, and the band between 1.5 and 2.5 was
+// ordinary English (rile, glob, clef, gild, dolt, kith, mien, jamb, riffraff,
+// ogled, tiptop). The pool went 49,189 -> 67,300 words.
+const FLOORS = { 4: 1.5, 5: 1.5, 6: 1.5 };
+const FLOOR_LONG = 1.5;      // seven letters and up
 const floorFor = (n) => FLOORS[n] ?? FLOOR_LONG;
-// Four-letter words used to be uniformly tier 1 because nothing under 3.4 could
-// reach a board. Now the 2.7-2.9 band opens up, so a genuinely uncommon short
-// word (faze, cask, curd, cowl) can score as rare. That is the game's promise
-// working as intended: knowing the word is the achievement, not its length.
-const TIER_RARE = 2.9;       // < this (and above the floor) is RARE (x3)
+// The tier boundary moves with the floor, and it HAS to: every word the 1.5
+// floor admits is rarer than the old 2.05 floor, so leaving RARE at 2.9 shoved
+// all 18,111 of them into the top tier and took the median board's rare share
+// from 0.20 to 0.34. The x3 multiplier is the game's prize for knowing a word,
+// and a prize a third of the board earns is not one. At 2.4 the distribution is
+// back where it was (rare share p10/p50/p90 = 0.10/0.19/0.32 against the old
+// 0.10/0.20/0.33), so the newly admitted words mostly score as UNCOMMON and
+// only the genuinely obscure ones pay treble.
+const TIER_RARE = 2.4;       // < this (and above the floor) is RARE (x3)
 const TIER_UNCOMMON = 3.9;   // < this (and >= RARE)  is UNCOMMON  (x2)
 const MIN_LEN = 4;
 const LETTERS = 7;           // weekdays
@@ -88,10 +100,18 @@ const LETTERS_SUNDAY = 8;    // Sunday Edition deals an extra letter
 // holding the old ceiling would have spent that entirely on REJECTING the
 // fuller boards rather than on giving players more to find. At 60/95 the
 // average weekday board carries about 39 words and the Sunday about 64.
+//
+// Raised again to 70/110 on 2026-08-17 for the same reason, when the 1.5 floor
+// took the pool to 67,300: the median candidate board grew to 60 words, so a
+// 60 cap would have thrown away half the field. The rise is deliberately much
+// smaller than the pool's, because the VEIN is a share of the board maximum and
+// Lode has to close in a few minutes against two dozen other dailies. At 70/110
+// the average weekday board holds 44.5 words and the Sunday 72.6, which moves
+// the vein about 11% and 14%. Do not scale these with the pool one-for-one.
 const MIN_WORDS = 20;
-const MAX_WORDS = 60;
+const MAX_WORDS = 70;
 const MIN_WORDS_SUNDAY = 30;
-const MAX_WORDS_SUNDAY = 95;
+const MAX_WORDS_SUNDAY = 110;
 const MIN_PANGRAMS = 1;
 const MAX_PANGRAMS = 4;
 // The solve line, as a share of the board maximum. Deliberately reachable in a
@@ -118,6 +138,47 @@ const INFLECTED = /(ING|ED|ER|IER|IEST|LY)$/;
 
 // ─── word data ─────────────────────────────────────────────────────────────
 const freq = JSON.parse(readFileSync(join(here, '.lode-freq.json'), 'utf8'));
+
+// EVERY board also carries `extra`: the real dictionary words a player can build
+// from its letters that the curated pool does NOT score. They are accepted for
+// zero points rather than refused, because "that is not a word" is a lie when
+// the word is in the dictionary, and it is the single thing players complain
+// about. The scored pool stays curated — a board should be winnable on words a
+// reader recognises — so the two lists do different jobs: `words` is the game,
+// `extra` is the apology.
+//
+// This is read from the shipped Scrabble corpus rather than the frequency file,
+// because the frequency file is by definition the filtered thing. Words below
+// 4 letters, and words missing the core letter, are excluded by the same rules
+// the client applies before it ever consults a list.
+const CORPUS = [];
+for (const f of ['tuck-dict.txt', 'tuck-dict-long.txt']) {
+  const txt = readFileSync(join(here, '..', 'public', f), 'utf8');
+  for (const line of txt.split('\n')) {
+    const w = line.trim().toUpperCase();
+    if (w.length >= MIN_LEN) CORPUS.push(w);
+  }
+}
+const corpusBySig = new Map();
+for (const w of CORPUS) {
+  const sig = [...new Set(w)].sort().join('');
+  if (!corpusBySig.has(sig)) corpusBySig.set(sig, []);
+  corpusBySig.get(sig).push(w);
+}
+export function extraFor(core, outer, scored) {
+  const allowed = new Set([core, ...outer]);
+  const on = new Set(scored);
+  const out = [];
+  for (const [sig, ws] of corpusBySig) {
+    if (!sig.includes(core)) continue;
+    let ok = true;
+    for (const ch of sig) if (!allowed.has(ch)) { ok = false; break; }
+    if (!ok) continue;
+    for (const w of ws) if (!on.has(w)) out.push(w);
+  }
+  out.sort();
+  return out;
+}
 
 function tierOf(z, upper) {
   const t = z < TIER_RARE ? 3 : z < TIER_UNCOMMON ? 2 : 1;
@@ -299,6 +360,7 @@ for (let i = 0; i < DAYS; i++) {
     pangrams: b.pangrams,
     ranks: rk,
     words: b.words,
+    extra: extraFor(b.core, others, b.words.map((x) => x.w)),
   }));
 }
 

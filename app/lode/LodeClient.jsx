@@ -196,6 +196,7 @@ function freshState() {
   return {
     v: 1,
     found: [],                  // words, in the order they were mined
+    spare: [],                  // real words off the board: accepted, unscored
     status: 'playing',          // playing | done (done = score posted)
     t0: null,
     tEnd: null,
@@ -216,6 +217,14 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
     for (const x of PUZZLE.words) m.set(x.w, x);
     return m;
   }, [PUZZLE.words]);
+  // Real dictionary words this board does not score. Telling a player that a
+  // word in the dictionary "is not a word" is the complaint Lode gets, so these
+  // are accepted and acknowledged instead — for nothing. They do NOT touch the
+  // score, the found count, the rank, the maximum, or the fewest-words
+  // tiebreak, which is what makes them safe to add to boards that have already
+  // been played and ranked. Absent on pre-2026-08-17 boards and on every board
+  // the page did not send it for, so an empty set means the old behaviour.
+  const SPARE = useMemo(() => new Set(PUZZLE.extra || []), [PUZZLE.extra]);
 
   const [g, setG] = useState(freshState);
   const [entry, setEntry] = useState('');
@@ -433,7 +442,17 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
     if (!w.includes(CORE)) return say(`Every word needs the core ${CORE}.`, true);
     if (g.found.includes(w)) return say('Already mined.', true);
     const hit = WORDS.get(w);
-    if (!hit) return say('Not in today’s lode.', true);
+    if (!hit) {
+      // A real word that this board does not score. Bank it as spare so the
+      // player is told they were right, not told they were wrong, and so a
+      // second attempt at the same word does not read as a fresh discovery.
+      if (SPARE.has(w)) {
+        if ((g.spare || []).includes(w)) return say('Already set aside.', true);
+        setG((cur) => ({ ...cur, spare: [...(cur.spare || []), w] }));
+        return say(`${w} is a word, but it is not in today’s lode. No points.`);
+      }
+      return say('Not in today’s lode.', true);
+    }
 
     const before = score;
     setG((cur) => ({ ...cur, found: [...cur.found, w], t0: cur.t0 || Date.now() }));
@@ -533,6 +552,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   const botRow = order.slice(Math.ceil(order.length / 2));
 
   const foundSorted = useMemo(() => g.found.slice().sort(), [g.found]);
+  const spareSorted = useMemo(() => (g.spare || []).slice().sort(), [g.spare]);
   const pct = Math.min(100, Math.round((score / Math.max(1, MAXSCORE)) * 100));
 
   const rulesBody = (
@@ -550,6 +570,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         <><b>Type</b> a word and press Enter, or <b>tap the letters</b>.</>,
         <>Points come from <b>rarity, not length</b>: the multiplier above scales the word&rsquo;s length bonus. A <b>pangram</b> uses every letter on the board and pays a further 10.</>,
         <>Reach <b>{VEIN} points</b> and you have struck the Lode, so the day counts as solved. Keep digging for the <b>Mother Lode</b>, every last word.</>,
+        <>A board scores a curated set of words. Type a real word that is not on it and it goes to your <b>tailings</b>: acknowledged, worth nothing, and it costs you nothing.</>,
       ]}
       knack="One good word is worth a fistful of easy ones, so work the awkward letters before you clear the obvious four-letter fills."
       footer="One shot counts: your first posted score is the one that ranks, and leaving mid-dig posts what you had. Ties break by fewest words, then fastest clock."
@@ -607,6 +628,10 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:${COLORS.accent};}
           .ld-wtag.pan{background:${COLORS.accentSoft};border-color:${COLORS.accent};font-weight:700;}
           .ld-wtag.new{outline:2px solid ${COLORS.accent};outline-offset:1px;}
+          /* Tailings: real, unscored. Deliberately the quietest tag on the
+             board — dashed and faded, so it reads as acknowledged rather than
+             earned and can never be mistaken for a scoring word. */
+          .ld-wtag.spare{background:transparent;border-style:dashed;border-color:rgba(28,30,36,0.28);color:${COLORS.faded};font-weight:500;}
           .ld-found{max-height:280px;overflow-y:auto;overflow-x:hidden;padding:4px;}
         `}</style>
 
@@ -761,6 +786,21 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                     );
                   }) : <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.faded }}>Nothing mined yet.</span>}
                 </div>
+                {spareSorted.length > 0 && (
+                  <>
+                    <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '14px 0 8px' }}>
+                      Tailings <span style={{ color: COLORS.ink }}>({spareSorted.length})</span>
+                    </div>
+                    <div className="ld-found">
+                      {spareSorted.map((w) => (
+                        <span key={w} className="ld-wtag spare" title="A real word, but not one this board scores">{w.toLowerCase()}</span>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 8 }}>
+                      Real words, off the seam. They score nothing and cost nothing.
+                    </div>
+                  </>
+                )}
                 <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 10 }}>
                   {TIERS[1].block} common &middot; {TIERS[2].block} uncommon &middot; {TIERS[3].block} rare &middot; {PANGRAM_BLOCK} pangram. Rarity is what pays here.
                 </div>
