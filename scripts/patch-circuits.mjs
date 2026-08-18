@@ -18,6 +18,11 @@
 // silently changes the code being written into the repo. A plain text file with
 // unambiguous line-start delimiters has no escaping at all.
 //
+// APPLIED 2026-08-18 in commit daa9d770b. This is a RECORD of how the circuits
+// wiring landed, not a live tool: its anchors are the pre-circuits text and no
+// longer exist on origin, so re-running it throws rather than doing anything.
+// Later edits to these files are ordinary anchored edits at deploy time.
+//
 // Usage: node scripts/patch-circuits.mjs <dir-of-extracted-files>
 // where the dir holds files named by their repo path with / replaced by _.
 

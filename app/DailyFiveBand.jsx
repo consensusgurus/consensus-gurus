@@ -210,7 +210,7 @@ export default function DailyFiveBand() {
   };
 
   return (
-    <div className={`d5${complete ? ' is-done' : ''}${popen ? ' is-popen' : ''}${marq ? '' : ' is-circ'}`}>
+    <div className={`d5${complete ? ' is-done' : ''}${popen ? ' is-popen' : ''}${marq ? '' : ' is-circ'}${pick ? ' is-pick' : ''}`}>
       {/* RAW, not a JSX text child: React escapes `>` inside a text node, so any
           child-combinator selector would reach the browser as `&gt;` and be
           dropped as invalid until hydration replaced the node. There are none in
@@ -400,7 +400,17 @@ export default function DailyFiveBand() {
         .d5-mq{flex:none;background:var(--gold);color:#3a2a05;border-radius:3px;padding:1px 5px;
                font-size:8px;font-weight:800;letter-spacing:.13em;}
         .d5-n{display:flex;align-items:center;gap:8px;min-width:0;}
-        .d5-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* FLEX, not just min-width:0. The three controls beside it are
+           flex:none, so without a grow-and-shrink basis the name is the only
+           thing that can give and it gives ALL of it: measured 0px wide on a
+           390px phone, i.e. the band lost its title completely. */
+        .d5-nm{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        /* The panel opens over the track, and the sub line is the one thing it
+           lands half on top of. Hide it rather than let it read as clipped. */
+        .d5.is-pick .d5-s{visibility:hidden;}
+        /* Phone-only copy of the cycler, in the pip bar. See the note on
+           .d5-pcyc in the max-width:900 block below. */
+        .d5-pcyc{display:none;}
         .d5-cyc{flex:none;width:21px;height:21px;border-radius:5px;background:rgba(255,255,255,.12);
                 border:1px solid #2c437c;color:#dbe6ff;display:inline-flex;align-items:center;
                 justify-content:center;cursor:pointer;font-family:inherit;padding:0;}
@@ -455,7 +465,17 @@ export default function DailyFiveBand() {
           .d5-pick{left:12px;right:12px;top:52px;max-height:60vh;overflow-y:auto;}
           .d5-pkg{grid-template-columns:1fr 1fr;}
           .d5-pkc.mq{grid-column:span 2;}
-          .d5-all{padding:0 7px;}
+          /* THE CYCLER CANNOT SHARE THE NAME LINE ON A PHONE. Measured at
+             390px: the header row gives the title block 118px once the score
+             box and the Resume button have taken theirs, and "The Daily Five"
+             at 17px needs all of it. Two arrows and an All button do not fit
+             beside that, and flexbox resolved the conflict by shrinking the
+             name to zero. So below 900 the name line keeps ONLY the name, and
+             the controls move to the pip bar, which already exists, is already
+             phone-only, and has room for three 21px buttons next to a pips
+             toggle that flexes. Icon-only there: the bar also carries Board. */
+          .d5-n .d5-cyc,.d5-n .d5-all{display:none;}
+          .d5-pcyc{display:inline-flex;align-items:center;gap:5px;flex:none;}
         }
       ` }} />
 
@@ -587,6 +607,17 @@ export default function DailyFiveBand() {
           </span>
           <span className="d5-pipl">{popen ? 'Hide' : `All ${members.length}`}</span>
         </button>
+        <span className="d5-pcyc">
+          <button type="button" className="d5-cyc" onClick={() => step(-1)} aria-label="Previous circuit">
+            <ChevronLeft size={13} strokeWidth={2.8} />
+          </button>
+          <button type="button" className="d5-cyc" onClick={() => step(1)} aria-label="Next circuit">
+            <ChevronRight size={13} strokeWidth={2.8} />
+          </button>
+          <button type="button" className="d5-cyc" aria-expanded={pick} aria-label="All circuits" onClick={() => setPick((p) => !p)}>
+            <LayoutGrid size={12} strokeWidth={2.8} />
+          </button>
+        </span>
         {marq ? (
           <a className="d5-pipbd" href="/daily-five">Board</a>
         ) : (
