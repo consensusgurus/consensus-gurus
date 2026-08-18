@@ -8,11 +8,16 @@
 // played, each a link that keeps the run attached, and the next one called out
 // so a finished game turns into the next game.
 //
-// IT SHOWS ONLY DURING A RUN. The trigger is the `?five=1` flag, which means
-// the player either started the run deliberately from the console band or was
-// handed on by this bar. Opening /suds directly shows nothing. That is the
-// right default rather than banding all 63 game pages permanently: a player who
-// did not ask for a run should not be told they are behind on one.
+// IT SERVES EVERY CIRCUIT, not just the marquee (fixed 2026-08-18). The
+// trigger is readRunParam — `?five=1` for the Daily Five, `?circuit=<id>` for
+// one of the fourteen skill circuits — which means the player either started
+// the run deliberately from the console band or was handed on by this bar.
+// It read the five flag ALONE until the fix, so a skill circuit rendered no
+// strip at all and a finished game had nowhere to hand off to.
+//
+// IT SHOWS ONLY DURING A RUN. Opening /suds directly shows nothing. That is
+// the right default rather than banding all 63 game pages permanently: a
+// player who did not ask for a run should not be told they are behind on one.
 //
 // It renders inside DailyChrome's z-index:5 stacking context, so every overlay
 // on the page still lands above it. On the Loft format the slate rail is hidden
@@ -27,7 +32,7 @@
 // the bar simply shows no ticks, exactly as the slate rail does.
 
 import React, { useEffect, useState } from 'react';
-import { fiveFor, fiveHref, readFiveParam, FIVE_NAME } from '@/lib/daily-five';
+import { circuitKeysFor, circuitHref, circuitName, readRunParam, isMarquee } from '@/lib/circuits';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
@@ -42,11 +47,12 @@ export default function DailyFiveBar({ slug }) {
   // either during render would make the first client paint disagree with the
   // server's. Null until mounted, so the bar is absent for a frame rather than
   // flashing the wrong run.
-  const [on, setOn] = useState(false);
+  // The RUN ID, not a boolean: which circuit, or null for none.
+  const [on, setOn] = useState(null);
   const [day, setDay] = useState(null);
   const [perGame, setPerGame] = useState(null);
 
-  useEffect(() => { setOn(readFiveParam()); setDay(etToday()); }, []);
+  useEffect(() => { setOn(readRunParam()); setDay(etToday()); }, []);
 
   useEffect(() => {
     if (!on || !day) return undefined;
@@ -67,10 +73,13 @@ export default function DailyFiveBar({ slug }) {
   }, [on, day]);
 
   if (!on || !day) return null;
-  const members = fiveFor(day);
-  // A stale or hand-typed ?five=1 must not put Suds inside a run that does not
-  // contain it, and a day with no run must not render an empty band.
+  const members = circuitKeysFor(on, day);
+  // A stale or hand-typed flag must not put Suds inside a run that does not
+  // contain it, and a day with no run must not render an empty band. The
+  // marquee's bank can run out; a skill circuit's roster cannot.
   if (members.length < 2 || !members.includes(slug)) return null;
+  const marq = isMarquee(on);
+  const runName = circuitName(on);
 
   // PLAYED, not SOLVED. `abandoned` is a started-and-left run and is not a tick.
   // Solved-versus-failed needs correct_count, which daily-me does not expose per
@@ -87,7 +96,7 @@ export default function DailyFiveBar({ slug }) {
   const nextGame = nextKey ? DAILY_GAME_MAP[nextKey] : null;
 
   return (
-    <div className="d5b">
+    <div className={marq ? 'd5b' : 'd5b circ'}>
       <style dangerouslySetInnerHTML={{ __html: `
         .d5b{background:#0d1e56;border-bottom:1px solid #091640;position:relative;z-index:2;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;}
@@ -122,12 +131,22 @@ export default function DailyFiveBar({ slug }) {
         .d5b-x{font-size:10.5px;font-weight:800;letter-spacing:.04em;color:#93aae2;
                text-decoration:none;white-space:nowrap;flex:none;}
         .d5b-x:hover{color:#dbe6ff;}
+        /* A SKILL CIRCUIT IS BLUE, THE MARQUEE IS GOLD, the same rule the
+           console band already draws itself by. Gold is reserved for the Five
+           because its roster is different every day and cannot be farmed by
+           picking an easy one; a fixed circuit is one of fourteen. */
+        .d5b.circ .d5b-k{color:#bcd2ff;}
+        .d5b.circ .d5b-k::before{background:var(--blue-400,#60a5fa);}
+        .d5b.circ .d5b-n{color:#bcd2ff;}
+        .d5b.circ .d5b-n.done{color:#8ff0c4;}
+        .d5b.circ .d5b-next{background:var(--blue,#2563eb);color:#fff;}
+        .d5b.circ .d5b-next:hover{background:#3b7bf5;}
         @media(max-width:860px){.d5b-in{gap:9px;}}
         @media(max-width:560px){.d5b-x,.d5b-k{display:none;}}
       ` }} />
       <div className="d5b-in">
-        <span className="d5b-k">{FIVE_NAME}</span>
-        <nav className="d5b-rail" aria-label={`${FIVE_NAME} run`}>
+        <span className="d5b-k">{runName}</span>
+        <nav className="d5b-rail" aria-label={`${runName} run`}>
           <div className="d5b-row">
             {members.map((k) => {
               const g = DAILY_GAME_MAP[k];
@@ -137,7 +156,7 @@ export default function DailyFiveBar({ slug }) {
               return (
                 <a
                   key={k}
-                  href={fiveHref(k)}
+                  href={circuitHref(k, on)}
                   className={`d5b-g${now ? ' is-now' : (isDone ? ' is-done' : '')}`}
                   aria-current={now ? 'page' : undefined}
                   title={g.tag || g.name}
@@ -149,7 +168,7 @@ export default function DailyFiveBar({ slug }) {
           </div>
         </nav>
         <span className={complete ? 'd5b-n done' : 'd5b-n'}>{played}/{members.length}</span>
-        {nextGame ? <a className="d5b-next" href={fiveHref(nextKey)}>Next: {nextGame.name}</a> : null}
+        {nextGame ? <a className="d5b-next" href={circuitHref(nextKey, on)}>Next: {nextGame.name}</a> : null}
         <a className="d5b-x" href={(DAILY_GAME_MAP[slug] || {}).href || `/${slug}`}>Leave</a>
       </div>
     </div>

@@ -19,10 +19,17 @@
 // It is a normal URL, so it is also the run's permalink: shareable, revisitable,
 // and reachable without finishing (a half-done run renders honestly, with the
 // unplayed games as empty cards).
+//
+// IT SERVES EVERY CIRCUIT (owner, 2026-08-18). /daily-five is the marquee and
+// /daily-five?circuit=<id> is one of the fourteen skill circuits: the same page,
+// narrowed by the same query the board route already takes. A second page
+// component for circuits would be a mirror of this one that has to be kept in
+// step by hand, which is the failure this file warns about everywhere else.
 
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowLeft, Trophy } from 'lucide-react';
-import { fiveFor, fiveHref, FIVE_NAME } from '@/lib/daily-five';
+import { circuitKeysFor, circuitHref, circuitName, readCircuitParam, isMarquee,
+         MARQUEE_ID, CIRCUIT_PARAM } from '@/lib/circuits';
 import { DAILY_GAME_MAP, dailyScoreText } from '@/lib/daily-games';
 import { dailyMeIdentity } from '../dailyMeClient';
 
@@ -57,14 +64,21 @@ export default function DailyFiveSummary() {
   const [day, setDay] = useState(null);
   const [data, setData] = useState(null);
   const [err, setErr] = useState(false);
+  // Which run's summary this is. Defaults to the marquee, so the bare
+  // /daily-five URL is unchanged. Read in the same effect as the day and for
+  // the same reason: window does not exist on the server.
+  const [runId, setRunId] = useState(MARQUEE_ID);
 
-  useEffect(() => { setDay(etToday()); }, []);
+  useEffect(() => { setDay(etToday()); setRunId(readCircuitParam() || MARQUEE_ID); }, []);
 
   useEffect(() => {
     if (!day) return undefined;
     let alive = true;
     const { anonId, email } = dailyMeIdentity();
-    const qs = new URLSearchParams({ five: '1', fresh: '1' });
+    // The SAME route, narrowed the same way the console band narrows it.
+    const qs = new URLSearchParams({ fresh: '1' });
+    if (isMarquee(runId)) qs.set('five', '1');
+    else qs.set(CIRCUIT_PARAM, runId);
     if (anonId) qs.set('anonId', anonId);
     if (email) qs.set('email', email);
     fetch(`/api/quiz/daily-combined?${qs.toString()}`, { cache: 'no-store' })
@@ -72,9 +86,11 @@ export default function DailyFiveSummary() {
       .then((d) => { if (alive) { if (d && !d.error) setData(d); else setErr(true); } })
       .catch(() => { if (alive) setErr(true); });
     return () => { alive = false; };
-  }, [day]);
+  }, [day, runId]);
 
-  const members = day ? fiveFor(day) : [];
+  const members = day ? circuitKeysFor(runId, day) : [];
+  const marq = isMarquee(runId);
+  const runName = circuitName(runId);
   const ran = data && Array.isArray(data.games) && data.games.length
     ? new Set(data.games.map((g) => g.key)) : null;
   const run = ran ? members.filter((k) => ran.has(k)) : members;
@@ -99,7 +115,11 @@ export default function DailyFiveSummary() {
         .d5s-hd{position:relative;background:var(--ground);color:#fff;border-radius:14px;
                 padding:20px 22px;overflow:hidden;}
         .d5s-hd::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--gold);}
-        .d5s-hd.done::before{background:var(--success);}
+        /* Blue rule and blue eyebrow for a skill circuit, gold for the
+           marquee, green once the run is complete. */
+        .d5s-hd.circ::before{background:var(--blue);}
+        .d5s-hd.circ .d5s-e{color:#9fc2ff;}
+        .d5s-hd.done::before,.d5s-hd.circ.done::before{background:var(--success);}
         .d5s-e{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
         .d5s-hd.done .d5s-e{color:#7ff0c0;}
         .d5s-h1{font-size:30px;font-weight:800;letter-spacing:-.7px;line-height:1.1;margin:3px 0 0;}
@@ -182,14 +202,14 @@ export default function DailyFiveSummary() {
         }
       ` }} />
 
-      <div className={complete ? 'd5s-hd done' : 'd5s-hd'}>
+      <div className={`d5s-hd${marq ? '' : ' circ'}${complete ? ' done' : ''}`}>
         <div className="d5s-e">
-          {FIVE_NAME} &middot; {dateLabel}
+          {runName} &middot; {dateLabel}
         </div>
         <h1 className="d5s-h1">{complete ? 'Run complete' : 'Your run'}</h1>
         <div className="d5s-sub">
           {complete
-            ? 'All five played. Here is where that left you.'
+            ? `All ${run.length} played. Here is where that left you.`
             : `${played.length} of ${run.length} played. The rest are still open today.`}
         </div>
         <div className="d5s-fig">
@@ -199,7 +219,7 @@ export default function DailyFiveSummary() {
         </div>
       </div>
 
-      <div className="d5s-sec">Combined placement across the five</div>
+      <div className="d5s-sec">Combined placement across the run</div>
       {board.length ? (
         <div className="d5s-lb">
           {board.map((row, i) => (
@@ -211,11 +231,11 @@ export default function DailyFiveSummary() {
         <div className="d5s-empty">{err ? 'The board could not be loaded just now.' : 'Nobody has scored on the run yet today.'}</div>
       )}
       <div className="d5s-note">
-        Each game pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the five up.
-        A game played on its own still counts.
+        Each game pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the {run.length} up.
+        A game played on its own still counts, but you need all {run.length} played to take a rank on this board.
       </div>
 
-      <div className="d5s-sec">Your five</div>
+      <div className="d5s-sec">{marq ? 'Your five' : 'Your run'}</div>
       <div className="d5s-cards">
         {run.map((k, i) => {
           const g = DAILY_GAME_MAP[k];
@@ -250,7 +270,7 @@ export default function DailyFiveSummary() {
               {done ? (
                 <div className="d5s-cp"><b>{r1(p.points)}</b><i>points</i></div>
               ) : (
-                <a className="d5s-go" href={fiveHref(k)}>Play<ArrowRight size={13} strokeWidth={2.6} /></a>
+                <a className="d5s-go" href={circuitHref(k, runId)}>Play<ArrowRight size={13} strokeWidth={2.6} /></a>
               )}
             </div>
           );
@@ -260,7 +280,7 @@ export default function DailyFiveSummary() {
       {complete ? (
         <div className="d5s-note" style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 7 }}>
           <Trophy size={14} strokeWidth={2.4} style={{ color: 'var(--gold)' }} />
-          A fresh five lands at midnight Eastern.
+          {marq ? 'A fresh five lands at midnight Eastern.' : 'The same circuit, new puzzles, at midnight Eastern.'}
         </div>
       ) : null}
 

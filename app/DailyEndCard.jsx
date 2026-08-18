@@ -93,7 +93,7 @@ import MindLoftMark from './MindLoftMark';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
 import { isRetiredDaily, DAILY_GAME_MAP, dailyAttemptRule } from '@/lib/daily-games';
-import { fiveFor, fiveHref, readFiveParam, FIVE_NAME } from '@/lib/daily-five';
+import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
 
@@ -437,12 +437,15 @@ export default function DailyEndCard({
   // the contest has ended.
   const [contestLive, setContestLive] = useState(false);
   useEffect(() => { setContestLive(contestIsLive()); }, []);
-  // Is this page part of a Daily Five run? Read in an effect for the same
-  // reason contestLive above is: it reads window, so evaluating it during SSR
-  // and again on the client can disagree across that boundary. False for the
-  // first paint, which is also the correct answer for every ordinary page.
-  const [inRun, setInRun] = useState(false);
-  useEffect(() => { setInRun(readFiveParam()); }, []);
+  // WHICH RUN is this page part of — the marquee, one of the thirteen skill
+  // circuits, or none? A circuit ID, not a boolean (fixed 2026-08-18; it read
+  // ?five=1 alone, so a skill circuit got no run branch and, worse, no
+  // suppression of autoRun below). Read in an effect for the same reason
+  // contestLive above is: it reads window, so evaluating it during SSR and
+  // again on the client can disagree across that boundary. Null for the first
+  // paint, which is also the correct answer for every ordinary page.
+  const [inRun, setInRun] = useState(null);
+  useEffect(() => { setInRun(readRunParam()); }, []);
   const [runSecs, setRunSecs] = useState(6);
   const [runStay, setRunStay] = useState(false);
   const [popularCats, setPopularCats] = useState(null);             // popular quiz per category, once every daily is done
@@ -720,8 +723,13 @@ export default function DailyEndCard({
   // run: it navigates to the most similar unplayed daily after 30 seconds, which
   // in a run means walking the player out of it and into an unrelated game.
   const runDay = etTodayEC();
-  const runMembers = inRun ? fiveFor(runDay) : [];
-  // A stale or hand-typed ?five=1 must not put a game inside a run that does not
+  const runMembers = inRun ? circuitKeysFor(inRun, runDay) : [];
+  const runName = circuitName(inRun);
+  const runMarq = isMarquee(inRun);
+  // Declared above the auto-advance effect that names it in its dependency
+  // array, since a dep array is evaluated during render.
+  const runSummary = runSummaryHref(inRun);
+  // A stale or hand-typed flag must not put a game inside a run that does not
   // contain it.
   const runActive = runMembers.length >= 2 && runMembers.includes(self);
   const runDoneKeys = runMembers.filter((k) => doneKeys.has(k));
@@ -742,12 +750,12 @@ export default function DailyEndCard({
   useEffect(() => {
     if (!runAuto) return undefined;
     if (runSecs <= 0) {
-      if (typeof window !== 'undefined') window.location.href = '/daily-five';
+      if (typeof window !== 'undefined') window.location.href = runSummary;
       return undefined;
     }
     const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
     return () => clearTimeout(t);
-  }, [runAuto, runSecs]);
+  }, [runAuto, runSecs, runSummary]);
 
   // Slate strip cells, PACKED. Rendering DAILY_GAMES in its own order put the
   // filled cells wherever those games happen to sit in the list, so the strip
@@ -2604,7 +2612,7 @@ export default function DailyEndCard({
   // (including .dec-backdrop and .dec-x, which the modal wrapper below needs),
   // so a branch that renders instead of `inner` renders unstyled without them.
   const runInner = (
-    <div className="d5e-card" style={modal ? { position: 'relative' } : undefined}>
+    <div className={`d5e-card${runMarq ? '' : ' circ'}`} style={modal ? { position: 'relative' } : undefined}>
       {modal && (
         <button type="button" className="dec-x" onClick={onClose} aria-label="Close">
           <X size={14} strokeWidth={2.6} />
@@ -2615,7 +2623,10 @@ export default function DailyEndCard({
         .dec-x{position:absolute;top:9px;right:11px;width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid #2c437c;color:#cfe0ff;cursor:pointer;z-index:3;}
         .d5e-card{position:relative;background:var(--ground);color:#fff;border-radius:16px;padding:0;max-width:520px;width:100%;margin:0 auto;overflow:hidden;font-family:${SANS};}
         .d5e-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--gold);z-index:2;}
-        .d5e-card.done::before{background:var(--success);}
+        /* Blue for a skill circuit, gold for the marquee, green when done. */
+        .d5e-card.circ::before{background:var(--blue,#2563eb);}
+        .d5e-card.done::before,.d5e-card.circ.done::before{background:var(--success);}
+        .d5e-card.circ .d5e-eye{color:var(--blue-400,#60a5fa);}
         .d5e-cap{display:flex;align-items:center;gap:8px;padding:9px 16px;background:rgba(0,0,0,.22);}
         .d5e-mk{display:inline-flex;width:19px;height:19px;border-radius:5px;background:#fff;align-items:center;justify-content:center;flex:none;}
         .d5e-wm{font-size:11.5px;font-weight:800;letter-spacing:-.2px;}
@@ -2644,7 +2655,7 @@ export default function DailyEndCard({
       <div className="d5e-cap">
         <span className="d5e-mk" aria-hidden="true"><MindLoftMark size={15} ink="#1e3a8a" accent="#2563eb" title="Mind Loft" /></span>
         <span className="d5e-wm">Mind <i>Loft</i></span>
-        <span className="d5e-gm">{FIVE_NAME}</span>
+        <span className="d5e-gm">{runName}</span>
       </div>
       <div className="d5e-body">
         <div className="d5e-vd">
@@ -2657,7 +2668,7 @@ export default function DailyEndCard({
 
         <div className="d5e-eye">
           {runComplete
-            ? `All five done ${runPoints ? `\u00b7 ${Math.round(runPoints * 10) / 10} pts` : ''}`
+            ? `All ${runMembers.length} done ${runPoints ? `\u00b7 ${Math.round(runPoints * 10) / 10} pts` : ''}`
             : `${runDoneKeys.length} of ${runMembers.length} ${runPoints ? `\u00b7 ${Math.round(runPoints * 10) / 10} pts banked` : ''}`}
         </div>
         <div className="d5e-pips">
@@ -2667,23 +2678,23 @@ export default function DailyEndCard({
         </div>
 
         {runComplete ? (
-          <a className="d5e-go done" href="/daily-five">
+          <a className="d5e-go done" href={runSummary}>
             <Trophy size={15} strokeWidth={2.4} />
             See how the run went
             {runAuto ? <span className="d5e-cd">{runSecs > 0 ? `${runSecs}s` : '\u2026'}</span> : null}
           </a>
         ) : runNext ? (
-          <a className="d5e-go" href={fiveHref(runNextKey)}>
+          <a className="d5e-go" href={circuitHref(runNextKey, inRun)}>
             Next {'\u00b7'} {runNext.name}
             <ArrowRight size={15} strokeWidth={2.6} />
           </a>
         ) : (
-          <a className="d5e-go" href="/daily-five">Run summary <ArrowRight size={15} strokeWidth={2.6} /></a>
+          <a className="d5e-go" href={runSummary}>Run summary <ArrowRight size={15} strokeWidth={2.6} /></a>
         )}
 
         <div className="d5e-alt">
           {runAuto ? <button type="button" onClick={() => setRunStay(true)}>Stay here</button> : null}
-          {!runComplete ? <a href="/daily-five">Run summary</a> : null}
+          {!runComplete ? <a href={runSummary}>Run summary</a> : null}
           <a href={(DAILY_GAME_MAP[self] || {}).href || `/${self}`}>Leave the run</a>
         </div>
       </div>

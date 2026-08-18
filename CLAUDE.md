@@ -5074,12 +5074,48 @@ most confidently wrong one. Match both, and treat an empty set as unreadable, no
   surface, this is navigation for something already in progress. Costs no request of its own,
   riding the shared `daily-me` client.
 - **The hand-off** is the `Next: <game>` control on that strip, which is what turns a finished
-  game into the next game. **Still owed: the same hand-off inside `DailyEndCard.jsx`**, which
-  is the higher-attention moment. Do that next.
+  game into the next game. It is also on the finish itself, in `LoftFinish.jsx` (the surface
+  actually on screen) and its `DailyEndCard.jsx` mirror, which is the higher-attention moment.
 
 `?five=1` is the ONLY state a run carries. No cookie, no localStorage, no row. A run therefore
 survives a reload, a share and a cold browser, and leaving one is the same URL without the
 flag, which is exactly what the strip's Leave control links to.
+
+### A RUN IS EVERY CIRCUIT, and `readRunParam` is the only thing that decides (2026-08-18)
+
+The Five is circuit #1 of fifteen (`lib/circuits.js`); the other fourteen are fixed skill
+circuits carrying `?circuit=<id>` instead of `?five=1`. **Every in-run surface reads
+`readRunParam()` from `lib/circuits.js`, which returns a circuit ID or null, and NOTHING
+reads a run flag off the URL for itself.** The four surfaces are `DailyFiveBar.jsx` (the
+in-game strip), `LoftFinish.jsx` (the finish, and the one on screen), `DailyEndCard.jsx`
+(its mirror) and `app/daily-five/DailyFiveSummary.jsx` (where a run lands). Members come
+from `circuitKeysFor(id, day)`, the next game's link from `circuitHref(key, id)`, the
+heading from `circuitName(id)` and the summary from `runSummaryHref(id)`.
+
+**This is written down because the circuits launch shipped without it and NOTHING ERRORED.**
+The console band handed players into a skill circuit while all three in-run surfaces still
+read `?five=1` alone, so each one silently concluded it was not in a run: no strip, no
+hand-off, no suppression of the end card's 30-second auto-advance to an unrelated daily, and
+nowhere to land at the end. The run simply evaporated on the first finish, and every
+component involved looked correct in isolation. A surface that knows about one of the two
+flags is the whole bug.
+
+Three rules that fall out of it:
+
+- **A circuit is not always five games.** Wordplay, Mental Math, Sorting, Chess & Board,
+  Table Games, Recall and Ranking are FOURS. Never write "all five" into run copy; read
+  `runMembers.length`. The same goes for a marquee day whose bank has run out.
+- **`/daily-five` serves all fifteen.** The bare URL is the marquee, `?circuit=<id>` is a
+  skill circuit, narrowed by the same query `/api/quiz/daily-combined` already takes. Never
+  a second page component, for the same reason the board is never a second route.
+- **Gold is the marquee, blue is a skill circuit, green is complete.** The band set that
+  rule and all four run surfaces follow it, via a `circ` class rather than a second
+  stylesheet.
+
+**To rank on ANY run board you must have played every game in it** (`rankEligible` in the
+daily-combined route, marquee included since 2026-08-18). That is exactly why the hand-off
+is load-bearing rather than a convenience: a player who is not carried to the next game
+scores points and takes no rank at all.
 
 ### Rules it must not break
 

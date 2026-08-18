@@ -64,7 +64,7 @@
 import React, { useEffect, useState } from 'react';
 import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
-import { fiveFor, fiveHref, readFiveParam, FIVE_NAME } from '@/lib/daily-five';
+import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
@@ -87,18 +87,22 @@ export default function LoftFinish({
   name = null, catRank = null,
 }) {
   const [showAll, setShowAll] = useState(false);
-  // Is this finish part of a Daily Five run? Read in an effect, never during
-  // render: the server has no window and no idea what today is in Eastern, so
-  // deriving either during render makes the first client paint disagree with
-  // the server's. False for the first paint, which is the correct answer for
-  // every ordinary finish.
-  const [inRun, setInRun] = useState(false);
+  // WHICH RUN is this finish part of — the marquee, one of the thirteen skill
+  // circuits, or none? A circuit ID, not a boolean: it read the ?five=1 flag
+  // alone until 2026-08-18, so finishing a game inside a skill circuit fell
+  // through to the ordinary end card and the run silently ended there.
+  //
+  // Read in an effect, never during render: the server has no window and no
+  // idea what today is in Eastern, so deriving either during render makes the
+  // first client paint disagree with the server's. Null for the first paint,
+  // which is the correct answer for every ordinary finish.
+  const [inRun, setInRun] = useState(null);
   const [runDay, setRunDay] = useState(null);
   const [runPer, setRunPer] = useState(null);
   const [runSecs, setRunSecs] = useState(6);
   const [runStay, setRunStay] = useState(false);
   useEffect(() => {
-    setInRun(readFiveParam());
+    setInRun(readRunParam());
     try { setRunDay(new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' })); }
     catch (e) { setRunDay(new Date().toISOString().slice(0, 10)); }
   }, []);
@@ -281,8 +285,15 @@ export default function LoftFinish({
   // LoftFinish is handed a display `name`, not a key, so the roster is matched
   // on it. Names are unique across the registry.
   const runSelf = (DAILY_GAMES.find((g) => g.name === name) || {}).key || null;
-  const runMembers = inRun && runDay ? fiveFor(runDay) : [];
-  // A stale or hand-typed ?five=1 must not put a game inside a run that does
+  const runMembers = inRun && runDay ? circuitKeysFor(inRun, runDay) : [];
+  const runName = circuitName(inRun);
+  const runMarq = isMarquee(inRun);
+  // Where this run ends. Declared up here because the auto-advance effect
+  // below names it in its dependency array, and a dep array is evaluated
+  // during RENDER — a const declared under the hook that names it is a
+  // temporal dead zone crash that esbuild accepts.
+  const runSummary = runSummaryHref(inRun);
+  // A stale or hand-typed flag must not put a game inside a run that does
   // not contain it.
   const runActive = runMembers.length >= 2 && !!runSelf && runMembers.includes(runSelf);
   // PLAYED, not SOLVED, and the game just finished always counts: its row may
@@ -314,12 +325,12 @@ export default function LoftFinish({
   useEffect(() => {
     if (!runAuto) return undefined;
     if (runSecs <= 0) {
-      if (typeof window !== 'undefined') window.location.href = '/daily-five';
+      if (typeof window !== 'undefined') window.location.href = runSummary;
       return undefined;
     }
     const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
     return () => clearTimeout(t);
-  }, [runAuto, runSecs]);
+  }, [runAuto, runSecs, runSummary]);
 
   if (openArchive && archive && archive.length) {
     return (
@@ -365,7 +376,10 @@ export default function LoftFinish({
           <style>{`
             .d5f-run{display:flex;align-items:center;gap:10px;margin:12px 0 2px;}
             .d5f-eye{font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#a98a2e;white-space:nowrap;}
-            .d5f-run.done .d5f-eye{color:#15803d;}
+            /* Gold for the marquee, blue for a skill circuit, green once the
+               run is done — the console band's own three-state rule. */
+            .d5f-run.circ .d5f-eye{color:#2563eb;}
+            .d5f-run.done .d5f-eye,.d5f-run.circ.done .d5f-eye{color:#15803d;}
             .d5f-pips{display:flex;gap:4px;flex:1;min-width:0;}
             .d5f-pips span{flex:1;height:6px;border-radius:3px;background:#dbe2ee;}
             .d5f-pips span.on{background:#10b981;}
@@ -376,8 +390,8 @@ export default function LoftFinish({
           `}</style>
           <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
-          <div className={runComplete ? 'd5f-run done' : 'd5f-run'}>
-            <span className="d5f-eye">{FIVE_NAME} {'\u00b7'} {runN} of {runMembers.length}</span>
+          <div className={`d5f-run${runMarq ? '' : ' circ'}${runComplete ? ' done' : ''}`}>
+            <span className="d5f-eye">{runName} {'\u00b7'} {runN} of {runMembers.length}</span>
             <span className="d5f-pips">
               {runMembers.map((k) => (
                 <span key={k} className={runDone.has(k) ? 'on' : (k === runNextKey ? 'now' : '')} />
@@ -386,16 +400,16 @@ export default function LoftFinish({
           </div>
 
           {runComplete ? (
-            <a className="loft-next" href="/daily-five">
+            <a className="loft-next" href={runSummary}>
               <span className="t">
                 <span className="eb">Run complete</span>
                 <span className="nm">See how the run went</span>
-                <span className="tg">The board for all five, and every result</span>
+                <span className="tg">The board for all {runMembers.length}, and every result</span>
               </span>
               <span className="go">{runAuto ? (runSecs > 0 ? `Opening in ${runSecs}s` : 'Opening\u2026') : 'Open'}</span>
             </a>
           ) : runNext ? (
-            <a className="loft-next" href={fiveHref(runNextKey)}>
+            <a className="loft-next" href={circuitHref(runNextKey, inRun)}>
               <span className="t">
                 <span className="eb">Next in the run {'\u00b7'} {runN + 1} of {runMembers.length}</span>
                 <span className="nm">{runNext.name}</span>
@@ -406,7 +420,7 @@ export default function LoftFinish({
           ) : null}
 
           <div className="d5f-alt">
-            {!runComplete ? <a href="/daily-five">Run summary</a> : null}
+            {!runComplete ? <a href={runSummary}>Run summary</a> : null}
             {runAuto ? <a href="#" onClick={(e) => { e.preventDefault(); setRunStay(true); }}>Stay here</a> : null}
             <a href={(DAILY_GAME_MAP[runSelf] || {}).href || `/${runSelf}`}>Leave the run</a>
           </div>
