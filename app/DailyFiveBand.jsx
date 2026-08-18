@@ -340,7 +340,13 @@ export default function DailyFiveBand() {
         .d5-sc{margin-left:auto;flex:none;text-align:right;line-height:1.1;min-width:96px;}
         .d5-sc b{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
         .d5-sc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9fb6e8;}
-        .d5-go{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#3a2a05;
+        /* min-width + centred, because the label carries the next game's NAME
+           and that changes on every rotation. Without a floor the button
+           resized, and everything to its left — the score box, and on a phone
+           the circuit name — slid across with it. A floor stops the jitter and
+           still grows for a genuinely long label. */
+        .d5-go{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:164px;
+               gap:6px;background:var(--gold);color:#3a2a05;
                border-radius:8px;padding:11px 16px;font-size:11px;font-weight:800;letter-spacing:.07em;
                text-transform:uppercase;text-decoration:none;white-space:nowrap;}
         .d5-go:hover{background:#f0c65c;}
@@ -430,7 +436,7 @@ export default function DailyFiveBand() {
           .d5-n{font-size:17px;}
           .d5-s{display:none;}
           .d5-sc b{font-size:17px;}
-          .d5-go{padding:9px 12px;font-size:10px;}
+          .d5-go{padding:9px 12px;font-size:10px;min-width:132px;}
           .d5-bd{display:none;}
           .d5-track{display:none;grid-template-columns:1fr;gap:5px;margin-top:9px;}
           .d5.is-popen .d5-track{display:grid;}
@@ -487,7 +493,14 @@ export default function DailyFiveBand() {
         /* The marquee badge sits where the eyebrow text already sat, so it
            costs no line. Same gold as the rule, which is what ties the two
            together with no caption. */
-        .d5-e{display:flex;align-items:center;gap:7px;}
+        /* THE EYEBROW IS ONE LINE, ALWAYS. It is the tallest thing that varies
+           with the selection: "Marquee Today's run 4 of 5 played" wraps at
+           390px where "Circuit 5 of 14 not started" does not, so the band's
+           height stepped 107 to 133 and back on every rotation and the whole
+           console below it moved with it. Clipped rather than wrapped: losing
+           the tail of a status line is invisible next to a page that jumps
+           every eight seconds. */
+        .d5-e{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;}
         .d5-mq{flex:none;background:var(--gold);color:#3a2a05;border-radius:3px;padding:1px 5px;
                font-size:8px;font-weight:800;letter-spacing:.13em;}
         .d5-n{display:flex;align-items:center;gap:8px;min-width:0;}
