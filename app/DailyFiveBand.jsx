@@ -26,7 +26,7 @@
 // React throws. Null until mounted, so the band is simply absent for a frame
 // rather than flashing the wrong day. Same rule isSundayET follows.
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Play, Trophy, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
 import { fiveFor, FIVE_NAME } from '@/lib/daily-five';
 import { ALL_CIRCUITS, MARQUEE_ID, circuitById, circuitKeysFor, circuitHref, isMarquee } from '@/lib/circuits';
@@ -39,6 +39,32 @@ const etToday = () => {
 };
 
 const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
+// The Loft's beat. One rhythm on the console rather than two.
+const ROTATE_MS = 8000;
+
+// The rotation lives in its own component so the interval's effect depends on
+// nothing but the two things that actually govern it. Inside the band it would
+// have had to list sel, hover, pick, open and popen, and every one of those
+// changing would tear the timer down and restart it — which is how a "rotate
+// every 8 seconds" quietly becomes "rotate 8 seconds after whatever you last
+// did". onTick is kept in a ref for the same reason: it closes over sel, so it
+// is a new function on every render.
+//
+// An auto-advancing carousel is exactly what prefers-reduced-motion is for, so
+// it does not run at all for a reader who has asked for less of it.
+function RotateEvery({ ms, on, onTick }) {
+  const cb = useRef(onTick);
+  cb.current = onTick;
+  useEffect(() => {
+    if (!on) return undefined;
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    } catch (e) { /* no matchMedia is not a reason to skip the rotation */ }
+    const t = setInterval(() => cb.current(), ms);
+    return () => clearInterval(t);
+  }, [on, ms]);
+  return null;
+}
 const fmtPts = (n) => (Math.round(Number(n) * 10) / 10);
 
 export default function DailyFiveBand() {
@@ -64,6 +90,22 @@ export default function DailyFiveBand() {
   // fetching it eagerly would double the band's cost for a panel most readers
   // never open. One extra fetch per page load, at most.
   const [pickData, setPickData] = useState(null);
+  // AUTO-ROTATION. The band cycles the fourteen on the same 8s beat the Loft's
+  // faces use, so the console has one rhythm rather than two. It stops the
+  // moment the reader takes control and never restarts: moving the page under
+  // somebody who has just chosen a circuit is worse than never having rotated.
+  // It also holds while the pointer is over the band, while the picker is open
+  // and while the leaderboard is expanded, because all three mean the reader is
+  // reading THIS one.
+  const [held, setHeld] = useState(false);
+  const [hover, setHover] = useState(false);
+  // ROTATION WITHOUT A REQUEST PER TICK. Every selection fetches its own board,
+  // so a naive 8s rotation is a fetch every 8 seconds, for the whole time the
+  // page is open, from every reader — which is exactly the egress the daily
+  // caches exist to avoid. Each circuit is therefore fetched AT MOST ONCE per
+  // page load and served from here after that. The cache is cleared, not
+  // consulted, when a game finishes anywhere on the site.
+  const boardCache = useRef(new Map());
 
   useEffect(() => {
     const d = etToday();
@@ -95,10 +137,12 @@ export default function DailyFiveBand() {
     const keys = circuitKeysFor(sel, day);
     if (!keys.length) return undefined;
     let alive = true;
-    // Clear first: the previous circuit's points and rank are wrong the instant
-    // the selection changes, and showing them for a frame reads as a score that
-    // then drops.
-    setData(null);
+    // Show the cached board for this circuit immediately if we have one, so a
+    // rotation does not blink. Otherwise clear: the previous circuit's points
+    // and rank are wrong the instant the selection changes, and showing them
+    // for a frame reads as a score that then drops.
+    const hit = boardCache.current.get(sel);
+    setData(hit || null);
     const { anonId, email } = dailyMeIdentity();
     const qs = new URLSearchParams(isMarquee(sel) ? { five: '1' } : { circuit: sel });
     if (anonId) qs.set('anonId', anonId);
@@ -106,14 +150,20 @@ export default function DailyFiveBand() {
     const load = () => {
       fetch(`/api/quiz/daily-combined?${qs.toString()}`, { cache: 'no-store' })
         .then((r) => r.json())
-        .then((d) => { if (alive && d && !d.error) setData(d); })
+        .then((d) => {
+          if (!d || d.error) return;
+          boardCache.current.set(sel, d);
+          if (alive) setData(d);
+        })
         .catch(() => {});
     };
-    load();
+    if (!hit) load();
     // A game finishing anywhere on the site fires this, which is what re-ticks
-    // the run without a reload.
-    window.addEventListener('sot:daily-updated', load);
-    return () => { alive = false; window.removeEventListener('sot:daily-updated', load); };
+    // the run without a reload. EVERY circuit's board can have moved, not just
+    // the one on screen, so the whole cache goes rather than just this entry.
+    const refresh = () => { boardCache.current.clear(); load(); };
+    window.addEventListener('sot:daily-updated', refresh);
+    return () => { alive = false; window.removeEventListener('sot:daily-updated', refresh); };
   }, [day, sel]);
 
   // Lazy: nothing is fetched until the picker is opened, and then only once.
@@ -188,10 +238,18 @@ export default function DailyFiveBand() {
     if (!allPer) return { done: null, total: ks.length };
     return { done: ks.filter((k) => allPer[k] && !allPer[k].abandoned).length, total: ks.length };
   };
-  const step = (d) => {
-    const n = ALL_CIRCUITS.length;
-    setSel(ALL_CIRCUITS[((cIdx < 0 ? 0 : cIdx) + d + n) % n].id);
+  // Circuits with a live run today, in cycle order. The marquee drops out on a
+  // date its bank does not reach, and a rotation must not land on a band with
+  // nothing in it.
+  const live = ALL_CIRCUITS.filter((c) => circuitKeysFor(c.id, day).length >= 2);
+  const step = (d, byHand = true) => {
+    const list = live.length ? live : ALL_CIRCUITS;
+    const i = list.findIndex((c) => c.id === sel);
+    const n = list.length;
+    setSel(list[((i < 0 ? 0 : i) + d + n) % n].id);
     setPick(false);
+    // A hand on the arrows ends the rotation for good.
+    if (byHand) setHeld(true);
   };
   // NEXT STEPS TO THE NEXT UNFINISHED CIRCUIT, not the next in the list, which
   // is what makes the cycler read as progress rather than as a carousel. Falls
@@ -210,7 +268,16 @@ export default function DailyFiveBand() {
   };
 
   return (
-    <div className={`d5${complete ? ' is-done' : ''}${popen ? ' is-popen' : ''}${marq ? '' : ' is-circ'}${pick ? ' is-pick' : ''}`}>
+    <div
+      className={`d5${complete ? ' is-done' : ''}${popen ? ' is-popen' : ''}${marq ? '' : ' is-circ'}${pick ? ' is-pick' : ''}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <RotateEvery
+        ms={ROTATE_MS}
+        on={!held && !hover && !pick && !open && !popen && live.length > 1}
+        onTick={() => step(1, false)}
+      />
       {/* RAW, not a JSX text child: React escapes `>` inside a text node, so any
           child-combinator selector would reach the browser as `&gt;` and be
           dropped as invalid until hydration replaced the node. There are none in
@@ -427,10 +494,20 @@ export default function DailyFiveBand() {
            basis at all). It must NOT grow, or now that .d5-ht takes the slack
            the name would stretch the whole title block and drag the arrows to
            the far side of the band, away from the name they belong to. */
-        .d5-nm{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-        /* The panel opens over the track, and the sub line is the one thing it
-           lands half on top of. Hide it rather than let it read as clipped. */
-        .d5.is-pick .d5-s{visibility:hidden;}
+        /* DESCENDERS. Same trap .d5-gn and .d5-gt already carry a fix for
+           lower down, and the third time this file has been bitten by it: a
+           nowrap + ellipsis line needs overflow:hidden, that clips at the
+           CONTENT box, and .d5-n runs line-height 1.15, so the tail comes off
+           every g, j, p, q and y. "Word Building" lost its g. Rather than open
+           the leading and move the whole header, grow the box by 4px and take
+           the same 4px back off the flow: the clip box clears the descenders
+           and nothing shifts. Any new clamped single line in this band needs
+           the same pair. */
+        .d5-nm{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+               padding-bottom:4px;margin-bottom:-4px;}
+        /* Nothing is hidden while the picker is open any more: in the flow it
+           sits UNDER the header rather than on top of it, so the sub line, the
+           track and the pip bar are all still there and still legible. */
         /* Phone-only copy of the cycler, in the pip bar. See the note on
            .d5-pcyc in the max-width:900 block below. */
         .d5-pcyc{display:none;}
@@ -445,14 +522,19 @@ export default function DailyFiveBand() {
         .d5-all:hover{background:rgba(255,255,255,.24);}
         .d5-pipbd{cursor:pointer;font-family:inherit;}
 
-        /* THE PICKER IS ABSOLUTE, and that is load-bearing rather than tidy:
-           the board below is sized from this band's document top, so a panel
-           that took part in the flow would push the board past the fold every
-           time somebody opened it. It sits over the track instead, which is the
-           only thing in the band it is allowed to hide. */
-        .d5-pick{position:absolute;left:16px;right:16px;top:56px;z-index:6;background:#0f2350;
-                 border:1px solid #3a5a9e;border-radius:11px;padding:9px;
-                 box-shadow:0 14px 34px rgba(0,0,0,.45);}
+        /* THE PICKER IS IN FLOW: it EXPANDS the band and pushes everything
+           below it down (owner, 2026-08-18). It was an overlay, on the
+           reasoning that the board below is sized from this band's document top
+           so a panel in the flow would cost the board height. That reasoning
+           was right about the cost and wrong about the trade: on a phone the
+           cycler lives in the pip bar, which is BELOW the header, so the
+           absolute panel covered its own close button and the menu could not be
+           shut at all. A panel you cannot close is worse than a shorter board,
+           and the board does not overflow anyway — --dh-fit is MEASURED from
+           this band's height, and the fit effect already re-runs when it opens, so
+           the board simply resizes to what is left. */
+        .d5-pick{margin-top:10px;background:#0f2350;border:1px solid #3a5a9e;
+                 border-radius:11px;padding:9px;}
         .d5-pkh{display:flex;align-items:center;gap:10px;padding:0 3px 8px;}
         .d5-pkh b{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8fa9de;}
         .d5-pkh i{margin-left:auto;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.1em;
@@ -485,7 +567,9 @@ export default function DailyFiveBand() {
         /* A phone console is one column, so five across is unreadable and the
            overlay would run off the band entirely. Two across, scrolling. */
         @media(max-width:900px){
-          .d5-pick{left:12px;right:12px;top:52px;max-height:60vh;overflow-y:auto;}
+          /* No max-height and no inner scroll: in the flow the page scrolls,
+             which is the one scroll a phone reader expects. */
+          .d5-pick{margin-top:9px;}
           .d5-pkg{grid-template-columns:1fr 1fr;}
           .d5-pkc.mq{grid-column:span 2;}
           /* THE CYCLER CANNOT SHARE THE NAME LINE ON A PHONE. Measured at
@@ -584,7 +668,7 @@ export default function DailyFiveBand() {
               const fin = !!p.total && p.done === p.total;
               const cls = `d5-pkc${c.marquee ? ' mq' : ''}${c.id === sel ? ' on' : ''}${fin ? ' fin' : ''}`;
               return (
-                <button key={c.id} type="button" className={cls} onClick={() => { setSel(c.id); setPick(false); }}>
+                <button key={c.id} type="button" className={cls} onClick={() => { setSel(c.id); setPick(false); setHeld(true); }}>
                   <span className="d5-pkn">{c.marquee ? `★ ${c.name}` : c.name}</span>
                   <span className="d5-pks">
                     {!p.total ? 'no run today'
