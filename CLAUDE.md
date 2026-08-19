@@ -2289,7 +2289,7 @@ components is four mirrors that drift, and a leaderboard caption that disagrees 
 `buildLeaderboard` is worse than no caption. It returns `{ board, replay, chip }`. An unknown or
 null key falls to the first-attempt rule.
 
-Rendered in five places, all of which take the game key already:
+Rendered in SIX places, all of which take the game key already:
 
 - `app/DailyGamesGrid.jsx` and `app/DailyEndCard.jsx` (`.rs` chip) - the two "play again" controls,
   which is the moment a player decides, so this is the one that matters most.
@@ -2298,6 +2298,11 @@ Rendered in five places, all of which take the game key already:
   55 dailies.
 - `app/quiz/[id]/DailyCombinedLeaderboard.jsx` - the scoring caption. The Overall tab mixes all
   three kinds, so it states the general shape rather than picking one; a per-game tab states its own.
+- `app/LoftFinish.jsx` - the sub-label on the Replay option, which the component REWRITES rather
+  than rendering what the client passed. All 65 clients hardcode `'This puzzle again, unscored'`,
+  which stopped being true for End Game on 2026-08-12 and was never true for Arcade, so the card
+  spent months telling players a retry was pointless on precisely the two categories built around
+  retrying. Do not "fix" this by editing the clients: the rewrite is what stops it recurring.
 
 **A new daily game inherits this for free**, since the branch reads `cat` off the registry. A new
 CATEGORY that counts attempts differently needs a branch added to `dailyAttemptRule` and nowhere
@@ -5116,6 +5121,39 @@ Three rules that fall out of it:
 daily-combined route, marquee included since 2026-08-18). That is exactly why the hand-off
 is load-bearing rather than a convenience: a player who is not carried to the next game
 scores points and takes no rank at all.
+
+### The in-run card carries a board, and an unsolved End Game gates the hand-off (owner, 2026-08-18)
+
+Two things sit between the pips and the exit on the minimal in-run card:
+
+- **The board for the GAME JUST FINISHED**, top three plus the player's own row, rendered by
+  the same `lbRow` the full card uses so the two cannot disagree about a column. Crossing five
+  games, a player used to see no result but their own. The RUN's combined standings are
+  deliberately NOT here: they are provisional until everyone finishes, and `/daily-five` exists
+  to show them once, at the end.
+- **On the six End Game titles, an unsolved position GATES the hand-off.** There is no Next
+  control until the position falls; Replay takes its place. Those boards rank on attempts-to-
+  solve and never give the answer away, so a retry is the next attempt rather than a practice
+  run, and `postResult` was already ungated on every one of them, so this was a UI gap and not
+  a scoring change.
+
+Four rules the gate must keep:
+
+- **LEAVING THE RUN IS THE ONLY WAY PAST, and it must never leave the alt row.** A player who
+  cannot crack a mate-in-3 genuinely cannot finish that circuit; the owner accepted that when
+  choosing the gate over merely offering both. Removing the Leave link turns an accepted cost
+  into a trap with no exit.
+- **Arcade gets the Replay control but NOT the gate.** It takes the best run of the day, so
+  another go can only help, but there is nothing to solve. Every other category keeps the FIRST
+  attempt, so offering a replay there would promise something the board does not honour.
+- **A run whose LAST game is an unsolved End Game does not auto-advance to the summary.**
+  Bouncing the player off the board six seconds after telling them to play it again is the card
+  arguing with itself. The summary control stays, it just waits to be pressed.
+- **A draw is not a solve.** Four is the one End Game title with a middle tier, and a drawn Four
+  gates exactly like a lost one: the position was already won, so holding a draw is not solving
+  it. `outcome === 'won'` is the test, not "did the game end".
+
+Implemented in `LoftFinish.jsx` (the surface on screen) and mirrored in `DailyEndCard.jsx`.
 
 ### Rules it must not break
 

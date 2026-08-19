@@ -92,7 +92,7 @@ import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
-import { isRetiredDaily, DAILY_GAME_MAP, dailyAttemptRule } from '@/lib/daily-games';
+import { isRetiredDaily, DAILY_GAME_MAP, dailyAttemptRule, isEndGame, isArcade } from '@/lib/daily-games';
 import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
@@ -729,6 +729,10 @@ export default function DailyEndCard({
   // Declared above the auto-advance effect that names it in its dependency
   // array, since a dep array is evaluated during render.
   const runSummary = runSummaryHref(inRun);
+  // REPLAY UNTIL VICTORY, the mirror of the rule in LoftFinish.jsx — read the
+  // block there for why the gate exists and why Arcade is exempt from it.
+  const runRetry = !!onReplay && !won && (isEndGame(self) || isArcade(self));
+  const runUnsolvedEG = !!onReplay && !won && isEndGame(self);
   // A stale or hand-typed flag must not put a game inside a run that does not
   // contain it.
   const runActive = runMembers.length >= 2 && runMembers.includes(self);
@@ -746,7 +750,7 @@ export default function DailyEndCard({
   // Finishing the fifth TAKES you to the board rather than offering it, because
   // the board is the thing the run was for. Six seconds and an escape hatch, the
   // same shape as the card's own auto-advance.
-  const runAuto = runComplete && revealed && !runStay;
+  const runAuto = runComplete && revealed && !runStay && !(runActive && runUnsolvedEG);
   useEffect(() => {
     if (!runAuto) return undefined;
     if (runSecs <= 0) {
@@ -2611,6 +2615,18 @@ export default function DailyEndCard({
   // carries its own styles because the card's stylesheet lives INSIDE `inner`
   // (including .dec-backdrop and .dec-x, which the modal wrapper below needs),
   // so a branch that renders instead of `inner` renders unstyled without them.
+  // The run card's own derived bits: the mini board's rows, and the gate.
+  // runNextKey is needed by the gate, so both sit under it rather than beside
+  // the other run consts further up.
+  const runLb = (() => {
+    const all = tileBoard('today');
+    const top = all.slice(0, 3);
+    const meRow = all.find((r) => r.me);
+    return meRow && !top.some((r) => r.me) ? [...top, meRow] : top;
+  })();
+  const runGate = runActive && runUnsolvedEG && !!runNextKey;
+  const replayNow = () => { if (onReplay) onReplay(); };
+
   const runInner = (
     <div className={`d5e-card${runMarq ? '' : ' circ'}`} style={modal ? { position: 'relative' } : undefined}>
       {modal && (
@@ -2651,6 +2667,23 @@ export default function DailyEndCard({
         .d5e-alt{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:11px;}
         .d5e-alt a,.d5e-alt button{background:none;border:0;padding:0;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;color:#93aae2;text-decoration:none;cursor:pointer;}
         .d5e-alt a:hover,.d5e-alt button:hover{color:#dbe6ff;}
+        /* The mini board for the game just finished. */
+        .d5e-lb{margin-top:13px;}
+        .d5e-lb .h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:5px;font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#9fb6e8;}
+        .d5e-lb .h s{text-decoration:none;letter-spacing:.04em;}
+        .d5e-lbr{display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:7px;font-size:12px;font-weight:700;color:#dbe6ff;}
+        .d5e-lbr .r{flex:none;width:15px;color:#93aae2;font-weight:800;font-variant-numeric:tabular-nums;}
+        .d5e-lbr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .d5e-lbr .v{flex:none;font-weight:800;font-variant-numeric:tabular-nums;}
+        .d5e-lbr.first{background:rgba(232,180,58,.18);}
+        .d5e-lbr.me{background:rgba(37,99,235,.30);}
+        .d5e-lb .empty{font-size:11.5px;font-weight:700;color:#93aae2;}
+        /* Retry stands in for the hand-off when the position is unsolved, so
+           it takes the same shape and the blue, never the gold. */
+        .d5e-go.retry{background:var(--blue,#2563eb);color:#fff;}
+        .d5e-gate{margin-top:8px;font-size:11px;font-weight:700;color:#93aae2;text-align:center;}
+        .d5e-again{display:block;width:100%;margin-top:9px;padding:9px;border-radius:9px;border:1px solid #35529e;background:rgba(255,255,255,.08);color:#dbe6ff;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;}
+        .d5e-again:hover{background:rgba(255,255,255,.16);}
       `}</style>
       <div className="d5e-cap">
         <span className="d5e-mk" aria-hidden="true"><MindLoftMark size={15} ink="#1e3a8a" accent="#2563eb" title="Mind Loft" /></span>
@@ -2677,7 +2710,34 @@ export default function DailyEndCard({
           ))}
         </div>
 
-        {runComplete ? (
+        {/* The board for the game just finished: top three plus your own row. */}
+        <div className="d5e-lb">
+          <div className="h">
+            <b>{selfName} {'\u00b7'} today</b>
+            {gameTodayField ? <s>{Number(gameTodayField).toLocaleString()} played</s> : null}
+          </div>
+          {runLb.length
+            ? runLb.map((r, i) => (
+                <div key={`${r.rank}-${i}`} className={`d5e-lbr${r.rank === 1 ? ' first' : ''}${r.me ? ' me' : ''}`}>
+                  <span className="r">{r.rank}</span>
+                  <span className="n">{r.me ? 'You' : (r.name || 'Anonymous')}</span>
+                  <span className="v">{r.val}</span>
+                </div>
+              ))
+            : <span className="empty">Nobody has finished this one yet.</span>}
+        </div>
+
+        {runGate ? (
+          <>
+            <button type="button" className="d5e-go retry" onClick={replayNow}>
+              Play it again
+              <RotateCcw size={15} strokeWidth={2.6} />
+            </button>
+            <div className="d5e-gate">
+              Solve it to move on to {runNext ? runNext.name : 'the next game'}. {dailyAttemptRule(self).replay}
+            </div>
+          </>
+        ) : runComplete ? (
           <a className="d5e-go done" href={runSummary}>
             <Trophy size={15} strokeWidth={2.4} />
             See how the run went
@@ -2691,6 +2751,12 @@ export default function DailyEndCard({
         ) : (
           <a className="d5e-go" href={runSummary}>Run summary <ArrowRight size={15} strokeWidth={2.6} /></a>
         )}
+
+        {!runGate && runRetry ? (
+          <button type="button" className="d5e-again" onClick={replayNow}>
+            Play it again {'\u00b7'} {dailyAttemptRule(self).chip}
+          </button>
+        ) : null}
 
         <div className="d5e-alt">
           {runAuto ? <button type="button" onClick={() => setRunStay(true)}>Stay here</button> : null}

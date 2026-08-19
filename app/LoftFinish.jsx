@@ -65,7 +65,7 @@ import React, { useEffect, useState } from 'react';
 import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
 import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
-import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
+import { DAILY_GAMES, DAILY_GAME_MAP, isEndGame, isArcade, dailyAttemptRule } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
 function fmtTime(s) {
@@ -150,7 +150,23 @@ export default function LoftFinish({
   const shownCat = pickCat || myCat;
   const shownGames = (roster.cats.find((c) => c.cat === shownCat) || {}).games || [];
 
-  const optsRaw = options.filter(Boolean);
+  // THE GAME'S OWN KEY. LoftFinish is handed a display `name`, not a key, so
+  // it is matched on that; names are unique across the registry. Declared up
+  // here because the replay copy directly below needs it.
+  const selfKey = (DAILY_GAMES.find((g) => g.name === name) || {}).key || null;
+  const attemptRule = dailyAttemptRule(selfKey);
+
+  // THE REPLAY SUB-LABEL COMES FROM THE REGISTRY, never from the client
+  // (fixed 2026-08-18). All 65 clients pass the literal 'This puzzle again,
+  // unscored', which stopped being true for the six End Game titles on
+  // 2026-08-12 when their boards moved to ranking on attempts-to-solve, and
+  // was never true for the two Arcade games, which take your best run of the
+  // day. So the card was telling players a retry was pointless on exactly the
+  // games where retrying is the whole design. dailyAttemptRule already owns
+  // that sentence per category, so rewriting it here corrects every game from
+  // one place instead of eight files that drift on the next rule change.
+  const optsRaw = options.filter(Boolean)
+    .map((o) => (o.tone === 'replay' ? { ...o, sub: attemptRule.replay } : o));
   // THE ROW ORDER IS DECIDED HERE, not by the order a client lists its options
   // (owner): Share spans the top, then Reveal beside Replay, then Play another
   // beside Play similar, and the Archive pairs with Back to main at the foot,
@@ -281,10 +297,8 @@ export default function LoftFinish({
   // of fourteen dates also wants the whole face rather than a squeezed strip
   // under six buttons. So it replaces the content instead of joining it, and
   // Back returns.
-  // ── the Daily Five run ────────────────────────────────────────────────────
-  // LoftFinish is handed a display `name`, not a key, so the roster is matched
-  // on it. Names are unique across the registry.
-  const runSelf = (DAILY_GAMES.find((g) => g.name === name) || {}).key || null;
+  // ── the run ───────────────────────────────────────────────────────────────
+  const runSelf = selfKey;
   const runMembers = inRun && runDay ? circuitKeysFor(inRun, runDay) : [];
   const runName = circuitName(inRun);
   const runMarq = isMarquee(inRun);
@@ -321,7 +335,32 @@ export default function LoftFinish({
   // hooks than expected". The computations move with the effect because the
   // dependency array is evaluated during RENDER, so a hook placed above the
   // consts it names is a temporal dead zone crash that esbuild accepts.
-  const runAuto = runComplete && !runStay;
+  // ── REPLAY UNTIL VICTORY (owner, 2026-08-18) ──────────────────────────────
+  // The six End Game titles never hand the answer over and their boards rank
+  // on how many runs the solve took, so a retry is not a practice run, it is
+  // the next attempt and it is scored. The card offered no way to take one
+  // inside a run, which is why a lost position ended the game for good.
+  //
+  // THE GATE: an unsolved End Game does not hand you forward. The next game
+  // waits until the position falls. That is the owner's call over merely
+  // offering both, and the honest cost is that a player who cannot crack a
+  // mate-in-3 cannot finish the circuit — so LEAVING THE RUN stays on the
+  // card as the way past, and it must never be removed from the alt row.
+  //
+  // Arcade games get the replay control but NOT the gate: they take the best
+  // run of the day, so another go can only help, but there is nothing to
+  // solve. Every other category keeps the first attempt, so offering a replay
+  // there would promise something the board does not honour.
+  const replayOpt = optsRaw.find((o) => o.tone === 'replay' && typeof o.onClick === 'function') || null;
+  const runSolved = outcome === 'won';
+  const runRetry = runActive && !!replayOpt && !runSolved && (isEndGame(runSelf) || isArcade(runSelf));
+  const runUnsolvedEG = runActive && isEndGame(runSelf) && !runSolved;
+  const runGate = runUnsolvedEG && !!replayOpt && !!runNextKey;
+  // A run whose LAST game is an unsolved End Game does not auto-advance to the
+  // summary: bouncing the player off the board six seconds after telling them
+  // to play it again is the card arguing with itself. The summary control is
+  // still there, it just waits to be pressed.
+  const runAuto = runComplete && !runStay && !runUnsolvedEG;
   useEffect(() => {
     if (!runAuto) return undefined;
     if (runSecs <= 0) {
@@ -387,6 +426,19 @@ export default function LoftFinish({
             .d5f-alt{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px;}
             .d5f-alt a{font-size:11.5px;font-weight:800;letter-spacing:.03em;color:#646c7a;text-decoration:none;}
             .d5f-alt a:hover{color:#0b0c0e;}
+            /* The retry control borrows loft-next's shape so it reads as the
+               card's one primary action, and takes the blue so it is never
+               mistaken for the green hand-off it is standing in for. */
+            .loft-next.d5f-retry{background:rgba(37,99,235,.10);width:100%;text-align:left;
+              border:0;font-family:inherit;cursor:pointer;}
+            .loft-next.d5f-retry:hover{background:rgba(37,99,235,.16);}
+            .loft-next.d5f-retry .go{background:#2563eb;}
+            .d5f-gate{margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.35;color:#646c7a;text-align:center;}
+            .d5f-again{display:block;width:100%;margin-top:9px;padding:9px;border-radius:9px;
+              border:2px solid #dbe2ee;background:#f7f8fa;color:#3f4756;font-family:inherit;
+              font-weight:800;font-size:12px;cursor:pointer;}
+            .d5f-again:hover{background:#eef1f6;}
+            .d5f-again i{font-style:normal;font-weight:700;color:#8a92a6;}
           `}</style>
           <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
@@ -399,7 +451,51 @@ export default function LoftFinish({
             </span>
           </div>
 
-          {runComplete ? (
+          {/* THE BOARD FOR THE GAME JUST FINISHED (owner, 2026-08-18). Crossing
+              five games, a player used to see no result but their own. This is
+              the top three plus their own row and nothing else: the card is
+              short on purpose. The RUN's combined standings are deliberately
+              not here — they are provisional until everyone finishes, and
+              /daily-five exists to show them once. Rendered by the SAME lbRow
+              the full card uses, so the two can never disagree about a column
+              (End Game prints Tries there, everything else its own miss). */}
+          <div className="loft-lb">
+            <div className="h">
+              <b>{name ? `${name} \u00b7 today` : 'Today\u2019s board'}</b>
+              {board && board.plays ? <s>{Number(board.plays).toLocaleString()} played</s> : null}
+            </div>
+            {!board ? <Calculating wide /> : null}
+            {board && !rows.length ? <span className="loft-empty">Nobody has finished this one yet.</span> : null}
+            {rows.length ? (
+              <div className="loft-lbr head cols">
+                <span className="r" />
+                <span className="n">Player</span>
+                <span className="s">Score</span>
+                {missLabel ? <span className="c">{missLabel}</span> : null}
+                <span className="c">Time</span>
+              </div>
+            ) : null}
+            {rows.slice(0, 3).map(lbRow)}
+            {myRow ? lbRow(myRow, myRank - 1) : null}
+          </div>
+
+          {runGate ? (
+            /* GATED. Replay IS the hand-off here: there is no Next control to
+               press until the position falls. */
+            <>
+              <button type="button" className="loft-next d5f-retry" onClick={fire(replayOpt)}>
+                <span className="t">
+                  <span className="eb">Not solved {'\u00b7'} the run waits</span>
+                  <span className="nm">Play it again</span>
+                  <span className="tg">{attemptRule.replay}</span>
+                </span>
+                <span className="go">Replay</span>
+              </button>
+              <div className="d5f-gate">
+                Solve it to move on to {runNext ? runNext.name : 'the next game'}.
+              </div>
+            </>
+          ) : runComplete ? (
             <a className="loft-next" href={runSummary}>
               <span className="t">
                 <span className="eb">Run complete</span>
@@ -417,6 +513,15 @@ export default function LoftFinish({
               </span>
               <span className="go">Play</span>
             </a>
+          ) : null}
+
+          {/* Not gated, but another go would still change the board: an End
+              Game on its last slot, or an Arcade game, which takes the best
+              run of the day. */}
+          {!runGate && runRetry ? (
+            <button type="button" className="d5f-again" onClick={fire(replayOpt)}>
+              Play it again <i>{'\u00b7'} {attemptRule.chip}</i>
+            </button>
           ) : null}
 
           <div className="d5f-alt">
