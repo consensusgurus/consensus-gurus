@@ -1,5 +1,5 @@
 import Grain from '../Grain';
-import Footer from '../Footer';
+import NavyFrame from './NavyFrame';
 import QuizNavHeader from '../quizzes/QuizNavHeader';
 import { ALL_CIRCUITS, circuitGamesFor, circuitPageHref, isMarquee } from '@/lib/circuits';
 import { SITE_URL } from '@/lib/site';
@@ -65,6 +65,9 @@ export default function CircuitsIndexPage() {
       <Grain />
       <QuizNavHeader />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* NavyFrame carries the footer, re-inked for this page's navy ground.
+          See app/circuits/NavyFrame.jsx. */}
+      <NavyFrame>
       <div className="cix">
         <style dangerouslySetInnerHTML={{ __html: `
           .cix{max-width:860px;margin:0 auto;padding:26px 18px 90px;
@@ -130,7 +133,7 @@ export default function CircuitsIndexPage() {
           circuit, but all of them have to land on the same day to take a rank on that circuit&rsquo;s board.
         </div>
       </div>
-      <Footer />
+      </NavyFrame>
     </>
   );
 }

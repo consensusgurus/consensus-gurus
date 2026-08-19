@@ -1,7 +1,7 @@
 import DailyFiveSummary from './DailyFiveSummary';
 import QuizNavHeader from '../quizzes/QuizNavHeader';
 import Grain from '../Grain';
-import Footer from '../Footer';
+import NavyFrame from '../circuits/NavyFrame';
 
 // /daily-five — a run summary. Where a run ENDS: the board for that run, then
 // one abridged result per game.
@@ -29,8 +29,11 @@ export default function DailyFivePage() {
     <>
       <Grain />
       <QuizNavHeader />
-      <DailyFiveSummary />
-      <Footer />
+      {/* Same navy-ground footer fix as the circuit pages. This page has
+          rendered a near-black footer on navy since it launched. */}
+      <NavyFrame>
+        <DailyFiveSummary />
+      </NavyFrame>
     </>
   );
 }

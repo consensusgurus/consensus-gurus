@@ -128,8 +128,12 @@ export default function CircuitLanding({ circuit, games }) {
         .clp-c.played .clp-num{background:var(--success);color:#fff;}
         .clp-ic{flex:none;width:34px;height:34px;border-radius:8px;object-fit:contain;}
         .clp-ct{min-width:0;flex:1;}
-        .clp-cn{font-size:16px;font-weight:800;letter-spacing:-.3px;color:var(--ink);}
-        .clp-cm{font-size:11.5px;font-weight:700;color:var(--slate,#64748b);margin-top:2px;}
+        /* BLOCK, both of them. They are <span>s inside .clp-ct, and .clp-ct being a
+           flex ITEM blockifies the box itself but NOT its children, so the two
+           stayed inline and rendered as "DeepTrivia · One topic, fifteen
+           questions" on one run-on line (owner report, 2026-08-18). */
+        .clp-cn{display:block;font-size:16px;font-weight:800;letter-spacing:-.3px;color:var(--ink);}
+        .clp-cm{display:block;font-size:11.5px;font-weight:700;color:var(--slate,#64748b);margin-top:2px;}
         .clp-arr{flex:none;color:var(--slate,#94a3b8);}
 
         .clp-tro{display:flex;align-items:center;gap:12px;background:var(--white);

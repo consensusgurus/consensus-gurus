@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Grain from '../../Grain';
-import Footer from '../../Footer';
+import NavyFrame from '../NavyFrame';
 import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import CircuitLanding from './CircuitLanding';
 import { ALL_CIRCUITS, circuitById, circuitGamesFor, circuitPageHref, isMarquee } from '@/lib/circuits';
@@ -126,11 +126,15 @@ export default function CircuitPage({ params }) {
       {/* Plain serializable props only: this is the server/client boundary.
           The blurb is deliberately NOT passed. It says almost exactly what
           share.invite says, and the header can only carry one of them. */}
-      <CircuitLanding circuit={{
-        id: c.id, name: c.name, share: c.share,
-        trophy: c.trophy || null, marquee: !!isMarquee(c.id),
-      }} games={games} />
-      <Footer />
+      {/* NavyFrame, not a bare <Footer />: this page's ground is the navy
+          body, and the shared footer inks itself near-black for the light
+          pages. See app/circuits/NavyFrame.jsx. */}
+      <NavyFrame>
+        <CircuitLanding circuit={{
+          id: c.id, name: c.name, share: c.share,
+          trophy: c.trophy || null, marquee: !!isMarquee(c.id),
+        }} games={games} />
+      </NavyFrame>
     </>
   );
 }
