@@ -3472,6 +3472,59 @@ must not be punished for the author's collision.
 - Changing a LIVE puzzle's words or grid requires bumping its `rev` field so
   in-flight localStorage saves reset cleanly instead of corrupting.
 
+**Crux variety is a property of the BANK, not of a board (owner ruling, 2026-08-19)**
+
+Reported by the owner as "today's crux reuses a lot of categories and answers
+from yesterday." It was much wider than two days. The Aug 11 to Sep 29 batch put
+**Colors on 25 of its 50 boards and Metals on 23**, ran BRONZE 19 times and SAGE
+14, and repeated **30 category+wordset pairs outright** (`Metals: BRONZE/SILVER`
+nine times, on Aug 18 and Aug 19 back to back; `Roof parts: SOFFIT/RIDGE` on
+those same two days). Every per-board check passed the whole time, because every
+one of them is per board: the collision floor, the filing uniqueness, the
+lattice. Variety only exists across the bank, so it has to be counted across the
+bank. This is §7 of the bank-extension rules ("check pool variety, not just
+per-board legality") applied to crux.
+
+The cause is worth remembering, because it is the same shape as the Crux
+collision-pool collapse and the Rung start-word collapse before it: a generator
+optimizes for whatever is machine-checkable and ignores everything else. Only
+2.7% of four-category draws from a natural pool clear the weekday collision
+floor, so a generator that samples-and-tests inevitably converges on the handful
+of categories that collide easily. Colors and Metals collide with nearly
+everything, which is exactly why they ate the bank.
+
+- **The rules, enforced in `scripts/verify-daily-banks.mjs` (crux section) and
+  in the generator:** a category name may not return inside **7 days**; an
+  answer word may not return inside **14 days**; a category+wordset pair may
+  **never** repeat; and whole-bank ceilings scale with bank length (7 category
+  uses and 4 answer uses per 50 boards). `CRUX_VARIETY_FROM` for the
+  collision-pair rule tightened to the same date, so no trap runs more than
+  twice either.
+- **A violation is flagged when the LATER board is fresh**, which is what makes
+  a new board answer for what a FROZEN board just used. Boards live before
+  `CRUX_FRESH_FROM` (2026-08-20) are played history and are never rewritten.
+- **`scripts/gen-crux.mjs` is the generator, and it is COMMITTED.** The batch
+  that broke was built by a script nobody checked in, so nobody could re-run it,
+  read what it optimized for, or fix it. A bank you cannot regenerate is a bank
+  you cannot correct. It is deterministic (`--seed`), it reads the existing bank
+  first so spacing is measured against the frozen boards too, and it prints
+  objects ready to splice.
+- **`scripts/crux-pool.mjs` is the vocabulary**: categories with their words,
+  plus `READS`, the map of which words plausibly read as which OTHER category.
+  `READS` does two jobs — it supplies the traps AND it is what filing
+  uniqueness is proved against — so **an unannotated real reading is a second
+  solution the check cannot see**. Annotate honestly, including readings that
+  make a board harder to place. The generator GROWS a board along the collision
+  graph rather than sampling and testing, which is what lets the pool stay wide
+  while every board still clears its floor.
+- **Both directions were regression-tested before shipping**: the checks report
+  zero violations on the rebuilt bank and **336** on the batch they were written
+  for. A check that has never been shown to fail has not been tested.
+
+Aug 20 to Sep 29 2026 was rebuilt under these rules in the same push: 58
+distinct categories over 164 slots (most used 5) and 254 distinct answers over
+352 (most used 3), against 74 and 229 before.
+
 **Naming and copy**
 - Never name Wordle, Connections, or Jumble in user-facing copy or metadata —
   describe mechanics generically (NYT and Tribune enforce these marks).

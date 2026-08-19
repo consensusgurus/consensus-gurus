@@ -550,7 +550,7 @@ if (RUN('crux')) {
   const CRUX_FLOOR_FROM = '2026-08-03';
   // Variety is enforced on anything banked after the current bank's last day,
   // so the next "bank crux to N days" job cannot recycle two traps forever.
-  const CRUX_VARIETY_FROM = '2026-09-30';
+  const CRUX_VARIETY_FROM = '2026-08-20';
   const cruxPool = new Map();
   const cruxFresh = new Map();
   // The client validates a guess against public/crux-words.txt, NOT the rack
@@ -666,6 +666,72 @@ if (RUN('crux')) {
     note('crux pool', `grandfathered repetition in the Aug 11 to Sep 29 generated batch: ${stale.slice(0, 6).map(([k, n]) => `${k} x${n}`).join(', ')}${stale.length > 6 ? `, +${stale.length - 6} more` : ''}`);
   } else {
     ok('crux pool', 'collision pool is varied');
+  }
+
+  // ── bank variety: spacing, repeats, ceilings (owner ruling, 2026-08-19) ───
+  // The rule the Aug 11 to Sep 29 batch broke while every per-board check
+  // above passed it. That batch put Colors on 25 of its 50 boards and Metals
+  // on 23, ran BRONZE 19 times, and repeated 30 category+wordset pairs
+  // outright — Metals: BRONZE/SILVER nine times, and on Aug 18 and Aug 19 back
+  // to back, which is what a player noticed. Nothing here is exotic; nobody
+  // had written the check, so a generator optimizing for the collision floor
+  // was free to collapse onto the four categories that collide most easily.
+  //
+  // This is the §7 pool-variety rule from CLAUDE.md applied to crux: legality
+  // is per board, variety is only visible across the WHOLE bank, so it has to
+  // be counted across the whole bank.
+  //
+  // A violation is flagged when the LATER board is live from CRUX_FRESH_FROM,
+  // deliberately: a new board must not repeat what a FROZEN board just used
+  // (Aug 19 against Aug 18 is exactly the reported bug), while boards that are
+  // already played stay frozen history and are never rewritten.
+  const CRUX_FRESH_FROM = '2026-08-20';
+  const CAT_GAP = 7;             // days before a category name may return
+  const WORD_GAP = 14;           // days before an answer word may return
+  const CAT_CEIL_PER_50 = 7;     // whole-bank ceilings, scaled by bank length
+  const WORD_CEIL_PER_50 = 4;    // keep all four in sync with scripts/gen-crux.mjs
+  const CDAY = (s) => Math.round(Date.parse(`${s}T00:00:00Z`) / 864e5);
+  const sorted = [...PUZZLES].sort((a, b) => (a.live < b.live ? -1 : 1));
+  const freshBoards = sorted.filter((p) => p.live >= CRUX_FRESH_FROM);
+  const seenCat = new Map(), seenWord = new Map(), seenSig = new Map();
+  const nCat = new Map(), nWord = new Map();
+  const vio = [];
+  for (const p of sorted) {
+    const d = CDAY(p.live), isFresh = p.live >= CRUX_FRESH_FROM;
+    for (const c of p.categories) {
+      const prev = seenCat.get(c.name);
+      if (isFresh && prev && d - prev.d < CAT_GAP) {
+        vio.push(`${p.quizId}: category "${c.name}" also ran on ${prev.id}, ${d - prev.d} day${d - prev.d === 1 ? '' : 's'} earlier (needs ${CAT_GAP})`);
+      }
+      seenCat.set(c.name, { d, id: p.quizId });
+      const sig = `${c.name}: ${[...c.words].sort().join('/')}`;
+      const was = seenSig.get(sig);
+      if (isFresh && was) vio.push(`${p.quizId}: "${sig}" is a straight repeat of ${was}`);
+      seenSig.set(sig, p.quizId);
+      if (isFresh) nCat.set(c.name, (nCat.get(c.name) || 0) + 1);
+      for (const w of c.words) {
+        const pw = seenWord.get(w);
+        if (isFresh && pw && d - pw.d < WORD_GAP) {
+          vio.push(`${p.quizId}: answer ${w} also ran on ${pw.id}, ${d - pw.d} day${d - pw.d === 1 ? '' : 's'} earlier (needs ${WORD_GAP})`);
+        }
+        seenWord.set(w, { d, id: p.quizId });
+        if (isFresh) nWord.set(w, (nWord.get(w) || 0) + 1);
+      }
+    }
+  }
+  const cCeil = Math.max(2, Math.round((CAT_CEIL_PER_50 * freshBoards.length) / 50));
+  const wCeil = Math.max(1, Math.round((WORD_CEIL_PER_50 * freshBoards.length) / 50));
+  for (const [k, n] of nCat) if (n > cCeil) vio.push(`category "${k}" runs ${n} times over ${freshBoards.length} boards, ceiling ${cCeil}`);
+  for (const [k, n] of nWord) if (n > wCeil) vio.push(`answer ${k} runs ${n} times over ${freshBoards.length} boards, ceiling ${wCeil}`);
+  if (!freshBoards.length) {
+    note('crux variety', `no boards live from ${CRUX_FRESH_FROM} to check`);
+  } else if (vio.length) {
+    fail('crux variety', `${vio.length} spacing violation${vio.length === 1 ? '' : 's'}: ${vio.slice(0, 8).join('; ')}${vio.length > 8 ? `; +${vio.length - 8} more` : ''}`);
+  } else {
+    const worstCat = [...nCat.entries()].sort((a, b) => b[1] - a[1])[0];
+    const worstWord = [...nWord.entries()].sort((a, b) => b[1] - a[1])[0];
+    ok('crux variety', `${freshBoards.length} boards from ${CRUX_FRESH_FROM}: ${nCat.size} distinct categories (most used ${worstCat[0]} x${worstCat[1]}, ceiling ${cCeil}), `
+      + `${nWord.size} distinct answers (most used ${worstWord[0]} x${worstWord[1]}, ceiling ${wCeil}), no category inside ${CAT_GAP} days, no answer inside ${WORD_GAP}`);
   }
 }
 
