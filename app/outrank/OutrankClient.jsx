@@ -904,7 +904,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
                 }))}
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { tone: 'reveal', label: (score > 0) ? 'Return to board' : 'Reveal answer',
+                { tone: (score > 0) ? 'board' : 'reveal', label: (score > 0) ? 'Return to board' : 'Reveal answer',
                   sub: (score > 0) ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Outrank', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/outrank?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },

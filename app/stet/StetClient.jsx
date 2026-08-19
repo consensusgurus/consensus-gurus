@@ -881,7 +881,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
                 }))}
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { tone: 'reveal', label: perfect ? 'Return to board' : 'Reveal answer',
+                { tone: perfect ? 'board' : 'reveal', label: perfect ? 'Return to board' : 'Reveal answer',
                   sub: perfect ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Stet', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/stet?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },

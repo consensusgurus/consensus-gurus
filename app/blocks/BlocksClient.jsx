@@ -1105,7 +1105,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                 }))}
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { tone: 'reveal', label: 'Return to board',
+                { tone: 'board', label: 'Return to board',
                   sub: 'Your finished board', onClick: () => setRevealed(true) },
                 prevPuzzle && { tone: 'another', label: 'Play another Blocks', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/blocks?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },

@@ -168,12 +168,32 @@ export default function LoftFinish({
   const optsRaw = options.filter(Boolean)
     .map((o) => (o.tone === 'replay' ? { ...o, sub: attemptRule.replay } : o));
   // THE ROW ORDER IS DECIDED HERE, not by the order a client lists its options
-  // (owner): Share spans the top, then Reveal beside Replay, then Play another
-  // beside Play similar, and the Archive pairs with Back to main at the foot,
-  // Back to main on the right. Ordering by tone means a client only declares
-  // what it offers and never has to know the layout.
-  const RANK = { reveal: 1, replay: 2, another: 3, similar: 4 };
-  const rankOf = (o) => (o.kind === 'gold' ? 0 : o.tone === 'main' ? 9 : (RANK[o.tone] != null ? RANK[o.tone] : 5));
+  // (owner): a real Reveal leads the card, then Share, then Return to board
+  // beside Replay, then Play another beside the Archive, and Back to main at
+  // the foot. Ordering by tone means a client only declares what it offers and
+  // never has to know the layout.
+  //
+  // 'reveal' AND 'board' ARE TWO DIFFERENT TILES (owner, 2026-08-19). One tone
+  // used to do both jobs: the same tile rendered "Reveal answer" to a player who
+  // MISSED it, and "Return to board" to one who solved it, and "Return to board"
+  // on the thirteen games that never hand the answer over at all (the six End
+  // Game titles, Babel, the two Arcade games, chomp, parker, rung and taire,
+  // which is the KEEPS_ANSWER set). Only the first of those is a reveal, and
+  // only the first earns the lead slot: showing a player what they missed is
+  // the one thing they want before anything else, while going back to a board
+  // they have already solved is an ordinary option and stays where it was,
+  // beside Replay. Because the two shared a tone, this component could not tell
+  // them apart and could not promote one without promoting the other.
+  //
+  // So a client that can do both branches its TONE on the same condition its
+  // label already branches on (tone: won ? board : reveal), and a
+  // client that never reveals passes 'board' outright. All 65 do one or the
+  // other; a tone this table does not know still falls to 5 as before.
+  const RANK = { reveal: -1, board: 1, replay: 2, another: 3, similar: 4, main: 9 };
+  // A declared tone always wins over 'kind', so the gold Share keeps rank 0 only
+  // because it declares no tone. No gold tile does, and none should: giving one
+  // a tone would silently move it out of the top slot.
+  const rankOf = (o) => (RANK[o.tone] != null ? RANK[o.tone] : (o.kind === 'gold' ? 0 : 5));
   const sorted = [...optsRaw].sort((a, b) => rankOf(a) - rankOf(b));
   // 'main' is held back so the Archive button, which this component renders
   // itself, can sit to its LEFT.

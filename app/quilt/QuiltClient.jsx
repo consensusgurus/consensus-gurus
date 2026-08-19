@@ -1044,7 +1044,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
                 score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
               }))}
             options={[
-              { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+              { tone: won ? 'board' : 'reveal', label: won ? 'Return to board' : 'Reveal answer',
                   sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Quilt', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/quilt?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },

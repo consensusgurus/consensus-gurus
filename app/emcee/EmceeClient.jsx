@@ -959,7 +959,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
                 score: (stats && stats.rec && stats.rec[p.num]) ? stats.rec[p.num].s : null,
               }))}
             options={[
-              { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
+              { tone: won ? 'board' : 'reveal', label: won ? 'Return to board' : 'Reveal answer',
                   sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Emcee', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/emcee?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },

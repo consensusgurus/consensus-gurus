@@ -848,7 +848,12 @@ export default function LoftCap({
   border-left:5px solid var(--slate)}
 .loft-opt.t-main{background:var(--surface-alt);border-color:var(--border);
   border-left:5px solid var(--blue-deep)}
-.loft-opt.t-reveal{background:rgba(109,40,217,0.08);border-color:rgba(109,40,217,0.26);
+/* 'board' SPLIT OFF FROM 'reveal' (owner, 2026-08-19) so a real Reveal can lead
+   the card while Return to board stays beside Replay, see the RANK table in
+   LoftFinish. They are the same control in two states, so they keep one look:
+   any new tile added here needs its own rule or it falls back to bare
+   .loft-opt, which is how a split like this silently unstyles a button. */
+.loft-opt.t-reveal,.loft-opt.t-board{background:rgba(109,40,217,0.08);border-color:rgba(109,40,217,0.26);
   border-left:5px solid #6d28d9}
 /* THE CATEGORY BROWSER. Its own tone, slate, so it does not read as one of the
    coloured actions above it: it opens a panel rather than going anywhere. */
