@@ -135,8 +135,13 @@ export default function CircuitLanding({ circuit, games }) {
         .clp-tro{display:flex;align-items:center;gap:12px;background:var(--white);
                  border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;}
         .clp-tro b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px;}
-        .clp-tro s{display:block;text-decoration:none;font-size:11.5px;font-weight:700;
-                   color:var(--slate,#64748b);margin-top:2px;}
+        /* A SPAN, never <s>. The band and the run summary both use <s> as a
+           bare sub-line hook with text-decoration:none, which is fine on a
+           surface nothing crawls. This page IS crawled, and <s> means "no
+           longer accurate": a reader-mode pass, a screen reader and an indexer
+           all render this trophy's own description as struck through. */
+        .clp-trosub{display:block;font-size:11.5px;font-weight:700;
+                    color:var(--slate,#64748b);margin-top:2px;}
         .clp-tier{flex:none;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
                   padding:5px 9px;border-radius:999px;background:var(--surface);color:var(--slate,#64748b);}
         .clp-tier.gold{background:#fdf3d8;color:#8a6a12;}
@@ -219,7 +224,7 @@ export default function CircuitLanding({ circuit, games }) {
             <Trophy size={20} strokeWidth={2.3} style={{ flex: 'none', color: 'var(--gold)' }} />
             <span style={{ flex: 1, minWidth: 0 }}>
               <b>{trophy.name}</b>
-              <s>Finish every game in this circuit on the same day.</s>
+              <span className="clp-trosub">Finish every game in this circuit on the same day.</span>
             </span>
             <span className={`clp-tier ${trophy.tier}`}>{trophy.tier}</span>
           </div>
