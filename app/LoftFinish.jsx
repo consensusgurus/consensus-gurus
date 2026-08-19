@@ -636,33 +636,65 @@ export default function LoftFinish({
       <div className="loft-back">
         <div className="loft-backin">
           <style>{`
-            /* Borrows loft-next's shape so it reads as the one primary action,
-               and takes the blue rather than the green: green is the hand-off
-               to somewhere else, and this goes nowhere. */
-            .loft-next.lfr-go{width:100%;text-align:left;font-family:inherit;cursor:pointer;
-              background:rgba(37,99,235,.10);border:2px solid rgba(37,99,235,.30);}
-            .loft-next.lfr-go:hover{background:rgba(37,99,235,.17);}
-            .loft-next.lfr-go .eb{color:#1d4ed8;}
-            .loft-next.lfr-go .go{background:#2563eb;}
+            /* SELF-CONTAINED, on purpose (owner report, 2026-08-19). This used
+               to carry .loft-next as well, borrowing the Up next band's shape,
+               and inherited three bugs from it: a square left edge, near-black
+               ink inside the blue chip, and a sub line clipped to an ellipsis
+               on a phone. The first two come from a DEAD SECOND .loft-next
+               block in app/LoftCap.jsx (~line 914, children .n1/.n2, which
+               nothing in the app renders): being the later declaration it wins
+               on border-radius:0 9px 9px 0 and on .loft-next .go{color:#3a2a05}.
+               The third is the live block, where .nm/.tg are nowrap + overflow
+               hidden, which is right for a game name and a one-line tag and
+               wrong for a whole sentence. So this names every property it needs
+               and shares no class with anything else. The dead block is still
+               there: deleting it also turns the Up next band on all 65 games
+               from gold back to the green it was written as, which is a call to
+               make deliberately rather than as a side effect of this. */
+            .lfr-go{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;
+              border-radius:11px;background:rgba(37,99,235,.10);
+              border:2px solid rgba(37,99,235,.32);color:var(--ink);
+              font-family:inherit;text-align:left;cursor:pointer;}
+            .lfr-go:hover{background:rgba(37,99,235,.17);}
+            .lfr-t{flex:1;min-width:0;}
+            .lfr-eb{display:block;font-weight:800;font-size:9.5px;line-height:1;
+              letter-spacing:.11em;text-transform:uppercase;color:#1d4ed8;margin-bottom:5px;}
+            .lfr-nm{display:block;font-weight:800;font-size:19px;line-height:1.1;
+              letter-spacing:-.022em;color:var(--ink);}
+            /* THE SUB LINE WRAPS. It is a whole sentence from the registry, not
+               a one-line tag, and on a 390px phone the nowrap it used to
+               inherit cut it at "ranks you on...". */
+            .lfr-tg{display:block;font-weight:700;font-size:11.5px;line-height:1.4;
+              color:var(--muted);margin-top:5px;white-space:normal;overflow:visible;}
+            /* White ink stated outright: the chip is a solid blue box, and the
+               only reason it ever read black was an inherited colour. */
+            .lfr-chip{flex:none;background:#2563eb;color:#fff;border-radius:10px;
+              padding:11px 15px;font-weight:800;font-size:13.5px;line-height:1;
+              white-space:nowrap;}
             .lfr-card{display:block;width:100%;margin-top:10px;padding:12px 13px;border-radius:11px;
               border:2px solid var(--border);background:var(--surface-alt);color:var(--muted);
               font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;}
             .lfr-card:hover{background:#eef1f6;color:var(--ink);}
             .lfr-card i{display:block;font-style:normal;font-weight:700;font-size:11px;
               line-height:1.35;color:var(--slate);margin-top:4px;}
+            @media(max-width:560px){
+              .lfr-go{gap:9px;padding:11px;}
+              .lfr-nm{font-size:17px;}
+              .lfr-chip{padding:10px 12px;font-size:12.5px;}
+            }
           `}</style>
           <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
-          <button type="button" className="loft-next lfr-go" onClick={fire(replayOpt)}>
-            <span className="t">
+          <button type="button" className="lfr-go" onClick={fire(replayOpt)}>
+            <span className="lfr-t">
               {/* Both lines come from dailyAttemptRule, so what a replay is
                   worth is stated by the registry that decides it and can never
                   drift from the same sentence on the full card. */}
-              <span className="eb">{attemptRule.chip}</span>
-              <span className="nm">Replay Instantly</span>
-              <span className="tg">{attemptRule.replay}</span>
+              <span className="lfr-eb">{attemptRule.chip}</span>
+              <span className="lfr-nm">Replay Instantly</span>
+              <span className="lfr-tg">{attemptRule.replay}</span>
             </span>
-            <span className="go">Replay</span>
+            <span className="lfr-chip">Replay</span>
           </button>
 
           <button type="button" className="lfr-card" onClick={() => setShowCard(true)}>
