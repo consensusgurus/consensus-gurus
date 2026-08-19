@@ -1451,7 +1451,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* lock it in: single shot, concludes the puzzle — armed two-tap */}
           {readyToLock && (
             <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
-              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? COLORS.ink : COLORS.ember, color: T.white, cursor: 'pointer', marginBottom: 14 }}>
+              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? COLORS.ink : COLORS.ember, color: T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
