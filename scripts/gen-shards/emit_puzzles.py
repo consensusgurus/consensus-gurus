@@ -28,6 +28,16 @@ HEADER = """// Puzzle data for Shards - the daily jigsaw crossword. Imported ONL
 // solved by fitting shapes without ever reading a letter. Cuts now carry
 // repeated shard shapes on purpose, which is what makes the letters do the work.
 // Days before 2026-08-02 are the original, easier bank and are left frozen.
+//
+// NO RUN SHORTER THAN THREE (owner rule, 2026-08-19; in force from 2026-08-20).
+// Boards up to 2026-08-19 carry two-letter slots, and those slots filled with
+// Scrabble two-letter words no reader accepts (ST, JA, PE, KY), because at length
+// 2 the generator's common-word filter does nothing: 108 of the 124 two-letter
+// words in tuck-dict.txt clear zipf 3.5, inflated by abbreviations and by foreign
+// text in an English corpus. Those boards are played and stay frozen. Every board
+// from 2026-08-20 has every across and down run 3 to 7 letters, so the slot cannot
+// exist. Enforced at generation time by gen.py's MIN_RUN guard and re-proven per
+// board by scripts/verify-daily-banks.mjs.
 export const PUZZLES = [
 """
 

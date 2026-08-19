@@ -38,7 +38,9 @@ MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 PUZZLES_JS = os.path.join(REPO, 'app', 'shards', 'puzzles.js')
 
-FIRST_NEW = datetime.date(2026, 8, 2)
+# 2026-08-20: rebuilt again to drop the two-letter slots (see gen.py's template
+# note). Boards through 2026-08-19 are played and frozen.
+FIRST_NEW = datetime.date(2026, 8, 20)
 LAST_NEW = datetime.date(2026, 9, 30)
 
 # n, shard size range, piece count range, ambiguity floor, scoring budget
@@ -71,6 +73,15 @@ def load_existing():
     body = body.replace("'", '"')
     body = re.sub(r",(\s*[\]\}])", r"\1", body)
     return json.loads(body)
+
+
+def words_current(pat, grid, n):
+    """True when every run in a filled grid is still in the current fill pool."""
+    for slot in gen.slots(pat, n):
+        w = ''.join(grid[r][c] for r, c in slot)
+        if w not in gen.COMMON.get(len(w), ()):
+            return False
+    return True
 
 
 def fill_of(p):
@@ -199,6 +210,17 @@ def main():
             continue
         n = p['rows']
         pat, grid = fill_of(p)
+        # A recycled fill carries its old block pattern with it, so a fill lifted from
+        # a board built on a two-letter-slot template would put those slots straight
+        # back. Recycle only the fills whose pattern clears the current MIN_RUN bar.
+        if min(gen._runs(pat, n)) < gen.MIN_RUN:
+            continue
+        # ...and its WORDS have to clear the current pool too. A recycled fill was
+        # written under whatever vocabulary was in force when it was built, so a fill
+        # lifted from an old board carries that board's ISH, ANA, ONS and ING straight
+        # through the new filters untouched.
+        if not words_current(pat, grid, n):
+            continue
         key = ''.join(''.join(ch or '#' for ch in row) for row in grid)
         reuse.setdefault(n, {})[key] = (pat, grid)
     print(f"recyclable fills: " + ", ".join(f"{n}x{n}={len(v)}" for n, v in sorted(reuse.items())),

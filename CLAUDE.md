@@ -3815,6 +3815,59 @@ The checks, for every new game and every copy edit:
    and OpenGraph descriptions, the share card, and any per-item tooltips. A definition
    that is right in one of those and stale in the other five is worse than none.
 
+## Shards: NO RUN SHORTER THAN THREE, and the word list is a Scrabble list (owner rule, 2026-08-19)
+
+A player asked how ST was a word. It is, in the list Shards validates against, and that
+was the whole problem: nothing told them which list that is, and the board was full of
+entries only that list would accept.
+
+**Shards checks every run against `public/tuck-dict.txt`, the Collins Scrabble list shared
+with Tuck and Babel.** It carries 124 two-letter words, `st ja pe ky xu fy gu ny ch` among
+them. So ST validates legitimately, by the code's rule. The rules panel said "a real word"
+and no reader-facing string anywhere named the list.
+
+**The generator was supposed to prevent this and could not.** `scripts/gen-shards/common.py`
+fills from common words only (wordfreq zipf >= 3.5), which at any ordinary length works
+fine. At length 2 it does nothing: **108 of the 124 two-letter words clear it** (st 5.20,
+et 4.66, ky 3.77, pe 3.72, ja 3.71), because two-letter strings are inflated by
+abbreviations (st = Street/Saint) and by foreign text in an English corpus (ja, si, ka).
+Only 16 fall below the bar. Worse, the two-letter slots were the crutch that made the dense
+templates fillable at all, so the generator depended on them: the 6x6 templates WITHOUT
+short runs filled 0 times in 6 tries, the one with six two-letter slots filled 6 of 6.
+
+**The fix is geometric, because a filter cannot fix a slot that only junk fits.** Three
+rules now, all machine-enforced:
+
+1. **No template may contain a run shorter than three letters, or longer than seven** (the
+   common pool tops out at 7). Checked at import in `gen.py` (`MIN_RUN`, raises on load) and
+   re-proven per board in `scripts/verify-daily-banks.mjs` from `MINRUN_FROM = '2026-08-20'`.
+   New templates are machine-searched by `scripts/gen-shards/tsearch.py`, which also SCREENS
+   them by filling them: legal is not the same as usable.
+2. **The same failure repeats one size up, so length 3 got its own bar.** ING, ONS, ENG,
+   REC, TAE, ISH and HEH all clear zipf 3.5. A three-letter fill word must now also be a
+   LOWERCASE entry in `/usr/share/hunspell/en_US.dic` and clear zipf 4.0. Pool 505 -> 275.
+3. **wordfreq is case-insensitive, so it scores first names like vocabulary** (dan 4.51,
+   ted, lee). Only a case-sensitive dictionary separates them, so every length now drops
+   words hunspell knows ONLY capitalised, plus explicit `NAMES` and `BRITISH` sets (the
+   standing US-spelling rule: HONOUR, CENTRE, DEFENCE and LITRE were all in the pool).
+
+**Two traps worth knowing before touching this again:**
+
+- **`CAP` had to go 900 -> 2100** (the whole zipf>=3.5 pool, not its 900 most frequent
+  members). Removing the two-letter slots removes the pressure valve, and at 900 the 7x7
+  templates filled 10 times in 48 tries; at 2100, 40.
+- **`build_ladder.py` RECYCLES vetted fills from the days it replaces, and a recycled fill
+  carries its old vocabulary with it.** The first rebuild came out with 2026-08-21 still
+  reading MUD ISH ANA LEE ANN ONS MAS UNI ING, untouched, because that fill was lifted whole
+  from the old board and only its PATTERN was checked. A recycled fill must be re-tested
+  against the CURRENT pool word by word (`words_current`), not just against the geometry.
+
+**Reader-facing copy now names the list** (`ShardsClient.jsx` rules step and the SEO prose):
+answers are checked against a Scrabble word list, it is broader than everyday English, and
+archive grids before 2026-08-20 can still turn up ST, JA or PE. **Boards through 2026-08-19
+are played and frozen** and keep their two-letter answers; the verifier check and the copy
+are both worded for the two eras, per the standing grandfathering rule.
+
 ## Sando is the SANDWICH SUDOKU, and the sums are the whole point (launched 2026-08-13)
 
 The fourth sudoku on the slate, after Suds (classic), Quilt (jigsaw) and Cages (killer).

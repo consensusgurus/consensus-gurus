@@ -828,6 +828,8 @@ if (RUN('outrank')) {
 if (RUN('shards')) {
   const { PUZZLES } = await import('../app/shards/puzzles.js');
   const AMBIG_FROM = '2026-08-02';            // ladder start; earlier days are frozen history
+  const MINRUN_FROM = '2026-08-20';           // no-short-run rule; earlier days are frozen history
+  const MIN_RUN = 3;                          // must match MIN_RUN in scripts/gen-shards/gen.py
   const AMBIG_FLOOR = { 6: 8, 7: 12, 8: 12 }; // by grid size; must match TIERS in scripts/gen-shards/build_ladder.py
   const NODECAP = 5_000_000;
 
@@ -972,6 +974,20 @@ if (RUN('shards')) {
     for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (!blockset.has(r * 100 + c)) fillCells.push([r, c]);
     if (fillCells.length !== cov.size) errs.push(`shards cover ${cov.size} of ${fillCells.length} fillable cells`);
     if (p.shards.length < 5 || p.shards.length > 18) errs.push(`${p.shards.length} shards (want 5-18)`);
+    // NO RUN SHORTER THAN THREE (owner rule, 2026-08-19). A two-letter slot fills with
+    // a Scrabble two-letter word no reader accepts (ST, JA, PE), because at length 2 the
+    // generator's common-word filter does nothing: 108 of the 124 two-letter words in
+    // tuck-dict.txt clear its frequency floor. Removing the slot is the fix, so the bank
+    // re-proves no board has one. Boards before MINRUN_FROM are played and frozen.
+    if (p.live >= MINRUN_FROM) {
+      let short = 0;
+      for (let i = 0; i < n; i++) {
+        const row = Array.from({ length: n }, (_, j) => (blockset.has(i * 100 + j) ? '#' : '.')).join('');
+        const col = Array.from({ length: n }, (_, j) => (blockset.has(j * 100 + i) ? '#' : '.')).join('');
+        for (const line of [row, col]) for (const seg of line.split('#')) if (seg.length && seg.length < MIN_RUN) short++;
+      }
+      if (short) errs.push(`${short} run(s) shorter than ${MIN_RUN} letters (two-letter slots are banned)`);
+    }
     if (!errs.length) {
       const { found, exhausted } = proveUnique(shards, fillCells, n);
       const order = [...fillCells].sort((a, b) => a[0] - b[0] || a[1] - b[1]);

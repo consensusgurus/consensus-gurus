@@ -18,7 +18,14 @@
 // the puzzle entry, not from constants here: start 100/150/200, floor 10/15/20,
 // hints 10-15-20 / 15-20-30 / 20-30-40 for 6x6 / 7x7 / 8x8. Moving a placed shard
 // costs 5 (a "misplacement"). The dictionary is the shared public/tuck-dict.txt,
-// fetched once as a static asset.
+// fetched once as a static asset. That is a SCRABBLE word list, so it accepts
+// entries no ordinary reader would call words, and the rules copy below says so
+// rather than leaving a player to discover it mid-grid. From 2026-08-20 no board
+// carries a run shorter than three letters, which is where the worst of it lived:
+// at length 2 the generator's common-word filter is useless (108 of the 124
+// two-letter words in the list clear it, st and ja and pe among them), so those
+// slots filled with Scrabble junk. Archive boards before that date still have
+// them, which is why the copy is worded for both.
 //
 // Same daily plumbing as Tuck/Emcee: banked puzzles gated by Eastern date on the
 // server (app/shards/page.js), per-puzzle localStorage saves, /shards?p=N archive
@@ -824,7 +831,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
     if (g.wet != null) return { msg: 'Nudge it as much as you like for free. Tap it again to lock it in, and only then does it count.', cls: 'muted' };
     if (placedCount === 0) return { msg: 'Drag a shard onto the grid, or tap a shard then tap a square.', cls: 'muted' };
     if (placedCount < SHARDS.length) return { msg: `${placedCount} of ${SHARDS.length} shards placed. A tick marks each finished word.`, cls: 'muted' };
-    if (!allValid) return { msg: 'All placed, but some runs are not words yet. Rearrange the pieces.', cls: 'bad' };
+    if (!allValid) return { msg: 'All placed, but some runs are not in the word list yet. Rearrange the pieces.', cls: 'bad' };
     return { msg: 'Solved!', cls: 'good' };
   })();
 
@@ -834,7 +841,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <DailyRules
       accent={COLORS.accent} accentSoft={COLORS.accentSoft}
-      lead="Reassemble the shattered grid so every across and down run of two or more letters is a real word."
+      lead="Reassemble the shattered grid so every across and down run of letters reads as a word."
       chips={[
         { label: 'Wet piece, free to move', tone: 'warn' },
         { label: 'Locked in, moving costs 5', tone: 'bad' },
@@ -844,6 +851,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
         <>The piece you just placed is <b>wet</b>. Shift it around as much as you like for nothing: it earns no ticks and counts toward nothing until you <b>tap it again to lock it in</b>.</>,
         <>Moving a piece you have already locked in costs a <b>miss of 5</b> and makes it wet again, so you can fine-tune the correction.</>,
         <><b>Undo</b> takes back a move and <b>Clear</b> is free. A tick appears on each finished valid word, and the board finishes itself once every piece is locked in and every word checks out.</>,
+        <>Words are checked against a <b>Scrabble word list</b>, which is broader than everyday English and accepts some odd short entries. Grids from 20 August 2026 are built from common words only; older grids in the archive can still turn up a Scrabble two-letter word such as ST, JA or PE.</>,
       ]}
       knack="There are no clues but the letters, and exactly one reassembly is correct, so place the pieces whose runs can only spell one thing and let the rest fall in."
       footer={<>Start at {START}. Three hints, in order, cost {HINTS[0]}, {HINTS[1]} and {HINTS[2]}. Score never drops below {FLOOR}. Ties break by fewest misses, then fastest clock.</>}
@@ -1267,10 +1275,10 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Shards</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Shards is a free daily word puzzle from Mind Loft, a jigsaw crossword. The grid arrives already solved but shattered into lettered puzzle pieces, and you reassemble it so that every across and down run of two or more letters is a real word. There are no clues. The letters are the clues, and the shapes are how you fit them back together.
+          Shards is a free daily word puzzle from Mind Loft, a jigsaw crossword. The grid arrives already solved but shattered into lettered puzzle pieces, and you reassemble it so that every across and down run of letters reads as a word. There are no clues. The letters are the clues, and the shapes are how you fit them back together.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every day&rsquo;s pieces have exactly one valid reassembly, checked by a solver before it ships, so there is always a single right answer to find. Pieces never rotate or flip. Drag them onto the grid or tap to place, move them as often as you like, and lean on three optional hints when you are stuck. You start at {START} and finish the moment the last word clicks into place.
+          Every day&rsquo;s pieces have exactly one valid reassembly, checked by a solver before it ships, so there is always a single right answer to find. Pieces never rotate or flip. Drag them onto the grid or tap to place, move them as often as you like, and lean on three optional hints when you are stuck. You start at {START} and finish the moment the last word clicks into place. Answers are checked against a Scrabble word list, so it is broader than everyday English and accepts some unusual short entries.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           A fresh grid lands every day at midnight Eastern, with a larger Sunday Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/emcee" style={{ color: COLORS.ink, fontWeight: 800 }}>Emcee</a>, our mini crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking puzzle, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
