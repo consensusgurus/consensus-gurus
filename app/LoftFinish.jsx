@@ -197,21 +197,57 @@ export default function LoftFinish({
   const simName = simBits.length > 1 ? simBits[0].trim() : null;
   const simTag = simBits.length > 1 ? simBits.slice(1).join('\u00b7').trim() : null;
   const opts = sorted.filter((o) => o.tone !== 'main' && o.tone !== 'similar');
-  // Which options span the full width: every primary, plus the last one when
-  // the half-width ones would otherwise be odd.
+  // Which options span the full width: every primary, plus the last of any run
+  // of half tiles that would otherwise be odd.
   const wide = new Set();
   opts.forEach((o, i) => { if (o.kind === 'pri' || o.kind === 'gold') wide.add(i); });
-  const narrow = opts.map((_, i) => i).filter((i) => !wide.has(i));
-  // The Archive and the held-back 'main' options are narrow items too, so they
-  // count toward the parity; otherwise the last option is forced wide and the
-  // bottom row breaks apart.
+  // The Archive, the browse toggle and the held-back 'main' options are half
+  // tiles too, so they take part in the same pairing; otherwise the bottom row
+  // breaks apart.
   const archiveIsNarrow = !!(archive && archive.length);
-  // The browse toggle is a half tile too now (owner, 2026-08-17), so it counts
-  // toward the parity. With it and the Archive both narrow the grid pairs as
-  // Reveal/Replay, Play another/Archive, Show all/Back to main.
   const browseIsNarrow = !!(roster.cats && roster.cats.length);
-  const tailNarrow = (archiveIsNarrow ? 1 : 0) + (browseIsNarrow ? 1 : 0) + mains.length;
-  if ((narrow.length + tailNarrow) % 2 === 1 && narrow.length) wide.add(narrow[narrow.length - 1]);
+  // PARITY IS PER RUN, NOT OVER THE WHOLE SET (owner report, 2026-08-19: the
+  // Sixes card came out with a lone Replay and a lone Back to main, each with a
+  // dead slot beside it). .loft-opts is a plain two-column grid with no
+  // grid-auto-flow:dense, so a wide tile does not just take a row, it CUTS the
+  // half tiles into separate runs and each run pairs on its own. Counting every
+  // half tile once, globally, therefore proves nothing: the old rule read
+  // narrow 2 + tail 3 = 5, widened one tile to make 4, and reported itself
+  // satisfied while leaving runs of 1 and 3.
+  //
+  // Worse, the tile it widened was the LAST of the leading run, which is the
+  // one place a widen can do harm: on Sixes that was 'Play another', so a run
+  // of [Replay, Play another] that already paired cleanly was split, turning
+  // one hole into two. Sixes hits it because it declares its Reveal option as
+  // kind:'pri' with no tone, so that tile is both wide (out of the half-tile
+  // pool) and rank 5 (sorted to the foot of the grid), which is what puts a
+  // wide tile in the middle of the run in the first place. Crux is the same
+  // shape and had the same two holes.
+  //
+  // So walk the tiles in RENDER order, group the contiguous half tiles, and
+  // widen the last tile of any group with an odd count. Widening the tail of a
+  // run can only shorten that run, never split one, so this is provably
+  // hole-free at every option set (verified across all 65 clients).
+  const flow = [
+    ...opts.map((_, i) => ({ id: i, narrow: !wide.has(i) })),
+    ...(archiveIsNarrow ? [{ id: 'archive', narrow: true }] : []),
+    ...(browseIsNarrow ? [{ id: 'browse', narrow: true }] : []),
+    ...mains.map((_, i) => ({ id: `m${i}`, narrow: true })),
+  ];
+  // The three tail tiles are rendered by this component rather than by a client,
+  // so their widening cannot live in `wide` (which is indexed into `opts`).
+  const wideTail = new Set();
+  let runStart = -1;
+  for (let i = 0; i <= flow.length; i += 1) {
+    if (i < flow.length && flow[i].narrow) { if (runStart < 0) runStart = i; continue; }
+    if (runStart >= 0) {
+      if ((i - runStart) % 2 === 1) {
+        const id = flow[i - 1].id;
+        if (typeof id === 'number') wide.add(id); else wideTail.add(id);
+      }
+      runStart = -1;
+    }
+  }
 
   // REPLAY PUTS THE READER BACK AT THE TOP OF THE PAGE (owner report,
   // 2026-08-18: "you can't actually replay Paths despite the button for
@@ -675,7 +711,7 @@ export default function LoftFinish({
             : <button key={i} type="button" className={cls} onClick={fire(o)}>{inner}</button>;
         })}
         {archive && archive.length ? (
-          <button type="button" className="loft-opt t-archive" onClick={() => setOpenArchive(true)}>
+          <button type="button" className={wideTail.has('archive') ? 'loft-opt t-archive wide' : 'loft-opt t-archive'} onClick={() => setOpenArchive(true)}>
             {name ? `${name} Archive` : 'Archive'}
             <span className="sub">Every daily puzzle, by date</span>
           </button>
@@ -685,13 +721,14 @@ export default function LoftFinish({
             below still renders last: it spans the grid, so between the two it
             would split the pair it belongs under. */}
         {roster.cats.length ? (
-          <button type="button" className="loft-opt t-browse" onClick={() => setBrowse((v) => !v)}>
+          <button type="button" className={wideTail.has('browse') ? 'loft-opt t-browse wide' : 'loft-opt t-browse'} onClick={() => setBrowse((v) => !v)}>
             {browse ? 'Hide the other puzzles' : 'Show all puzzles by category'}
             <span className="sub">{browse ? 'Back to your options' : (shownCat ? `Starting with ${shownCat}` : 'Every daily')}</span>
           </button>
         ) : null}
         {mains.map((o, i) => {
-          const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}`;
+          const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}`
+            + (wideTail.has(`m${i}`) ? ' wide' : '');
           const inner = <>{o.label}{o.sub ? <span className="sub">{o.sub}</span> : null}</>;
           return o.href
             ? <a key={`m${i}`} className={cls} href={o.href}>{inner}</a>
