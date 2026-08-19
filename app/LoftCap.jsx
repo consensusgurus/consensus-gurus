@@ -545,7 +545,7 @@ export default function LoftCap({
 @keyframes loftHoldIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.loft-hold{animation:none}}
 
-.loft-report{margin-top:14px;display:flex;justify-content:center}
+.loft-report{margin-top:14px;margin-bottom:34px;display:flex;justify-content:center}
 .loft-report .ri-wrap{width:auto}
 .loft-report .ri-link{background:rgba(255,255,255,0.12);color:var(--white);border:1.5px solid rgba(255,255,255,0.45);
   border-radius:10px;padding:10px 18px;font-weight:800;font-size:12.5px;text-decoration:none;opacity:1}
