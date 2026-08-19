@@ -503,9 +503,19 @@ export default function DailyFiveBand() {
                     letter-spacing:.11em;text-transform:uppercase;color:#dbe6ff;
                     text-decoration:none;-webkit-tap-highlight-color:transparent;}
           .d5-pipbd:active{background:rgba(255,255,255,.22);}
-          /* Once the run is complete the header's primary control IS the board,
-             so the small one here would be the same link twice on one screen. */
-          .d5.is-done .d5-pipbd{display:none;}
+          /* Once the MARQUEE run is complete the header's primary control IS
+             the board ("See the board" -> /daily-five), so the small one here
+             would be the same link twice on one screen.
+
+             SCOPE THE HIDE TO THE MARQUEE, never to every completed run (owner
+             report, 2026-08-19). A skill circuit's completed header control is
+             "Next · <circuit>", a ROTATION control and not a board, so an
+             unscoped .is-done hide left a finished circuit with no route to its
+             board at all on a phone: .d5-bd is display:none under 900, and this
+             was the only other affordance. Completing the run is arguably the
+             first moment the board is worth looking at, and it was the one
+             moment it disappeared. */
+          .d5.is-done:not(.is-circ) .d5-pipbd{display:none;}
           .d5-pips5{display:flex;gap:4px;flex:1;min-width:0;}
           .d5-pips5 span{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.18);}
           .d5-pips5 span.done{background:var(--success);}

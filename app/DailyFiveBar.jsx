@@ -32,7 +32,7 @@
 // the bar simply shows no ticks, exactly as the slate rail does.
 
 import React, { useEffect, useState } from 'react';
-import { circuitKeysFor, circuitHref, circuitName, readRunParam, isMarquee } from '@/lib/circuits';
+import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 
@@ -168,7 +168,16 @@ export default function DailyFiveBar({ slug }) {
           </div>
         </nav>
         <span className={complete ? 'd5b-n done' : 'd5b-n'}>{played}/{members.length}</span>
-        {nextGame ? <a className="d5b-next" href={circuitHref(nextKey, on)}>Next: {nextGame.name}</a> : null}
+        {/* A FINISHED RUN'S CONTROL IS THE BOARD (owner, 2026-08-19). The bar
+            rendered the hand-off and nothing else, so the moment the last game
+            landed it went dead: chips, "5/5", and on a phone not one tappable
+            thing, since .d5b-x is hidden under 560. Same destination the finish
+            card hands off to, so the two can never point different ways. */}
+        {nextGame ? (
+          <a className="d5b-next" href={circuitHref(nextKey, on)}>Next: {nextGame.name}</a>
+        ) : complete ? (
+          <a className="d5b-next" href={runSummaryHref(on)}>See the board</a>
+        ) : null}
         <a className="d5b-x" href={(DAILY_GAME_MAP[slug] || {}).href || `/${slug}`}>Leave</a>
       </div>
     </div>
