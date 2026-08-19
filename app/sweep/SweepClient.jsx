@@ -201,6 +201,16 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const over = g.status !== 'playing';
   const focusMode = playing && !showChrome;
   const won = over && g.score >= PAR;
+  // Arcade verdict, and it is deliberately NOT the same test as `won`. Par is
+  // a BENCHMARK rather than a solve threshold, the posted score (cells uncovered)
+  // is uncapped, and the day credits the player's BEST run, so an Arcade run
+  // cannot be failed and NEVER renders the red band: green at or above par,
+  // gold below it. `won` is untouched and still keys the stats record, the
+  // streak and the perfect count, all of which do turn on clearing par.
+  // Modelled on Babel's verdictTone/verdictWord, the other benchmark-scored
+  // game.
+  const verdictTone = won ? 'won' : 'part';
+  const verdictWord = won ? 'Par cleared' : 'Run complete';
   const myStats = useMemo(() => deriveStats(stats || { rec: {} }, PUZZLE.num), [stats, PUZZLE.num]);
 
   // How deep the dig has reached, which is what the viewport follows.
@@ -592,10 +602,10 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
         <LoftCap
           name="Sweep"
           cat="Arcade"
-          outcome={playing ? null : (won ? 'won' : 'lost')}
+          outcome={playing ? null : verdictTone}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={playing ? PUZZLE.dateLabel : verdictWord}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [
@@ -770,8 +780,8 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             <LoftFinish
               name="Sweep"
               catRank={catRank}
-              outcome={won ? 'won' : 'lost'}
-              title={won ? 'Solved' : 'Not solved'}
+              outcome={verdictTone}
+              title={verdictWord}
               detail={`${g.score} \u00b7 ${PAR} par`}
               iq={iq}
               board={dailyBoard}
@@ -795,8 +805,8 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 }))}
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { tone: 'reveal', label: won ? 'Return to board' : 'Reveal answer',
-                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+                { tone: 'reveal', label: 'Return to board',
+                  sub: 'Your finished board', onClick: () => setRevealed(true) },
                 prevPuzzle && { tone: 'another', label: 'Play another Sweep', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/sweep?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Play again', sub: 'Another run, your best one counts', onClick: replayRun },
