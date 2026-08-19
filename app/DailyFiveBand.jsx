@@ -553,7 +553,17 @@ export default function DailyFiveBand() {
            the tail of a status line is invisible next to a page that jumps
            every eight seconds. */
         .d5-e{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;}
+        /* THE BADGE NEEDS AIR UNDER IT AND PLAIN TEXT DOES NOT (owner, 2026-08-18).
+           A filled chip is exactly as tall as the eyebrow's line box, so it ends
+           flush against the title's, and "The Daily Five" read as mashed into
+           "Marquee" with a measured gap of ZERO. The circuit eyebrow has no such
+           problem: 9px text in a 13px line box already leaves its own leading.
+           So the margin goes on the BADGE, not on the eyebrow, which means it
+           costs its 5px only on the marquee and nothing at all on the other
+           fifteen. It is the eyebrow's tallest item, so the extra height comes
+           off its own margin box and the eyebrow text beside it stays put. */
         .d5-mq{flex:none;background:var(--gold);color:#3a2a05;border-radius:3px;padding:1px 5px;
+               margin-bottom:5px;
                font-size:8px;font-weight:800;letter-spacing:.13em;}
         .d5-n{display:flex;align-items:center;gap:8px;min-width:0;}
         /* FLEX, not just min-width:0. The three controls beside it are
