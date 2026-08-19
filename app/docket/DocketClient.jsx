@@ -25,10 +25,19 @@
 // Same daily plumbing as Suffice/Sworn/Alibi: banked days gated by Eastern date
 // on the server, per-day localStorage saves, /docket?p=N archive pinning, streaks
 // and stats, and the shared /api/quiz/* board flow.
+//
+// Two working tools, both saved with the day so a reload cannot cost you them:
+// a SCRATCHPAD pinned under the conditions, which carries across all five
+// questions because the diagram is the thing you are meant to reuse, and a
+// CROSS-OFF on each choice. A crossed choice is LOCKED rather than merely
+// struck through: you get one shot per question with no going back, so ruling a
+// choice out has to protect you from a stray tap on it as well. Tapping a
+// crossed choice brings it back instead of answering. Neither tool touches the
+// score, the clock, or what posts to the board.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { HelpCircle, X, Check, Minus, ChevronDown, ChevronUp, Scale } from 'lucide-react';
+import { HelpCircle, X, Check, Minus, ChevronDown, ChevronUp, Scale, Pencil } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -88,7 +97,11 @@ function getAnonId() {
   } catch (e) { return ''; }
 }
 
-const freshState = (n) => ({ v: 1, i: 0, picks: Array(n).fill(null), t0: null, tEnd: null, status: 'playing' });
+// cross[i] is a bitmask over that question's choices, notes is the day's
+// scratchpad. Both are absent from every save written before they existed, so
+// the load merge below leaves them at these defaults and no version bump (which
+// would discard a day in progress) is needed.
+const freshState = (n) => ({ v: 1, i: 0, picks: Array(n).fill(null), cross: Array(n).fill(0), notes: '', notesOpen: false, t0: null, tEnd: null, status: 'playing' });
 const EMPTY_BOARD = { plays: 0, best: null, leaderboard: [] };
 
 // ── stats (same shape every daily uses) ──────────────────────────────────────
@@ -181,7 +194,12 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1 && Array.isArray(saved.picks) && saved.picks.length === TOTAL) setG({ ...freshState(TOTAL), ...saved });
+        if (saved && saved.v === 1 && Array.isArray(saved.picks) && saved.picks.length === TOTAL) {
+          const merged = { ...freshState(TOTAL), ...saved };
+          if (!Array.isArray(merged.cross) || merged.cross.length !== TOTAL) merged.cross = Array(TOTAL).fill(0);
+          if (typeof merged.notes !== 'string') merged.notes = '';
+          setG(merged);
+        }
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
@@ -260,8 +278,25 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
     setGateRules(false);
   }
 
+  const crossMask = (i) => ((g.cross || [])[i] || 0);
+  const isCrossed = (i, ci) => !!(crossMask(i) & (1 << ci));
+
+  // Your own bookkeeping, so it never touches the score. It DOES stop the
+  // choice answering, because Docket allows one answer per question and no
+  // going back: having ruled a choice out, you should not be able to lose the
+  // question to a stray tap on it. Tapping it again brings it back.
+  function toggleCross(ci) {
+    if (!playing || revealed || g.picks[idx] !== null) return;
+    setG((cur) => {
+      const cross = Array.isArray(cur.cross) && cur.cross.length === TOTAL ? cur.cross.slice() : Array(TOTAL).fill(0);
+      cross[idx] = (cross[idx] || 0) ^ (1 << ci);
+      return { ...cur, cross };
+    });
+  }
+
   function answer(ci) {
     if (!playing || revealed || g.picks[idx] !== null) return;
+    if (isCrossed(idx, ci)) { toggleCross(ci); return; }
     setG((cur) => {
       const picks = cur.picks.slice();
       picks[idx] = ci;
@@ -347,7 +382,8 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           .dk-btn:hover{background:${COLORS.accentSoft};}
           .dk-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .dk-btn.primary:hover{background:${COLORS.accentDeep};}
-          .dk-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${COLORS.ink};}
+          .dk-row{display:flex;align-items:stretch;gap:6px;margin-bottom:7px;}
+          .dk-choice{display:flex;gap:11px;align-items:flex-start;flex:1;min-width:0;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${COLORS.ink};}
           .dk-choice:hover:not(:disabled){border-color:${COLORS.accent};background:${COLORS.accentSoft};}
           .dk-choice:disabled{cursor:default;}
           .dk-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
@@ -356,6 +392,19 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           .dk-choice.wrong{border-color:#b91c1c;background:#fee2e2;}
           .dk-choice.wrong .k{background:#b91c1c;color:var(--white);}
           .dk-choice .mono{font-family:${MONO};letter-spacing:0.02em;}
+          .dk-choice.off{opacity:0.5;border-style:dashed;}
+          .dk-choice.off .t{text-decoration:line-through;}
+          .dk-choice.off:hover:not(:disabled){border-color:rgba(28,30,36,0.16);background:var(--white);}
+          .dk-x{flex:0 0 auto;width:36px;border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;background:var(--white);color:${COLORS.faded};cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.5;padding:0;}
+          .dk-x:hover:not(:disabled){opacity:1;border-color:${COLORS.accent};color:${COLORS.accent};}
+          .dk-x.on{opacity:1;background:${COLORS.accentDeep};border-color:${COLORS.accentDeep};color:var(--white);}
+          .dk-x:disabled{cursor:default;}
+          .dk-x:disabled:not(.on){opacity:0.16;}
+          .dk-x.on:disabled{opacity:0.8;}
+          .dk-notes{width:100%;box-sizing:border-box;margin-top:8px;font-family:${MONO};font-size:13px;line-height:1.7;color:${COLORS.ink};background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:8px;padding:9px 11px;resize:vertical;min-height:96px;}
+          .dk-notes:focus{outline:none;border-color:${COLORS.accent};}
+          .dk-notes::placeholder{color:${COLORS.faded};opacity:0.7;}
+          .dk-nlead{font-size:12.5px;font-weight:700;color:${COLORS.faded};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
           .dk-cond{display:flex;gap:9px;font-size:13.5px;line-height:1.5;color:${COLORS.ink};padding:4px 0;}
           .dk-cond .n{font-family:${MONO};font-weight:700;color:${COLORS.accent};flex:0 0 auto;}
           .dk-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
@@ -401,6 +450,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                 Today it is <b style={{ color: COLORS.accentDeep }}>{PUZZLE.title}</b>. Read the setup and the
                 conditions, work out what they force, then answer. The conditions stay on screen the whole
                 time, because <b style={{ color: COLORS.accentDeep }}>the deductions are meant to be reused</b>.
+                There is a scratchpad for the diagram, and you can cross off a choice you have ruled out.
                 If the format feels familiar, it is: this is the reasoning section a well known standardized
                 test used to run, and quietly retired.
               </p>
@@ -412,9 +462,10 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                       <>Diagram the conditions <b>before</b> you look at the first question.</>,
                       <>Chain them. Two conditions together usually force a third thing neither says.</>,
                       <>&ldquo;Must be true&rdquo; means true in <b>every</b> arrangement the conditions allow, not just a likely one.</>,
+                      <>Rule a choice out with the <b>&times;</b> beside it. It is struck through and stops answering, so a stray tap cannot cost you the question. Tap it again to bring it back.</>,
                     ]}
                     knack="For could-be-true, try to build one arrangement that does it. For must-be-true, try to build one that does not. One counterexample settles it either way."
-                    footer={`One point per question, ${TOTAL} today. No going back once you answer.`}
+                    footer={`One point per question, ${TOTAL} today. No going back once you answer. The scratchpad keeps your diagram across all ${TOTAL}.`}
                   />
                 </div>
               )}
@@ -444,6 +495,37 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
             </div>
           </div>
 
+          {/* The scratchpad lives with the conditions rather than with the
+              question, because it is the diagram, and the diagram outlives every
+              individual question. Collapsed until asked for, then it stays open. */}
+          {!preStart && playing && (
+            <div className="dk-panel" style={{ padding: g.notesOpen ? '12px 14px' : '9px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <Pencil size={14} color={COLORS.accent} style={{ flex: '0 0 auto' }} />
+                <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.accent, flex: '0 0 auto' }}>
+                  Scratchpad
+                </span>
+                {!g.notesOpen && !!(g.notes || '').trim() && (
+                  <span className="dk-nlead">{(g.notes || '').trim().split('\n')[0]}</span>
+                )}
+                <button className="dk-fold" style={{ marginLeft: 'auto', flex: '0 0 auto' }} onClick={() => setG((cur) => ({ ...cur, notesOpen: !cur.notesOpen }))}>
+                  {g.notesOpen ? <>Hide <ChevronUp size={13} /></> : <>Write <ChevronDown size={13} /></>}
+                </button>
+              </div>
+              {g.notesOpen && (
+                <textarea
+                  className="dk-notes"
+                  value={g.notes || ''}
+                  onChange={(e) => setG((cur) => ({ ...cur, notes: e.target.value }))}
+                  placeholder={`Diagram here. It stays with you through all ${TOTAL} questions, and through a reload.`}
+                  rows={5}
+                  spellCheck={false}
+                  aria-label="Scratchpad"
+                />
+              )}
+            </div>
+          )}
+
           {!preStart && (
             <>
               {/* progress + clock */}
@@ -468,19 +550,37 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                   </div>
 
                   {q.choices.map((c, ci) => {
+                    const off = isCrossed(idx, ci);
                     let cls = 'dk-choice';
+                    // At the reveal the right/wrong colouring has to read
+                    // cleanly, so the strike comes off the choice. The chip
+                    // beside it stays lit, which is what tells you whether you
+                    // had ruled the right answer out.
+                    if (off && !revealed) cls += ' off';
                     if (revealed) {
                       if (ci === answerKey) cls += ' right';
                       else if (ci === picked) cls += ' wrong';
                     }
                     const mono = q.kind === 'accept' || q.kind === 'list';
                     return (
-                      <button key={ci} className={cls} disabled={revealed || picked !== null} onClick={() => answer(ci)}>
-                        <span className="k">{CHOICE_KEYS[ci]}</span>
-                        <span className={mono ? 'mono' : undefined}>{c}</span>
-                        {revealed && ci === answerKey && <Check size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.green }} />}
-                        {revealed && ci === picked && ci !== answerKey && <X size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: '#b91c1c' }} />}
-                      </button>
+                      <div className="dk-row" key={ci}>
+                        <button className={cls} disabled={revealed || picked !== null} onClick={() => answer(ci)}>
+                          <span className="k">{CHOICE_KEYS[ci]}</span>
+                          <span className={mono ? 't mono' : 't'}>{c}</span>
+                          {revealed && ci === answerKey && <Check size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.green }} />}
+                          {revealed && ci === picked && ci !== answerKey && <X size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: '#b91c1c' }} />}
+                        </button>
+                        <button
+                          className={`dk-x${off ? ' on' : ''}`}
+                          disabled={revealed || picked !== null}
+                          aria-pressed={off}
+                          title={off ? `Bring ${CHOICE_KEYS[ci]} back` : `Cross off ${CHOICE_KEYS[ci]}`}
+                          aria-label={off ? `Bring choice ${CHOICE_KEYS[ci]} back` : `Cross off choice ${CHOICE_KEYS[ci]}`}
+                          onClick={() => toggleCross(ci)}
+                        >
+                          <X size={15} />
+                        </button>
+                      </div>
                     );
                   })}
 
@@ -630,6 +730,8 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
               <li>Diagram first. The conditions stay pinned so you only do that once.</li>
               <li>&ldquo;Could be true&rdquo; needs one arrangement that works. &ldquo;Must be true&rdquo; needs all of them.</li>
               <li>A question that starts &ldquo;If ...&rdquo; applies only inside that question.</li>
+              <li>Cross a choice out with the &times; beside it. It stays struck through and cannot be answered until you bring it back.</li>
+              <li>The scratchpad under the conditions saves with the day, so your diagram survives a reload.</li>
               <li>One point per question, {TOTAL} on the board today.</li>
             </ul>
             <button className="dk-btn primary" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}>Play</button>
