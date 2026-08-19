@@ -44,6 +44,7 @@ import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import useEndHold, { HOLD_LONG } from '../useEndHold';
 import { notifyShareCredit } from '../ShareCreditPop';
 import { T } from '@/lib/theme';
 import { arcadeRanksForKey } from '@/lib/daily-games';
@@ -187,6 +188,12 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
+  // THE FINISHED WELL STAYS ON SCREEN FOR A BEAT before the card takes the
+  // board over. Ends here arrive on the engine's move, not the player's, so
+  // they get the long hold every time.
+  const endHold = useEndHold();
+  const holdEnd = endHold.hold;
+  const releaseEnd = endHold.release;
   const LOFT = isLoft('sweep');  const iq = useIqStanding({ game: 'sweep', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const nextUp = useNextUnplayed({ self: 'sweep', active: LOFT && !playing });
@@ -292,6 +299,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
 
   const postResult = useCallback((g2) => {
     abandon.markFlushed();
+    holdEnd(HOLD_LONG);
     const el = Math.max(1, Math.round(g2.ms / 1000));
     // `g` is the dig count, and it is stored so betterRun can break a tie the
     // way the board does. A pre-2026-08-14 entry has none and reads as null,
@@ -311,7 +319,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
       }).then((r) => r.json()).then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); }).catch(() => {});
     } catch (e) {}
     try { window.dispatchEvent(new Event('sot:daily-updated')); } catch (e) {}
-  }, [abandon, PUZZLE.quizId, PUZZLE.num, PAR, identity]);
+  }, [holdEnd, abandon, PUZZLE.quizId, PUZZLE.num, PAR, identity]);
 
   // ---- the dig -------------------------------------------------------------
   // Opening a zero cascades to its neighbors, which is where a good run gets
@@ -400,6 +408,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   // stats entry and the posted rows stay, because every finished run posts and
   // the board keeps your best (arcade rule, lib/daily-games isArcade).
   const replayRun = useCallback(() => {
+    releaseEnd();
     try { localStorage.removeItem(REC_KEY); } catch (e) {}
     commit({ ...freshState(), t0: Date.now() });
     setArmRestart(false);
@@ -407,7 +416,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
     // replayed run used to finish with no end card at all. See ChompClient.
     setEndClosed(false);
     if (viewRef.current) viewRef.current.scrollTop = 0;
-  }, [commit, REC_KEY]);
+  }, [releaseEnd, commit, REC_KEY]);
 
   // ---- the viewport follows the frontier ------------------------------------
   useEffect(() => {
@@ -641,9 +650,9 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
         <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
         {preStart && (
@@ -772,11 +781,11 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          {LOFT && !playing && revealed && (
+          {LOFT && !playing && !endHold.held && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
-          {LOFT && !playing && (
+          {LOFT && !playing && !endHold.held && (
             <LoftFinish
               name="Sweep"
               catRank={catRank}

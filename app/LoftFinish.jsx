@@ -87,6 +87,11 @@ export default function LoftFinish({
   name = null, catRank = null,
 }) {
   const [showAll, setShowAll] = useState(false);
+  // THE FAST RETRY GATE (owner, 2026-08-19). False until the player asks for
+  // the full card, and only ever consulted on the games that are meant to be
+  // replayed (see `fastRetry` below). It resets on its own: a replay unmounts
+  // this card with the board it came from.
+  const [showCard, setShowCard] = useState(false);
   // WHICH RUN is this finish part of — the marquee, one of the thirteen skill
   // circuits, or none? A circuit ID, not a boolean: it read the ?five=1 flag
   // alone until 2026-08-18, so finishing a game inside a skill circuit fell
@@ -412,6 +417,32 @@ export default function LoftFinish({
   const runRetry = runActive && !!replayOpt && !runSolved && (isEndGame(runSelf) || isArcade(runSelf));
   const runUnsolvedEG = runActive && isEndGame(runSelf) && !runSolved;
   const runGate = runUnsolvedEG && !!replayOpt && !!runNextKey;
+  // THE FULL CARD IS THE WRONG ANSWER TO AN UNSOLVED POSITION (owner,
+  // 2026-08-19). On the eight games where a replay genuinely counts -- the six
+  // End Game titles, which rank you on how many runs the solve took, and the
+  // two Arcade games, which take your best run of the day -- the thing the
+  // player wants next is another go at it, now. What they got was a page of
+  // furniture: the verdict, an IQ bar, four day tiles, the whole leaderboard,
+  // the archive and eight tiles of somewhere else to be, with Replay sitting
+  // as one half tile part way down it. Every other daily keeps your first
+  // attempt, so there the card IS the right answer and nothing changes.
+  //
+  // So an unsolved finish on those eight turns the board over to two controls
+  // and nothing else. The card is not gone, it is one press away, and it is
+  // the same card: pressing 'Show End Game Card' swaps this panel for the
+  // ordinary return below, in the same slot, with every figure it always had.
+  //
+  // Scoped to UNSOLVED (outcome !== 'won', which is `runSolved`): a solve has
+  // nothing left to come back for, so it flips straight to the card as before.
+  // Four's draw counts as unsolved here, deliberately -- the win is still
+  // sitting in the position, which is exactly the argument for another run.
+  // An Arcade run can never be failed, so its 'part' verdict reaches this too,
+  // which is right: runs there are unlimited and another one can only help.
+  //
+  // The category test is the registry's own, never a hardcoded list of eight,
+  // and it needs a real replay handler: a client that passes no replay option
+  // has nothing to gate.
+  const fastRetry = !!replayOpt && !runSolved && (isEndGame(selfKey) || isArcade(selfKey));
   // A run whose LAST game is an unsolved End Game does not auto-advance to the
   // summary: bouncing the player off the board six seconds after telling them
   // to play it again is the card arguing with itself. The summary control is
@@ -585,6 +616,59 @@ export default function LoftFinish({
             {runAuto ? <a href="#" onClick={(e) => { e.preventDefault(); setRunStay(true); }}>Stay here</a> : null}
             <a href={(DAILY_GAME_MAP[runSelf] || {}).href || `/${runSelf}`}>Leave the run</a>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // THE FAST RETRY PANEL. Deliberately below the `runActive` return above it:
+  // a finish inside a circuit already has its own gate, which says more (where
+  // you are in the run, what it is waiting for), and two gates would argue.
+  //
+  // THE BOARD IS ALREADY HELD BEFORE ANY OF THIS RENDERS. Every client gates
+  // its flip on `endHold.held`, so the finished board -- the mate, the fourth
+  // disc, the well that topped out -- stays on screen for HOLD_LONG first and
+  // this panel arrives after it, never over it. See app/useEndHold.js; the two
+  // Arcade clients were wired to it in the same pass as this panel, because
+  // they were the only two of the eight with no hold at all.
+  if (fastRetry && !showCard) {
+    return (
+      <div className="loft-back">
+        <div className="loft-backin">
+          <style>{`
+            /* Borrows loft-next's shape so it reads as the one primary action,
+               and takes the blue rather than the green: green is the hand-off
+               to somewhere else, and this goes nowhere. */
+            .loft-next.lfr-go{width:100%;text-align:left;font-family:inherit;cursor:pointer;
+              background:rgba(37,99,235,.10);border:2px solid rgba(37,99,235,.30);}
+            .loft-next.lfr-go:hover{background:rgba(37,99,235,.17);}
+            .loft-next.lfr-go .eb{color:#1d4ed8;}
+            .loft-next.lfr-go .go{background:#2563eb;}
+            .lfr-card{display:block;width:100%;margin-top:10px;padding:12px 13px;border-radius:11px;
+              border:2px solid var(--border);background:var(--surface-alt);color:var(--muted);
+              font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;}
+            .lfr-card:hover{background:#eef1f6;color:var(--ink);}
+            .lfr-card i{display:block;font-style:normal;font-weight:700;font-size:11px;
+              line-height:1.35;color:var(--slate);margin-top:4px;}
+          `}</style>
+          <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
+
+          <button type="button" className="loft-next lfr-go" onClick={fire(replayOpt)}>
+            <span className="t">
+              {/* Both lines come from dailyAttemptRule, so what a replay is
+                  worth is stated by the registry that decides it and can never
+                  drift from the same sentence on the full card. */}
+              <span className="eb">{attemptRule.chip}</span>
+              <span className="nm">Replay Instantly</span>
+              <span className="tg">{attemptRule.replay}</span>
+            </span>
+            <span className="go">Replay</span>
+          </button>
+
+          <button type="button" className="lfr-card" onClick={() => setShowCard(true)}>
+            Show End Game Card
+            <i>Your IQ, today&rsquo;s board, the archive and what to play next</i>
+          </button>
         </div>
       </div>
     );

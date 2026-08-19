@@ -45,6 +45,7 @@ import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
+import useEndHold, { HOLD_LONG } from '../useEndHold';
 import { notifyShareCredit } from '../ShareCreditPop';
 import { T } from '@/lib/theme';
 import { arcadeRanksForKey } from '@/lib/daily-games';
@@ -256,6 +257,12 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
+  // THE FINISHED WELL STAYS ON SCREEN FOR A BEAT before the card takes the
+  // board over. Ends here arrive on the engine's move, not the player's, so
+  // they get the long hold every time.
+  const endHold = useEndHold();
+  const holdEnd = endHold.hold;
+  const releaseEnd = endHold.release;
   const LOFT = isLoft('blocks');  const iq = useIqStanding({ game: 'blocks', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const nextUp = useNextUnplayed({ self: 'blocks', active: LOFT && !playing });
@@ -394,6 +401,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
 
   const postResult = useCallback((g2) => {
     abandon.markFlushed();
+    holdEnd(HOLD_LONG);
     const sc = scoreRows(g2.lines);
     const el = Math.max(1, Math.round(g2.ms / 1000));
     try { setStats(recordStat(PUZZLE.num, { s: sc, t: PAR, g: g2.pieces, won: sc >= PAR })); } catch (e) {}
@@ -410,7 +418,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         }),
       }).then((r) => r.json()).then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); }).catch(() => {});
     } catch (e) {}
-  }, [abandon, PUZZLE.quizId, PUZZLE.num, PAR, identity]);
+  }, [holdEnd, abandon, PUZZLE.quizId, PUZZLE.num, PAR, identity]);
 
   // ---- the engine ----------------------------------------------------------
   const endRun = useCallback(() => {
@@ -775,6 +783,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   // than practice. This comment used to say the exact opposite, which was true
   // of the board until 2026-08-08 and of the local record until 2026-08-14.
   const replayRun = useCallback(() => {
+    releaseEnd();
     const st = { ...freshState(COLS, ROWS), t0: Date.now() };
     nextPiece(st);
     lastRef.current = 0; dropRef.current = 0; lockRef.current = 0; resetsRef.current = 0;
@@ -785,7 +794,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
     setEndClosed(false);
     commit(st);
     setTimeout(sizeWell, 0);
-  }, [COLS, ROWS, nextPiece, commit, sizeWell]);
+  }, [releaseEnd, COLS, ROWS, nextPiece, commit, sizeWell]);
 
   // ---- share ---------------------------------------------------------------
   function shareText() {
@@ -921,9 +930,9 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
         <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
         {preStart && (
@@ -1072,11 +1081,11 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          {LOFT && !playing && revealed && (
+          {LOFT && !playing && !endHold.held && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
-          {LOFT && !playing && (
+          {LOFT && !playing && !endHold.held && (
             <LoftFinish
               name="Blocks"
               catRank={catRank}
