@@ -234,7 +234,7 @@ export default function CircuitLanding({ circuit, games }) {
       <div className="clp-note">
         {marquee
           ? 'A fresh five lands at midnight Eastern, one game from each of five different categories.'
-          : 'The same five games every day, with new puzzles in each of them at midnight Eastern.'}
+          : `The same ${n} games every day, with new puzzles in each of them at midnight Eastern.`}
       </div>
 
       <a className="clp-all" href="/circuits">

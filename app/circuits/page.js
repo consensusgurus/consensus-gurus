@@ -102,7 +102,7 @@ export default function CircuitsIndexPage() {
 
         <div className="cix-hd">
           <div className="cix-e">Circuits</div>
-          <h1 className="cix-h1">Five puzzles, one run, one board</h1>
+          <h1 className="cix-h1">One run, one combined board</h1>
           <p className="cix-sub">
             A circuit is a handful of daily puzzles played as one sitting and ranked on your combined
             placement across all of them, shortest game first. The Daily Five changes every day. The rest

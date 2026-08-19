@@ -288,6 +288,51 @@ for (const c of ALL_CIRCUITS) {
   if (/[a-z0-9]/i.test(grid)) fails.push(`${c.id}: result grid contains characters, which could leak an answer`);
 }
 
+// A SPELLED COUNT IN THE COPY MUST MATCH THE ROSTER, TODAY AND AFTER EVERY
+// RETIREMENT THIS CIRCUIT IS DUE. This is the check that would have caught the
+// two real defects found on the day circuits got share copy: a landing page
+// telling a four-game circuit it was "the same five games every day", and
+// Recall's "Four games, nothing multiple choice" — true when it was written and
+// a lie from 2026-09-29, when Extra retires and Recall becomes a three.
+//
+// A retirement is the whole reason this cannot be a today-only check. NOTHING
+// FAILS ON THE DAY IT HAPPENS: circuitKeysFor simply returns one fewer key, and
+// every count baked into a sentence quietly goes wrong with no error anywhere.
+// So each circuit is re-tested on the day AFTER each of its members retires,
+// which lands the failure now, while somebody is looking at this file.
+const WORD_NUM = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7 };
+const dayAfter = (iso) => {
+  const d = new Date(iso + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+};
+// Only a count of GAMES is checked. A number attached to any other noun ("four
+// hidden threads", "one life", "five different ways") describes what happens
+// INSIDE a game rather than tallying them, and must not be second-guessed here.
+// "of them" was tried here and removed: it fired on "three of them clueless"
+// (a subset of the five, not a tally) and on "one move that throws each of them
+// away" (a move, not a game). A trigger noun has to NAME the members.
+const COUNT_RE = /\b(one|two|three|four|five|six|seven)\b(?=[^.]{0,24}\b(?:games?|puzzles?|cases?|rounds?|sets?)\b)/gi;
+
+for (const c of ALL_CIRCUITS) {
+  if (!c.share || isMarquee(c.id)) continue; // the marquee is five by construction
+  const dates = [null, ...(c.keys || [])
+    .filter((k) => RETIRED_DAILY[k])
+    .map((k) => dayAfter(RETIRED_DAILY[k]))];
+  for (const when of dates) {
+    const size = circuitKeysFor(c.id, when || undefined).length;
+    for (const kind of ['invite', 'result']) {
+      for (const m of String(c.share[kind]).matchAll(COUNT_RE)) {
+        const said = WORD_NUM[m[1].toLowerCase()];
+        if (said !== size) {
+          const at = when ? ' on ' + when + ', after a retirement' : '';
+          fails.push(c.id + ': share.' + kind + ' says "' + m[1] + '" but the roster is ' + size + at);
+        }
+      }
+    }
+  }
+}
+
 // A run with nothing recorded must still produce honest text, never 'undefined'.
 for (const c of ALL_CIRCUITS) {
   const bare = circuitShareResult(c.id, {});
