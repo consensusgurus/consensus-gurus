@@ -17,7 +17,10 @@ import { DAILY_KEYS, DAILY_GAME_MAP, RETIRED_DAILY } from '../lib/daily-games.js
 import {
   CIRCUITS, ALL_CIRCUITS, MARQUEE, MARQUEE_ID, CIRCUIT_NAME_LISTS,
   circuitById, circuitKeysFor, isMarquee,
+  circuitPageHref, circuitShareUrl, circuitShareInvite, circuitShareResult,
+  SHARE_HOST_FOR_CIRCUITS, CIRCUIT_BASE,
 } from '../lib/circuits.js';
+import { SHARE_HOST } from '../lib/site.js';
 
 // lib/trophy-defs.js reaches for '@/lib/theme', which node cannot resolve on its
 // own, so it comes in through the alias loader and therefore has to be a dynamic
@@ -219,6 +222,76 @@ for (const c of CIRCUITS) {
 }
 if (MARQUEE.trophy && MARQUEE.trophy.tier !== 'gold') {
   fails.push('the marquee trophy must be gold: its roster changes daily, so there is no length to tier by');
+}
+
+// ── 10. share copy ──────────────────────────────────────────────────────────
+// Every circuit carries an invite and a result line, they are its own, and the
+// link inside the text points at that circuit's LANDING page rather than at the
+// run summary. The summary is noindex and shows one viewer's own results, so a
+// share that pointed there would hand a recipient somebody else's scorecard
+// instead of the run.
+const EM_DASH = /[\u2014\u2013]/;
+const INVITE_MAX = 150;   // fits beside a link in a message without being cut
+const RESULT_MAX = 60;    // one line under the figures
+const seenInvite = new Map();
+const seenResult = new Map();
+
+if (SHARE_HOST_FOR_CIRCUITS !== SHARE_HOST) {
+  fails.push(`the share host in lib/circuits (${SHARE_HOST_FOR_CIRCUITS}) does not match SHARE_HOST (${SHARE_HOST})`);
+}
+
+for (const c of ALL_CIRCUITS) {
+  const s = c.share;
+  if (!s || typeof s.invite !== 'string' || typeof s.result !== 'string') {
+    fails.push(`${c.id}: no share copy (needs share.invite and share.result)`);
+    continue;
+  }
+  for (const [kind, txt, max, seen] of [
+    ['invite', s.invite, INVITE_MAX, seenInvite],
+    ['result', s.result, RESULT_MAX, seenResult],
+  ]) {
+    if (!txt.trim()) fails.push(`${c.id}: share.${kind} is empty`);
+    if (txt.length > max) fails.push(`${c.id}: share.${kind} is ${txt.length} chars, over the ${max} budget`);
+    if (EM_DASH.test(txt)) fails.push(`${c.id}: share.${kind} contains an em or en dash, which the house copy rule bans`);
+    if (txt.trim() !== txt) fails.push(`${c.id}: share.${kind} has stray whitespace`);
+    // Copy that is identical on two circuits says nothing about either.
+    const prior = seen.get(txt);
+    if (prior) fails.push(`${c.id}: share.${kind} is identical to ${prior}'s`);
+    else seen.set(txt, c.id);
+    // The blurb already renders on the page the invite links to, so an invite
+    // that merely repeats it wastes the one line a reader actually sees.
+    if (kind === 'invite' && c.blurb && txt.trim() === c.blurb.trim()) {
+      fails.push(`${c.id}: share.invite is just the blurb again`);
+    }
+  }
+
+  // The link. Landing page, correct id, bare host in the text, never the summary.
+  const href = circuitPageHref(c.id);
+  if (href !== `${CIRCUIT_BASE}/${c.id}`) fails.push(`${c.id}: circuitPageHref is ${href}`);
+  const url = circuitShareUrl(c.id);
+  if (!url.endsWith(`${CIRCUIT_BASE}/${c.id}`)) fails.push(`${c.id}: share url is ${url}`);
+  if (/^https?:/.test(url)) fails.push(`${c.id}: share url carries a scheme, which breaks referral restamping`);
+
+  const invite = circuitShareInvite(c.id);
+  const result = circuitShareResult(c.id, {
+    points: 40, maxTotal: 75, rank: 3, field: 20, done: 4, total: 5,
+    pips: ['top', 'on', 'on', 'on', ''],
+  });
+  for (const [kind, txt] of [['invite', invite], ['result', result]]) {
+    if (!txt.includes(url)) fails.push(`${c.id}: built ${kind} does not carry its own link`);
+    if (txt.includes('/daily-five')) fails.push(`${c.id}: built ${kind} links the run summary instead of the landing page`);
+    if (!txt.includes(c.name)) fails.push(`${c.id}: built ${kind} does not name the circuit`);
+  }
+  // A grid that renders one pip per game, and nothing that could leak an answer.
+  const grid = result.split('\n')[1] || '';
+  if ([...grid].length !== 5) fails.push(`${c.id}: result grid drew ${[...grid].length} pips for 5 games`);
+  if (/[a-z0-9]/i.test(grid)) fails.push(`${c.id}: result grid contains characters, which could leak an answer`);
+}
+
+// A run with nothing recorded must still produce honest text, never 'undefined'.
+for (const c of ALL_CIRCUITS) {
+  const bare = circuitShareResult(c.id, {});
+  if (/undefined|NaN/.test(bare)) fails.push(`${c.id}: result text with no stats renders ${bare.match(/undefined|NaN/)[0]}`);
 }
 
 // ── report ──────────────────────────────────────────────────────────────────

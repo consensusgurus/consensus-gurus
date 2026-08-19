@@ -27,9 +27,12 @@
 // step by hand, which is the failure this file warns about everywhere else.
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, ArrowLeft, Trophy } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Trophy, Share2, Check } from 'lucide-react';
 import { circuitKeysFor, circuitHref, circuitName, readCircuitParam, isMarquee,
-         MARQUEE_ID, CIRCUIT_PARAM } from '@/lib/circuits';
+         MARQUEE_ID, CIRCUIT_PARAM, circuitShareResult, circuitShareUrl } from '@/lib/circuits';
+import { notifyShareCredit } from '../ShareCreditPop';
+import { withRef } from '@/lib/referrals';
+import { isMobileDevice } from '@/lib/is-mobile';
 import { DAILY_GAME_MAP, dailyScoreText } from '@/lib/daily-games';
 import { dailyMeIdentity } from '../dailyMeClient';
 
@@ -102,6 +105,50 @@ export default function DailyFiveSummary() {
   const maxTotal = (data && data.maxTotal) || run.length * 15;
   const board = (data && Array.isArray(data.overall) ? data.overall : []).slice(0, 10);
   const meInTop = !!(me && board.some((r) => r.userKey === me.userKey));
+
+  // ── SHARING A FINISHED RUN ────────────────────────────────────────────────
+  // The result text is built by lib/circuits, so the wording and the pip grid
+  // live beside the roster they describe rather than in this component.
+  //
+  // THE LINK POINTS AT THE CIRCUIT'S OWN PAGE, NOT AT THIS ONE (owner,
+  // 2026-08-18). This page is the run summary: noindex, one viewer's own
+  // results, an hourly leaderboard. Sharing it hands a recipient a stranger's
+  // scorecard and no way in. /circuits/<id> is the same run with the games, the
+  // order and a Start button, which is what somebody who has not played needs.
+  //
+  // The grid leaks nothing: a pip says only whether that game was topped,
+  // finished or left, never what was in it.
+  const [copied, setCopied] = useState(false);
+  function shareRun() {
+    const pips = run.map((k) => {
+      const p = perGame[k];
+      if (!p || p.abandoned) return '';
+      return p.rank === 1 ? 'top' : 'on';
+    });
+    const url = withRef(circuitShareUrl(runId));
+    const text = circuitShareResult(runId, {
+      points: me ? me.total : 0,
+      maxTotal,
+      rank: me && me.rank ? me.rank : null,
+      field: (data && data.overallField) || 0,
+      done: played.length,
+      total: run.length,
+      pips,
+    }, url);
+    if (notifyShareCredit(text, `https://${circuitShareUrl(runId)}`)) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try {
+      navigator.clipboard?.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      });
+    } catch (e) {}
+  }
 
   const dateLabel = day
     ? `${MONTHS[Number(day.slice(5, 7)) - 1]} ${Number(day.slice(8, 10))}`
@@ -191,6 +238,11 @@ export default function DailyFiveSummary() {
         .d5s-go{flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--cta);color:#fff;
                 border-radius:8px;padding:9px 13px;font-size:11px;font-weight:800;letter-spacing:.06em;
                 text-transform:uppercase;text-decoration:none;}
+        .d5s-share{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:transparent;
+                   color:#fff;border:1.5px solid #3f5896;border-radius:10px;padding:11px 16px;
+                   font-size:12.5px;font-weight:800;letter-spacing:.03em;cursor:pointer;
+                   font-family:inherit;}
+        .d5s-share:hover{background:#1c3163;}
         .d5s-empty{padding:22px;text-align:center;font-size:13px;font-weight:600;color:var(--slate);
                    background:var(--surface);border:1.5px solid var(--border);border-radius:13px;}
         @media(max-width:620px){
@@ -217,6 +269,10 @@ export default function DailyFiveSummary() {
           <div><b>{me && me.rank ? `#${me.rank}` : '—'}</b><i>of {(data && data.overallField) || 0} players</i></div>
           <div><b>{played.length}/{run.length}</b><i>games cleared</i></div>
         </div>
+        <button type="button" className="d5s-share" onClick={shareRun}>
+          {copied ? <Check size={14} strokeWidth={2.6} /> : <Share2 size={14} strokeWidth={2.6} />}
+          {copied ? 'Copied' : 'Share this run'}
+        </button>
       </div>
 
       <div className="d5s-sec">Combined placement across the run</div>

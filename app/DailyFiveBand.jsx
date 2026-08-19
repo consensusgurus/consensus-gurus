@@ -27,9 +27,13 @@
 // rather than flashing the wrong day. Same rule isSundayET follows.
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Play, Trophy, ChevronLeft, ChevronRight, LayoutGrid } from 'lucide-react';
+import { Play, Trophy, ChevronLeft, ChevronRight, LayoutGrid, Share2 } from 'lucide-react';
 import { fiveFor, FIVE_NAME } from '@/lib/daily-five';
-import { ALL_CIRCUITS, MARQUEE_ID, circuitById, circuitKeysFor, circuitHref, isMarquee } from '@/lib/circuits';
+import { ALL_CIRCUITS, MARQUEE_ID, circuitById, circuitKeysFor, circuitHref, isMarquee,
+         circuitPageHref, circuitShareInvite, circuitShareUrl } from '@/lib/circuits';
+import { notifyShareCredit } from './ShareCreditPop';
+import { withRef } from '@/lib/referrals';
+import { isMobileDevice } from '@/lib/is-mobile';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { dailyMeIdentity } from './dailyMeClient';
 
@@ -257,6 +261,29 @@ export default function DailyFiveBand() {
   // NEXT STEPS TO THE NEXT UNFINISHED CIRCUIT, not the next in the list, which
   // is what makes the cycler read as progress rather than as a carousel. Falls
   // back to the next in order before the full slate has been fetched.
+  // ── SHARING THE SELECTED CIRCUIT ──────────────────────────────────────────
+  // The band is the busiest circuit surface on the site, so it is where a
+  // circuit actually gets shared from. It hands over the INVITE (the evergreen
+  // line, no score, no date) rather than a result, because the person pressing
+  // it here has usually not finished the run: the result share lives on
+  // /daily-five, where a finished run is.
+  //
+  // The link is this circuit's OWN page, passed explicitly. ShareCreditPop
+  // otherwise defaults to the current URL, which here is the home page, and a
+  // recipient handed the whole homepage has to go find the run themselves.
+  const shareCircuit = () => {
+    const url = withRef(circuitShareUrl(sel));
+    const text = circuitShareInvite(sel, url);
+    if (notifyShareCredit(text, `https://${circuitShareUrl(sel)}`)) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
+        navigator.share({ text }).catch(() => {});
+        return;
+      }
+    } catch (e) {}
+    try { navigator.clipboard?.writeText(text); } catch (e) {}
+  };
+
   const nextCircuit = () => {
     const n = ALL_CIRCUITS.length;
     const from = cIdx < 0 ? 0 : cIdx;
@@ -523,7 +550,12 @@ export default function DailyFiveBand() {
            and nothing shifts. Any new clamped single line in this band needs
            the same pair. */
         .d5-nm{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-               padding-bottom:4px;margin-bottom:-4px;}
+               padding-bottom:4px;margin-bottom:-4px;
+               /* It is an anchor now (to the circuit's own page) and must not
+                  pick up the global link colour or underline: it is still the
+                  band's title and reads as one. */
+               color:inherit;text-decoration:none;}
+        .d5-nm:hover{text-decoration:underline;text-underline-offset:3px;}
         /* Nothing is hidden while the picker is open any more: in the flow it
            sits UNDER the header rather than on top of it, so the sub line, the
            track and the pip bar are all still there and still legible. */
@@ -629,12 +661,19 @@ export default function DailyFiveBand() {
               stepping left from it wraps to the last circuit rather than
               stopping. */}
           <div className="d5-n">
-            <span className="d5-nm">{marq ? FIVE_NAME : circuit.name}</span>
+            {/* The name is a LINK to the circuit's own page. That is
+                identification, not navigation furniture: it is the one place
+                that says what this run is to somebody who has not played it,
+                and it is the page every share of this circuit lands on. */}
+            <a className="d5-nm" href={circuitPageHref(sel)}>{marq ? FIVE_NAME : circuit.name}</a>
             <button type="button" className="d5-cyc" onClick={() => step(-1)} aria-label="Previous circuit">
               <ChevronLeft size={13} strokeWidth={2.8} />
             </button>
             <button type="button" className="d5-cyc" onClick={() => step(1)} aria-label="Next circuit">
               <ChevronRight size={13} strokeWidth={2.8} />
+            </button>
+            <button type="button" className="d5-cyc" onClick={shareCircuit} aria-label={`Share the ${circuit.name} circuit`}>
+              <Share2 size={12} strokeWidth={2.8} />
             </button>
             <button type="button" className="d5-all" aria-expanded={pick} onClick={() => setPick((p) => !p)}>
               <LayoutGrid size={10} strokeWidth={2.8} />
@@ -757,6 +796,9 @@ export default function DailyFiveBand() {
           </button>
           <button type="button" className="d5-cyc" aria-expanded={pick} aria-label="All circuits" onClick={() => setPick((p) => !p)}>
             <LayoutGrid size={12} strokeWidth={2.8} />
+          </button>
+          <button type="button" className="d5-cyc" onClick={shareCircuit} aria-label={`Share the ${circuit.name} circuit`}>
+            <Share2 size={12} strokeWidth={2.8} />
           </button>
         </span>
         {marq ? (
