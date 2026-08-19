@@ -459,7 +459,32 @@ export default function DailyFiveBand() {
            the pip bar is the control that opens the rest. */
         @media(max-width:900px){
           .d5{padding:11px 12px 12px;}
-          .d5-hd{gap:9px;margin-bottom:9px;}
+          /* THE HEADER IS TWO ROWS ON A PHONE, because three things do not fit
+             on one line (owner report, 2026-08-18). The title block, the score
+             box (96px floor) and the Start button (132px floor) with their gaps
+             leave the title 105px at 390 and 71px at 360, and the eyebrow needs
+             178 ("Circuit 8 of 15 4 of 5 played") or 225 with the marquee badge
+             in front of it. So the eyebrow clipped to "Today's ru" and the name
+             to "Table Gam", which between them are the only line on the band
+             that says WHICH run you are looking at. Wrapping gives the title the
+             full width and puts the score and the button on a row of their own,
+             score left, button right.
+
+             It costs 41px of band height, 97 to 138, and that is the trade
+             taken deliberately: the board below is MEASURED from this band
+             (--dh-fit) so nothing overflows, and a title you cannot read is
+             worse than a shorter first screen. Do NOT "fix" this instead by
+             shrinking the two floors, they exist because the digits and the
+             next game's name change on every rotation and a box that resizes
+             drags the title across with it. */
+          .d5-hd{gap:9px;row-gap:8px;margin-bottom:9px;flex-wrap:wrap;}
+          .d5-ht{flex:1 1 100%;}
+          /* The margin-left:auto is what pushed this hard right on the one-row
+             header. On a row of its own that would maroon the score in the
+             middle, so it goes left and pushes the button right instead, and
+             the 96px floor comes off with it: nothing sits to its left any
+             more, so a width that changes with the digits moves nothing. */
+          .d5-sc{margin-left:0;margin-right:auto;text-align:left;min-width:0;}
           .d5-n{font-size:17px;}
           .d5-s{display:none;}
           .d5-sc b{font-size:17px;}
