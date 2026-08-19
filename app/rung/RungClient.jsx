@@ -14,7 +14,7 @@
 // lib/par.js. Floor of 1, so finishing always beats walking away. Weekday
 // perfect lines are 10 to 12 rungs and Sundays 15 or more.
 //
-// THE WORD LIST IS THE RULES. A rung must be one of the 1,292 common five-letter
+// THE WORD LIST IS THE RULES. A rung must be one of the 1,294 common five-letter
 // words in VOCAB, and perfect was computed over exactly that list. Validating
 // against anything wider would let a player find a shorter ladder than perfect
 // through vocabulary the solver never saw, and it would stop meaning anything.
@@ -243,7 +243,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
   const ladder = useMemo(() => [PUZZLE.start, ...g.rungs], [PUZZLE, g.rungs]);
   const current = ladder[ladder.length - 1];
   const WORDS = useMemo(() => new Set(VOCAB), []);
-  // The neighbour map, built once. 1,292 connected words is a few milliseconds,
+  // The neighbour map, built once. 1,294 connected words is a few milliseconds,
   // and it exists only to power the hint.
   const ADJ = useMemo(() => {
     const buckets = new Map();
@@ -563,7 +563,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
       ]}
       steps={[
         <>Every rung must be a real word, and the letters stay where they are: <b>no anagrams</b>, no adding or dropping letters.</>,
-        <>A rung has to be one of the <b>1,292 common five-letter words</b> in the game&rsquo;s list. Par and perfect were worked out over exactly that list, so a word not in it is not a rung here.</>,
+        <>A rung has to be one of the <b>1,294 common five-letter words</b> in the game&rsquo;s list. Par and perfect were worked out over exactly that list, so a word not in it is not a rung here.</>,
         <><b>Perfect</b> is the shortest route that exists, found by search rather than by hand, so nobody gets under it. <b>Par</b> is the length a clean climb comes in at.</>,
         <>No <b>undo</b>: <b>restart</b> puts you back at the start word and zeroes your rungs while the clock keeps running. Climbing backwards by retyping an earlier word costs a rung too.</>,
       ]}
