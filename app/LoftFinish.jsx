@@ -67,6 +67,8 @@ import { Brain } from 'lucide-react';
 import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
 import { DAILY_GAMES, DAILY_GAME_MAP, isEndGame, isArcade, dailyAttemptRule } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
+import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
+import { savedIdentity } from '@/lib/saved-identity';
 
 function fmtTime(s) {
   if (s == null) return null;
@@ -92,6 +94,17 @@ export default function LoftFinish({
   // replayed (see `fastRetry` below). It resets on its own: a replay unmounts
   // this card with the board it came from.
   const [showCard, setShowCard] = useState(false);
+  // CLAIM YOUR NAME (owner build, 2026-08-20). The ladder pays REGISTERED
+  // positions only, and the finish is where the attention is, so a guest's
+  // full card carries the canonical JoinLeaderboardForm inline (see the band
+  // below the leaderboard). Identity is read in an effect: localStorage does
+  // not exist on the server.
+  const [guest, setGuest] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claimed, setClaimed] = useState(false);
+  useEffect(() => {
+    if (!savedIdentity().username) setGuest(true);
+  }, []);
   // WHICH RUN is this finish part of — the marquee, one of the thirteen skill
   // circuits, or none? A circuit ID, not a boolean: it read the ?five=1 flag
   // alone until 2026-08-18, so finishing a game inside a skill circuit fell
@@ -457,6 +470,23 @@ export default function LoftFinish({
     const t = setTimeout(() => setRunSecs((s) => s - 1), 1000);
     return () => clearTimeout(t);
   }, [runAuto, runSecs, runSummary]);
+
+  // One nudge only: the FIRST guest finish opens the claim form outright,
+  // every later one gets the collapsed band. The key is consumed only when the
+  // band is actually on screen; the run card and the fast-retry panel never
+  // render it, so a finish inside a circuit must not burn the nudge. The
+  // render-scope const sits ABOVE the effect that names it, per the TDZ rule
+  // further up.
+  const claimBandShown = guest && !claimed && !openArchive && !runActive && !(fastRetry && !showCard);
+  useEffect(() => {
+    if (!claimBandShown) return;
+    try {
+      if (!localStorage.getItem('sot_claim_nudged')) {
+        localStorage.setItem('sot_claim_nudged', '1');
+        setClaimOpen(true);
+      }
+    } catch (e) {}
+  }, [claimBandShown]);
 
   if (openArchive && archive && archive.length) {
     return (
@@ -838,6 +868,58 @@ export default function LoftFinish({
         ) : null}
       </div>
 
+      {/* CLAIM YOUR NAME. The one join surface on a daily page sat far below
+          the fold; a guest's finish is where a name is worth offering, because
+          rank and points pay registered names only. LoftFinish is the surface
+          players actually see (the fifth-mirror note); DailyEndCard is
+          deliberately left alone, and the run card and fast-retry panel stay
+          minimal by design, so this renders on the FULL card only.
+
+          The form's inline ink reads the --join-* custom properties, which
+          .loft-page sets to NAVY-ground values; this card is WHITE, so the
+          wrapper resets them to the light-page values or the heading ships
+          white on white. */}
+      {claimBandShown ? (
+        <div className="loft-claim">
+          <style>{`
+            .loft-claim{margin:2px 0 10px;border:2px solid rgba(37,99,235,.32);border-radius:11px;
+              background:rgba(37,99,235,.07);padding:11px 13px;}
+            .loft-claim .eb{display:block;font-weight:800;font-size:9.5px;line-height:1;
+              letter-spacing:.11em;text-transform:uppercase;color:#1d4ed8;margin-bottom:5px;}
+            .loft-claim .hd{display:flex;align-items:center;gap:10px;}
+            .loft-claim .nm{flex:1;min-width:0;font-weight:800;font-size:15.5px;line-height:1.15;
+              letter-spacing:-.01em;color:var(--ink);}
+            .loft-claim .go{flex:none;border:0;background:#2563eb;color:#fff;border-radius:9px;
+              padding:9px 13px;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;}
+            .loft-claim .go:hover{background:#1d4ed8;}
+            .loft-claim .tg{font-weight:700;font-size:11.5px;line-height:1.4;color:var(--muted);
+              margin-top:5px;}
+            .loft-claim .formwrap{margin-top:12px;}
+          `}</style>
+          <span className="eb">Playing as a guest</span>
+          <div className="hd">
+            <span className="nm">Claim a free name to hold your rank</span>
+            {!claimOpen ? (
+              <button type="button" className="go" onClick={() => setClaimOpen(true)}>Claim my name</button>
+            ) : null}
+          </div>
+          <div className="tg">Ranks and points count for registered names only. A display name is enough, no password, and the games you already finished come with you.</div>
+          {claimOpen ? (
+            <div className="formwrap" style={{ '--join-head': 'var(--ink)', '--join-body': '#4a4339', '--join-soft': 'var(--muted)', '--join-ok': 'var(--success)', '--join-err': 'var(--accent)' }}>
+              <JoinLeaderboardForm heading="Claim your name" hideIcon
+                onJoined={() => {
+                  setClaimed(true);
+                  try { window.dispatchEvent(new Event('sot:daily-updated')); } catch (e) {}
+                }} />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {claimed ? (
+        <div style={{ margin: '2px 0 10px', border: '2px solid rgba(16,185,129,.4)', borderRadius: 11, background: 'rgba(16,185,129,.08)', padding: '10px 13px', fontWeight: 800, fontSize: 13, color: 'var(--success-deep)' }}>
+          You&rsquo;re on the board. Every finish counts under your name now.
+        </div>
+      ) : null}
       <div className="loft-opts">
         {opts.map((o, i) => {
           const cls = `loft-opt${o.kind ? ` ${o.kind}` : ''}${o.tone ? ` t-${o.tone}` : ''}${wide.has(i) ? ' wide' : ''}`;

@@ -1,4 +1,6 @@
 import QuizHomeClient from './quizzes/QuizHomeClient';
+import WelcomeOverlay from './WelcomeOverlay';
+import InstallPrompt from './InstallPrompt';
 import { QUIZZES } from '@/lib/quizzes';
 import { getAllSources } from '@/lib/sources';
 
@@ -57,6 +59,11 @@ export default function HomePage() {
     <>
       <script dangerouslySetInnerHTML={{ __html: ME_PRELOAD }} />
       <QuizHomeClient variant="v3" />
+      {/* First-visit funnel + site install prompt. Both render null on the
+          server and decide everything in effects; audiences are disjoint
+          (no footprint vs engaged), so they can never stack. */}
+      <WelcomeOverlay />
+      <InstallPrompt />
     </>
   );
 }

@@ -5354,3 +5354,31 @@ SAME deploy step, never from the working tree. Every anchor must match **exactly
 means origin moved, two means the anchor is not specific enough and the patch would land
 twice, and both throw. That is the deploy section's stale-base rule applied to a change too
 large to re-write whole.
+
+## First-visit funnel, guest claim band, and the site install prompt (2026-08-20)
+
+Three onboarding/account surfaces, all client-only (server renders null, everything decided in
+effects, per the readRunParam rule):
+
+- **`app/WelcomeOverlay.jsx`** (mounted in `app/page.js`): a one-time welcome for a browser with
+  NO play footprint, funneling straight into today's Daily Five via `fiveHref` (falls back to the
+  Spatial circuit when `fiveFor` returns []). Returning-player detection is POSITIVE signals only
+  (`sot_quiz_identity`, any `sot_<key>_day` breadcrumb, any per-puzzle save) because
+  `sot_quiz_anon` is minted on first paint and proves nothing. Shows once ever, keyed
+  `sot_welcome_seen`, written the moment it renders. `?welcome=1` forces a preview without
+  writing the key.
+- **Guest claim band in `app/LoftFinish.jsx`**: a guest's FULL end card carries the canonical
+  `JoinLeaderboardForm` inline (collapsed band; the first guest finish auto-opens it, keyed
+  `sot_claim_nudged`, consumed only when the band actually renders). The run card and fast-retry
+  panel stay minimal by design and never render it; DailyEndCard was deliberately not touched
+  (LoftFinish is the live surface). ⚠️ The form's inline ink reads `--join-*`, which `.loft-page`
+  sets to navy-ground values while this card is WHITE, so the wrapper resets them to light-page
+  values; removing that reset ships a white-on-white heading.
+- **`app/InstallPrompt.jsx`** (homepage): install card for ENGAGED visitors (identity or a day
+  breadcrumb, the opposite audience from the overlay, so the two never stack). Chromium uses the
+  stashed `beforeinstallprompt`; iOS gets an Add-to-Home-Screen sheet; one dismissal
+  (`sot_install_dismissed`) or a completed install retires it. `?install=1` forces a preview.
+  **There is deliberately NO service worker**: modern Chrome does not require one for
+  installability, the per-game installs already work without one, and a SW cache on a site that
+  deploys this often is a staleness risk with no payoff. Do not add one as a side effect of a
+  future PWA change.
