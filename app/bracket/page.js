@@ -16,7 +16,7 @@ export const metadata = {
   description:
     'A free daily bracket puzzle. Sixteen real things, one comparison question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
   alternates: { canonical: '/bracket' },
-  manifest: '/bracket.webmanifest',
+  manifest: '/api/pwa-manifest?game=bracket',
   icons: {
     icon: [{ url: '/bracket-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/bracket-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

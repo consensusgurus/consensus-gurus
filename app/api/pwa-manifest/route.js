@@ -8,7 +8,7 @@
 // its id/name/icons; app identity is the manifest id, so an already-installed game updates
 // in place rather than duplicating.
 import { NextResponse } from 'next/server';
-import rootManifest from '@/app/manifest';
+import rootManifest from '@/lib/site-manifest';
 import { mintHandoff, PWA_TTL_MS } from '@/lib/identity-handoff';
 
 export const dynamic = 'force-dynamic';

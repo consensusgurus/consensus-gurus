@@ -19,7 +19,7 @@ export const metadata = {
   description:
     'A free daily logic puzzle in the Cheryl’s Birthday family. Two people are each told one detail of a secret card, then they talk. Work out which card it is from what they admit they do not know. New case every day.',
   alternates: { canonical: '/hearsay' },
-  manifest: '/hearsay.webmanifest',
+  manifest: '/api/pwa-manifest?game=hearsay',
   icons: {
     icon: [{ url: '/hearsay-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/hearsay-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

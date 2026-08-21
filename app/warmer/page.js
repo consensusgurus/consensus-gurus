@@ -19,7 +19,7 @@ export const metadata = {
   description:
     'A free daily word puzzle — one secret word, and every guess tells you how close it is in meaning on a cold-to-hot spectrum. Ocean is scorching for "sea," pencil is freezing. Unlimited guesses; the leaderboard ranks fewest guesses, fastest time. The Sunday Edition hides a rarer word.',
   alternates: { canonical: '/warmer' },
-  manifest: '/warmer.webmanifest',
+  manifest: '/api/pwa-manifest?game=warmer',
   icons: {
     icon: [{ url: '/warmer-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/warmer-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

@@ -15,7 +15,7 @@ export const metadata = {
   description:
     "A free daily word puzzle — you're the copy editor. Almost every sentence in today's brief hides one wrong word or grammar slip (real words only, so spellcheck can't save you): free reign, should of, a mute point. But some sentences are clean — stamp those 'stet.' Tap it, fix it, keep a clean desk.",
   alternates: { canonical: '/stet' },
-  manifest: '/stet.webmanifest',
+  manifest: '/api/pwa-manifest?game=stet',
   icons: {
     icon: [{ url: '/stet-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/stet-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

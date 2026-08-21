@@ -15,7 +15,7 @@ export const metadata = {
   title: 'Venn — Free Daily Logic Puzzle: Sort the Overlaps | Mind Loft',
   description: 'A free daily logic puzzle. Three overlapping circles, twelve words, and every region prints how many words belong in it, so a misfiling always shows up in the arithmetic. New sheet every day.',
   alternates: { canonical: '/venn' },
-  manifest: '/venn.webmanifest',
+  manifest: '/api/pwa-manifest?game=venn',
   icons: {
     icon: [{ url: '/venn-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/venn-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

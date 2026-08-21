@@ -15,7 +15,7 @@ export const metadata = {
   description:
     'A free daily mini crossword — a 5×5 grid of everyday words with fair Across and Down clues, done in a minute or two. The grid checks itself when the last square lands, and Sundays go bigger.',
   alternates: { canonical: '/emcee' },
-  manifest: '/emcee.webmanifest',
+  manifest: '/api/pwa-manifest?game=emcee',
   icons: {
     icon: [{ url: '/emcee-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/emcee-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

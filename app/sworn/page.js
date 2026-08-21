@@ -20,7 +20,7 @@ export const metadata = {
   description:
     'A free daily Knights-and-Knaves logic puzzle — a handful of locals under oath, exactly so many of them lying, one of them a thief. Work the contradictions and name the culprit. A new inquest every day, six sworn on Sundays.',
   alternates: { canonical: '/sworn' },
-  manifest: '/sworn.webmanifest',
+  manifest: '/api/pwa-manifest?game=sworn',
   icons: {
     icon: [{ url: '/sworn-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/sworn-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

@@ -12,7 +12,7 @@ export const metadata = {
   description:
     'A free daily ranking puzzle. Eight real things, one measurable quantity, five submits. Green locks a row that is exactly right, amber means you are off by one place. New list every day, and nine items in the Sunday Edition.',
   alternates: { canonical: '/listed' },
-  manifest: '/listed.webmanifest',
+  manifest: '/api/pwa-manifest?game=listed',
   icons: {
     icon: [{ url: '/listed-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/listed-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

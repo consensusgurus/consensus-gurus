@@ -14,7 +14,7 @@ export const metadata = {
   description:
     'A free daily number puzzle — fill the grid from a rack of tiles so every row and column hits its target. A logic puzzle in the sudoku family, with a new board every day and a bigger 6×6 grid on Sundays.',
   alternates: { canonical: '/tally' },
-  manifest: '/tally.webmanifest',
+  manifest: '/api/pwa-manifest?game=tally',
   icons: {
     icon: [{ url: '/tally-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/tally-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

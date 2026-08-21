@@ -5432,44 +5432,49 @@ Android shares the Chrome profile's storage, so this was iOS-specific.
 The fix reuses the domain-move handoff machinery; the one channel that crosses the partition is
 the URL baked into the manifest's `start_url`, which browsers read at install time:
 
-**v2 (2026-08-21, same day): the swap moved out of the client.** v1 had `VisitorBeacon` swap the
-manifest link's href post-hydration with a pre-minted token, and a user who deleted and re-added
-the app was STILL signed out: Safari ties the install to the manifest link present at page load,
-so a post-hydration swap can be ignored entirely. v2 removes every timing dependence:
+**v3 (2026-08-21, final): the manifest link is set in SERVER METADATA, nothing else works.**
+Two client-side attempts failed the same day and are documented here so nobody repeats them:
+v1 swapped the link href post-hydration in VisitorBeacon (Safari resolves the manifest from the
+link present at load, so a user who deleted and re-added the app was still signed out), and v2
+rewrote it with a parse-time inline script (React OWNS the metadata-rendered <link>, so hydration
+re-applied the original href and quietly reverted the rewrite; the homepage link also streams in
+AFTER body start, so the script often ran before the link even existed). The rule that falls out:
+**anything that must be true about the manifest link must be expressed in Next metadata, never in
+client JS.** Helpfully, Next emits `crossorigin="use-credentials"` on manifest links by itself,
+which is what puts the `sot_vid` cookie on the manifest fetch.
 
-- **An inline synchronous `<script>` as the body's first child in `app/layout.js`** repoints the
-  page's `link[rel="manifest"]` at `/api/pwa-manifest` (a `/<key>.webmanifest` href becomes
-  `?game=<key>`, so one script covers all ~22 game manifests with no per-page edits) and sets
-  `crossorigin="use-credentials"`. It runs during document parse, before any engine resolves the
-  manifest. Do NOT move this into a component effect; that is exactly the v1 bug.
-- **`/api/pwa-manifest`** (GET) mints the `_ml` token ITSELF, from the `sot_vid` cookie, at the
-  moment the engine fetches the manifest (install time on Safari; use-credentials is what puts
-  the cookie on that fetch). `PWA_TTL_MS` = 60 days (`mintHandoff` takes an optional ttl; the
-  redirect handoff keeps its 5 minutes) because the token is frozen into the home-screen entry
-  and the first launch can come much later; `adoptable()` still gates the claim. No `game` param
-  = the root manifest (imports the `app/manifest.js` function); `?game=<key>` fetches
-  `public/<key>.webmanifest` and patches it, keeping the game's id/name/icons so an existing
-  install updates in place. Always `no-store`. An `_ml` query param still overrides (nothing
-  sends one today). The v1 `/api/identity/pwa-token` mint route was deleted with the swap.
+- **Root `app/layout.js` sets `metadata.manifest = '/api/pwa-manifest'`.** The old file-convention
+  `app/manifest.js` was DELETED (a file route outranks config metadata, and its link points at a
+  static manifest that cannot mint). The manifest OBJECT moved to `lib/site-manifest.js`;
+  `public/manifest.webmanifest` is a static mirror so stale cached HTML that still links the old
+  URL keeps a working (token-less) manifest.
+- **Every game page's `metadata.manifest` is `/api/pwa-manifest?game=<key>`** (key = the public
+  manifest FILENAME, so jesters uses `game=jester`). A NEW game page must do the same; linking a
+  static `/<key>.webmanifest` ships installs that sign the player out.
+- **`/api/pwa-manifest`** (GET) mints the `_ml` handoff token ITSELF from the `sot_vid` cookie at
+  the moment the engine fetches the manifest (install time on Safari) and bakes it into
+  `start_url`. `PWA_TTL_MS` = 60 days (`mintHandoff` takes an optional ttl; the redirect handoff
+  keeps its 5 minutes); `adoptable()` still gates the claim, so later launches no-op. No `game`
+  param = the root manifest object; `?game=<key>` fetches `public/<key>.webmanifest` and patches
+  it, keeping the game's id/name/icons so an existing install updates in place. Always `no-store`.
 - **`/api/identity/claim` resolves the ACCOUNT** the anon belongs to (`quiz_users` by `anon_id`,
   falling back to `quiz_results` attribution because `anon_id` on the user row only records the
   first browser) and returns `{ id, username, email }`. `VisitorBeacon.claimHandoff` writes
   `sot_quiz_identity` when the claim resolves an account and the browser holds none, then
   **reloads once** so the app renders signed in (components mounted before the async claim and
-  read empty storage; without the reload the first launch still LOOKS signed out, which reads as
-  the bug persisting). Loop-safe: adoption clears the freshness stamp, so `adoptable()` is false
-  on every later load. The claim route moved from edge to node runtime for the supabase client;
-  only the minting middleware must stay edge.
+  read empty storage). Loop-safe: adoption clears the freshness stamp. The claim route moved from
+  edge to node runtime for the supabase client; only the minting middleware must stay edge.
 - **Diagnostics in Vercel function logs:** `[pwa-manifest] {game, cookie, minted}` on every
-  manifest fetch and `[identity-claim] {valid, account}` on every claim. When an install-signout
-  report arrives, these two lines tell you whether the manifest fetch carried a cookie, whether
-  a token was minted, and whether the launch claimed it. Tokens are never logged.
+  manifest fetch and `[identity-claim] {valid, account}` on every claim. On the next
+  install-signout report these two lines say whether the fetch carried a cookie, whether a token
+  was minted, and whether the launch claimed it. Tokens are never logged.
 
-Verifying: `/api/pwa-manifest` and `?game=crux` must return manifest JSON whose `start_url`
-carries `_ml=` when the request has a `sot_vid` cookie; on any page,
-`document.querySelector('link[rel=manifest]')` must point at `/api/pwa-manifest` immediately
-(inline script, not an effect). Installs made BEFORE v2 are stranded (their frozen start_url has
-no token): the player deletes the icon and re-adds it from Safari, or goes through SigninHelp.
+Verifying: the RAW HTML of `/` and any game page must show
+`<link rel="manifest" href="/api/pwa-manifest[?game=<key>]" crossorigin="use-credentials">`, and
+the DOM must still show it after hydration settles. A credentialed fetch of the route must return
+`start_url` carrying `_ml=`; an uncredentialed one degrades to the plain manifest. Installs made
+BEFORE v3 are stranded (their frozen start_url has no token): the player deletes the icon and
+re-adds it from Safari, or goes through SigninHelp.
 
 ## Quizzes move onto the Loft format (started 2026-08-20, behind ?loft=1)
 

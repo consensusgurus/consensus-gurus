@@ -12,7 +12,7 @@ export const metadata = {
   description:
     'A clueless crossword and a free daily word puzzle. Eight hidden words interlock, and four categories are the only hints. New puzzle every day.',
   alternates: { canonical: '/crux' },
-  manifest: '/crux.webmanifest',
+  manifest: '/api/pwa-manifest?game=crux',
   icons: {
     icon: [{ url: '/crux-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/crux-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

@@ -18,7 +18,7 @@ export const metadata = {
   description:
     'A free daily price puzzle. Sixteen real things from one category, one money question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
   alternates: { canonical: '/pricer' },
-  manifest: '/pricer.webmanifest',
+  manifest: '/api/pwa-manifest?game=pricer',
   icons: {
     icon: [{ url: '/pricer-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/pricer-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

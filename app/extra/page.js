@@ -15,7 +15,7 @@ export const metadata = {
   description:
     "A free daily history puzzle — one historic front page with the giveaway words blacked out. Name the story; every wrong guess tears one more word free. Six tears, one hint, and a perfect score for naming it cold.",
   alternates: { canonical: '/extra' },
-  manifest: '/extra.webmanifest',
+  manifest: '/api/pwa-manifest?game=extra',
   icons: {
     icon: [{ url: '/extra-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/extra-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

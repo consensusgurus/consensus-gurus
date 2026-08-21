@@ -20,7 +20,7 @@ export const metadata = {
   description:
     'A free daily puzzle where the crowd is the answer key. Vote your favorite from a themed slate, then predict how everyone playing today ranks the whole list. Seven items in the Sunday Edition. Exact slot pays double; the order shifts all day as votes arrive.',
   alternates: { canonical: '/outrank' },
-  manifest: '/outrank.webmanifest',
+  manifest: '/api/pwa-manifest?game=outrank',
   icons: {
     icon: [{ url: '/outrank-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/outrank-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

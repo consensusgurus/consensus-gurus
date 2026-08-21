@@ -14,7 +14,7 @@ export const metadata = {
   description:
     'A free daily equal-sum puzzle — carve the grid into connected blocks, one per colored anchor, so every block adds to the same target. One valid carving, a clean solve wins, and Sundays go bigger.',
   alternates: { canonical: '/carve' },
-  manifest: '/carve.webmanifest',
+  manifest: '/api/pwa-manifest?game=carve',
   icons: {
     icon: [{ url: '/carve-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/carve-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

@@ -17,7 +17,7 @@ export const metadata = {
   description:
     'A free daily geography puzzle — one secret world city, no clues. Guess any city and Ping tells you exactly how many miles away it is. Home in and keep guessing until you find it; the fewer guesses, the better your score.',
   alternates: { canonical: '/ping' },
-  manifest: '/ping.webmanifest',
+  manifest: '/api/pwa-manifest?game=ping',
   icons: {
     icon: [{ url: '/ping-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/ping-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

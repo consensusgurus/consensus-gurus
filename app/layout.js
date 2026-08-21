@@ -18,6 +18,15 @@ const SOURCE_COUNT = getAllSources().length;
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
+  // The manifest link points at the token-minting route (PWA identity handoff;
+  // see /api/pwa-manifest). It must be set HERE, in server metadata: Next owns
+  // the rendered <link> through React, so any client-side rewrite of its href
+  // is reverted at hydration (that killed both earlier attempts, a post-load
+  // swap and a parse-time inline script). Next emits crossorigin=use-credentials
+  // on manifest links itself, which is what puts the sot_vid cookie on the
+  // manifest fetch. Game pages override this with ?game=<key> in their own
+  // metadata; a new game page must do the same, never a static .webmanifest.
+  manifest: '/api/pwa-manifest',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Mind Loft' },
   title: `Mind Loft | Elevate Your Thinking`,
   description: `Daily puzzles and quizzes to sharpen your brain. Word, number and logic puzzles, plus 1,000+ timed quizzes across films, music, geography, sports, and brands. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree on the best restaurants, hotels, products, films, and books.`,
@@ -108,23 +117,6 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        {/* PWA identity handoff, step 1 of 2: repoint the manifest link at the
-            token-minting route BEFORE any engine resolves it. This must be a
-            SYNCHRONOUS inline script, not an effect: Safari ties the install
-            to the manifest link present at page load, so the first attempt (a
-            post-hydration href swap in VisitorBeacon) was ignored and installs
-            shipped a token-less start_url. It also sets use-credentials so the
-            manifest fetch carries the sot_vid cookie, which is what
-            /api/pwa-manifest mints the handoff token from at fetch time.
-            Runs as the body's first child: the head (and its metadata-injected
-            manifest link) is fully parsed by then, and nothing user-visible has
-            rendered yet. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              "(function(){try{var l=document.querySelector('link[rel=\"manifest\"]');if(!l)return;var h=l.getAttribute('href')||'';if(h.indexOf('/api/pwa-manifest')===0)return;var m=h.match(/^\\/([a-z0-9-]+)\\.webmanifest$/);var g=(m&&m[1]!=='manifest')?('?game='+m[1]):'';l.setAttribute('href','/api/pwa-manifest'+g);l.setAttribute('crossorigin','use-credentials');}catch(e){}})();",
-          }}
-        />
         {children}
         <VisitorBeacon />
         <ResultQueue />

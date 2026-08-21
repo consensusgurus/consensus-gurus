@@ -15,7 +15,7 @@ export const metadata = {
   description:
     'A free daily history puzzle — one famous moment, six guesses to pin the exact year. Every miss plays hot and cold: earlier or later, and how close you are. Land within three years to solve it; a dead-on first guess is a perfect score.',
   alternates: { canonical: '/circa' },
-  manifest: '/circa.webmanifest',
+  manifest: '/api/pwa-manifest?game=circa',
   icons: {
     icon: [{ url: '/circa-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/circa-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

@@ -14,7 +14,7 @@ export const metadata = {
   description:
     'A free daily cryptarithm — one WORD + WORD = WORD equation where every letter hides a different digit. Exactly one solution, no guessing required. Crack it clean for a perfect 10, and take on four addends in the Sunday Edition.',
   alternates: { canonical: '/cipher' },
-  manifest: '/cipher.webmanifest',
+  manifest: '/api/pwa-manifest?game=cipher',
   icons: {
     icon: [{ url: '/cipher-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/cipher-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

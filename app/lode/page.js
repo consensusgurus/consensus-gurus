@@ -18,7 +18,7 @@ export const metadata = {
   description:
     'A free daily word puzzle and a fresh spin on the letters puzzle. Seven letters, one core letter every word must use, and points that reward rare words over long ones. Strike the vein, then chase the Mother Lode. New board every day.',
   alternates: { canonical: '/lode' },
-  manifest: '/lode.webmanifest',
+  manifest: '/api/pwa-manifest?game=lode',
   icons: {
     icon: [{ url: '/lode-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/lode-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

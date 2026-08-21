@@ -18,7 +18,7 @@ export const metadata = {
   description:
     'A free daily logic deduction puzzle — four suspects, four rooms, four departure times, four curious items, and five of each in the Sunday Edition. Every witness statement is true; work the deduction boards and close the case. A new mystery every day.',
   alternates: { canonical: '/alibi' },
-  manifest: '/alibi.webmanifest',
+  manifest: '/api/pwa-manifest?game=alibi',
   icons: {
     icon: [{ url: '/alibi-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/alibi-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

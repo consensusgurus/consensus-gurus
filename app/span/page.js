@@ -12,7 +12,7 @@ export const metadata = {
   description:
     'A free daily geography puzzle — connect two countries with the shortest chain of land borders you can find. Perfect is the shortest road on the map. New route every day.',
   alternates: { canonical: '/span' },
-  manifest: '/span.webmanifest',
+  manifest: '/api/pwa-manifest?game=span',
   icons: {
     icon: [{ url: '/span-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/span-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

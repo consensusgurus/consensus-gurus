@@ -21,7 +21,7 @@ export const metadata = {
   alternates: { canonical: '/jesters' },
   // The manifest keeps its old filename and its `id: "/jester"` on purpose:
   // changing a PWA id orphans every installed copy. Only start_url moved.
-  manifest: '/jester.webmanifest',
+  manifest: '/api/pwa-manifest?game=jester',
   icons: {
     icon: [{ url: '/jester-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/jester-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

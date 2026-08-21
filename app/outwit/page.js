@@ -19,7 +19,7 @@ export const metadata = {
   description:
     'A free daily puzzle where the puzzle is other people. Five game-theory prompts against the whole field: dodge the popular pick, read the herd, meet the crowd, be the rare bird, then undercut the average by a fraction that changes daily. Six prompts in the Sunday Edition. Then see where everyone actually went.',
   alternates: { canonical: '/outwit' },
-  manifest: '/outwit.webmanifest',
+  manifest: '/api/pwa-manifest?game=outwit',
   icons: {
     icon: [{ url: '/outwit-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/outwit-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

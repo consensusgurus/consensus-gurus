@@ -15,7 +15,7 @@ export const metadata = {
   description:
     'A free daily word puzzle — everyone gets the same 14 letters, and 15 in the Sunday Edition. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified benchmark to beat.',
   alternates: { canonical: '/tuck' },
-  manifest: '/tuck.webmanifest',
+  manifest: '/api/pwa-manifest?game=tuck',
   icons: {
     icon: [{ url: '/tuck-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/tuck-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

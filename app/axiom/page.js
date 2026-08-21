@@ -19,7 +19,7 @@ export const metadata = {
   description:
     'A free daily logic puzzle. One hidden rule splits a board of words, five candidate rules are on the table, and you get a handful of tests to tell them apart. New board every day.',
   alternates: { canonical: '/axiom' },
-  manifest: '/axiom.webmanifest',
+  manifest: '/api/pwa-manifest?game=axiom',
   icons: {
     icon: [{ url: '/axiom-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/axiom-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

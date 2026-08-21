@@ -12,7 +12,7 @@ export const metadata = {
   description:
     'A free daily word grouping puzzle — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day, and the Sunday Edition lays twice as many traps.',
   alternates: { canonical: '/links' },
-  manifest: '/links.webmanifest',
+  manifest: '/api/pwa-manifest?game=links',
   icons: {
     icon: [{ url: '/links-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/links-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

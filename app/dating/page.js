@@ -12,7 +12,7 @@ export const metadata = {
   description:
     'A free daily history puzzle — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day, and six moments in the Sunday Edition.',
   alternates: { canonical: '/dating' },
-  manifest: '/dating.webmanifest',
+  manifest: '/api/pwa-manifest?game=dating',
   icons: {
     icon: [{ url: '/dating-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/dating-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

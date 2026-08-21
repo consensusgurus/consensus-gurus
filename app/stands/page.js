@@ -15,7 +15,7 @@ export const metadata = {
   title: 'Stands — Free Daily Logic Puzzle: Rebuild the Results | Mind Loft',
   description: 'A free daily logic puzzle. A small league played a full round robin, the results sheet was lost, and a handful of facts survive. Exactly one set of results fits them. New season every day.',
   alternates: { canonical: '/stands' },
-  manifest: '/stands.webmanifest',
+  manifest: '/api/pwa-manifest?game=stands',
   icons: {
     icon: [{ url: '/stands-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/stands-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

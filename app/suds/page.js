@@ -14,7 +14,7 @@ export const metadata = {
   description:
     'A free daily sudoku — fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/suds' },
-  manifest: '/suds.webmanifest',
+  manifest: '/api/pwa-manifest?game=suds',
   icons: {
     icon: [{ url: '/suds-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/suds-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

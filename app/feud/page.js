@@ -20,7 +20,7 @@ export const metadata = {
   description:
     'A free daily survey game with a LIVE answer key: five everyday prompts, three answers each, and the key is whatever today’s players say. Match the crowd, bank their percentages, and watch the shares shift all day.',
   alternates: { canonical: '/feud' },
-  manifest: '/feud.webmanifest',
+  manifest: '/api/pwa-manifest?game=feud',
   icons: {
     icon: [{ url: '/feud-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
     apple: [{ url: '/feud-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
