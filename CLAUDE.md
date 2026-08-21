@@ -1720,6 +1720,40 @@ if (missing.length) throw new Error('Missing descriptions: ' + missing.join(', '
 - **Stable-host check for hotlinked URLs:** prefer images.pexels.com / editorial CDNs /
   upload.wikimedia.org / venue sites; avoid expiring signed URLs (fbcdn, Instagram CDN,
   googleusercontent thumbnails) — they die and blank the tile.
+- **BANNED HERO HOSTS: googleusercontent.com and the Meta CDNs are not photo sources (owner rule,
+  2026-08-21).** This upgrades the soft "avoid expiring signed URLs" advice directly above into a hard
+  ban, because the soft version did not hold. A 2026-08-21 audit of all 2,566 hero entries found **101
+  blank hero tiles across 55 lists**, and every single one was an `lh3.googleusercontent.com` Google
+  Maps place photo. They were gathered live, verified at the time, and later died as a group: as of the
+  audit they fail BOTH raw in the browser AND through `/_next/image` (502), so the podium photo and the
+  home tile blank together. Nothing surfaced it, because a dead hero renders as an empty frame, not an
+  error. Never use, on a list hero or a quiz hero:
+  `*.googleusercontent.com` (incl. `lh3`, the `/gps-cs-s/` and `/grass-cs/` Maps paths), `*.ggpht.com`,
+  `*.fbcdn.net`, `*.cdninstagram.com`, `lookaside.fbsbx.com`. The tell is a URL with a long opaque
+  token and no filename: that is a rotating handle, not an address.
+- **Yelp business photos are the reliable fallback for a venue with no good press photo, but you MUST
+  prove the photo belongs to that business.** A `yelp.com/biz/<slug>` page also carries photos from
+  OTHER businesses (the "people also viewed" block), and scraping `bphoto` ids off the page picks them
+  up indistinguishably. This is the same class of error as the Madame Vo / Red Hook Tavern
+  mis-attributions above, and it nearly shipped twice on 2026-08-21 (a sandwich photo surfaced under
+  BOTH Providencia and La Palma Mexicatessen). **The ownership check:** fetch
+  `yelp.com/biz_photos/<slug>?select=<photoId>` and require **200**; a photo belonging to another
+  business returns **404**. Run it on every candidate before shipping it, then use
+  `https://s3-media0.fl.yelpcdn.com/bphoto/<id>/o.jpg` (the `/o.jpg` original) with
+  `credit: "Yelp"` and `creditUrl` set to the business page. Gather the slug from the list's own
+  `itemYelp` map rather than guessing it.
+- **`node scripts/verify-heroes.mjs` is the gate, and it must be green before any hero change ships.**
+  It checks both `lib/hero-images.js` and `lib/quiz-heroes.js` for: banned hosts, missing consensus
+  top-3 coverage, WebP/AVIF and format-negotiating CDNs, non-free Wikimedia `/thumb/` upscales, heroes
+  with no credit, orphan blocks, and the quiz registry rules (every heroed id real, QOTD pool and
+  overrides heroed, the NEWEST quiz heroed). `--live` additionally loads every remote hero through the
+  live optimizer. It is discovered automatically by `scripts/verify-all.mjs`.
+  **`scripts/hero-baseline.json` grandfathers the 100 defects that already existed on 2026-08-21** so
+  the gate ships GREEN and goes RED only on a NEW one, per the verify-listed lesson that a checker
+  which ships red is ignored within a week. That file is a **burn-down list, not a permission slip**:
+  fix heroes and re-run `--baseline` to shrink it. **It must never grow.** An entry appearing in a diff
+  means someone regenerated the baseline to silence a real defect, which is the one way to make this
+  whole mechanism worthless.
 - **Format check: hero URLs MUST resolve to JPEG or PNG, never WebP or AVIF (owner rule, 2026-06-10).**
   Satori's Edge ImageResponse decoder cannot reliably handle WebP/AVIF (browsers can; Vercel Edge
   cannot). The `app/list/[id]/poster-image/route.js` poster route hardening committed 2026-06-10
