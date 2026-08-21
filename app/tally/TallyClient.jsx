@@ -1031,14 +1031,14 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
              it into the vertical one (right column), both = the exact square. */
           .tl-placed.mk-row{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-top:4px solid ${COLORS.ember};border-bottom:4px solid ${COLORS.ember};}
           .tl-placed.mk-col{background:#f5f7fc;border:1.5px solid rgba(28,30,36,0.14);border-left:4px solid ${COLORS.ember};border-right:4px solid ${COLORS.ember};}
-          .tl-placed.mk-both{background:#eef1f8;border:2px solid ${COLORS.ember};box-shadow:0 2.5px 0 rgba(14,29,64,0.6), inset 0 -3px 0 rgba(14,29,64,0.09);}
+          .tl-placed.mk-both{background:#eef1f8;border:2px solid ${COLORS.ember};box-shadow:0 2.5px 0 rgba(30,33,44,0.6), inset 0 -3px 0 rgba(30,33,44,0.09);}
           .tl-placed.mk-both::after{content:'\\2713';position:absolute;top:1px;right:4px;font-family:${SANS};font-size:10px;font-weight:800;line-height:1;color:${COLORS.ember};}
           /* a half-marked tile is draggable along the line it has proven. The
              axis-specific touch-action lets the page still scroll the OTHER
              way, so a row tile never eats a vertical swipe. */
           .tl-placed.tl-slide-row{cursor:ew-resize;touch-action:pan-y;}
           .tl-placed.tl-slide-col{cursor:ns-resize;touch-action:pan-x;}
-          .tl-placed.tl-drag{box-shadow:0 7px 15px rgba(14,29,64,0.3);}
+          .tl-placed.tl-drag{box-shadow:0 7px 15px rgba(30,33,44,0.3);}
           .tl-placed.tl-drag:active{transform:none;}
           /* legend swatches under the board reuse the same language at 22px */
           .tl-key{width:22px;height:22px;border-radius:5px;border:1.5px solid rgba(28,30,36,0.55);background:var(--white);flex:none;box-sizing:border-box;position:relative;}
@@ -1054,7 +1054,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-act:disabled{opacity:0.38;cursor:default;}
           .tl-tgt{cursor:default;}
           .tl-tgt.live{cursor:pointer;}
-          .tl-tgt.live:hover{box-shadow:0 0 0 2px rgba(14,29,64,0.18);}
+          .tl-tgt.live:hover{box-shadow:0 0 0 2px rgba(30,33,44,0.18);}
           .tl-rtile{width:42px;height:42px;border-radius:8px;border:1.5px solid rgba(28,30,36,0.55);background:var(--white);font-family:${MONO};font-size:20px;font-weight:500;color:${COLORS.ink};cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
           .tl-rtile:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.5);}
           .tl-rtile.sel{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.2), 0 2.5px 0 rgba(28,30,36,0.5);}

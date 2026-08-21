@@ -184,13 +184,13 @@ export const GAME_META = {
   suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
   docket: { accent: '#5b2333', badgeBg: '#5b2333', badgeInk: T.white, Fin: Gavel },
   plot: { accent: '#78350f', badgeBg: '#78350f', badgeInk: T.white, Fin: LayoutGrid },
-  sixes:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid2x2 },
+  sixes:  { accent: '#a83f28', badgeBg: '#a83f28', badgeInk: T.white, Fin: Grid2x2 },
   niche:  { accent: '#115e59', badgeBg: '#115e59', badgeInk: T.white, Fin: LayoutGrid },
   barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
   blitz: { accent: '#657512', badgeBg: '#657512', badgeInk: T.white, Fin: Zap },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
-  blocks: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid3x3 },
+  blocks: { accent: '#a83f28', badgeBg: '#a83f28', badgeInk: T.white, Fin: Grid3x3 },
   sweep:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: T.white, Fin: Flag },
   chomp:  { accent: '#a8430f', badgeBg: '#a8430f', badgeInk: T.white, Fin: Route },
   redact: { accent: '#27272a', badgeBg: '#18181b', badgeInk: T.white, Fin: FileText },
@@ -218,7 +218,7 @@ export const CAT_META = {
   // Arcade split out for Blocks (owner, 2026-08-08): a reflex-free falling-shapes
   // game is neither Logic nor End Game, and the label leaves room for the rest of
   // the arcade shelf later.
-  arcade:    { name: 'Arcade',    color: '#1d4ed8', Icon: Gamepad2 },
+  arcade:    { name: 'Arcade',    color: '#a83f28', Icon: Gamepad2 },
 };
 // Family render order for the "more games" grid.
 const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'arcade', 'geography'];
@@ -1258,7 +1258,7 @@ export default function DailyEndCard({
         .dec-claim .s{font-size:11.5px;font-weight:600;color:${SLATE};}
         .dec-claim .cta{flex-shrink:0;position:relative;z-index:1;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--white);background:${BLUE};border-radius:999px;padding:7px 13px;animation:dec-claimblink 1.8s ease-in-out infinite;}
         .dec-claim::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.7) 50%,transparent 68%);transform:translateX(-100%);animation:dec-claimsweep 2.8s ease-in-out infinite;pointer-events:none;}
-        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.36);}55%{box-shadow:0 0 0 7px rgba(37,99,235,0);}}
+        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(192,74,52,.36);}55%{box-shadow:0 0 0 7px rgba(192,74,52,0);}}
         @keyframes dec-claimblink{0%,100%{opacity:1;}50%{opacity:.52;}}
         @keyframes dec-claimsweep{0%{transform:translateX(-100%);}55%,100%{transform:translateX(100%);}}
         @media(prefers-reduced-motion:reduce){.dec-claim,.dec-claim .cta{animation:none;}.dec-claim::after{display:none;}}
@@ -1275,8 +1275,8 @@ export default function DailyEndCard({
         /* A colored cap across the top of every tile: the row reads as three
            deliberate cards rather than three pale boxes (owner 2026-08-01). */
         .dec-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
-        .dec-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(37,99,235,.16);transform:translateY(-1px);}
-        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
+        .dec-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(192,74,52,.16);transform:translateY(-1px);}
+        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(192,74,52,.16);}
         /* Podium tint: a top-3 finish is the whole point of the row, so it is
            colored gold / silver / bronze rather than left generic blue. */
         .dec-tile.m1{border-color:#e3ba57;background:linear-gradient(180deg,#fffdf5,#fdf3d9);box-shadow:0 3px 14px rgba(190,145,25,.20);}
@@ -1302,7 +1302,7 @@ export default function DailyEndCard({
         /* Archive tile: same shell as a rank tile, a completion ring where the
            rank numeral sits. No chevron, because it opens the calendar below
            rather than a leaderboard. */
-        .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
+        .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(192,74,52,.16);}
         /* Ring sized around its widest label, "100%", measured rather than
            guessed: at 12px it renders 40px wide, and a 50px ring with a 5px
            stroke leaves 41px of clear middle, so it fit by one pixel and read as
@@ -1328,10 +1328,10 @@ export default function DailyEndCard({
         .dec-iqhero.full{border-color:#125c3e;background:linear-gradient(180deg,#0d3f2b 0%,#07301f 100%);box-shadow:0 6px 20px rgba(6,45,28,.26);}
         .dec-iqhero:hover{border-color:#2f6ad0;}
         .dec-iqhero.full:hover{border-color:#1a8055;}
-        .dec-iqhero.open{border-color:#93c5fd;box-shadow:0 0 0 1px #93c5fd;}
+        .dec-iqhero.open{border-color:#f0a996;box-shadow:0 0 0 1px #f0a996;}
         .dec-iqhero.full.open{border-color:#86efac;box-shadow:0 0 0 1px #86efac;}
         /* Light rays behind the numeral, revealed by the landing pulse. */
-        .dec-iqhero-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(147,197,253,.30) 0%,rgba(147,197,253,0) 62%);}
+        .dec-iqhero-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(240,169,150,.30) 0%,rgba(240,169,150,0) 62%);}
         .dec-iqhero.full .dec-iqhero-rays{background:radial-gradient(circle,rgba(134,239,172,.28) 0%,rgba(134,239,172,0) 62%);}
         .dec-iqhero.landed .dec-iqhero-rays{animation:dec-iqrays 1.1s ease-out 1;}
         .dec-iqhero.landed{animation:dec-iqpop .5s cubic-bezier(.34,1.56,.64,1) 1;}
@@ -1355,20 +1355,20 @@ export default function DailyEndCard({
         .dec-iqhero-lead{display:flex;align-items:center;gap:16px;flex:0 0 auto;min-width:0;}
         .dec-iqhero-txt{display:flex;flex-direction:column;align-items:flex-start;min-width:0;}
         /* Desktop: gain anchors the left, a hairline, then the three figures. */
-        .dec-iqhero-rule{flex:0 0 auto;width:1px;align-self:stretch;margin:2px 0;background:rgba(147,197,253,.28);}
+        .dec-iqhero-rule{flex:0 0 auto;width:1px;align-self:stretch;margin:2px 0;background:rgba(240,169,150,.28);}
         .dec-iqhero.full .dec-iqhero-rule{background:rgba(134,239,172,.26);}
         .dec-iqhero-stats{flex:1 1 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;min-width:0;}
         .dec-iqhero-stats:empty{display:none;}
         .dec-iqhero-stats .st{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;}
         .dec-iqhero-stats .k{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:#8ab2ee;white-space:nowrap;}
         .dec-iqhero.full .dec-iqhero-stats .k{color:#82d3aa;}
-        .dec-iqhero-stats .v{font-size:31px;font-weight:800;letter-spacing:-.025em;line-height:1.05;color:#dbeafe;font-variant-numeric:tabular-nums;}
+        .dec-iqhero-stats .v{font-size:31px;font-weight:800;letter-spacing:-.025em;line-height:1.05;color:#fae3dc;font-variant-numeric:tabular-nums;}
         .dec-iqhero.full .dec-iqhero-stats .v{color:#d6f7e4;}
         .dec-iqhero-stats .m{font-size:11px;font-weight:700;color:#9dc0ef;}
         .dec-iqhero.full .dec-iqhero-stats .m{color:#95d9b7;}
         .dec-iqhero-lbl{display:block;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8ab2ee;}
         .dec-iqhero.full .dec-iqhero-lbl{color:#82d3aa;}
-        .dec-iqhero-gain{display:block;font-size:68px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#cfe3ff;margin-top:2px;font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(147,197,253,.35);}
+        .dec-iqhero-gain{display:block;font-size:68px;font-weight:800;letter-spacing:-.04em;line-height:1;color:#cfe3ff;margin-top:2px;font-variant-numeric:tabular-nums;text-shadow:0 2px 18px rgba(240,169,150,.35);}
         .dec-iqhero.full .dec-iqhero-gain{color:#cdf5df;text-shadow:0 2px 18px rgba(134,239,172,.32);}
         .dec-iqhero-gain .dash{color:#5f81b8;}
         .dec-iqhero-slate{display:block;font-size:12px;font-weight:700;color:#9dc0ef;margin-top:4px;}
@@ -1379,14 +1379,14 @@ export default function DailyEndCard({
            two is ever rendered (and only one is in the a11y tree). Setting this
            on the source rule matters: an earlier display:none loses to this
            declaration. */
-        .dec-iqhero-sub{position:relative;display:none;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(147,197,253,.22);font-size:12.5px;color:#9dc0ef;}
+        .dec-iqhero-sub{position:relative;display:none;flex-wrap:wrap;justify-content:center;gap:4px 16px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(240,169,150,.22);font-size:12.5px;color:#9dc0ef;}
         .dec-iqhero.full .dec-iqhero-sub{border-top-color:rgba(134,239,172,.22);color:#95d9b7;}
-        .dec-iqhero-sub b{font-weight:800;color:#dbeafe;}
+        .dec-iqhero-sub b{font-weight:800;color:#fae3dc;}
         .dec-iqhero.full .dec-iqhero-sub b{color:#d6f7e4;}
         .dec-iqhero-sub:empty{display:none;}
         .dec-iqhero-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#8ab2ee;pointer-events:none;}
         .dec-iqhero.full .dec-iqhero-mx{color:#82d3aa;}
-        .dec-iqhero.open .dec-iqhero-mx,.dec-iqhero:hover .dec-iqhero-mx{color:#dbeafe;}
+        .dec-iqhero.open .dec-iqhero-mx,.dec-iqhero:hover .dec-iqhero-mx{color:#fae3dc;}
         .dec-iqhero.full.open .dec-iqhero-mx,.dec-iqhero.full:hover .dec-iqhero-mx{color:#d6f7e4;}
         @keyframes dec-iqpop{0%{transform:scale(1);}38%{transform:scale(1.028);}100%{transform:scale(1);}}
         @keyframes dec-iqrays{0%{opacity:0;transform:scale(.6);}30%{opacity:1;}100%{opacity:0;transform:scale(1.25);}}
@@ -1492,7 +1492,7 @@ export default function DailyEndCard({
            so it carries the same 2px/shadow weight as the IQ hero and a taller,
            shadowed primary button (owner 2026-08-01). The Easiest card stays a
            step quieter on purpose: it is the secondary offer. */
-        .dec-nx{border:2px solid #bcd6fb;background:linear-gradient(180deg,#f2f7ff 0%,#e6effd 100%);box-shadow:0 3px 14px rgba(37,99,235,.10);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
+        .dec-nx{border:2px solid #bcd6fb;background:linear-gradient(180deg,#f2f7ff 0%,#e6effd 100%);box-shadow:0 3px 14px rgba(192,74,52,.10);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
         .dec-nx-top{flex:1 1 auto;display:flex;align-items:center;gap:13px;min-width:0;}
         /* The icon takes the same square tile as the Easiest card (owner
            2026-08-04): the countdown ring that used to wrap it made this one
@@ -1502,12 +1502,12 @@ export default function DailyEndCard({
         .dec-nx-ico > svg{width:22px;height:22px;}
         .dec-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
         .dec-nx-name{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
-        .dec-nx-cd{font-family:${MONO};font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#2b5bb5;background:rgba(37,99,235,.10);border:1px solid #bcd6fb;border-radius:999px;padding:3px 8px;white-space:nowrap;}
+        .dec-nx-cd{font-family:${MONO};font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#2b5bb5;background:rgba(192,74,52,.10);border:1px solid #bcd6fb;border-radius:999px;padding:3px 8px;white-space:nowrap;}
         .dec-nx-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:${SLATE};margin-top:3px;min-width:0;}
         .dec-nx-fam,.dec-ez-fam{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dec-nx-btns{display:flex;gap:7px;}
         .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:14.5px;border-radius:11px;padding:13px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid #ccd8ea;background:var(--white);color:${SLATE};}
-        .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:var(--white);box-shadow:0 3px 10px rgba(37,99,235,.30);}
+        .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:var(--white);box-shadow:0 3px 10px rgba(192,74,52,.30);}
         .dec-nx-btns .b.primary:hover{background:var(--blue-deep);filter:none;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
 
@@ -1661,7 +1661,7 @@ export default function DailyEndCard({
            -C-mobile-ranks-2up.html, -C-altA-manrope.html.
            ============================================================ */
 
-        .dec-card{background:linear-gradient(178deg,#1a3573 0%,#12295e 46%,#0a1a3d 100%);border:1px solid rgba(147,197,253,.22);color:#fff;overflow:hidden;}
+        .dec-card{background:linear-gradient(178deg,#1a3573 0%,#12295e 46%,#0a1a3d 100%);border:1px solid rgba(240,169,150,.22);color:#fff;overflow:hidden;}
         .dec-card{scrollbar-color:#3f5fa8 transparent;}
         .dec-card::-webkit-scrollbar-thumb{background:#3f5fa8;border-color:transparent;}
         .dec-card::-webkit-scrollbar-thumb:hover{background:#5378c4;}
@@ -1675,7 +1675,7 @@ export default function DailyEndCard({
         .dec-cap{display:flex;align-items:center;gap:10px;margin:-20px -22px 0;padding:10px 52px 10px 18px;background:${NAVY};}
         .dec-cap .mk{width:19px;height:19px;border-radius:5px;background:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-cap .wm{font-family:${SANS};font-size:13px;font-weight:800;letter-spacing:-.01em;color:var(--white);}
-        .dec-cap .wm i{font-style:normal;color:#60a5fa;}
+        .dec-cap .wm i{font-style:normal;color:#e9917c;}
         .dec-cap .gm{font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#a9c0f0;border-left:1px solid rgba(255,255,255,.22);padding-left:10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
         /* Hero: verdict | gain | identity, on one line. The gain used to
@@ -1683,7 +1683,7 @@ export default function DailyEndCard({
            which left a wide dead zone in the middle of the card and put
            its biggest number off to one side. Centring it fills the gap
            AND removes a row, so the hero is ~45px shorter than it was. */
-        .dec-hero{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding:15px 0 16px;margin-bottom:0;border-bottom:1px solid rgba(147,197,253,.2);}
+        .dec-hero{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding:15px 0 16px;margin-bottom:0;border-bottom:1px solid rgba(240,169,150,.2);}
         .dec-head{margin-bottom:0;min-width:0;}
         .dec-toprow{padding-right:0;margin-bottom:0;}
         .dec-title{color:var(--white);font-size:26px;}
@@ -1701,7 +1701,7 @@ export default function DailyEndCard({
            carries the emphasis the fill used to. */
         .dec-iqhero{border:none;background:none;box-shadow:none;border-radius:14px;padding:4px 10px;margin-bottom:0;width:auto;justify-self:center;}
         .dec-iqhero.full,.dec-iqhero:hover,.dec-iqhero.full:hover{border:none;background:none;box-shadow:none;}
-        .dec-iqhero.open{box-shadow:0 0 0 1px rgba(147,197,253,.55);}
+        .dec-iqhero.open{box-shadow:0 0 0 1px rgba(240,169,150,.55);}
         .dec-iqhero.full.open{box-shadow:0 0 0 1px rgba(134,239,172,.55);}
         .dec-iqhero-in{justify-content:center;gap:13px;}
         .dec-iqhero-lead{gap:13px;}
@@ -1710,7 +1710,7 @@ export default function DailyEndCard({
         .dec-brain-base{opacity:.20;filter:grayscale(1) brightness(3.6);}
         .dec-brain-fill img{filter:brightness(1.75) saturate(1.25);}
         .dec-iqhero-lbl{font-family:${SANS};font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#8ab2ee;}
-        .dec-iqhero-gain{font-size:52px;letter-spacing:-.045em;color:#dbeafe;text-shadow:0 0 32px rgba(147,197,253,.6);}
+        .dec-iqhero-gain{font-size:52px;letter-spacing:-.045em;color:#fae3dc;text-shadow:0 0 32px rgba(240,169,150,.6);}
         .dec-iqhero.full .dec-iqhero-gain{color:#d6f7e4;text-shadow:0 0 32px rgba(134,239,172,.55);}
         /* The three figures and the mobile footnote both moved into the
            day bar below, which states them at a readable size instead of
@@ -1725,7 +1725,7 @@ export default function DailyEndCard({
         .dec-topid{justify-self:end;display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0;}
         a.dec-idbox{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18);color:var(--white);}
         a.dec-idbox:hover{background:rgba(255,255,255,.16);}
-        button.dec-idbox{background:${GOLD};border-color:${GOLD};color:#3a2c00;font-weight:900;font-size:13px;border-radius:11px;padding:10px 15px;box-shadow:0 4px 14px rgba(255,215,107,.3);}
+        button.dec-idbox{background:${GOLD};border-color:${GOLD};color:#3a2c00;font-weight:900;font-size:13px;border-radius:11px;padding:10px 15px;box-shadow:0 4px 14px rgba(250,214,130,.3);}
         button.dec-idbox:hover{background:#ffe08c;border-color:#ffe08c;}
         .dec-idsub{font-family:${SANS};font-size:11.5px;font-weight:700;color:#e5d3a4;text-align:right;line-height:1.35;max-width:190px;}
         .dec-idsub b{color:${GOLD};}
@@ -1741,13 +1741,13 @@ export default function DailyEndCard({
            the live slate, so it tracks DAILY_GAMES rather than a
            hardcoded count, and it mirrors the slate rail in the page
            header directly behind the modal. */
-        .dec-day{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.05);border:1px solid rgba(147,197,253,.2);border-radius:14px;padding:12px 13px;margin:13px 0 0;}
+        .dec-day{display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.05);border:1px solid rgba(240,169,150,.2);border-radius:14px;padding:12px 13px;margin:13px 0 0;}
         .dec-day .blk{flex:0 0 auto;min-width:0;}
         .dec-day .l{font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#8ab2ee;white-space:nowrap;}
         .dec-day .v{font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--white);margin-top:5px;line-height:1;font-variant-numeric:tabular-nums;}
         .dec-day .v small{font-size:14px;font-weight:700;color:#8ea9d6;margin-left:1px;}
         .dec-day .f{font-size:11.5px;font-weight:700;color:#8ea9d6;margin-top:4px;white-space:nowrap;}
-        .dec-day .vr{width:1px;align-self:stretch;background:rgba(147,197,253,.2);flex:0 0 auto;}
+        .dec-day .vr{width:1px;align-self:stretch;background:rgba(240,169,150,.2);flex:0 0 auto;}
         .dec-day .rk{text-align:right;margin-left:auto;}
         .dec-dots{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:7px;}
         .dec-dotrow{display:flex;gap:3px;flex-wrap:wrap;}
@@ -1763,16 +1763,16 @@ export default function DailyEndCard({
            so. "This game" separates the Crux ranks from the day bar's
            site-wide figures above it. */
         .dec-grouplbl{display:flex;align-items:center;gap:10px;font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#7e9fd4;padding:15px 0 0;}
-        .dec-grouplbl::after{content:'';flex:1;height:1px;background:rgba(147,197,253,.16);}
+        .dec-grouplbl::after{content:'';flex:1;height:1px;background:rgba(240,169,150,.16);}
 
         /* Rank tiles as glass. On a dark ground the old white tiles were
            the brightest thing on the card, which put three secondary
            figures above the share bar in the visual order. */
         .dec-tiles{margin:11px 0 10px;}
-        .dec-tile{background:rgba(255,255,255,.07);border:1px solid rgba(147,197,253,.24);box-shadow:none;border-radius:12px;padding:12px 10px 11px;}
+        .dec-tile{background:rgba(255,255,255,.07);border:1px solid rgba(240,169,150,.24);box-shadow:none;border-radius:12px;padding:12px 10px 11px;}
         .dec-tile::before{display:none;}
-        .dec-tile:hover{border-color:rgba(147,197,253,.55);background:rgba(255,255,255,.11);box-shadow:none;transform:translateY(-1px);}
-        .dec-tile.open{border-color:#93c5fd;box-shadow:0 0 0 1px #93c5fd;background:rgba(255,255,255,.11);}
+        .dec-tile:hover{border-color:rgba(240,169,150,.55);background:rgba(255,255,255,.11);box-shadow:none;transform:translateY(-1px);}
+        .dec-tile.open{border-color:#f0a996;box-shadow:0 0 0 1px #f0a996;background:rgba(255,255,255,.11);}
         .dec-tile-lbl{font-size:10px;letter-spacing:.09em;color:#8ab2ee;padding:0 16px;min-height:26px;}
         .dec-tile-rk{font-size:30px;color:var(--white);margin-top:4px;}
         .dec-tile-rk .dash{color:#5f7cb0;}
@@ -1780,7 +1780,7 @@ export default function DailyEndCard({
         .dec-tile-mx{color:#7e9fd4;}
         .dec-tile.open .dec-tile-mx,.dec-tile:hover .dec-tile-mx{color:#cfe3ff;}
         /* Podium tint survives, restated for a dark ground. */
-        .dec-tile.m1{background:rgba(255,215,107,.11);border-color:rgba(255,215,107,.45);box-shadow:none;}
+        .dec-tile.m1{background:rgba(250,214,130,.11);border-color:rgba(250,214,130,.45);box-shadow:none;}
         .dec-tile.m1 .dec-tile-lbl{color:#e8cd8b;}
         .dec-tile.m1 .dec-tile-rk{color:#ffe08c;}
         .dec-tile.m1 .dec-tile-of{color:#d3bd85;}
@@ -1790,7 +1790,7 @@ export default function DailyEndCard({
         .dec-tile.m3{background:rgba(226,150,95,.12);border-color:rgba(226,150,95,.42);box-shadow:none;}
         .dec-tile.m3 .dec-tile-lbl{color:#e0b08b;}
         .dec-tile.m3 .dec-tile-rk{color:#f3c8a4;}
-        .dec-tile-arc.open{border-color:#93c5fd;box-shadow:0 0 0 1px #93c5fd;}
+        .dec-tile-arc.open{border-color:#f0a996;box-shadow:0 0 0 1px #f0a996;}
         .dec-tile-ring{height:52px;}
         .dec-arcring,.dec-arcring svg{width:52px;height:52px;}
         .dec-arcring .num{color:var(--white);}
@@ -1800,36 +1800,36 @@ export default function DailyEndCard({
            (see the 640px block), because Archive is a COMPLETION, not a
            rank, and it was showing "63%" in a slot shaped for "#58". */
         .dec-arcbar{display:none;}
-        .dec-tiles-loading{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:#8ab2ee;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.09em;}
+        .dec-tiles-loading{background:rgba(255,255,255,.05);border-color:rgba(240,169,150,.2);color:#8ab2ee;font-family:${SANS};font-size:11.5px;font-weight:800;letter-spacing:.09em;}
         .dec-tiles-loading::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);}
         .dec-tile-cal{color:#7e9fd4;}
 
         /* Expanded leaderboard panel. */
-        .dec-expand{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:var(--white);}
+        .dec-expand{background:rgba(255,255,255,.05);border-color:rgba(240,169,150,.2);color:var(--white);}
         .dec-expand-ti{color:var(--white);}
-        .dec-expand-full{color:#93c5fd;}
+        .dec-expand-full{color:#f0a996;}
         .dec-lbempty,.dec-note,.dec-lbswipe{color:#8ea9d6;}
-        .dec-lbrow,.dec-lbgrow{border-color:rgba(147,197,253,.14);color:#dbeafe;}
+        .dec-lbrow,.dec-lbgrow{border-color:rgba(240,169,150,.14);color:#fae3dc;}
         .dec-lbrow .rk,.dec-lbg .rk{color:#8ab2ee;}
         .dec-lbrow .nm,.dec-lbg .nm{color:var(--white);}
         .dec-lbrow .vl,.dec-lbg .num,.dec-lbg .pts{color:#cfe3ff;}
         .dec-lbghead .h{color:#8ab2ee;}
-        .dec-lbrow.me,.dec-lbgrow.me{background:rgba(147,197,253,.16);}
-        .dec-cal{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:var(--white);}
+        .dec-lbrow.me,.dec-lbgrow.me{background:rgba(240,169,150,.16);}
+        .dec-cal{background:rgba(255,255,255,.05);border-color:rgba(240,169,150,.2);color:var(--white);}
         .dec-cal-mo,.dec-cal-wd,.dec-cal-key{color:#8ea9d6;}
-        .dec-cal-cell{border-color:rgba(147,197,253,.2);color:#dbeafe;background:rgba(255,255,255,.05);}
-        .dec-cal-nav button{color:#cfe3ff;border-color:rgba(147,197,253,.28);background:rgba(255,255,255,.07);}
+        .dec-cal-cell{border-color:rgba(240,169,150,.2);color:#fae3dc;background:rgba(255,255,255,.05);}
+        .dec-cal-nav button{color:#cfe3ff;border-color:rgba(240,169,150,.28);background:rgba(255,255,255,.07);}
 
         /* Guest claim banner, restated on navy. Gold ground, blue is NOT
            used for the CTA here because the share bar below already owns
            the one solid non-gold fill on the card. */
-        .dec-claim{background:linear-gradient(135deg,rgba(255,215,107,.19),rgba(255,215,107,.08));border-color:rgba(255,215,107,.5);color:var(--white);}
-        .dec-claim .ic{background:rgba(255,215,107,.2);color:${GOLD};box-shadow:inset 0 0 0 1px rgba(255,215,107,.42);}
+        .dec-claim{background:linear-gradient(135deg,rgba(250,214,130,.19),rgba(250,214,130,.08));border-color:rgba(250,214,130,.5);color:var(--white);}
+        .dec-claim .ic{background:rgba(250,214,130,.2);color:${GOLD};box-shadow:inset 0 0 0 1px rgba(250,214,130,.42);}
         .dec-claim .t{color:var(--white);}
         .dec-claim .s{color:#e5d3a4;}
         .dec-claim .cta{background:${GOLD};color:#3a2c00;}
         .dec-claim::after{background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.22) 50%,transparent 68%);}
-        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,107,.4);}55%{box-shadow:0 0 0 7px rgba(255,215,107,0);}}
+        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(250,214,130,.4);}55%{box-shadow:0 0 0 7px rgba(250,214,130,0);}}
 
         /* ---- P1 buttons ------------------------------------------------
            The secondary buttons had NO fill, just a 1.5px hairline, so on
@@ -1849,36 +1849,36 @@ export default function DailyEndCard({
         .dec-sharebar .t .pz{color:#a37800;}
         .dec-sharebar .s{color:#5a6a8c;}
         .dec-sharebar:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 3px 10px rgba(0,0,0,.42);}
-        .dec-back,.dec-replay{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border:2px solid rgba(147,197,253,.4);color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
-        .dec-back:hover,.dec-replay:hover{filter:none;background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,.09));border-color:rgba(147,197,253,.55);color:var(--white);}
+        .dec-back,.dec-replay{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border:2px solid rgba(240,169,150,.4);color:#fae3dc;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-back:hover,.dec-replay:hover{filter:none;background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,.09));border-color:rgba(240,169,150,.55);color:var(--white);}
         .dec-back:active,.dec-replay:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 5px rgba(0,0,0,.3);}
-        .dec-back .bi{color:#93c5fd;}
+        .dec-back .bi{color:#f0a996;}
         .dec-replay .rs{color:#8ea9d6;}
         .dec-fine{color:#7e9fd4;}
-        .dec-fine a{color:#93c5fd;}
+        .dec-fine a{color:#f0a996;}
 
         /* Up next / Easiest, as glass rather than tinted paper. */
-        .dec-nx,.dec-ez{background:rgba(255,255,255,.07);border:1.5px solid rgba(147,197,253,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 3px 12px rgba(0,0,0,.26);color:var(--white);}
-        .dec-ez{background:rgba(255,215,107,.09);border-color:rgba(255,215,107,.34);}
+        .dec-nx,.dec-ez{background:rgba(255,255,255,.07);border:1.5px solid rgba(240,169,150,.26);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 3px 12px rgba(0,0,0,.26);color:var(--white);}
+        .dec-ez{background:rgba(250,214,130,.09);border-color:rgba(250,214,130,.34);}
         .dec-nx-fam,.dec-ez-fam{color:#8ab2ee;}
         .dec-ez-fam{color:#e0c98a;}
         .dec-nx-name,.dec-ez-name{color:var(--white);}
         .dec-nx-cd,.dec-blurb{color:#9dc0ef;}
         .dec-ez .dec-blurb{color:#dcc79a;}
         .dec-nx-ico,.dec-ez-ico{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);}
-        .dec-nx-btns .dec-btn,.dec-ez-btn{border-color:rgba(147,197,253,.4);color:#dbeafe;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-nx-btns .dec-btn,.dec-ez-btn{border-color:rgba(240,169,150,.4);color:#fae3dc;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
         .dec-nx-btns .dec-btn:active,.dec-ez-btn:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 5px rgba(0,0,0,.3);}
         .dec-sk{background:rgba(255,255,255,.09);}
         .dec-sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);}
 
         /* Still-to-play grid, month slip and the popular-quiz block. */
         .dec-morehd,.dec-more-count,.dec-more-eye,.dec-group,.dec-col{color:#8ea9d6;}
-        .dec-row{background:rgba(255,255,255,.07);border-color:rgba(147,197,253,.22);color:var(--white);}
-        .dec-row:hover{background:rgba(255,255,255,.12);border-color:rgba(147,197,253,.45);}
+        .dec-row{background:rgba(255,255,255,.07);border-color:rgba(240,169,150,.22);color:var(--white);}
+        .dec-row:hover{background:rgba(255,255,255,.12);border-color:rgba(240,169,150,.45);}
         .dec-row .pl{color:#8ea9d6;}
-        .dec-slip{background:rgba(255,255,255,.05);border-color:rgba(147,197,253,.2);color:var(--white);}
+        .dec-slip{background:rgba(255,255,255,.05);border-color:rgba(240,169,150,.2);color:var(--white);}
         .dec-slip-pct,.dec-slip-right{color:#9dc0ef;}
-        .dec-foot .dec-btn{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border-color:rgba(147,197,253,.4);color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-foot .dec-btn{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border-color:rgba(240,169,150,.4);color:#fae3dc;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
         .dec-eye,.dec-rz,.dec-gh{color:#8ea9d6;}
 
         @media(max-width:640px){
@@ -1930,16 +1930,16 @@ export default function DailyEndCard({
               surfaces (.dec-btn, .dec-slip variants). */
         .dec-row .nm{color:var(--white);}
         .dec-row .tg{color:#8ea9d6;}
-        .dec-row .play{color:#93c5fd;}
+        .dec-row .play{color:#f0a996;}
         .dec-row .play.resume{color:#ffd08a;}
         .dec-row.resume{border-color:rgba(255,208,138,.34);background:rgba(255,208,138,.08);}
         .dec-gh .cnt{color:rgba(255,255,255,.85);}
-        .dec-btn{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border-color:rgba(147,197,253,.4);color:#dbeafe;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
-        .dec-btn:hover{background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,.09));border-color:rgba(147,197,253,.55);color:var(--white);}
+        .dec-btn{background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.06));border-color:rgba(240,169,150,.4);color:#fae3dc;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 3px 10px rgba(0,0,0,.3);}
+        .dec-btn:hover{background:linear-gradient(180deg,rgba(255,255,255,.19),rgba(255,255,255,.09));border-color:rgba(240,169,150,.55);color:var(--white);}
         .dec-btn:active{transform:translateY(1px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 5px rgba(0,0,0,.3);}
         .dec-btn.ink{background:var(--white);border-color:var(--white);color:#0b1c40;}
         .dec-btn.ink:hover{background:#f4f7ff;border-color:#f4f7ff;color:#0b1c40;}
-        .dec-slip.info{background:rgba(147,197,253,.12);border-color:rgba(147,197,253,.32);}
+        .dec-slip.info{background:rgba(240,169,150,.12);border-color:rgba(240,169,150,.32);}
         .dec-slip.neutral{background:rgba(255,255,255,.06);}
         .dec-slip.neutral:hover{background:rgba(255,255,255,.12);}
         /* Cells are bordered, so without border-box the 42-cell strip is 2px
@@ -2119,7 +2119,7 @@ export default function DailyEndCard({
               This cap carried a leftover house glyph from before the rebrand, so a
               screenshot of the end card was branded differently from every other
               surface. Sized down to 16px to sit inside the 19px white tile. */}
-          <MindLoftMark size={16} ink="#1e3a8a" accent="#2563eb" title="Mind Loft" />
+          <MindLoftMark size={16} ink="#3a4152" accent="#c04a34" title="Mind Loft" />
         </span>
         <span className="wm">Mind <i>Loft</i></span>
         <span className="gm">{selfName} {'\u00b7'} {MONTH_NAMES[Number(todayISO.slice(5, 7)) - 1]} {Number(todayISO.slice(8, 10))}</span>
@@ -2642,9 +2642,9 @@ export default function DailyEndCard({
         .d5e-card{position:relative;background:var(--ground);color:#fff;border-radius:16px;padding:0;max-width:520px;width:100%;margin:0 auto;overflow:hidden;font-family:${SANS};}
         .d5e-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--gold);z-index:2;}
         /* Blue for a skill circuit, gold for the marquee, green when done. */
-        .d5e-card.circ::before{background:var(--blue,#2563eb);}
+        .d5e-card.circ::before{background:var(--blue,#c04a34);}
         .d5e-card.done::before,.d5e-card.circ.done::before{background:var(--success);}
-        .d5e-card.circ .d5e-eye{color:var(--blue-400,#60a5fa);}
+        .d5e-card.circ .d5e-eye{color:var(--blue-400,#e9917c);}
         .d5e-cap{display:flex;align-items:center;gap:8px;padding:9px 16px;background:rgba(0,0,0,.22);}
         .d5e-mk{display:inline-flex;width:19px;height:19px;border-radius:5px;background:#fff;align-items:center;justify-content:center;flex:none;}
         .d5e-wm{font-size:11.5px;font-weight:800;letter-spacing:-.2px;}
@@ -2677,18 +2677,18 @@ export default function DailyEndCard({
         .d5e-lbr .r{flex:none;width:15px;color:#93aae2;font-weight:800;font-variant-numeric:tabular-nums;}
         .d5e-lbr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .d5e-lbr .v{flex:none;font-weight:800;font-variant-numeric:tabular-nums;}
-        .d5e-lbr.first{background:rgba(232,180,58,.18);}
-        .d5e-lbr.me{background:rgba(37,99,235,.30);}
+        .d5e-lbr.first{background:rgba(224,174,74,.18);}
+        .d5e-lbr.me{background:rgba(192,74,52,.30);}
         .d5e-lb .empty{font-size:11.5px;font-weight:700;color:#93aae2;}
         /* Retry stands in for the hand-off when the position is unsolved, so
            it takes the same shape and the blue, never the gold. */
-        .d5e-go.retry{background:var(--blue,#2563eb);color:#fff;}
+        .d5e-go.retry{background:var(--blue,#c04a34);color:#fff;}
         .d5e-gate{margin-top:8px;font-size:11px;font-weight:700;color:#93aae2;text-align:center;}
         .d5e-again{display:block;width:100%;margin-top:9px;padding:9px;border-radius:9px;border:1px solid #35529e;background:rgba(255,255,255,.08);color:#dbe6ff;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;}
         .d5e-again:hover{background:rgba(255,255,255,.16);}
       `}</style>
       <div className="d5e-cap">
-        <span className="d5e-mk" aria-hidden="true"><MindLoftMark size={15} ink="#1e3a8a" accent="#2563eb" title="Mind Loft" /></span>
+        <span className="d5e-mk" aria-hidden="true"><MindLoftMark size={15} ink="#3a4152" accent="#c04a34" title="Mind Loft" /></span>
         <span className="d5e-wm">Mind <i>Loft</i></span>
         <span className="d5e-gm">{runName}</span>
       </div>

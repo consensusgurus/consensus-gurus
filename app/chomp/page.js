@@ -62,13 +62,13 @@ function etTodayServer() {
 
 function ComingSoon({ first }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Manrope', system-ui, sans-serif" }}>
-      <div style={{ maxWidth: 420, width: '100%', background: '#fff', border: '2px solid #0b0c0e', borderRadius: 12, padding: 24, textAlign: 'center' }}>
+    <div style={{ minHeight: '100vh', background: '#fbfaf9', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, fontFamily: "'Manrope', system-ui, sans-serif" }}>
+      <div style={{ maxWidth: 420, width: '100%', background: '#fff', border: '2px solid #14141a', borderRadius: 12, padding: 24, textAlign: 'center' }}>
         <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Chomp</div>
-        <p style={{ fontSize: 14, lineHeight: 1.55, color: '#3f4757', margin: '0 0 16px' }}>
+        <p style={{ fontSize: 14, lineHeight: 1.55, color: '#4d4a52', margin: '0 0 16px' }}>
           Chomp launches {first.dateLabel}. Eat them in order, and mind your own trail.
         </p>
-        <a href="/daily" style={{ display: 'inline-block', background: '#2563eb', color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px 22px', borderRadius: 9, textDecoration: 'none' }}>
+        <a href="/daily" style={{ display: 'inline-block', background: '#c04a34', color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px 22px', borderRadius: 9, textDecoration: 'none' }}>
           Today&rsquo;s slate
         </a>
       </div>

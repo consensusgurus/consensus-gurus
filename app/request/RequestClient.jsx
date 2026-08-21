@@ -102,7 +102,7 @@ function RequestView({ onSubmit }) {
       </div>
 
       {error && (
-        <div style={{ marginBottom: 22, padding: 13, border: `1px solid ${C.danger}`, background: 'rgba(192,57,43,0.07)', borderRadius: 10, fontSize: 14, color: C.danger, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ marginBottom: 22, padding: 13, border: `1px solid ${C.danger}`, background: 'rgba(143,29,36,0.07)', borderRadius: 10, fontSize: 14, color: C.danger, display: 'flex', alignItems: 'center', gap: 8 }}>
           <X size={14} strokeWidth={2.5} /> {error}
         </div>
       )}

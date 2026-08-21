@@ -566,7 +566,7 @@ export default function HomeRails({
       .hr-pi{width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);color:var(--white);display:flex;align-items:center;justify-content:center;flex:none;}
       /* Countdown chip in the panel header, contest only. Sits where the flip
          pill sits on the rotating panels, so the header keeps one shape. */
-      .hr-chip{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.06em;color:#bfdbfe;background:rgba(255,255,255,.14);border-radius:999px;padding:3px 8px;}
+      .hr-chip{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:800;letter-spacing:.06em;color:#f6d8d0;background:rgba(255,255,255,.14);border-radius:999px;padding:3px 8px;}
       .hr-flip{margin-left:auto;display:flex;align-items:center;gap:7px;}
       /* Both the chip and the pill claim the auto margin, so a header carrying
          BOTH would split the free space between them and leave the chip
@@ -814,19 +814,19 @@ export default function HomeRails({
          would be a third ask in one column. Tapping it fires the global
          share-credit pop-up, the same one every Share button on the site opens,
          which is where the contest terms are stated. */
-      /* GOLD, not --cta. --cta is #2563eb, the same family as the navy panel
+      /* GOLD, not --cta. --cta is #c04a34, the same family as the navy panel
          headers this bar is sandwiched between, and a blue bar between two blue
          bands is precisely the "not obvious enough" problem it exists to fix
          (compared side by side on the live page before choosing). Gold is
          already the money colour here, on the #1 rules and the leader crowns,
          so it reads as "there is a prize" and is the one tone on the phone
          stack that nothing else is wearing. Ink is a dark brown rather than
-         --gold-ink (#a16207), which is a text-on-white tone and far too low
+         --gold-ink (#8a6410), which is a text-on-white tone and far too low
          contrast on the gold itself.
          border-radius:0 is explicit and required: a global button rule gives
          every button an 8px radius, so the strip shipped with rounded corners
          inside a stack of square full-bleed bands (owner, 2026-08-08). */
-      .hr-share{display:none;width:100%;box-sizing:border-box;align-items:center;gap:11px;padding:13px 16px;border:0;border-radius:0;background:var(--gold,#e8b43a);color:#3a2a05;font:inherit;font-family:inherit;text-align:left;cursor:pointer;}
+      .hr-share{display:none;width:100%;box-sizing:border-box;align-items:center;gap:11px;padding:13px 16px;border:0;border-radius:0;background:var(--gold,#e0ae4a);color:#3a2a05;font:inherit;font-family:inherit;text-align:left;cursor:pointer;}
       .hr-share:active{background:#d9a52e;}
       .hr-share .hr-shtxt{flex:1;min-width:0;}
       .hr-share b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px;line-height:1.25;}

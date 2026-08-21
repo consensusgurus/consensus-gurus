@@ -136,7 +136,7 @@ export default function DuelTile() {
   const field = { position: 'relative' };
   const inputBox = { display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.22)', borderRadius: 9, padding: '8px 11px', cursor: 'text' };
   const inputEl = { flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', color: '#eaf0fb', fontFamily: FONT, fontSize: 12.5 };
-  const menu = { position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 40, background: T.white, border: '1px solid rgba(20,22,28,0.12)', borderRadius: 10, boxShadow: '0 10px 28px rgba(8,15,35,0.28)', maxHeight: 210, overflowY: 'auto', padding: 4 };
+  const menu = { position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 40, background: T.white, border: '1px solid rgba(20,22,28,0.12)', borderRadius: 10, boxShadow: '0 10px 28px rgba(25,27,38,0.28)', maxHeight: 210, overflowY: 'auto', padding: 4 };
   const item = { display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '8px 10px', borderRadius: 7, cursor: 'pointer', fontFamily: FONT, fontSize: 13, color: T.ink };
   const menuHd = { padding: '6px 10px 3px', fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', color: ACCENT };
   const clearBtn = { border: 'none', background: 'transparent', color: '#9fb0d4', cursor: 'pointer', display: 'flex', flex: 'none' };

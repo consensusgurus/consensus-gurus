@@ -79,7 +79,7 @@ export default function CircuitsIndexPage() {
           .cix-h1{font-size:32px;font-weight:800;letter-spacing:-.8px;line-height:1.08;margin:4px 0 0;}
           .cix-sub{font-size:14px;font-weight:600;color:#c3d5f5;margin-top:8px;line-height:1.5;max-width:62ch;}
           .cix-sec{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
-                   color:#bfdbfe;margin:28px 0 9px;}
+                   color:#f6d8d0;margin:28px 0 9px;}
           .cix-cards{display:flex;flex-direction:column;gap:9px;}
           .cix-c{position:relative;display:block;background:var(--white);border:1.5px solid var(--border);
                  border-radius:12px;padding:14px 16px 14px 19px;text-decoration:none;color:inherit;}

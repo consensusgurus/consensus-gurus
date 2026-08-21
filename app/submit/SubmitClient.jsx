@@ -412,7 +412,7 @@ function SubmitView({ mode = 'list', onBack, onSubmit }) {
             style={{
               padding: 14,
               border: `1.5px solid ${T.accent}`,
-              background: 'rgba(192, 57, 43, 0.08)',
+              background: 'rgba(143, 29, 36, 0.08)',
               fontFamily: 'Manrope, sans-serif',
               fontSize: 14,
               color: T.accent,

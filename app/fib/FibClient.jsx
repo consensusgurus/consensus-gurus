@@ -703,7 +703,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           cursor: playing ? 'pointer' : 'default', userSelect: 'none',
           WebkitTapHighlightColor: 'transparent', minWidth: 0, minHeight: 0,
           borderRadius: 5,
-          background: accused ? 'rgba(192,57,43,0.12)' : isLiar ? 'rgba(192,57,43,0.16)' : 'transparent',
+          background: accused ? 'rgba(143,29,36,0.12)' : isLiar ? 'rgba(143,29,36,0.16)' : 'transparent',
           boxShadow: accused || isLiar ? `inset 0 0 0 1.5px ${COLORS.rust}` : undefined,
         }}
       >

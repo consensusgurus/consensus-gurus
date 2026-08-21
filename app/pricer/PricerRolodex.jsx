@@ -38,7 +38,7 @@ function statusOf(idx, picks, TRUE) {
 const TONE = {
   hit:  { bg: '#dcfce7', fg: '#14532d', rail: '#a7d8b9', label: 'You had it' },
   bust: { bg: '#fee2e2', fg: '#b91c1c', rail: '#fca5a5', label: 'Your bust' },
-  none: { bg: '#eef1f5', fg: '#4b5563', rail: '#d7dde5', label: 'Not on your sheet' },
+  none: { bg: '#f0eeec', fg: '#4b5563', rail: '#d7dde5', label: 'Not on your sheet' },
 };
 
 export default function PricerRolodex({ puzzle, picks, TRUE, fmt, colors, mono, sans }) {

@@ -115,35 +115,35 @@ export default function InstallPrompt() {
     <>
       <style>{`
         .mli-card{position:fixed;right:14px;bottom:14px;z-index:150;display:flex;align-items:center;
-          gap:11px;background:#fff;border:1.5px solid var(--border,#e5e7eb);border-radius:14px;
-          padding:12px 14px;box-shadow:0 14px 40px rgba(8,15,35,.22);max-width:400px;
-          font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#0b0c0e);
+          gap:11px;background:#fff;border:1.5px solid var(--border,#e4e0dd);border-radius:14px;
+          padding:12px 14px;box-shadow:0 14px 40px rgba(25,27,38,.22);max-width:400px;
+          font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#14141a);
           animation:mliIn .3s ease-out;}
         @keyframes mliIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
         .mli-t{flex:1;min-width:0;}
         .mli-t b{display:block;font-weight:800;font-size:13.5px;line-height:1.2;letter-spacing:-.01em;}
         .mli-t s{display:block;text-decoration:none;font-weight:600;font-size:11.5px;line-height:1.35;
-          color:var(--muted,#3f4757);margin-top:2px;}
-        .mli-go{flex:none;border:0;background:var(--cta,#2563eb);color:#fff;border-radius:9px;
+          color:var(--muted,#4d4a52);margin-top:2px;}
+        .mli-go{flex:none;border:0;background:var(--cta,#c04a34);color:#fff;border-radius:9px;
           padding:9px 13px;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;
           white-space:nowrap;}
-        .mli-go:hover{background:var(--cta-hover,#1d4ed8);}
-        .mli-x{flex:none;border:0;background:transparent;color:var(--slate,#646c7a);
+        .mli-go:hover{background:var(--cta-hover,#a83f28);}
+        .mli-x{flex:none;border:0;background:transparent;color:var(--slate,#716d79);
           font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;padding:6px 2px;}
-        .mli-x:hover{color:var(--ink,#0b0c0e);}
+        .mli-x:hover{color:var(--ink,#14141a);}
         @media(max-width:560px){.mli-card{left:10px;right:10px;bottom:10px;max-width:none;}}
         .mli-scrim{position:fixed;inset:0;z-index:210;background:rgba(20,22,28,.55);
           display:flex;align-items:center;justify-content:center;padding:18px;}
         .mli-sheet{background:#fff;border-radius:14px;max-width:360px;width:100%;padding:20px 18px;
-          font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#0b0c0e);}
+          font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#14141a);}
         .mli-sheet b.h{display:block;font-weight:800;font-size:16px;margin-bottom:10px;}
         .mli-sheet ol{margin:0 0 6px;padding-left:20px;font-weight:600;font-size:13.5px;line-height:1.6;}
-        .mli-ok{margin-top:12px;width:100%;border:0;border-radius:10px;background:var(--ink,#0b0c0e);
+        .mli-ok{margin-top:12px;width:100%;border:0;border-radius:10px;background:var(--ink,#14141a);
           color:#fff;font-family:inherit;font-weight:800;font-size:12.5px;letter-spacing:.05em;
           text-transform:uppercase;padding:12px;cursor:pointer;}
       `}</style>
       <div className="mli-card" role="dialog" aria-label="Install Mind Loft">
-        <MindLoftMark size={28} ink="#0b0c0e" accent="#2563eb" />
+        <MindLoftMark size={28} ink="#14141a" accent="#c04a34" />
         <span className="mli-t">
           <b>Install Mind Loft</b>
           <s>Your daily puzzles, one tap from the home screen.</s>

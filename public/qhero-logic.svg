@@ -36,7 +36,7 @@
       <path d="M26 138 l20 20 M46 138 l-20 20"/>
     </g>
     <!-- dashes (neutral) -->
-    <g stroke="#c3ccda" stroke-width="6" stroke-linecap="round">
+    <g stroke="#d3cec9" stroke-width="6" stroke-linecap="round">
       <path d="M160 29 h24"/>
       <path d="M24 87 h24"/>
       <path d="M96 145 h24"/>

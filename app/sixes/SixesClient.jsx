@@ -58,7 +58,7 @@ import { meRequest } from '@/app/quizMeClient';
 // is derived from COLORS.accent below rather than written as a literal hex a
 // second time, because a forked sudoku client shipped its parent's orange into
 // a teal game exactly once and nobody saw it until it was live.
-const ACCENT = '#1d4ed8';
+const ACCENT = '#a83f28';
 const COLORS = {
   cream: T.surface,
   paper: T.paper,
@@ -67,7 +67,7 @@ const COLORS = {
   rust: T.danger,
   faded: T.muted,
   accent: ACCENT,
-  accentSoft: '#eef3ff',
+  accentSoft: '#fdf2ef',
   accentTint: '#dbe6ff',       // a square holding the highlighted digit
   accentPick: '#c3d6ff',       // the selected square
   accentDeep: '#12327f',       // pressed / shadow
@@ -898,13 +898,13 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
                   title="Clear every number you have entered and start the grid over on the same clock"
                   style={hasEntries
                     ? (armClear
-                      ? { background: '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
+                      ? { background: '#fdeeee', borderColor: 'rgba(143,29,36,0.5)', color: COLORS.rust }
                       : undefined)
                     : { opacity: 0.4, cursor: 'default' }}>
                   <Trash2 size={14} /> {armClear ? 'Tap again to clear' : 'Clear'}
                 </button>
                 {hintOk && !g.hintUsed && (
-                  <button className="sx-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,78,216,0.5)', color: COLORS.accentDeep }}>
+                  <button className="sx-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(168,63,40,0.5)', color: COLORS.accentDeep }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}

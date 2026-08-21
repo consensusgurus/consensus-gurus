@@ -233,7 +233,7 @@ export default function CommunityLeaderboardClient() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '11px 15px',
                     borderTop: i ? `1px solid ${C.line}` : 'none',
-                    background: mine ? 'rgba(232,180,58,0.10)' : 'transparent',
+                    background: mine ? 'rgba(224,174,74,0.10)' : 'transparent',
                   }}
                 >
                   <span style={{
@@ -277,7 +277,7 @@ export default function CommunityLeaderboardClient() {
       {joinOpen && (
         <div
           onClick={() => setJoinOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(14,29,64,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(30,33,44,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ width: 390, maxWidth: '100%', background: T.white, borderRadius: 16, padding: '22px 20px 20px', maxHeight: '88vh', overflow: 'auto' }}>
             <JoinLeaderboardForm

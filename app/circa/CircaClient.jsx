@@ -73,7 +73,7 @@ const SNAP = 3; // within this many years = "circa" — it counts as solved
 const BANDS = [
   { max: 10, key: 'hot', label: 'within 10 years', color: '#9a3d0c', bg: '#ffedd5', border: 'rgba(234,88,12,0.55)', sq: '\u{1F7E7}' },
   { max: 50, key: 'warm', label: 'within 50 years', color: '#92610b', bg: '#fef3c7', border: 'rgba(217,119,6,0.5)', sq: '\u{1F7E8}' },
-  { max: 200, key: 'cool', label: 'within 200 years', color: '#0a1730', bg: '#dbeafe', border: 'rgba(14,29,64,0.45)', sq: '\u{1F7E6}' },
+  { max: 200, key: 'cool', label: 'within 200 years', color: '#0a1730', bg: '#fae3dc', border: 'rgba(30,33,44,0.45)', sq: '\u{1F7E6}' },
   { max: Infinity, key: 'cold', label: 'over 200 years off', color: '#475569', bg: '#e2e8f0', border: 'rgba(71,85,105,0.4)', sq: '⬜' },
 ];
 const bandOf = (diff) => BANDS.find((b) => diff <= b.max);

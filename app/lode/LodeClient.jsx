@@ -624,8 +624,8 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,${COLORS.accent},#d99a1a);border-radius:999px;transition:width .35s;}
           .ld-pip{position:absolute;top:-4px;width:2px;height:18px;background:rgba(28,30,36,0.28);}
           .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${COLORS.ink};}
-          .ld-wtag.t3{border-color:rgba(192,57,43,0.45);color:${COLORS.rust};}
-          .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:${COLORS.accent};}
+          .ld-wtag.t3{border-color:rgba(143,29,36,0.45);color:${COLORS.rust};}
+          .ld-wtag.t2{border-color:rgba(138,100,16,0.5);color:${COLORS.accent};}
           .ld-wtag.pan{background:${COLORS.accentSoft};border-color:${COLORS.accent};font-weight:700;}
           .ld-wtag.new{outline:2px solid ${COLORS.accent};outline-offset:1px;}
           /* Tailings: real, unscored. Deliberately the quietest tag on the

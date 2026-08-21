@@ -137,14 +137,14 @@ export default function QrPosterPop() {
           >
             <X size={18} strokeWidth={2.4} />
           </button>
-          <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#bfdbfe', marginBottom: 9 }}>
+          <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#f6d8d0', marginBottom: 9 }}>
             Free, and made by hand
           </div>
           <QrCode size={30} strokeWidth={2} color={T.white} />
           <div style={{ fontSize: 30, fontWeight: 800, color: T.white, lineHeight: 1.12, letterSpacing: '-.02em', marginTop: 6 }}>
             Put your code on a wall
           </div>
-          <div style={{ fontSize: 14, color: '#dbeafe', marginTop: 9, lineHeight: 1.45 }}>
+          <div style={{ fontSize: 14, color: '#fae3dc', marginTop: 9, lineHeight: 1.45 }}>
             A printable poster with your own QR code on it. Everyone who scans it and
             plays counts as your invite.
           </div>

@@ -57,7 +57,7 @@ export default function ContestBoard() {
     } catch { /* no clipboard */ }
   }
 
-  const card = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: '18px 20px', marginBottom: 16 };
+  const card = { background: '#fff', border: '1px solid #e4e0dd', borderRadius: 14, padding: '18px 20px', marginBottom: 16 };
   const th = { fontSize: 10.5, letterSpacing: '.1em', textTransform: 'uppercase', color: T.slate, fontWeight: 700, textAlign: 'right', padding: '0 0 8px' };
 
   return (
@@ -205,7 +205,7 @@ export default function ContestBoard() {
           </thead>
           <tbody>
             {shown.map((r, i) => (
-              <tr key={r.refCode || i} className={i === 0 ? 'lead' : undefined} style={{ borderTop: '1px solid #eef1f5' }}>
+              <tr key={r.refCode || i} className={i === 0 ? 'lead' : undefined} style={{ borderTop: '1px solid #f0eeec' }}>
                 <td className="cb-rk" style={{ color: (r.rank || i + 1) <= 3 ? MEDAL[(r.rank || i + 1) - 1] : T.slate }}>{r.rank || i + 1}</td>
                 <td>
                   <div className="cb-nm">{r.username}</div>

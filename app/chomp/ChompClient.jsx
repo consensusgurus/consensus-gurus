@@ -69,7 +69,7 @@ import { DIRS, freshState, applyMove, anyLegal, isCleared, fillOf } from '@/lib/
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const COLORS = {
-  ink: T.ink, cream: '#f7f8fa', faded: '#3f4757', line: '#e5e7eb',
+  ink: T.ink, cream: '#fbfaf9', faded: '#4d4a52', line: '#e4e0dd',
   accent: '#a8430f', accentSoft: '#fbeadf', block: '#dc2626',
 };
 const HELP_KEY = 'sot_chomp_help_seen';
@@ -194,7 +194,7 @@ function drawHead(ctx, cellXY, facing, cell, dead, chewing, pad) {
     ctx.stroke();
   } else {
     // a slit pupil, because a round one reads as a frog
-    ctx.fillStyle = '#0b0c0e';
+    ctx.fillStyle = '#14141a';
     ctx.beginPath();
     ctx.ellipse(ex, ey, Math.max(0.7, c * 0.022), c * 0.062, 0, 0, 7);
     ctx.fill();
@@ -507,7 +507,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
 
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = '#ffffff'; rr(0, 0, W, H, 12); ctx.fill();
-    ctx.strokeStyle = '#eef1f5'; ctx.lineWidth = 1;
+    ctx.strokeStyle = '#f0eeec'; ctx.lineWidth = 1;
     for (let i = 1; i < PUZZLE.w; i++) { ctx.beginPath(); ctx.moveTo(px(i), PAD); ctx.lineTo(px(i), PAD + PUZZLE.h * cell); ctx.stroke(); }
     for (let i = 1; i < PUZZLE.h; i++) { ctx.beginPath(); ctx.moveTo(PAD, px(i)); ctx.lineTo(PAD + PUZZLE.w * cell, px(i)); ctx.stroke(); }
     ctx.strokeStyle = '#e2e6ec'; ctx.lineWidth = 1;

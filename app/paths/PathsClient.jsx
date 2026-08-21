@@ -74,8 +74,8 @@ const COLORS = {
   track: T.accent,          // laid track reads as the brand navy
   ridge: '#e6dcc6',
   ridgeInk: '#8a6a2f',
-  river: '#bfdbfe',
-  riverInk: '#1d4ed8',
+  river: '#f6d8d0',
+  riverInk: '#a83f28',
   cliff: '#4b5563',         // a wall, not a price
   cliffInk: '#111827',
   rail: '#0f766e',          // old track, free to run along
@@ -677,7 +677,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
         { label: 'Ridge 2', style: { background: COLORS.ridge, border: `1.5px solid ${COLORS.ridgeInk}`, color: COLORS.ridgeInk } },
         { label: 'Crossing 3', style: { background: COLORS.river, border: `1.5px solid ${COLORS.riverInk}`, color: COLORS.riverInk } },
         ...(HAS_RAILS ? [{ label: 'Old track 0', style: { background: COLORS.railSoft, border: `1.5px solid ${COLORS.rail}`, color: COLORS.rail } }] : []),
-        ...(HAS_CLIFFS ? [{ label: 'Cliff, no way through', style: { background: '#e5e7eb', border: `1.5px solid ${COLORS.cliff}`, color: COLORS.cliffInk } }] : []),
+        ...(HAS_CLIFFS ? [{ label: 'Cliff, no way through', style: { background: '#e4e0dd', border: `1.5px solid ${COLORS.cliff}`, color: COLORS.cliffInk } }] : []),
       ]}
       sub={<>Tan shading marks every lane that charges 2, which needs <b>both</b> ends on the ridge, so skirting the edge is free. The river is one unbroken barrier.{HAS_CLIFFS ? <> A dark bar is a <b>cliff</b>: that lane cannot be laid at any price, so route around it.</> : null}{HAS_RAILS ? <> A dashed green lane is <b>old track</b>, already on the ground: run along it and it costs you nothing.</> : null}</>}
       steps={[
@@ -827,7 +827,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               {showPar && SOL.map((i) => {
                 const l = LANES[i];
                 return <line key={`p${i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
-                  stroke="#e8b43a" strokeWidth={4.5} strokeLinecap="round" strokeDasharray="2 7" style={{ pointerEvents: 'none' }} />;
+                  stroke="#e0ae4a" strokeWidth={4.5} strokeLinecap="round" strokeDasharray="2 7" style={{ pointerEvents: 'none' }} />;
               })}
               {/* laid track */}
               {LANES.map((l) => (E[l.i] ? (

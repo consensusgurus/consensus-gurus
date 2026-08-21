@@ -503,11 +503,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
         .qch-tdot{width:4px;height:4px;border-radius:50%;background:var(--border);margin:0 14px;flex:none;}
         .qch-tico{width:17px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none;}
         .qch-tico-play{background:rgba(46,163,106,0.22);}
-        .qch-tico-lead{background:rgba(232,180,58,0.2);}
+        .qch-tico-lead{background:rgba(224,174,74,0.2);}
         .qch-tico-duel{background:rgba(201,79,79,0.22);}
         .qch-tico-new,.qch-tico-stat{background:rgba(59,116,232,0.28);}
-        .qch-tico-top{background:rgba(232,180,58,0.22);}
-        .qch-tico-champ{background:rgba(232,180,58,0.16);}
+        .qch-tico-top{background:rgba(224,174,74,0.22);}
+        .qch-tico-champ{background:rgba(224,174,74,0.16);}
         .qch-tico-ach{background:rgba(183,156,242,0.24);}
         .qch-tico-streak{background:rgba(245,137,62,0.22);}
         .qch-hub-me{margin-left:2px;}

@@ -5494,3 +5494,69 @@ rollout passed while three games were throwing a temporal-dead-zone error, becau
 after hydration and the server markup looks perfect. Load `/quiz/<id>?loft=1`, then check: the cap
 band lines up with the board, the footer is re-inked on navy, the finish flips, the console is
 clean, and the SAME quiz without the flag is unchanged.
+
+---
+
+## Palette: WARM SLATE & CORAL (shipped 2026-08-21), and what a recolour actually costs
+
+The site is no longer navy and blue. Every neutral is warm, the dark brand is a warm slate
+`#3a4152`, and the bright brand and the CTA are coral `#c04a34`. The token table in
+`lib/theme.js` and the `:root` block in `app/globals.css` are the palette; `scripts/check-theme.mjs`
+still asserts the two agree, and the full before/after mapping is recorded in the comment under
+the `T` table.
+
+**A token swap is NOT a recolour, and that is the lesson to carry forward.** `check-theme.mjs`
+declares `PENDING = []` ("every tree under app/ is converted and guarded"), but it was ALREADY
+FAILING on main with **297 raw brand hexes across 99 files** before this change, so the guard
+had stopped guarding some time ago and nobody noticed. Recolouring by editing the two token
+files alone would have left most of the site navy. The change that shipped was therefore a
+codemod over 128 files and 1,448 colour tokens, plus the three files that own the palette.
+
+Rules learned, for the next palette change:
+
+- **Run `node scripts/check-theme.mjs` FIRST and read the number.** It is the only measure of
+  how much of a recolour is a token edit and how much is a sweep. A green guard means two files;
+  a red one means a codemod. Do not assume the guard is green because `PENDING` is empty.
+- **The CTA has to hold the ink it is actually paired with.** `T.cta` sits beside `T.white` at
+  roughly 80 call sites and beside `T.ctaInk` at 22, so the CTA colour is constrained by white
+  text, not by taste: the coral in the mock-up (`#e2674f`) is 3.34:1 against white and would have
+  failed every one of those buttons. The shipped `#c04a34` is 4.92:1. Check this pairing ratio
+  before choosing a brand bright, not after.
+- **A new CTA can collide with a semantic colour.** `danger` had been left alone through every
+  previous palette change because it encodes meaning, but the old `#c0392b` sits 29 RGB units
+  from the new CTA, i.e. the wrong-answer red and the primary button would have been the same
+  colour on every game page. It moved to `#8f1d24` (80 units clear, 8.5:1 on surface).
+  `success` / `successDeep` / `silver` / `bronze` were genuinely untouched.
+- **Token NAMES are the site's vocabulary; do not rename them to chase a hue.** `blue` holds
+  coral and `CAT_BLUE` / `catBlue` / `ringBlue` in `lib/home-blues.js` hold warm slate, exactly
+  as `ember` held navy through the last change. Renaming 107 call sites to match a colour is how
+  a rename codemod eats something it should not.
+- **Prove a codemod, do not eyeball it.** The check that carried this change was: strip every hex
+  and every rgb/rgba triplet out of the before and after, and assert the residue is byte-identical
+  per file. That is a proof that only colour moved; a diff that "looks like only colours" across
+  128 files is not. Every changed `.js` / `.jsx` was then re-parsed with acorn + acorn-jsx (both
+  are already in `node_modules`; there is no esbuild binary in the sandbox).
+- **Sweep `rgb()` / `rgba()` too.** 52 brand colours were living in decimal form, invisible to a
+  hex sweep, including CSS custom-property FALLBACKS (`var(--cta,#2563eb)`), which are the ones
+  that silently keep the old palette alive wherever the variable does not resolve.
+- **Deliberately NOT swept:** near-blacks (`#1c1e24`, `#14161c` and their rgba forms, ~2,400
+  sites) because warming a near-black is imperceptible and touching thousands of lines for it is
+  pure risk; per-game accent palettes, `CAT_META` and `DEPT_COLOR`, which encode identity rather
+  than brand; and the five Satori routes' own literals, which are in `check-theme`'s `EXCLUDE`
+  list but WERE recoloured here, since a literal swap is exactly what a route that cannot resolve
+  CSS custom properties needs.
+
+**OUTSTANDING after this change:**
+
+1. **The blue game-tile art is still blue.** `blueTile()` in `app/DailyStrip.jsx` rewrites
+   `/games/btn-<key>.png` to `/games/blue/btn-<key>.png` for the slate rows and both cap tiles, so
+   the homepage renders ~65 PNGs drawn on the blue ramp against a warm slate and coral page. They
+   need redrawing on the coral/slate ramp per the rules in the daily-game tile section. Note the
+   trap recorded there: `tileFallback` silently swaps a missing blue file back to the full-colour
+   original, so a half-done redraw shows as one garish tile in a warm table and no error.
+2. **`check-theme.mjs` is still red** (300 raw hexes, 100 files, essentially unchanged from the
+   297/99 it inherited). This change did not make the debt worse and did not pay it down. Paying
+   it down means converting those literals to `T.*` / `var(--*)`, which is a separate sweep.
+3. **The checker's own token regex misses `blue400` and `blue200`** (`([a-zA-Z]+):` does not match
+   a digit), so those two tokens are unverified by parity on both sides. It is consistent, so it
+   does not fire a false failure, but the guard is not covering them.

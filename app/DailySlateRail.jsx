@@ -11,8 +11,8 @@
 //
 // COLOUR (owner, 2026-08-07): the rail is the THIRD NAVY BAND, #12276b, one
 // step darker than the stat bar above it, so the whole masthead group reads as
-// one continuous block: #1e3a8a masthead, #16307a stat bar, #12276b slate.
-// It was #eef3ff (accentSoft) until now, borrowed from the home page's own
+// one continuous block: #3a4152 masthead, #16307a stat bar, #12276b slate.
+// It was #fdf2ef (accentSoft) until now, borrowed from the home page's own
 // "Today's Slate" panel. That made the rail rhyme with the HOME PAGE but read
 // as a separate object stuck under the HEADER, which is what the owner asked
 // to fix. The chips are translucent white on the navy rather than a new blue,

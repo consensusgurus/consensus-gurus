@@ -7,10 +7,10 @@ import { T } from '@/lib/theme';
 import SigninHelp, { isLockedOut } from '../../SigninHelp';
 
 const ACCENT=T.accent, INK=T.ink, MUTED=T.muted, SOFT=T.silver, LINE='rgba(20,22,28,0.30)';
-const BARBG='#1e3a8a', ONBLUE=T.white, ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
+const BARBG='#3a4152', ONBLUE=T.white, ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
 const MEDAL=[T.gold,'#c3c7cf','#cf8b4e'];
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:ONBLUE_SOFT,marginBottom:2};
-const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#1d4ed8',color:T.white,border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
+const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#a83f28',color:T.white,border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
 function getAnonId(){try{return localStorage.getItem('sot_quiz_anon');}catch{return null;}}
 function ensureAnonId(){
@@ -52,7 +52,7 @@ function SignupModal({ onClose }){
           <button onClick={onClose} aria-label="Close" style={{border:'none',background:'transparent',cursor:'pointer',color:SOFT,display:'flex'}}><X size={18}/></button>
         </div>
         <p style={{fontSize:13,color:MUTED,margin:'0 0 16px',lineHeight:1.5}}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
-        {err&&<div style={{marginBottom:12,padding:10,borderRadius:8,background:'rgba(192,57,43,0.08)',border:'1px solid rgba(192,57,43,0.4)',color:T.danger,fontSize:13}}>{err}</div>}
+        {err&&<div style={{marginBottom:12,padding:10,borderRadius:8,background:'rgba(143,29,36,0.08)',border:'1px solid rgba(143,29,36,0.4)',color:T.danger,fontSize:13}}>{err}</div>}
         <input value={u} onChange={e=>setU(e.target.value)} placeholder="Display name" maxLength={15} autoCapitalize="none" autoCorrect="off" spellCheck={false} style={inp}/>
         <input value={em} onChange={e=>setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} type="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} style={{...inp,marginTop:10}}/>
         <button onClick={submit} disabled={busy} style={{marginTop:16,width:'100%',background: T.cta, color: T.ctaInk,border:'none',borderRadius:10,padding:'12px',fontFamily:'inherit',fontWeight:700,fontSize:14,cursor:busy?'wait':'pointer',opacity:busy?0.6:1}}>{busy?'Joining…':'Join the leaderboard'}</button>

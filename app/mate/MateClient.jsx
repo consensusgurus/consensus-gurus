@@ -79,7 +79,7 @@ const COLORS = {
 const LIGHT_SQ = '#efd9b5';
 const DARK_SQ = '#b58863';
 const SEL_SQ = 'rgba(107,68,35,0.55)';
-const LAST_SQ = 'rgba(232,180,58,0.55)';
+const LAST_SQ = 'rgba(224,174,74,0.55)';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -984,7 +984,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
                 let bg = dark ? DARK_SQ : LIGHT_SQ;
                 if (isLast) bg = `linear-gradient(${LAST_SQ},${LAST_SQ}), ${bg}`;
                 if (isSel) bg = `linear-gradient(${SEL_SQ},${SEL_SQ}), ${dark ? DARK_SQ : LIGHT_SQ}`;
-                if (checked) bg = `radial-gradient(circle, rgba(192,57,43,0.85) 12%, rgba(192,57,43,0.25) 62%, transparent 74%), ${dark ? DARK_SQ : LIGHT_SQ}`;
+                if (checked) bg = `radial-gradient(circle, rgba(143,29,36,0.85) 12%, rgba(143,29,36,0.25) 62%, transparent 74%), ${dark ? DARK_SQ : LIGHT_SQ}`;
                 return (
                   <div
                     key={sq}

@@ -105,7 +105,7 @@ export default function DailyFiveBar({ slug }) {
         .d5b-k{position:relative;padding-left:11px;font-size:9px;font-weight:800;letter-spacing:.15em;
                text-transform:uppercase;color:#f0cd7a;white-space:nowrap;flex:none;}
         .d5b-k::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px;
-                       background:var(--gold,#e8b43a);}
+                       background:var(--gold,#e0ae4a);}
         .d5b-rail{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;}
         .d5b-rail::-webkit-scrollbar{display:none;}
         .d5b-row{display:flex;gap:6px;width:max-content;padding:1px 0;}
@@ -114,14 +114,14 @@ export default function DailyFiveBar({ slug }) {
                text-decoration:none;flex:none;}
         .d5b-g:hover{background:rgba(255,255,255,.22);border-color:#5f80cf;}
         .d5b-g.is-done{background:rgba(52,211,153,.15);border-color:#2f7d5e;color:#8ff0c4;}
-        .d5b-g.is-now{background:var(--blue,#2563eb);border-color:#6d9bff;color:#fff;
+        .d5b-g.is-now{background:var(--blue,#c04a34);border-color:#6d9bff;color:#fff;
                       box-shadow:0 1px 3px rgba(0,0,0,.35);}
         .d5b-n{font-size:11px;font-weight:800;color:#f0cd7a;white-space:nowrap;flex:none;
                font-variant-numeric:tabular-nums;}
         .d5b-n.done{color:#8ff0c4;}
         /* The hand-off. It is the whole reason the bar exists, so it is the one
            filled control on it and it names the game rather than saying "next". */
-        .d5b-next{flex:none;background:var(--gold,#e8b43a);color:#3a2a05;border-radius:7px;
+        .d5b-next{flex:none;background:var(--gold,#e0ae4a);color:#3a2a05;border-radius:7px;
                   padding:6px 12px;font-size:10.5px;font-weight:800;letter-spacing:.05em;
                   text-decoration:none;white-space:nowrap;}
         .d5b-next:hover{background:#f0c65c;}
@@ -136,10 +136,10 @@ export default function DailyFiveBar({ slug }) {
            because its roster is different every day and cannot be farmed by
            picking an easy one; a fixed circuit is one of fourteen. */
         .d5b.circ .d5b-k{color:#bcd2ff;}
-        .d5b.circ .d5b-k::before{background:var(--blue-400,#60a5fa);}
+        .d5b.circ .d5b-k::before{background:var(--blue-400,#e9917c);}
         .d5b.circ .d5b-n{color:#bcd2ff;}
         .d5b.circ .d5b-n.done{color:#8ff0c4;}
-        .d5b.circ .d5b-next{background:var(--blue,#2563eb);color:#fff;}
+        .d5b.circ .d5b-next{background:var(--blue,#c04a34);color:#fff;}
         .d5b.circ .d5b-next:hover{background:#3b7bf5;}
         @media(max-width:860px){.d5b-in{gap:9px;}}
         @media(max-width:560px){.d5b-x,.d5b-k{display:none;}}

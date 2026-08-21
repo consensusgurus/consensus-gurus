@@ -585,9 +585,9 @@ export default function DailyTilePanel({
         .dtp-ic img{height:32px;width:auto;max-width:42px;object-fit:contain;}
         .dtp-idt{flex:1;min-width:0;}
         .dtp-nm{font-size:22px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;line-height:1.1;}
-        .dtp-flame{display:inline-flex;align-items:center;gap:3px;background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:800;color:#8a5300;}
+        .dtp-flame{display:inline-flex;align-items:center;gap:3px;background:rgba(224,174,74,0.16);border:1px solid rgba(224,174,74,0.42);border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:800;color:#8a5300;}
         .dtp-donechip{display:inline-flex;align-items:center;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);border-radius:999px;padding:1px 9px;font-size:11px;font-weight:800;color:#116932;}
-        .dtp-sharechip{display:inline-flex;align-items:center;gap:5px;background:rgba(232,180,58,0.12);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#8a5300;font-family:inherit;cursor:pointer;transition:background .12s,color .12s;}
+        .dtp-sharechip{display:inline-flex;align-items:center;gap:5px;background:rgba(224,174,74,0.12);border:1px solid rgba(224,174,74,0.42);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#8a5300;font-family:inherit;cursor:pointer;transition:background .12s,color .12s;}
         .dtp-sharechip svg{transition:color .12s;}
         .dtp-sharechip:hover{background:var(--cta);color:var(--cta-ink);}
         .dtp-sharechip:hover svg{color:var(--ink);}
@@ -597,7 +597,7 @@ export default function DailyTilePanel({
            it fills gold, which matches the star on the tiles. This is the only
            pin control a FINISHED game has, so it has to be plainly visible. */
         .dtp-pinchip{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:11px;font-weight:800;color:#4d5872;font-family:inherit;cursor:pointer;transition:background .12s,color .12s,border-color .12s;}
-        .dtp-pinchip:hover{background:rgba(232,180,58,0.16);border-color:rgba(232,180,58,0.55);color:#8a5300;}
+        .dtp-pinchip:hover{background:rgba(224,174,74,0.16);border-color:rgba(224,174,74,0.55);color:#8a5300;}
         .dtp-pinchip.on{background:var(--cta);border-color:var(--cta);color:var(--cta-ink);}
         .dtp-how{font-size:12.5px;line-height:1.4;color:var(--slate);font-weight:600;margin:4px 0 0;max-width:64ch;}
         .dtp-acts{flex:none;display:flex;align-items:center;gap:8px;}
@@ -839,8 +839,8 @@ export default function DailyTilePanel({
           .dtp-sharechip{order:-2;flex:1 1 calc(50% - 4px);box-sizing:border-box;justify-content:center;
             border:0;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.32);
             padding:14px 8px;font-size:12px;letter-spacing:.03em;
-            background:rgba(232,180,58,.2);color:var(--gold);}
-          .dtp-sharechip:hover{background:rgba(232,180,58,.3);color:var(--gold);}
+            background:rgba(224,174,74,.2);color:var(--gold);}
+          .dtp-sharechip:hover{background:rgba(224,174,74,.3);color:var(--gold);}
           .dtp-sharechip:hover svg{color:var(--gold);}
           .dtp-acts{order:-1;flex:1 1 calc(50% - 4px);box-sizing:border-box;display:flex;gap:0;}
           .dtp-play{flex:1 1 auto;background:var(--white);color:var(--blue-deep);
@@ -854,9 +854,9 @@ export default function DailyTilePanel({
              .dtp-sharechip is excluded: it is a half-width rectangle now, sized
              with Play above. */
           .dtp-flame,.dtp-donechip,.dtp-pinchip{padding:6px 12px;}
-          .dtp-flame{background:rgba(232,180,58,0.2);border-color:rgba(232,180,58,0.5);color:var(--gold);}
+          .dtp-flame{background:rgba(224,174,74,0.2);border-color:rgba(224,174,74,0.5);color:var(--gold);}
           .dtp-donechip{background:rgba(34,197,94,0.22);border-color:rgba(74,222,128,0.5);color:#bfe6cf;}
-          .dtp-sharechip{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:var(--gold);}
+          .dtp-sharechip{background:rgba(224,174,74,0.18);border-color:rgba(224,174,74,0.5);color:var(--gold);}
           .dtp-pinchip{border-color:rgba(255,255,255,0.3);color:#cfe0fb;}
           .dtp-pinchip.on{background:var(--white);border-color:var(--white);color:var(--accent);}
           /* TWO-LEVEL DRAWER (owner, 2026-08-07). display:contents on the grid
@@ -930,7 +930,7 @@ export default function DailyTilePanel({
           .dtp-lrow.first b,.dtp-lrow.first .sc{color:var(--gold-ink);}
           /* .me AFTER .first, so being #1 yourself reads as you, not as the
              leader you happen to be */
-          .dtp-lrow.me{margin:0;padding:8px 13px;border-radius:0;background:#eef3ff;box-shadow:inset 3px 0 0 var(--blue);}
+          .dtp-lrow.me{margin:0;padding:8px 13px;border-radius:0;background:#fdf2ef;box-shadow:inset 3px 0 0 var(--blue);}
           .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:var(--blue-deep);}
           /* The game stats take their own line under the name, indented past the
              rank cell. flex-wrap plus a 100% basis, so no wrapper element and no

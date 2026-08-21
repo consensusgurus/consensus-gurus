@@ -32,7 +32,7 @@ import { savedIdentity } from '@/lib/saved-identity';
 const INK = T.ink;
 const SLATE = T.slate;
 const MUTED = T.muted;
-const BORD = '#e5e7eb';
+const BORD = '#e4e0dd';
 const BLUE = T.blue;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 

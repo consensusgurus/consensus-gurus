@@ -184,7 +184,7 @@ export default function DailyFiveSummary() {
            unreadable. Anything added here outside a card needs a light colour
            chosen against the navy, not against white. */
         .d5s-sec{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
-                 color:#bfdbfe;margin:26px 0 9px;}
+                 color:#f6d8d0;margin:26px 0 9px;}
         .d5s-note{font-size:11.5px;font-weight:600;color:#9fb6e8;line-height:1.6;margin-top:9px;}
         /* One way back, at the foot, where a reader who has finished reading is.
            The run's other exits all lead deeper into a game; this is the only
@@ -193,7 +193,7 @@ export default function DailyFiveSummary() {
                   background:var(--white);color:var(--accent);border:1.5px solid #2c437c;
                   border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
                   letter-spacing:.03em;text-decoration:none;}
-        .d5s-home:hover{background:#eef3ff;}
+        .d5s-home:hover{background:#fdf2ef;}
 
         /* board */
         .d5s-lb{border:1.5px solid var(--border);border-radius:13px;overflow:hidden;background:var(--white);}

@@ -102,7 +102,7 @@ function SignupModal({ onClose }) {
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
-        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(143,29,36,0.08)', border: '1px solid rgba(143,29,36,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
@@ -783,7 +783,7 @@ export default function StatHubClient() {
     .qzhub .fdot{width:9px;height:9px;border-radius:50%;display:inline-block;}
     .qzhub .duelpulse{animation:qzpulse 2s ease-in-out infinite;}
     .qzhub .flameon{animation:qzflame 1.4s ease-in-out infinite;}
-    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(14,29,64,.25);}50%{box-shadow:0 0 0 7px rgba(14,29,64,0);}}
+    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(30,33,44,.25);}50%{box-shadow:0 0 0 7px rgba(30,33,44,0);}}
     @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
     @media (prefers-reduced-motion: reduce){.qzhub .duelpulse,.qzhub .flameon{animation:none;}}
     @media(max-width:640px){.qzhub .lbar{display:none;}.qzhub .lform{display:none;}.qzhub .duelqt{display:none;}}
@@ -1311,7 +1311,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
 
 // ─── Challenges tab ─────────────────────────────────────────────────────────
 const CH_MEDAL = { 1: T.gold, 2: '#b8bcc4', 3: '#c8814b' };
-const CH_TINT = { 1: 'rgba(232,180,58,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'rgba(200,129,75,0.12)' };
+const CH_TINT = { 1: 'rgba(224,174,74,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'rgba(200,129,75,0.12)' };
 function chMmss(s) { const n = Math.max(0, Math.round(Number(s) || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
 function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; } catch (e) { return ''; } }
 

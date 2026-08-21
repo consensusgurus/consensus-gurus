@@ -26,7 +26,7 @@ import { notifyShareCredit } from './ShareCreditPop';
 const INK = T.ink;
 const SLATE = T.slate;
 const MUTED = T.muted;
-const BORD = '#e5e7eb';
+const BORD = '#e4e0dd';
 const BLUE = T.blue;
 const NAVY = T.accent;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -135,7 +135,7 @@ export default function ContestPop() {
       key={place}
       style={{
         flex: i === 0 ? 1.25 : 1,
-        background: i === 0 ? T.accentSoft : '#f7f8fa',
+        background: i === 0 ? T.accentSoft : '#fbfaf9',
         border: i === 0 ? `1px solid ${T.accentBorder}` : '1px solid transparent',
         borderRadius: 10, padding: '10px 8px', textAlign: 'center',
       }}
@@ -174,13 +174,13 @@ export default function ContestPop() {
           >
             <X size={18} strokeWidth={2.4} />
           </button>
-          <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#bfdbfe', marginBottom: 9 }}>
+          <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#f6d8d0', marginBottom: 9 }}>
             Limited time · {CONTEST.days} days
           </div>
           <div style={{ fontSize: 46, fontWeight: 800, color: T.white, lineHeight: 1.05, letterSpacing: '-.02em' }}>
             {COPY.headline}
           </div>
-          <div style={{ fontSize: 14.5, color: '#dbeafe', marginTop: 9, lineHeight: 1.45 }}>{COPY.sub}</div>
+          <div style={{ fontSize: 14.5, color: '#fae3dc', marginTop: 9, lineHeight: 1.45 }}>{COPY.sub}</div>
         </div>
 
         <div style={{ padding: '18px 26px 0' }}>

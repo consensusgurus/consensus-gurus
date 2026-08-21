@@ -53,13 +53,13 @@ import { COLS, ROWS, decodeField, idx, neighbors, numberAt } from '@/lib/sweep-f
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const COLORS = {
-  ink: T.ink, cream: '#f7f8fa', faded: '#3f4757', line: '#e5e7eb',
+  ink: T.ink, cream: '#fbfaf9', faded: '#4d4a52', line: '#e4e0dd',
   accent: '#0f766e', accentSoft: '#e2f2f0', covered: '#c9d2e2', coveredHi: '#b7c2d6',
 };
 // The number palette. Eight steps that stay legible on white at 13px, and
 // deliberately NOT a rainbow: the low numbers you read constantly are cool and
 // quiet, the high ones you meet rarely are hot, so a 6 catches the eye.
-const NUM_COLOR = ['', '#2563eb', '#15803d', '#c0392b', '#1e3a8a', '#a16207', '#0e7490', '#0b0c0e', '#6b7280'];
+const NUM_COLOR = ['', '#c04a34', '#15803d', '#8f1d24', '#3a4152', '#8a6410', '#0e7490', '#14141a', '#6b7280'];
 const HELP_KEY = 'sot_sweep_help_seen';
 const STATS_KEY = 'sot_sweep_stats';
 const VIEW_ROWS = 15;          // rows of field on screen at once

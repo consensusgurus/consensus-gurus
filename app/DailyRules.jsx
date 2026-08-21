@@ -61,7 +61,7 @@ const TONES = {
   good: { background: '#dcfce7', border: '1.5px solid #15803d', color: '#14532d' },
   warn: { background: '#fef3c7', border: '1.5px solid #b45309', color: '#78350f' },
   bad: { background: '#fee2e2', border: '1.5px solid #b91c1c', color: '#7f1d1d' },
-  grey: { background: '#eef2f7', border: '1.5px solid #94a3b8', color: '#3f4757' },
+  grey: { background: '#f0eeec', border: '1.5px solid #94a3b8', color: '#4d4a52' },
 };
 
 export default function DailyRules({

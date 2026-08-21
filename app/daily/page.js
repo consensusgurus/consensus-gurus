@@ -173,7 +173,7 @@ function isSundayEdition(key, p) {
 
 // Accents mirror DailyGamesPromo so each game reads the same across surfaces.
 const GAMES = [
-  { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: T.blue, bg: '#eef4ff', border: 'rgba(37,99,235,0.35)', src: CRUX },
+  { key: 'crux', name: 'Crux', path: '/crux', tag: 'A clueless crossword', accent: T.blue, bg: '#eef4ff', border: 'rgba(192,74,52,0.35)', src: CRUX },
   { key: 'emcee', name: 'Emcee', path: '/emcee', tag: 'The daily mini crossword', accent: '#c026d3', bg: '#fbeefc', border: 'rgba(192,38,211,0.4)', src: EMCEE },
   { key: 'shards', name: 'Shards', path: '/shards', tag: 'Reassemble the shattered crossword', accent: '#0d9488', bg: '#d9f0ee', border: 'rgba(13,148,136,0.4)', src: SHARDS },
   { key: 'garble', name: 'Garble', path: '/garble', tag: 'Five garbled words, one clued finale', accent: '#8a6d1a', bg: '#fdf6e3', border: 'rgba(230,185,63,0.6)', src: GARBLE },
@@ -185,7 +185,7 @@ const GAMES = [
   { key: 'quilt', name: 'Quilt', path: '/quilt', tag: 'Nine crooked regions, 1–9', accent: '#a21caf', bg: '#fdf4ff', border: 'rgba(162,28,175,0.4)', src: QUILT },
   { key: 'cages', name: 'Cages', path: '/cages', tag: 'Killer sudoku, no clues', accent: '#6b21a8', bg: '#f6f2fd', border: 'rgba(107,33,168,0.4)', src: CAGES },
   { key: 'niche', name: 'Niche', path: '/niche', tag: 'One answer, two categories', accent: '#115e59', bg: '#ecfdf8', border: 'rgba(17,94,89,0.4)', src: NICHE },
-  { key: 'sixes', name: 'Sixes', path: '/sixes', tag: 'Mini sudoku, 1 to 6', accent: '#1d4ed8', bg: '#eef3ff', border: 'rgba(29,78,216,0.4)', src: SIXES },
+  { key: 'sixes', name: 'Sixes', path: '/sixes', tag: 'Mini sudoku, 1 to 6', accent: '#a83f28', bg: '#fdf2ef', border: 'rgba(168,63,40,0.4)', src: SIXES },
   { key: 'sando', name: 'Sando', path: '/sando', tag: 'Sandwich sudoku, 1 to 9', accent: '#15616b', bg: '#eaf6f7', border: 'rgba(21,97,107,0.4)', src: SANDO },
   { key: 'carve', name: 'Carve', path: '/carve', tag: 'Carve the grid into equal sums', accent: '#7c3aed', bg: '#f5f0ff', border: 'rgba(124,58,237,0.4)', src: CARVE },
   { key: 'circa', name: 'Circa', path: '/circa', tag: 'Pin the year of the moment', accent: '#0e7490', bg: '#e8f7fa', border: 'rgba(14,116,144,0.4)', src: CIRCA },
@@ -203,17 +203,17 @@ const GAMES = [
   { key: 'axiom', name: 'Axiom', path: '/axiom', tag: 'Find the hidden rule', accent: '#0f766e', bg: '#ccfbf1', border: 'rgba(15,118,110,0.35)', src: AXIOM },
   { key: 'hearsay', name: 'Hearsay', path: '/hearsay', tag: "Deduce what they don't know", accent: '#7c2d92', bg: '#f5e8fb', border: 'rgba(124,45,146,0.35)', src: HEARSAY },
   { key: 'venn', name: 'Venn', path: '/venn', tag: 'Sort the overlaps', accent: '#b45309', bg: '#fef3c7', border: 'rgba(180,83,9,0.35)', src: VENN },
-  { key: 'stands', name: 'Stands', path: '/stands', tag: 'Rebuild the results', accent: T.blueDeep, bg: '#dbeafe', border: 'rgba(29,78,216,0.35)', src: STANDS },
+  { key: 'stands', name: 'Stands', path: '/stands', tag: 'Rebuild the results', accent: T.blueDeep, bg: '#fae3dc', border: 'rgba(168,63,40,0.35)', src: STANDS },
   { key: 'bracket', name: 'Bracket', path: '/bracket', tag: 'Name every winner', accent: '#c2410c', bg: '#ffedd5', border: 'rgba(194,65,12,0.35)', src: BRACKET },
   // PRICER PULLED 2026-08-09 (see CLAUDE.md). Restore: grep -rn 'PRICER PULLED' daily index tile
   // { key: 'pricer', name: 'Pricer', path: '/pricer', tag: 'Some days more, some days less', accent: '#15803d', bg: '#dcfce7', border: 'rgba(21,128,61,0.35)', src: PRICER },
-  { key: 'lode', name: 'Lode', path: '/lode', tag: 'Seven letters, rare words pay', accent: T.goldInk, bg: '#fef7e0', border: 'rgba(161,98,7,0.35)', src: LODE },
+  { key: 'lode', name: 'Lode', path: '/lode', tag: 'Seven letters, rare words pay', accent: T.goldInk, bg: '#fef7e0', border: 'rgba(138,100,16,0.35)', src: LODE },
   { key: 'etch', name: 'Etch', path: '/etch', tag: 'A picture in the numbers', accent: '#4d7c0f', bg: '#f3f8e8', border: 'rgba(77,124,15,0.35)', src: ETCH },
   { key: 'glyph', name: 'Glyph', path: '/glyph', tag: 'A crossword with no clues', accent: '#334155', bg: T.surfaceAlt, border: 'rgba(51,65,85,0.35)', src: GLYPH },
   { key: 'hedge', name: 'Hedge', path: '/hedge', tag: 'Draw one closed loop', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)', src: HEDGE },
   { key: 'listed', name: 'Listed', path: '/listed', tag: 'Rank the list, top to bottom', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)', src: LISTED },
   { key: 'mate', name: 'Mate', path: '/mate', tag: 'White to play and mate', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)', src: MATE },
-  { key: 'four', name: 'Four', path: '/four', tag: 'One column wins', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(30,58,138,0.35)', src: FOUR },
+  { key: 'four', name: 'Four', path: '/four', tag: 'One column wins', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(58,65,82,0.35)', src: FOUR },
   { key: 'park', name: 'Parker', path: '/parker', tag: 'Get the red one out', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)', src: PARK },
   { key: 'check', name: 'Check', path: '/check', tag: 'Red to play and sweep', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)', src: CHECK },
   { key: 'rung', name: 'Rung', path: '/rung', tag: 'One letter at a time', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)', src: RUNG },
@@ -238,7 +238,7 @@ const GAMES = [
   { key: 'anon', name: 'Anon', path: '/anon', tag: 'A clueless acrostic', accent: '#8c2f39', bg: '#f8ecee', border: 'rgba(140,47,57,0.4)', src: ANON },
   { key: 'strata', name: 'Strata', path: '/strata', tag: 'Dig the words out', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)', src: STRATA },
   { key: 'chomp', name: 'Chomp', path: '/chomp', tag: 'Eat them in order', accent: '#a8430f', bg: '#fbeadf', border: 'rgba(168,67,15,0.4)', src: CHOMP },
-  { key: 'blocks', name: 'Blocks', path: '/blocks', tag: 'Same shapes, same order', accent: '#1d4ed8', bg: '#e8edfa', border: 'rgba(29,78,216,0.4)', src: BLOCKS },
+  { key: 'blocks', name: 'Blocks', path: '/blocks', tag: 'Same shapes, same order', accent: '#a83f28', bg: '#e8edfa', border: 'rgba(168,63,40,0.4)', src: BLOCKS },
   { key: 'sweep', name: 'Sweep', path: '/sweep', tag: 'No bottom edge', accent: '#0f766e', bg: '#e2f2f0', border: 'rgba(15,118,110,0.4)', src: SWEEP },
 ];
 

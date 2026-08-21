@@ -471,14 +471,14 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             if (solvedRow || ended) {
               letter = ch;
               if (marked) { bg = COLORS.gold; fg = COLORS.goldInk; border = `1.5px solid ${COLORS.gold}`; }
-              else { bg = solvedRow ? COLORS.ink : T.white; fg = solvedRow ? T.white : COLORS.rust; border = solvedRow ? `1.5px solid ${COLORS.ink}` : '1.5px dashed rgba(192,57,43,0.55)'; }
+              else { bg = solvedRow ? COLORS.ink : T.white; fg = solvedRow ? T.white : COLORS.rust; border = solvedRow ? `1.5px solid ${COLORS.ink}` : '1.5px dashed rgba(143,29,36,0.55)'; }
             } else if (isSel) {
               letter = typed[j] || '';
               bg = typed.length === j ? '#dbe7ff' : '#eef4ff';
               fg = COLORS.ember;
               // marked cells keep their gold border even while the row is
               // selected — the blue fill carries selection, gold = finale feed
-              border = marked ? `2.5px solid ${COLORS.gold}` : `2px solid ${typed.length === j ? COLORS.ember : 'rgba(14,29,64,0.55)'}`;
+              border = marked ? `2.5px solid ${COLORS.gold}` : `2px solid ${typed.length === j ? COLORS.ember : 'rgba(30,33,44,0.55)'}`;
             } else if (marked) {
               border = `2px solid ${COLORS.gold}`;
             }
@@ -640,12 +640,12 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                   letter = ch;
                   bg = g.finalSolved ? COLORS.gold : T.white;
                   fg = g.finalSolved ? COLORS.goldInk : COLORS.rust;
-                  border = g.finalSolved ? `1.5px solid ${COLORS.gold}` : '1.5px dashed rgba(192,57,43,0.55)';
+                  border = g.finalSolved ? `1.5px solid ${COLORS.gold}` : '1.5px dashed rgba(143,29,36,0.55)';
                 } else if (isSel) {
                   letter = typed[j] || '';
                   bg = typed.length === j ? '#dbe7ff' : '#eef4ff';
                   fg = COLORS.ember;
-                  border = `2px solid ${typed.length === j ? COLORS.ember : 'rgba(14,29,64,0.55)'}`;
+                  border = `2px solid ${typed.length === j ? COLORS.ember : 'rgba(30,33,44,0.55)'}`;
                 }
                 return <span key={j} style={{ ...cellBase, width: 44, height: 44, fontSize: 21, background: bg, color: fg, border }}>{letter}</span>;
               })}
