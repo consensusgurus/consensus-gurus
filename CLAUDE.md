@@ -5418,6 +5418,46 @@ effects, per the readRunParam rule):
   deploys this often is a staleness risk with no payoff. Do not add one as a side effect of a
   future PWA change.
 
+### PWA installs carry the player's identity through the manifest (2026-08-21)
+
+**The bug this fixes (owner report, day after the install prompt shipped): adding the site to the
+home screen SIGNED THE PLAYER OUT with no way back.** An iOS home-screen web app runs in its own
+storage partition, with different localStorage AND cookies from Safari, and the entire identity is
+localStorage (`sot_quiz_anon` + `sot_quiz_identity`). So the installed app opened as a stranger,
+re-joining hit `username_taken`, and a name-only account had NO self-service path back at all
+(the 409's own advice, "add the email you signed up with", is a dead end without an email).
+Android shares the Chrome profile's storage, so this was iOS-specific.
+
+The fix reuses the domain-move handoff machinery; the one channel that crosses the partition is
+the URL baked into the manifest's `start_url`, which browsers read at install time:
+
+- **`/api/identity/pwa-token`** (POST) mints a signed `_ml` handoff token from the `sot_vid`
+  cookie with `PWA_TTL_MS` = 60 days (`mintHandoff` now takes an optional ttl; the redirect
+  handoff keeps its 5 minutes). Long because the token is frozen into the home-screen entry at
+  install time and the first launch can come much later; `adoptable()` still gates the claim.
+- **`/api/pwa-manifest`** (GET) serves the manifest with `_ml=<token>` appended to `start_url`.
+  No `game` param = the root manifest (imports the `app/manifest.js` function, so there is one
+  source of truth); `?game=<key>` fetches `public/<key>.webmanifest` and patches it, keeping the
+  game's own id/name/icons so an existing install updates in place. Always `no-store`: the body
+  carries a per-user token.
+- **`ensurePwaManifest` in `app/VisitorBeacon.jsx`** repoints every `link[rel="manifest"]` on the
+  page at `/api/pwa-manifest` with the token (per-game links get `&game=`). The token is cached in
+  `localStorage.sot_pwa_mlt` and re-minted under 30 days of life or on an anon change, so the cost
+  is one request per browser per month. Skipped entirely when already running standalone. It runs
+  AFTER `claimHandoff` settles, so an installed app's first launch mints for the adopted id.
+- **`/api/identity/claim` now also resolves the ACCOUNT** the anon belongs to (`quiz_users` by
+  `anon_id`, falling back to `quiz_results` attribution because `anon_id` on the user row only
+  records the first browser) and returns `{ id, username, email }`. The beacon writes
+  `sot_quiz_identity` when the claim resolves a registered account and the browser holds none, so
+  the installed app opens SIGNED IN, not merely with its streak intact. This also upgrades any
+  future old-domain redirect claims for free. The claim route moved from edge to node runtime for
+  the supabase client; only the minting middleware must stay edge.
+
+Verifying: `curl '/api/pwa-manifest'` and `?game=crux` must return manifest JSON; with a real
+`_ml` token the `start_url` carries it. On a page, `document.querySelector('link[rel=manifest]')`
+should point at `/api/pwa-manifest?_ml=...` a beat after load. Installs made BEFORE this change
+are stranded (their frozen start_url has no token); those players still go through SigninHelp.
+
 ## Quizzes move onto the Loft format (started 2026-08-20, behind ?loft=1)
 
 The dailies finished their Loft rollout on 2026-08-15: navy ground, the blue cap in place of a
