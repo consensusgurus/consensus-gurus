@@ -34,6 +34,15 @@ import { notifyShareCredit } from '@/app/ShareCreditPop';
 import { savedIdentity } from '@/lib/saved-identity';
 import { T } from '@/lib/theme';
 import MindLoftMark from '../../MindLoftMark';
+// The Loft format, shared with the 65 daily puzzles. DailyChrome is the same
+// header the dailies carry (it renders QuizNavHeader itself and adds the loft
+// treatment: no selector rail, no stat row, the player's standing in the top
+// bar). LoftCap is the blue band that replaces the page's own title block, and
+// QuizLoftFinish is the thin adapter onto the shared end card.
+import DailyChrome from '../../DailyChrome';
+import LoftCap from '../../LoftCap';
+import useQuizLoft from '../../useQuizLoft';
+import QuizLoftFinish from './QuizLoftFinish';
 
 const MapQuizBoard = dynamic(() => import('./MapQuizBoard'), { ssr: false, loading: () => null });
 const StreetMapBoard = dynamic(() => import('./StreetMapBoard'), { ssr: false, loading: () => null });
@@ -581,6 +590,15 @@ export default function QuizClient({ quizId }) {
   // Only promise credit to a viewer who actually has a referral code (see
   // DailyGamesGrid for the same rule).
   const [revealed, setRevealed] = useState(false); // non-list quizzes: misses shown after username gate
+
+  // ── the Loft format ─────────────────────────────────────────────────────
+  // Off by default; ?loft=1 turns it on for review. See app/useQuizLoft.js.
+  const LOFT = useQuizLoft();
+  // On a finish the board card turns over and the end card takes its place.
+  // This is the flip BACK, for a player who pressed Reveal or Return to the
+  // board: the front rejoins the flow and the card sits under it, which is the
+  // same swap every daily makes (.loft-flip:not(.on) .loft-back in LoftCap).
+  const [boardShown, setBoardShown] = useState(false);
   const [gameOverDismissed, setGameOverDismissed] = useState(false); // hides the Game Over overlay once acknowledged
   const [celebration, setCelebration] = useState(null); // null | 'small' (perfect, not top) | 'big' (all-time top score)
 
@@ -951,6 +969,7 @@ export default function QuizClient({ quizId }) {
     setChCountdown(null);
     setCelebration(null);
     setRevealed(false);
+    setBoardShown(false);
     setCopied(false);
     setTab('play');
     start(true);
@@ -1575,11 +1594,24 @@ export default function QuizClient({ quizId }) {
     : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '7px 14px', marginBottom: 8, minHeight: 0 };
 
   return (
-    <div style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
+    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, color: COLORS.ink, position: 'relative', overflowX: 'clip' }}>
       <QuizCelebration kind={celebration} onDone={() => setCelebration(null)} />
       {duelBanner}
       <style>{`input:focus::placeholder{color:transparent}`}</style>
-      <QuizNavHeader />
+      {LOFT ? <DailyChrome loft /> : <QuizNavHeader />}
+      {LOFT && (
+        <LoftCap
+          name={quiz.title}
+          cat={DEPT_LABEL[deptOf(quiz)] || quiz.category || 'Quiz'}
+          dateLabel={`${total} ${total === 1 ? 'answer' : 'answers'}`}
+          outcome={ended ? (dispScore === total ? 'won' : dispScore > 0 ? 'part' : 'lost') : null}
+          figures={ended ? [] : [
+            { v: `${dispScore}/${total}`, k: 'Score' },
+            { v: clock, k: 'Time left' },
+          ]}
+          progress={total ? Math.round((dispScore / total) * 100) : null}
+        />
+      )}
       <div className="qz-pagewrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '8px 38px 80px' }}><style>{`@media(max-width:560px){.qz-pagewrap{padding-left:14px !important;padding-right:14px !important;}}`}</style><div className="qzf-line" aria-hidden="true" />
 
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
@@ -1598,9 +1630,11 @@ export default function QuizClient({ quizId }) {
 
         {/* Header */}
         <div style={{ paddingBottom: 0, marginTop: mAppPlay ? 4 : 12, ...(ended ? { maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
+          {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 'clamp(16px, 4vw, 28px)' }}>
             <h1 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: mAppPlay ? 17 : 'clamp(24px, 4vw, 38px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: 0, color: COLORS.ink, fontVariationSettings: '"SOFT" 100' }}>{quiz.title}</h1>
           </div>
+          )}
           {runActive && (
             <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: COLORS.accSoft }}>
               <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
@@ -1614,7 +1648,7 @@ export default function QuizClient({ quizId }) {
               </div>
             </div>
           )}
-          {tab !== 'stats' && !mAppPlay && (!started || ended) && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
+          {!LOFT && tab !== 'stats' && !mAppPlay && (!started || ended) && <LeaderboardStrip board={board} identity={identity} onOpen={() => setTab('stats')} />}
         </div>
 
         {/* Ribbon */}
@@ -1628,7 +1662,7 @@ export default function QuizClient({ quizId }) {
             score + percentile top-left, placement top-right, three stacked
             actions, reveal (jumps to the board), then the REAL leaderboard
             element (same as the Leaderboard tab), then the answer board. */}
-        {ended && tab === 'play' && (() => {
+        {ended && tab === 'play' && !LOFT && (() => {
           const win = dispScore === total;
           const timeout = !win && time <= 0;
           const heading = isTopScore ? 'New record' : win ? 'Perfect' : timeout ? "Time's up" : 'Game over';
@@ -1721,6 +1755,11 @@ export default function QuizClient({ quizId }) {
 
         {/* ── PLAY ── */}
         {tab === 'play' && (
+        <div className={LOFT ? 'loft-stage' : undefined}>
+        <div className={LOFT ? (ended && !boardShown ? 'loft-flip on' : 'loft-flip') : undefined}>
+        <div className={LOFT ? 'loft-flip-in' : undefined}>
+        <div className={LOFT ? 'loft-face' : undefined}>
+        <div className={LOFT ? 'loft-sheet' : undefined}>
           <QuizPlayOverlay open={mPlayOverlay}>
             {/* Compact title row, shown only inside the mobile fullscreen popup
                 (the page title/header is covered by the overlay). */}
@@ -2076,6 +2115,40 @@ export default function QuizClient({ quizId }) {
             )}
             {((bottomDock && started) || (mobile === true && photoMode && started && !ended)) && <div aria-hidden="true" style={{ height: 'calc(136px + env(safe-area-inset-bottom))' }} />}
           </QuizPlayOverlay>
+          {/* Inside the sheet, so it is on screen only while the board is, and
+              it is the way back to the card the player turned over to get here.
+              Same control, same class, same place as every daily. */}
+          {LOFT && ended && boardShown && (
+            <button type="button" className="loft-showopts" onClick={() => setBoardShown(false)}>&#8630; Hide game board</button>
+          )}
+        </div>
+        </div>
+        {LOFT && ended && (
+          <QuizLoftFinish
+            quiz={quiz}
+            score={dispScore}
+            total={total}
+            elapsed={lastElapsed}
+            board={board}
+            identity={identity}
+            topScore={isTopScore}
+            timedOut={dispScore !== total && time <= 0}
+            beatPct={attemptsPct}
+            next={nextMeta}
+            canReveal={canReveal}
+            copied={copied}
+            onReveal={() => {
+              if (canReveal && identity) setRevealed(true);
+              setBoardShown(true);
+            }}
+            onReplay={restartRound}
+            onShare={() => { if (!notifyShareCredit(`${resultMsg}\n${shareUrl}`)) share(); }}
+            onJoin={() => setTab('join')}
+          />
+        )}
+        </div>
+        </div>
+        </div>
         )}
 
         {/* ── STATS & LEADERBOARD (quiz stats + leaderboard) ── */}

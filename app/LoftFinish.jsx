@@ -87,6 +87,17 @@ export default function LoftFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
   missLabel = null, archive = null, gameRank = null, outcome = null, options = [],
   name = null, catRank = null,
+  // ── the three quiz overrides (2026-08-20) ────────────────────────────────
+  // A QUIZ finishes on this same card, and three things on it are written for a
+  // DAILY and are wrong on a quiz: the board is that quiz's all-time board and
+  // not "today's", a replay does not put a daily streak at stake, and the four
+  // day tiles ask daily-shaped questions (this game all time, category today,
+  // day streak) that a quiz cannot answer. Rather than fork the card, each is an
+  // optional override that DEFAULTS TO NULL, so every daily renders byte for
+  // byte what it rendered before. See app/quiz/[id]/QuizLoftFinish.jsx.
+  boardLabel = null,   // heading over the leaderboard
+  replaySub = null,    // overrides the registry's attempt-rule sentence
+  dayTiles = null,     // [{ value, label }] replacing the four day tiles
 }) {
   const [showAll, setShowAll] = useState(false);
   // THE FAST RETRY GATE (owner, 2026-08-19). False until the player asks for
@@ -184,7 +195,7 @@ export default function LoftFinish({
   // that sentence per category, so rewriting it here corrects every game from
   // one place instead of eight files that drift on the next rule change.
   const optsRaw = options.filter(Boolean)
-    .map((o) => (o.tone === 'replay' ? { ...o, sub: attemptRule.replay } : o));
+    .map((o) => (o.tone === 'replay' ? { ...o, sub: replaySub || attemptRule.replay } : o));
   // THE ROW ORDER IS DECIDED HERE, not by the order a client lists its options
   // (owner): a real Reveal leads the card, then Share, then Return to board
   // beside Replay, then Play another beside the Archive, and Back to main at
@@ -819,6 +830,13 @@ export default function LoftFinish({
       )}
       {/* Each figure gets its OWN colour (owner, 2026-08-14): four identical grey
           tiles read as one block and nothing stands out. */}
+      {dayTiles ? (
+      <div className="loft-day">
+        {dayTiles.map((t, i) => (
+          <span key={i} className={`d${(i % 4) + 1}`}><b>{t.value}</b>{t.label}</span>
+        ))}
+      </div>
+      ) : (
       <div className="loft-day">
         {/* The field size goes in the LABEL, matching the tile beside it
             ("of 991 Crux all time"): a rank means little without the size of
@@ -839,13 +857,14 @@ export default function LoftFinish({
             : 'category today'}</span>
         <span className="d4"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
       </div>
+      )}
 
       {/* `wait` reserves the block's height only until the rows land, so a
           settled board sizes to what it actually holds instead of leaving a run
           of white above the options (owner, 2026-08-15). */}
       <div className={rows.length ? 'loft-lb' : 'loft-lb wait'}>
         <div className="h">
-          <b>Today&rsquo;s board</b>
+          <b>{boardLabel || <>Today&rsquo;s board</>}</b>
           {board && board.plays ? <s>{Number(board.plays).toLocaleString()} played</s> : null}
         </div>
         {!board ? <Calculating wide /> : null}

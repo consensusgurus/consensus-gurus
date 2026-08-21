@@ -5382,3 +5382,114 @@ effects, per the readRunParam rule):
   installability, the per-game installs already work without one, and a SW cache on a site that
   deploys this often is a staleness risk with no payoff. Do not add one as a side effect of a
   future PWA change.
+
+## Quizzes move onto the Loft format (started 2026-08-20, behind ?loft=1)
+
+The dailies finished their Loft rollout on 2026-08-15: navy ground, the blue cap in place of a
+title block, the board as the one lit sheet, and a flip to `LoftFinish`. The ~1,200 QUIZZES were
+left on the old light page with their own inline results block, so the two halves of the site read
+as two different products (owner, 2026-08-20: "I want our quizzes to utilize the same elements as
+our daily puzzles, notably the header, footer, and end game card").
+
+**The header and footer were already the same COMPONENTS and that was exactly the problem.** Both
+surfaces render `QuizNavHeader` and `Footer`; what differed was the treatment around them, so the
+fix is not a new header, it is putting the quiz page in the frame that treats them. A loft quiz
+page now renders `DailyChrome` itself, which is the dailies' own header, so the two cannot drift
+apart again. The footer needs no work at all: `.loft-page footer` re-inks it for a dark ground.
+
+### The switch: `app/useQuizLoft.js`
+
+The quiz twin of `app/useLoft.js`, same three ways in, same order: an explicit prop, then
+`QUIZ_LOFT_ON`, then `?loft=1` read IN AN EFFECT (never during render, or the server and client
+disagree and React throws). **`QUIZ_LOFT_ON` is false**, so nothing has changed for a reader; the
+format is reachable only at `?loft=1` while the owner reviews it.
+
+**THERE IS DELIBERATELY NO PER-QUIZ LIST**, and this is the one place the quiz rollout is a
+different shape from the daily one. A daily game is a hand-written client, so `LOFT_GAMES` earned
+its keep one line per game. Every quiz renders through one of TWELVE shared clients, so the unit of
+rollout is the CLIENT: converting `QuizClient` moved roughly a thousand quizzes at once and there
+is nothing per-id to gate.
+
+### What is converted, and what is not
+
+| Client | Quizzes | State |
+|---|---|---|
+| `QuizClient` (bank, type-it, photo, matched, map, word-scramble, posters, logos, order-bank, photo-match, street-map) | ~1,000 | **converted** |
+| `TimedMcqClient` | 46 (the business-news set) | not yet |
+| `GeoAerialClient` | 29 | not yet |
+| `MapPlaceClient` | 20 | not yet |
+| `LogicGameClient`, `ConnectionsBoard` | 10 each | not yet |
+| `SurviveStateBoard` | 6 | not yet |
+| `CloserBoard`, `HigherLowerBoard`, `LogicGridClient`, `GlobePlaceClient`, `GridFillBoard` | a handful each | not yet |
+
+The eleven outstanding ones each render their own full page (header, ribbon, footer) rather than
+going through the shell, which is why they need converting individually. Do them in the same shape
+as the shell: they are the same five structural edits.
+
+### The five edits, in order (the conversion recipe)
+
+1. `const LOFT = useQuizLoft();` with the other state. In `QuizClient` this sits AFTER the
+   `if (!quiz)` early return that already sits above every hook, so the hook order stays stable for
+   a given quizId exactly as it was.
+2. `className={LOFT ? 'loft-page' : undefined}` on the root div. The `!important` in
+   `.loft-page{background:var(--accent)!important}` is load-bearing: the background is an inline
+   style and a plain rule can never win against it.
+3. `{LOFT ? <DailyChrome loft /> : <QuizNavHeader />}`, then `<LoftCap>` immediately after it and
+   OUTSIDE the page column so the band bleeds. Gate the page's own serif `<h1>` behind `{!LOFT &&`,
+   or the cap and the title say the same thing twice.
+4. Wrap the play area: `loft-stage` > `loft-flip` > `loft-flip-in` > `loft-face` > `loft-sheet`.
+5. Gate the old inline results block behind `&& !LOFT` (gate it, do not delete it: it is what every
+   quiz still renders with the flag off) and hang `<QuizLoftFinish>` as a sibling of `loft-face`.
+
+Two things that come free and are worth knowing rather than rediscovering:
+
+- **`.loft-page > [class$="-wrap"]:not(.dch-wrap)` zeroes the page column's padding**, and it
+  matches on the `-wrap` SUFFIX. `qz-pagewrap` is already caught by it. A converted client whose
+  wrapper carries a SECOND class, or no wrapper class at all, silently falls outside it.
+- **`LoftCap` measures `--loft-col` off `.loft-sheet`**, so the cap lines up with the board rather
+  than the site header without anything being passed to it.
+
+### `QuizLoftFinish` is an ADAPTER, not a second end card
+
+`app/quiz/[id]/QuizLoftFinish.jsx` renders the shared `LoftFinish`, the same object all 65 dailies
+flip to, so anything that improves one improves the other. It is its own component rather than a
+block inside `QuizClient` for a specific reason: it needs `useDayStats`, which has **no `active`
+gate** and fires its fetch the moment it mounts. Calling it in `QuizClient` would put one extra
+request on every one of the ~1,200 quiz page loads whether or not the player ever finishes; a child
+mounted only once the round is over pays for it only when the card is shown, and hooks cannot be
+called conditionally.
+
+Three things a quiz does not have, each handled rather than left to print a dash: no ARCHIVE (omit
+the prop and no archive button renders), no MISS COLUMN (quizzes count nothing against you, so
+`missLabel` is omitted and the board shows score and time), and no DAY-shaped tiles. The IQ bar is
+NOT one of them: IQ Points are site-wide and a quiz banks them exactly as a daily does, so
+`useIqStanding({ quizId })` and `useDayStats` are the same reads here as there.
+
+**`LoftFinish` gained exactly three props, all defaulting to null**, so every daily renders byte for
+byte what it did before: `boardLabel` (the heading over the leaderboard, because a quiz's board is
+its all-time board and not "today's"), `replaySub` (because a replay does not put a daily streak at
+stake) and `dayTiles` (`[{value, label}]`, replacing the four daily tiles; the strip is flex-wrap,
+so any count from one to four lays out with no CSS change and the `d1..d4` colours are reused in
+positional order). **Do not fork this component.** If a fourth override is needed, add it the same
+way, default null.
+
+### The flip maps onto Reveal, and that is why it fits
+
+A quiz already had the two states the flip needs. The end card is the turned-over board; pressing
+**Reveal the answers** or **Return to the board** turns it back, and because the flip is a SWAP and
+not a 3D turn (the front leaves the flow, the back rejoins it) the board and the card then sit one
+above the other, which is what a player wants when checking what they missed. `boardShown` is that
+state, and `restartRound` resets it. The swap also means nothing inside the sheet is inside a
+transformed ancestor, so the sticky score bar keeps working, which a real 3D flip would have broken.
+
+A player with no display name cannot be shown the answers, because revealing them is what posting
+the score buys, so the reveal option reads honestly in each of its three states and an unregistered
+player gets a **Post to the leaderboard** option that opens the join tab instead.
+
+### Verifying it
+
+**Render the page and read the DOM, never the server HTML.** The 64-route sweep during the daily
+rollout passed while three games were throwing a temporal-dead-zone error, because the error happens
+after hydration and the server markup looks perfect. Load `/quiz/<id>?loft=1`, then check: the cap
+band lines up with the board, the footer is re-inked on navy, the finish flips, the console is
+clean, and the SAME quiz without the flag is unchanged.
