@@ -35,7 +35,7 @@ import { notifyShareCredit } from './ShareCreditPop';
 import { withRef } from '@/lib/referrals';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
-import { dailyMeIdentity } from './dailyMeClient';
+import { dailyMeIdentity, fetchDailyMe, dailyMeQuery } from './dailyMeClient';
 
 const etToday = () => {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
@@ -73,7 +73,31 @@ const fmtPts = (n) => (Math.round(Number(n) * 10) / 10);
 
 export default function DailyFiveBand() {
   const [day, setDay] = useState(null);
-  const [data, setData] = useState(null);
+  // TAGGED WITH THE CIRCUIT IT DESCRIBES, never a bare payload (owner report,
+  // 2026-08-21: the buttons swapped colour on every rotation). Selecting a
+  // circuit and fetching its board are two different moments: `sel` changes in
+  // one commit and the effect that replaces this only runs AFTER that commit has
+  // painted. So for one painted frame the render was reading the PREVIOUS
+  // circuit's payload against the NEW circuit's keys, and since no two circuits
+  // share a game, `ran` filtered `members` down to nothing, which made
+  // `doneCount === members.length` trivially true and painted the whole band as
+  // a finished run: green rule, green eyebrow, and the green "Next · <circuit>"
+  // button, all of it thrown away on the next commit. Tagging the payload means
+  // the render simply has no data for a circuit it has not loaded yet, which is
+  // the truth, rather than somebody else's data.
+  const [dataBox, setDataBox] = useState(null);
+  // THE DAY'S COMPLETION SET, from the shared /api/quiz/daily-me client that
+  // DailyGamesGrid, DailySlateRail and DailyFiveBar on this same page already
+  // call with this exact query. Its one-entry cache means the band joins a
+  // request that is already in flight rather than making one, so this costs
+  // nothing and answers, for EVERY game today and not just the selected
+  // circuit's, the only question the band's colour depends on: have you played
+  // it. Without it the first visit to each circuit still painted "not started"
+  // and then corrected itself to Resume, or to complete, when the per-circuit
+  // board landed a few hundred ms later. Points, rank and the leaderboard still
+  // come from the per-circuit payload, because those genuinely are circuit
+  // scoped.
+  const [mePer, setMePer] = useState(null);
   const [open, setOpen] = useState(false);
   // Separate from `open` on purpose: `open` is the leaderboard, which desktop
   // and phone share, and `popen` is the phone-only list of the five, which
@@ -146,7 +170,7 @@ export default function DailyFiveBand() {
     // and rank are wrong the instant the selection changes, and showing them
     // for a frame reads as a score that then drops.
     const hit = boardCache.current.get(sel);
-    setData(hit || null);
+    setDataBox(hit ? { sel, payload: hit } : null);
     const { anonId, email } = dailyMeIdentity();
     const qs = new URLSearchParams(isMarquee(sel) ? { five: '1' } : { circuit: sel });
     if (anonId) qs.set('anonId', anonId);
@@ -157,7 +181,7 @@ export default function DailyFiveBand() {
         .then((d) => {
           if (!d || d.error) return;
           boardCache.current.set(sel, d);
-          if (alive) setData(d);
+          if (alive) setDataBox({ sel, payload: d });
         })
         .catch(() => {});
     };
@@ -169,6 +193,24 @@ export default function DailyFiveBand() {
     window.addEventListener('sot:daily-updated', refresh);
     return () => { alive = false; window.removeEventListener('sot:daily-updated', refresh); };
   }, [day, sel]);
+
+  // See the note on mePer above: shared client, no request of its own in
+  // practice. A reader with no identity has played nothing, so there is nothing
+  // to ask about and the band stays on the per-circuit payload alone.
+  useEffect(() => {
+    if (!day) return undefined;
+    const { anonId, email } = dailyMeIdentity();
+    if (!anonId && !email) return undefined;
+    let alive = true;
+    const load = () => {
+      fetchDailyMe(dailyMeQuery({ anonId, email }))
+        .then((d) => { if (alive && d && d.perGame) setMePer(d.perGame); })
+        .catch(() => {});
+    };
+    load();
+    window.addEventListener('sot:daily-updated', load);
+    return () => { alive = false; window.removeEventListener('sot:daily-updated', load); };
+  }, [day]);
 
   // Lazy: nothing is fetched until the picker is opened, and then only once.
   useEffect(() => {
@@ -199,12 +241,20 @@ export default function DailyFiveBand() {
   // server is the authority on what ran: if a game somehow has no puzzle today
   // it is absent from `games` and the run is honestly shorter. Falling back to
   // the bank keeps the band on screen before the fetch lands.
+  // The cache is read here as well as in the effect, so a circuit the reader
+  // has already cycled past paints its final state on the FIRST frame it comes
+  // back rather than on the frame after. It is a ref holding fetched payloads
+  // and this is a plain read, so it stays render-safe.
+  const data = dataBox && dataBox.sel === sel
+    ? dataBox.payload
+    : (boardCache.current.get(sel) || null);
+
   const ran = data && Array.isArray(data.games) && data.games.length
     ? new Set(data.games.map((g) => g.key))
     : null;
   const members = ran ? keys.filter((k) => ran.has(k)) : keys;
 
-  const perGame = (data && data.me && data.me.perGame) || {};
+  const perGame = (data && data.me && data.me.perGame) || mePer || {};
   // PLAYED, not SOLVED. An abandoned row is a started-and-left run and is not a
   // tick, the same test the slate rail uses. Solved-versus-failed needs data
   // this payload does not carry per game, and the run only needs to know what
@@ -215,7 +265,12 @@ export default function DailyFiveBand() {
   };
   const doneCount = members.filter((k) => playedOf(k)).length;
   const nextKey = members.find((k) => !playedOf(k)) || null;
-  const complete = doneCount === members.length;
+  // members.length > 0 is not paranoia: zero games trivially satisfies
+  // doneCount === members.length, and "every game is done" is exactly the wrong
+  // thing to say about a run with nothing in it. The tagged payload above is
+  // what stops members going empty in the first place; this is the backstop, and
+  // it is cheap.
+  const complete = members.length > 0 && doneCount === members.length;
   const total = data && data.me ? fmtPts(data.me.total) : 0;
   const maxTotal = (data && data.maxTotal) || members.length * 15;
   const myRank = data && data.me ? data.me.rank : null;
