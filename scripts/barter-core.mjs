@@ -24,16 +24,43 @@ export const BASE = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // ---- word pools ----
 const BRITISH = new Set(['fibre','litre','metre','moult','ochre','tyred','pyjam',
-  'flavour','harbour','saviour','candour','parlour','enquiry','enquire','defence','offence','licence','theatre','centred','coloured','honours','analyse','realise','cheques','dialled','fuelled','grammes','armoury','draught']);
-const NAMES = new Set(['cowan','dolce','dolci','cohan','rowan','nolte','marlo','carlo','pesto','kraft','kirby','mater','telly','wight','reddy','intra','nelly','mitch','monte','riley','merle','tyler','kylie','tesla','bantu','tonga','braille','riviera','kyrie','levin','waldo','ollie','dylan','logan','mason','ethan','aaron','caleb','chloe','derek','dixie','elias','elton','erica','fiona','gavin','greta','haley','heidi','jacob','jamie','jared','jenna','jesse','joyce','julia','julie','katie','kayla','keith','kerry','leigh','louie','louis','lucia','mabel','mandy','marge','mario','marla','megan','micah','mindy','moira','nadia','naomi','nigel','nolan','paige','pablo','percy','perry','quinn','ramon','reese','renee','rocco','rosie','rufus','sadie','scott','shawn','sonia','sonny','stella','tessa','tonya','trent','vince','wanda','wayne','zelda','eliza','ethel','edith','agnes','doris','flora','hilda','marta','boris','pierre','andre','ivanka','deidre','bianca','camila','carmen','claire','damian','darren','dmitri','duncan','dustin','gloria','hannah','harold','hector','horace','ingrid','isabel','joanna','jordan','joseph','joshua','judith','justin','lauren','leslie','lionel','lorena','marcus','marion','martin','melvin','miriam','morgan','nathan','nelson','norman','olivia','philip','rachel','ramona','robert','roland','ronald','samuel','sandra','sergio','sharon','shelby','sherry','sidney','silvia','sophia','stacey','stuart','sylvia','tamara','teresa','thomas','travis','trisha','ursula','valery','verona','victor','walter','warren','wesley','xavier','yvette','harry','peggy','norma','donny','bobby','billy','sarah','laura','maria','karen','kevin','jason','susan','nancy','brian','roger','terry','jerry','larry','henry','ralph','edgar','diane','linda','betty','carol','debra','donna','emily','ellen','helen','irene','janet','jenny','jimmy','kathy','kelly','kenny','lewis','lloyd','lucas','marty','mikey','molly','nikki','paula','randy','ricky','robin','sally','sandy','shane','stacy','steve','tammy','tanya','teddy','tommy','tracy','vicki','wanda','wendy','angus','argus','david','james','peter','simon','felix','oscar','elena','maya','anna','clara','marco','pedro','diego','carlos','miguel','johnny','freddy','danny','eddie','ozzie','lonnie','ronnie','connie','bonnie','vinnie','willie','albert','arthur','andrew','anthony','barbara','bernard','bradley','brandon','cameron','charles','chelsea','crystal','cynthia','deborah','dolores','douglas','earnest','eleanor','estelle','eugenia','frances','francis','gabriel','georgia','gilbert','gregory','heather','herbert','jasmine','jessica','joachim','jocelyn','johanna','juanita','katrina','kenneth','kristen','lindsay','lorenzo','lucille','malcolm','margery','marissa','martina','matthew','maxwell','melanie','melissa','michael','mildred','miranda','natalie','natasha','nicolas','octavia','orlando','pauline','phyllis','quentin','ramirez','raymond','rebecca','ricardo','richard','roberta','roberto','rodney','rosalie','russell','santiago','shannon','sheldon','shirley','stanley','stephen','stewart','tabitha','theresa','timothy','tristan','vanessa','vincent','wallace','whitney','william','winston','yolanda','zachary','antonio','abraham','barnaby','beatrix','bridget','carmelo','cecilia','clement','desmond','dominic','eduardo','emerson','ezekiel','fernand','gaspard','giselle','gustavo','horatio','ignacio','isabela','javier','joaquin','leandro','leonard','loretta','luciano','madison','marcelo','mariana','maurice','maximus','mckenna','nikolai','octavio','ophelia','patrick','preston','rafaela','ramona','rosanna','rosario','salvato','sampson','saundra','serrano','sheridan','solomon','stefano','tatiana','terrell','thaddeus','ulysses','valeria','vicente','virgil','wilbert','wilfred','ximena','yasmine','yvonne','zackary']);
-const NASTY = new Set(['bitch','whore','penis','vulva','fecal','rapes','raped','nazis','negro','moron','idiot','bimbo','queer','vagina','nipple','orgasm','rectum','erotic','sexual','faeces','feces','urine','vomit','crotch','panties','condom','aroused','shitty','pissed']);
+  'flavour','harbour','saviour','candour','parlour','enquiry','enquire','defence','offence','licence','theatre','centred','coloured','honours','analyse','realise','cheques','dialled','fuelled','grammes','armoury','draught',
+  // added 2026-08 during the Sep-Nov bank extension
+  'aunty','brill','calibre','croft','footy','lorry','mould','netball','sabre','spectre','spelt','sulphur'
+]);
+const NAMES = new Set(['venus','hurst','cowan','dolce','dolci','cohan','rowan','nolte','marlo','carlo','pesto','kraft','kirby','mater','telly','wight','reddy','intra','nelly','mitch','monte','riley','merle','tyler','kylie','tesla','bantu','tonga','braille','riviera','kyrie','levin','waldo','ollie','dylan','logan','mason','ethan','aaron','caleb','chloe','derek','dixie','elias','elton','erica','fiona','gavin','greta','haley','heidi','jacob','jamie','jared','jenna','jesse','joyce','julia','julie','katie','kayla','keith','kerry','leigh','louie','louis','lucia','mabel','mandy','marge','mario','marla','megan','micah','mindy','moira','nadia','naomi','nigel','nolan','paige','pablo','percy','perry','quinn','ramon','reese','renee','rocco','rosie','rufus','sadie','scott','shawn','sonia','sonny','stella','tessa','tonya','trent','vince','wanda','wayne','zelda','eliza','ethel','edith','agnes','doris','flora','hilda','marta','boris','pierre','andre','ivanka','deidre','bianca','camila','carmen','claire','damian','darren','dmitri','duncan','dustin','gloria','hannah','harold','hector','horace','ingrid','isabel','joanna','jordan','joseph','joshua','judith','justin','lauren','leslie','lionel','lorena','marcus','marion','martin','melvin','miriam','morgan','nathan','nelson','norman','olivia','philip','rachel','ramona','robert','roland','ronald','samuel','sandra','sergio','sharon','shelby','sherry','sidney','silvia','sophia','stacey','stuart','sylvia','tamara','teresa','thomas','travis','trisha','ursula','valery','verona','victor','walter','warren','wesley','xavier','yvette','harry','peggy','norma','donny','bobby','billy','sarah','laura','maria','karen','kevin','jason','susan','nancy','brian','roger','terry','jerry','larry','henry','ralph','edgar','diane','linda','betty','carol','debra','donna','emily','ellen','helen','irene','janet','jenny','jimmy','kathy','kelly','kenny','lewis','lloyd','lucas','marty','mikey','molly','nikki','paula','randy','ricky','robin','sally','sandy','shane','stacy','steve','tammy','tanya','teddy','tommy','tracy','vicki','wanda','wendy','angus','argus','david','james','peter','simon','felix','oscar','elena','maya','anna','clara','marco','pedro','diego','carlos','miguel','johnny','freddy','danny','eddie','ozzie','lonnie','ronnie','connie','bonnie','vinnie','willie','albert','arthur','andrew','anthony','barbara','bernard','bradley','brandon','cameron','charles','chelsea','crystal','cynthia','deborah','dolores','douglas','earnest','eleanor','estelle','eugenia','frances','francis','gabriel','georgia','gilbert','gregory','heather','herbert','jasmine','jessica','joachim','jocelyn','johanna','juanita','katrina','kenneth','kristen','lindsay','lorenzo','lucille','malcolm','margery','marissa','martina','matthew','maxwell','melanie','melissa','michael','mildred','miranda','natalie','natasha','nicolas','octavia','orlando','pauline','phyllis','quentin','ramirez','raymond','rebecca','ricardo','richard','roberta','roberto','rodney','rosalie','russell','santiago','shannon','sheldon','shirley','stanley','stephen','stewart','tabitha','theresa','timothy','tristan','vanessa','vincent','wallace','whitney','william','winston','yolanda','zachary','antonio','abraham','barnaby','beatrix','bridget','carmelo','cecilia','clement','desmond','dominic','eduardo','emerson','ezekiel','fernand','gaspard','giselle','gustavo','horatio','ignacio','isabela','javier','joaquin','leandro','leonard','loretta','luciano','madison','marcelo','mariana','maurice','maximus','mckenna','nikolai','octavio','ophelia','patrick','preston','rafaela','ramona','rosanna','rosario','salvato','sampson','saundra','serrano','sheridan','solomon','stefano','tatiana','terrell','thaddeus','ulysses','valeria','vicente','virgil','wilbert','wilfred','ximena','yasmine','yvonne','zackary',
+  // added 2026-08 during the Sep-Nov bank extension: proper nouns, places and
+  // brands the launch blocklists had not met yet.
+  'abigail','alameda','alamo','alfredo','amman','arcadia','ariel','assam','banco','bangkok','baptist','barca','barry','bassett',
+  'benny','bigfoot','bohemia','bolivia','bowie','brent','bristol','britt','brock','bubba','buffy','bundy','burgess','burke',
+  'burrell','butch','calif','carrick','carte','celeste','chang','chapman','charley','charlie','chevy','chico','chile','chinese',
+  'christy','cisco','clint','cohen','colby','colin','colleen','collier','coney','congo','conte','corey','corolla','costa',
+  'coulter','craig','creme','crore','cupid','darcy','derry','devon','dickens','dover','draco','drake','dutch','english',
+  'fedex','felicia','femme','firth','fitch','fleming','flemish','foley','forza','freeman','fritz','gabby','galilee','gangsta',
+  'garth','gemma','genoa','germain','gestapo','goliath','goodman','granger','greek','hackney','hamburg','hayward','hogan','holland',
+  'honda','hotspur','india','intel','jackman','japan','johnnie','johnson','jones','judas','kashmir','khalifa','kremlin','lacey',
+  'laird','lambert','langley','leone','liang','linux','lohan','lowry','lucifer','macon','madonna','mahatma','malik','maltese',
+  'mamma','martian','masonic','massa','masse','matilda','mayan','mecca','missy','monde','monty','morales','morocco','morse',
+  'munster','myspace','niger','nirvana','nouveau','paddy','paisley','pandora','paolo','pasha','pegasus','petit','pollard','polly',
+  'portman','pratt','prima','proto','pullman','redding','rhine','richter','roman','romeo','rubin','sabha','sahib','salle',
+  'sammy','santo','savoy','scala','seine','shiva','siemens','silva','slade','sloan','spain','spencer','spiegel','starr',
+  'sumatra','supra','swede','sweeney','swiss','taser','templar','terra','texas','tiffany','torah','trinity','tripoli','trump',
+  'twain','twitter','wally','weber','webster','welch','welsh','wigan'
+]);
+const NASTY = new Set(['pubic','bitch','whore','penis','vulva','fecal','rapes','raped','nazis','negro','moron','idiot','bimbo','queer','vagina','nipple','orgasm','rectum','erotic','sexual','faeces','feces','urine','vomit','crotch','panties','condom','aroused','shitty','pissed',
+  // added 2026-08 during the Sep-Nov bank extension
+  'jackass','pervert','pooping','redneck','scumbag','suicide'
+]);
+
+// Fragments and bound forms that are not plain standalone English words.
+const NOTWORDS = new Set(['avant','takin']);
 
 export async function loadPools() {
   const dict = readFileSync(join(BASE, 'public/crux-words.txt'), 'utf8').split('\n').map(w=>w.trim()).filter(Boolean);
   const full5 = new Set(dict.filter(w=>w.length===5));
   const full7 = new Set(dict.filter(w=>w.length===7));
   const { VOCAB: arr } = await import(pathToFileURL(join(BASE, 'app/warmer/vocab.js')).href);
-  const ok = (w) => !BRITISH.has(w) && !NASTY.has(w) && !NAMES.has(w);
+  const ok = (w) => !BRITISH.has(w) && !NASTY.has(w) && !NAMES.has(w) && !NOTWORDS.has(w);
   const common5 = arr.slice(0,20000).filter(w=>/^[a-z]{5}$/.test(w) && full5.has(w) && ok(w));
   const common7 = arr.slice(0,20000).filter(w=>/^[a-z]{7}$/.test(w) && full7.has(w) && ok(w));
   return { full5:[...full5], full7:[...full7], common5, common7 };
@@ -267,7 +294,12 @@ export function transposeGrid(grid) {
   for (let c=0;c<S;c++) { let w=''; for (let r=0;r<S;r++) w += grid[r][c]; out.push(w); }
   return out;
 }
-export function enumerateSolutions(sol, S, dict, cap=3) {
+// `budget` is OPTIONAL and generation-only: pass { nodes: N } and the search
+// gives up after N nodes, setting budget.blown. A blown search is REJECTED by
+// uniqueUpToTranspose (never accepted), so the budget can only ever narrow the
+// set of boards that ship — it never lets an unproven board through. The
+// verifier passes no budget, so its proof stays exact and unbounded.
+export function enumerateSolutions(sol, S, dict, cap=3, budget=null) {
   const K = (S+1)/2;
   const tiles = {};
   for (const [r,c] of latticeCells(S)) tiles[sol[r][c]] = (tiles[sol[r][c]]||0)+1;
@@ -294,8 +326,10 @@ export function enumerateSolutions(sol, S, dict, cap=3) {
   const colsPicked=[];
   const found=[];
   function oddOf(w) { let s=''; for (let i=1;i<w.length;i+=2) s+=w[i]; return s; }
+  function spend() { if (!budget) return false; if (budget.blown) return true; if (--budget.nodes <= 0) { budget.blown = true; return true; } return false; }
   function goRow(j, rowsAcc) {
     if (found.length>=cap) return;
+    if (spend()) return;
     if (j===K) { found.push(buildGrid(rowsAcc, colsPicked.slice(), S)); return; }
     const r=j*2;
     let ck='';
@@ -311,6 +345,7 @@ export function enumerateSolutions(sol, S, dict, cap=3) {
   }
   function goCol(i, r0) {
     if (found.length>=cap) return;
+    if (spend()) return;
     if (i===K) { goRow(1, [r0]); return; }
     for (const w of (by[r0[2*i]]||[])) {
       const odd = oddOf(w);
@@ -331,16 +366,19 @@ export function enumerateSolutions(sol, S, dict, cap=3) {
     }
   }
   for (const r0 of pool) {
+    if (spend()) break;
     if (!takeStr(r0)) continue;
     goCol(0, r0);
     giveStr(r0);
     if (found.length>=cap) break;
+    if (budget && budget.blown) break;
   }
   return found;
 }
 // A board passes when the only fillings are the authored grid and its transpose.
-export function uniqueUpToTranspose(sol, S, dict) {
-  const sols = enumerateSolutions(sol, S, dict, 3);
+export function uniqueUpToTranspose(sol, S, dict, budget=null) {
+  const sols = enumerateSolutions(sol, S, dict, 3, budget);
+  if (budget && budget.blown) return false; // unproven => rejected, never accepted
   const t = transposeGrid(sol);
   const key = (g)=>g.join('|');
   const set = new Set(sols.map(key));

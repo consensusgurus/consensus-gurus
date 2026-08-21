@@ -35,6 +35,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(startArg || '')) {
   process.exit(1);
 }
 
+const UNIQ_NODES = Number(process.env.BARTER_UNIQ_NODES || 400000);
 const { common5, common7 } = await loadPools();
 const banned = new Set();
 for (const p of PUZZLES) {
@@ -48,7 +49,8 @@ if (lastLive && startArg <= lastLive) {
 }
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const rng = makeRng(Date.parse(startArg) % 4294967291);
+const seedOff = Number(process.argv[4] || 0); // optional: retry a stubborn day with a different draw
+const rng = makeRng((Date.parse(startArg) + seedOff * 7919) % 4294967291);
 const out = [];
 const d = new Date(`${startArg}T12:00:00Z`);
 for (let i = 0; i < daysArg; i++) {
@@ -61,7 +63,10 @@ for (let i = 0; i < daysArg; i++) {
     const fill = fillLattice(pool, S, rng, banned);
     if (!fill) continue;
     const sol = buildGrid(fill.rows, fill.cols, S);
-    if (!uniqueUpToTranspose(sol, S, pool)) continue;
+    // Generation-only node budget: a candidate whose uniqueness proof does not
+    // finish inside it is REJECTED and we try another. This narrows what ships
+    // (never widens it); the verifier proves every accepted board unbounded.
+    if (!uniqueUpToTranspose(sol, S, pool, { nodes: UNIQ_NODES, blown: false })) continue;
     const sc = scramble(sol, S, sunday ? [20, 25, 4] : [11, 14, 2]);
     if (!sc) continue;
     const words = gridWords(sol, S);

@@ -35,7 +35,28 @@
 // Usage:
 //   node scripts/gen-turn.mjs --start 2026-08-06 --days 35 --out app/turn/puzzles.js
 //   node scripts/gen-turn.mjs --probe          distribution only, writes nothing
+//
+// EXTENDING an existing bank. The generator always writes a whole file, so a
+// range meant to be spliced onto the end of the live bank has to be numbered and
+// deduped as if it were already there, or the splice is wrong the moment it
+// lands. Two options do that:
+//
+//   --startnum N   the first board's `num`. It also drives the shape ROTATION,
+//                  which is keyed off num-1 and NOT off the loop index, so a
+//                  spliced range continues the quiet/greedy/middle cycle from
+//                  where the live bank left off instead of restarting it. This
+//                  is the trap that inverted Chain's spliced range.
+//   --avoid PATH   an existing puzzles.js. Its boards pre-seed the duplicate
+//                  check and its motifs pre-seed the per-string ceiling, so the
+//                  new range cannot repeat a shipped position or push a motif
+//                  string past MOTIF_CEILING across the COMBINED bank, which is
+//                  the scope verify-turn.mjs checks them at.
+//
+//   node scripts/gen-turn.mjs --start 2026-09-09 --days 72 --startnum 36 \
+//     --avoid app/turn/puzzles.js --seed 20260909 --out /tmp/turn-ext.js
 import { writeFileSync } from 'node:fs';
+import { resolve as resolvePath } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import {
   startBoard, legalMoves, applyMove, undoMove, discs, makeSolver, boardString,
   other, YOU, FOE, CORNERS, SQ_NAME,
@@ -196,6 +217,14 @@ const MOTIFS = {
     'Take one and no more. The board is nearly full, so mobility is the whole game, and the greedy square spends yours.',
     'The quiet square looks like it does nothing. What it does is leave the engine with nothing, which is the same as winning here.',
     'Count the squares, not the discs. The move that turns the fewest is the move that leaves the engine on move with nowhere good to go.',
+    'Resist the wide flip. Turning a long line here fills in squares you will want to play into, and you need every one of them.',
+    'One disc is enough. The board is tight, and the side that runs out of safe squares first is the side that loses.',
+    'Play the smallest move on the board. It looks like nothing happens, and what happens is the engine gets no reply worth having.',
+    'The wide flip is bait. It reads as progress and it hands over the only edge square that still matters.',
+    'Turn the fewest discs you can. The count at the end takes care of itself once the engine has nowhere useful to go.',
+    'Small is right today. A long flip opens a line straight back at you, and there is no time left to close it again.',
+    'Keep your move in reserve. The tiny square holds the position together while the big one spends it in one go.',
+    'Do the least you can get away with. Every extra disc you turn is a square handed back, and squares decide this one.',
   ],
   greedy: [
     'This is the day to take everything. The careful little move looks like good technique and it hands the engine the tempo it needs.',
@@ -204,6 +233,14 @@ const MOTIFS = {
     'Take the whole row. Playing small keeps your options open and lets the engine keep its own, which is the trade you cannot afford.',
     'Greed wins this one. The disciplined square leaves a wedge the engine plays into, and after that the count never comes back.',
     'The board rewards the loud move here. Turning that many discs looks reckless right up until you count what the engine has left.',
+    'Take the long line. Careful play is the habit here, and the habit walks straight into the reply you cannot answer.',
+    'Turn everything you can reach. The modest square keeps the position tidy and keeps the engine alive, and alive is all it needs.',
+    'Be greedy. The wide flip strips the engine of the squares it wanted, and nothing smaller does that job.',
+    'The loud move is the sound one. Playing small leaves a line open that the engine walks down for the rest of the game.',
+    'Grab the whole line and do not apologize for it. The neat little move loses by one, which is still losing.',
+    'Take the maximum. It looks like the beginner move right until you count what is left for the engine to play.',
+    'Flip wide. The restrained square is a fine idea on almost any other board, and it throws this one away.',
+    'Play the biggest bite on the board. The discs are not the point; the squares it takes off the engine are.',
   ],
   middle: [
     'Neither extreme is right. The biggest flip loses and so does the smallest, and the answer sits quietly between them.',
@@ -211,15 +248,43 @@ const MOTIFS = {
     'Ignore the flip count. It is the square that matters, and the one that wins is neither the greedy nor the careful pick.',
     'Both habits fail here. Play the move that fixes the edge, and the disc count follows on its own.',
     'The answer is in the middle of the board and the middle of the range. Read the shape, because neither reflex saves you.',
+    'Skip both reflexes. The winning square is not the loudest and not the quietest, and reading the edge is what finds it.',
+    'The answer hides between the two obvious moves. Look at what each square does to the edge, not at how many discs it turns.',
+    'Neither habit helps today. Pick the square that leaves the engine one bad reply, whatever its flip count happens to be.',
+    'Count replies, not discs. The move that wins takes a middling bite and leaves the engine without a good square.',
+    'The flip count is noise on this board. Find the square that fixes your weak side and the rest follows.',
+    'Both extremes fail. The square in between does the one thing that matters, which is denying the engine a safe reply.',
+    'Do not let the numbers choose for you. The winning move is unremarkable to look at and it is the only one that holds.',
+    'Read the edges before you read the flips. The answer is a moderate move that shuts down the reply you would least like to see.',
   ],
   corner: [
     'The corner is real. Take it, and every disc it anchors is yours for the rest of the game.',
     'A corner is on offer and it is genuinely yours. Nothing else on the board holds up.',
+    'Take the corner. It cannot be flipped back, and everything it anchors stays yours to the last disc.',
+    'The corner is worth taking now. A corner never changes hands, so the discs behind it are settled for good.',
+    'Play into the corner. It is not a trap today, and no other square holds the position together.',
+    'Grab the corner while it is there. Anything else lets the engine take it instead, and then the edge is gone.',
+    'The corner wins it. Take the permanent square and let the rest of the board sort itself out.',
+    'This one is simple. The corner is genuinely on offer, and a corner you can hold is worth more than any flip count.',
+    'Corner first. The stability it buys is the whole margin, and every alternative gives the edge away.',
+    'Take the corner and stop looking. Nothing else on this board survives the reply.',
+    'The corner is safe today. Take it, hold the edge it locks down, and the count never turns back.',
+    'Play the corner. It is the one square the engine can never take back from you.',
   ],
   cornerTrap: [
     'The corner is poison today. Reach for it and you hand back the move, and the move is worth more than the corner.',
     'Yes, the corner is open. Take it and you run out of squares first, which is the one thing that loses from here.',
     'Leave the corner alone. It will still be there, and taking it now gives the engine exactly the tempo it needs.',
+    'Do not take the corner. It costs you the move, and the move is the only thing keeping the engine short of squares.',
+    'The corner is a trap here. Taking it fills the square you needed to keep empty, and the reply is brutal.',
+    'Walk past the corner. It looks free and it is the most expensive square on the board right now.',
+    'The corner can wait. Take it now and you hand the engine the tempo it has been short of all game.',
+    'Ignore the corner. Winning here is about who runs out of squares first, and the corner puts you at the front of that queue.',
+    'That corner is not free. Grab it and the engine gets the reply it wants, and after that nothing you do matters.',
+    'Leave it. A corner is worth a great deal on most boards and worth less than one tempo on this one.',
+    'The corner is the losing move today. Play elsewhere, keep the engine cramped, and let it come to you.',
+    'Resist the corner. It buys stability you do not need and spends the one move you cannot spare.',
+    'Skip the corner this time. The board is decided by who is forced to move last, not by who holds the angles.',
   ],
 };
 
@@ -262,7 +327,9 @@ if (has('--probe')) {
 // ── build the bank ─────────────────────────────────────────────────────────
 const start = arg('--start');
 const days = Number(arg('--days', 35));
+const startNum = Number(arg('--startnum', 1));
 if (!start) { console.error('need --start YYYY-MM-DD'); process.exit(1); }
+if (!Number.isInteger(startNum) || startNum < 1) { console.error('--startnum must be a positive integer'); process.exit(1); }
 
 // The shape rotation. Sundays are always a 'quiet' day: the bigger board makes
 // the mobility read harder, which is the point of the Sunday Edition.
@@ -273,6 +340,23 @@ const seenBoards = new Set();
 const motifCount = new Map();
 const MOTIF_CEILING = 4;
 
+// --avoid: pre-seed both variety ceilings from a bank that already exists, so a
+// spliced range is deduped against the COMBINED bank rather than only against
+// itself. Without this the generator happily reissues a shipped board or a
+// motif string that is already at its ceiling, and verify-turn.mjs fails on the
+// merged file after the splice.
+const avoidPath = arg('--avoid');
+if (avoidPath) {
+  const mod = await import(pathToFileURL(resolvePath(avoidPath)).href);
+  const prior = mod.PUZZLES || [];
+  for (const p of prior) {
+    if (p.board) seenBoards.add(p.board);
+    if (p.motif) motifCount.set(p.motif, (motifCount.get(p.motif) || 0) + 1);
+  }
+  const full = [...motifCount.entries()].filter(([, n]) => n >= MOTIF_CEILING).length;
+  console.error(`avoiding ${prior.length} existing boards from ${avoidPath} (${motifCount.size} motifs in use, ${full} already at the ceiling)`);
+}
+
 for (let d = 0; d < days; d++) {
   const date = new Date(`${start}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + d);
@@ -280,7 +364,10 @@ for (let d = 0; d < days; d++) {
   const sun = isSunday(live);
   const empties = sun ? SUNDAY_EMPTIES : WEEKDAY_EMPTIES;
   const band = sun ? SUNDAY_MARGIN : WEEKDAY_MARGIN;
-  const wantShape = sun ? 'quiet' : ROTATION[d % ROTATION.length];
+  const num = startNum + d;
+  // Keyed off num-1, not off d, so a range generated with --startnum continues
+  // the live bank's cycle instead of restarting it at 'quiet'.
+  const wantShape = sun ? 'quiet' : ROTATION[(num - 1) % ROTATION.length];
 
   let c = null;
   const deadline = Date.now() + 25000;
@@ -299,7 +386,7 @@ for (let d = 0; d < days; d++) {
   motifCount.set(c.motif, (motifCount.get(c.motif) || 0) + 1);
 
   out.push({
-    num: d + 1, quizId: quizId(live), live, dateLabel: label(live), sunday: sun,
+    num, quizId: quizId(live), live, dateLabel: label(live), sunday: sun,
     board: c.board, opener: c.opener, history: c.history,
     key: c.key, margin: c.margin, empties: c.empties, shape: c.shape, motif: c.motif,
   });

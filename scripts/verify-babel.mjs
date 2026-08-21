@@ -1,7 +1,14 @@
 // Verifier for the Babel bank. Run after ANY edit to app/babel/puzzles.js or
 // lib/babel-engine.js:
 //
-//   node scripts/verify-babel.mjs [--from 2026-08-02]
+//   node scripts/verify-babel.mjs [--from 2026-08-02] [--to 2026-09-08]
+//
+// A full pass re-solves every banked endgame, which on a long bank runs past a
+// sandbox job limit, so --from/--to narrow the run to a window of live dates.
+// Both bounds are inclusive and both default to open, so the bare command still
+// checks the WHOLE bank: the window is a way to split one full pass across
+// several calls, never a way to skip a day. Chunked runs only count as a clean
+// verification if the windows cover the bank end to end.
 //
 // Four checks per banked day, and the fourth is the one that matters:
 //
@@ -28,6 +35,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const args = process.argv.slice(2);
 const FROM = (args.indexOf('--from') >= 0 ? args[args.indexOf('--from') + 1] : null);
+const TO = (args.indexOf('--to') >= 0 ? args[args.indexOf('--to') + 1] : null);
 
 const lex = buildLexicon(fs.readFileSync(path.join(ROOT, 'public/babel-common.txt'), 'utf8').split('\n'));
 
@@ -71,6 +79,7 @@ function greedyLine(board, me0, opp0) {
 let fail = 0, checked = 0;
 for (const p of PUZZLES) {
   if (FROM && p.live < FROM) continue;
+  if (TO && p.live > TO) continue;
   checked++;
   const board = rowsToBoard(p.board);
   const problems = [];

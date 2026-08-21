@@ -188,14 +188,37 @@ for (const iso of dates) {
   }
 }
 
-// 7. the bank must be a contiguous run of dates — a gap is a day with no run,
+// 7. NO TWO RUNS SHARE MORE THAN TWO GAMES — the other half of rule 3. The
+//    seven-day floor is satisfied EXACTLY by repeating the same five games a
+//    week later, which is legal, reads as one week of content on a fortnightly
+//    loop, and is what the first generated extension produced (09-14 and 09-21
+//    came out identical) before this check existed. Per-day legality passing on
+//    a bank that says the same thing every week is the pool-variety failure the
+//    daily authoring standard is about.
+//
+//    Grandfathered from OVERLAP_FROM, because the past is frozen: 2026-08-20 and
+//    2026-08-27 already share three (chain, extra, quilt) and rewriting a run
+//    that has been played is never the fix.
+const OVERLAP_FROM = '2026-09-14';
+const MAX_OVERLAP = 2;
+for (let i = 0; i < dates.length; i++) {
+  for (let j = i + 1; j < dates.length; j++) {
+    if (dates[j] < OVERLAP_FROM) continue;   // both frozen
+    const shared = BANK[dates[i]].filter((k) => BANK[dates[j]].includes(k));
+    if (shared.length > MAX_OVERLAP) {
+      fails.push(`${dates[j]}: shares ${shared.length} games with ${dates[i]} (${shared.join(', ')}) — at most ${MAX_OVERLAP}, or the bank repeats itself`);
+    }
+  }
+}
+
+// 8. the bank must be a contiguous run of dates — a gap is a day with no run,
 //    which is legal but is almost always a typo rather than a decision.
 for (let i = 1; i < dates.length; i++) {
   const gap = Math.round((Date.parse(dates[i]) - Date.parse(dates[i - 1])) / 86400000);
   if (gap !== 1) warns.push(`gap in the bank: ${dates[i - 1]} -> ${dates[i]} (${gap} days), so those dates have no run`);
 }
 
-// 8. runway
+// 9. runway
 const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 const left = dates.filter((d) => d >= today).length;
 if (left === 0) fails.push(`bank is exhausted: last day is ${dates[dates.length - 1]}, today is ${today}`);

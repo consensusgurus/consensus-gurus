@@ -12,10 +12,21 @@
 // rather than an estimate.
 //
 //   node scripts/gen-babel.mjs --from 2026-08-02 --days 30 --startnum 1
+//
+// EXTENDING an existing bank: pass --avoid <path to the live puzzles.js or a
+// raw .json> so the new range is deduped against what is already banked, not
+// just against itself. Two boards are the same puzzle if the grid is identical
+// or if the player's rack and the opponent's rack are the same two multisets,
+// and a repeat is refused rather than reordered. Without --avoid the generator
+// dedupes only within its own run, so a spliced range can silently repeat a
+// position from the frozen half of the bank.
+//
+//   node scripts/gen-babel.mjs --from 2026-09-09 --days 24 --startnum 39 \
+//     --avoid app/babel/puzzles.js --out /tmp/babel-a.json
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import {
   BAG, buildLexicon, emptyBoard, generateMoves, applyMove,
   solveLine, boardToRows, rackSum,
@@ -37,6 +48,31 @@ const OUT = arg('--out', path.join(ROOT, 'app/babel/puzzles.js'));
 // OUT emits raw records for merging instead of the final module.
 const BUDGET = Number(arg('--budget', '0'));
 const AS_JSON = OUT.endsWith('.json');
+// --avoid <path>: an already-banked file (puzzles.js or a raw .json) whose
+// positions this run must not reproduce. Seeded on the signatures below and
+// then added to as the run goes, so the set covers the merged bank rather than
+// this range alone.
+const AVOID = arg('--avoid', '');
+
+// A position's identity, two ways. The grid is the strong one; the rack pair is
+// the one a player would actually notice, since the board scrolls past but
+// "I have had this exact rack against that exact rack" does not.
+const boardSig = (rows) => rows.join('|');
+const rackSig = (me, foe) => `${me.slice().sort().join('')}/${foe.slice().sort().join('')}`;
+
+const seenBoards = new Set();
+const seenRacks = new Set();
+if (AVOID) {
+  const abs = path.isAbsolute(AVOID) ? AVOID : path.join(ROOT, AVOID);
+  let prior;
+  if (abs.endsWith('.json')) prior = JSON.parse(fs.readFileSync(abs, 'utf8'));
+  else prior = (await import(pathToFileURL(abs).href)).PUZZLES;
+  for (const p of prior) {
+    seenBoards.add(boardSig(p.board));
+    seenRacks.add(rackSig(p.rack, p.foe));
+  }
+  console.log(`avoiding ${prior.length} banked positions from ${AVOID}`);
+}
 
 // ─── seeded rng (mulberry32) ───────────────────────────────────────────────
 function rng(seed) {
@@ -256,6 +292,13 @@ for (let i = 0; i < DAYS; i++) {
     if (!pos) continue;
     const a = assess(pos, target);
     if (!a) continue;
+    // Refuse a repeat outright. This is an extra bar on top of assess(), never
+    // a relaxation of one: a rejected candidate just costs another attempt.
+    const bSig = boardSig(boardToRows(pos.board));
+    const rSig = rackSig(a.seat.me, a.seat.opp);
+    if (seenBoards.has(bSig) || seenRacks.has(rSig)) continue;
+    seenBoards.add(bSig);
+    seenRacks.add(rSig);
     found = { pos, a };
   }
   if (!found) { console.error(`FAILED to build ${iso}`); process.exit(1); }

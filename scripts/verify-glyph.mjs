@@ -28,6 +28,18 @@
 //              same as emcee/crux's non-dictionary reporting. A board that
 //              resolves to 2+ distinct valid mappings is a genuine ambiguity
 //              and a hard FAIL.
+//   run length every run must be 3-8 letters. Two is not a hard puzzle, it is
+//              a coin flip (a codeword gives no clue, so nothing separates the
+//              dozens of two-letter words), and the site dictionary stops at
+//              eight, so a nine-letter run has an empty candidate pool and can
+//              only be "solved" by the supplement below. The whole live bank
+//              already sits inside 3-8; this check is what keeps it there.
+//   variety    no answer may appear more than WORD_CEILING times across the
+//              boards live on or after WORD_CEILING_FROM. A per-board check
+//              passes happily on a bank that says ZOO every third day, which
+//              is the failure mode CLAUDE.md's bank-extension rule 3 is about.
+//              Scoped by date because the boards before it are shipped history
+//              (ZOO runs to seven times there) and history is never rewritten.
 //   spelling   any run that decodes to a British-only SPELLING VARIANT
 //              (COLOUR, LABOUR, etc, see BRITISH below) is a hard FAIL,
 //              independent of
@@ -56,6 +68,9 @@ import { PUZZLES } from '../app/glyph/puzzles.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const GLYPH_FLOOR_FROM = '2026-08-03';
+const WORD_CEILING = 3;
+const WORD_CEILING_FROM = '2026-09-20';
+const MIN_RUN = 3, MAX_RUN = 8;
 const NODECAP = 2_000_000;
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -95,6 +110,21 @@ const BRITISH = new Set([
   'FLAVOURS', 'FLAVOURFUL', 'FLAVOURED', 'ENDEAVOUR', 'ENDEAVOURS', 'HARBOUR', 'HARBOURS',
   'VIGOUR', 'VALOUR', 'BEHAVIOUR', 'BEHAVIOURAL', 'SULPHUR', 'OESTROGEN', 'FOETUS', 'FOETAL',
   'PAEDIATRIC', 'ORTHOPAEDIC', 'ANAEMIA', 'ANAEMIC', 'DIARRHOEA', 'HAEMOGLOBIN', 'MEDIAEVAL',
+  // Extended 2026-08-21 while banking the Sep 20 - Nov 19 range, which surfaced
+  // FIBRE from the Zipf 3.0 fill pool: the original list covered the famous
+  // -our and -ise families but not the -re family beyond CENTRE/METRE/LITRE.
+  'FIBRE', 'FIBRES', 'SABRE', 'SABRES', 'CALIBRE', 'CALIBRES', 'SPECTRE', 'SPECTRES', 'LUSTRE',
+  'SOMBRE', 'MEAGRE', 'OCHRE', 'MITRE', 'GREY', 'GREYER', 'GREYISH', 'ODOUR', 'ODOURS', 'ARDOUR',
+  'CLAMOUR', 'CANDOUR', 'FERVOUR', 'PARLOUR', 'PARLOURS', 'RANCOUR', 'SPLENDOUR', 'TUMOUR',
+  'TUMOURS', 'DEMEANOUR', 'PRETENCE', 'PRETENCES', 'DEFENCES', 'OFFENCES', 'JEWELLER',
+  'JEWELLERS', 'MARVELLED', 'MARVELLING', 'LEVELLED', 'LEVELLING', 'SIGNALLED', 'SIGNALLING',
+  'TOTALLED', 'FUELLED', 'FUELLING', 'QUARRELLED', 'COUNSELLOR', 'COUNSELLORS', 'MOULDS',
+  'MOULDED', 'SMOULDERS', 'SMOULDERING', 'PLOUGHS', 'PLOUGHING', 'KERBED', 'MOULTED',
+  'EMPHASISE', 'EMPHASISED', 'MEMORISE', 'MEMORISED', 'MINIMISE', 'MINIMISED', 'MAXIMISE',
+  'MAXIMISED', 'SUMMARISE', 'SUMMARISED', 'SPECIALISE', 'SPECIALISED', 'UTILISE', 'UTILISED',
+  'PENALISE', 'PENALISED', 'CIVILISE', 'CIVILISED', 'MOBILISE', 'MOBILISED', 'PRIORITISE',
+  'HYPNOTISE', 'FANTASISE', 'ORGANISES', 'RECOGNISES', 'APOLOGISES', 'CRITICISES', 'REALISES',
+  'COLOURING', 'HONOURING', 'FAVOURING', 'LABOURING',
 ]);
 
 const fail = (id, msg) => { BAD++; console.error(`✗ ${id}: ${msg}`); };
@@ -209,6 +239,9 @@ PUZZLES.forEach((p, i) => {
     const runs = runsOf(p);
     if (runs.length !== p.words) errs.push(`words=${p.words}, but the grid actually has ${runs.length} runs of length >= 2`);
 
+    const badLen = runs.filter((r) => r.length < MIN_RUN || r.length > MAX_RUN).map((r) => r.length);
+    if (badLen.length) errs.push(`run length(s) outside ${MIN_RUN}-${MAX_RUN}: ${[...new Set(badLen)].join(', ')}`);
+
     const onBoard = new Set();
     for (const run of runs) for (const n of run) onBoard.add(n);
     for (const g of p.given) if (!onBoard.has(g)) errs.push(`given number ${g} does not appear on the board`);
@@ -265,6 +298,19 @@ PUZZLES.forEach((p, i) => {
     const rk = p.rows.join('|');
     rowsCount.set(rk, (rowsCount.get(rk) || 0) + 1);
   }
+  // variety across the whole bank, not per board (see WORD_CEILING above)
+  const useCount = new Map();
+  for (const p of PUZZLES) {
+    if (p.live < WORD_CEILING_FROM) continue;
+    for (const run of runsOf(p)) {
+      const w = decodedWord(run, p.key.split(''));
+      useCount.set(w, (useCount.get(w) || 0) + 1);
+    }
+  }
+  const over = [...useCount.entries()].filter(([, n]) => n > WORD_CEILING).sort((a, b) => b[1] - a[1]);
+  if (over.length) fail('glyph pool (answers)', `answer(s) over the ${WORD_CEILING}-use ceiling since ${WORD_CEILING_FROM}: ${over.slice(0, 8).map(([w, n]) => `${w} x${n}`).join(', ')}`);
+  else ok('glyph pool (answers)', `no answer used more than ${WORD_CEILING} times since ${WORD_CEILING_FROM} (${useCount.size} distinct answers)`);
+
   const dupKeys = [...keyCount.entries()].filter(([, n]) => n > 1);
   const dupRows = [...rowsCount.entries()].filter(([, n]) => n > 1);
   if (dupKeys.length) fail('glyph pool (key)', `identical key reused across boards: ${dupKeys.length} case(s)`);
