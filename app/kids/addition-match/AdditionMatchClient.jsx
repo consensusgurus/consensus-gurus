@@ -7,7 +7,7 @@ import { T } from '@/lib/theme';
 // answer (blue). Answers are all distinct so every card has exactly one match.
 // Faces are SVG text so they scale with the card.
 const eq = (t) => `<svg viewBox="0 0 100 100"><text x="50" y="51" font-size="24" font-family="'Manrope', system-ui, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="#14141a">${t}</text></svg>`;
-const ans = (t) => `<svg viewBox="0 0 100 100"><text x="50" y="51" font-size="46" font-family="'Manrope', system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#3a4152">${t}</text></svg>`;
+const ans = (t) => `<svg viewBox="0 0 100 100"><text x="50" y="51" font-size="46" font-family="'Manrope', system-ui, sans-serif" font-weight="800" text-anchor="middle" dominant-baseline="central" fill="#1e3a8a">${t}</text></svg>`;
 
 const SUMS = [
   ['0 + 1', 1], ['1 + 1', 2], ['1 + 2', 3], ['1 + 3', 4], ['2 + 3', 5],

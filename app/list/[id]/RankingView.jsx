@@ -143,7 +143,7 @@ export default function RankingView({ list, voteData, extras }) {
         const others = podium.slice(1);
         return (
           <>
-            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.soft, margin: '2px 2px 10px' }}>Top 3 · The Podium</div>
+            <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.coral, margin: '2px 2px 10px' }}>Top 3 · The Podium</div>
             {renderCard(podium[0], 0, true)}
             {others.length > 0 && (
               <div className="rv-pgrid" style={{ marginTop: 14, gridTemplateColumns: others.length === 1 ? '1fr' : undefined }}>
@@ -156,7 +156,7 @@ export default function RankingView({ list, voteData, extras }) {
 
       {rest.length > 0 && (
         <>
-          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.soft, margin: '20px 2px 8px' }}>The Rest of the Ranking</div>
+          <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.coral, margin: '20px 2px 8px' }}>The Rest of the Ranking</div>
           <div style={{ background: T.white, border: `1px solid ${C.line}`, borderRadius: 12, overflow: 'hidden' }}>
             {rest.map((item, idx) => {
               const i = idx + 3;

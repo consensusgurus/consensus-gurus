@@ -9,16 +9,16 @@
   <rect x="56" y="60" width="360" height="300" rx="16" fill="#f6f8fb"/>
   <g font-family="Manrope, Arial, sans-serif" font-weight="700" font-size="20" fill="#7a869a">
     <g transform="translate(84,96)">
-      <text x="0" y="20">1</text><circle cx="40" cy="14" r="13" fill="#c04a34"/><circle cx="80" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="120" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="160" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/>
+      <text x="0" y="20">1</text><circle cx="40" cy="14" r="13" fill="#2563eb"/><circle cx="80" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="120" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="160" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/>
     </g>
     <g transform="translate(84,146)">
-      <text x="0" y="20">2</text><circle cx="40" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="80" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="120" cy="14" r="13" fill="#c04a34"/><circle cx="160" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/>
+      <text x="0" y="20">2</text><circle cx="40" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="80" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="120" cy="14" r="13" fill="#2563eb"/><circle cx="160" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/>
     </g>
     <g transform="translate(84,196)">
-      <text x="0" y="20">3</text><circle cx="40" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="80" cy="14" r="13" fill="#c04a34"/><circle cx="120" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="160" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/>
+      <text x="0" y="20">3</text><circle cx="40" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="80" cy="14" r="13" fill="#2563eb"/><circle cx="120" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="160" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/>
     </g>
     <g transform="translate(84,246)">
-      <text x="0" y="20">4</text><circle cx="40" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="80" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="120" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="160" cy="14" r="13" fill="#c04a34"/>
+      <text x="0" y="20">4</text><circle cx="40" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="80" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="120" cy="14" r="13" fill="none" stroke="#d3cec9" stroke-width="3"/><circle cx="160" cy="14" r="13" fill="#2563eb"/>
     </g>
   </g>
   <!-- pencil diagonal -->

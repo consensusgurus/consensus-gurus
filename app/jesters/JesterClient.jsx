@@ -69,7 +69,7 @@ const COLORS = {
   accentDeep: '#5b21b6',
   green: T.successDeep,
 };
-const REGION_FILLS = ['#fde2e2', '#fef3c7', '#dcfce7', '#fae3dc', '#f3e8ff', '#fce7f3', '#e0f2fe', '#ffedd5', '#e2e8f0', '#d9f2ea'];
+const REGION_FILLS = ['#fde2e2', '#fef3c7', '#dcfce7', '#dbeafe', '#f3e8ff', '#fce7f3', '#e0f2fe', '#ffedd5', '#e2e8f0', '#d9f2ea'];
 // A court that already holds its quota washes out, so the eye skips it. On a
 // two-jester board this is the only "you finished something" signal left: one
 // seated jester no longer closes its row, so the old auto-✗ cascade is gone.

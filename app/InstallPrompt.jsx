@@ -116,7 +116,7 @@ export default function InstallPrompt() {
       <style>{`
         .mli-card{position:fixed;right:14px;bottom:14px;z-index:150;display:flex;align-items:center;
           gap:11px;background:#fff;border:1.5px solid var(--border,#e4e0dd);border-radius:14px;
-          padding:12px 14px;box-shadow:0 14px 40px rgba(25,27,38,.22);max-width:400px;
+          padding:12px 14px;box-shadow:0 14px 40px rgba(8,15,35,.22);max-width:400px;
           font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#14141a);
           animation:mliIn .3s ease-out;}
         @keyframes mliIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
@@ -124,10 +124,10 @@ export default function InstallPrompt() {
         .mli-t b{display:block;font-weight:800;font-size:13.5px;line-height:1.2;letter-spacing:-.01em;}
         .mli-t s{display:block;text-decoration:none;font-weight:600;font-size:11.5px;line-height:1.35;
           color:var(--muted,#4d4a52);margin-top:2px;}
-        .mli-go{flex:none;border:0;background:var(--cta,#c04a34);color:#fff;border-radius:9px;
+        .mli-go{flex:none;border:0;background:var(--cta,#2563eb);color:#fff;border-radius:9px;
           padding:9px 13px;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;
           white-space:nowrap;}
-        .mli-go:hover{background:var(--cta-hover,#a83f28);}
+        .mli-go:hover{background:var(--cta-hover,#1d4ed8);}
         .mli-x{flex:none;border:0;background:transparent;color:var(--slate,#716d79);
           font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;padding:6px 2px;}
         .mli-x:hover{color:var(--ink,#14141a);}
@@ -143,7 +143,7 @@ export default function InstallPrompt() {
           text-transform:uppercase;padding:12px;cursor:pointer;}
       `}</style>
       <div className="mli-card" role="dialog" aria-label="Install Mind Loft">
-        <MindLoftMark size={28} ink="#14141a" accent="#c04a34" />
+        <MindLoftMark size={28} ink="#14141a" accent="#2563eb" />
         <span className="mli-t">
           <b>Install Mind Loft</b>
           <s>Your daily puzzles, one tap from the home screen.</s>

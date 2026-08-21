@@ -47,7 +47,7 @@ import { meRequest } from '@/app/quizMeClient';
 
 const COLORS = {
   cream: THEME.surface, paper: THEME.paper, ink: THEME.ink, ember: THEME.accent, rust: THEME.danger, faded: THEME.muted,
-  accent: THEME.blueDeep, accentSoft: '#fae3dc', accentDeep: THEME.blueDark, green: THEME.successDeep, greenSoft: '#dcfce7', amber: '#b45309',
+  accent: THEME.blueDeep, accentSoft: '#dbeafe', accentDeep: THEME.blueDark, green: THEME.successDeep, greenSoft: '#dcfce7', amber: '#b45309',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -592,7 +592,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
             <button type="button" className="bk-btn" onClick={submit} disabled={filled !== PAIRS.length} style={filled === PAIRS.length ? { background: COLORS.accent, borderColor: COLORS.accent, color: THEME.white } : { opacity: 0.45, cursor: 'not-allowed' }}>
               <Table2 size={14} /> Hand in the sheet
             </button>
-            <button type="button" className="bk-btn" onClick={hint} style={{ background: COLORS.accentSoft, borderColor: 'rgba(168,63,40,0.45)', color: COLORS.accentDeep }}><Lightbulb size={14} /> Nudge (−2)</button>
+            <button type="button" className="bk-btn" onClick={hint} style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,78,216,0.45)', color: COLORS.accentDeep }}><Lightbulb size={14} /> Nudge (−2)</button>
             {filled > 0 && <button type="button" className="bk-btn" onClick={clearAll}><Eraser size={14} /> Clear</button>}
             {g.rejected >= 2 && <button type="button" className="bk-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>}
           </div>

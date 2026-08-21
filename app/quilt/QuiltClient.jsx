@@ -939,7 +939,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
                   title="Clear every number you have entered and start the grid over on the same clock"
                   style={hasEntries
                     ? (armClear
-                      ? { background: '#fdeeee', borderColor: 'rgba(143,29,36,0.5)', color: COLORS.rust }
+                      ? { background: '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
                       : undefined)
                     : { opacity: 0.4, cursor: 'default' }}>
                   <Trash2 size={14} /> {armClear ? 'Tap again to clear' : 'Clear'}

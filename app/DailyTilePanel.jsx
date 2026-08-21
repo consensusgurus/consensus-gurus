@@ -930,7 +930,7 @@ export default function DailyTilePanel({
           .dtp-lrow.first b,.dtp-lrow.first .sc{color:var(--gold-ink);}
           /* .me AFTER .first, so being #1 yourself reads as you, not as the
              leader you happen to be */
-          .dtp-lrow.me{margin:0;padding:8px 13px;border-radius:0;background:#fdf2ef;box-shadow:inset 3px 0 0 var(--blue);}
+          .dtp-lrow.me{margin:0;padding:8px 13px;border-radius:0;background:#eef3ff;box-shadow:inset 3px 0 0 var(--blue);}
           .dtp-lrow.me b,.dtp-lrow.me .pl,.dtp-lrow.me .sc{color:var(--blue-deep);}
           /* The game stats take their own line under the name, indented past the
              rank cell. flex-wrap plus a 100% basis, so no wrapper element and no

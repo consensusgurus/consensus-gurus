@@ -37,7 +37,7 @@ export default function DuelSignup({ anonId, onDone, onClose }) {
       <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: T.white, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22, fontFamily: FONT }}>
         <div style={{ fontSize: 18, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Claim your name</div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick the display name you will duel under. It shows on the leaderboard and the duel card. Email is optional, only to recover your name on another device. No password needed.</p>
-        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(143,29,36,0.08)', border: '1px solid rgba(143,29,36,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>

@@ -90,30 +90,30 @@ export default function CircuitLanding({ circuit, games }) {
         .clp-hd::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--blue);}
         .clp-hd.marq::before{background:var(--gold);}
         .clp-hd.done::before{background:var(--success);}
-        .clp-e{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#c3ccdb;}
+        .clp-e{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#9fc2ff;}
         .clp-hd.marq .clp-e{color:var(--gold);}
         .clp-h1{font-size:32px;font-weight:800;letter-spacing:-.8px;line-height:1.08;margin:4px 0 0;}
-        .clp-sub{font-size:14px;font-weight:600;color:#d5dae3;margin-top:8px;line-height:1.5;max-width:60ch;}
+        .clp-sub{font-size:14px;font-weight:600;color:#c3d5f5;margin-top:8px;line-height:1.5;max-width:60ch;}
         .clp-acts{display:flex;gap:9px;margin-top:17px;flex-wrap:wrap;}
-        .clp-go{display:inline-flex;align-items:center;gap:8px;background:var(--cta,#c04a34);color:#fff;
+        .clp-go{display:inline-flex;align-items:center;gap:8px;background:var(--cta,#2563eb);color:#fff;
                 border:none;border-radius:10px;padding:13px 19px;font-size:13px;font-weight:800;
                 letter-spacing:.03em;text-decoration:none;cursor:pointer;}
         .clp-sh{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#fff;
-                border:1.5px solid #5f6676;border-radius:10px;padding:13px 17px;font-size:13px;
+                border:1.5px solid #3f5896;border-radius:10px;padding:13px 17px;font-size:13px;
                 font-weight:800;letter-spacing:.03em;cursor:pointer;font-family:inherit;}
-        .clp-sh:hover{background:#363c49;}
+        .clp-sh:hover{background:#1c3163;}
         .clp-meta{display:flex;gap:22px;margin-top:16px;flex-wrap:wrap;}
         .clp-meta div b{display:block;font-size:21px;font-weight:800;letter-spacing:-.5px;
                         font-variant-numeric:tabular-nums;line-height:1;}
         .clp-meta div i{font-style:normal;display:block;font-size:9px;font-weight:800;letter-spacing:.12em;
-                        text-transform:uppercase;color:#bac0cd;margin-top:5px;}
+                        text-transform:uppercase;color:#9fb6e8;margin-top:5px;}
 
         /* On the site's navy ground, not inside a card, so these need a light
            colour chosen against navy rather than against white. */
         .clp-sec{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
-                 color:#f6d8d0;margin:28px 0 9px;}
-        .clp-note{font-size:11.5px;font-weight:600;color:#bac0cd;line-height:1.6;margin-top:10px;}
-        .clp-note a{color:#f6d8d0;}
+                 color:#bfdbfe;margin:28px 0 9px;}
+        .clp-note{font-size:11.5px;font-weight:600;color:#9fb6e8;line-height:1.6;margin-top:10px;}
+        .clp-note a{color:#bfdbfe;}
 
         .clp-cards{display:flex;flex-direction:column;gap:9px;}
         .clp-c{position:relative;display:flex;align-items:center;gap:13px;background:var(--white);
@@ -153,10 +153,10 @@ export default function CircuitLanding({ circuit, games }) {
         .clp-tier.bronze{background:#f7ece2;color:#8a5a30;}
 
         .clp-all{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;
-                 background:var(--white);color:var(--accent,#3a4152);border:1.5px solid #494f5f;
+                 background:var(--white);color:var(--accent,#1e3a8a);border:1.5px solid #2c437c;
                  border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
                  letter-spacing:.03em;text-decoration:none;}
-        .clp-all:hover{background:#fdf2ef;}
+        .clp-all:hover{background:#eef3ff;}
         @media(max-width:620px){
           .clp{padding:16px 12px 70px;}
           .clp-h1{font-size:25px;}

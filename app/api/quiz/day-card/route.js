@@ -26,9 +26,9 @@ export const dynamic = 'force-dynamic';
 
 const SZ = 1080;
 const PAL = {
-  bg: '#ffffff', text: '#14141a', navy: '#3a4152', slate: '#716d79',
+  bg: '#ffffff', text: '#14141a', navy: '#1e3a8a', slate: '#716d79',
   soft: '#6b7280', cell: '#f1f3f6', line: 'rgba(20,22,28,0.10)',
-  blue: '#c04a34', green: '#15803d', gold: '#b7791f', goldBg: '#fdf6e4',
+  blue: '#2563eb', green: '#15803d', gold: '#b7791f', goldBg: '#fdf6e4',
 };
 const BRAIN_W = 430;
 const BRAIN_H = 387; // matches the 640x576 source art

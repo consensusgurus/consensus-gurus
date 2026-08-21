@@ -528,7 +528,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
     const r = sub ? scoreItem(i, sub) : null;
     const errTok = WRONG_TOKS[i];
     const borderCol = r
-      ? (r.pts === r.value ? 'rgba(21,128,61,0.5)' : r.pts > 0 ? 'rgba(202,138,4,0.5)' : 'rgba(143,29,36,0.5)')
+      ? (r.pts === r.value ? 'rgba(21,128,61,0.5)' : r.pts > 0 ? 'rgba(202,138,4,0.5)' : 'rgba(192,57,43,0.5)')
       : 'rgba(28,30,36,0.2)';
     return (
       <div key={i} style={{ background: T.white, border: `1.5px solid ${borderCol}`, borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>

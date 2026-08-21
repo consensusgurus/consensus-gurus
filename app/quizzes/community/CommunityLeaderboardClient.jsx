@@ -277,7 +277,7 @@ export default function CommunityLeaderboardClient() {
       {joinOpen && (
         <div
           onClick={() => setJoinOpen(false)}
-          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(30,33,44,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(14,29,64,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ width: 390, maxWidth: '100%', background: T.white, borderRadius: 16, padding: '22px 20px 20px', maxHeight: '88vh', overflow: 'auto' }}>
             <JoinLeaderboardForm

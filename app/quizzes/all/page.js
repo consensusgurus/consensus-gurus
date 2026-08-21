@@ -106,7 +106,7 @@ export default function AllQuizzesPage() {
     <div style={{ minHeight: '100vh', background: T.white, color: T.ink, position: 'relative' }}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 6, background: 'linear-gradient(90deg,#14141a,#3a4152 55%,#c04a34)' }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 6, background: 'linear-gradient(90deg,#14141a,#1e3a8a 55%,#2563eb)' }} />
 
       <div className="qa-wrap">
         <Link href="/" className="qa-back">

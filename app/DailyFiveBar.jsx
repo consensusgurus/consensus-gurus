@@ -98,7 +98,7 @@ export default function DailyFiveBar({ slug }) {
   return (
     <div className={marq ? 'd5b' : 'd5b circ'}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .d5b{background:#282c3b;border-bottom:1px solid #1d212c;position:relative;z-index:2;
+        .d5b{background:#0d1e56;border-bottom:1px solid #091640;position:relative;z-index:2;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;}
         .d5b-in{max-width:1560px;margin:0 auto;padding:7px clamp(12px,2.5vw,34px);
                 display:flex;align-items:center;gap:11px;}
@@ -109,12 +109,12 @@ export default function DailyFiveBar({ slug }) {
         .d5b-rail{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;}
         .d5b-rail::-webkit-scrollbar{display:none;}
         .d5b-row{display:flex;gap:6px;width:max-content;padding:1px 0;}
-        .d5b-g{background:rgba(255,255,255,.10);border:1px solid #5b6378;border-radius:999px;
-               padding:5px 12px;font-size:11.5px;font-weight:700;color:#e9ebf1;white-space:nowrap;
+        .d5b-g{background:rgba(255,255,255,.10);border:1px solid #35529e;border-radius:999px;
+               padding:5px 12px;font-size:11.5px;font-weight:700;color:#dbe6ff;white-space:nowrap;
                text-decoration:none;flex:none;}
-        .d5b-g:hover{background:rgba(255,255,255,.22);border-color:#8891a6;}
+        .d5b-g:hover{background:rgba(255,255,255,.22);border-color:#5f80cf;}
         .d5b-g.is-done{background:rgba(52,211,153,.15);border-color:#2f7d5e;color:#8ff0c4;}
-        .d5b-g.is-now{background:var(--blue,#c04a34);border-color:#a4b0c8;color:#fff;
+        .d5b-g.is-now{background:var(--blue,#2563eb);border-color:#6d9bff;color:#fff;
                       box-shadow:0 1px 3px rgba(0,0,0,.35);}
         .d5b-n{font-size:11px;font-weight:800;color:#f0cd7a;white-space:nowrap;flex:none;
                font-variant-numeric:tabular-nums;}
@@ -128,19 +128,19 @@ export default function DailyFiveBar({ slug }) {
         /* Leaving the run is one tap and it is the SAME page without the flag, so
            nothing is lost and the board does not reload into a different puzzle.
            Without it the only way out of a run is the back button. */
-        .d5b-x{font-size:10.5px;font-weight:800;letter-spacing:.04em;color:#b0b6c5;
+        .d5b-x{font-size:10.5px;font-weight:800;letter-spacing:.04em;color:#93aae2;
                text-decoration:none;white-space:nowrap;flex:none;}
-        .d5b-x:hover{color:#e9ebf1;}
+        .d5b-x:hover{color:#dbe6ff;}
         /* A SKILL CIRCUIT IS BLUE, THE MARQUEE IS GOLD, the same rule the
            console band already draws itself by. Gold is reserved for the Five
            because its roster is different every day and cannot be farmed by
            picking an easy one; a fixed circuit is one of fourteen. */
-        .d5b.circ .d5b-k{color:#d5dbe6;}
-        .d5b.circ .d5b-k::before{background:var(--blue-400,#e9917c);}
-        .d5b.circ .d5b-n{color:#d5dbe6;}
+        .d5b.circ .d5b-k{color:#bcd2ff;}
+        .d5b.circ .d5b-k::before{background:var(--blue-400,#60a5fa);}
+        .d5b.circ .d5b-n{color:#bcd2ff;}
         .d5b.circ .d5b-n.done{color:#8ff0c4;}
-        .d5b.circ .d5b-next{background:var(--blue,#c04a34);color:#fff;}
-        .d5b.circ .d5b-next:hover{background:#7f90b1;}
+        .d5b.circ .d5b-next{background:var(--blue,#2563eb);color:#fff;}
+        .d5b.circ .d5b-next:hover{background:#3b7bf5;}
         @media(max-width:860px){.d5b-in{gap:9px;}}
         @media(max-width:560px){.d5b-x,.d5b-k{display:none;}}
       ` }} />

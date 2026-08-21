@@ -311,7 +311,7 @@ function QuizCelebration({ kind, onDone }) {
     window.addEventListener('resize', size);
     const big = kind === 'big';
     const GOLD = ['#fbb615', '#ffe24d', '#f59008', '#ffcb45'];
-    const MIX = [T.accent, '#a83f28', T.success, '#fbb615', T.white, '#ef476f'];
+    const MIX = [T.accent, '#1d4ed8', T.success, '#fbb615', T.white, '#ef476f'];
     const pal = big ? GOLD : MIX;
     const rnd = (a, b) => a + Math.random() * (b - a);
     let parts = [];
@@ -1435,7 +1435,7 @@ export default function QuizClient({ quizId }) {
   const similarList = ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis;
   const similarQuizzes = similarList.length > 0 ? (
     <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${COLORS.line}` }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>Similar quizzes</div>
+      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.coral, marginBottom: 16 }}>Similar quizzes</div>
       <SimilarQuizTiles items={similarList} />
     </div>
   ) : null;

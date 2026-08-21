@@ -569,7 +569,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-btn:disabled{opacity:0.4;cursor:default;}
           .gl-cell{box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;min-height:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1px solid rgba(28,30,36,0.16);background:var(--white);}
           .gl-cell.blk{background:${COLORS.ink};border-color:${COLORS.ink};cursor:default;}
-          .gl-cell.sel{background:#fae3dc;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
+          .gl-cell.sel{background:#dbeafe;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .gl-cell.kin{background:${COLORS.accentSoft};}
           .gl-cell.bad{background:#fdecea;box-shadow:inset 0 0 0 2px ${COLORS.rust};}
           .gl-num{position:absolute;top:1.5px;left:2.5px;font-family:${MONO};font-size:9px;line-height:1;color:#2f3644;font-weight:700;}
@@ -580,7 +580,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-keycap.used{background:${COLORS.paper};color:#a4abb8;text-decoration:line-through;}
           .gl-keycap:disabled{cursor:default;}
           .gl-chip{border:1.5px solid rgba(28,30,36,0.22);border-radius:6px;background:var(--white);padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${COLORS.faded};cursor:pointer;}
-          .gl-chip.on{border-color:${COLORS.accent};background:#fae3dc;}
+          .gl-chip.on{border-color:${COLORS.accent};background:#dbeafe;}
           .gl-chip b{display:block;font-family:${SANS};font-size:13px;color:${COLORS.ink};}
           .gl-card{padding:13px 15px 15px;}
           .gl-chips{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}

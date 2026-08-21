@@ -102,7 +102,7 @@ function SignupModal({ onClose }) {
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
-        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(143,29,36,0.08)', border: '1px solid rgba(143,29,36,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
         <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
@@ -783,7 +783,7 @@ export default function StatHubClient() {
     .qzhub .fdot{width:9px;height:9px;border-radius:50%;display:inline-block;}
     .qzhub .duelpulse{animation:qzpulse 2s ease-in-out infinite;}
     .qzhub .flameon{animation:qzflame 1.4s ease-in-out infinite;}
-    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(30,33,44,.25);}50%{box-shadow:0 0 0 7px rgba(30,33,44,0);}}
+    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(14,29,64,.25);}50%{box-shadow:0 0 0 7px rgba(14,29,64,0);}}
     @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
     @media (prefers-reduced-motion: reduce){.qzhub .duelpulse,.qzhub .flameon{animation:none;}}
     @media(max-width:640px){.qzhub .lbar{display:none;}.qzhub .lform{display:none;}.qzhub .duelqt{display:none;}}

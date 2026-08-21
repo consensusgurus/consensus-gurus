@@ -253,7 +253,7 @@ export default function DuelClient({ token }) {
               )}
 
               <div style={{ marginTop: 22, display: 'flex', justifyContent: 'center' }}>
-                <Link href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: T.cta, color: T.ctaInk, padding: '14px 30px', borderRadius: 12, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', textDecoration: 'none', boxShadow: '0 10px 26px rgba(30,33,44,0.38)' }}><Swords size={18} /> Start Another Duel</Link>
+                <Link href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, background: T.cta, color: T.ctaInk, padding: '14px 30px', borderRadius: 12, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', textDecoration: 'none', boxShadow: '0 10px 26px rgba(14,29,64,0.38)' }}><Swords size={18} /> Start Another Duel</Link>
               </div>
             </>
           )}

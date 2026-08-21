@@ -165,17 +165,17 @@ export default function DailyFiveSummary() {
         /* Blue rule and blue eyebrow for a skill circuit, gold for the
            marquee, green once the run is complete. */
         .d5s-hd.circ::before{background:var(--blue);}
-        .d5s-hd.circ .d5s-e{color:#c3ccdb;}
+        .d5s-hd.circ .d5s-e{color:#9fc2ff;}
         .d5s-hd.done::before,.d5s-hd.circ.done::before{background:var(--success);}
         .d5s-e{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
         .d5s-hd.done .d5s-e{color:#7ff0c0;}
         .d5s-h1{font-size:30px;font-weight:800;letter-spacing:-.7px;line-height:1.1;margin:3px 0 0;}
-        .d5s-sub{font-size:12.5px;font-weight:600;color:#bac0cd;margin-top:5px;}
+        .d5s-sub{font-size:12.5px;font-weight:600;color:#9fb6e8;margin-top:5px;}
         .d5s-fig{display:flex;gap:26px;margin-top:15px;flex-wrap:wrap;}
         .d5s-fig div b{display:block;font-size:26px;font-weight:800;letter-spacing:-.7px;
                        font-variant-numeric:tabular-nums;line-height:1;}
         .d5s-fig div i{font-style:normal;display:block;font-size:9px;font-weight:800;letter-spacing:.12em;
-                       text-transform:uppercase;color:#bac0cd;margin-top:5px;}
+                       text-transform:uppercase;color:#9fb6e8;margin-top:5px;}
 
         /* THESE TWO SIT DIRECTLY ON THE PAGE, WHICH IS NAVY. Everything else on
            this page is inside a white card and inherits the dark ink above, but
@@ -184,16 +184,16 @@ export default function DailyFiveSummary() {
            unreadable. Anything added here outside a card needs a light colour
            chosen against the navy, not against white. */
         .d5s-sec{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
-                 color:#f6d8d0;margin:26px 0 9px;}
-        .d5s-note{font-size:11.5px;font-weight:600;color:#bac0cd;line-height:1.6;margin-top:9px;}
+                 color:#bfdbfe;margin:26px 0 9px;}
+        .d5s-note{font-size:11.5px;font-weight:600;color:#9fb6e8;line-height:1.6;margin-top:9px;}
         /* One way back, at the foot, where a reader who has finished reading is.
            The run's other exits all lead deeper into a game; this is the only
            one that leaves. */
         .d5s-home{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;
-                  background:var(--white);color:var(--accent);border:1.5px solid #494f5f;
+                  background:var(--white);color:var(--accent);border:1.5px solid #2c437c;
                   border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
                   letter-spacing:.03em;text-decoration:none;}
-        .d5s-home:hover{background:#fdf2ef;}
+        .d5s-home:hover{background:#eef3ff;}
 
         /* board */
         .d5s-lb{border:1.5px solid var(--border);border-radius:13px;overflow:hidden;background:var(--white);}
@@ -239,10 +239,10 @@ export default function DailyFiveSummary() {
                 border-radius:8px;padding:9px 13px;font-size:11px;font-weight:800;letter-spacing:.06em;
                 text-transform:uppercase;text-decoration:none;}
         .d5s-share{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:transparent;
-                   color:#fff;border:1.5px solid #5f6676;border-radius:10px;padding:11px 16px;
+                   color:#fff;border:1.5px solid #3f5896;border-radius:10px;padding:11px 16px;
                    font-size:12.5px;font-weight:800;letter-spacing:.03em;cursor:pointer;
                    font-family:inherit;}
-        .d5s-share:hover{background:#363c49;}
+        .d5s-share:hover{background:#1c3163;}
         .d5s-empty{padding:22px;text-align:center;font-size:13px;font-weight:600;color:var(--slate);
                    background:var(--surface);border:1.5px solid var(--border);border-radius:13px;}
         @media(max-width:620px){

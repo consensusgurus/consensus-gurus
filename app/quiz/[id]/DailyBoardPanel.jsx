@@ -282,8 +282,8 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         /* The colored cap across the top: three deliberate cards, not three
            pale boxes. */
         .dbp-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
-        .dbp-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(192,74,52,.16);transform:translateY(-1px);}
-        .dbp-tile.on{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(192,74,52,.16);}
+        .dbp-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(37,99,235,.16);transform:translateY(-1px);}
+        .dbp-tile.on{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
         /* Podium tint: a top-3 finish is the point of the row, so it is colored
            gold / silver / bronze rather than left generic blue. */
         .dbp-tile.m1{border-color:#e3ba57;background:linear-gradient(180deg,#fffdf5,#fdf3d9);box-shadow:0 3px 14px rgba(190,145,25,.20);}

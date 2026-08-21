@@ -75,7 +75,7 @@ const NAVY_ACCENT = {
   sando: '#5ec8d0', cages: '#cba6f7', quilt: '#eda5e6', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',
   jester: '#a78bfa', sworn: '#f472b6', outrank: '#8b8af5', shards: '#2dd4bf',
-  axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', stands: '#f0a996', bracket: '#fb923c', pricer: '#4ade80',
+  axiom: '#5eead4', hearsay: '#d8b4fe', venn: '#fbbf24', stands: '#93c5fd', bracket: '#fb923c', pricer: '#4ade80',
   lode: '#e0b13f', etch: '#a3e635', hedge: '#67e8f9', listed: '#e9b8f5', mate: '#d9b38c', four: '#9db8ff', park: '#f0cf9a', check: '#5fd6b8', rung: '#7fd4e8', crunch: '#f0c07a', taire: '#86efac', fib: '#c4b5fd', streak: '#fb7185', feud: '#fda4af',
 };
 
@@ -354,7 +354,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-kick{font-family:${MONO};font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};font-weight:500;}
         .dl-h1{margin:8px 0 7px;font-size:34px;font-weight:800;letter-spacing:-0.9px;color:${INK};line-height:1.0;}
         .dl-sub{margin:0;font-size:14.5px;font-weight:500;color:${FADED};line-height:1.55;max-width:620px;}
-        .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:center;background:var(--white);color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(30,33,44,0.08);min-width:300px;}
+        .dl-day{display:flex;flex-direction:column;gap:13px;justify-content:center;background:var(--white);color:${INK};border:1px solid ${LINE};border-radius:16px;padding:18px 20px;box-shadow:0 6px 22px rgba(14,29,64,0.08);min-width:300px;}
         .dl-day-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
         .dl-day-idrow{display:flex;align-items:baseline;gap:8px;min-width:0;}
         .dl-day-name{font-size:14px;font-weight:800;letter-spacing:-.2px;color:${INK};line-height:1.1;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -381,7 +381,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
 
         .dl-rail{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;}
         .dl-railcard{flex:0 0 auto;display:flex;align-items:center;gap:11px;border:1px solid ${LINE};border-radius:13px;background:var(--white);padding:10px 15px 10px 11px;text-decoration:none;transition:border-color .15s,box-shadow .15s;}
-        .dl-railcard:hover{border-color:#cdd6e6;box-shadow:0 4px 14px rgba(30,33,44,0.07);}
+        .dl-railcard:hover{border-color:#cdd6e6;box-shadow:0 4px 14px rgba(14,29,64,0.07);}
         .dl-alldone{border:1px dashed #cfd6e2;border-radius:13px;background:var(--white);padding:15px 18px;font-size:13.5px;font-weight:600;color:${MUTED};}
         .dl-alldone b{color:${GREEN};}
         .dl-stp{background:var(--white);border:1px solid ${LINE};border-radius:16px;padding:15px 18px;margin-top:16px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:20px;align-items:center;}
@@ -399,8 +399,8 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
 
         /* compact game ROW (owner rework 2026-07-23) */
         .dl-row{border:1px solid ${LINE};border-radius:14px;background:var(--white);transition:border-color .15s,box-shadow .15s;}
-        .dl-row:hover{box-shadow:0 3px 12px rgba(30,33,44,0.06);}
-        .dl-row.open{border-color:#c9d3e5;box-shadow:0 8px 26px rgba(30,33,44,0.09);}
+        .dl-row:hover{box-shadow:0 3px 12px rgba(14,29,64,0.06);}
+        .dl-row.open{border-color:#c9d3e5;box-shadow:0 8px 26px rgba(14,29,64,0.09);}
         .dl-rmain{display:grid;grid-template-columns:minmax(0,1fr) 100px 100px auto auto;gap:16px;align-items:center;padding:13px 16px;cursor:pointer;}
         .dl-rid{display:flex;align-items:center;gap:12px;min-width:0;}
         .dl-ridtext{flex:1 1 auto;min-width:0;}
@@ -492,8 +492,8 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         a.dl-cal-cell.played.sun{box-shadow:0 0 0 1.5px rgba(180,83,9,0.42);}
 
         .dl-card{border:1px solid ${LINE};border-radius:16px;background:var(--white);transition:border-color .15s,box-shadow .15s;}
-        .dl-card:hover{box-shadow:0 4px 16px rgba(30,33,44,0.06);}
-        .dl-card.open{border-color:#c9d3e5;box-shadow:0 10px 30px rgba(30,33,44,0.10);}
+        .dl-card:hover{box-shadow:0 4px 16px rgba(14,29,64,0.06);}
+        .dl-card.open{border-color:#c9d3e5;box-shadow:0 10px 30px rgba(14,29,64,0.10);}
         .dl-chead{display:flex;align-items:center;gap:14px;padding:16px 18px 0;}
         .dl-art{box-sizing:border-box;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden;}
         .dl-art img{width:78%;height:78%;object-fit:contain;}
@@ -578,7 +578,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cta.done{background:rgba(224,174,74,0.16);color:#8a6d1f;cursor:default;}
         .dl-cattiles{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px;}
         .dl-cattile{display:inline-flex;align-items:center;gap:9px;text-decoration:none;background:var(--white);border:1px solid ${LINE};border-radius:11px;padding:9px 13px;transition:border-color .15s,box-shadow .15s;}
-        .dl-cattile:hover{border-color:#c9d3e5;box-shadow:0 4px 14px rgba(30,33,44,0.07);}
+        .dl-cattile:hover{border-color:#c9d3e5;box-shadow:0 4px 14px rgba(14,29,64,0.07);}
         .dl-cattile .dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto;}
         .dl-cattile .lbl{font-size:13.5px;font-weight:800;letter-spacing:-.2px;color:${INK};}
         .dl-cattile .ct{font-family:${MONO};font-size:10px;color:#9aa3b5;}

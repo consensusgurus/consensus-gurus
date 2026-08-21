@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 // tier + IQ Points, completed/correct/accuracy with ranks, and the top-3
 // categories by IQ Points. GET /api/quiz/share-card?key=u:123|a:<anon>
 const SZ = 1080;
-const PAL = { bg: '#ffffff', text: '#14141a', accent: '#3a4152', faded: '#4d4a52', soft: '#716d79', line: 'rgba(11,12,14,0.10)', cell: '#f7f5f4', accsoft: '#fdf2ef' };
+const PAL = { bg: '#ffffff', text: '#14141a', accent: '#1e3a8a', faded: '#4d4a52', soft: '#716d79', line: 'rgba(11,12,14,0.10)', cell: '#f7f5f4', accsoft: '#eef3ff' };
 
 async function loadFont(url) {
   try { const r = await fetch(url); if (r.ok) return await r.arrayBuffer(); } catch (e) { /* */ }

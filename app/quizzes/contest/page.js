@@ -60,14 +60,14 @@ export default function ContestPage() {
           &larr; Back to all games
         </Link>
 
-        <div style={{ background: '#3a4152', color: '#fff', borderRadius: 14, padding: '26px 26px 22px', margin: '16px 0 22px' }}>
-          <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#f6d8d0', marginBottom: 8 }}>
+        <div style={{ background: '#1e3a8a', color: '#fff', borderRadius: 14, padding: '26px 26px 22px', margin: '16px 0 22px' }}>
+          <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#bfdbfe', marginBottom: 8 }}>
             Limited time · {CONTEST.days} days
           </div>
           <h1 style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-.02em', margin: 0, lineHeight: 1.05 }}>
             {COPY.headline}
           </h1>
-          <p style={{ fontSize: 15, color: '#fae3dc', margin: '10px 0 0', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 15, color: '#dbeafe', margin: '10px 0 0', lineHeight: 1.5 }}>
             {COPY.sub}. {COPY.prizeLine}. Ends {CONTEST.deadlineLabel}.
           </p>
         </div>

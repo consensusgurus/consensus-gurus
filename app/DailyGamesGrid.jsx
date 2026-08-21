@@ -237,7 +237,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         @media(min-width:768px){.dgg{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:359px){.dgg{grid-template-columns:1fr;}}
         .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:58px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:var(--white);padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
-        .dgg-t:hover{border-color:#99a5c1;}
+        .dgg-t:hover{border-color:#5b8bff;}
         .dgg-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
         .dgg-art{flex:0 0 auto;height:42px;width:auto;}
         .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:var(--ink);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -250,9 +250,9 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         .dgg-act .dgg-act-l{font-size:15px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);line-height:1.15;text-align:center;}
         .dgg-act svg{flex:0 0 auto;}
         .dgg-replay{margin-bottom:12px;}
-        .dgg-act.dgg-again{min-height:64px;background:var(--cta);border-color:var(--cta);box-shadow:0 2px 0 var(--cta-hover),0 4px 14px rgba(192,74,52,.28);transition:background .12s ease,transform .08s ease,box-shadow .12s ease;}
+        .dgg-act.dgg-again{min-height:64px;background:var(--cta);border-color:var(--cta);box-shadow:0 2px 0 var(--cta-hover),0 4px 14px rgba(37,99,235,.28);transition:background .12s ease,transform .08s ease,box-shadow .12s ease;}
         .dgg-act.dgg-again:hover{background:var(--cta-hover);border-color:var(--cta-hover);}
-        .dgg-act.dgg-again:active{transform:translateY(2px);box-shadow:0 0 0 var(--cta-hover),0 2px 8px rgba(192,74,52,.24);}
+        .dgg-act.dgg-again:active{transform:translateY(2px);box-shadow:0 0 0 var(--cta-hover),0 2px 8px rgba(37,99,235,.24);}
         .dgg-act.dgg-again .dgg-act-l{color:var(--white);}
         .dgg-act.dgg-again svg{color:var(--white);}
         .dgg-act-s{display:block;margin-top:3px;font-size:10.5px;font-weight:700;letter-spacing:0;text-transform:none;color:rgba(255,255,255,.74);}
@@ -289,7 +289,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
            bottom section matches the end-of-game card. Game icons are kept. */
         .dgg-light .dgg-t{background:var(--white);border-color:rgba(20,22,28,0.12);}
-        .dgg-light .dgg-t:hover{border-color:#99a5c1;}
+        .dgg-light .dgg-t:hover{border-color:#5b8bff;}
         .dgg-light .dgg-nm{color:var(--ink);}
         .dgg-light .dgg-p{color:var(--muted);}
         /* The letter-tile game icons are drawn for a dark ground and wash out on

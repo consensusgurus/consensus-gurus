@@ -984,7 +984,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
                 let bg = dark ? DARK_SQ : LIGHT_SQ;
                 if (isLast) bg = `linear-gradient(${LAST_SQ},${LAST_SQ}), ${bg}`;
                 if (isSel) bg = `linear-gradient(${SEL_SQ},${SEL_SQ}), ${dark ? DARK_SQ : LIGHT_SQ}`;
-                if (checked) bg = `radial-gradient(circle, rgba(143,29,36,0.85) 12%, rgba(143,29,36,0.25) 62%, transparent 74%), ${dark ? DARK_SQ : LIGHT_SQ}`;
+                if (checked) bg = `radial-gradient(circle, rgba(192,57,43,0.85) 12%, rgba(192,57,43,0.25) 62%, transparent 74%), ${dark ? DARK_SQ : LIGHT_SQ}`;
                 return (
                   <div
                     key={sq}

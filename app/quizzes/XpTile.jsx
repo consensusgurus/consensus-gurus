@@ -212,7 +212,7 @@ export default function XpTile() {
         .xptile .xp-pname.xp-vacant{color:rgba(255,255,255,.34);font-weight:600;font-style:italic;}
         .xptile .xp-pn{flex:none;font-weight:800;color:rgba(214,228,255,.66);font-variant-numeric:tabular-nums;}
         .xptile .xp-foot{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12px;font-weight:800;color:rgba(255,255,255,.9);}
-        .xptile .xp-panel{position:absolute;inset:0;z-index:6;background:rgba(25,27,38,.975);padding:13px 14px;display:flex;flex-direction:column;gap:5px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
+        .xptile .xp-panel{position:absolute;inset:0;z-index:6;background:rgba(8,15,35,.975);padding:13px 14px;display:flex;flex-direction:column;gap:5px;opacity:0;pointer-events:none;transition:opacity .16s ease;overflow:auto;}
         .xptile:hover .xp-panel,.xptile:focus-within .xp-panel,.xptile.xp-open .xp-panel{opacity:1;pointer-events:auto;}
         .xptile .xp-h{font-size:12px;font-weight:800;letter-spacing:.07em;color:${C.cta};text-transform:uppercase;}
         .xptile .xp-why{font-size:12px;line-height:1.34;font-weight:700;color:${C.gold};}

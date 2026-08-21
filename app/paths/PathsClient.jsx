@@ -74,8 +74,8 @@ const COLORS = {
   track: T.accent,          // laid track reads as the brand navy
   ridge: '#e6dcc6',
   ridgeInk: '#8a6a2f',
-  river: '#f6d8d0',
-  riverInk: '#a83f28',
+  river: '#bfdbfe',
+  riverInk: '#1d4ed8',
   cliff: '#4b5563',         // a wall, not a price
   cliffInk: '#111827',
   rail: '#0f766e',          // old track, free to run along

@@ -1632,7 +1632,7 @@ export default function DetailClient({ listId, seo = null }) {
           }}
         >
           <style>{`@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap');@keyframes sotpulse{0%,100%{opacity:.4;transform:scale(0.92)}50%{opacity:1;transform:scale(1)}}`}</style>
-          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#c04a34,#3a4152)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sotpulse 1.2s ease-in-out infinite' }}>
+          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#2563eb,#1e3a8a)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sotpulse 1.2s ease-in-out infinite' }}>
             <div style={{ width: 17, height: 17, borderRadius: '50%', border: `2.5px solid ${T.white}` }} />
           </div>
           <div style={{ fontSize: 13.5, fontWeight: 700, letterSpacing: '0.04em', color: T.muted }}>Loading the ranking…</div>

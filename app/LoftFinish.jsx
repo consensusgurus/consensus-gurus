@@ -545,22 +545,22 @@ export default function LoftFinish({
             .d5f-eye{font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#a98a2e;white-space:nowrap;}
             /* Gold for the marquee, blue for a skill circuit, green once the
                run is done — the console band's own three-state rule. */
-            .d5f-run.circ .d5f-eye{color:#c04a34;}
+            .d5f-run.circ .d5f-eye{color:#2563eb;}
             .d5f-run.done .d5f-eye,.d5f-run.circ.done .d5f-eye{color:#15803d;}
             .d5f-pips{display:flex;gap:4px;flex:1;min-width:0;}
             .d5f-pips span{flex:1;height:6px;border-radius:3px;background:#dbe2ee;}
             .d5f-pips span.on{background:#10b981;}
-            .d5f-pips span.now{background:#c04a34;}
+            .d5f-pips span.now{background:#2563eb;}
             .d5f-alt{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px;}
             .d5f-alt a{font-size:11.5px;font-weight:800;letter-spacing:.03em;color:#716d79;text-decoration:none;}
             .d5f-alt a:hover{color:#14141a;}
             /* The retry control borrows loft-next's shape so it reads as the
                card's one primary action, and takes the blue so it is never
                mistaken for the green hand-off it is standing in for. */
-            .loft-next.d5f-retry{background:rgba(192,74,52,.10);width:100%;text-align:left;
+            .loft-next.d5f-retry{background:rgba(37,99,235,.10);width:100%;text-align:left;
               border:0;font-family:inherit;cursor:pointer;}
-            .loft-next.d5f-retry:hover{background:rgba(192,74,52,.16);}
-            .loft-next.d5f-retry .go{background:#c04a34;}
+            .loft-next.d5f-retry:hover{background:rgba(37,99,235,.16);}
+            .loft-next.d5f-retry .go{background:#2563eb;}
             .d5f-gate{margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.35;color:#716d79;text-align:center;}
             .d5f-again{display:block;width:100%;margin-top:9px;padding:9px;border-radius:9px;
               border:2px solid #dbe2ee;background:#fbfaf9;color:#3f4756;font-family:inherit;
@@ -693,13 +693,13 @@ export default function LoftFinish({
                from gold back to the green it was written as, which is a call to
                make deliberately rather than as a side effect of this. */
             .lfr-go{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;
-              border-radius:11px;background:rgba(192,74,52,.10);
-              border:2px solid rgba(192,74,52,.32);color:var(--ink);
+              border-radius:11px;background:rgba(37,99,235,.10);
+              border:2px solid rgba(37,99,235,.32);color:var(--ink);
               font-family:inherit;text-align:left;cursor:pointer;}
-            .lfr-go:hover{background:rgba(192,74,52,.17);}
+            .lfr-go:hover{background:rgba(37,99,235,.17);}
             .lfr-t{flex:1;min-width:0;}
             .lfr-eb{display:block;font-weight:800;font-size:9.5px;line-height:1;
-              letter-spacing:.11em;text-transform:uppercase;color:#a83f28;margin-bottom:5px;}
+              letter-spacing:.11em;text-transform:uppercase;color:#1d4ed8;margin-bottom:5px;}
             .lfr-nm{display:block;font-weight:800;font-size:19px;line-height:1.1;
               letter-spacing:-.022em;color:var(--ink);}
             /* THE SUB LINE WRAPS. It is a whole sentence from the registry, not
@@ -709,7 +709,7 @@ export default function LoftFinish({
               color:var(--muted);margin-top:5px;white-space:normal;overflow:visible;}
             /* White ink stated outright: the chip is a solid blue box, and the
                only reason it ever read black was an inherited colour. */
-            .lfr-chip{flex:none;background:#c04a34;color:#fff;border-radius:10px;
+            .lfr-chip{flex:none;background:#2563eb;color:#fff;border-radius:10px;
               padding:11px 15px;font-weight:800;font-size:13.5px;line-height:1;
               white-space:nowrap;}
             .lfr-card{display:block;width:100%;margin-top:10px;padding:12px 13px;border-radius:11px;
@@ -901,16 +901,16 @@ export default function LoftFinish({
       {claimBandShown ? (
         <div className="loft-claim">
           <style>{`
-            .loft-claim{margin:2px 0 10px;border:2px solid rgba(192,74,52,.32);border-radius:11px;
-              background:rgba(192,74,52,.07);padding:11px 13px;}
+            .loft-claim{margin:2px 0 10px;border:2px solid rgba(37,99,235,.32);border-radius:11px;
+              background:rgba(37,99,235,.07);padding:11px 13px;}
             .loft-claim .eb{display:block;font-weight:800;font-size:9.5px;line-height:1;
-              letter-spacing:.11em;text-transform:uppercase;color:#a83f28;margin-bottom:5px;}
+              letter-spacing:.11em;text-transform:uppercase;color:#1d4ed8;margin-bottom:5px;}
             .loft-claim .hd{display:flex;align-items:center;gap:10px;}
             .loft-claim .nm{flex:1;min-width:0;font-weight:800;font-size:15.5px;line-height:1.15;
               letter-spacing:-.01em;color:var(--ink);}
-            .loft-claim .go{flex:none;border:0;background:#c04a34;color:#fff;border-radius:9px;
+            .loft-claim .go{flex:none;border:0;background:#2563eb;color:#fff;border-radius:9px;
               padding:9px 13px;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;}
-            .loft-claim .go:hover{background:#a83f28;}
+            .loft-claim .go:hover{background:#1d4ed8;}
             .loft-claim .tg{font-weight:700;font-size:11.5px;line-height:1.4;color:var(--muted);
               margin-top:5px;}
             .loft-claim .formwrap{margin-top:12px;}
