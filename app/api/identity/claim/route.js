@@ -40,6 +40,8 @@ export async function POST(req) {
   const id = await verifyHandoff(token);
   if (!id) return NextResponse.json({ ok: false }, { status: 400 });
   const who = await identityFor(id);
+  // Diagnostics for Vercel logs (a PWA first launch lands here); no ids logged.
+  console.log('[identity-claim]', JSON.stringify({ valid: true, account: !!(who && who.username) }));
   return NextResponse.json(
     { ok: true, id, username: (who && who.username) || null, email: (who && who.email) || null },
     { headers: { 'Cache-Control': 'no-store' } },

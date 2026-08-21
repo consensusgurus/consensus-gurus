@@ -5431,32 +5431,44 @@ Android shares the Chrome profile's storage, so this was iOS-specific.
 The fix reuses the domain-move handoff machinery; the one channel that crosses the partition is
 the URL baked into the manifest's `start_url`, which browsers read at install time:
 
-- **`/api/identity/pwa-token`** (POST) mints a signed `_ml` handoff token from the `sot_vid`
-  cookie with `PWA_TTL_MS` = 60 days (`mintHandoff` now takes an optional ttl; the redirect
-  handoff keeps its 5 minutes). Long because the token is frozen into the home-screen entry at
-  install time and the first launch can come much later; `adoptable()` still gates the claim.
-- **`/api/pwa-manifest`** (GET) serves the manifest with `_ml=<token>` appended to `start_url`.
-  No `game` param = the root manifest (imports the `app/manifest.js` function, so there is one
-  source of truth); `?game=<key>` fetches `public/<key>.webmanifest` and patches it, keeping the
-  game's own id/name/icons so an existing install updates in place. Always `no-store`: the body
-  carries a per-user token.
-- **`ensurePwaManifest` in `app/VisitorBeacon.jsx`** repoints every `link[rel="manifest"]` on the
-  page at `/api/pwa-manifest` with the token (per-game links get `&game=`). The token is cached in
-  `localStorage.sot_pwa_mlt` and re-minted under 30 days of life or on an anon change, so the cost
-  is one request per browser per month. Skipped entirely when already running standalone. It runs
-  AFTER `claimHandoff` settles, so an installed app's first launch mints for the adopted id.
-- **`/api/identity/claim` now also resolves the ACCOUNT** the anon belongs to (`quiz_users` by
-  `anon_id`, falling back to `quiz_results` attribution because `anon_id` on the user row only
-  records the first browser) and returns `{ id, username, email }`. The beacon writes
-  `sot_quiz_identity` when the claim resolves a registered account and the browser holds none, so
-  the installed app opens SIGNED IN, not merely with its streak intact. This also upgrades any
-  future old-domain redirect claims for free. The claim route moved from edge to node runtime for
-  the supabase client; only the minting middleware must stay edge.
+**v2 (2026-08-21, same day): the swap moved out of the client.** v1 had `VisitorBeacon` swap the
+manifest link's href post-hydration with a pre-minted token, and a user who deleted and re-added
+the app was STILL signed out: Safari ties the install to the manifest link present at page load,
+so a post-hydration swap can be ignored entirely. v2 removes every timing dependence:
 
-Verifying: `curl '/api/pwa-manifest'` and `?game=crux` must return manifest JSON; with a real
-`_ml` token the `start_url` carries it. On a page, `document.querySelector('link[rel=manifest]')`
-should point at `/api/pwa-manifest?_ml=...` a beat after load. Installs made BEFORE this change
-are stranded (their frozen start_url has no token); those players still go through SigninHelp.
+- **An inline synchronous `<script>` as the body's first child in `app/layout.js`** repoints the
+  page's `link[rel="manifest"]` at `/api/pwa-manifest` (a `/<key>.webmanifest` href becomes
+  `?game=<key>`, so one script covers all ~22 game manifests with no per-page edits) and sets
+  `crossorigin="use-credentials"`. It runs during document parse, before any engine resolves the
+  manifest. Do NOT move this into a component effect; that is exactly the v1 bug.
+- **`/api/pwa-manifest`** (GET) mints the `_ml` token ITSELF, from the `sot_vid` cookie, at the
+  moment the engine fetches the manifest (install time on Safari; use-credentials is what puts
+  the cookie on that fetch). `PWA_TTL_MS` = 60 days (`mintHandoff` takes an optional ttl; the
+  redirect handoff keeps its 5 minutes) because the token is frozen into the home-screen entry
+  and the first launch can come much later; `adoptable()` still gates the claim. No `game` param
+  = the root manifest (imports the `app/manifest.js` function); `?game=<key>` fetches
+  `public/<key>.webmanifest` and patches it, keeping the game's id/name/icons so an existing
+  install updates in place. Always `no-store`. An `_ml` query param still overrides (nothing
+  sends one today). The v1 `/api/identity/pwa-token` mint route was deleted with the swap.
+- **`/api/identity/claim` resolves the ACCOUNT** the anon belongs to (`quiz_users` by `anon_id`,
+  falling back to `quiz_results` attribution because `anon_id` on the user row only records the
+  first browser) and returns `{ id, username, email }`. `VisitorBeacon.claimHandoff` writes
+  `sot_quiz_identity` when the claim resolves an account and the browser holds none, then
+  **reloads once** so the app renders signed in (components mounted before the async claim and
+  read empty storage; without the reload the first launch still LOOKS signed out, which reads as
+  the bug persisting). Loop-safe: adoption clears the freshness stamp, so `adoptable()` is false
+  on every later load. The claim route moved from edge to node runtime for the supabase client;
+  only the minting middleware must stay edge.
+- **Diagnostics in Vercel function logs:** `[pwa-manifest] {game, cookie, minted}` on every
+  manifest fetch and `[identity-claim] {valid, account}` on every claim. When an install-signout
+  report arrives, these two lines tell you whether the manifest fetch carried a cookie, whether
+  a token was minted, and whether the launch claimed it. Tokens are never logged.
+
+Verifying: `/api/pwa-manifest` and `?game=crux` must return manifest JSON whose `start_url`
+carries `_ml=` when the request has a `sot_vid` cookie; on any page,
+`document.querySelector('link[rel=manifest]')` must point at `/api/pwa-manifest` immediately
+(inline script, not an effect). Installs made BEFORE v2 are stranded (their frozen start_url has
+no token): the player deletes the icon and re-adds it from Safari, or goes through SigninHelp.
 
 ## Quizzes move onto the Loft format (started 2026-08-20, behind ?loft=1)
 

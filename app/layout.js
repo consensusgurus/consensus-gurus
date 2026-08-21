@@ -108,6 +108,23 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        {/* PWA identity handoff, step 1 of 2: repoint the manifest link at the
+            token-minting route BEFORE any engine resolves it. This must be a
+            SYNCHRONOUS inline script, not an effect: Safari ties the install
+            to the manifest link present at page load, so the first attempt (a
+            post-hydration href swap in VisitorBeacon) was ignored and installs
+            shipped a token-less start_url. It also sets use-credentials so the
+            manifest fetch carries the sot_vid cookie, which is what
+            /api/pwa-manifest mints the handoff token from at fetch time.
+            Runs as the body's first child: the head (and its metadata-injected
+            manifest link) is fully parsed by then, and nothing user-visible has
+            rendered yet. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var l=document.querySelector('link[rel=\"manifest\"]');if(!l)return;var h=l.getAttribute('href')||'';if(h.indexOf('/api/pwa-manifest')===0)return;var m=h.match(/^\\/([a-z0-9-]+)\\.webmanifest$/);var g=(m&&m[1]!=='manifest')?('?game='+m[1]):'';l.setAttribute('href','/api/pwa-manifest'+g);l.setAttribute('crossorigin','use-credentials');}catch(e){}})();",
+          }}
+        />
         {children}
         <VisitorBeacon />
         <ResultQueue />

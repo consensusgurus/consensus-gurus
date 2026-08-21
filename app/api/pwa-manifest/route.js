@@ -9,6 +9,7 @@
 // in place rather than duplicating.
 import { NextResponse } from 'next/server';
 import rootManifest from '@/app/manifest';
+import { mintHandoff, PWA_TTL_MS } from '@/lib/identity-handoff';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,8 +18,23 @@ const GAME_RE = /^[a-z][a-z0-9-]{1,23}$/;
 
 export async function GET(req) {
   const url = new URL(req.url);
-  const token = url.searchParams.get('_ml') || '';
   const game = url.searchParams.get('game') || '';
+
+  // The token: an _ml query param when the caller supplied one, else minted RIGHT
+  // HERE from the sot_vid cookie. Cookie-minting is the primary path: the layout's
+  // inline script gives the manifest link use-credentials, so the browser's
+  // manifest fetch carries the cookie, and the token is minted at the moment the
+  // engine actually reads the manifest (install time on Safari). That removes
+  // every dependence on client-side swap timing, which is what stranded the
+  // first version of this fix.
+  let token = url.searchParams.get('_ml') || '';
+  if (token && !TOKEN_RE.test(token)) token = '';
+  const anonCookie = req.cookies.get('sot_vid')?.value || '';
+  if (!token && anonCookie) {
+    try { token = (await mintHandoff(decodeURIComponent(anonCookie), undefined, PWA_TTL_MS)) || ''; } catch (e) { token = ''; }
+  }
+  // Diagnostics for Vercel logs; never log the token itself.
+  console.log('[pwa-manifest]', JSON.stringify({ game: game || 'root', cookie: !!anonCookie, minted: !!token }));
 
   let mf = null;
   if (game) {
@@ -34,7 +50,7 @@ export async function GET(req) {
     mf = rootManifest();
   }
 
-  if (token && TOKEN_RE.test(token)) {
+  if (token) {
     try {
       const su = new URL(mf.start_url || '/', url.origin);
       su.searchParams.set('_ml', token);
