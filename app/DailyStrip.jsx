@@ -70,7 +70,6 @@ const GAMES = [
   { key: 'niche', href: '/niche', name: 'Niche', img: '/games/btn-niche.png', store: 'sot_niche_day', tag: "One answer, two categories" , cat: 'Trivia' },
   { key: 'shoe', href: '/shoe', name: 'Shoe', img: '/games/btn-shoe.png', store: 'sot_shoe_day', tag: "The daily blackjack shoe" , cat: 'Cards' },
   { key: 'queen', href: '/queen', name: 'Queen', img: '/games/btn-queen.png', store: 'sot_queen_day', tag: "White to play and promote" , cat: 'End Game' },
-  { key: 'race', href: '/race', name: 'Race', img: '/games/btn-race.png', store: 'sot_race_day', tag: "First pawn through wins" , cat: 'End Game' },
   { key: 'carve', href: '/carve', name: 'Carve', img: '/games/btn-carve.png', store: 'sot_carve_day', tag: "Equal-sum blocks" , cat: 'Numbers' },
   { key: 'extra', href: '/extra', name: 'Extra', img: '/games/btn-extra.png', store: 'sot_extra_day', tag: "Name the story" , cat: 'Trivia' },
   { key: 'stet', href: '/stet', name: 'Stet', img: '/games/btn-stet.png', store: 'sot_stet_day', tag: "Spot the error, fix the copy" , cat: 'Word' },
