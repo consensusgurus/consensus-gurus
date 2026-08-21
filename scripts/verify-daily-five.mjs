@@ -115,6 +115,21 @@ const MED = {
   // pool, so the row's time is how long you deliberated, not how long the
   // puzzle took. Estimated, and flagged as such.
   outwit: 90, outrank: 90, feud: 90,
+  // MEASURED 2026-08-21, AND THIN. Both of these launched days ago, so they are
+  // the real median of a very small sample rather than the fourteen-day pool
+  // above, and both are PROVISIONAL. Method is identical (pool every top-10
+  // leaderboard row across every day the game has been live, take the median);
+  // there is simply almost nothing to pool yet.
+  //   niche   live from 2026-08-20. Seven rows over two days (2026-08-20 plus
+  //           the still-running 2026-08-21), one of which is a 2,685s
+  //           walk-away, so the median IS one row rather than a distribution.
+  //   shoe    live from 2026-08-21, the day this was measured. ONE row, one
+  //           player, one board. That is a single clock and not a median of
+  //           anything; it is carried only so the game can be placed on the
+  //           ramp at all, since a game with no entry here is silently dropped
+  //           from every run by scripts/gen-daily-five.mjs.
+  // RE-MEASURE BOTH once a fortnight of boards exists, and expect real drift.
+  niche: 235, shoe: 73,
 };
 // Budget, in the same top-10 seconds. Monday runs shorter, the same ramp every
 // other daily follows. Slack on both ends so a re-measure does not fail a bank

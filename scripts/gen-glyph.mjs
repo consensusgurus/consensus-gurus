@@ -138,10 +138,14 @@ const BRITISH = new Set([
   'PENALISE', 'PENALISED', 'CIVILISE', 'CIVILISED', 'MOBILISE', 'MOBILISED', 'PRIORITISE',
   'HYPNOTISE', 'FANTASISE', 'ORGANISES', 'RECOGNISES', 'APOLOGISES', 'CRITICISES', 'REALISES',
   'COLOURING', 'HONOURING', 'FAVOURING', 'LABOURING',
-  // Generator only: SAVIOUR is British too, but it is already on a banked board
-  // (glyph-8-23-26), so it stays off the verifier's hard-fail list until the
-  // owner rules on that board. New boards never use it.
-  'SAVIOUR', 'SAVIOURS',
+  // The whole -our family. These were generator-only until 2026-08-21, when
+  // glyph-8-23-26 was regenerated to drop SAVIOUR and they all moved onto the
+  // verifier's hard-fail list. Keep the two lists in step.
+  'SAVIOUR', 'SAVIOURS', 'ARMOUR', 'ARMOURS', 'ARMOURED', 'ARMOURY', 'RUMOUR',
+  'RUMOURS', 'RUMOURED', 'HUMOUR', 'HUMOURS', 'HUMOURED', 'HARBOUR', 'HARBOURS',
+  'HARBOURED', 'ENDEAVOUR', 'ENDEAVOURS', 'BEHAVIOUR', 'BEHAVIOURS', 'SPLENDOUR',
+  'SPLENDOURS', 'VAPOUR', 'VAPOURS', 'ODOUR', 'ODOURS', 'CLAMOUR', 'CLAMOURS',
+  'PARLOUR', 'PARLOURS', 'SAVOUR', 'SAVOURS', 'SAVOURED', 'SAVOURY',
 ]);
 
 // Words a light daily should not surface, matched as stems. The Zipf 3.0 pool

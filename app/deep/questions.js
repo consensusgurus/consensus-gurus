@@ -3,7 +3,10 @@
 // questions and hands the client just that day, so the rest of the bank never
 // reaches a browser.
 //
-//   id       'd<day>q<slot>' — authored day and play order (slot 1..15)
+//   id       'd<day>q<slot>': the authored day and the play order (slot
+//            1..15). The day field is zero padded to two digits and widens to
+//            three past day 99, so day 7 is d07 and day 100 is d100. The slot
+//            is always two digits.
 //   tier     1 (gimme) .. 5 (deepest); a day ramps 3 questions per tier, all on
 //            the SAME topic, named on the day's puzzle entry
 //   choices  exactly four, one defensibly correct; the correct position came
@@ -14,6 +17,13 @@
 // (2026-08-07). Extending the bank: author new days in the same shape (one
 // topic, 3 questions per tier, easy to deepest), rebuild, and run
 // scripts/verify-deep.mjs. Never reuse an id or repeat a question.
+//
+// Id scheme note (2026-08-21): the day field was widened from exactly two
+// digits to two or three. Two digits made day 99 the last day an id could
+// express, which is the only reason the bank stopped there. Every existing id
+// is unchanged and still zero padded to two digits; day 100 onward simply
+// carries three. scripts/verify-deep.mjs matches ^d\d{2,3}q\d\d$ and also
+// checks that each day's qid prefix is its own day number.
 export const QUESTIONS = [
   { id: 'd01q01', tier: 1, q: 'According to legend, which pair of twin brothers founded the city on the Tiber?', choices: ['Romulus and Remus', 'Tiberius and Gaius', 'Aeneas and Ascanius', 'Castor and Pollux'], correct: 0 },
   { id: 'd01q02', tier: 1, q: 'What were the armed fighters who battled for public entertainment in the arena called?', choices: ['Centurions', 'Gladiators', 'Legates', 'Praetorians'], correct: 1 },
@@ -1500,6 +1510,96 @@ export const QUESTIONS = [
   { id: 'd99q13', tier: 5, q: 'Which 1830 line was the first to link two great cities by steam alone, with no horses?', choices: ['Stockton and Darlington', 'London and Birmingham', 'Baltimore and Ohio', 'Liverpool and Manchester'], correct: 3 },
   { id: 'd99q14', tier: 5, q: 'Which Alpine tunnel, opened in 2016, is the longest rail bore in the world?', choices: ['The Seikan Tunnel', 'The Gotthard Base Tunnel', 'The Channel Tunnel', 'The Lotschberg Base Tunnel'], correct: 1 },
   { id: 'd99q15', tier: 5, q: 'Which automatic coupler, adopted across America in the 1890s, ended a great cause of worker deaths?', choices: ['The Janney coupler', 'The link and pin', 'The screw coupling', 'The buffer bar'], correct: 0 },
+  { id: 'd100q01', tier: 1, q: 'What did the ship strike on the night she went down?', choices: ['An iceberg', 'A reef', 'A sea mine', 'Another liner'], correct: 0 },
+  { id: 'd100q02', tier: 1, q: 'Which ocean was she crossing when she sank?', choices: ['The Pacific', 'The Indian Ocean', 'The Atlantic', 'The Arctic Ocean'], correct: 2 },
+  { id: 'd100q03', tier: 1, q: 'Which 1997 James Cameron film about the disaster won eleven Academy Awards?', choices: ['A Night to Remember', 'Titanic', 'The Poseidon Adventure', 'The Perfect Storm'], correct: 1 },
+  { id: 'd100q04', tier: 2, q: 'In which year did she sink on her maiden voyage?', choices: ['1898', '1905', '1921', '1912'], correct: 3 },
+  { id: 'd100q05', tier: 2, q: 'What was there famously not enough of aboard to carry everyone off?', choices: ['Life jackets', 'Lifeboats', 'Flares', 'Blankets'], correct: 1 },
+  { id: 'd100q06', tier: 2, q: 'Which American city was she bound for?', choices: ['New York', 'Boston', 'Philadelphia', 'Baltimore'], correct: 0 },
+  { id: 'd100q07', tier: 3, q: 'From which English port did she set out on that voyage?', choices: ['Liverpool', 'Bristol', 'Southampton', 'Portsmouth'], correct: 2 },
+  { id: 'd100q08', tier: 3, q: 'Which British shipping company owned her?', choices: ['The Cunard Line', 'The Blue Star Line', 'The Peninsular and Oriental Line', 'The White Star Line'], correct: 3 },
+  { id: 'd100q09', tier: 3, q: 'Which liner steamed through the night to pick up the survivors from the lifeboats?', choices: ['The Carpathia', 'The Lusitania', 'The Mauretania', 'The Baltic'], correct: 0 },
+  { id: 'd100q10', tier: 4, q: 'Who was her captain, lost with the ship?', choices: ['Arthur Rostron', 'Edward Smith', 'Stanley Lord', 'Bruce Ismay'], correct: 1 },
+  { id: 'd100q11', tier: 4, q: 'Which Belfast shipyard built her?', choices: ['John Brown and Company', 'Cammell Laird', 'Harland and Wolff', 'Swan Hunter'], correct: 2 },
+  { id: 'd100q12', tier: 4, q: 'In which year was the wreck finally found on the sea floor?', choices: ['1959', '1985', '1972', '1997'], correct: 1 },
+  { id: 'd100q13', tier: 5, q: 'Which ship lay stopped in the ice not far off, her crew seeing rockets fired but never coming to help?', choices: ['The Mount Temple', 'The Frankfurt', 'The Virginian', 'The Californian'], correct: 3 },
+  { id: 'd100q14', tier: 5, q: 'Which elder sister ship of hers sailed on for another twenty three years and was nicknamed Old Reliable?', choices: ['The Olympic', 'The Britannic', 'The Majestic', 'The Adriatic'], correct: 0 },
+  { id: 'd100q15', tier: 5, q: 'Which naval architect from the shipyard sailed on the maiden voyage and died in the sinking?', choices: ['Alexander Carlisle', 'William Pirrie', 'Thomas Andrews', 'Charles Lightoller'], correct: 2 },
+  { id: 'd101q01', tier: 1, q: 'What is the main device used to enter text into a machine called?', choices: ['A monitor', 'A printer', 'A speaker', 'A keyboard'], correct: 3 },
+  { id: 'd101q02', tier: 1, q: 'What is the small hand held pointer you click and drag with called?', choices: ['A modem', 'A mouse', 'A router', 'A scanner'], correct: 1 },
+  { id: 'd101q03', tier: 1, q: 'Which company makes the Windows operating system?', choices: ['Microsoft', 'Apple', 'Oracle', 'Adobe'], correct: 0 },
+  { id: 'd101q04', tier: 2, q: 'How many different digits does the number system inside a machine use?', choices: ['Eight', 'Ten', 'Two', 'Sixteen'], correct: 2 },
+  { id: 'd101q05', tier: 2, q: 'What is the fast working memory that a machine loses the moment the power goes off called?', choices: ['The hard disk', 'The BIOS', 'Flash storage', 'RAM'], correct: 3 },
+  { id: 'd101q06', tier: 2, q: 'What is the chip that carries out a program\'s instructions called?', choices: ['The motherboard', 'The processor', 'The power supply', 'The graphics port'], correct: 1 },
+  { id: 'd101q07', tier: 3, q: 'How many bits make up a byte?', choices: ['Four', 'Ten', 'Eight', 'Sixteen'], correct: 2 },
+  { id: 'd101q08', tier: 3, q: 'Which company launched the 1981 personal machine whose design became the standard that rivals copied?', choices: ['IBM', 'Compaq', 'Atari', 'Commodore'], correct: 0 },
+  { id: 'd101q09', tier: 3, q: 'Which British mathematician set out the idea of a universal machine in a 1936 paper and led wartime code breaking?', choices: ['Bertrand Russell', 'Alan Turing', 'George Boole', 'Blaise Pascal'], correct: 1 },
+  { id: 'd101q10', tier: 4, q: 'Which room sized machine unveiled at the University of Pennsylvania in 1946 was the first general purpose electronic computer in America?', choices: ['UNIVAC', 'Colossus', 'The Harvard Mark I', 'ENIAC'], correct: 3 },
+  { id: 'd101q11', tier: 4, q: 'Which Victorian Englishman designed the Analytical Engine, a mechanical general purpose machine never finished in his lifetime?', choices: ['Charles Babbage', 'Ada Lovelace', 'Herman Hollerith', 'William Thomson'], correct: 0 },
+  { id: 'd101q12', tier: 4, q: 'Which observation, named for a co founder of Intel, holds that the transistor count on a chip doubles about every two years?', choices: ['Metcalfe\'s law', 'Amdahl\'s law', 'Moore\'s law', 'Grosch\'s law'], correct: 2 },
+  { id: 'd101q13', tier: 5, q: 'Whose 1948 paper A Mathematical Theory of Communication founded information theory?', choices: ['Norbert Wiener', 'Claude Shannon', 'John von Neumann', 'Vannevar Bush'], correct: 1 },
+  { id: 'd101q14', tier: 5, q: 'Which business data processing language, shaped by Grace Hopper\'s earlier work and specified at the end of the 1950s, still runs on mainframes?', choices: ['COBOL', 'FORTRAN', 'ALGOL', 'LISP'], correct: 0 },
+  { id: 'd101q15', tier: 5, q: 'Which research center produced the Alto in the 1970s, with its graphical desktop, windows and pointing device?', choices: ['Bell Labs', 'MIT Lincoln Laboratory', 'The RAND Corporation', 'Xerox PARC'], correct: 3 },
+  { id: 'd102q01', tier: 1, q: 'Which Greek letter names the ratio of a circle\'s circumference to its diameter?', choices: ['Delta', 'Pi', 'Sigma', 'Omega'], correct: 1 },
+  { id: 'd102q02', tier: 1, q: 'What is a flat shape with three straight sides called?', choices: ['A square', 'A pentagon', 'A hexagon', 'A triangle'], correct: 3 },
+  { id: 'd102q03', tier: 1, q: 'Which kind of integer divides by two with nothing left over?', choices: ['An odd number', 'A negative number', 'An even number', 'A square number'], correct: 2 },
+  { id: 'd102q04', tier: 2, q: 'How many degrees do the three angles inside any flat triangle add up to?', choices: ['180', '90', '270', '360'], correct: 0 },
+  { id: 'd102q05', tier: 2, q: 'Which branch of the subject uses letters to stand in for unknown quantities?', choices: ['Geometry', 'Algebra', 'Trigonometry', 'Statistics'], correct: 1 },
+  { id: 'd102q06', tier: 2, q: 'Which kind of integer above one has no divisors except itself and one?', choices: ['A perfect number', 'A rational number', 'A prime number', 'An irrational number'], correct: 2 },
+  { id: 'd102q07', tier: 3, q: 'What is the longest side of a right angled triangle called?', choices: ['The adjacent', 'The radius', 'The tangent', 'The hypotenuse'], correct: 3 },
+  { id: 'd102q08', tier: 3, q: 'Which ancient Greek is remembered for the theorem about the squares on the sides of a right angled triangle?', choices: ['Pythagoras', 'Thales', 'Archimedes', 'Zeno'], correct: 0 },
+  { id: 'd102q09', tier: 3, q: 'What is the study of rates of change and of areas under curves, worked out in the seventeenth century, called?', choices: ['Topology', 'Number theory', 'Calculus', 'Set theory'], correct: 2 },
+  { id: 'd102q10', tier: 4, q: 'Whose Elements built geometry from a short list of axioms and served as a textbook for two thousand years?', choices: ['Ptolemy', 'Euclid', 'Diophantus', 'Eratosthenes'], correct: 1 },
+  { id: 'd102q11', tier: 4, q: 'Whose name is given to 1, 1, 2, 3, 5, 8, 13 and on, where each term is the sum of the two before it?', choices: ['Fibonacci', 'Mersenne', 'Catalan', 'Pascal'], correct: 0 },
+  { id: 'd102q12', tier: 4, q: 'Which eighteenth century Swiss mathematician gave us the f of x notation and the identity linking e, i, pi, one and zero?', choices: ['Carl Friedrich Gauss', 'Joseph Louis Lagrange', 'Pierre Simon Laplace', 'Leonhard Euler'], correct: 3 },
+  { id: 'd102q13', tier: 5, q: 'Which claim, left as a note in a book margin in the 1630s and unproved for over three centuries, did Andrew Wiles finally settle in the 1990s?', choices: ['The Riemann hypothesis', 'Goldbach\'s conjecture', 'Fermat\'s Last Theorem', 'The four color theorem'], correct: 2 },
+  { id: 'd102q14', tier: 5, q: 'Which Austrian logician showed in 1931 that any consistent system strong enough for arithmetic holds truths it cannot prove?', choices: ['David Hilbert', 'Kurt Godel', 'Bertrand Russell', 'Alfred Tarski'], correct: 1 },
+  { id: 'd102q15', tier: 5, q: 'Which German proved that the real numbers cannot be listed off one by one, so that some infinities are bigger than others?', choices: ['Georg Cantor', 'Richard Dedekind', 'Leopold Kronecker', 'Karl Weierstrass'], correct: 0 },
+  { id: 'd103q01', tier: 1, q: 'What is the black flag with a skull and crossed bones traditionally called?', choices: ['The Black Spot', 'The Red Ensign', 'The Jolly Roger', 'The Dead Man\'s Hand'], correct: 2 },
+  { id: 'd103q02', tier: 1, q: 'Which sea between the Americas was the great hunting ground of the golden age, and lends its name to a Disney film series?', choices: ['The Caribbean', 'The Baltic', 'The Red Sea', 'The Coral Sea'], correct: 0 },
+  { id: 'd103q03', tier: 1, q: 'Which Robert Louis Stevenson novel gave the world Long John Silver and a map marked with a cross?', choices: ['Kidnapped', 'The Coral Island', 'Moby Dick', 'Treasure Island'], correct: 3 },
+  { id: 'd103q04', tier: 2, q: 'By what nickname was the English raider Edward Teach, killed off Carolina in 1718, better known?', choices: ['Calico Jack', 'Blackbeard', 'Long Ben', 'Black Caesar'], correct: 1 },
+  { id: 'd103q05', tier: 2, q: 'Which pirate villain of J M Barrie\'s Peter Pan is forever pursued by a crocodile?', choices: ['Captain Nemo', 'Captain Flint', 'Captain Hook', 'Captain Ahab'], correct: 2 },
+  { id: 'd103q06', tier: 2, q: 'What was a captain licensed by his own government to raid enemy shipping called?', choices: ['A buccaneer', 'A marooner', 'A wrecker', 'A privateer'], correct: 3 },
+  { id: 'd103q07', tier: 3, q: 'Which Jamaican harbor town, once called the wickedest city on earth, was largely swallowed by an earthquake in 1692?', choices: ['Port Royal', 'Tortuga', 'Havana', 'Cartagena'], correct: 0 },
+  { id: 'd103q08', tier: 3, q: 'Which Scot, hanged in London in 1701 after a trading voyage turned to plunder, left a legend of buried treasure?', choices: ['Henry Every', 'Captain Kidd', 'Stede Bonnet', 'Charles Vane'], correct: 1 },
+  { id: 'd103q09', tier: 3, q: 'Which two women were tried and convicted for piracy in Jamaica in 1720 alongside Calico Jack Rackham?', choices: ['Grace O\'Malley and Jeanne de Clisson', 'Rachel Wall and Sadie Farrell', 'Charlotte de Berry and Maria Cobham', 'Anne Bonny and Mary Read'], correct: 3 },
+  { id: 'd103q10', tier: 4, q: 'Which stretch of North Africa sent out corsairs who raided Mediterranean shipping for centuries and was fought by the young United States Navy?', choices: ['The Gold Coast', 'The Skeleton Coast', 'The Barbary Coast', 'The Ivory Coast'], correct: 2 },
+  { id: 'd103q11', tier: 4, q: 'Which Welsh privateer sacked Panama in 1671 and later became lieutenant governor of Jamaica?', choices: ['Francis Drake', 'Henry Morgan', 'Christopher Myngs', 'John Hawkins'], correct: 1 },
+  { id: 'd103q12', tier: 4, q: 'Which Bahamian town, home to a self declared pirate republic, was brought to heel when Woodes Rogers arrived as governor in 1718?', choices: ['Nassau', 'Freeport', 'Kingston', 'Bridgetown'], correct: 0 },
+  { id: 'd103q13', tier: 5, q: 'Which Welsh captain known as Black Bart took over four hundred ships before he was killed in 1722?', choices: ['Edward Low', 'Howell Davis', 'Bartholomew Roberts', 'Samuel Bellamy'], correct: 2 },
+  { id: 'd103q14', tier: 5, q: 'Which Chinese widow took over her husband\'s Cantonese fleets after 1807, commanded tens of thousands of men, and negotiated an amnesty in 1810?', choices: ['Lai Choi San', 'Wang Zhi', 'Zheng Zhilong', 'Ching Shih'], correct: 3 },
+  { id: 'd103q15', tier: 5, q: 'What was the name of Blackbeard\'s flagship, a captured French slave ship that ran aground in North Carolina in 1718?', choices: ['The Whydah', 'Queen Anne\'s Revenge', 'The Royal Fortune', 'The Adventure Galley'], correct: 1 },
+  { id: 'd104q01', tier: 1, q: 'What is the lidded vessel with a spout that it is brewed and poured from called?', choices: ['A teapot', 'A carafe', 'A tureen', 'A decanter'], correct: 0 },
+  { id: 'd104q02', tier: 1, q: 'Which color names the variety most drunk in China and Japan, served without milk?', choices: ['Black', 'Blue', 'Purple', 'Green'], correct: 3 },
+  { id: 'd104q03', tier: 1, q: 'Which country is famous for an afternoon ritual of it with scones and cucumber sandwiches?', choices: ['Norway', 'England', 'Mexico', 'Greece'], correct: 1 },
+  { id: 'd104q04', tier: 2, q: 'In which country was it first drunk, thousands of years ago?', choices: ['India', 'Japan', 'China', 'Turkey'], correct: 2 },
+  { id: 'd104q05', tier: 2, q: 'What is the fine bright powder whisked in a bowl for the Japanese ceremony called?', choices: ['Matcha', 'Sencha', 'Hojicha', 'Genmaicha'], correct: 0 },
+  { id: 'd104q06', tier: 2, q: 'Which addition to the British cup starts an argument about whether it belongs in the mug first or last?', choices: ['Cream', 'Lemon', 'Honey', 'Milk'], correct: 3 },
+  { id: 'd104q07', tier: 3, q: 'Which citrus fruit\'s oil gives Earl Grey its scent?', choices: ['Yuzu', 'Lime', 'Bergamot', 'Mandarin'], correct: 2 },
+  { id: 'd104q08', tier: 3, q: 'What is the botanical name of the single evergreen shrub whose leaves make every true version?', choices: ['Coffea arabica', 'Camellia sinensis', 'Ilex paraguariensis', 'Aspalathus linearis'], correct: 1 },
+  { id: 'd104q09', tier: 3, q: 'Whose cargo was tipped into Boston Harbor in 1773 by colonists protesting a tax?', choices: ['The East India Company', 'The Hudson\'s Bay Company', 'The Muscovy Company', 'The Virginia Company'], correct: 0 },
+  { id: 'd104q10', tier: 4, q: 'Which Indian hill district in West Bengal grows a light muscatel crop often called the champagne of the drink?', choices: ['Assam', 'Nilgiri', 'Darjeeling', 'Munnar'], correct: 2 },
+  { id: 'd104q11', tier: 4, q: 'Which chemical process, loosely called fermentation in the trade, is what actually turns the green leaf dark?', choices: ['Roasting', 'Curing', 'Pasteurization', 'Oxidation'], correct: 3 },
+  { id: 'd104q12', tier: 4, q: 'Which fast sailing ships raced the new season\'s crop from China to London in the 1860s?', choices: ['Galleons', 'Clippers', 'Frigates', 'Brigantines'], correct: 1 },
+  { id: 'd104q13', tier: 5, q: 'Which dark aged type from Yunnan is pressed into cakes and can be kept for decades?', choices: ['Pu-erh', 'Longjing', 'Tieguanyin', 'Keemun'], correct: 0 },
+  { id: 'd104q14', tier: 5, q: 'Which amino acid abundant in the leaf is credited with the calm alertness drinkers describe?', choices: ['Tryptophan', 'Glutamine', 'Theanine', 'Taurine'], correct: 2 },
+  { id: 'd104q15', tier: 5, q: 'Which sixteenth century Japanese master shaped the ceremony under Hideyoshi and was ordered to take his own life in 1591?', choices: ['Murata Juko', 'Takeno Joo', 'Kobori Enshu', 'Sen no Rikyu'], correct: 3 },
+  { id: 'd105q01', tier: 1, q: 'What is a young horse in its first year called?', choices: ['A calf', 'A foal', 'A cub', 'A kit'], correct: 1 },
+  { id: 'd105q02', tier: 1, q: 'What is the leather seat strapped to the animal\'s back for a rider called?', choices: ['A stirrup', 'A bridle', 'A saddle', 'A harness'], correct: 2 },
+  { id: 'd105q03', tier: 1, q: 'Which striped African relative of the horse is famous for its black and white coat?', choices: ['The zebra', 'The tapir', 'The okapi', 'The gnu'], correct: 0 },
+  { id: 'd105q04', tier: 2, q: 'What is the fastest gait, quicker than the trot or the canter?', choices: ['The amble', 'The pace', 'The jog', 'The gallop'], correct: 3 },
+  { id: 'd105q05', tier: 2, q: 'What is an uncastrated adult male kept for breeding called?', choices: ['A mare', 'A filly', 'A stallion', 'A yearling'], correct: 2 },
+  { id: 'd105q06', tier: 2, q: 'Which piece of tack goes into the animal\'s mouth so that the reins can steer?', choices: ['The girth', 'The bit', 'The stirrup', 'The martingale'], correct: 1 },
+  { id: 'd105q07', tier: 3, q: 'What unit, equal to four inches, is used to give a horse\'s height at the withers?', choices: ['A span', 'A rod', 'A link', 'A hand'], correct: 3 },
+  { id: 'd105q08', tier: 3, q: 'What is a castrated male called?', choices: ['A gelding', 'A colt', 'A filly', 'A hinny'], correct: 0 },
+  { id: 'd105q09', tier: 3, q: 'Which mail service used relays of riders to carry letters across the American West in 1860 and 1861?', choices: ['The Overland Stage', 'The Butterfield Line', 'The Pony Express', 'Wells Fargo'], correct: 2 },
+  { id: 'd105q10', tier: 4, q: 'Which race run at Churchill Downs each May opens the American Triple Crown?', choices: ['The Kentucky Derby', 'The Preakness Stakes', 'The Belmont Stakes', 'The Travers Stakes'], correct: 0 },
+  { id: 'd105q11', tier: 4, q: 'Which white breed performs the classical airs above the ground at the Spanish Riding School in Vienna?', choices: ['The Andalusian', 'The Lipizzaner', 'The Friesian', 'The Hanoverian'], correct: 1 },
+  { id: 'd105q12', tier: 4, q: 'Which stocky wild native of the Mongolian steppe carries the name of a nineteenth century Russian explorer?', choices: ['The Konik', 'The Brumby', 'The Mustang', 'Przewalski\'s horse'], correct: 3 },
+  { id: 'd105q13', tier: 5, q: 'Which colt won the American Triple Crown in 1973, taking the Belmont Stakes by thirty one lengths?', choices: ['Secretariat', 'Seattle Slew', 'Affirmed', 'Citation'], correct: 0 },
+  { id: 'd105q14', tier: 5, q: 'Which photographer proved in 1878, using a row of cameras tripped by wires, that a galloping horse lifts all four feet clear of the ground?', choices: ['Etienne Jules Marey', 'Thomas Eakins', 'Eadweard Muybridge', 'Louis Daguerre'], correct: 2 },
+  { id: 'd105q15', tier: 5, q: 'Which horse of Alexander the Great had a city on the Hydaspes named in his honor?', choices: ['Incitatus', 'Bucephalus', 'Marengo', 'Copenhagen'], correct: 1 },
 ];
 
 export const QUESTION_MAP = Object.fromEntries(QUESTIONS.map((q) => [q.id, q]));

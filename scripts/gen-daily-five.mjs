@@ -376,6 +376,44 @@ function liveCats(day, used) {
   return cats.size;
 }
 
+// The same thing, itemised, for the message a dead day prints. Only ever called
+// on a day that is already known to be short of five categories, so it can
+// afford to build the map rather than count.
+function liveByCat(day, used) {
+  const out = new Map();
+  for (const g of Object.keys(PUB)) {
+    if (!canRun(g, day) || !gapOk(used, g, day)) continue;
+    if (!out.has(CAT[g])) out.set(CAT[g], []);
+    out.get(CAT[g]).push(g);
+  }
+  return out;
+}
+
+// A DAY CAN BE DEAD ON ITS OWN, and firstImpossibleWindow will not say so.
+// That bound reasons about POOLS and knows nothing about the bank being
+// extended, so it reports the smallest WINDOW it cannot cover and stays silent
+// about the commonest way an extension actually dies: the last week of the live
+// bank has already spent thirty distinct games, the seven-day gap rule blocks
+// every one of them, and day one of the extension is left with four categories
+// to fill five slots. That is exactly what happened on 2026-08-21 — the window
+// bound pointed at a six-day stretch while the real wall was the FIRST day.
+//
+// Because placing a game only ever REMOVES options from the days around it,
+// liveCats seeded with the frozen history is an upper bound: a day under five
+// here cannot be filled by any search, at any budget, on any seed. Checked
+// before searching, and the bank is contiguous, so the first dead day is the
+// wall.
+function deadDays(list) {
+  const seeded = new Map();
+  for (const [g, set] of USED) seeded.set(g, new Set(set));
+  const out = [];
+  for (const d of list) {
+    const n = liveCats(d, seeded);
+    if (n < 5) out.push([d, n, liveByCat(d, seeded)]);
+  }
+  return out;
+}
+
 function solve(days) {
   // MOST-CONSTRAINED DAY FIRST, with forward checking. Two things make a plain
   // calendar-order search fail here, and both are about the same fact: most of
@@ -432,14 +470,33 @@ console.log(`gen-daily-five: ${days.length} day(s) to bank, ${START} to ${END}`)
 console.log(`                ${Object.keys(PUB).length} games in the pool, seed ${arg('--seed', 20260821)}`);
 for (const [k, why] of SKIPPED) console.log(`  skip  ${k}: ${why}`);
 
-const bad = firstImpossibleWindow(days);
-let target = days;
+const dead = deadDays(days);
+let live = days;
+if (dead.length) {
+  console.log(`\n  DEAD DAY${dead.length === 1 ? '' : 'S'}  fewer than five categories can supply a legal game, so no search can fill ${dead.length === 1 ? 'it' : 'them'}:`);
+  for (const [d, n, byCat] of dead.slice(0, 8)) {
+    const listed = [...byCat.entries()].sort().map(([c, gs]) => `${c}[${gs.join(' ')}]`).join('  ');
+    console.log(`            ${d}  ${n} categor${n === 1 ? 'y' : 'ies'}  ${listed || '(nothing left)'}`);
+  }
+  if (dead.length > 8) console.log(`            ... and ${dead.length - 8} more`);
+  const wall = dead[0][0];
+  live = days.slice(0, days.indexOf(wall));
+  console.log(`            The bank is contiguous, so ${wall} is the wall. Extend the underlying puzzle banks.`);
+  if (!live.length) {
+    console.log(`\nnothing to bank: ${wall} is the first day asked for and it cannot be filled.`);
+    writeFileSync(OUT, '');
+    process.exit(0);
+  }
+}
+
+const bad = firstImpossibleWindow(live);
+let target = live;
 if (bad) {
   console.log(`\n  IMPOSSIBLE  ${bad.from} .. ${bad.to} (${bad.k} days) needs ${bad.need} slots and the pools can supply ${bad.cap}.`);
   for (const c of Object.keys(bad.byCat).sort()) console.log(`              ${c}: ${bad.byCat[c].length} game(s) still publishing — ${bad.byCat[c].join(', ')}`);
   console.log(`              Extend the underlying puzzle banks. Truncating the run to end before ${bad.to}.`);
-  const cut = days.indexOf(bad.to);
-  target = days.slice(0, Math.max(0, cut));
+  const cut = live.indexOf(bad.to);
+  target = live.slice(0, Math.max(0, cut));
   // Walk back until the truncated range itself carries no impossible window.
   while (target.length && firstImpossibleWindow(target)) target = target.slice(0, -1);
 }

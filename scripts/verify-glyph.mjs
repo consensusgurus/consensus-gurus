@@ -125,6 +125,16 @@ const BRITISH = new Set([
   'PENALISE', 'PENALISED', 'CIVILISE', 'CIVILISED', 'MOBILISE', 'MOBILISED', 'PRIORITISE',
   'HYPNOTISE', 'FANTASISE', 'ORGANISES', 'RECOGNISES', 'APOLOGISES', 'CRITICISES', 'REALISES',
   'COLOURING', 'HONOURING', 'FAVOURING', 'LABOURING',
+  // Added 2026-08-21, when SAVIOUR was found on glyph-8-23-26. That board was
+  // banked but not yet played, so it was regenerated rather than grandfathered,
+  // and the rest of the -our family went on with it: the fill pool carries all
+  // of them and only one had surfaced so far. Checked against the whole bank
+  // before adding, no live board decodes to any of these.
+  'SAVIOUR', 'SAVIOURS', 'ARMOUR', 'ARMOURS', 'ARMOURED', 'ARMOURY', 'RUMOUR',
+  'RUMOURS', 'RUMOURED', 'HUMOUR', 'HUMOURS', 'HUMOURED', 'HARBOUR', 'HARBOURS',
+  'HARBOURED', 'ENDEAVOUR', 'ENDEAVOURS', 'BEHAVIOUR', 'BEHAVIOURS', 'SPLENDOUR',
+  'SPLENDOURS', 'VAPOUR', 'VAPOURS', 'ODOUR', 'ODOURS', 'CLAMOUR', 'CLAMOURS',
+  'PARLOUR', 'PARLOURS', 'SAVOUR', 'SAVOURS', 'SAVOURED', 'SAVOURY',
 ]);
 
 const fail = (id, msg) => { BAD++; console.error(`✗ ${id}: ${msg}`); };

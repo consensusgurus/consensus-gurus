@@ -7,6 +7,12 @@
 // catches is the stuff that silently ships wrong: a question that hands over
 // its own answer, a repeated question, a day whose correct answers pile into
 // one column, a tier ramp out of order, a duplicated topic.
+//
+// Question ids are 'd<day>q<slot>', the day zero padded to two digits and
+// widening to three past day 99, the slot always two. The day field was fixed
+// at exactly two digits until 2026-08-21, which capped the bank at day 99;
+// widening it here was the deliberate fix. No existing id changed. Each day's
+// qids must also carry that day's own number as their prefix.
 import { QUESTIONS, QUESTION_MAP } from '../app/deep/questions.js';
 import { PUZZLES } from '../app/deep/puzzles.js';
 
@@ -23,8 +29,7 @@ const ids = new Set();
 for (const q of QUESTIONS) {
   if (ids.has(q.id)) fail(`duplicate question id ${q.id}`);
   ids.add(q.id);
-  if (!/^d\d\d q?\d*$/.test(q.id.replace(/q/, ' q'))) { /* shape checked below */ }
-  if (!/^d\d\dq\d\d$/.test(q.id)) fail(`${q.id}: id is not d<NN>q<NN>`);
+  if (!/^d\d{2,3}q\d\d$/.test(q.id)) fail(`${q.id}: id is not d<NN>q<NN> or d<NNN>q<NN>`);
   if (!Array.isArray(q.choices) || q.choices.length !== 4) fail(`${q.id}: needs exactly 4 choices`);
   else if (new Set(q.choices.map(norm)).size !== 4) fail(`${q.id}: choices are not all distinct`);
   if (!Number.isInteger(q.correct) || q.correct < 0 || q.correct > 3) fail(`${q.id}: correct index out of range`);
@@ -67,7 +72,9 @@ for (const p of PUZZLES) {
   if (!Array.isArray(p.qids) || p.qids.length !== 15) { fail(`${tag}: needs exactly 15 qids`); continue; }
 
   const qs = [];
+  const wantPrefix = `d${String(p.num).padStart(2, '0')}q`;
   for (const id of p.qids) {
+    if (!id.startsWith(wantPrefix)) fail(`${tag}: qid ${id} does not carry this day's prefix ${wantPrefix}`);
     if (usedQids.has(id)) fail(`${tag}: qid ${id} already used on day ${usedQids.get(id)}`);
     usedQids.set(id, p.num);
     const q = QUESTION_MAP[id];
