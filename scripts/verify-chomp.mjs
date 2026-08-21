@@ -76,6 +76,21 @@ import { replay } from '../lib/chomp-engine.js';
 // a result on.
 const REBUILT_FROM = '2026-08-12';
 
+// THE BLEACHERS ERA. Boards live on or after this date carry `walls` (5-7
+// bolted-down cells) and run the measured-with-walls bands: detour >= 8 on
+// EVERY day (the open-board bank's 4 was the open-board ceiling), wall bite
+// >= 2 (deleting the walls must shorten the optimum by at least 2, or the
+// walls are decoration), turn density and legs unchanged. Boards between
+// REBUILT_FROM and WALLED_FROM are the played 10-day open-board remnant: they
+// keep their old per-board gates, but the BANK-SHAPE checks (falling weekly
+// means, variety pools, the Sunday peak) run on the LIVING era only, because
+// a frozen 9-row slice of a bank that was verified whole cannot re-pass
+// checks written for a whole bank (its Fri and Sat means tie at 4.0).
+const WALLED_FROM = '2026-08-22';
+const DET_WALLED = 8;         // detour floor with walls in play, every day
+const BITE_MIN = 2;           // optimum-with-walls minus optimum-without, floor
+const WALLS_MIN = 5, WALLS_MAX = 7;
+
 const FIRST_MASCOT = 'bulldog';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -133,8 +148,13 @@ const manh = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const dowOf = (p) => new Date(`${p.live}T12:00:00Z`).getUTCDay();
 const rungOf = (p) => RAMP[dowOf(p)];
-const spareOf = (p, min) => p.w * p.h - (min + 1);
-const coverOf = (p, min) => (min + 1) / (p.w * p.h);
+const wallsOf = (p) => p.walls || [];
+const playableOf = (p) => p.w * p.h - wallsOf(p).length;
+// spare and cover are measured against PLAYABLE squares: bleachers were never
+// on the board. Pre-wall boards have no walls, so nothing changes for them.
+const spareOf = (p, min) => playableOf(p) - (min + 1);
+const coverOf = (p, min) => (min + 1) / playableOf(p);
+const seedWalls = (p, occ) => { for (const [x, y] of wallsOf(p)) occ[idxOf(p, x, y)] = 1; };
 
 function legsOf(p) {
   const L = [manh(p.start, p.pellets[0])];
@@ -177,6 +197,7 @@ const reacher = (p, occ) => {
 // search knows nothing about the walk each board was built from.
 function shortestRoute(p, cap = SOLVER_CAP) {
   const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
+  seedWalls(p, occ);
   occ[idxOf(p, p.start[0], p.start[1])] = 1;
   const bl = blocker(p, occ), reach = reacher(p, occ);
   const suffix = new Array(K + 2).fill(0);
@@ -200,7 +221,7 @@ function shortestRoute(p, cap = SOLVER_CAP) {
     }
     return false;
   }
-  for (let lim = lower(p.start[0], p.start[1], 0); lim <= C - 1; lim += 2) {
+  for (let lim = lower(p.start[0], p.start[1], 0); lim <= playableOf(p) - 1; lim += 2) {
     nodes = 0; hit = false;
     if (dfs(p.start[0], p.start[1], 0, 0, lim)) return { min: best, route, capped: false };
     if (hit) return { min: null, route: null, capped: true };
@@ -213,6 +234,7 @@ function shortestRoute(p, cap = SOLVER_CAP) {
 // measure a route's readability against.
 function minTurns(p, min, cap = TURN_CAP) {
   const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
+  seedWalls(p, occ);
   occ[idxOf(p, p.start[0], p.start[1])] = 1;
   const bl = blocker(p, occ), reach = reacher(p, occ);
   const suffix = new Array(K + 2).fill(0);
@@ -241,6 +263,7 @@ function minTurns(p, min, cap = TURN_CAP) {
 // The unplanned lines, kept for the record only.
 function unplanned(p, mode) {
   const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
+  seedWalls(p, occ);
   let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
   occ[idxOf(p, hx, hy)] = 1;
   const legal = (x, y) => {
@@ -270,6 +293,7 @@ function unplanned(p, mode) {
 // visibly strands something. Also for the record only.
 function carefulClears(p) {
   const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
+  seedWalls(p, occ);
   let hx = p.start[0], hy = p.start[1], pi = 0, moves = 0, ld = [1, 0];
   occ[idxOf(p, hx, hy)] = 1;
   const bl = blocker(p, occ), reach = reacher(p, occ);
@@ -339,6 +363,39 @@ function carefulClears(p) {
       if (seen.has(idxOf(p, c[0], c[1]))) why.push(`pellet ${c} repeated or sitting on the start`);
       seen.add(idxOf(p, c[0], c[1]));
     }
+    if (p.live >= WALLED_FROM) {
+      const walls = wallsOf(p);
+      if (!Array.isArray(p.walls) || walls.length < WALLS_MIN || walls.length > WALLS_MAX) {
+        why.push(`carries ${walls.length} wall(s), outside ${WALLS_MIN}-${WALLS_MAX}`);
+      }
+      const wseen = new Set();
+      for (const c of walls) {
+        if (!insideOf(p, c[0], c[1])) why.push(`wall ${c} off the board`);
+        const k = idxOf(p, c[0], c[1]);
+        if (wseen.has(k)) why.push(`wall ${c} repeated`);
+        if (seen.has(k)) why.push(`wall ${c} sits on the start or a pellet`);
+        wseen.add(k);
+      }
+      // the playable region must be ONE piece, or part of the board is a lie
+      const wall = new Uint8Array(p.w * p.h);
+      for (const [x, y] of walls) wall[idxOf(p, x, y)] = 1;
+      let s0 = -1, playable = 0;
+      for (let i = 0; i < p.w * p.h; i++) if (!wall[i]) { playable++; if (s0 < 0) s0 = i; }
+      const vis = new Uint8Array(p.w * p.h); vis[s0] = 1; const st = [s0]; let got = 1;
+      while (st.length) {
+        const c = st.pop(), cx = c % p.w, cy = (c - cx) / p.w;
+        for (const d of DIRS) {
+          const nx = cx + d[0], ny = cy + d[1];
+          if (!insideOf(p, nx, ny)) continue;
+          const j = idxOf(p, nx, ny);
+          if (wall[j] || vis[j]) continue;
+          vis[j] = 1; got++; st.push(j);
+        }
+      }
+      if (got !== playable) why.push('the walls cut the playable board into pieces');
+    } else if (p.walls) {
+      why.push('a pre-bleacher board carries a walls field');
+    }
     if (why.length) bad.push(`#${p.num} ${p.live}: ${why.join('; ')}`);
   }
   if (bad.length) fail('shape', bad.slice(0, 4).join(' | '));
@@ -388,20 +445,30 @@ const MINS = new Map();
     const really = dowOf(p) === 0;
     if (!!p.sunday !== really) bad.push(`#${p.num} ${p.live} sunday=${!!p.sunday} but the date says ${really}`);
   }
-  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
-  const sun = rows.filter((p) => p.sunday), wk = rows.filter((p) => !p.sunday);
-  if (!sun.length) bad.push('the bank authors no Sunday Edition at all');
-  for (const p of sun) if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast of ${MASCOTS.length}`);
-  if (wk.some((p) => p.cast.length >= MASCOTS.length)) bad.push('a weekday fields the full cast, so Sunday is not the peak');
-  const sunSpare = sun.map((p) => spareOf(p, MINS.get(p.num))).filter(Number.isFinite);
-  const wkSpare = wk.map((p) => spareOf(p, MINS.get(p.num))).filter(Number.isFinite);
-  if (sunSpare.length && wkSpare.length && Math.max(...sunSpare) >= Math.min(...wkSpare)) {
-    bad.push('a weekday board is at least as tight as the loosest Sunday, so Sunday is not the peak');
+  // Eras are compared only with themselves: an open-board spare and a walled
+  // spare are both real, but "is Sunday the tightest" is a within-bank claim.
+  const eras = [
+    PUZZLES.filter((p) => p.live >= REBUILT_FROM && p.live < WALLED_FROM),
+    PUZZLES.filter((p) => p.live >= WALLED_FROM),
+  ];
+  let sunAll = [];
+  for (const rows of eras) {
+    if (!rows.length) continue;
+    const sun = rows.filter((p) => p.sunday), wk = rows.filter((p) => !p.sunday);
+    sunAll = sunAll.concat(sun);
+    if (!sun.length) { bad.push('an era of the bank authors no Sunday Edition at all'); continue; }
+    for (const p of sun) if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast of ${MASCOTS.length}`);
+    if (wk.some((p) => p.cast.length >= MASCOTS.length)) bad.push('a weekday fields the full cast, so Sunday is not the peak');
+    const sunSpare = sun.map((p) => spareOf(p, MINS.get(p.num))).filter(Number.isFinite);
+    const wkSpare = wk.map((p) => spareOf(p, MINS.get(p.num))).filter(Number.isFinite);
+    if (sunSpare.length && wkSpare.length && Math.max(...sunSpare) >= Math.min(...wkSpare)) {
+      bad.push('a weekday board is at least as tight as the loosest Sunday of its era, so Sunday is not the peak');
+    }
   }
   if (bad.length) fail('sunday', bad.slice(0, 4).join('; '));
   else {
-    const covs = sun.map((p) => coverOf(p, MINS.get(p.num)));
-    ok('sunday', `${sun.length} Sunday Editions, every one 7x7 with the full cast of ${MASCOTS.length}, forcing ${Math.round(Math.min(...covs) * 100)}-${Math.round(Math.max(...covs) * 100)}% of the board`);
+    const covs = sunAll.map((p) => coverOf(p, MINS.get(p.num)));
+    ok('sunday', `${sunAll.length} Sunday Editions, every one 7x7 with the full cast of ${MASCOTS.length}, forcing ${Math.round(Math.min(...covs) * 100)}-${Math.round(Math.max(...covs) * 100)}% of the playable board`);
   }
 })();
 
@@ -410,11 +477,12 @@ const MINS = new Map();
 // header: twelve models across four rounds have now failed to tell a board a
 // person walks through from one they cannot.
 (function geometry() {
-  const longLeg = [], flat = [], tidy = [], unmeasured = [];
-  const legs = [], dets = [], runs = [];
+  const longLeg = [], flat = [], tidy = [], unmeasured = [], soft = [];
+  const legs = [], dets = [], runs = [], bites = [];
   let rows = 0;
   for (const p of PUZZLES) {
     if (p.live < REBUILT_FROM) continue;
+    const walled = p.live >= WALLED_FROM;
     rows += 1;
     const min = MINS.get(p.num);
     if (min == null) { unmeasured.push(`#${p.num}`); continue; }
@@ -423,8 +491,19 @@ const MINS = new Map();
     if (maxLeg > LEG_CAP) longLeg.push(`#${p.num} (${p.live}) has a leg of ${maxLeg}, over the cap of ${LEG_CAP}`);
     const det = min - p.floor;
     dets.push(det);
-    const want = rungOf(p).det;
+    const want = walled ? DET_WALLED : rungOf(p).det;
     if (det < want) flat.push(`#${p.num} (${p.live}, ${DOW[dowOf(p)]}) detours only ${det}, needs ${want}`);
+    if (walled) {
+      // the walls have to EARN their squares: delete them and the optimum must
+      // shorten by BITE_MIN or more, or no route ever actually feels them
+      const open = shortestRoute({ ...p, walls: [] });
+      if (open.min == null) unmeasured.push(`#${p.num} (open-board re-measure)`);
+      else {
+        const bite = min - open.min;
+        bites.push(bite);
+        if (bite < BITE_MIN) soft.push(`#${p.num} (${p.live}) walls add only ${bite} to the optimum, need ${BITE_MIN}`);
+      }
+    }
     const mt = minTurns(p, min);
     if (mt.capped || !mt.turns) { unmeasured.push(`#${p.num}`); continue; }
     const run = min / mt.turns;
@@ -434,30 +513,42 @@ const MINS = new Map();
   if (longLeg.length) fail('geometry', `corridor legs, which walk themselves: ${longLeg.slice(0, 5).join('; ')}`);
   if (flat.length) fail('geometry', `nothing forces a step away from the target: ${flat.slice(0, 5).join('; ')}`);
   if (tidy.length) fail('geometry', `the straightest optimum is too readable: ${tidy.slice(0, 5).join('; ')}`);
+  if (soft.length) fail('geometry', `decorative walls: ${soft.slice(0, 5).join('; ')}`);
   if (unmeasured.length) fail('geometry', `turn density could not be measured on ${unmeasured.slice(0, 6).join(', ')}, so they are unverified`);
-  if (!longLeg.length && !flat.length && !tidy.length && !unmeasured.length) {
-    ok('geometry', `across ${rows}: longest leg ${Math.min(...legs)}-${Math.max(...legs)} (cap ${LEG_CAP}; the bank this replaces averaged 10.2), detour ${Math.min(...dets)}-${Math.max(...dets)} (it was 0 on 60 of 67 boards there), and even the tidiest optimum turns every ${Math.min(...runs).toFixed(2)}-${Math.max(...runs).toFixed(2)} squares (cap ${RUN_CAP})`);
+  if (!longLeg.length && !flat.length && !tidy.length && !soft.length && !unmeasured.length) {
+    ok('geometry', `across ${rows}: longest leg ${Math.min(...legs)}-${Math.max(...legs)} (cap ${LEG_CAP}), detour ${Math.min(...dets)}-${Math.max(...dets)} (walled floor ${DET_WALLED}, open-era floor 4), wall bite ${bites.length ? Math.min(...bites) + '-' + Math.max(...bites) : 'n/a'} (floor ${BITE_MIN}), tidiest optimum turns every ${Math.min(...runs).toFixed(2)}-${Math.max(...runs).toFixed(2)} squares (cap ${RUN_CAP})`);
   }
 })();
 
 // ---------- 5b. the ramp: spare squares fall, the cast climbs ----------------
 (function ramp() {
-  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
-  const by = {}, stray = [];
-  for (const p of rows) {
+  // Per-board band membership is checked for BOTH eras (each board against the
+  // shipped bands). The bank-shape checks (weekly means falling, the Mon-Sun
+  // closure, cast climbing) run on the WALLED era only: the 10 open-board rows
+  // left between REBUILT_FROM and WALLED_FROM are a frozen remnant of a bank
+  // verified whole, and its Fri/Sat means tie at 4.0 in isolation.
+  const all = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
+  const stray = [];
+  for (const p of all) {
     const min = MINS.get(p.num);
     if (min == null) continue;
     const sp = spareOf(p, min), r = rungOf(p);
     if (sp < r.spare[0] || sp > r.spare[1]) {
       stray.push(`#${p.num} ${DOW[dowOf(p)]} leaves ${sp} spare square${sp === 1 ? '' : 's'}, outside its ${r.spare[0]}-${r.spare[1]}`);
     }
-    (by[dowOf(p)] = by[dowOf(p)] || []).push(sp);
+  }
+  const rows = PUZZLES.filter((p) => p.live >= WALLED_FROM);
+  const by = {};
+  for (const p of rows) {
+    const min = MINS.get(p.num);
+    if (min == null) continue;
+    (by[dowOf(p)] = by[dowOf(p)] || []).push(spareOf(p, min));
   }
   const bad = [...stray];
   const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
   const order = [1, 2, 3, 4, 5, 6, 0];   // Mon..Sun
   const got = order.map((d) => (by[d] ? mean(by[d]) : null));
-  for (const [i, v] of got.entries()) if (v == null) bad.push(`no boards on ${DOW[order[i]]}`);
+  for (const [i, v] of got.entries()) if (v == null) bad.push(`no walled boards on ${DOW[order[i]]}`);
   if (!bad.length) {
     for (let i = 1; i < got.length; i++) {
       if (got[i] >= got[i - 1]) bad.push(`${DOW[order[i]]} (${got[i].toFixed(1)} spare) is not tighter than ${DOW[order[i - 1]]} (${got[i - 1].toFixed(1)} spare)`);
@@ -470,18 +561,24 @@ const MINS = new Map();
     for (let i = 1; i < casts.length; i++) if (casts[i] < casts[i - 1]) bad.push(`${DOW[order[i]]} fields a smaller cast than ${DOW[order[i - 1]]}`);
   }
   if (bad.length) fail('ramp', bad.slice(0, 5).join('; '));
-  else ok('ramp', `spare squares ${order.map((d, i) => `${DOW[d]} ${got[i].toFixed(1)}`).join(', ')}, cast climbing 8 to ${MASCOTS.length}`);
+  else ok('ramp', `walled-era spare ${order.map((d, i) => `${DOW[d]} ${got[i].toFixed(1)}`).join(', ')}, cast climbing 8 to ${MASCOTS.length}`);
 })();
 
 // ---------- 6. pool variety across the whole bank ---------------------------
 (function variety() {
-  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
-  const startSeen = new Map(), cellSeen = new Map(), orders = new Set();
+  // The living era only: pool caps written for a whole bank cannot be re-run
+  // over the frozen remnant plus a new bank without double-counting eras.
+  const rows = PUZZLES.filter((p) => p.live >= WALLED_FROM);
+  const startSeen = new Map(), cellSeen = new Map(), orders = new Set(), wallSets = new Map();
   for (const p of rows) {
     startSeen.set(String(p.start), (startSeen.get(String(p.start)) || 0) + 1);
     for (const c of p.pellets) cellSeen.set(String(c), (cellSeen.get(String(c)) || 0) + 1);
     orders.add(p.cast.join('|'));
+    const wk = wallsOf(p).map((c) => idxOf(p, c[0], c[1])).sort((a, b) => a - b).join(',');
+    wallSets.set(wk, (wallSets.get(wk) || 0) + 1);
   }
+  const dupWalls = [...wallSets.values()].filter((n) => n > 1).length;
+  if (rows.length && dupWalls) fail('variety', `${dupWalls} bleacher layout(s) repeat across the walled bank`);
   const startCap = 5, cellShare = 0.45;
   const hotStart = [...startSeen.values()].filter((n) => n > startCap).length;
   const hotCell = [...cellSeen.entries()].filter(([, n]) => n > Math.ceil(rows.length * cellShare));
@@ -523,7 +620,7 @@ const MINS = new Map();
 // the bank this replaces passed them too, and the owner cleared the first one
 // first try without thinking.
 (function models() {
-  const rows = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
+  const rows = PUZZLES.filter((p) => p.live >= WALLED_FROM);
   const soft = rows.filter((p) => ['axis', 'straight'].some((m) => unplanned(p, m).cleared));
   const careless = rows.filter((p) => carefulClears(p).cleared);
   if (soft.length) fail('models', `an unplanned line clears these, which is trivial by inspection: ${soft.slice(0, 5).map((p) => `#${p.num}`).join(', ')}`);

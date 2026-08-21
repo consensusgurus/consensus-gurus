@@ -19,6 +19,11 @@
 //      visible wall is fairer than a board ruined twenty moves before anyone
 //      notices.
 //
+// Boards from 2026-08-22 also carry BLEACHERS (`PUZZLE.walls`): bolted-down
+// squares the head can never enter, rendered as dark benches. Movement legality
+// lives in lib/chomp-engine.js; this file only draws them. Earlier boards have
+// no walls field and render exactly as before.
+//
 // YOU DO NOT NEED THEM ALL (owner, 2026-08-08). The score is how far down the
 // cast you got, so a run that stalls on the fifth still scores five. That is
 // what makes a hard board survivable.
@@ -508,6 +513,17 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     ctx.strokeStyle = '#e2e6ec'; ctx.lineWidth = 1;
     rr(PAD - 0.5, PAD - 0.5, PUZZLE.w * cell + 1, PUZZLE.h * cell + 1, 4); ctx.stroke();
 
+    // ---- the bleachers: bolted down, never enterable ------------------------
+    for (const [wx, wy] of (PUZZLE.walls || [])) {
+      ctx.fillStyle = '#333a48';
+      rr(px(wx) + 1.5, px(wy) + 1.5, cell - 3, cell - 3, 4); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.30)'; ctx.lineWidth = Math.max(1, cell * 0.045);
+      for (let k = 1; k <= 2; k++) {
+        const yy = px(wy) + (cell * k) / 3 + 1;
+        ctx.beginPath(); ctx.moveTo(px(wx) + cell * 0.18, yy); ctx.lineTo(px(wx) + cell * 0.82, yy); ctx.stroke();
+      }
+    }
+
     // ---- the gator's body ---------------------------------------------------
     // Solid green, the same skin as the head, and drawn as one continuous animal
     // rather than a row of tiles: each segment is a slab that OVERLAPS its
@@ -600,7 +616,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       ctx.strokeStyle = COLORS.block; ctx.lineWidth = 2;
       rr(px(bl.x) + 2, px(bl.y) + 2, cell - 4, cell - 4, 3); ctx.stroke();
     }
-  }, [PUZZLE.w, PUZZLE.h, PUZZLE.pellets, CAST, sprites]);
+  }, [PUZZLE.w, PUZZLE.h, PUZZLE.pellets, PUZZLE.walls, CAST, sprites]);
 
   useEffect(() => { drawRef.current = draw; blockRef.current = blocked; draw(); }, [draw, g, blocked, sprites]);
   // the art arriving must repaint at the CURRENT size, not just on next state
@@ -713,6 +729,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         <>Move one square at a time with the <b>arrow keys</b> or the pad. Nothing moves until you do.</>,
         <>Your body <b>never shrinks</b>. Where you have been is a wall for the rest of the run.</>,
         <>A mascot whose turn has not come is <b>solid</b>. You cannot cross the tiger to reach the gamecock.</>,
+        <>The dark <b>bleachers</b> are bolted down and you can never enter them. Going around one is forced, and which side you pick decides what you wall off.</>,
         <>Steering into a wall is <b>refused</b>, not punished, and costs no move. The run ends only when the head has nowhere legal left to go.</>,
         <>Boxed in early? <b>Give up</b> ends the run and <b>records it as it stands</b>, and then <b>Try again</b> re-deals the same board. Only your first result counts on the leaderboard.</>,
       ]}
@@ -785,7 +802,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Chomp is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
-                <p style={{ margin: '0 0 6px' }}>Eat today&apos;s {NPEL} mascots in order. Every square you touch stays yours for the rest of the run, so your own trail is the only thing in your way. Replay is free.</p>
+                <p style={{ margin: '0 0 6px' }}>Eat today&apos;s {NPEL} mascots in order. Every square you touch stays yours for the rest of the run, so your trail and the bolted-down bleachers are all that stand in your way. Replay is free.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
@@ -964,8 +981,8 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           <p style={{ margin: '0 0 9px' }}>
             Chomp is a daily route puzzle. A handful of mascots sit on a small board and have to be eaten in order,
             and every square you touch belongs to you for the rest of the run. Nothing chases you and nothing is on a timer.
-            The only obstacle is the trail you have already laid, which is why the shortest line to the fourth mascot is so
-            often the line that walls off the fifth. The board is deliberately tight: on most days the shortest legal route
+            The obstacles are the trail you have already laid and a few bolted-down bleacher squares, which is why the
+            shortest line to the fourth mascot is so often the line that walls off the fifth. The board is deliberately tight: on most days the shortest legal route
             uses most of the squares on it, and on a Sunday it can take very nearly all of them.
           </p>
           <p style={{ margin: '0 0 9px' }}>
