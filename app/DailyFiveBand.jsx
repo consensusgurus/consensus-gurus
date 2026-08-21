@@ -513,7 +513,7 @@ export default function DailyFiveBand() {
         .d5-lbh{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
                 margin-bottom:7px;}
         .d5-lbr{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);}
-        .d5-lbr.me{background:rgba(47,111,228,.28);margin:0 -8px;padding:5px 8px;border-radius:6px;border-bottom:none;}
+        .d5-lbr.me{background:rgba(37,99,235,.28);margin:0 -8px;padding:5px 8px;border-radius:6px;border-bottom:none;}
         .d5-rk{flex:none;width:20px;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:#8fa9de;text-align:right;}
         .d5-rk.g1{color:var(--gold);}.d5-rk.g2{color:var(--silver);}.d5-rk.g3{color:var(--bronze);}
         .d5-who{flex:1;min-width:0;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -746,7 +746,7 @@ export default function DailyFiveBand() {
         .d5-pkc.on::before{background:var(--blue);}
         .d5-pkc.fin::before{background:var(--success);}
         .d5-pkc.mq::before{background:var(--gold);}
-        .d5-pkc.on{background:rgba(47,111,228,.28);border-color:#5b8cf0;}
+        .d5-pkc.on{background:rgba(37,99,235,.28);border-color:#5b8cf0;}
         /* The marquee takes a double-width cell in the lead position, so the
            grid says which one it is with no caption at all. */
         .d5-pkc.mq{grid-column:span 2;background:rgba(232,180,58,.14);border-color:#7a6021;}

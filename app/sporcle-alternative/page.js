@@ -18,7 +18,7 @@ export const metadata = {
   twitter: { card: 'summary_large_image', title: 'A Sporcle Alternative With No Ads', description: 'Fast, ad-free trivia quizzes with leaderboards and a modern interface.' },
 };
 
-const C = { bg: T.white, card: T.white, ink: T.ink, blue: T.accent, gold: '#2f6fe4', muted: T.muted, border: '#e5e7eb', green: T.success };
+const C = { bg: T.white, card: T.white, ink: T.ink, blue: T.accent, gold: '#2563eb', muted: T.muted, border: '#e5e7eb', green: T.success };
 const F = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function Prop({ title, body }) {
@@ -49,7 +49,7 @@ export default function SporcleAlternativePage() {
   ];
   return (
     <div style={{ minHeight: '100vh', background: C.bg, color: C.ink, position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 6, background: 'linear-gradient(90deg,#0b0d12,#233a63 55%,#2f6fe4)' }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 6, background: 'linear-gradient(90deg,#0b0d12,#233a63 55%,#2563eb)' }} />
       <div style={{ position: 'relative', zIndex: 2, maxWidth: 820, margin: '0 auto', padding: '28px 20px 64px' }}>
         <Link href="/" style={{ fontFamily: F, fontSize: 12, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, color: C.ink, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
           <ArrowLeft size={14} strokeWidth={2.5} /> Back to Mind Loft

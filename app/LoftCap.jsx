@@ -229,8 +229,8 @@ export default function LoftCap({
   align-items:center;justify-content:center;cursor:pointer;
   border:0;padding:0;font-family:inherit;font-size:21px;font-weight:800;line-height:1;
   color:var(--white)}
-.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,var(--blue) 45%,rgba(47,111,228,0) 100%)}
-.lcap-azbtn.next{right:0;background:linear-gradient(270deg,var(--blue) 45%,rgba(47,111,228,0) 100%)}
+.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,var(--blue) 45%,rgba(37,99,235,0) 100%)}
+.lcap-azbtn.next{right:0;background:linear-gradient(270deg,var(--blue) 45%,rgba(37,99,235,0) 100%)}
 .lcap-azwrap.at-start .lcap-azbtn.prev,.lcap-azwrap.at-end .lcap-azbtn.next{display:none}
 .lcap-tiles.az a{display:block;flex:0 0 auto;min-width:0;white-space:nowrap;
   background:rgba(255,255,255,0.14);color:var(--white);border-radius:7px;
@@ -320,10 +320,10 @@ export default function LoftCap({
   .lcap-help{order:4}
 }
 
-/* The play stage: navy, full bleed, with the board card as the one light
+/* The play stage: the Loft ground, full bleed, with the board card as the one light
    object on it. Sits inside the centered page column, so the negative margin
    pulls it out to the viewport and the padding puts its content back. */
-.loft-stage{background:var(--accent);margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+.loft-stage{background:var(--ground);margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
   padding:14px calc(50vw - 50%) 22px;
   /* Fill the first screen. Without this the navy stops at the card and the
      page shows a band of light under it, which reads as an unfinished edge
@@ -376,7 +376,7 @@ export default function LoftCap({
    with a SPACER ELEMENT instead. app/useRailClearance.js is that mechanism, and it
    measures the rail rather than trusting a hand-totalled constant. */
 .loft-page > [class$="-wrap"]:not(.dch-wrap){padding-top:0!important;padding-bottom:0!important}
-.loft-page{background:var(--accent)!important}
+.loft-page{background:var(--ground)!important}
 /* NO GRAIN ON A LOFT PAGE. The grain is a fixed, 12%-opacity multiply layer at
    z-index 1, so it DARKENS whatever sits under it, and the About section and
    the footer carry z-index 2 and sit over it. The result was a page in two
@@ -840,7 +840,7 @@ export default function LoftCap({
    identical outlined boxes. Each takes a tint and a coloured left rule: blue
    for another round of THIS game, green for a different game, slate for the
    unscored replay, ember for the archive. */
-.loft-opt.t-another{background:var(--accent-soft);border-color:rgba(47,111,228,0.28);
+.loft-opt.t-another{background:var(--accent-soft);border-color:rgba(37,99,235,0.28);
   border-left:5px solid var(--blue)}
 .loft-opt.t-similar{background:rgba(21,128,61,0.08);border-color:rgba(21,128,61,0.26);
   border-left:5px solid var(--success-deep)}

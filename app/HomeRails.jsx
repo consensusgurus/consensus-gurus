@@ -814,7 +814,7 @@ export default function HomeRails({
          would be a third ask in one column. Tapping it fires the global
          share-credit pop-up, the same one every Share button on the site opens,
          which is where the contest terms are stated. */
-      /* GOLD, not --cta. --cta is #2f6fe4, the same family as the navy panel
+      /* GOLD, not --cta. --cta is #2563eb, the same family as the navy panel
          headers this bar is sandwiched between, and a blue bar between two blue
          bands is precisely the "not obvious enough" problem it exists to fix
          (compared side by side on the live page before choosing). Gold is

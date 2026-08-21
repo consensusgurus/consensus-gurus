@@ -70,7 +70,7 @@ function ComingSoon({ first }) {
         <p style={{ fontSize: 14, lineHeight: 1.55, color: '#3f4757', margin: '0 0 16px' }}>
           Blocks launches {first.dateLabel}. Same shapes, same order, for everybody.
         </p>
-        <a href="/daily" style={{ display: 'inline-block', background: '#2f6fe4', color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px 22px', borderRadius: 9, textDecoration: 'none' }}>
+        <a href="/daily" style={{ display: 'inline-block', background: '#2563eb', color: '#fff', fontWeight: 800, fontSize: 14, padding: '11px 22px', borderRadius: 9, textDecoration: 'none' }}>
           Today&rsquo;s slate
         </a>
       </div>

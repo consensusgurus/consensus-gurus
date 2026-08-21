@@ -10,7 +10,7 @@ const ACCENT=T.accent, INK=T.ink, MUTED=T.muted, SOFT=T.silver, LINE='rgba(20,22
 const BARBG='#233a63', ONBLUE=T.white, ONBLUE_SOFT='#bcd2fb', ONBLUE_LINE='rgba(255,255,255,0.22)';
 const MEDAL=[T.gold,'#c3c7cf','#cf8b4e'];
 const lbl={fontSize:10,fontWeight:600,letterSpacing:'.04em',textTransform:'uppercase',color:ONBLUE_SOFT,marginBottom:2};
-const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#2563eb',color:T.white,border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
+const chip={display:'inline-flex',alignItems:'center',gap:6,background:'#1d4ed8',color:T.white,border:'1px solid rgba(255,255,255,0.35)',borderRadius:9,padding:'8px 14px',fontWeight:700,fontSize:13,textDecoration:'none',whiteSpace:'nowrap',cursor:'pointer',fontFamily:'inherit'};
 
 function getAnonId(){try{return localStorage.getItem('sot_quiz_anon');}catch{return null;}}
 function ensureAnonId(){

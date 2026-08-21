@@ -31,7 +31,7 @@
 // Palette: sits directly on the page ground (#f7f8fa). White tiles, navy
 // (#ffffff) as a material for the hero + expand panel, gold (#e8b43a) reserved
 // for daily identity, green for a finished game. Matches the live QuizHomeClient
-// tokens (bg #f7f8fa / surface #fff / accent #233a63 / cta #2f6fe4).
+// tokens (bg #f7f8fa / surface #fff / accent #233a63 / cta #2563eb).
 //
 // Data wiring is unchanged from the strip: completion follows the signed-in
 // player across devices via /api/quiz/daily-status (with the same-device

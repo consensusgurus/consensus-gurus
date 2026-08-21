@@ -288,7 +288,7 @@ export default function QuizStandings({
         .qiq-hero.full:hover{border-color:#9fd3ba;}
         .qiq-hero.open{border-color:${C.blue};box-shadow:0 0 0 1px ${C.blue};}
         .qiq-hero.full.open{border-color:var(--success-deep);box-shadow:0 0 0 1px var(--success-deep);}
-        .qiq-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(47,111,228,.16) 0%,rgba(47,111,228,0) 62%);}
+        .qiq-rays{position:absolute;top:50%;left:50%;width:420px;height:420px;margin:-210px 0 0 -210px;pointer-events:none;opacity:0;background:radial-gradient(circle,rgba(37,99,235,.16) 0%,rgba(37,99,235,0) 62%);}
         .qiq-hero.full .qiq-rays{background:radial-gradient(circle,rgba(21,128,61,.17) 0%,rgba(21,128,61,0) 62%);}
         .qiq-hero.landed .qiq-rays{animation:qiq-rays 1.1s ease-out 1;}
         .qiq-hero.landed{animation:qiq-pop .5s cubic-bezier(.34,1.56,.64,1) 1;}

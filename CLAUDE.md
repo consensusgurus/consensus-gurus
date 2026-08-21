@@ -5665,6 +5665,39 @@ darkening transform over an explicit file list.
   and its own output is still a dark navy. Both were replaced with conservation counts and an
   explicit before-set.
 
+### THE DAILY PAGES PAINT THEMSELVES WITH `accent`, NOT `ground` (found 2026-08-21, same day)
+
+Midnight shipped and the daily puzzle pages did not change. `.loft-page` and `.loft-stage` in
+`app/LoftCap.jsx` both set `var(--accent)`, while the quiz home sets `C.ground` on `.qzloft`.
+**There are two different "dark page ground" surfaces on this site and only one of them is
+`--ground`.** Before Midnight it was invisible, because accent `#1e3a8a` and ground `#14264f`
+were both mid navies; the moment ground went near-black the homepage went dark and 65 game
+pages stayed exactly as they were.
+
+The symptom that made it obvious was the HEADER. `.qchm-r1`, the header bar on a game page, is
+also `accent`, so bar and page were **the identical colour, 1.00:1**, and the header buttons
+floated on an undifferentiated navy field. Pointing `.loft-page` and `.loft-stage` at
+`var(--ground)` restores the relationship the homepage already had: 1.69:1, and the bar reads
+as an object again.
+
+**Check both surfaces on any future palette change.** Grep for `loft-page`, `loft-stage` and
+`qzloft` and confirm all three moved. A palette that only lands on `--ground` lands on the
+homepage and nothing else.
+
+### `blue` AND `cta` ARE THE SAME VALUE, AND ONLY ONE OF THEM SHOULD EVER BRIGHTEN
+
+Midnight brightened the CTA to `#2f6fe4`. Because `blue` and `cta` held the same `#2563eb`,
+the literal codemod dragged the entire ramp with it, and **`blue` is not only a button
+colour**: `.lcap` (the per-game masthead band), `.dh-cell`, `.cb-card.up` and
+`.dtp-cell.played` all use it as a large SURFACE. The result was a bright blue bar across the
+top of all 65 puzzles.
+
+The rule: **a CTA change belongs to the `cta` TOKEN alone and must never be pushed into
+literals.** The follow-up reverted the blue ramp in 39 files (`#2f6fe4 -> #2563eb`,
+`#2563eb -> #1d4ed8`, one pass, chained again) and left `cta` bright in the token table, so the
+only thing that got brighter is a button. Before touching `cta`, grep for
+`background:var(--blue)` and see how much of it is a surface.
+
 ### Outstanding
 
 1. **`check-theme.mjs` is still red** (299 raw hexes). This change neither worsened nor paid down

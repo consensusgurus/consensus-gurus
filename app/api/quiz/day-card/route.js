@@ -28,7 +28,7 @@ const SZ = 1080;
 const PAL = {
   bg: '#ffffff', text: '#0b0d12', navy: '#233a63', slate: '#646c7a',
   soft: '#6b7280', cell: '#f1f3f6', line: 'rgba(20,22,28,0.10)',
-  blue: '#2f6fe4', green: '#15803d', gold: '#b7791f', goldBg: '#fdf6e4',
+  blue: '#2563eb', green: '#15803d', gold: '#b7791f', goldBg: '#fdf6e4',
 };
 const BRAIN_W = 430;
 const BRAIN_H = 387; // matches the 640x576 source art

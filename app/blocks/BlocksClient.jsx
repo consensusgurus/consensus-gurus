@@ -59,7 +59,7 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const COLORS = {
   ink: T.ink, cream: '#f7f8fa', faded: '#3f4757', line: '#e5e7eb',
-  accent: '#2563eb', accentSoft: '#e8edfa', well: '#93b4f0',
+  accent: '#1d4ed8', accentSoft: '#e8edfa', well: '#93b4f0',
 };
 const HELP_KEY = 'sot_blocks_help_seen';
 const STATS_KEY = 'sot_blocks_stats';

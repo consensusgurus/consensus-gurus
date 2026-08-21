@@ -114,7 +114,7 @@ export default function DailyFiveBar({ slug }) {
                text-decoration:none;flex:none;}
         .d5b-g:hover{background:rgba(255,255,255,.22);border-color:#5f80cf;}
         .d5b-g.is-done{background:rgba(52,211,153,.15);border-color:#2f7d5e;color:#8ff0c4;}
-        .d5b-g.is-now{background:var(--blue,#2f6fe4);border-color:#6d9bff;color:#fff;
+        .d5b-g.is-now{background:var(--blue,#2563eb);border-color:#6d9bff;color:#fff;
                       box-shadow:0 1px 3px rgba(0,0,0,.35);}
         .d5b-n{font-size:11px;font-weight:800;color:#f0cd7a;white-space:nowrap;flex:none;
                font-variant-numeric:tabular-nums;}
@@ -139,7 +139,7 @@ export default function DailyFiveBar({ slug }) {
         .d5b.circ .d5b-k::before{background:var(--blue-400,#60a5fa);}
         .d5b.circ .d5b-n{color:#bcd2ff;}
         .d5b.circ .d5b-n.done{color:#8ff0c4;}
-        .d5b.circ .d5b-next{background:var(--blue,#2f6fe4);color:#fff;}
+        .d5b.circ .d5b-next{background:var(--blue,#2563eb);color:#fff;}
         .d5b.circ .d5b-next:hover{background:#3b7bf5;}
         @media(max-width:860px){.d5b-in{gap:9px;}}
         @media(max-width:560px){.d5b-x,.d5b-k{display:none;}}

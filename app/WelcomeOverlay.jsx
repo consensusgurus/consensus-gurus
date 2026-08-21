@@ -112,16 +112,16 @@ export default function WelcomeOverlay() {
         .mlw-brand b{font-weight:800;font-size:15px;letter-spacing:-.01em;}
         .mlw-eye{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
           color:#a98a2e;margin-bottom:6px;}
-        .mlw-eye.circ{color:#2f6fe4;}
+        .mlw-eye.circ{color:#2563eb;}
         .mlw-hd{font-weight:800;font-size:23px;line-height:1.15;letter-spacing:-.022em;margin:0 0 8px;}
         .mlw-sub{font-weight:600;font-size:13.5px;line-height:1.5;color:var(--muted,#3f4757);margin:0 0 12px;}
         .mlw-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
         .mlw-pills span{background:var(--surface-alt,#eef2f7);border:1.5px solid var(--border,#e5e7eb);
           border-radius:999px;padding:5px 10px;font-weight:800;font-size:11.5px;color:var(--muted,#3f4757);}
         .mlw-cta{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;
-          background:var(--cta,#2f6fe4);color:#fff;border:0;border-radius:11px;padding:14px;
+          background:var(--cta,#2563eb);color:#fff;border:0;border-radius:11px;padding:14px;
           font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;}
-        .mlw-cta:hover{background:var(--cta-hover,#2563eb);}
+        .mlw-cta:hover{background:var(--cta-hover,#1d4ed8);}
         .mlw-alt{display:block;width:100%;margin-top:9px;background:transparent;border:0;
           font-family:inherit;font-weight:800;font-size:12.5px;color:var(--slate,#646c7a);
           cursor:pointer;padding:9px;}
@@ -132,7 +132,7 @@ export default function WelcomeOverlay() {
       `}</style>
       <div className="mlw-card" onClick={(e) => e.stopPropagation()}>
         <div className="mlw-brand">
-          <MindLoftMark size={26} ink="#0b0d12" accent="#2f6fe4" />
+          <MindLoftMark size={26} ink="#0b0d12" accent="#2563eb" />
           <b>Mind Loft</b>
         </div>
         <div className={run.marquee ? 'mlw-eye' : 'mlw-eye circ'}>

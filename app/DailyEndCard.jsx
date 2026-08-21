@@ -184,14 +184,14 @@ export const GAME_META = {
   suffice: { accent: '#4338ca', badgeBg: '#4338ca', badgeInk: T.white, Fin: CheckCircle2 },
   docket: { accent: '#5b2333', badgeBg: '#5b2333', badgeInk: T.white, Fin: Gavel },
   plot: { accent: '#78350f', badgeBg: '#78350f', badgeInk: T.white, Fin: LayoutGrid },
-  sixes:  { accent: '#2563eb', badgeBg: '#2563eb', badgeInk: T.white, Fin: Grid2x2 },
+  sixes:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid2x2 },
   niche:  { accent: '#115e59', badgeBg: '#115e59', badgeInk: T.white, Fin: LayoutGrid },
   shoe:  { accent: '#0c4a6e', badgeBg: '#0c4a6e', badgeInk: T.white, Fin: Layers },
   barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
   blitz: { accent: '#657512', badgeBg: '#657512', badgeInk: T.white, Fin: Zap },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
-  blocks: { accent: '#2563eb', badgeBg: '#2563eb', badgeInk: T.white, Fin: Grid3x3 },
+  blocks: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid3x3 },
   sweep:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: T.white, Fin: Flag },
   chomp:  { accent: '#a8430f', badgeBg: '#a8430f', badgeInk: T.white, Fin: Route },
   redact: { accent: '#27272a', badgeBg: '#18181b', badgeInk: T.white, Fin: FileText },
@@ -219,7 +219,7 @@ export const CAT_META = {
   // Arcade split out for Blocks (owner, 2026-08-08): a reflex-free falling-shapes
   // game is neither Logic nor End Game, and the label leaves room for the rest of
   // the arcade shelf later.
-  arcade:    { name: 'Arcade',    color: '#2563eb', Icon: Gamepad2 },
+  arcade:    { name: 'Arcade',    color: '#1d4ed8', Icon: Gamepad2 },
 };
 // Family render order for the "more games" grid.
 const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'arcade', 'geography'];
@@ -1260,7 +1260,7 @@ export default function DailyEndCard({
         .dec-claim .s{font-size:11.5px;font-weight:600;color:${SLATE};}
         .dec-claim .cta{flex-shrink:0;position:relative;z-index:1;font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--white);background:${BLUE};border-radius:999px;padding:7px 13px;animation:dec-claimblink 1.8s ease-in-out infinite;}
         .dec-claim::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 32%,rgba(255,255,255,.7) 50%,transparent 68%);transform:translateX(-100%);animation:dec-claimsweep 2.8s ease-in-out infinite;pointer-events:none;}
-        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(47,111,228,.36);}55%{box-shadow:0 0 0 7px rgba(47,111,228,0);}}
+        @keyframes dec-claimpulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.36);}55%{box-shadow:0 0 0 7px rgba(37,99,235,0);}}
         @keyframes dec-claimblink{0%,100%{opacity:1;}50%{opacity:.52;}}
         @keyframes dec-claimsweep{0%{transform:translateX(-100%);}55%,100%{transform:translateX(100%);}}
         @media(prefers-reduced-motion:reduce){.dec-claim,.dec-claim .cta{animation:none;}.dec-claim::after{display:none;}}
@@ -1277,8 +1277,8 @@ export default function DailyEndCard({
         /* A colored cap across the top of every tile: the row reads as three
            deliberate cards rather than three pale boxes (owner 2026-08-01). */
         .dec-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
-        .dec-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(47,111,228,.16);transform:translateY(-1px);}
-        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(47,111,228,.16);}
+        .dec-tile:hover{border-color:${BLUE};box-shadow:0 5px 18px rgba(37,99,235,.16);transform:translateY(-1px);}
+        .dec-tile.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
         /* Podium tint: a top-3 finish is the whole point of the row, so it is
            colored gold / silver / bronze rather than left generic blue. */
         .dec-tile.m1{border-color:#e3ba57;background:linear-gradient(180deg,#fffdf5,#fdf3d9);box-shadow:0 3px 14px rgba(190,145,25,.20);}
@@ -1304,7 +1304,7 @@ export default function DailyEndCard({
         /* Archive tile: same shell as a rank tile, a completion ring where the
            rank numeral sits. No chevron, because it opens the calendar below
            rather than a leaderboard. */
-        .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(47,111,228,.16);}
+        .dec-tile-arc.open{border-color:${BLUE};box-shadow:0 0 0 1px ${BLUE},0 5px 18px rgba(37,99,235,.16);}
         /* Ring sized around its widest label, "100%", measured rather than
            guessed: at 12px it renders 40px wide, and a 50px ring with a 5px
            stroke leaves 41px of clear middle, so it fit by one pixel and read as
@@ -1494,7 +1494,7 @@ export default function DailyEndCard({
            so it carries the same 2px/shadow weight as the IQ hero and a taller,
            shadowed primary button (owner 2026-08-01). The Easiest card stays a
            step quieter on purpose: it is the secondary offer. */
-        .dec-nx{border:2px solid #bcd6fb;background:linear-gradient(180deg,#f2f7ff 0%,#e6effd 100%);box-shadow:0 3px 14px rgba(47,111,228,.10);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
+        .dec-nx{border:2px solid #bcd6fb;background:linear-gradient(180deg,#f2f7ff 0%,#e6effd 100%);box-shadow:0 3px 14px rgba(37,99,235,.10);border-radius:16px;padding:15px 16px;display:flex;flex-direction:column;gap:12px;min-width:0;}
         .dec-nx-top{flex:1 1 auto;display:flex;align-items:center;gap:13px;min-width:0;}
         /* The icon takes the same square tile as the Easiest card (owner
            2026-08-04): the countdown ring that used to wrap it made this one
@@ -1504,12 +1504,12 @@ export default function DailyEndCard({
         .dec-nx-ico > svg{width:22px;height:22px;}
         .dec-eye{font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
         .dec-nx-name{display:flex;align-items:center;flex-wrap:wrap;gap:5px 8px;font-size:24px;font-weight:800;letter-spacing:-.025em;color:${INK};line-height:1.1;}
-        .dec-nx-cd{font-family:${MONO};font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#2b5bb5;background:rgba(47,111,228,.10);border:1px solid #bcd6fb;border-radius:999px;padding:3px 8px;white-space:nowrap;}
+        .dec-nx-cd{font-family:${MONO};font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#2b5bb5;background:rgba(37,99,235,.10);border:1px solid #bcd6fb;border-radius:999px;padding:3px 8px;white-space:nowrap;}
         .dec-nx-fam{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:${SLATE};margin-top:3px;min-width:0;}
         .dec-nx-fam,.dec-ez-fam{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dec-nx-btns{display:flex;gap:7px;}
         .dec-nx-btns .b{flex:1;justify-content:center;font-family:${SANS};font-weight:800;font-size:14.5px;border-radius:11px;padding:13px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;border:1px solid #ccd8ea;background:var(--white);color:${SLATE};}
-        .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:var(--white);box-shadow:0 3px 10px rgba(47,111,228,.30);}
+        .dec-nx-btns .b.primary{flex:1.7;background:${BLUE};border-color:${BLUE};color:var(--white);box-shadow:0 3px 10px rgba(37,99,235,.30);}
         .dec-nx-btns .b.primary:hover{background:var(--blue-deep);filter:none;}
         .dec-nx-btns .b:hover{filter:brightness(0.98);}
 
@@ -2121,7 +2121,7 @@ export default function DailyEndCard({
               This cap carried a leftover house glyph from before the rebrand, so a
               screenshot of the end card was branded differently from every other
               surface. Sized down to 16px to sit inside the 19px white tile. */}
-          <MindLoftMark size={16} ink="#233a63" accent="#2f6fe4" title="Mind Loft" />
+          <MindLoftMark size={16} ink="#233a63" accent="#2563eb" title="Mind Loft" />
         </span>
         <span className="wm">Mind <i>Loft</i></span>
         <span className="gm">{selfName} {'\u00b7'} {MONTH_NAMES[Number(todayISO.slice(5, 7)) - 1]} {Number(todayISO.slice(8, 10))}</span>
@@ -2644,7 +2644,7 @@ export default function DailyEndCard({
         .d5e-card{position:relative;background:var(--ground);color:#fff;border-radius:16px;padding:0;max-width:520px;width:100%;margin:0 auto;overflow:hidden;font-family:${SANS};}
         .d5e-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--gold);z-index:2;}
         /* Blue for a skill circuit, gold for the marquee, green when done. */
-        .d5e-card.circ::before{background:var(--blue,#2f6fe4);}
+        .d5e-card.circ::before{background:var(--blue,#2563eb);}
         .d5e-card.done::before,.d5e-card.circ.done::before{background:var(--success);}
         .d5e-card.circ .d5e-eye{color:var(--blue-400,#60a5fa);}
         .d5e-cap{display:flex;align-items:center;gap:8px;padding:9px 16px;background:rgba(0,0,0,.22);}
@@ -2680,17 +2680,17 @@ export default function DailyEndCard({
         .d5e-lbr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .d5e-lbr .v{flex:none;font-weight:800;font-variant-numeric:tabular-nums;}
         .d5e-lbr.first{background:rgba(232,180,58,.18);}
-        .d5e-lbr.me{background:rgba(47,111,228,.30);}
+        .d5e-lbr.me{background:rgba(37,99,235,.30);}
         .d5e-lb .empty{font-size:11.5px;font-weight:700;color:#93aae2;}
         /* Retry stands in for the hand-off when the position is unsolved, so
            it takes the same shape and the blue, never the gold. */
-        .d5e-go.retry{background:var(--blue,#2f6fe4);color:#fff;}
+        .d5e-go.retry{background:var(--blue,#2563eb);color:#fff;}
         .d5e-gate{margin-top:8px;font-size:11px;font-weight:700;color:#93aae2;text-align:center;}
         .d5e-again{display:block;width:100%;margin-top:9px;padding:9px;border-radius:9px;border:1px solid #35529e;background:rgba(255,255,255,.08);color:#dbe6ff;font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;}
         .d5e-again:hover{background:rgba(255,255,255,.16);}
       `}</style>
       <div className="d5e-cap">
-        <span className="d5e-mk" aria-hidden="true"><MindLoftMark size={15} ink="#233a63" accent="#2f6fe4" title="Mind Loft" /></span>
+        <span className="d5e-mk" aria-hidden="true"><MindLoftMark size={15} ink="#233a63" accent="#2563eb" title="Mind Loft" /></span>
         <span className="d5e-wm">Mind <i>Loft</i></span>
         <span className="d5e-gm">{runName}</span>
       </div>

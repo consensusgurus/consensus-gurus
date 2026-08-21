@@ -1735,7 +1735,7 @@ export default function QuizHomeClient({ variant = 'current' }) {
     .qzh .rseg{position:relative;isolation:isolate;overflow:hidden;flex:1 1 0;min-height:24px;display:flex;align-items:center;background:#f1f3f6;border:none;border-radius:7px;margin:0;padding:0 9px;cursor:pointer;width:100%;text-align:left;}
     .qzh .rseg:hover{background:#e9edf3;}
     .qzh .rseg:hover .rmeter{filter:brightness(1.18);}
-    .qzh .rmeter{position:absolute;left:0;top:0;bottom:0;z-index:0;min-width:3px;background:linear-gradient(90deg,rgba(47,111,228,.16),rgba(47,111,228,.05));border-right:2px solid var(--blue);border-radius:7px 0 0 7px;}
+    .qzh .rmeter{position:absolute;left:0;top:0;bottom:0;z-index:0;min-width:3px;background:linear-gradient(90deg,rgba(37,99,235,.16),rgba(37,99,235,.05));border-right:2px solid var(--blue);border-radius:7px 0 0 7px;}
     .qzh .rseg-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}
     .qzh .rseg .rnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:600;color:var(--ink);}
     .qzh .rseg .rpct{font-size:10.5px;font-weight:800;flex:none;color:var(--slate);font-variant-numeric:tabular-nums;}

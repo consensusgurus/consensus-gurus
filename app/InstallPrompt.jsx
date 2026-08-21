@@ -124,10 +124,10 @@ export default function InstallPrompt() {
         .mli-t b{display:block;font-weight:800;font-size:13.5px;line-height:1.2;letter-spacing:-.01em;}
         .mli-t s{display:block;text-decoration:none;font-weight:600;font-size:11.5px;line-height:1.35;
           color:var(--muted,#3f4757);margin-top:2px;}
-        .mli-go{flex:none;border:0;background:var(--cta,#2f6fe4);color:#fff;border-radius:9px;
+        .mli-go{flex:none;border:0;background:var(--cta,#2563eb);color:#fff;border-radius:9px;
           padding:9px 13px;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;
           white-space:nowrap;}
-        .mli-go:hover{background:var(--cta-hover,#2563eb);}
+        .mli-go:hover{background:var(--cta-hover,#1d4ed8);}
         .mli-x{flex:none;border:0;background:transparent;color:var(--slate,#646c7a);
           font-family:inherit;font-weight:800;font-size:11.5px;cursor:pointer;padding:6px 2px;}
         .mli-x:hover{color:var(--ink,#0b0d12);}
@@ -143,7 +143,7 @@ export default function InstallPrompt() {
           text-transform:uppercase;padding:12px;cursor:pointer;}
       `}</style>
       <div className="mli-card" role="dialog" aria-label="Install Mind Loft">
-        <MindLoftMark size={28} ink="#0b0d12" accent="#2f6fe4" />
+        <MindLoftMark size={28} ink="#0b0d12" accent="#2563eb" />
         <span className="mli-t">
           <b>Install Mind Loft</b>
           <s>Your daily puzzles, one tap from the home screen.</s>

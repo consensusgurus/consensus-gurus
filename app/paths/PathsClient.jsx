@@ -75,7 +75,7 @@ const COLORS = {
   ridge: '#e6dcc6',
   ridgeInk: '#8a6a2f',
   river: '#bfdbfe',
-  riverInk: '#2563eb',
+  riverInk: '#1d4ed8',
   cliff: '#4b5563',         // a wall, not a price
   cliffInk: '#111827',
   rail: '#0f766e',          // old track, free to run along

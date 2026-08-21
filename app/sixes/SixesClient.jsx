@@ -58,7 +58,7 @@ import { meRequest } from '@/app/quizMeClient';
 // is derived from COLORS.accent below rather than written as a literal hex a
 // second time, because a forked sudoku client shipped its parent's orange into
 // a teal game exactly once and nobody saw it until it was live.
-const ACCENT = '#2563eb';
+const ACCENT = '#1d4ed8';
 const COLORS = {
   cream: T.surface,
   paper: T.paper,
@@ -904,7 +904,7 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
                   <Trash2 size={14} /> {armClear ? 'Tap again to clear' : 'Clear'}
                 </button>
                 {hintOk && !g.hintUsed && (
-                  <button className="sx-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(37,99,235,0.5)', color: COLORS.accentDeep }}>
+                  <button className="sx-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,78,216,0.5)', color: COLORS.accentDeep }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}
