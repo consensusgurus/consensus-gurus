@@ -50,6 +50,10 @@ const MED = {
   // The three crowd games post no comparable clock: you submit picks against a
   // pool, so the row's time is how long you deliberated. Estimated, flagged.
   outwit: 90, outrank: 90, feud: 90,
+  // Niche launched 2026-08-21 with no live clock data yet: estimated from its
+  // shape (a type-ahead trivia grid, somewhere between Sixes and Blocks).
+  // Replace with the measured median at the next snapshot re-measure.
+  niche: 150,
 };
 // The ascent tolerance, same reasoning as the Five's: the medians drift, and a
 // re-measure must not fail a roster that was correctly ordered when it shipped.
