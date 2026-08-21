@@ -66,6 +66,7 @@ const GAMES = [
   { key: 'sando', href: '/sando', name: 'Sando', tag: 'The daily sandwich sudoku', img: '/games/btn-sando.png' },
   { key: 'sixes', href: '/sixes', name: 'Sixes', tag: 'The daily mini sudoku', img: '/games/btn-sixes.png' },
   { key: 'niche', href: '/niche', name: 'Niche', tag: 'One answer, two categories', img: '/games/btn-niche.png' },
+  { key: 'shoe', href: '/shoe', name: 'Shoe', tag: 'The daily blackjack shoe', img: '/games/btn-shoe.png' },
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png' },
   { key: 'stet', href: '/stet', name: 'Stet', tag: 'Spot the error, fix the copy', img: '/games/btn-stet.png' },
@@ -137,7 +138,7 @@ const CATEGORIES = [
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'niche', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket', 'plot'] },
   { key: 'endgame', label: 'End Game', keys: ['mate', 'defend', 'four', 'check', 'chain', 'turn'] },
-  { key: 'cards', label: 'Cards', keys: ['taire', 'hands'] },
+  { key: 'cards', label: 'Cards', keys: ['taire', 'hands', 'shoe'] },
   { key: 'arcade', label: 'Arcade', keys: ['blocks', 'sweep'] },
 ];
 

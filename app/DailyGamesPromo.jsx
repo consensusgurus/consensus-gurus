@@ -76,6 +76,7 @@ export const DAILY_GAMES = [
   { key: 'anon', href: '/anon', name: 'Anon', tag: 'a clueless acrostic', store: 'sot_anon_day', accent: '#8c2f39', bg: '#f8ecee', border: 'rgba(140,47,57,0.4)' },
   { key: 'redact', href: '/redact', name: 'Redact', tag: 'uncover the article', store: 'sot_redact_day', accent: '#27272a', bg: '#f4f4f5', border: 'rgba(39,39,42,0.4)' },
   { key: 'plot', href: '/plot', name: 'Plot', tag: 'divide the whole board', store: 'sot_plot_day', accent: '#78350f', bg: '#fbf1e5', border: 'rgba(120,53,15,0.4)' },
+  { key: 'shoe', href: '/shoe', name: 'Shoe', tag: 'the daily blackjack shoe', store: 'sot_shoe_day', accent: '#0c4a6e', bg: '#e8f3fa', border: 'rgba(12,74,110,0.4)' },
   { key: 'niche', href: '/niche', name: 'Niche', tag: 'one answer, two categories', store: 'sot_niche_day', accent: '#115e59', bg: '#ecfdf8', border: 'rgba(17,94,89,0.4)' },
   { key: 'sixes', href: '/sixes', name: 'Sixes', tag: 'the daily mini sudoku', store: 'sot_sixes_day', accent: '#1d4ed8', bg: '#eef3ff', border: 'rgba(29,78,216,0.4)' },
   { key: 'barter', href: '/barter', name: 'Barter', tag: 'trade the letters home', store: 'sot_barter_day', accent: '#be123c', bg: '#fdeef2', border: 'rgba(190,18,60,0.4)' },

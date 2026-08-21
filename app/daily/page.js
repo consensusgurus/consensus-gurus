@@ -12,11 +12,13 @@ import { PUZZLES as CAGES_FULL } from '../cages/puzzles';
 import { PUZZLES as SANDO_FULL } from '../sando/puzzles';
 import { PUZZLES as SIXES_FULL } from '../sixes/puzzles';
 import { PUZZLES as NICHE_FULL } from '../niche/puzzles';
+import { PUZZLES as SHOE_FULL } from '../shoe/puzzles';
 const QUILT = QUILT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CAGES = CAGES_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SANDO = SANDO_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SIXES = SIXES_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const NICHE = NICHE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const SHOE = SHOE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 import { PUZZLES as CARVE } from '../carve/puzzles';
 import { PUZZLES as CIRCA } from '../circa/puzzles';
 import { PUZZLES as OUTRANK } from '../outrank/puzzles';
@@ -184,6 +186,7 @@ const GAMES = [
   { key: 'suds', name: 'Suds', path: '/suds', tag: 'Fill the 9×9 grid, 1–9', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)', src: SUDS },
   { key: 'quilt', name: 'Quilt', path: '/quilt', tag: 'Nine crooked regions, 1–9', accent: '#a21caf', bg: '#fdf4ff', border: 'rgba(162,28,175,0.4)', src: QUILT },
   { key: 'cages', name: 'Cages', path: '/cages', tag: 'Killer sudoku, no clues', accent: '#6b21a8', bg: '#f6f2fd', border: 'rgba(107,33,168,0.4)', src: CAGES },
+  { key: 'shoe', name: 'Shoe', path: '/shoe', tag: 'The daily blackjack shoe', accent: '#0c4a6e', bg: '#e8f3fa', border: 'rgba(12,74,110,0.4)', src: SHOE },
   { key: 'niche', name: 'Niche', path: '/niche', tag: 'One answer, two categories', accent: '#115e59', bg: '#ecfdf8', border: 'rgba(17,94,89,0.4)', src: NICHE },
   { key: 'sixes', name: 'Sixes', path: '/sixes', tag: 'Mini sudoku, 1 to 6', accent: '#1d4ed8', bg: '#eef3ff', border: 'rgba(29,78,216,0.4)', src: SIXES },
   { key: 'sando', name: 'Sando', path: '/sando', tag: 'Sandwich sudoku, 1 to 9', accent: '#15616b', bg: '#eaf6f7', border: 'rgba(21,97,107,0.4)', src: SANDO },

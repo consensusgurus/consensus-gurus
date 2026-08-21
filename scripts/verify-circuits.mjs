@@ -54,6 +54,10 @@ const MED = {
   // shape (a type-ahead trivia grid, somewhere between Sixes and Blocks).
   // Replace with the measured median at the next snapshot re-measure.
   niche: 150,
+  // Shoe launched 2026-08-22 with no live clock data yet: estimated from its
+  // shape (five click-through blackjack hands, between Taire and Hands).
+  // Replace with the measured median at the next snapshot re-measure.
+  shoe: 100,
 };
 // The ascent tolerance, same reasoning as the Five's: the medians drift, and a
 // re-measure must not fail a roster that was correctly ordered when it shipped.
