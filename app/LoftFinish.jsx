@@ -437,6 +437,17 @@ export default function LoftFinish({
   // solve. Every other category keeps the first attempt, so offering a replay
   // there would promise something the board does not honour.
   const replayOpt = optsRaw.find((o) => o.tone === 'replay' && typeof o.onClick === 'function') || null;
+  // THE RUN CARD MUST STILL TURN THE BOARD OVER (owner report, 2026-08-21).
+  // The run card replaces the option tiles wholesale, which also removed the
+  // one control that flips the stage back to the board: a player who pressed
+  // Reveal inside a circuit (/jesters?circuit=pencil) ended the day, the
+  // board filled with the answer BEHIND this card, and nothing on the card
+  // could show it. So the client's own reveal/board option is carried onto
+  // the run card as a secondary control. Same tone contract as the full card
+  // ('reveal' shows what was missed, 'board' returns to the player's own
+  // board); the KEEPS_ANSWER games never pass 'reveal', so nothing renders
+  // here that the full card would not offer.
+  const boardOpt = optsRaw.find((o) => (o.tone === 'reveal' || o.tone === 'board') && typeof o.onClick === 'function') || null;
   const runSolved = outcome === 'won';
   const runRetry = runActive && !!replayOpt && !runSolved && (isEndGame(runSelf) || isArcade(runSelf));
   const runUnsolvedEG = runActive && isEndGame(runSelf) && !runSolved;
@@ -649,6 +660,12 @@ export default function LoftFinish({
           {!runGate && runRetry ? (
             <button type="button" className="d5f-again" onClick={fire(replayOpt)}>
               Play it again <i>{'\u00b7'} {attemptRule.chip}</i>
+            </button>
+          ) : null}
+
+          {boardOpt ? (
+            <button type="button" className="d5f-again" onClick={fire(boardOpt)}>
+              {boardOpt.label} {boardOpt.sub ? <i>{'\u00b7'} {boardOpt.sub}</i> : null}
             </button>
           ) : null}
 
