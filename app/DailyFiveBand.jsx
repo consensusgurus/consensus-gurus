@@ -367,12 +367,32 @@ export default function DailyFiveBand() {
         .d5-sc{margin-left:auto;flex:none;text-align:right;line-height:1.1;min-width:96px;}
         .d5-sc b{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
         .d5-sc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9fb6e8;}
-        /* min-width + centred, because the label carries the next game's NAME
-           and that changes on every rotation. Without a floor the button
-           resized, and everything to its left — the score box, and on a phone
-           the circuit name — slid across with it. A floor stops the jitter and
-           still grows for a genuinely long label. */
-        .d5-go{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:164px;
+        /* THE BUTTON IS A FIXED BOX, NOT A BOX WITH A FLOOR (owner report,
+           2026-08-21: the phone band still jittered on every rotation).
+
+           It carries the next game's NAME, and on a finished circuit the next
+           CIRCUIT's name, so its label changes every eight seconds. 164px was a
+           floor and the long labels went straight past it: measured on the live
+           band, "Next · Spatial Puzzles" runs 199px on desktop, so the button
+           stepped 164 to 199 and back as the band cycled, and because it is
+           right-anchored the score box and the Board chip beside it slid with
+           it. 200 clears every label the fifteen circuits and the marquee can
+           produce, so the box never resizes at all. Re-measure this if a
+           circuit is ever renamed longer than "Spatial Puzzles".
+
+           border AND font-family, because THE TWO VARIANTS ARE DIFFERENT TAGS.
+           An unfinished run renders an <a> and a finished one a <button>, and a
+           button brings the UA's own 2px outset border and its own font family
+           with it: the finished variant was measuring 208x41 in ARIAL against
+           the anchor's 164x37 in Manrope, so finishing a circuit silently
+           changed the typeface and the height of the band's primary control,
+           and cycling past a finished one moved the row 4px. Every other
+           control in this file already sets font-family:inherit; this one was
+           the single miss. With the border and the font reset the two tags
+           measure identically, verified at 180x32 on a phone and 200x37 on
+           desktop across both tags and every label. */
+        .d5-go{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:200px;
+               font-family:inherit;border:0;
                gap:6px;background:var(--gold);color:#3a2a05;
                border-radius:8px;padding:11px 16px;font-size:11px;font-weight:800;letter-spacing:.07em;
                text-transform:uppercase;text-decoration:none;white-space:nowrap;}
@@ -488,7 +508,12 @@ export default function DailyFiveBand() {
           .d5-n{font-size:17px;}
           .d5-s{display:none;}
           .d5-sc b{font-size:17px;}
-          .d5-go{padding:9px 12px;font-size:10px;min-width:132px;}
+          /* The phone's own fixed width. Same reasoning as the 200 above, at
+             10px type and 12px padding: the longest label measures 177px, so
+             180 pins the box for all of them. It is a WIDTH in effect, not a
+             floor, which is what keeps the second header row still while the
+             label changes underneath it. */
+          .d5-go{padding:9px 12px;font-size:10px;min-width:180px;}
           .d5-bd{display:none;}
           .d5-track{display:none;grid-template-columns:1fr;gap:5px;margin-top:9px;}
           .d5.is-popen .d5-track{display:grid;}
@@ -562,16 +587,28 @@ export default function DailyFiveBand() {
            console below it moved with it. Clipped rather than wrapped: losing
            the tail of a status line is invisible next to a page that jumps
            every eight seconds. */
-        .d5-e{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;}
+        /* AND IT IS THE SAME HEIGHT ON ALL SIXTEEN RUNS (owner report,
+           2026-08-21). The marquee is the only one carrying the badge below,
+           and the badge's 5px of air made its eyebrow an 18px box against every
+           circuit's 13px: measured, the band was 142.8px on The Daily Five and
+           137.8px on the other fifteen, so the name line, the score, the button,
+           the pip bar and the whole console under them dropped 5px and sprang
+           back once per cycle. The floor pays that 5px on every run instead, so
+           the badge costs nothing when it appears. It is a min-height rather
+           than a height because the eyebrow is clipped, never wrapped, so it
+           cannot grow past one line anyway. */
+        .d5-e{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;min-height:18px;}
         /* THE BADGE NEEDS AIR UNDER IT AND PLAIN TEXT DOES NOT (owner, 2026-08-18).
            A filled chip is exactly as tall as the eyebrow's line box, so it ends
            flush against the title's, and "The Daily Five" read as mashed into
            "Marquee" with a measured gap of ZERO. The circuit eyebrow has no such
            problem: 9px text in a 13px line box already leaves its own leading.
-           So the margin goes on the BADGE, not on the eyebrow, which means it
-           costs its 5px only on the marquee and nothing at all on the other
-           fifteen. It is the eyebrow's tallest item, so the extra height comes
-           off its own margin box and the eyebrow text beside it stays put. */
+           So the margin goes on the BADGE, not on the eyebrow. Note that the
+           5px is paid by the eyebrow's own min-height above ON EVERY RUN, which
+           is what stops the band stepping 5px each time the marquee comes round;
+           the margin here only positions the badge inside that box. Do not
+           "reclaim" the min-height by shrinking this margin, they are two halves
+           of one fix. */
         .d5-mq{flex:none;background:var(--gold);color:#3a2a05;border-radius:3px;padding:1px 5px;
                margin-bottom:5px;
                font-size:8px;font-weight:800;letter-spacing:.13em;}
