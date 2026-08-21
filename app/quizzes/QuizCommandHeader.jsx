@@ -248,8 +248,8 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-wm em{font-style:normal;color:var(--blue-400);}
           .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #1e2e5a;padding-left:13px;font-weight:800;white-space:nowrap;}
           .qchm-nav{margin-left:auto;display:flex;gap:8px;align-items:center;}
-          .qchm-nav a,.qchm-nav button{color:var(--white);background:#1a2e61;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
-          .qchm-nav a:hover,.qchm-nav button:hover{background:#223872;border-color:#7a99e0;}
+          .qchm-nav a,.qchm-nav button{color:var(--white);background:#2f4d85;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
+          .qchm-nav a:hover,.qchm-nav button:hover{background:#3a5c9c;border-color:#7a99e0;}
           .qchm-nav a.on{background:var(--white);border-color:var(--white);color:var(--accent);}
           .qchm-user{display:none;margin-left:auto;align-items:center;gap:8px;}
           /* THE NAME, AND ONLY THE NAME (owner). A loft page hides the stat row

@@ -144,7 +144,7 @@ export default function LoftCap({
     <div className={`lcap${outcome ? ` lcap-done lcap-${outcome}` : ''}${strip && strip.length ? ' lcap-az' : ''}`}>
       <div className="lcap-col">
       <style>{`
-.lcap{background:var(--accent);position:relative;font-family:${SANS};z-index:4}
+.lcap{background:#2b4676;border-top:1px solid rgba(255,255,255,0.13);position:relative;font-family:${SANS};z-index:4}
 /* THE CAP IS A FULL-WIDTH BAND WHOSE CONTENT SITS OVER THE BOARD.
    The band runs edge to edge like the chrome above it, but everything in it is
    centred on the game's own column, so the name and the figures line up with
@@ -187,13 +187,16 @@ export default function LoftCap({
 /* .lcap-part re-inking removed 2026-08-14: the band carries a single dark ground,
    so the dark ink only made the game name unreadable. The divider rules above
    still carry the state.
-   THE BAND IS var(--accent), NOT var(--blue) (2026-08-21). Under Midnight the page
+   THE BAND IS #2b4676, NOT var(--blue) AND NOT var(--accent) (2026-08-21). Under Midnight the page
    ground went near-black, which left a saturated blue band as the loudest thing on
    the page, louder than the Start button under it: chrome outshouting the action.
    On accent it matches the header bar above it and the console title band on the
    home page, and the CTA is the only bright blue on a puzzle. Every ink in this
    block roughly doubled in contrast as a result, and not one of the 46 per-game
-   accents (the URL colour, passed into DailyMasthead) got worse. */
+   accents (the URL colour, passed into DailyMasthead) got worse.
+   It is NOT var(--accent) either: that is the header bar directly above, and the two
+   bars merged into one field with no seam. This is one step up from accent, plus a
+   hairline, so the header and the band read as two rows. */
 .lcap-part .lcap-bar{background:rgba(0,0,0,0.16)}
 .lcap-part .lcap-bar i{background:#2a1f04}
 .lcap-id{flex:1;min-width:0;padding:8px 12px}
@@ -236,8 +239,8 @@ export default function LoftCap({
   align-items:center;justify-content:center;cursor:pointer;
   border:0;padding:0;font-family:inherit;font-size:21px;font-weight:800;line-height:1;
   color:var(--white)}
-.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,var(--accent) 45%,rgba(35,58,99,0) 100%)}
-.lcap-azbtn.next{right:0;background:linear-gradient(270deg,var(--accent) 45%,rgba(35,58,99,0) 100%)}
+.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,#2b4676 45%,rgba(43,70,118,0) 100%)}
+.lcap-azbtn.next{right:0;background:linear-gradient(270deg,#2b4676 45%,rgba(43,70,118,0) 100%)}
 .lcap-azwrap.at-start .lcap-azbtn.prev,.lcap-azwrap.at-end .lcap-azbtn.next{display:none}
 .lcap-tiles.az a{display:block;flex:0 0 auto;min-width:0;white-space:nowrap;
   background:rgba(255,255,255,0.14);color:var(--white);border-radius:7px;
