@@ -370,7 +370,7 @@ export default function DailyFiveBand() {
           the rule is cheaper to follow than to rediscover. */}
       <style dangerouslySetInnerHTML={{ __html: `
         /* THE EDGE IS LOAD-BEARING, not decoration. The band's ground
-           (--ground #23283a) is DARKER than the page behind the console
+           (--ground #14264f) is DARKER than the page behind the console
            (--accent #1e3a8a), and every other part of the console is defined by
            contrast rather than by a border: the title band is the page colour,
            the cap cards are blue, the board is white. So the band's right edge
@@ -749,8 +749,8 @@ export default function DailyFiveBand() {
         .d5-pkc.on{background:rgba(37,99,235,.28);border-color:#5b8cf0;}
         /* The marquee takes a double-width cell in the lead position, so the
            grid says which one it is with no caption at all. */
-        .d5-pkc.mq{grid-column:span 2;background:rgba(224,174,74,.14);border-color:#7a6021;}
-        .d5-pkc.mq.on{background:rgba(224,174,74,.3);}
+        .d5-pkc.mq{grid-column:span 2;background:rgba(232,180,58,.14);border-color:#7a6021;}
+        .d5-pkc.mq.on{background:rgba(232,180,58,.3);}
         .d5-pkn{display:block;font-size:12px;font-weight:800;letter-spacing:-.15px;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-pkc.mq .d5-pkn{font-size:14px;}

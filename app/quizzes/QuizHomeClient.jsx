@@ -2277,7 +2277,7 @@ export default function QuizHomeClient({ variant = 'current' }) {
             /* who currently leads this row, beside the title */
             .qzh .dhx-qrow .qm .qlead{display:inline-flex;align-items:center;gap:3px;margin-left:6px;vertical-align:1px;max-width:110px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:9.5px;font-weight:800;border-radius:999px;padding:1px 7px;background:#fdf7ec;color:var(--gold-ink);border:1px solid #f0dcae;}
             .qzh .dhx-qrow .qm .qlead svg{flex:none;}
-            .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(224,174,74,0.16);color:var(--gold-ink);border-color:rgba(224,174,74,0.42);}
+            .qzh .dhx-rone .dhx-qrow .qm .qlead{background:rgba(232,180,58,0.16);color:var(--gold-ink);border-color:rgba(232,180,58,0.42);}
             .qzh .dhx-qrow .qa{flex:none;color:var(--muted);font-weight:800;font-size:16px;}
             /* Category Mastery (collapsible) */
             .qzh .dhx-cm{background:var(--white);border:1px solid ${C.line};border-radius:14px;flex:none;overflow:hidden;}

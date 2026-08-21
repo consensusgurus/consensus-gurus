@@ -233,7 +233,7 @@ export default function CommunityLeaderboardClient() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 12, padding: '11px 15px',
                     borderTop: i ? `1px solid ${C.line}` : 'none',
-                    background: mine ? 'rgba(224,174,74,0.10)' : 'transparent',
+                    background: mine ? 'rgba(232,180,58,0.10)' : 'transparent',
                   }}
                 >
                   <span style={{

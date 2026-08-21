@@ -26,7 +26,7 @@ import { notifyShareCredit } from './ShareCreditPop';
 const INK = T.ink;
 const SLATE = T.slate;
 const MUTED = T.muted;
-const BORD = '#e4e0dd';
+const BORD = '#e5e7eb';
 const BLUE = T.blue;
 const NAVY = T.accent;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -135,7 +135,7 @@ export default function ContestPop() {
       key={place}
       style={{
         flex: i === 0 ? 1.25 : 1,
-        background: i === 0 ? T.accentSoft : '#fbfaf9',
+        background: i === 0 ? T.accentSoft : '#f7f8fa',
         border: i === 0 ? `1px solid ${T.accentBorder}` : '1px solid transparent',
         borderRadius: 10, padding: '10px 8px', textAlign: 'center',
       }}

@@ -58,8 +58,8 @@ const COLORS = {
   cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent, rust: T.danger, faded: T.muted,
   accent: '#15803d', accentSoft: '#dcfce7', accentDeep: '#14532d', green: T.successDeep, greenSoft: '#dcfce7',
   redSoft: '#fee2e2', redInk: '#b91c1c', gold: '#b45309',
-  // The bracket's own rule colour. T.border (#e4e0dd) is a hairline meant to sit
-  // under text; drawn as a brace or a connector on the #fbfaf9 ground it vanishes,
+  // The bracket's own rule colour. T.border (#e5e7eb) is a hairline meant to sit
+  // under text; drawn as a brace or a connector on the #f7f8fa ground it vanishes,
   // so every structural line in this game uses this instead.
   line: '#b9c3d1',
 };

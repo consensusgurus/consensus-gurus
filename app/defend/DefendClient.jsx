@@ -84,7 +84,7 @@ const COLORS = {
 const LIGHT_SQ = '#efd9b5';
 const DARK_SQ = '#b58863';
 const SEL_SQ = 'rgba(47,79,79,0.55)';
-const LAST_SQ = 'rgba(224,174,74,0.55)';
+const LAST_SQ = 'rgba(232,180,58,0.55)';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";

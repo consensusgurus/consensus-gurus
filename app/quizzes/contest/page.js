@@ -54,9 +54,9 @@ export default function ContestPage() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f5f4', fontFamily: SANS }}>
+    <div style={{ minHeight: '100vh', background: '#f4f6f9', fontFamily: SANS }}>
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '28px 18px 40px' }}>
-        <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: '#716d79', textDecoration: 'none' }}>
+        <Link href="/quizzes" style={{ fontSize: 13, fontWeight: 700, color: '#646c7a', textDecoration: 'none' }}>
           &larr; Back to all games
         </Link>
 
@@ -74,19 +74,19 @@ export default function ContestPage() {
 
         <ContestBoard />
 
-        <h2 style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.01em', margin: '28px 0 4px', color: '#14141a' }}>
+        <h2 style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.01em', margin: '28px 0 4px', color: '#0b0c0e' }}>
           Rules
         </h2>
         <dl style={{ margin: 0 }}>
           {rules.map(([term, body]) => (
-            <div key={term} style={{ borderTop: '1px solid #e4e0dd', padding: '14px 0' }}>
-              <dt style={{ fontSize: 13.5, fontWeight: 800, color: '#14141a', marginBottom: 4 }}>{term}</dt>
-              <dd style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: '#4d4a52' }}>{body}</dd>
+            <div key={term} style={{ borderTop: '1px solid #e5e7eb', padding: '14px 0' }}>
+              <dt style={{ fontSize: 13.5, fontWeight: 800, color: '#0b0c0e', marginBottom: 4 }}>{term}</dt>
+              <dd style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: '#3f4757' }}>{body}</dd>
             </div>
           ))}
         </dl>
 
-        <p style={{ fontSize: 11.5, color: '#716d79', lineHeight: 1.6, marginTop: 20 }}>
+        <p style={{ fontSize: 11.5, color: '#646c7a', lineHeight: 1.6, marginTop: 20 }}>
           {COPY.legal} This contest is run by Mind Loft and is not sponsored, endorsed or administered
           by any of the payment providers named above.
         </p>

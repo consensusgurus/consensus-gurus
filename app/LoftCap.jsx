@@ -689,7 +689,7 @@ export default function LoftCap({
 .loft-lbr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .loft-lbr .s{flex:none;font-weight:800;font-variant-numeric:tabular-nums}
 .loft-lbr .s i{font-style:normal;font-weight:700;color:var(--slate);margin-left:7px}
-.loft-lbr.first{background:rgba(224,174,74,0.18)}
+.loft-lbr.first{background:rgba(232,180,58,0.18)}
 .loft-lbr.first .r{color:#8a6d1a}
 .loft-lbr.me{background:var(--accent-soft)}
 .loft-lbr.me .r{color:var(--blue)}
@@ -737,7 +737,7 @@ export default function LoftCap({
 .loft-day .d1 b{color:var(--blue-deep)}
 .loft-day .d2{background:rgba(21,128,61,0.10)}
 .loft-day .d2 b{color:var(--success-deep)}
-.loft-day .d3{background:rgba(224,174,74,0.20)}
+.loft-day .d3{background:rgba(232,180,58,0.20)}
 .loft-day .d3 b{color:#8a6d1a}
 .loft-day .d4{background:rgba(217,119,6,0.12)}
 .loft-day .d4 b{color:#b45309}
@@ -894,7 +894,7 @@ export default function LoftCap({
 .loft-archr .d{display:flex;align-items:center;gap:7px}
 .loft-archr .sunchip{font-style:normal;font-weight:800;font-size:8.5px;letter-spacing:.09em;
   text-transform:uppercase;color:var(--gold-ink);background:var(--gold);border-radius:4px;padding:2px 5px}
-.loft-archr.sun{background:rgba(224,174,74,0.10)}
+.loft-archr.sun{background:rgba(232,180,58,0.10)}
 .loft-archr .v em{font-style:normal;font-weight:800;font-size:10px;letter-spacing:.06em;
   text-transform:uppercase;color:var(--success-deep);margin-left:6px}
 .loft-archr .v b{font-weight:800;font-size:13px;color:var(--ink)}
@@ -912,7 +912,7 @@ export default function LoftCap({
 /* Up next sits ABOVE the leaderboard: after a finish the strongest next move is
    the next puzzle, not the standings. */
 .loft-next{display:flex;align-items:center;gap:11px;margin-top:10px;padding:11px 12px;
-  background:rgba(224,174,74,0.16);border-left:4px solid var(--gold);border-radius:0 9px 9px 0;
+  background:rgba(232,180,58,0.16);border-left:4px solid var(--gold);border-radius:0 9px 9px 0;
   text-decoration:none}
 .loft-next .t{flex:1;min-width:0}
 .loft-next .n1{display:block;font-weight:800;font-size:15px;line-height:1;color:var(--white)}

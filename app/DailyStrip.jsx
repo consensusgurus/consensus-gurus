@@ -28,10 +28,10 @@
 // reachable via the "Daily leaderboard" toggle so nothing is lost before Stage 2
 // promotes the page into three columns.
 //
-// Palette: sits directly on the page ground (#fbfaf9). White tiles, navy
-// (#ffffff) as a material for the hero + expand panel, gold (#e0ae4a) reserved
+// Palette: sits directly on the page ground (#f7f8fa). White tiles, navy
+// (#ffffff) as a material for the hero + expand panel, gold (#e8b43a) reserved
 // for daily identity, green for a finished game. Matches the live QuizHomeClient
-// tokens (bg #fbfaf9 / surface #fff / accent #1e3a8a / cta #2563eb).
+// tokens (bg #f7f8fa / surface #fff / accent #1e3a8a / cta #2563eb).
 //
 // Data wiring is unchanged from the strip: completion follows the signed-in
 // player across devices via /api/quiz/daily-status (with the same-device
@@ -3395,7 +3395,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-more{display:none;}
         .sl-more:focus,button.sl-band:focus{outline:none;}
         .sl-more:focus-visible,button.sl-band:focus-visible{outline:2px solid var(--blue);outline-offset:-2px;}
-        .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#8a6410;display:flex;align-items:center;justify-content:center;gap:2px;}
+        .sl-st{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;color:#a16207;display:flex;align-items:center;justify-content:center;gap:2px;}
         .sl-st.none{color:#c3c8d1;}
         .sl-ld{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--muted);min-width:0;}
         .sl-ld svg{flex:none;color:var(--gold-ink);}
@@ -3413,7 +3413,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-btn.done:hover{background:#dcf2e6;border-color:#a9d9c2;}
         .sl-btn.fail{border-color:#f6c9c4;background:#fdeceb;color:#b91c1c;}
         .sl-btn.fail:hover{background:#dc2626;border-color:#dc2626;color:var(--white);}
-        .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#8a6410;}
+        .sl-btn.prog{border-color:#f0d79a;background:#fdf2df;color:#a16207;}
         .sl-arch{display:flex;justify-content:center;}
         .sl-rz{display:none;font-style:normal;}
         .sl-ab{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent-border);background:var(--white);color:var(--blue-deep);border-radius:7px;padding:5px 9px;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.04em;cursor:pointer;white-space:nowrap;}

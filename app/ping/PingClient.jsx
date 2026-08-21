@@ -620,8 +620,8 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
       lead="One secret city a day. Find it with distance alone."
       chips={[
-        { label: `Cold ${fmtDistIn(2500, unit)}+`, style: { background: '#f0eeec', border: '1.5px solid #475569', color: '#475569' } },
-        { label: 'Cool', style: { background: '#f0eeec', border: '1.5px solid #0a1730', color: '#0a1730' } },
+        { label: `Cold ${fmtDistIn(2500, unit)}+`, style: { background: '#eef2f7', border: '1.5px solid #475569', color: '#475569' } },
+        { label: 'Cool', style: { background: '#eef2f7', border: '1.5px solid #0a1730', color: '#0a1730' } },
         { label: 'Warm', style: { background: '#fef3c7', border: '1.5px solid #92610b', color: '#92610b' } },
         { label: `Hot, within ${fmtDistIn(200, unit)}`, style: { background: '#fee2e2', border: '1.5px solid #9a3d0c', color: '#9a3d0c' } },
       ]}

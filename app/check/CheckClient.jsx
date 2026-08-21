@@ -752,7 +752,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
                 const onPath = lastPath.includes(sq);
                 const canLift = myTurn && movable.has(sq);
                 let bg = dark ? DARK_SQ : LIGHT_SQ;
-                if (onPath) bg = `linear-gradient(rgba(224,174,74,0.45),rgba(224,174,74,0.45)), ${bg}`;
+                if (onPath) bg = `linear-gradient(rgba(232,180,58,0.45),rgba(232,180,58,0.45)), ${bg}`;
                 if (isSel) bg = `linear-gradient(rgba(255,255,255,0.32),rgba(255,255,255,0.32)), ${dark ? DARK_SQ : LIGHT_SQ}`;
                 return (
                   <div key={sq} className="ck-sq" onClick={() => onSquare(sq)} role="button" tabIndex={-1}

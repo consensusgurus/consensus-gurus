@@ -552,8 +552,8 @@ export default function LoftFinish({
             .d5f-pips span.on{background:#10b981;}
             .d5f-pips span.now{background:#2563eb;}
             .d5f-alt{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px;}
-            .d5f-alt a{font-size:11.5px;font-weight:800;letter-spacing:.03em;color:#716d79;text-decoration:none;}
-            .d5f-alt a:hover{color:#14141a;}
+            .d5f-alt a{font-size:11.5px;font-weight:800;letter-spacing:.03em;color:#646c7a;text-decoration:none;}
+            .d5f-alt a:hover{color:#0b0c0e;}
             /* The retry control borrows loft-next's shape so it reads as the
                card's one primary action, and takes the blue so it is never
                mistaken for the green hand-off it is standing in for. */
@@ -561,9 +561,9 @@ export default function LoftFinish({
               border:0;font-family:inherit;cursor:pointer;}
             .loft-next.d5f-retry:hover{background:rgba(37,99,235,.16);}
             .loft-next.d5f-retry .go{background:#2563eb;}
-            .d5f-gate{margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.35;color:#716d79;text-align:center;}
+            .d5f-gate{margin-top:8px;font-size:11.5px;font-weight:700;line-height:1.35;color:#646c7a;text-align:center;}
             .d5f-again{display:block;width:100%;margin-top:9px;padding:9px;border-radius:9px;
-              border:2px solid #dbe2ee;background:#fbfaf9;color:#3f4756;font-family:inherit;
+              border:2px solid #dbe2ee;background:#f7f8fa;color:#3f4756;font-family:inherit;
               font-weight:800;font-size:12px;cursor:pointer;}
             .d5f-again:hover{background:#eef1f6;}
             .d5f-again i{font-style:normal;font-weight:700;color:#8a92a6;}

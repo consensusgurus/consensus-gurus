@@ -14,7 +14,7 @@ const h = React.createElement;
 // Mind Loft mark (caret over brain), same mark as lib/og-brand-card.js.
 // Hexes stay LITERAL: this is an SVG string, not JSX.
 function iconDataURI() {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 120 120"><path d="M20 52l40-34 40 34" stroke="#14141a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M14 102h92" stroke="#14141a" stroke-width="6" stroke-linecap="round"/><g transform="translate(31,48) scale(0.53)"><path d="M14 42C12 28 22 16 36 16C40 8 54 6 60 14C70 8 84 14 86 26C96 30 98 44 88 50C92 58 86 66 76 64C74 72 64 74 60 66C48 70 36 66 32 56C20 56 12 50 14 42Z" fill="#2563eb"/></g></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 120 120"><path d="M20 52l40-34 40 34" stroke="#0b0c0e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M14 102h92" stroke="#0b0c0e" stroke-width="6" stroke-linecap="round"/><g transform="translate(31,48) scale(0.53)"><path d="M14 42C12 28 22 16 36 16C40 8 54 6 60 14C70 8 84 14 86 26C96 30 98 44 88 50C92 58 86 66 76 64C74 72 64 74 60 66C48 70 36 66 32 56C20 56 12 50 14 42Z" fill="#2563eb"/></g></svg>`;
   return 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64');
 }
 
@@ -62,8 +62,8 @@ export default async function Image({ params }) {
   }
 
   return new ImageResponse(
-    h('div', { style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fbfaf9', fontFamily: 'Manrope', position: 'relative' } }, [
-      h('div', { key: 'bar', style: { position: 'absolute', top: 0, left: 0, width: '1200px', height: '9px', display: 'flex', background: 'linear-gradient(90deg,#14141a,#1e3a8a 55%,#2563eb)' } }),
+    h('div', { style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f7f8fa', fontFamily: 'Manrope', position: 'relative' } }, [
+      h('div', { key: 'bar', style: { position: 'absolute', top: 0, left: 0, width: '1200px', height: '9px', display: 'flex', background: 'linear-gradient(90deg,#0b0c0e,#1e3a8a 55%,#2563eb)' } }),
       h('div', { key: 'head', style: { display: 'flex', alignItems: 'center', marginTop: '-8px' } }, [
         h('img', { key: 'icon', src: iconDataURI(), width: 120, height: 120 }),
         h('div', { key: 'hd', style: { display: 'flex', flexDirection: 'column', marginLeft: '22px' } }, [
@@ -71,9 +71,9 @@ export default async function Image({ params }) {
           T('PLAYER PROFILE', { fontSize: 22, fontWeight: 700, letterSpacing: '8px', color: '#1e3a8a', marginTop: '6px' }),
         ]),
       ]),
-      T(name, { fontSize: name.length > 14 ? 76 : 96, fontWeight: 800, letterSpacing: '-2px', color: '#14141a', marginTop: '18px', maxWidth: '1100px' }),
+      T(name, { fontSize: name.length > 14 ? 76 : 96, fontWeight: 800, letterSpacing: '-2px', color: '#0b0c0e', marginTop: '18px', maxWidth: '1100px' }),
       tier
-        ? T(`${tier} TIER`, { fontSize: 26, fontWeight: 800, letterSpacing: '5px', color: '#8a5300', background: '#fbf2dc', border: '2px solid #e0ae4a', borderRadius: '999px', padding: '10px 30px', marginTop: '16px' })
+        ? T(`${tier} TIER`, { fontSize: 26, fontWeight: 800, letterSpacing: '5px', color: '#8a5300', background: '#fbf2dc', border: '2px solid #e8b43a', borderRadius: '999px', padding: '10px 30px', marginTop: '16px' })
         : h('div', { key: 'sp', style: { display: 'flex', height: '14px' } }),
       statBits.length
         ? T(statBits.join('  ·  '), { fontSize: 32, fontWeight: 800, letterSpacing: '2px', color: '#ffffff', background: '#1e3a8a', borderRadius: '999px', padding: '16px 40px', marginTop: '26px' })

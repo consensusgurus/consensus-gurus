@@ -17,7 +17,7 @@ export const runtime = 'nodejs';
 const W = 1080;
 const H = 1350;
 // Classic palette — COLOR_SCHEMES.classic in SnapshotClient.jsx
-const PAL = { bg: '#ffffff', text: '#14141a', accent: '#1e3a8a', faded: '#716d79' };
+const PAL = { bg: '#ffffff', text: '#0b0c0e', accent: '#1e3a8a', faded: '#646c7a' };
 
 // --- copied from SnapshotClient.jsx (sourceTier / constituentLabel) ---
 function sourceTier(src) {

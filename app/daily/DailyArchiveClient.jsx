@@ -359,7 +359,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-day-idrow{display:flex;align-items:baseline;gap:8px;min-width:0;}
         .dl-day-name{font-size:14px;font-weight:800;letter-spacing:-.2px;color:${INK};line-height:1.1;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dl-day-kick{font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:${FADED};font-weight:500;flex:0 0 auto;}
-        .dl-streak{display:inline-flex;align-items:center;gap:6px;background:rgba(224,174,74,0.15);border:1px solid rgba(224,174,74,0.42);border-radius:999px;padding:3px 10px;}
+        .dl-streak{display:inline-flex;align-items:center;gap:6px;background:rgba(232,180,58,0.15);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:3px 10px;}
         .dl-streak b{color:#8a6d1f;font-size:13px;font-weight:900;line-height:1;}
         .dl-streak span{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#9a7c2e;}
         .dl-day-stats{display:flex;align-items:flex-end;gap:16px;}
@@ -500,7 +500,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-cname{font-size:17.5px;font-weight:800;letter-spacing:-.4px;line-height:1.05;color:${INK};text-decoration:none;}
         /* per-game streak pill, inline after the name on the title row; inline-flex
            + margin-left so it never shifts the icon, name, or Play button */
-        .dl-gstreak{display:inline-flex;align-items:center;gap:3px;margin-left:8px;vertical-align:2px;background:rgba(224,174,74,0.15);border:1px solid rgba(224,174,74,0.42);border-radius:999px;padding:1.5px 7px 1.5px 5px;font-size:10.5px;font-weight:800;color:#8a6d1f;font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap;}
+        .dl-gstreak{display:inline-flex;align-items:center;gap:3px;margin-left:8px;vertical-align:2px;background:rgba(232,180,58,0.15);border:1px solid rgba(232,180,58,0.42);border-radius:999px;padding:1.5px 7px 1.5px 5px;font-size:10.5px;font-weight:800;color:#8a6d1f;font-variant-numeric:tabular-nums;line-height:1.4;white-space:nowrap;}
         .dl-gstreak svg{flex:none;}
         /* mobile: the pill moves out of the title line (which would wrap to an
            extra row) and stacks under the Play button instead. display:contents
@@ -541,7 +541,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-morechip{border-style:dashed;color:${FADED};font-family:${MONO};font-size:11px;cursor:pointer;}
 
         /* leaderboard panel (matches DailyCombinedLeaderboard navy/gold) */
-        .lb{background:var(--white);border:1.5px solid var(--border);;border:1px solid rgba(224,174,74,0.26);border-radius:12px;padding:14px 15px 12px;}
+        .lb{background:var(--white);border:1.5px solid var(--border);;border:1px solid rgba(232,180,58,0.26);border-radius:12px;padding:14px 15px 12px;}
         .lb-tabs{display:flex;gap:6px;margin-bottom:12px;}
         .lb-tab{font-family:${SANS};font-size:11.5px;font-weight:800;padding:6px 13px;border-radius:999px;cursor:pointer;border:1.5px solid var(--surface-alt);background:transparent;color:var(--muted);}
         .lb-tab.on{background:${GOLD};color:#10203f;border-color:${GOLD};}
@@ -550,8 +550,8 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .lb-h .plays{font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;}
         .lb-cols{display:grid;gap:8px;padding:0 12px 7px;font-family:${SANS};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
         .lb-row{display:grid;gap:8px;align-items:center;padding:8px 12px;margin-bottom:5px;border-radius:10px;background:var(--surface);border:1px solid var(--surface);}
-        .lb-row.top{background:rgba(224,174,74,0.08);border-color:rgba(224,174,74,0.22);}
-        .lb-row.you{background:rgba(224,174,74,0.16);border:1px solid rgba(224,174,74,0.55);}
+        .lb-row.top{background:rgba(232,180,58,0.08);border-color:rgba(232,180,58,0.22);}
+        .lb-row.you{background:rgba(232,180,58,0.16);border:1px solid rgba(232,180,58,0.55);}
         .lb-r{text-align:right;}
         .lb-rk{font-family:${SANS};font-weight:800;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums;}
         .lb-rk.gold{color:${GOLD_B};}
@@ -561,7 +561,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .lb-num{font-family:${SANS};font-size:12.5px;font-weight:600;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;}
         .lb-pt{font-family:${SANS};font-size:13.5px;font-weight:800;text-align:right;color:${GOLD_B};font-variant-numeric:tabular-nums;}
         .lb-pt small{font-size:9.5px;font-weight:600;color:var(--muted);}
-        .lb-more{width:100%;margin-top:4px;padding:8px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12px;font-weight:800;color:${GOLD_B};background:transparent;border:1.5px solid rgba(224,174,74,0.4);}
+        .lb-more{width:100%;margin-top:4px;padding:8px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12px;font-weight:800;color:${GOLD_B};background:transparent;border:1.5px solid rgba(232,180,58,0.4);}
         .lb-sep{margin-top:7px;padding-top:8px;border-top:1px dashed var(--surface-alt);}
         .lb-note{font-size:10.5px;color:var(--muted);margin:9px 2px 0;line-height:1.5;}
         .lb-empty{font-family:${SANS};font-style:italic;font-size:14px;color:var(--muted);padding:4px 2px;}
@@ -575,7 +575,7 @@ export default function DailyArchiveClient({ games = [], today = '' }) {
         .dl-rival .av{width:22px;height:22px;border-radius:50%;background:${GOLD};color:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex:0 0 auto;}
         .dl-cta{display:block;text-align:center;background:${GOLD};color:#10203f;font-weight:800;font-size:13px;border-radius:10px;padding:11px 14px;text-decoration:none;}
         .dl-cta:hover{filter:brightness(1.05);}
-        .dl-cta.done{background:rgba(224,174,74,0.16);color:#8a6d1f;cursor:default;}
+        .dl-cta.done{background:rgba(232,180,58,0.16);color:#8a6d1f;cursor:default;}
         .dl-cattiles{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:6px;}
         .dl-cattile{display:inline-flex;align-items:center;gap:9px;text-decoration:none;background:var(--white);border:1px solid ${LINE};border-radius:11px;padding:9px 13px;transition:border-color .15s,box-shadow .15s;}
         .dl-cattile:hover{border-color:#c9d3e5;box-shadow:0 4px 14px rgba(14,29,64,0.07);}

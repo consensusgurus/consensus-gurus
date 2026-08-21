@@ -44,7 +44,7 @@ export const DAILY_GAMES = [
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'name every winner', store: 'sot_bracket_day', accent: '#c2410c', bg: '#fdece3', border: 'rgba(196,65,12,0.35)' },
   // PRICER PULLED 2026-08-09 (see CLAUDE.md). Restore: grep -rn 'PRICER PULLED' promo tile
   // { key: 'pricer', href: '/pricer', name: 'Pricer', tag: 'some days more, some days less', store: 'sot_pricer_day', accent: '#15803d', bg: '#dcfce7', border: 'rgba(21,128,61,0.35)' },
-  { key: 'lode', href: '/lode', name: 'Lode', tag: 'seven letters, rare words pay', store: 'sot_lode_day', accent: T.goldInk, bg: '#fef7e0', border: 'rgba(138,100,16,0.35)' },
+  { key: 'lode', href: '/lode', name: 'Lode', tag: 'seven letters, rare words pay', store: 'sot_lode_day', accent: T.goldInk, bg: '#fef7e0', border: 'rgba(161,98,7,0.35)' },
   { key: 'etch', href: '/etch', name: 'Etch', tag: 'a picture hidden in the numbers', store: 'sot_etch_day', accent: '#4d7c0f', bg: '#f3f8e8', border: 'rgba(77,124,15,0.35)' },
   { key: 'glyph', href: '/glyph', name: 'Glyph', tag: 'a crossword with no clues at all', store: 'sot_glyph_day', accent: '#334155', bg: T.surfaceAlt, border: 'rgba(51,65,85,0.35)' },
   { key: 'hedge', href: '/hedge', name: 'Hedge', tag: 'draw one closed loop', store: 'sot_hedge_day', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)' },

@@ -1311,7 +1311,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
 
 // ─── Challenges tab ─────────────────────────────────────────────────────────
 const CH_MEDAL = { 1: T.gold, 2: '#b8bcc4', 3: '#c8814b' };
-const CH_TINT = { 1: 'rgba(224,174,74,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'rgba(200,129,75,0.12)' };
+const CH_TINT = { 1: 'rgba(232,180,58,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'rgba(200,129,75,0.12)' };
 function chMmss(s) { const n = Math.max(0, Math.round(Number(s) || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
 function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; } catch (e) { return ''; } }
 

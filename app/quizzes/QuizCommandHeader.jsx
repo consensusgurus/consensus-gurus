@@ -245,7 +245,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-in{max-width:1560px;margin:0 auto;padding:12px clamp(16px,2.5vw,34px);display:flex;align-items:center;gap:16px;}
           .qchm-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;}
           .qchm-wm{font-size:18px;font-weight:800;letter-spacing:-.025em;color:var(--white);line-height:1;white-space:nowrap;}
-          .qchm-wm em{font-style:normal;color:var(--coral-light);}
+          .qchm-wm em{font-style:normal;color:var(--blue-400);}
           .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #33509b;padding-left:13px;font-weight:800;white-space:nowrap;}
           .qchm-nav{margin-left:auto;display:flex;gap:8px;align-items:center;}
           .qchm-nav a,.qchm-nav button{color:var(--white);background:#2c4fa8;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
@@ -413,7 +413,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
         .qch{min-height:56px;}
         .qch-bar{display:flex;align-items:center;gap:12px;min-height:56px;position:fixed;top:0;left:0;right:0;z-index:90;padding:9px clamp(14px,2vw,24px);background:var(--white);border-bottom:1.5px solid var(--border);}
         .qch-word{font-size:18px;font-weight:800;letter-spacing:-0.025em;line-height:1;color:var(--ink);text-decoration:none;white-space:nowrap;flex:none;}
-        .qch-word em{font-style:normal;color:var(--coral);font-weight:800;}
+        .qch-word em{font-style:normal;color:var(--blue);font-weight:800;}
         .qch-ws{display:none;}
         .qch-src{font-size:9.5px;font-weight:800;letter-spacing:normal;text-transform:uppercase;color:var(--ink);flex:none;}
         /* The search INPUT left this bar on 2026-07-29 (it now sits in the
@@ -503,11 +503,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
         .qch-tdot{width:4px;height:4px;border-radius:50%;background:var(--border);margin:0 14px;flex:none;}
         .qch-tico{width:17px;height:17px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:none;}
         .qch-tico-play{background:rgba(46,163,106,0.22);}
-        .qch-tico-lead{background:rgba(224,174,74,0.2);}
+        .qch-tico-lead{background:rgba(232,180,58,0.2);}
         .qch-tico-duel{background:rgba(201,79,79,0.22);}
         .qch-tico-new,.qch-tico-stat{background:rgba(59,116,232,0.28);}
-        .qch-tico-top{background:rgba(224,174,74,0.22);}
-        .qch-tico-champ{background:rgba(224,174,74,0.16);}
+        .qch-tico-top{background:rgba(232,180,58,0.22);}
+        .qch-tico-champ{background:rgba(232,180,58,0.16);}
         .qch-tico-ach{background:rgba(183,156,242,0.24);}
         .qch-tico-streak{background:rgba(245,137,62,0.22);}
         .qch-hub-me{margin-left:2px;}

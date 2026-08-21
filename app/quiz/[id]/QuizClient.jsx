@@ -1435,7 +1435,7 @@ export default function QuizClient({ quizId }) {
   const similarList = ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis;
   const similarQuizzes = similarList.length > 0 ? (
     <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${COLORS.line}` }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.coral, marginBottom: 16 }}>Similar quizzes</div>
+      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>Similar quizzes</div>
       <SimilarQuizTiles items={similarList} />
     </div>
   ) : null;

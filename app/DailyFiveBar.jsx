@@ -105,7 +105,7 @@ export default function DailyFiveBar({ slug }) {
         .d5b-k{position:relative;padding-left:11px;font-size:9px;font-weight:800;letter-spacing:.15em;
                text-transform:uppercase;color:#f0cd7a;white-space:nowrap;flex:none;}
         .d5b-k::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px;
-                       background:var(--gold,#e0ae4a);}
+                       background:var(--gold,#e8b43a);}
         .d5b-rail{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;}
         .d5b-rail::-webkit-scrollbar{display:none;}
         .d5b-row{display:flex;gap:6px;width:max-content;padding:1px 0;}
@@ -121,7 +121,7 @@ export default function DailyFiveBar({ slug }) {
         .d5b-n.done{color:#8ff0c4;}
         /* The hand-off. It is the whole reason the bar exists, so it is the one
            filled control on it and it names the game rather than saying "next". */
-        .d5b-next{flex:none;background:var(--gold,#e0ae4a);color:#3a2a05;border-radius:7px;
+        .d5b-next{flex:none;background:var(--gold,#e8b43a);color:#3a2a05;border-radius:7px;
                   padding:6px 12px;font-size:10.5px;font-weight:800;letter-spacing:.05em;
                   text-decoration:none;white-space:nowrap;}
         .d5b-next:hover{background:#f0c65c;}

@@ -1675,7 +1675,7 @@ export default function DailyEndCard({
         .dec-cap{display:flex;align-items:center;gap:10px;margin:-20px -22px 0;padding:10px 52px 10px 18px;background:${NAVY};}
         .dec-cap .mk{width:19px;height:19px;border-radius:5px;background:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .dec-cap .wm{font-family:${SANS};font-size:13px;font-weight:800;letter-spacing:-.01em;color:var(--white);}
-        .dec-cap .wm i{font-style:normal;color:var(--coral-light);}
+        .dec-cap .wm i{font-style:normal;color:#60a5fa;}
         .dec-cap .gm{font-family:${SANS};font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#a9c0f0;border-left:1px solid rgba(255,255,255,.22);padding-left:10px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
         /* Hero: verdict | gain | identity, on one line. The gain used to
@@ -2677,7 +2677,7 @@ export default function DailyEndCard({
         .d5e-lbr .r{flex:none;width:15px;color:#93aae2;font-weight:800;font-variant-numeric:tabular-nums;}
         .d5e-lbr .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .d5e-lbr .v{flex:none;font-weight:800;font-variant-numeric:tabular-nums;}
-        .d5e-lbr.first{background:rgba(224,174,74,.18);}
+        .d5e-lbr.first{background:rgba(232,180,58,.18);}
         .d5e-lbr.me{background:rgba(37,99,235,.30);}
         .d5e-lb .empty{font-size:11.5px;font-weight:700;color:#93aae2;}
         /* Retry stands in for the hand-off when the position is unsolved, so
